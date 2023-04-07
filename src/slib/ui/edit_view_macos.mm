@@ -91,6 +91,13 @@ namespace slib
 			return nil;
 		}
 
+		class EditViewHelper : public EditView
+		{
+		public:
+			using EditView::_onChange_NW;
+			using EditView::_onPostChange_NW;
+		};
+
 		class EditViewInstance : public macOS_ViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
@@ -275,7 +282,7 @@ namespace slib
 					if (view->isChangeEventEnabled()) {
 						String text = Apple::getStringFromNSString([control stringValue]);
 						String textNew = text;
-						view->dispatchChange(textNew);
+						((EditViewHelper*)(view.get()))->_onChange_NW(this, textNew);
 						if (text != textNew) {
 							NSString* str = Apple::getNSStringFromString(textNew, @"");
 							[control setStringValue:str];
@@ -283,7 +290,7 @@ namespace slib
 					} else {
 						view->invalidateText();
 					}
-					view->dispatchPostChange();
+					((EditViewHelper*)(view.get()))->_onPostChange_NW();
 				}
 			}
 
@@ -522,7 +529,7 @@ namespace slib
 					if (view->isChangeEventEnabled()) {
 						String text = Apple::getStringFromNSString([control->m_textView string]);
 						String textNew = text;
-						view->dispatchChange(textNew);
+						((EditViewHelper*)(view.get()))->_onChange_NW(this, textNew);
 						if (text != textNew) {
 							NSString* str = Apple::getNSStringFromString(textNew, @"");
 							[control->m_textView setString:str];
@@ -530,7 +537,7 @@ namespace slib
 					} else {
 						view->invalidateText();
 					}
-					view->dispatchPostChange();
+					((EditViewHelper*)(view.get()))->_onPostChange_NW();
 				}
 			}
 

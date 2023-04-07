@@ -104,7 +104,7 @@ using namespace slib;
 		LogError("XgPush", "Error: %s", Apple::getStringFromNSString([error localizedDescription]));
 	} else {
 		String token = Apple::getStringFromNSString(deviceToken);
-		XgPush::getInstance()->dispatchRefreshToken(token);
+		XgPush::getInstance()->invokeRefreshToken(token);
 	}
 }
 
@@ -118,7 +118,7 @@ using namespace slib;
 		PushNotificationMessage message;
 		if (UIPlatform::parseRemoteNotificationInfo(userInfo, message)) {
 			message.flagClicked = sl_false;
-			XgPush::getInstance()->dispatchReceiveMessage(message);
+			XgPush::getInstance()->invokeReceiveMessage(message);
 		}
 		completionHandler(UNNotificationPresentationOptionBadge | UNNotificationPresentationOptionSound | UNNotificationPresentationOptionAlert);
 	}
@@ -134,7 +134,7 @@ using namespace slib;
 	NSDictionary* userInfo = response.notification.request.content.userInfo;
 	if (UIPlatform::parseRemoteNotificationInfo(userInfo, message)) {
 		message.flagClicked = sl_true;
-		XgPush::getInstance()->dispatchReceiveMessage(message);
+		XgPush::getInstance()->invokeReceiveMessage(message);
 	}
 	completionHandler();
 }

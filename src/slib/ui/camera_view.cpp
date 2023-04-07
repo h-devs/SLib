@@ -284,21 +284,14 @@ namespace slib
 		m_flagTouchFocus = flag;
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(CameraView, Capture, VideoCaptureFrame& frame)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(CameraView, Capture, (VideoCaptureFrame& frame), frame)
 
-	void CameraView::dispatchCapture(VideoCaptureFrame& frame)
+	void CameraView::onCapture(VideoCaptureFrame& frame)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Capture, frame)
-
 		updateCurrentFrame(frame);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(CameraView, TakePicture, Camera::TakePictureResult& result)
-
-	void CameraView::dispatchTakePicture(Camera::TakePictureResult& result)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(TakePicture, result)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(CameraView, TakePicture, (Camera::TakePictureResult& result), result)
 
 	void CameraView::onAttach()
 	{
@@ -394,12 +387,12 @@ namespace slib
 
 	void CameraView::_onCaptureCameraFrame(VideoCapture* capture, VideoCaptureFrame& frame)
 	{
-		dispatchCapture(frame);
+		invokeCapture(frame);
 	}
 
 	void CameraView::_onTakePicture(Camera::TakePictureResult& result)
 	{
-		dispatchTakePicture(result);
+		invokeTakePicture(result);
 		Ref<Button> button = getShutterButton();
 		if (button.isNotNull()) {
 			button->setEnabled(sl_true);

@@ -36,7 +36,7 @@ int main(int argc, const char * argv[])
 	window->setTitle("Browse Screens");
 	window->show();
 
-	lvUsers->setOnChangedSelection([viewScreen](ListBox*, UIEvent*) {
+	lvUsers->setOnChangeSelection([viewScreen](ListBox*, UIEvent*) {
 		viewScreen->setSource(sl_null);
 	});
 

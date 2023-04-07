@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -142,7 +142,9 @@ namespace slib
 		void setAutoVerticalScrolling(sl_bool flag = sl_true);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, String& value)
+		SLIB_DECLARE_EVENT_HANDLER(EditView, Changing, String& value, UIEvent* ev /* nullable */)
+
+		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, const String& value, UIEvent* ev /* nullable */)
 
 		SLIB_DECLARE_EVENT_HANDLER(EditView, PostChange)
 
@@ -165,6 +167,13 @@ namespace slib
 
 	protected:
 		void onKeyEvent(UIEvent* ev) override;
+
+	protected:
+		void _change(IEditViewInstance* instance, String& text, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void _onChange_NW(IEditViewInstance* instance, String& text);
+
+		void _onPostChange_NW();
 
 	protected:
 		sl_bool m_flagInvalidateText : 1;

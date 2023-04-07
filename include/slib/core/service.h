@@ -55,11 +55,6 @@ namespace slib
 
 		String getApplicationId() override;
 
-	protected:
-		virtual sl_bool dispatchStartService();
-
-		virtual void dispatchStopService();
-
 	public:
 		sl_bool startService();
 

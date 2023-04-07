@@ -1322,7 +1322,7 @@ namespace slib
 	{
 		ObjectLocker locker(this);
 		Ref<TreeViewItem> former = m_itemSelected;
-		if (old == item) {
+		if (former == item) {
 			return;
 		}
 		m_itemSelected = item;

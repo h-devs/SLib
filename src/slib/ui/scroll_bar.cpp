@@ -566,6 +566,7 @@ namespace slib
 
 	void ScrollBar::_changeValue(sl_scroll_pos value, UIEvent* ev, UIUpdateMode mode)
 	{
+		ObjectLocker locker(this);
 		value = _normalizeValue(value);
 		if (Math::isAlmostZero(value - m_value)) {
 			m_value = value;
@@ -579,6 +580,7 @@ namespace slib
 		}
 		m_value = value;
 		invalidate(mode);
+		locker.unlock();
 		invokeChange(value, ev);
 	}
 

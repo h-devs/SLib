@@ -97,6 +97,7 @@ namespace slib
 
 	void CheckBox::handleChangeValue(sl_bool value, UIEvent* ev, UIUpdateMode mode)
 	{
+		ObjectLocker locker(this);
 		if (m_flagChecked == value) {
 			return;
 		}
@@ -110,6 +111,7 @@ namespace slib
 		} else {
 			setCurrentCategory(value ? 1 : 0, mode);
 		}
+		locker.unlock();
 		invokeChange(value, ev);
 	}
 

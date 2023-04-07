@@ -441,11 +441,11 @@ namespace slib
 	protected:
 		virtual Variant onRequest(HttpServerContext* context);
 
-		Variant dispatchRequest(HttpServerContext* context);
+		Variant handleRequest(HttpServerContext* context);
 
 		virtual void onPostRequest(HttpServerContext* context);
 
-		void dispatchPostRequest(HttpServerContext* context);
+		void handlePostRequest(HttpServerContext* context);
 
 	public:
 		void addConnectionProvider(const Ref<HttpServerConnectionProvider>& provider);

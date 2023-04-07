@@ -53,9 +53,9 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ComboBox, SelectItem, sl_int32 index, sl_int32 former, UIEvent* ev /* nullable */)
 
-		SLIB_DECLARE_EVENT_HANDLER(ComboBox, Changing, String& value, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(ComboBox, Changing, String& text, UIEvent* ev /* nullable */)
 
-		SLIB_DECLARE_EVENT_HANDLER(ComboBox, Change, const String& value, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(ComboBox, Change, const String& text, UIEvent* ev /* nullable */)
 
 		SLIB_DECLARE_EVENT_HANDLER(ComboBox, ReturnKey)
 
@@ -63,7 +63,7 @@ namespace slib
 		void onUpdateLayout() override;
 
 	public:
-		void dispatchKeyEvent(UIEvent* ev) override;
+		void onKeyEvent(UIEvent* ev) override;
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
@@ -74,10 +74,10 @@ namespace slib
 		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(ComboBox, sl_int32)
 
 	private:
-		String _changeText(const String& text, UIEvent* ev, UIUpdateMode mode);
+		void _changeText(IComboBoxInstance* instance, String& text, UIEvent* ev, UIUpdateMode mode);
 
 	protected:
-		String _onChange_NW(const String& text);
+		void _onChange_NW(IComboBoxInstance* instance, String& text);
 
 		void _onSelectItem_NW(sl_int32 index);
 

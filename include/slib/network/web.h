@@ -107,9 +107,9 @@ namespace slib
 		const Ref<WebController>& getController();
 
 	protected:
-		sl_bool dispatchStartService() override;
+		sl_bool onStartService() override;
 
-		void dispatchStopService() override;
+		void onStopService() override;
 
 		sl_bool onHttpRequest(HttpServerContext*);
 

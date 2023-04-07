@@ -113,7 +113,7 @@ namespace slib
 				}
 				MobileApp::Current::invokeCreateActivity();
 			}
-			Locale::dispatchChangeCurrentLocale();
+			Locale::onChangeCurrentLocale();
 		}
 
 		void OnDestroyActivity(JNIEnv* env, jobject _this, jobject activity)
@@ -144,7 +144,7 @@ namespace slib
 		void OnConfigurationChanged(JNIEnv* env, jobject _this, jobject activity)
 		{
 			Log("Activity", "onConfigurationChanged");
-			Locale::dispatchChangeCurrentLocale();
+			Locale::onChangeCurrentLocale();
 		}
 
 		void OnChangeWindowInsets(JNIEnv* env, jobject _this, jobject activity)

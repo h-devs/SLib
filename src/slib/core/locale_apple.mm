@@ -36,7 +36,7 @@
 @implementation SLIBLocaleChangedNotificationObserver
 -(void)onChangeLocale:(NSNotification*)notification
 {
-	slib::Locale::dispatchChangeCurrentLocale();
+	slib::Locale::onChangeCurrentLocale();
 }
 @end
 #endif

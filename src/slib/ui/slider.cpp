@@ -590,11 +590,16 @@ namespace slib
 
 	void Slider::_changeValue(float value, UIEvent* ev, UIUpdateMode mode)
 	{
+		ObjectLocker locker(this);
 		value = refineValue(value);
 		if (ev && m_flagDualValues) {
 			if (value > m_value2) {
 				value = m_value2;
 			}
+		}
+		if (Math::isAlmostZero(value - m_value)) {
+			m_value = value;
+			return;
 		}
 		invokeChanging(value, ev);
 		value = refineValue(value);
@@ -605,15 +610,17 @@ namespace slib
 		}
 		if (Math::isAlmostZero(value - m_value)) {
 			m_value = value;
-		} else {
-			m_value = value;
-			invokeChange(value, ev);
-			invalidate(mode);
+			return;
 		}
+		m_value = value;
+		invalidate(mode);
+		locker.unlock();
+		invokeChange(value, ev);
 	}
 
 	void Slider::_changeValue2(float value, UIEvent* ev, UIUpdateMode mode)
 	{
+		ObjectLocker locker(this);
 		if (!m_flagDualValues) {
 			return;
 		}
@@ -623,6 +630,10 @@ namespace slib
 				value = m_value;
 			}
 		}
+		if (Math::isAlmostZero(value - m_value2)) {
+			m_value2 = value;
+			return;
+		}
 		invokeChangingSecondary(value, ev);
 		value = refineValue(value);
 		if (value < m_value) {
@@ -630,11 +641,12 @@ namespace slib
 		}
 		if (Math::isAlmostZero(value - m_value2)) {
 			m_value2 = value;
-		} else {
-			m_value2 = value;
-			invokeChangeSecondary(value, ev);
-			invalidate(mode);
+			return;
 		}
+		m_value2 = value;
+		invalidate(mode);
+		locker.unlock();
+		invokeChangeSecondary(value, ev);
 	}
 
 	ViewState Slider::_getThumbState(int index)

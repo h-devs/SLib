@@ -41,8 +41,8 @@ void MainPage::initPage()
 void MainPage::onOpen()
 {
 
-	switchSetDefault->setOnChange([](SwitchView*, sl_bool value, UIEvent*) {
-		if (value) {
+	switchSetDefault->setOnChange([](SwitchView*, SwitchValue value, UIEvent*) {
+		if (value == SwitchValue::On) {
 			Application::setDefaultCallingApp([]() {
 				Println("Set Default Calling App Result: %d", Application::isDefaultCallingApp());
 			});
@@ -50,7 +50,7 @@ void MainPage::onOpen()
 			Application::openDefaultAppsSetting();
 		}
 	});
-	switchSystemOverlay->setOnChange([](SwitchView*, sl_bool value, UIEvent*) {
+	switchSystemOverlay->setOnChange([](SwitchView*, SwitchValue value, UIEvent*) {
 		Application::openSystemOverlaySetting();
 	});
 

@@ -38,17 +38,17 @@ namespace slib
 		class ComboBoxHelper : public ComboBox
 		{
 		public:
-			void onChange(HWND handle)
+			void onChange(IComboBoxInstance* instance, HWND handle)
 			{
 				String text = UIPlatform::getWindowText(handle);
-				String modified = _onChange_NW(text);
-				if (text != modified) {
-					UIPlatform::setWindowText(handle, modified);
+				String textNew = text;
+				 _onChange_NW(instance, textNew);
+				if (text != textNew) {
+					UIPlatform::setWindowText(handle, textNew);
 				}
 			}
 
 			using ComboBox::_onSelectItem_NW;
-
 		};
 
 		LRESULT CALLBACK EditChildSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
@@ -200,7 +200,7 @@ namespace slib
 				} else if (code == CBN_EDITCHANGE) {
 					Ref<ComboBoxHelper> helper = CastRef<ComboBoxHelper>(getView());
 					if (helper.isNotNull()) {
-						helper->onChange(m_handle);
+						helper->onChange(this, m_handle);
 						result = 0;
 						return sl_true;
 					}

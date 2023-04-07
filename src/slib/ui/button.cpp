@@ -820,7 +820,7 @@ namespace slib
 	void Button::onMnemonic(UIEvent* ev)
 	{
 		setFocus();
-		dispatchClickEvent(ev);
+		invokeClickEvent(ev);
 		ev->stopPropagation();
 	}
 
@@ -905,9 +905,14 @@ namespace slib
 			cell->setView(this, sl_true);
 			cell->text = m_text;
 			cell->category = m_flagDefaultButton ? 1 : 0;
-			cell->onClick = SLIB_FUNCTION_WEAKREF(this, dispatchClickEvent);
+			cell->onClick = SLIB_FUNCTION_WEAKREF(this, _invokeClickEvent);
 			m_cell = cell;
 		}
+	}
+
+	void Button::_invokeClickEvent(UIEvent* ev)
+	{
+		invokeClickEvent(ev);
 	}
 
 

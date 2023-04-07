@@ -38,20 +38,20 @@ namespace slib
 		class EditViewHelper : public EditView
 		{
 		public:
-			void onChange(Win32_ViewInstance* instance, HWND handle)
+			void onChange(Win32_ViewInstance* instance, IEditViewInstance* instance2, HWND handle)
 			{
 				if (isChangeEventEnabled()) {
 					String textOld = m_text;
 					String text = UIPlatform::getWindowText(handle);
 					String textNew = text;
-					dispatchChange(textNew);
+					_onChange_NW(instance2, textNew);
 					if (text != textNew) {
 						instance->setText(textNew);
 					}
 				} else {
 					invalidateText();
 				}
-				dispatchPostChange();
+				_onPostChange_NW();
 			}
 
 		};
@@ -318,7 +318,7 @@ namespace slib
 					{
 						Ref<EditViewHelper> helper = CastRef<EditViewHelper>(getView());
 						if (helper.isNotNull()) {
-							helper->onChange(this, m_handle);
+							helper->onChange(this, this, m_handle);
 							result = 0;
 							return sl_true;
 						}
@@ -686,7 +686,7 @@ namespace slib
 					{
 						Ref<EditViewHelper> helper = CastRef<EditViewHelper>(getView());
 						if (helper.isNotNull()) {
-							helper->onChange(this, m_handle);
+							helper->onChange(this, this, m_handle);
 							result = 0;
 							_refreshHintText();
 							return sl_true;

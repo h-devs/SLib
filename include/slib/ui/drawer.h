@@ -72,7 +72,7 @@ namespace slib
 
 		void dispatchTouchEvent(UIEvent* ev) override;
 
-		void onCancel(UIEvent* ev) override;
+		void onCancel() override;
 
 	private:
 		void _onEndOpenAnimation();

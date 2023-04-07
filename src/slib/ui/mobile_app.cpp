@@ -435,10 +435,11 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(MobileApp, ChangeCurrentLocale, ())
+	SLIB_DEFINE_EVENT_HANDLER(MobileApp, ChangeCurrentLocale, ())
 
 	void MobileApp::handleChangeCurrentLocale()
 	{
+		invokeChangeCurrentLocale();
 		if (m_navigationController->getPageCount() > 0) {
 			openStartupPage();
 		}

@@ -633,12 +633,7 @@ namespace slib
 		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _updateListContent, UIUpdateMode::UpdateLayout));
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ChatView, DeleteItem, const String& itemId)
-
-	void ChatView::dispatchDeleteItem(const String& itemId)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(DeleteItem, itemId)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(ChatView, DeleteItem, (const String& itemId), itemId)
 
 	void ChatView::onResize(sl_ui_len width, sl_ui_len height)
 	{
@@ -742,8 +737,8 @@ namespace slib
 		}
 		if (flagFound) {
 			items.list.removeAt(index);
-			dispatchDeleteItem(itemId);
 			refreshItems();
+			invokeDeleteItem(itemId);
 		}
 	}
 

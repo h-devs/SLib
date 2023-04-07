@@ -226,9 +226,9 @@ namespace slib
 		void start();
 
 	public:
-		void dispatchRefreshToken(const String& deviceToken);
+		void invokeRefreshToken(const String& deviceToken);
 
-		void dispatchReceiveMessage(PushNotificationMessage& message);
+		void invokeReceiveMessage(PushNotificationMessage& message);
 
 	protected:
 		virtual void onStart();

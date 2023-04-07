@@ -290,6 +290,8 @@ namespace slib
 	private:
 		void _initCell();
 
+		void _invokeClickEvent(UIEvent* ev);
+
 	protected:
 		AtomicString m_text;
 		sl_bool m_flagDefaultButton;

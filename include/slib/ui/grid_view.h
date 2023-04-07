@@ -332,11 +332,13 @@ namespace slib
 		void setHeaderSpan(sl_uint32 row, sl_uint32 column, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterSpan(sl_uint32 row, sl_uint32 column, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Ref<Cell> getVisibleCell(RecordIndex record, sl_uint32 row, sl_uint32 column);
+
 		sl_int64 getSelectedRecord();
 		sl_int32 getSelectedRow();
 		sl_int32 getSelectedColumn();
 
-		void selectCell(sl_uint32 row, sl_uint32 column, sl_uint64 record = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void select(sl_int32 row, sl_int32 column, sl_int64 record = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void selectRecord(sl_uint64 record, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void selectRow(sl_uint32 row, sl_uint64 record = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void selectColumn(sl_uint32 column, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -351,11 +353,12 @@ namespace slib
 		sl_int32 getColumnAt(sl_ui_pos x);
 
 		sl_bool getCellAt(sl_ui_pos x, sl_ui_pos y, sl_uint32* outRow = sl_null, sl_uint32* outColumn = sl_null, RecordIndex * outRecord = sl_null);
+		Ref<Cell> getVisibleCellAt(sl_ui_pos x, sl_ui_pos y);
 
 		ViewState getCellState(Cell* cell);
 
 	public:
-		class Location
+		class Selection
 		{
 		public:
 			sl_int64 record;
@@ -363,29 +366,21 @@ namespace slib
 			sl_int32 column;
 
 		public:
-			Location();
-			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Location)
+			Selection();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Selection)
 
 		public:
-			sl_bool operator==(const Location& other) const;
+			sl_bool operator==(const Selection& other) const;
 
 		public:
 			sl_bool match(Cell* cell);
 		};
 
-		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickBody, const Location&, UIEvent*)
-		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickHeader, const Location&, UIEvent*)
-		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickFooter, const Location&, UIEvent*)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickCell, Cell*, UIEvent*)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickCell, Cell*, UIEvent*)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickCell, Cell*, UIEvent*)
 
-		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickBody, const Location&, UIEvent*)
-		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickHeader, const Location&, UIEvent*)
-		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickFooter, const Location&, UIEvent*)
-
-		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickBody, const Location&, UIEvent*)
-		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickHeader, const Location&, UIEvent*)
-		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickFooter, const Location&, UIEvent*)
-
-		SLIB_DECLARE_EVENT_HANDLER(GridView, Select, const Location& location, const Location& former, UIEvent*)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, Select, const Selection& selection, const Selection& former, UIEvent* /* nullable */)
 
 	public:
 		void onDraw(Canvas* canvas) override;
@@ -462,7 +457,7 @@ namespace slib
 
 		RecordIndex _getRowAt(sl_int32* outRow, sl_ui_pos y, sl_bool flagRecord, sl_bool flagHeader, sl_bool flagFooter);
 
-		void _select(const Location& location, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void _select(const Selection& selection, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void _drawRecords(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn);
 		void _drawHeader(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn);
@@ -482,7 +477,7 @@ namespace slib
 
 		Cell* _getFixedCell(FixedCellProp& prop, RecordIndex iRecord, sl_uint32 iRow, sl_uint32 iCol);
 
-		sl_bool _prepareMouseEventParam(UIEvent* ev, Location& location);
+		Ref<Cell> _getEventCell(UIEvent* ev);
 
 		void _invalidateBodyCells();
 		void _invalidateBodyCells(Column& column, sl_uint32 iCol);
@@ -515,8 +510,8 @@ namespace slib
 		AtomicRef<Drawable> m_backgroundHeader;
 		AtomicRef<Drawable> m_backgroundFooter;
 
-		Location m_locationHover;
-		Location m_locationSelected;
+		Selection m_hover;
+		Selection m_selection;
 
 		Atomic<DataFunction> m_recordData;
 

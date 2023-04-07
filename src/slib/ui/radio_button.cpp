@@ -288,7 +288,7 @@ namespace slib
 
 	void RadioGroup::_select(RadioButton* button, UIEvent* ev, UIUpdateMode mode)
 	{
-		ObjectLocker lock(this);
+		ObjectLocker locker(this);
 		Ref<RadioButton> former = m_buttonSelected;
 		if (button == former) {
 			return;
@@ -297,6 +297,7 @@ namespace slib
 		if (former.isNotNull()) {
 			former->setChecked(sl_false, mode);
 		}
+		locker.unlock();
 		invokeSelect(button, former.get(), ev);
 	}
 

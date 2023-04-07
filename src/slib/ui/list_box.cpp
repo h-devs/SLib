@@ -327,6 +327,7 @@ namespace slib
 		}
 		m_indexSelected = index;
 		locker->unlock();
+		invalidate(mode);
 		invokeSelectItem(index, former, ev);
 		invokeChangeSelection(ev);
 	}
@@ -529,6 +530,8 @@ namespace slib
 	SLIB_DEFINE_EVENT_HANDLER(ListBox, DoubleClickItem, (sl_uint64 index, UIEvent* ev), index, ev)
 
 	SLIB_DEFINE_EVENT_HANDLER(ListBox, ChangeSelection, (UIEvent* ev), ev)
+
+	SLIB_DEFINE_EVENT_HANDLER(ListBox, SelectItem, (sl_int64 index, sl_int64 former, UIEvent* ev /* nullable */), index, former, ev)
 
 	void ListBox::onDraw(Canvas* canvas)
 	{

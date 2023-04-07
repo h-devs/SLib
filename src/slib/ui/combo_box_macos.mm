@@ -63,7 +63,6 @@ namespace slib
 
 			using ComboBox::_onChange_NW;
 			using ComboBox::_onSelectItem_NW;
-
 		};
 
 		class ComboBoxInstance : public macOS_ViewInstance, public IComboBoxInstance

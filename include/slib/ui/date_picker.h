@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -47,10 +47,17 @@ namespace slib
 		virtual void setDate(const Time& date, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(DatePicker, Change, Time& date)
+		SLIB_DECLARE_EVENT_HANDLER(DatePicker, Changing, Time& date, UIEvent* ev /* nullable */)
+
+		SLIB_DECLARE_EVENT_HANDLER(DatePicker, Change, const Time& date, UIEvent* ev /* nullable */)
 
 	protected:
 		void onUpdateLayout() override;
+
+	protected:
+		void _change(IDatePickerInstance* instance, Time& date, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void _onChange_NW(IDatePickerInstance* instance, Time& date);
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;

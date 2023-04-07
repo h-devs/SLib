@@ -158,9 +158,9 @@ namespace slib
 
 		void ServiceHelper::_run()
 		{
-			if (!(dispatchStartService())) {
+			if (!(onStartService())) {
 				ReportServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, 0);
-				dispatchStopService();
+				onStopService();
 				ReportServiceStatus(SERVICE_STOPPED, NO_ERROR, 0);
 				return;
 			}
@@ -170,7 +170,7 @@ namespace slib
 				g_eventStop->wait(1000);
 			}
 
-			dispatchStopService();
+			onStopService();
 			ReportServiceStatus(SERVICE_STOPPED, NO_ERROR, 0);
 		}
 

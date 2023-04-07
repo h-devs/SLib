@@ -157,6 +157,13 @@ namespace slib
 			return 0;
 		}
 
+		class EditViewHelper : public EditView
+		{
+		public:
+			using EditView::_onChange_NW;
+			using EditView::_onPostChange_NW;
+		};
+
 		class EditViewInstance : public iOS_ViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
@@ -358,7 +365,7 @@ namespace slib
 					if (view->isChangeEventEnabled()) {
 						String text = Apple::getStringFromNSString([control text]);
 						String textNew = text;
-						view->dispatchChange(textNew);
+						((EditViewHelper*)(view.get()))->_onChange_NW(this, textNew);
 						if (text != textNew) {
 							NSString* str = Apple::getNSStringFromString(textNew, @"");
 							[control setText:str];
@@ -366,7 +373,7 @@ namespace slib
 					} else {
 						view->invalidateText();
 					}
-					view->dispatchPostChange();
+					((EditViewHelper*)(view.get()))->_onPostChange_NW();
 				}
 			}
 
@@ -374,7 +381,7 @@ namespace slib
 			{
 				Ref<EditView> view = CastRef<EditView>(getView());
 				if (view.isNotNull()) {
-					view->dispatchReturnKey();
+					view->invokeReturnKey();
 				}
 			}
 
@@ -635,7 +642,7 @@ namespace slib
 					if (view->isChangeEventEnabled()) {
 						String text = Apple::getStringFromNSString([control text]);
 						String textNew = text;
-						view->dispatchChange(textNew);
+						((EditViewHelper*)(view.get()))->_onChange_NW(this, textNew);
 						if (text != textNew) {
 							NSString* str = Apple::getNSStringFromString(textNew, @"");
 							[control setText:str];
@@ -643,7 +650,7 @@ namespace slib
 					} else {
 						view->invalidateText();
 					}
-					view->dispatchPostChange();
+					((EditViewHelper*)(view.get()))->_onPostChange_NW();
 				}
 			}
 
@@ -651,7 +658,7 @@ namespace slib
 			{
 				Ref<TextArea> view = CastRef<TextArea>(getView());
 				if (view.isNotNull()) {
-					view->dispatchReturnKey();
+					view->invokeReturnKey();
 					if (view->getMultiLine() == MultiLineMode::Single && view->isAutoDismissKeyboard()) {
 						[control resignFirstResponder];
 					}

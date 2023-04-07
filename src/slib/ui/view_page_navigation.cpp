@@ -176,7 +176,7 @@ namespace slib
 
 		_resetAnimationStatus(viewIn);
 		if (animationPush.isNotNull()) {
-			animationPush->dispatchStartFrame();
+			animationPush->invokeStartFrame();
 		}
 
 		addChild(viewIn);
@@ -199,7 +199,7 @@ namespace slib
 		invokePageAction(viewIn.get(), UIPageAction::Resume);
 
 		if (animationPause.isNotNull()) {
-			animationPause->dispatchStartFrame();
+			animationPause->invokeStartFrame();
 		}
 
 		viewIn->bringToFront(UIUpdateMode::None);
@@ -330,7 +330,7 @@ namespace slib
 
 		_resetAnimationStatus(viewBack);
 		if (animationResume.isNotNull()) {
-			animationResume->dispatchStartFrame();
+			animationResume->invokeStartFrame();
 		}
 
 		addChild(viewBack, UIUpdateMode::None);

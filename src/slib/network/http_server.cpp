@@ -1361,7 +1361,7 @@ namespace slib
 				context->getHost());
 		}
 
-		Variant result = dispatchRequest(context);
+		Variant result = handleRequest(context);
 		if (result.isVariantPromise()) {
 			Promise<Variant> promise = result.getVariantPromise();
 			if (promise.isNotNull()) {
@@ -1438,7 +1438,7 @@ namespace slib
 			} while (0);
 			context->setProcessed();
 		}
-		dispatchPostRequest(context);
+		handlePostRequest(context);
 		connection->completeContext(context);
 	}
 
@@ -1746,7 +1746,7 @@ namespace slib
 		return sl_false;
 	}
 
-	Variant HttpServer::dispatchRequest(HttpServerContext* context)
+	Variant HttpServer::handleRequest(HttpServerContext* context)
 	{
 		if (m_param.onPreRequest.isNotNull()) {
 			Variant result = m_param.onPreRequest(context);
@@ -1779,7 +1779,7 @@ namespace slib
 	{
 	}
 
-	void HttpServer::dispatchPostRequest(HttpServerContext* context)
+	void HttpServer::handlePostRequest(HttpServerContext* context)
 	{
 		if (m_param.flagAllowCrossOrigin) {
 			SLIB_STATIC_STRING(s, "*")

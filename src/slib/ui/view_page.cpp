@@ -260,7 +260,7 @@ namespace slib
 		invokeResume();
 
 		if (animation.isNotNull()) {
-			animation->dispatchStartFrame();
+			animation->invokeStartFrame();
 		}
 
 		setVisibility(Visibility::Visible);

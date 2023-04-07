@@ -1331,10 +1331,10 @@ namespace slib
 #define SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(CLASS, NAME, ...) \
 	public: \
 		typedef slib::Function<void(CLASS* sender, ##__VA_ARGS__)> On##NAME; \
-		On##NAME getOn##NAME() const; \
-		On##NAME setOn##NAME(const On##NAME& handler); \
-		On##NAME addOn##NAME(const On##NAME& handler); \
-		void removeOn##NAME(const On##NAME& handler); 
+		slib::Function<void(CLASS* sender, ##__VA_ARGS__)> getOn##NAME() const; \
+		On##NAME setOn##NAME(const slib::Function<void(CLASS* sender, ##__VA_ARGS__)>& handler); \
+		On##NAME addOn##NAME(const slib::Function<void(CLASS* sender, ##__VA_ARGS__)>& handler); \
+		void removeOn##NAME(const slib::Function<void(CLASS* sender, ##__VA_ARGS__)>& handler); 
 
 #define SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(CLASS, NAME, ...) \
 	SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(CLASS, NAME, ##__VA_ARGS__); \
@@ -1343,9 +1343,9 @@ namespace slib
 		void invoke##NAME(__VA_ARGS__);
 
 #define SLIB_DECLARE_EVENT_HANDLER(CLASS, NAME, ...) \
-	SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(CLASS, NAME, ##__VA_ARGS__) \
 	protected: \
-		slib::Atomic<On##NAME> m_eventHandler_on##NAME; \
+		slib::AtomicFunction<void(CLASS* sender, ##__VA_ARGS__)> m_eventHandler_on##NAME; \
+	SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(CLASS, NAME, ##__VA_ARGS__)
 
 #define SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(CLASS, NAME, DEFINE_ARGS, ...) \
 	CLASS::On##NAME CLASS::getOn##NAME() const { return m_eventHandler_on##NAME; } \

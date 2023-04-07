@@ -156,25 +156,22 @@ namespace slib
 		return m_controller;
 	}
 
-	sl_bool WebService::dispatchStartService()
+	sl_bool WebService::onStartService()
 	{
-		if (Service::dispatchStartService()) {
-			m_http = HttpServer::create(m_httpParam);
-			if (m_http.isNotNull()) {
-				return sl_true;
-			}
+		m_http = HttpServer::create(m_httpParam);
+		if (m_http.isNotNull()) {
+			return sl_true;
 		}
 		return sl_false;
 	}
 
-	void WebService::dispatchStopService()
+	void WebService::onStopService()
 	{
 		if (m_http.isNotNull()) {
 			m_http->release();
 			m_http.setNull();
 		}
 		m_controller.setNull();
-		Service::dispatchStopService();
 	}
 
 	sl_bool WebService::onHttpRequest(HttpServerContext* context)

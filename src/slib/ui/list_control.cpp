@@ -446,7 +446,7 @@ namespace slib
 
 	void ListControl::_onClickRow_NW(sl_uint32 row, const UIPoint& pt)
 	{
-		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::LeftButtonDown, pt.x, pt.y, Time::now());
+		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::LeftButtonDown, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), Time::now());
 		if (ev.isNotNull()) {
 			invokeClickRow(row, ev.get());
 		}
@@ -456,7 +456,7 @@ namespace slib
 
 	void ListControl::_onRightButtonClickRow_NW(sl_uint32 row, const UIPoint& pt)
 	{
-		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::RightButtonDown, pt.x, pt.y, Time::now());
+		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::RightButtonDown, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), Time::now());
 		if (ev.isNotNull()) {
 			invokeRightButtonClickRow(row, ev.get());
 		}
@@ -466,7 +466,7 @@ namespace slib
 
 	void ListControl::_onDoubleClickRow_NW(sl_uint32 row, const UIPoint& pt)
 	{
-		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::LeftButtonDoubleClick, pt.x, pt.y, Time::now());
+		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::LeftButtonDoubleClick, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), Time::now());
 		if (ev.isNotNull()) {
 			invokeDoubleClickRow(row, ev.get());
 		}
@@ -489,7 +489,7 @@ namespace slib
 
 	void ListControl::_onClickHeader_NW(sl_uint32 column, const UIPoint& pt)
 	{
-		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::LeftButtonDown, pt.x, pt.y, Time::now());
+		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::LeftButtonDown, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), Time::now());
 		if (ev.isNotNull()) {
 			invokeClickHeader(column, ev.get());
 		}

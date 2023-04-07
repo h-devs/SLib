@@ -94,12 +94,7 @@ namespace slib
 		CameraView::stop();
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ZXingScanner, Detect, const String& code)
-
-	void ZXingScanner::dispatchDetect(const String& code)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Detect, code)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(ZXingScanner, Detect, (const String& code), code)
 
 	void ZXingScanner::onDraw(Canvas* _canvas)
 	{
@@ -227,7 +222,7 @@ namespace slib
 		param.flagTryRotate = sl_true;
 		String text = ZXing::scan(param);
 		if (text.isNotNull()) {
-			dispatchDetect(text);
+			invokeDetect(text);
 		}
 	}
 

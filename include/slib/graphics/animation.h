@@ -212,13 +212,19 @@ namespace slib
 
 	public:
 		SLIB_PROPERTY_FUNCTION(void(), OnStop)
+
 		SLIB_DECLARE_EVENT_HANDLER(Animation, AnimationFrame, float seconds)
+		void handleAnimationFrame(float seconds);
+
 		SLIB_DECLARE_EVENT_HANDLER(Animation, RepeatAnimation, sl_int32 nRemainingRepeatCount)
+
 		SLIB_DECLARE_EVENT_HANDLER(Animation, StopAnimation)
+		void handleStopAnimation();
 
 	public:
-		void dispatchStartFrame();
-		void dispatchEndFrame();
+		void invokeStartFrame();
+
+		void invokeEndFrame();
 
 	private:
 		float _getTime(sl_uint32& iRepeat, sl_bool& flagStop);

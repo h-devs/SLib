@@ -45,6 +45,12 @@ namespace slib
 
 	namespace {
 
+		class DatePickerHelper : public DatePicker
+		{
+		public:
+			using DatePicker::_onChange_NW;
+		};
+
 		class DatePickerInstance : public macOS_ViewInstance, public IDatePickerInstance
 		{
 			SLIB_DECLARE_OBJECT
@@ -94,7 +100,7 @@ namespace slib
 					NSDate* date = *pValue;
 					Time time = Apple::getTimeFromNSDate(date);
 					Time old = time;
-					view->dispatchChange(time);
+					((DatePickerHelper*)(view.get()))->_onChange_NW(this, time);
 					if (old != time) {
 						*pValue = Apple::getNSDateFromTime(time);
 					}

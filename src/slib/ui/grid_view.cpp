@@ -219,18 +219,18 @@ namespace slib
 	{
 	}
 
-	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, Location)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, Selection)
 
-	GridView::Location::Location(): record(-1), row(-1), column(-1)
+	GridView::Selection::Selection(): record(-1), row(-1), column(-1)
 	{
 	}
 
-	sl_bool GridView::Location::operator==(const Location& other) const
+	sl_bool GridView::Selection::operator==(const Selection& other) const
 	{
 		return row == other.row && column == other.column && record == other.record;
 	}
 
-	sl_bool GridView::Location::match(Cell* cell)
+	sl_bool GridView::Selection::match(Cell* cell)
 	{
 		if (record < 0 && row < 0 && column < 0) {
 			return sl_false;
@@ -899,66 +899,88 @@ namespace slib
 	DEFINE_SET_ALL_SPAN(Header)
 	DEFINE_SET_ALL_SPAN(Footer)
 
+	Ref<GridView::Cell> GridView::getVisibleCell(RecordIndex record, sl_uint32 iRow, sl_uint32 iCol)
+	{
+		ObjectLocker lock(this);
+		if (record >= 0) {
+			List< Ref<Cell> > cells = m_mapRecordCache.getValue_NoLock(record);
+			if (cells.isNotNull()) {
+				return cells.getValueAt_NoLock(iRow + iCol * m_listBodyRow.getCount());
+			}
+		} else {
+			Column* col = m_columns.getPointerAt(iCol);
+			if (col) {
+				if (record == HEADER) {
+					HeaderCellProp* prop = col->listHeaderCell.getPointerAt(iRow);
+					if (prop) {
+						return prop->cell;
+					}
+				} else if (record == FOOTER) {
+					FooterCellProp* prop = col->listFooterCell.getPointerAt(iRow);
+					if (prop) {
+						return prop->cell;
+					}
+				}
+			}
+		}
+		return sl_null;
+	}
+
 	sl_int64 GridView::getSelectedRecord()
 	{
-		return m_locationSelected.record;
+		return m_selection.record;
 	}
 
 	sl_int32 GridView::getSelectedRow()
 	{
-		return m_locationSelected.row;
+		return m_selection.row;
 	}
 
 	sl_int32 GridView::getSelectedColumn()
 	{
-		return m_locationSelected.column;
+		return m_selection.column;
 	}
 
-	void GridView::selectCell(sl_uint32 row, sl_uint32 column, sl_uint64 record, UIUpdateMode mode)
+	void GridView::select(sl_int32 row, sl_int32 column, sl_int64 record, UIUpdateMode mode)
 	{
-		Location location;
-		location.record = record;
-		location.row = row;
-		location.column = column;
-		_select(location, sl_null, mode);
+		Selection selection;
+		selection.record = record;
+		selection.row = row;
+		selection.column = column;
+		_select(selection, sl_null, mode);
 	}
 
 	void GridView::selectRecord(sl_uint64 record, UIUpdateMode mode)
 	{
-		selectCell(-1, -1, record, mode);
+		select(-1, -1, record, mode);
 	}
 
 	void GridView::selectRow(sl_uint32 row, sl_uint64 record, UIUpdateMode mode)
 	{
-		selectCell(row, -1, record, mode);
+		select(row, -1, record, mode);
 	}
 
 	void GridView::selectColumn(sl_uint32 column, UIUpdateMode mode)
 	{
-		selectCell(-1, column, -1, mode);
+		select(-1, column, -1, mode);
 	}
 
 	void GridView::selectNone(UIUpdateMode mode)
 	{
-		selectCell(-1, -1, -1, mode);
+		select(-1, -1, -1, mode);
 	}
 
-	void GridView::_select(const Location& location, UIEvent* ev, UIUpdateMode mode)
+	void GridView::_select(const Selection& selection, UIEvent* ev, UIUpdateMode mode)
 	{
-		Location former = m_locationSelected;
-		if (former == location) {
+		ObjectLocker locker(this);
+		Selection former = m_selection;
+		if (former == selection) {
 			return;
 		}
-		m_locationSelected = location;
+		m_selection = selection;
+		locker.unlock();
 		invalidate(mode);
-
-		if (m_locationSelected.record != param.record || m_locationSelected.row != param.row || m_locationSelected.column != param.column) {
-			m_locationSelected.record = param.record;
-			m_locationSelected.row = param.row;
-			m_locationSelected.column = param.column;
-			invokeSelectCell(ev, param);
-		}
-
+		invokeSelect(selection, former, ev);
 	}
 
 	GridView::RecordIndex GridView::getRecordAt(sl_ui_pos y, sl_int32* outRow)
@@ -1178,10 +1200,20 @@ namespace slib
 		return sl_false;
 	}
 
+	Ref<GridView::Cell> GridView::getVisibleCellAt(sl_ui_pos x, sl_ui_pos y)
+	{
+		sl_uint32 iRow, iCol;
+		RecordIndex iRecord;
+		if (getCellAt(x, y, &iRow, &iCol, &iRecord)) {
+			return getVisibleCell(iRecord, iRow, iCol);
+		}
+		return sl_null;
+	}
+
 	ViewState GridView::getCellState(Cell* cell)
 	{
 		ViewState state;
-		if (m_locationHover.match(cell)) {
+		if (m_hover.match(cell)) {
 			if (isPressedState()) {
 				state = ViewState::Pressed;
 			} else {
@@ -1190,55 +1222,31 @@ namespace slib
 		} else {
 			state = ViewState::Normal;
 		}
-		if (m_locationSelected.match(cell)) {
+		if (m_selection.match(cell)) {
 			return (ViewState)((int)state + (int)(ViewState::Selected));
 		} else {
 			return state;
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(GridView, ClickBody, (const GridView::Location& location, UIEvent* ev), location, ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(GridView, ClickCell, (GridView::Cell* cell, UIEvent* ev), cell, ev)
 
-	void GridView::onClickBody(const Location& location, UIEvent* ev)
+	void GridView::onClickCell(Cell* cell, UIEvent* ev)
 	{
-		_select(location, ev);
+		if (cell->record >= 0) {
+			Selection selection;
+			selection.record = cell->record;
+			selection.row = cell->row;
+			selection.column = cell->column;
+			_select(selection, ev);
+		}
 	}
 
-#define DEFINE_ON_CLICK(SECTION) \
-	SLIB_DEFINE_EVENT_HANDLER(GridView, Click##SECTION, (UIEvent* ev, GridView::CellEventParam& param), ev, param) \
+	SLIB_DEFINE_EVENT_HANDLER(GridView, RightButtonClickCell, (GridView::Cell* cell, UIEvent* ev), cell, ev)
+	SLIB_DEFINE_EVENT_HANDLER(GridView, DoubleClickCell, (GridView::Cell* cell, UIEvent* ev), cell, ev)
 
-	DEFINE_ON_CLICK(Header)
-	DEFINE_ON_CLICK(Footer)
+	SLIB_DEFINE_EVENT_HANDLER(GridView, Select, (const GridView::Selection& selection, const GridView::Selection& former, UIEvent* ev), selection, former, ev)
 
-#define DEFINE_ON_RIGHT_BUTTON_CLICK(SECTION) \
-	SLIB_DEFINE_EVENT_HANDLER(GridView, RightButtonClick##SECTION, UIEvent*, GridView::CellEventParam&) \
-	void GridView::dispatchRightButtonClick##SECTION(UIEvent* ev, CellEventParam& param) \
-	{ \
-		SLIB_INVOKE_EVENT_HANDLER(RightButtonClick##SECTION, ev, param) \
-	}
-
-	DEFINE_ON_RIGHT_BUTTON_CLICK(Body)
-	DEFINE_ON_RIGHT_BUTTON_CLICK(Header)
-	DEFINE_ON_RIGHT_BUTTON_CLICK(Footer)
-
-#define DEFINE_ON_DOUBLE_CLICK(SECTION) \
-	SLIB_DEFINE_EVENT_HANDLER(GridView, DoubleClick##SECTION, UIEvent*, GridView::CellEventParam&) \
-	void GridView::dispatchDoubleClick##SECTION(UIEvent* ev, CellEventParam& param) \
-	{ \
-		SLIB_INVOKE_EVENT_HANDLER(DoubleClick##SECTION, ev, param) \
-	}
-
-	DEFINE_ON_DOUBLE_CLICK(Body)
-	DEFINE_ON_DOUBLE_CLICK(Header)
-	DEFINE_ON_DOUBLE_CLICK(Footer)
-
-	SLIB_DEFINE_EVENT_HANDLER(GridView, SelectCell, UIEvent*, GridView::CellEventParam&)
-
-	void GridView::dispatchSelectCell(UIEvent* ev, CellEventParam& param)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(SelectCell, ev, param)
-	}
-	
 	void GridView::onDraw(Canvas* canvas)
 	{
 		ObjectLocker lock(this);
@@ -1562,15 +1570,9 @@ namespace slib
 	{
 		View::onClickEvent(ev);
 
-		CellEventParam param;
-		if (_prepareMouseEventParam(ev, param)) {
-			if (param.record == HEADER) {
-				dispatchClickHeader(ev, param);
-			} else if (param.record == FOOTER) {
-				dispatchClickFooter(ev, param);
-			} else if (param.record >= 0) {
-				dispatchClickBody(ev, param);
-			}
+		Ref<Cell> cell = _getEventCell(ev);
+		if (cell.isNotNull()) {
+			invokeClickCell(cell.get(), ev);
 		}
 	}
 
@@ -1580,31 +1582,19 @@ namespace slib
 
 		UIAction action = ev->getAction();
 		switch (action) {
-			case UIAction::LeftButtonDown:
+			case UIAction::RightButtonDown:
 				{
-					CellEventParam param;
-					if (_prepareMouseEventParam(ev, param)) {
-						if (param.record == HEADER) {
-							dispatchRightButtonClickHeader(ev, param);
-						} else if (param.record == FOOTER) {
-							dispatchRightButtonClickHeader(ev, param);
-						} else if (param.record >= 0) {
-							dispatchRightButtonClickBody(ev, param);
-						}
+					Ref<Cell> cell = _getEventCell(ev);
+					if (cell.isNotNull()) {
+						invokeRightButtonClickCell(cell.get(), ev);
 					}
 				}
 				break;
 			case UIAction::LeftButtonDoubleClick:
 				{
-					CellEventParam param;
-					if (_prepareMouseEventParam(ev, param)) {
-						if (param.record == HEADER) {
-							dispatchDoubleClickHeader(ev, param);
-						} else if (param.record == FOOTER) {
-							dispatchDoubleClickHeader(ev, param);
-						} else if (param.record >= 0) {
-							dispatchDoubleClickBody(ev, param);
-						}
+					Ref<Cell> cell = _getEventCell(ev);
+					if (cell.isNotNull()) {
+						invokeDoubleClickCell(cell.get(), ev);
 					}
 				}
 				break;
@@ -1620,19 +1610,19 @@ namespace slib
 							record = -1;
 						}
 					}
-					if (m_locationHover.record != record || m_locationHover.row != row || m_locationHover.column != col) {
-						m_locationHover.record = record;
-						m_locationHover.row = row;
-						m_locationHover.column = col;
+					if (m_hover.record != record || m_hover.row != row || m_hover.column != col) {
+						m_hover.record = record;
+						m_hover.row = row;
+						m_hover.column = col;
 						invalidate();
 					}
 				}
 				break;
 			case UIAction::MouseLeave:
 				{
-					m_locationHover.record = -1;
-					m_locationHover.row = -1;
-					m_locationHover.column = -1;
+					m_hover.record = -1;
+					m_hover.row = -1;
+					m_hover.column = -1;
 					invalidate();
 				}
 				break;
@@ -1641,17 +1631,12 @@ namespace slib
 		}
 	}
 
-	sl_bool GridView::_prepareMouseEventParam(UIEvent* ev, CellEventParam& param)
+	Ref<GridView::Cell> GridView::_getEventCell(UIEvent* ev)
 	{
 		if (ev->isMouseEvent()) {
-			if (getCellAt((sl_ui_pos)(ev->getX()), (sl_ui_pos)(ev->getY()), &(param.row), &(param.column), &(param.record))) {
-				if (param.record >= 0) {
-					param.recordData = m_recordData(param.record);
-				}
-				return sl_true;
-			}
+			return getVisibleCellAt((sl_ui_pos)(ev->getX()), (sl_ui_pos)(ev->getY()));
 		}
-		return sl_false;
+		return sl_null;
 	}
 
 	void GridView::onKeyEvent(UIEvent* ev)
