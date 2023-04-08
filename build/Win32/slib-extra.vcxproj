@@ -121,25 +121,25 @@
     <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir)..\..\include;$(ProjectDir)..\..\external\include;$(IncludePath)</IncludePath>
-    <TargetName>extra</TargetName>
+    <TargetName>slib-extra</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir)..\..\include;$(ProjectDir)..\..\external\include;$(IncludePath)</IncludePath>
-    <TargetName>extra</TargetName>
+    <TargetName>slib-extra</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir)..\..\include;$(ProjectDir)..\..\external\include;$(IncludePath)</IncludePath>
-    <TargetName>extra</TargetName>
+    <TargetName>slib-extra</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(ProjectDir)..\..\lib\Win32\$(Configuration)-$(Platform)\</OutDir>
     <IncludePath>$(ProjectDir)..\..\include;$(ProjectDir)..\..\external\include;$(IncludePath)</IncludePath>
-    <TargetName>extra</TargetName>
+    <TargetName>slib-extra</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

@@ -105,10 +105,10 @@ namespace slib
 
 	void PickerView::onMouseEvent(UIEvent* ev)
 	{
-		View::onMouseEvent(ev);
 		if (m_cell.isNotNull()) {
 			m_cell->onMouseEvent(ev);
 		}
+		View::onMouseEvent(ev);
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(PickerView, SelectItem, (sl_uint32 index, sl_uint32 former, UIEvent* ev), index, former, ev)

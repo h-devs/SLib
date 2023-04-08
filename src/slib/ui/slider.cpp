@@ -227,8 +227,6 @@ namespace slib
 
 	void Slider::onMouseEvent(UIEvent* ev)
 	{
-		ProgressBar::onMouseEvent(ev);
-
 		UIAction action = ev->getAction();
 		sl_ui_pos pos;
 		if (isVertical()) {
@@ -301,8 +299,8 @@ namespace slib
 				return;
 		}
 
+		ProgressBar::onMouseEvent(ev);
 		ev->stopPropagation();
-
 	}
 
 	void Slider::onMouseWheelEvent(UIEvent* ev)

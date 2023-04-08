@@ -5583,14 +5583,19 @@ namespace slib
 
 	void View::setBorder(sl_bool flagBorder, UIUpdateMode mode)
 	{
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			if (attrs->borders.defaultValue.isNotNull()) {
-				setBorder(Ref<Pen>::null(), mode);
-				return;
+		if (flagBorder) {
+			Ref<DrawAttributes>& attrs = m_drawAttrs;
+			if (attrs.isNotNull()) {
+				if (attrs->borders.defaultValue.isNotNull()) {
+					return;
+				}
 			}
+			PenDesc desc(DEFAULT_BORDER_PARAMS);
+			desc.width = 1.0f;
+			setBorder(Pen::create(desc), mode);
+		} else {
+			setBorder(Ref<Pen>::null(), mode);
 		}
-		setBorder(Pen::create(DEFAULT_BORDER_PARAMS), mode);
 	}
 
 	sl_bool View::hasBorder()
@@ -10202,7 +10207,7 @@ namespace slib
 		switch (action) {
 			case UIAction::LeftButtonDown:
 			case UIAction::TouchBegin:
-				setPressedState(sl_true);
+				setPressedState();
 				m_flagClicking = sl_true;
 				break;
 			case UIAction::LeftButtonUp:
@@ -10223,7 +10228,7 @@ namespace slib
 				m_flagClicking = sl_false;
 				break;
 			case UIAction::MouseEnter:
-				setHoverState(sl_true);
+				setHoverState();
 				break;
 			case UIAction::MouseLeave:
 				setHoverState(sl_false);
@@ -10951,54 +10956,56 @@ namespace slib
 	void ViewInstance::onMouseEvent(UIEvent* ev)
 	{
 		Ref<View> view = getView();
+		if (view.isNull()) {
+			return;
+		}
 
-		if (view.isNotNull()) {
+		UIAction action = ev->getAction();
 
-			if (ev->getFlags() & UIEventFlags::DispatchToParent) {
+		if ((ev->getFlags() & UIEventFlags::DispatchToParent) && action != UIAction::MouseLeave && action != UIAction::MouseEnter && action != UIAction::MouseMove) {
 
-				Ref<View> capture;
-				{
-					Ref<View> v = view;
-					while (v.isNotNull()) {
-						if (v->isCapturingEvents()) {
-							capture = v;
-						}
-						v = v->getParent();
+			Ref<View> capture;
+			{
+				Ref<View> v = view;
+				while (v.isNotNull()) {
+					if (v->isCapturingEvents()) {
+						capture = v;
 					}
+					v = v->getParent();
 				}
+			}
 
+			if (capture.isNull() || view == capture) {
+				view->dispatchMouseEvent(ev);
+				if (ev->isStoppedPropagation()) {
+					return;
+				}
+			}
+
+			UIPoint pt = ev->getPoint();
+			Ref<View> child = view;
+			view = view->getParent();
+
+			while (view.isNotNull()) {
+				pt = child->convertCoordinateToParent(pt);
 				if (capture.isNull() || view == capture) {
-					view->dispatchMouseEvent(ev);
-					if (ev->isStoppedPropagation()) {
-						return;
-					}
-				}
-
-				UIPoint pt = ev->getPoint();
-				Ref<View> child = view;
-				view = view->getParent();
-
-				while (view.isNotNull()) {
-					pt = child->convertCoordinateToParent(pt);
-					if (capture.isNull() || view == capture) {
-						if (!(view->isNativeWidget())) {
-							ev->setPoint(pt);
-							ev->addFlag(UIEventFlags::NotDispatchToChildren);
-							view->dispatchMouseEvent(ev);
-							if (ev->isStoppedPropagation()) {
-								return;
-							}
-						}
-						if (view == capture) {
+					if (!(view->isNativeWidget())) {
+						ev->setPoint(pt);
+						ev->addFlag(UIEventFlags::NotDispatchToChildren);
+						view->dispatchMouseEvent(ev);
+						if (ev->isStoppedPropagation()) {
 							return;
 						}
 					}
-					child = view;
-					view = view->getParent();
+					if (view == capture) {
+						return;
+					}
 				}
-			} else {
-				view->dispatchMouseEvent(ev);
+				child = view;
+				view = view->getParent();
 			}
+		} else {
+			view->dispatchMouseEvent(ev);
 		}
 	}
 

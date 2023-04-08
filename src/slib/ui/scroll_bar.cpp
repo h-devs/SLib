@@ -437,13 +437,12 @@ namespace slib
 
 	void ScrollBar::onMouseEvent(UIEvent* ev)
 	{
-		View::onMouseEvent(ev);
-
 		CHECK_STATUS()
 
 		sl_ui_pos pos_begin, pos_end;
 		if (!(getThumbPositionRange(pos_begin, pos_end))) {
-			ev->preventDefault();
+			View::onMouseEvent(ev);
+			ev->stopPropagation();
 			return;
 		}
 
@@ -519,8 +518,8 @@ namespace slib
 				return;
 		}
 
+		View::onMouseEvent(ev);
 		ev->stopPropagation();
-
 	}
 
 	void ScrollBar::onMouseWheelEvent(UIEvent* ev)

@@ -727,6 +727,23 @@ namespace slib
 		}
 	}
 
+	sl_bool Button::isUsingFocusedColorFilter()
+	{
+		if (m_cell.isNotNull()) {
+			return m_cell->flagUseFocusedColorFilter;
+		}
+		return sl_false;
+	}
+
+	void Button::setUsingFocusedColorFilter(sl_bool flag, UIUpdateMode mode)
+	{
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->flagUseFocusedColorFilter = flag;
+			invalidate(mode);
+		}
+	}
+
 	Ref<Drawable> Button::getCurrentBackground()
 	{
 		ViewState state = getState();
@@ -1039,7 +1056,7 @@ namespace slib
 		textMarginBottom = 1;
 
 		flagUseDefaultColorFilter = sl_true;
-
+		flagUseFocusedColorFilter = sl_false;
 	}
 
 	ButtonCell::~ButtonCell()
@@ -1110,14 +1127,14 @@ namespace slib
 		return icon;
 	}
 
-	sl_bool ButtonCell::getFinalColorFilter(ColorMatrix& _out, ViewState state, sl_bool flagUseDefaultFilter)
+	sl_bool ButtonCell::getFinalColorFilter(ColorMatrix& _out, ViewState state, sl_bool flagDefaultFilter)
 	{
 		Shared<ColorMatrix> cm = categories[category].filters.evaluate(state);
 		if (cm.isNotNull()) {
 			_out = *cm;
 			return sl_true;
 		}
-		if (!flagUseDefaultFilter) {
+		if (!flagDefaultFilter) {
 			return sl_false;
 		}
 		switch (state) {
@@ -1125,16 +1142,22 @@ namespace slib
 				_out = g_colorMatrix_hover;
 				break;
 			case ViewState::Pressed:
+			case ViewState::FocusedPressed:
 				_out = g_colorMatrix_pressed;
 				break;
 			case ViewState::FocusedNormal:
-				_out = g_colorMatrix_focused;
+				if (flagUseFocusedColorFilter) {
+					_out = g_colorMatrix_focused;
+				} else {
+					return sl_false;
+				}
 				break;
 			case ViewState::FocusedHover:
-				_out = g_colorMatrix_focused_hover;
-				break;
-			case ViewState::FocusedPressed:
-				_out = g_colorMatrix_pressed;
+				if (flagUseFocusedColorFilter) {
+					_out = g_colorMatrix_focused_hover;
+				} else {
+					_out = g_colorMatrix_hover;
+				}
 				break;
 			case ViewState::Disabled:
 				_out = g_colorMatrix_disabled;

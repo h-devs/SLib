@@ -258,6 +258,10 @@ namespace slib
 
 		void setUsingDefaultColorFilter(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		sl_bool isUsingFocusedColorFilter();
+
+		void setUsingFocusedColorFilter(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 
 		Ref<Drawable> getCurrentBackground() override;
 
@@ -352,6 +356,7 @@ namespace slib
 		sl_ui_pos textMarginRight;
 		sl_ui_pos textMarginBottom;
 		sl_bool flagUseDefaultColorFilter;
+		sl_bool flagUseFocusedColorFilter;
 
 		Function<void(UIEvent* ev)> onClick;
 

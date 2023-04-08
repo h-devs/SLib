@@ -579,8 +579,6 @@ namespace slib
 
 	void ListBox::onMouseEvent(UIEvent* ev)
 	{
-		View::onMouseEvent(ev);
-
 		UIAction action = ev->getAction();
 		if (action == UIAction::RightButtonDown || action == UIAction::LeftButtonDoubleClick || action == UIAction::MouseMove || action == UIAction::MouseEnter) {
 			sl_int64 index = getItemIndexAt(ev->getPoint());
@@ -609,6 +607,7 @@ namespace slib
 				invalidate();
 			}
 		}
+		View::onMouseEvent(ev);
 	}
 
 	void ListBox::onKeyEvent(UIEvent* ev)

@@ -377,6 +377,8 @@ namespace slib
 
 		sl_bool isAbsoluteUnit();
 
+		sl_bool isGlobalUnit();
+
 	};
 
 	class SAppFontValue

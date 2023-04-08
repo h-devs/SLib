@@ -662,17 +662,14 @@ namespace slib
 			if (viewItem.isNull()) {
 				return sl_null;
 			}
+			UISize size = window->getClientSize();
 			if (layout->layoutType == SAppLayoutType::Page) {
-				UISize size = window->getClientSize();
 				m_layoutSimulationParams.screenWidth = size.x;
 				m_layoutSimulationParams.screenHeight = size.y;
+				m_layoutSimulationParams.flagResizeScreen = sl_true;
 				m_layoutSimulationParams.viewportWidth = view->getWidth();
 				m_layoutSimulationParams.viewportHeight = view->getHeight();
 			} else {
-				UISize size = UI::getScreenSize();
-				m_layoutSimulationParams.screenWidth = size.x;
-				m_layoutSimulationParams.screenHeight = size.y;
-				size = window->getClientSize();
 				m_layoutSimulationParams.viewportWidth = size.x;
 				m_layoutSimulationParams.viewportHeight = size.y;
 			}
@@ -1364,14 +1361,22 @@ namespace slib
 			}
 		}
 
-		SLIB_INLINE static sl_bool IsAbsolute(SAppDimensionBaseValue& v)
+		SLIB_INLINE static sl_bool IsAbsolute(sl_bool flagResizeScreen, SAppDimensionBaseValue& v)
 		{
-			return SAppDimensionValue::isAbsoluteUnit(v.unit);
+			if (flagResizeScreen) {
+				return SAppDimensionValue::isAbsoluteUnit(v.unit);
+			} else {
+				return SAppDimensionValue::isGlobalUnit(v.unit);
+			}
 		}
 
-		SLIB_INLINE static sl_bool IsAbsolute(SAppDrawableValue& v)
+		SLIB_INLINE static sl_bool IsAbsolute(sl_bool flagResizeScreen, SAppDrawableValue& v)
 		{
-			return v.isAbsoluteUnit();
+			if (flagResizeScreen) {
+				return v.isAbsoluteUnit();
+			} else {
+				return v.isGlobalUnit();
+			}
 		}
 
 	}
@@ -1395,7 +1400,7 @@ namespace slib
 	if (VAR.flagDefined && !(SAppDimensionValue::isSpecialUnit(VAR.unit))) { \
 		PRIV_LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ##__VA_ARGS__) \
 	}
-#define LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR) Xor(IsAbsolute(VAR), op == SAppLayoutOperation::SimulateLayout)
+#define LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR) Xor(IsAbsolute(m_layoutSimulationParams.flagResizeScreen, VAR), op == SAppLayoutOperation::SimulateLayout)
 #define PRIV_LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ...) \
 	if (LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR)) { \
 		auto value = _getDimensionValue(VAR); \
@@ -2575,6 +2580,7 @@ namespace slib
 		}
 
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, defaultColorFilter, setUsingDefaultColorFilter)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, focusedColorFilter, setUsingFocusedColorFilter)
 
 		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setTextColor)
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, icon, setIcon)

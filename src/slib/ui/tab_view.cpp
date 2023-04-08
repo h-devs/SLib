@@ -683,8 +683,6 @@ namespace slib
 
 	void TabView::onMouseEvent(UIEvent* ev)
 	{
-		ViewGroup::onMouseEvent(ev);
-
 		if (isNativeWidget()) {
 			return;
 		}
@@ -705,6 +703,8 @@ namespace slib
 				_invalidateTabBar(UIUpdateMode::Redraw);
 			}
 		}
+
+		ViewGroup::onMouseEvent(ev);
 	}
 
 	void TabView::onSetCursor(UIEvent* ev)

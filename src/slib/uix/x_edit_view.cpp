@@ -2,6 +2,7 @@
 
 #include "slib/ui/cursor.h"
 #include "slib/graphics/font.h"
+#include "slib/graphics/pen.h"
 
 namespace slib
 {
@@ -386,11 +387,26 @@ namespace slib
 		}
 	}
 
+	void XEditView::setEnabled(sl_bool flagEnabled, UIUpdateMode mode)
+	{
+		if (m_edit.isNotNull()) {
+			m_edit->setEnabled(flagEnabled, mode);
+		}
+	}
+
 	void XEditView::setFocus(sl_bool flagFocused, UIUpdateMode mode)
 	{
 		if (m_edit.isNotNull()) {
 			m_edit->setFocus(flagFocused, mode);
 		}
+	}
+
+	Ref<Pen> XEditView::getCurrentBorder()
+	{
+		if (m_edit.isNotNull()) {
+			return getFinalBorder(m_edit->getState());
+		}
+		return sl_null;
 	}
 
 

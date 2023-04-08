@@ -129,10 +129,10 @@ namespace slib
 
 	void SelectView::onMouseEvent(UIEvent* ev)
 	{
-		View::onMouseEvent(ev);
 		if (m_cell.isNotNull()) {
 			m_cell->onMouseEvent(ev);
 		}
+		View::onMouseEvent(ev);
 	}
 
 	void SelectView::onUpdateLayout()
@@ -336,8 +336,8 @@ namespace slib
 
 	void SelectSwitch::onMouseEvent(UIEvent* ev)
 	{
-		View::onMouseEvent(ev);
 		m_cell->onMouseEvent(ev);
+		View::onMouseEvent(ev);
 	}
 
 	void SelectSwitch::onUpdateLayout()

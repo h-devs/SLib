@@ -1578,8 +1578,6 @@ namespace slib
 
 	void GridView::onMouseEvent(UIEvent* ev)
 	{
-		View::onMouseEvent(ev);
-
 		UIAction action = ev->getAction();
 		switch (action) {
 			case UIAction::RightButtonDown:
@@ -1629,6 +1627,7 @@ namespace slib
 			default:
 				break;
 		}
+		View::onMouseEvent(ev);
 	}
 
 	Ref<GridView::Cell> GridView::_getEventCell(UIEvent* ev)

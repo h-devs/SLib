@@ -1554,6 +1554,25 @@ namespace slib
 		return sl_true;
 	}
 
+	sl_bool SAppDrawableValue::isGlobalUnit()
+	{
+		if (func != FUNC_NONE) {
+			if (patchLeftWidthDst.flagDefined && !(SAppDimensionValue::isGlobalUnit(patchLeftWidthDst.unit))) {
+				return sl_false;
+			}
+			if (patchRightWidthDst.flagDefined && !(SAppDimensionValue::isGlobalUnit(patchRightWidthDst.unit))) {
+				return sl_false;
+			}
+			if (patchTopHeightDst.flagDefined && !(SAppDimensionValue::isGlobalUnit(patchTopHeightDst.unit))) {
+				return sl_false;
+			}
+			if (patchBottomHeightDst.flagDefined && !(SAppDimensionValue::isGlobalUnit(patchBottomHeightDst.unit))) {
+				return sl_false;
+			}
+		}
+		return sl_true;
+	}
+
 
 	void SAppFontValue::inheritFrom(const SAppFontValue& parent)
 	{

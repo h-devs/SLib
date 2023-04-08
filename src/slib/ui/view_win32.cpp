@@ -1495,7 +1495,7 @@ namespace slib
 					track.hwndTrack = hWnd;
 					track.dwHoverTime = 0;
 					TrackMouseEvent(&track);
-					if (track.dwFlags == 0) {
+					if (!(track.dwFlags)) {
 						track.cbSize = sizeof(track);
 						track.dwFlags = TME_LEAVE;
 						track.hwndTrack = hWnd;

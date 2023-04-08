@@ -411,6 +411,7 @@ namespace slib
 		SAppDimensionValue textMarginRight;
 		SAppDimensionValue textMarginBottom;
 		SAppBooleanValue defaultColorFilter;
+		SAppBooleanValue focusedColorFilter;
 
 		SAppStateMap<SAppColorValue> textColor;
 		SAppStateMap<SAppDrawableValue> icon;
@@ -1193,6 +1194,7 @@ namespace slib
 		sl_ui_len viewportWidth;
 		sl_ui_len viewportHeight;
 		sl_real sp;
+		sl_bool flagResizeScreen;
 
 	public:
 		SAppLayoutSimulationParams();

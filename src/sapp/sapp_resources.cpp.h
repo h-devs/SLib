@@ -148,6 +148,9 @@ namespace slib
 		if (defaultColorFilter.flagDefined) {
 			return sl_true;
 		}
+		if (focusedColorFilter.flagDefined) {
+			return sl_true;
+		}
 		if (textColor.values.isNotNull()) {
 			return sl_true;
 		}
@@ -627,6 +630,7 @@ namespace slib
 		viewportWidth = 0;
 		viewportHeight = 0;
 		sp = 1;
+		flagResizeScreen = sl_false;
 	}
 
 
@@ -708,7 +712,7 @@ namespace slib
 		setInitialized();
 		if (viewContent.isNotNull()) {
 			if (layout->layoutType != SAppLayoutType::Window) {
-				if (viewContent->getBackgroundColor().isZero()) {
+				if (viewContent->getBackground().isNull()) {
 					viewContent->setBackgroundColor(Color::White, UIUpdateMode::Init);
 				}
 				setBackgroundColor(Color::Black);

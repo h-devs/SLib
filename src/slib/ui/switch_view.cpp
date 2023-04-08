@@ -404,8 +404,6 @@ namespace slib
 
 	void SwitchView::onMouseEvent(UIEvent* ev)
 	{
-		View::onMouseEvent(ev);
-
 		sl_real dimUnit = Math::ceil(UI::dpToPixel(1));
 		if (dimUnit < 1) {
 			dimUnit = 1;
@@ -495,6 +493,8 @@ namespace slib
 			default:
 				break;
 		}
+
+		View::onMouseEvent(ev);
 	}
 
 	sl_bool SwitchView::calculateSwitchRegion(UIRect& rect)
@@ -567,9 +567,7 @@ namespace slib
 	void SwitchView::_changeValue(SwitchValue value, UIEvent* ev, UIUpdateMode mode)
 	{
 		ObjectLocker locker(this);
-		if (value != m_value) {
-			return;
-		}
+		SwitchValue former = m_value;
 		m_value = value;
 		sl_real posThumb = value == SwitchValue::On ? 1.0f : 0.0f;
 		if (!(Math::isAlmostZero(posThumb - m_posThumb))) {
@@ -584,7 +582,9 @@ namespace slib
 			}
 		}
 		locker.unlock();
-		invokeChange(value, ev);
+		if (value != former) {
+			invokeChange(value, ev);
+		}
 	}
 
 	void SwitchView::_onTimerAnimation(Timer* timer)
