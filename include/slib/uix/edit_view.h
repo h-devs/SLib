@@ -136,9 +136,9 @@ namespace slib
 
 		void setEnabled(sl_bool flagEnabled = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 
-		void setFocus(sl_bool flagFocused = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
+		sl_bool isFocused() override;
 
-		Ref<Pen> getCurrentBorder() override;
+		void setFocus(sl_bool flagFocused = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(XEditView, Changing, String& value, UIEvent* ev /* nullable */)

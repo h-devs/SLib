@@ -1272,7 +1272,7 @@ namespace slib
 		child->setParent(this);
 		onAddChild(child);
 
-		if (child->isFocused() || child->hasFocalChild()) {
+		if (child->m_flagFocused || child->hasFocalChild()) {
 			if (hasFocalChild()) {
 				// If this view has a focal child, the child focus is ignored
 				child->_setFocus(sl_false, sl_false, UIUpdateMode::None);
@@ -2122,7 +2122,7 @@ namespace slib
 		if (!m_flagEnabled) {
 			return ViewState::Disabled;
 		}
-		if (m_flagFocused) {
+		if (isFocused()) {
 			if (m_flagPressed) {
 				return ViewState::FocusedPressed;
 			} else if (m_flagHover) {

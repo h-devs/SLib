@@ -330,7 +330,7 @@ namespace slib
 
 		void setFocusable(sl_bool flagFocusable = sl_true);
 
-		sl_bool isFocused();
+		virtual sl_bool isFocused();
 
 		virtual void setFocus(sl_bool flagFocused = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
