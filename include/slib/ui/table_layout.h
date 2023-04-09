@@ -191,6 +191,14 @@ namespace slib
 
 		void setCellSpan(sl_uint32 row, sl_uint32 col, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
+		sl_bool isRowVisible(sl_uint32 row);
+
+		void setRowVisible(sl_uint32 row, sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_bool isColumnVisible(sl_uint32 column);
+
+		void setColumnVisible(sl_uint32 column, sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
 	protected:
 		void onUpdateLayout() override;
 

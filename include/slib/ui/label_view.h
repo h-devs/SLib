@@ -162,6 +162,7 @@ namespace slib
 
 	protected:
 		TextBox m_textBox;
+		sl_ui_len m_textHeight;
 
 	};
 

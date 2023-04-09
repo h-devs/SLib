@@ -38,6 +38,12 @@
 
 #define BUTTON_TEXT_DEFAULT_COLOR Color(0, 100, 200)
 
+#ifdef SLIB_PLATFORM_IS_MOBILE
+#define BUTTON_DEFAULT_USE_FOCUSED_COLOR_FILTER sl_false
+#else
+#define BUTTON_DEFAULT_USE_FOCUSED_COLOR_FILTER sl_true
+#endif
+
 namespace slib
 {
 
@@ -732,7 +738,7 @@ namespace slib
 		if (m_cell.isNotNull()) {
 			return m_cell->flagUseFocusedColorFilter;
 		}
-		return sl_false;
+		return BUTTON_DEFAULT_USE_FOCUSED_COLOR_FILTER;
 	}
 
 	void Button::setUsingFocusedColorFilter(sl_bool flag, UIUpdateMode mode)
@@ -1056,7 +1062,7 @@ namespace slib
 		textMarginBottom = 1;
 
 		flagUseDefaultColorFilter = sl_true;
-		flagUseFocusedColorFilter = sl_false;
+		flagUseFocusedColorFilter = BUTTON_DEFAULT_USE_FOCUSED_COLOR_FILTER;
 	}
 
 	ButtonCell::~ButtonCell()

@@ -59,6 +59,8 @@ namespace slib
 		Ref<Drawable> background;
 		Alignment align = Alignment::Default;
 
+		sl_bool flagVisible = sl_true;
+
 	public:
 		sl_ui_len restrictWidth(sl_ui_len width)
 		{
@@ -104,6 +106,8 @@ namespace slib
 
 		Ref<Drawable> background;
 		Alignment align = Alignment::Default;
+
+		sl_bool flagVisible = sl_true;
 
 		CList<Cell> cells;
 
@@ -1075,6 +1079,14 @@ namespace slib
 	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (!col) {
+			return;
+		}
+		Row* row = m_rows.getPointerAt(iRow);
+		if (!row) {
+			return;
+		}
 		Cell* cell;
 		if (view.isNotNull()) {
 			cell = _allocCell(iRow, iCol);
@@ -1089,6 +1101,7 @@ namespace slib
 		}
 		cell->view = view;
 		if (view.isNotNull()) {
+			view->setVisible(col->flagVisible && row->flagVisible);
 			_initCellAlign(cell, iRow, iCol);
 			addChild(view, mode);
 		}
@@ -1193,6 +1206,54 @@ namespace slib
 		}
 	}
 
+	sl_bool TableLayout::isRowVisible(sl_uint32 iRow)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			return row->flagVisible;
+		}
+		return sl_false;
+	}
+
+	void TableLayout::setRowVisible(sl_uint32 iRow, sl_bool flagVisible, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			row->flagVisible = flagVisible;
+			ListElements<Cell> cells(row->cells);
+			for (sl_size i = 0; i < cells.count; i++) {
+				sl_bool f = flagVisible;
+				if (f) {
+					Column* col = m_columns.getPointerAt(i);
+					if (col) {
+						f = col->flagVisible;
+					}
+				}
+				Ref<View>& view = cells[i].view;
+				if (view.isNotNull()) {
+					view->setVisible(f, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
+				}
+			}
+		}
+	}
+
+	sl_bool TableLayout::isColumnVisible(sl_uint32 iCol)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			return col->flagVisible;
+		}
+		return sl_false;
+	}
+
+	void TableLayout::setColumnVisible(sl_uint32 iCol, sl_bool flagVisible, UIUpdateMode mode)
+	{
+
+	}
+
 	void TableLayout::onUpdateLayout()
 	{
 		ObjectLocker lock(this);
@@ -1237,6 +1298,11 @@ namespace slib
 
 		for (iRow = 0; iRow < nRows; iRow++) {
 			Row& row = rows[iRow];
+			if (!(row.flagVisible)) {
+				rowHeightModes[iRow] = SizeMode::Fixed;
+				row.heightLayout = 0;
+				continue;
+			}
 			if (flagHeightWrapping) {
 				if (row.heightMode == SizeMode::Fixed) {
 					rowHeightModes[iRow] = SizeMode::Fixed;
@@ -1273,6 +1339,11 @@ namespace slib
 		}
 		for (iCol = 0; iCol < nCols; iCol++) {
 			Column& col = cols[iCol];
+			if (!(col.flagVisible)) {
+				colWidthModes[iCol] = SizeMode::Fixed;
+				col.widthLayout = 0;
+				continue;
+			}
 			if (flagWidthWrapping) {
 				if (col.widthMode == SizeMode::Fixed) {
 					colWidthModes[iCol] = SizeMode::Fixed;
@@ -1317,9 +1388,15 @@ namespace slib
 			updateLayoutParam.flagVertical = sl_false;
 			for (iRow = 0; iRow < nRows; iRow++) {
 				Row& row = rows[iRow];
+				if (!(row.flagVisible)) {
+					continue;
+				}
 				Cell* cells = row.cells.getData();
 				sl_uint32 nCells = Math::min((sl_uint32)(row.cells.getCount()), nCols);
 				for (iCol = 0; iCol < nCells; iCol++) {
+					if (!(cols[iCol].flagVisible)) {
+						continue;
+					}
 					if (colWidthModes[iCol] == SizeMode::Wrapping) {
 						Cell& cell = cells[iCol];
 						Column& col = cols[iCol];
@@ -1342,6 +1419,9 @@ namespace slib
 			}
 			for (iCol = 0; iCol < nCols; iCol++) {
 				Column& col = cols[iCol];
+				if (!(col.flagVisible)) {
+					continue;
+				}
 				if (colWidthModes[iCol] == SizeMode::Wrapping) {
 					sumWidth += col.widthLayout + col.marginLeft + col.marginRight;;
 				}
@@ -1365,6 +1445,9 @@ namespace slib
 			}
 			for (iCol = 0; iCol < nCols; iCol++) {
 				Column& col = cols[iCol];
+				if (!(col.flagVisible)) {
+					continue;
+				}
 				if (colWidthModes[iCol] == SizeMode::Filling) {
 					col.widthLayout = col.restrictWidth((sl_ui_len)(widthRemain * col.widthWeight / sumColFillWeights));
 				}
@@ -1380,12 +1463,18 @@ namespace slib
 			updateLayoutParam.flagVertical = sl_true;
 			for (iRow = 0; iRow < nRows; iRow++) {
 				Row& row = rows[iRow];
+				if (!(row.flagVisible)) {
+					continue;
+				}
 				if (rowHeightModes[iRow] == SizeMode::Wrapping) {
 					Cell* cells = row.cells.getData();
 					sl_uint32 nCells = Math::min((sl_uint32)(row.cells.getCount()), nCols);
 					for (iCol = 0; iCol < nCells; iCol++) {
 						Cell& cell = cells[iCol];
 						Column& col = cols[iCol];
+						if (!(col.flagVisible)) {
+							continue;
+						}
 						View* view = cell.view.get();
 						if (view && cell.rowspan == 1) {
 							SizeMode mode = view->getHeightMode();
@@ -1405,6 +1494,9 @@ namespace slib
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
 				Row& row = rows[iRow];
+				if (!(row.flagVisible)) {
+					continue;
+				}
 				if (rowHeightModes[iRow] == SizeMode::Wrapping) {
 					sumHeight += row.heightLayout + row.marginTop + row.marginBottom;
 				}
@@ -1428,6 +1520,9 @@ namespace slib
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
 				Row& row = rows[iRow];
+				if (!(row.flagVisible)) {
+					continue;
+				}
 				if (rowHeightModes[iRow] == SizeMode::Filling) {
 					row.heightLayout = row.restrictHeight((sl_ui_len)(heightRemain * row.heightWeight / sumRowFillWeights));
 				}
@@ -1441,12 +1536,18 @@ namespace slib
 		sl_ui_len y = paddingContainer.top;
 		for (iRow = 0; iRow < nRows; iRow++) {
 			Row& row = rows[iRow];
+			if (!(row.flagVisible)) {
+				continue;
+			}
 			Cell* cells = row.cells.getData();
 			sl_uint32 nCells = Math::min((sl_uint32)(row.cells.getCount()), nCols);
 			sl_ui_len x = paddingContainer.left;
 			for (iCol = 0; iCol < nCells; iCol++) {
 				Cell& cell = cells[iCol];
 				Column& col = cols[iCol];
+				if (!(col.flagVisible)) {
+					continue;
+				}
 				View* view = cell.view.get();
 				if (view) {
 					updateLayoutParam.parentContentFrame.left = x + col.marginLeft + col.paddingLeft;
@@ -1482,6 +1583,9 @@ namespace slib
 			sl_ui_len x = paddingContainer.left;
 			for (iCol = 0; iCol < nCols; iCol++) {
 				Column& col = cols[iCol];
+				if (!(col.flagVisible)) {
+					continue;
+				}
 				x += col.widthLayout + col.marginLeft + col.marginRight;
 			}
 			setLayoutWidth(x + paddingContainer.right);

@@ -257,6 +257,8 @@ namespace slib
 
 		flagWrapping = sl_false;
 		maxWidth = 0;
+
+		m_textHeight = 0;
 	}
 
 	LabelViewCell::~LabelViewCell()
@@ -305,6 +307,16 @@ namespace slib
 		param.ellipsizeMode = ellipsizeMode;
 		param.flagEnabledHyperlinksInPlainText = flagEnabledHyperlinksInPlainText;
 		m_textBox.update(param);
+
+		if (param.text.isEmpty()) {
+			if (param.font.isNotNull()) {
+				m_textHeight = (sl_ui_len)(param.font->getFontHeight());
+			} else {
+				m_textHeight = 0;
+			}
+		} else {
+			m_textHeight = (sl_ui_len)(m_textBox.getContentHeight());
+		}
 	}
 
 	void LabelViewCell::onDraw(Canvas* canvas)
@@ -370,7 +382,7 @@ namespace slib
 			size.x = (sl_ui_len)(m_textBox.getContentWidth());
 		}
 		if (flagVerticalWrapping) {
-			size.y = (sl_ui_len)(m_textBox.getContentHeight());
+			size.y = m_textHeight;
 		}
 	}
 
