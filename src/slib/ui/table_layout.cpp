@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -166,7 +166,6 @@ namespace slib
 			m_columns.setCount_NoLock(nColumns);
 			return;
 		}
-		sl_bool flagRemovedChild = sl_false;
 		UIUpdateMode modeNone = (mode == UIUpdateMode::Init) ? (UIUpdateMode::Init) : (UIUpdateMode::None);
 		ListElements<Row> rows(m_rows);
 		for (sl_size i = 0; i < rows.count; i++) {
@@ -177,16 +176,13 @@ namespace slib
 					Ref<View>& view = cells[k].view;
 					if (view.isNotNull()) {
 						removeChild(view, modeNone);
-						flagRemovedChild = sl_true;
 					}
 				}
 				row.cells.setCount_NoLock(nColumns);
 			}
 		}
 		m_columns.setCount_NoLock(nColumns);
-		if (flagRemovedChild) {
-			invalidateLayout(mode);
-		}
+		invalidateLayout(mode);
 	}
 
 	SizeMode TableLayout::getColumnWidthMode(sl_uint32 iCol)
@@ -1155,7 +1151,7 @@ namespace slib
 		}
 		if (cell) {
 			cell->rowspan = rowspan;
-			invalidate(mode);
+			invalidateLayout(mode);
 		}
 	}
 
@@ -1183,7 +1179,7 @@ namespace slib
 		}
 		if (cell) {
 			cell->colspan = colspan;
-			invalidate(mode);
+			invalidateLayout(mode);
 		}
 	}
 
@@ -1202,7 +1198,7 @@ namespace slib
 		if (cell) {
 			cell->rowspan = rowspan;
 			cell->colspan = colspan;
-			invalidate(mode);
+			invalidateLayout(mode);
 		}
 	}
 
@@ -1222,20 +1218,24 @@ namespace slib
 		Row* row = m_rows.getPointerAt(iRow);
 		if (row) {
 			row->flagVisible = flagVisible;
+			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+				return;
+			}
 			ListElements<Cell> cells(row->cells);
-			for (sl_size i = 0; i < cells.count; i++) {
+			for (sl_size iCol = 0; iCol < cells.count; iCol++) {
 				sl_bool f = flagVisible;
 				if (f) {
-					Column* col = m_columns.getPointerAt(i);
+					Column* col = m_columns.getPointerAt(iCol);
 					if (col) {
 						f = col->flagVisible;
 					}
 				}
-				Ref<View>& view = cells[i].view;
+				Ref<View>& view = cells[iCol].view;
 				if (view.isNotNull()) {
-					view->setVisible(f, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
+					view->setVisible(f, UIUpdateMode::None);
 				}
 			}
+			invalidateLayout(mode);
 		}
 	}
 
@@ -1251,7 +1251,29 @@ namespace slib
 
 	void TableLayout::setColumnVisible(sl_uint32 iCol, sl_bool flagVisible, UIUpdateMode mode)
 	{
-
+		ObjectLocker lock(this);
+		Column* column = m_columns.getPointerAt(iCol);
+		if (column) {
+			column->flagVisible = flagVisible;
+			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+				return;
+			}
+			ListElements<Row> rows(m_rows);
+			for (sl_size iRow = 0; iRow < rows.count; iRow++) {
+				Row& row = rows[iRow];
+				sl_bool f = flagVisible;
+				if (f) {
+					f = row.flagVisible;
+				}
+				Cell* cell = row.cells.getPointerAt(iRow);
+				if (cell) {
+					if (cell->view.isNotNull()) {
+						cell->view->setVisible(f, UIUpdateMode::None);
+					}
+				}
+			}
+			invalidateLayout(mode);
+		}
 	}
 
 	void TableLayout::onUpdateLayout()

@@ -582,6 +582,7 @@ namespace slib
 		SAppDimensionValue paddingRight;
 		SAppDrawableValue background;
 		SAppAlignmentValue align;
+		SAppBooleanValue visible;
 	};
 
 	class SAppLayoutTableCell
@@ -606,6 +607,7 @@ namespace slib
 		SAppDimensionValue paddingBottom;
 		SAppDrawableValue background;
 		SAppAlignmentValue align;
+		SAppBooleanValue visible;
 
 		List<SAppLayoutTableCell> cells;
 	};

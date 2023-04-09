@@ -3170,6 +3170,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., paddingRight, checkPosition)
 					LAYOUT_CONTROL_PARSE_XML(DRAWABLE, columnXml, column., background)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., align)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., visible)
 					if (!(attr->columns.add_NoLock(Move(column)))) {
 						logError(columnXml.element, g_str_error_out_of_memory);
 						return sl_false;
@@ -3194,6 +3195,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., paddingBottom, checkPosition)
 					LAYOUT_CONTROL_PARSE_XML(DRAWABLE, rowXml, row., background)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml, row., align)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml, row., visible)
 					sl_uint32 iCell = 0;
 					LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, rowXml, sl_null)
 					for (sl_size k = 0; k < childXmls.count; k++) {
@@ -3262,6 +3264,7 @@ namespace slib
 				LAYOUT_CONTROL_GENERATE_DIMENSION(col.paddingRight, setColumnPaddingRight, ITEM, "%d, %s", iCol, value)
 				LAYOUT_CONTROL_GENERATE_DRAWABLE(col.background, setColumnBackground, ITEM, "%d, %s", iCol, value)
 				LAYOUT_CONTROL_GENERATE_GENERIC(col.align, setColumnAlignment, ITEM, "%d, %s", iCol, value)
+				LAYOUT_CONTROL_GENERATE_GENERIC(col.visible, setColumnVisible, ITEM, "%d, %s", iCol, value)
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
 				SAppLayoutTableRow& row = rows[iRow];
@@ -3277,6 +3280,7 @@ namespace slib
 				LAYOUT_CONTROL_GENERATE_DIMENSION(row.paddingBottom, setRowPaddingBottom, ITEM, "%d, %s", iRow, value)
 				LAYOUT_CONTROL_GENERATE_DRAWABLE(row.background, setRowBackground, ITEM, "%d, %s", iRow, value)
 				LAYOUT_CONTROL_GENERATE_GENERIC(row.align, setRowAlignment, ITEM, "%d, %s", iRow, value)
+				LAYOUT_CONTROL_GENERATE_GENERIC(row.visible, setRowVisible, ITEM, "%d, %s", iRow, value)
 			}
 		} else if (IsSimulateOp(op)) {
 			ListElements<SAppLayoutTableColumn> cols(attr->columns);
@@ -3301,6 +3305,7 @@ namespace slib
 				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.paddingRight, setColumnPaddingRight, ITEM, iCol, value)
 				LAYOUT_CONTROL_SIMULATE_DRAWABLE(col.background, setColumnBackground, ITEM, iCol, value)
 				LAYOUT_CONTROL_SIMULATE_GENERIC(col.align, setColumnAlignment, ITEM, iCol, value)
+				LAYOUT_CONTROL_SIMULATE_GENERIC(col.visible, setColumnVisible, ITEM, iCol, value)
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
 				SAppLayoutTableRow& row = rows[iRow];
@@ -3316,6 +3321,7 @@ namespace slib
 				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.paddingBottom, setRowPaddingBottom, ITEM, iRow, value)
 				LAYOUT_CONTROL_SIMULATE_DRAWABLE(row.background, setRowBackground, ITEM, iRow, value)
 				LAYOUT_CONTROL_SIMULATE_GENERIC(row.align, setRowAlignment, ITEM, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_GENERIC(row.visible, setRowVisible, ITEM, iRow, value)
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
 				SAppLayoutTableRow& row = rows[iRow];
