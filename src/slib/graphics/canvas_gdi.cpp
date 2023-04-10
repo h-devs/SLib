@@ -138,6 +138,7 @@ namespace slib
 					ret->setSize(Size(width, height));
 
 					ret->_setAntiAlias(sl_true);
+
 					return ret;
 				}
 				onFreeCanvas();
@@ -363,8 +364,6 @@ namespace slib
 					Gdiplus::Graphics* graphics = m_graphics;
 					Gdiplus::Font* pf = GraphicsPlatform::getGdiplusFont(font.get());
 					if (pf) {
-						Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericTypographic());
-						format.SetFormatFlags(format.GetFormatFlags() | Gdiplus::StringFormatFlagsMeasureTrailingSpaces);
 						int a = param.color.a;
 						sl_real alpha = getAlpha();
 						if (alpha < 0.995f) {
@@ -383,7 +382,7 @@ namespace slib
 							path.AddString((const WCHAR*)(text.getData()), (INT)(lenText),
 								&family, pf->GetStyle(), pf->GetSize(),
 								Gdiplus::PointF((Gdiplus::REAL)(x), (Gdiplus::REAL)(y + 1)),
-								&format);
+								Gdiplus::StringFormat::GenericTypographic());
 							Gdiplus::GraphicsPath* pathShadow = path.Clone();
 							if (pathShadow) {
 								Gdiplus::GraphicsState state = graphics->Save();
@@ -409,7 +408,7 @@ namespace slib
 							graphics->DrawString((const WCHAR*)(text.getData()), (INT)(lenText),
 								pf,
 								Gdiplus::PointF((Gdiplus::REAL)(x), (Gdiplus::REAL)(y + 1)),
-								&format,
+								Gdiplus::StringFormat::GenericTypographic(),
 								&brush);
 						}
 					}
@@ -421,9 +420,11 @@ namespace slib
 				if (flag) {
 					m_graphics->SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 					m_graphics->SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBilinear);
+					m_graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
 				} else {
 					m_graphics->SetSmoothingMode(Gdiplus::SmoothingModeNone);
 					m_graphics->SetInterpolationMode(Gdiplus::InterpolationModeNearestNeighbor);
+					m_graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintSystemDefault);
 				}
 			}
 
