@@ -4299,6 +4299,38 @@ namespace slib
 			DEFINE_CHECK_GRID_CELL_CREATOR(Numero, "no")
 			return sl_false;
 		}
+
+		static String GenerateGridCellCreator(SAppLayoutGridCell::Creator creator)
+		{
+			switch (creator) {
+				case SAppLayoutGridCell::Creator::Label:
+					return "slib::GridView::LabelCell::creator()";
+				case SAppLayoutGridCell::Creator::Text:
+					return "slib::GridView::TextCell::creator()";
+				case SAppLayoutGridCell::Creator::HyperText:
+					return "slib::GridView::HyperTextCell::creator()";
+				case SAppLayoutGridCell::Creator::Numero:
+					return "slib::GridView::NumeroCell::creator()";
+				default:
+					return sl_null;
+			}
+		}
+
+		static GridView::CellCreator SimulateGridCellCreator(SAppLayoutGridCell::Creator creator)
+		{
+			switch (creator) {
+				case SAppLayoutGridCell::Creator::Label:
+					return GridView::LabelCell::creator();
+				case SAppLayoutGridCell::Creator::Text:
+					return GridView::TextCell::creator();
+				case SAppLayoutGridCell::Creator::HyperText:
+					return GridView::HyperTextCell::creator();
+				case SAppLayoutGridCell::Creator::Numero:
+					return GridView::NumeroCell::creator();
+				default:
+					return sl_null;
+			}
+		}
 	}
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Grid, GridView)
@@ -4496,7 +4528,7 @@ namespace slib
 					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Footer, column.footerAttrs, "-1, %d, %s", iCol, value)
 				}
 			}
-			
+
 #define LAYOUT_CONTROL_GENERATE_GRID_SECTION(SECTION, PREFIX) \
 			{ \
 				auto& section = attr->SECTION; \
@@ -4510,6 +4542,8 @@ namespace slib
 					ListElements<SAppLayoutGridCell> cells(row.cells); \
 					for (sl_size iCell = 0; iCell < cells.count; iCell++) { \
 						SAppLayoutGridCell& cell = cells[iCell]; \
+						auto creator = GenerateGridCellCreator(cell.creator); \
+						LAYOUT_CONTROL_GENERATE(set##PREFIX##Creator, "%d, %d, %s, slib::UIUpdateMode::Init", iRow, iCell, creator) \
 						LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, cell, "%d, %d, %s", iRow, iCell, value) \
 						if (cell.colspan.flagDefined && cell.rowspan.flagDefined) { \
 							LAYOUT_CONTROL_GENERATE(set##PREFIX##Span, "%d, %d, %d, %d, slib::UIUpdateMode::Init", iRow, iCell, cell.rowspan.value, cell.colspan.value) \
@@ -4573,6 +4607,7 @@ namespace slib
 					ListElements<SAppLayoutGridCell> cells(row.cells); \
 					for (sl_size iCell = 0; iCell < cells.count; iCell++) { \
 						SAppLayoutGridCell& cell = cells[iCell]; \
+						view->set##PREFIX##Creator((sl_uint32)iRow, (sl_uint32)iCell, SimulateGridCellCreator(cell.creator)); \
 						LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, cell, (sl_uint32)iRow, (sl_uint32)iCell) \
 						if (cell.colspan.flagDefined && cell.rowspan.flagDefined) { \
 							if (op == SAppLayoutOperation::SimulateInit) { \
