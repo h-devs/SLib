@@ -1265,7 +1265,7 @@ namespace slib
 				if (f) {
 					f = row.flagVisible;
 				}
-				Cell* cell = row.cells.getPointerAt(iRow);
+				Cell* cell = row.cells.getPointerAt(iCol);
 				if (cell) {
 					if (cell->view.isNotNull()) {
 						cell->view->setVisible(f, UIUpdateMode::None);

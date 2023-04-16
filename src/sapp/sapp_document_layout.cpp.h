@@ -191,6 +191,25 @@ namespace slib
 		}
 	}
 
+	sl_bool SAppDocument::_checkLayoutResourceItemName(SAppLayoutResource* layout, const String& name, const Ref<XmlElement>& element, sl_bool flagRadioGroup)
+	{
+		if (layout->itemsByName.find(name)) {
+			logError(element, g_str_error_resource_layout_name_redefined, name);
+			return sl_false;
+		}
+		if (!flagRadioGroup) {
+			if (layout->radioGroups.find(name)) {
+				logError(element, g_str_error_resource_layout_name_redefined, name);
+				return sl_false;
+			}
+		}
+		if (layout->otherNames.find(name)) {
+			logError(element, g_str_error_resource_layout_name_redefined, name);
+			return sl_false;
+		}
+		return sl_true;
+	}
+
 	sl_bool SAppDocument::_parseLayoutResourceItem(SAppLayoutResource* layout, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, const String16& source)
 	{
 		const Ref<XmlElement>& element = item->element;
@@ -252,12 +271,7 @@ namespace slib
 					logError(element, g_str_error_resource_layout_name_invalid, name);
 					return sl_false;
 				}
-				if (layout->itemsByName.find(name)) {
-					logError(element, g_str_error_resource_layout_name_redefined, name);
-					return sl_false;
-				}
-				if (layout->radioGroups.find(name)) {
-					logError(element, g_str_error_resource_layout_name_redefined, name);
+				if (!(_checkLayoutResourceItemName(layout, name, element))) {
 					return sl_false;
 				}
 			} else {
@@ -267,6 +281,11 @@ namespace slib
 			item->name = name;
 			item->arrayName = arrayName;
 			item->arrayIndex = arrayIndex;
+
+			if (!(layout->itemsByName.put(item->name, item))) {
+				logError(element, g_str_error_out_of_memory);
+				return sl_false;
+			}
 		}
 
 		LayoutControlProcessParams pp;
@@ -303,12 +322,6 @@ namespace slib
 			}
 		}
 
-		if (parent) {
-			if (!(layout->itemsByName.put(item->name, item))) {
-				logError(element, g_str_error_out_of_memory);
-				return sl_false;
-			}
-		}
 		if (item->arrayIndex >= 0) {
 			sl_uint32 n = item->arrayIndex + 1;
 			SAppLayoutResource::ItemArrayDesc desc;
@@ -1789,7 +1802,7 @@ namespace slib
 	BEGIN_PROCESS_LAYOUT_CONTROL(View, View)
 	{
 		sl_bool flagRoot = params->parentResourceItem == sl_null;
-		sl_bool flagView = !flagRoot || params->resource->layoutType != SAppLayoutType::Window;
+		sl_bool flagView = !flagRoot || resource->layoutType != SAppLayoutType::Window;
 
 		if (flagView) {
 			LAYOUT_CONTROL_ATTR(STRING, id, setId)
@@ -2698,11 +2711,10 @@ namespace slib
 					logError(element, g_str_error_resource_layout_name_invalid, attr->group);
 					return sl_false;
 				}
-				if (params->resource->itemsByName.find(attr->group)) {
-					logError(element, g_str_error_resource_layout_name_redefined, attr->group);
+				if (!(_checkLayoutResourceItemName(resource, attr->group, element, sl_true))) {
 					return sl_false;
 				}
-				params->resource->radioGroups.put(attr->group, sl_true);
+				resource->radioGroups.put(attr->group, sl_true);
 			}
 		} else if (op == SAppLayoutOperation::Generate) {
 			if (attr->group.isNotEmpty()) {
@@ -2982,7 +2994,7 @@ namespace slib
 					logError(element, g_str_error_resource_layout_scrollview_must_contain_one_child);
 					return sl_false;
 				}
-				Ref<SAppLayoutResourceItem> contentItem = _parseLayoutResourceItemChild(params->resource, resourceItem, childXmls[0], params->source);
+				Ref<SAppLayoutResourceItem> contentItem = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
 				if (contentItem.isNull()) {
 					return sl_false;
 				}
@@ -3003,7 +3015,7 @@ namespace slib
 		} else if (op == SAppLayoutOperation::Generate) {
 			if (attr->content.isNotNull()) {
 				String addChildStatement = String::format("%s%s->setContentView(%s, slib::UIUpdateMode::Init);%n%n", strTab, name, attr->content->name);
-				if (!(_generateLayoutsCpp_Item(params->resource, attr->content.get(), resourceItem, params, addChildStatement))) {
+				if (!(_generateLayoutsCpp_Item(resource, attr->content.get(), resourceItem, params, addChildStatement))) {
 					return sl_false;
 				}
 			}
@@ -3159,6 +3171,13 @@ namespace slib
 				for (sl_size i = 0; i < columnXmls.count; i++) {
 					LAYOUT_CONTROL_DEFINE_XML(columnXml, columnXmls[i])
 					SAppLayoutTableColumn column;
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., name)
+					if (column.name.flagDefined) {
+						if (!(_checkLayoutResourceItemName(resource, column.name.value, columnXml.element))) {
+							return sl_false;
+						}
+						resource->otherNames.put(column.name.value, sl_true);
+					}
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., width, checkSize)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., minWidth, checkScalarSize)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., maxWidth, checkScalarSize)
@@ -3184,6 +3203,13 @@ namespace slib
 				for (sl_uint32 i = 0; i < nRows; i++) {
 					LAYOUT_CONTROL_DEFINE_XML(rowXml, rowXmls[i])
 					SAppLayoutTableRow row;
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml, row., name)
+					if (row.name.flagDefined) {
+						if (!(_checkLayoutResourceItemName(resource, row.name.value, rowXml.element))) {
+							return sl_false;
+						}
+						resource->otherNames.put(row.name.value, sl_true);
+					}
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., height, checkSize)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., minHeight, checkScalarSize)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., maxHeight, checkScalarSize)
@@ -3202,7 +3228,7 @@ namespace slib
 						LAYOUT_CONTROL_DEFINE_XML(xmlView, childXmls[k])
 						SAppLayoutTableCell cell;
 						if (xmlView.getTagName() != "cell") {
-							Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(params->resource, resourceItem, xmlView.element, params->source);
+							Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, xmlView.element, params->source);
 							if (subItemView.isNull()) {
 								return sl_false;
 							}
@@ -3253,6 +3279,9 @@ namespace slib
 			LAYOUT_CONTROL_GENERATE(setRowCount, "%d, slib::UIUpdateMode::Init", nRows)
 			for (iCol = 0; iCol < nCols; iCol++) {
 				SAppLayoutTableColumn& col = cols[iCol];
+				if (col.name.flagDefined) {
+					params->sbDeclare->add(String::format("\t\t\tsl_uint32 %s = %d;%n", col.name.value, iCol));
+				}
 				LAYOUT_CONTROL_GENERATE_SIZE(col.width, setColumnWidth, ITEM, "%d, %s", iCol, value)
 				LAYOUT_CONTROL_GENERATE_DIMENSION(col.minWidth, setColumnMinimumWidth, ITEM, "%d, %s", iCol, value)
 				LAYOUT_CONTROL_GENERATE_DIMENSION(col.maxWidth, setColumnMaximumWidth, ITEM, "%d, %s", iCol, value)
@@ -3268,6 +3297,9 @@ namespace slib
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
 				SAppLayoutTableRow& row = rows[iRow];
+				if (row.name.flagDefined) {
+					params->sbDeclare->add(String::format("\t\t\tsl_uint32 %s = %d;%n", row.name.value, iRow));
+				}
 				LAYOUT_CONTROL_GENERATE_SIZE(row.height, setRowHeight, ITEM, "%d, %s", iRow, value)
 				LAYOUT_CONTROL_GENERATE_DIMENSION(row.minHeight, setRowMinimumHeight, ITEM, "%d, %s", iRow, value)
 				LAYOUT_CONTROL_GENERATE_DIMENSION(row.maxHeight, setRowMaximumHeight, ITEM, "%d, %s", iRow, value)
@@ -3364,7 +3396,7 @@ namespace slib
 						} else {
 							addChildStatement = String::format("%s%s->setCell(%d, %d, %s, %d, %d, slib::UIUpdateMode::Init);%n%n", strTab, name, iRow, iCol, cell.view->name, cell.rowspan.value, cell.colspan.value);
 						}
-						if (!(_generateLayoutsCpp_Item(params->resource, cell.view.get(), resourceItem, params, addChildStatement))) {
+						if (!(_generateLayoutsCpp_Item(resource, cell.view.get(), resourceItem, params, addChildStatement))) {
 							return sl_false;
 						}
 					}
@@ -3504,7 +3536,7 @@ namespace slib
 						logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
 						return sl_false;
 					}
-					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(params->resource, resourceItem, childXmls[0], params->source);
+					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
@@ -3586,7 +3618,7 @@ namespace slib
 				SAppLayoutTabItem& subItem = subItems[i];
 				if (subItem.view.isNotNull()) {
 					String addChildStatement = String::format("%s%s->setTabContentView(%d, %s, slib::UIUpdateMode::Init);%n%n", strTab, name, i, subItem.view->name);
-					if (!(_generateLayoutsCpp_Item(params->resource, subItem.view.get(), resourceItem, params, addChildStatement))) {
+					if (!(_generateLayoutsCpp_Item(resource, subItem.view.get(), resourceItem, params, addChildStatement))) {
 						return sl_false;
 					}
 				}
@@ -3778,7 +3810,7 @@ namespace slib
 						logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
 						return sl_false;
 					}
-					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(params->resource, resourceItem, childXmls[0], params->source);
+					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
@@ -3856,7 +3888,7 @@ namespace slib
 				SAppLayoutSplitItem& subItem = subItems[i];
 				if (subItem.view.isNotNull()) {
 					String addChildStatement = String::format("%s%s->setItemView(%d, %s, slib::UIUpdateMode::Init);%n%n", strTab, name, i, subItem.view->name);
-					if (!(_generateLayoutsCpp_Item(params->resource, subItem.view.get(), resourceItem, params, addChildStatement))) {
+					if (!(_generateLayoutsCpp_Item(resource, subItem.view.get(), resourceItem, params, addChildStatement))) {
 						return sl_false;
 					}
 				}
@@ -4060,7 +4092,7 @@ namespace slib
 						logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
 						return sl_false;
 					}
-					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(params->resource, resourceItem, childXmls[0], params->source);
+					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
@@ -4114,7 +4146,7 @@ namespace slib
 					SAppLayoutPagerItem& subItem = subItems[i];
 					if (subItem.view.isNotNull()) {
 						String addChildStatement = String::format("%s%s->addPage(%s, slib::UIUpdateMode::Init);%n%n", strTab, name, subItem.view->name);
-						if (!(_generateLayoutsCpp_Item(params->resource, subItem.view.get(), resourceItem, params, addChildStatement))) {
+						if (!(_generateLayoutsCpp_Item(resource, subItem.view.get(), resourceItem, params, addChildStatement))) {
 							return sl_false;
 						}
 					}

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -211,6 +211,7 @@ namespace slib
 		sl_bool _parseLayoutUnit(const String& localNamespace, const Ref<XmlElement>& element);
 		sl_bool _parseLayoutResource(const String& filePath, const String& localNamespace, const Ref<XmlElement>& element, const String16& source);
 		void _openLayoutResource(SAppLayoutResource* layout, const String& name);
+		sl_bool _checkLayoutResourceItemName(SAppLayoutResource* layout, const String& name, const Ref<XmlElement>& element, sl_bool flagRadioGroup = sl_false);
 		sl_bool _parseLayoutResourceItem(SAppLayoutResource* layout, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, const String16& source);
 		Ref<SAppLayoutResourceItem> _parseLayoutResourceItemChild(SAppLayoutResource* layout, SAppLayoutResourceItem* parentItem, const Ref<XmlElement>& element, const String16& source);
 		sl_bool _generateLayoutsCpp(const String& targetPath);

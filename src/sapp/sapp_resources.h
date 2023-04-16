@@ -571,6 +571,7 @@ namespace slib
 	class SAppLayoutTableColumn
 	{
 	public:
+		SAppNameValue name;
 		SAppDimensionValue width;
 		SAppDimensionValue minWidth;
 		SAppDimensionValue maxWidth;
@@ -596,6 +597,7 @@ namespace slib
 	class SAppLayoutTableRow
 	{
 	public:
+		SAppNameValue name;
 		SAppDimensionValue height;
 		SAppDimensionValue minHeight;
 		SAppDimensionValue maxHeight;
@@ -1126,6 +1128,7 @@ namespace slib
 		CHashMap< String, Ref<SAppLayoutResourceItem> > itemsByName;
 		CMap<String, sl_bool> customClasses;
 		CMap<String, sl_bool> radioGroups;
+		CMap<String, sl_bool> otherNames;
 		struct ItemArrayDesc
 		{
 			String className;
