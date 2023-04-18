@@ -35,6 +35,7 @@ namespace slib
 	class Timer;
 	class Dispatcher;
 	class Font;
+	class FontDesc;
 	class Pen;
 	class PenDesc;
 	class GraphicsPath;
@@ -868,7 +869,9 @@ namespace slib
 
 		Ref<Font> getFont();
 
-		virtual void setFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		
+		void setFont(const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_real getFontSize();
 

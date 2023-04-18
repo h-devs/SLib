@@ -5844,7 +5844,8 @@ namespace slib
 			}
 			Ref<ViewInstance> instance = getNativeWidget();
 			if (instance.isNotNull()) {
-				SLIB_VIEW_RUN_ON_UI_THREAD(setFont, font, mode)
+				void (View::*func)(const Ref<Font>&, UIUpdateMode) = &View::setFont;
+				SLIB_VIEW_RUN_ON_UI_THREAD2(func, font, mode)
 			}
 			attrs->font = font;
 			Ref<Font> fontFinal = font;
@@ -5878,6 +5879,11 @@ namespace slib
 		}
 	}
 
+	void View::setFont(const FontDesc& desc, UIUpdateMode mode)
+	{
+		setFont(Font::create(desc, getFont()), mode);
+	}
+
 	sl_real View::getFontSize()
 	{
 		Ref<Font> font = getFont();
@@ -5890,17 +5896,11 @@ namespace slib
 
 	void View::setFontSize(sl_real size, UIUpdateMode mode)
 	{
-		Ref<Font> font = getFont();
-		if (font.isNull()) {
-			setFont(Font::create(UI::getDefaultFontFamily(), size), mode);
-		} else {
-			setFont(Font::create(font->getFamilyName(), size), mode);
-		}
+		setFont(Font::create(size, getFont()), mode);
 	}
 
 	String View::getFontFamily()
 	{
-
 		Ref<Font> font = getFont();
 		if (font.isNull()) {
 			return UI::getDefaultFontFamily();
@@ -5911,12 +5911,7 @@ namespace slib
 
 	void View::setFontFamily(const String& fontFamily, UIUpdateMode mode)
 	{
-		Ref<Font> font = getFont();
-		if (font.isNull()) {
-			setFont(Font::create(fontFamily, UI::getDefaultFontSize()), mode);
-		} else {
-			setFont(Font::create(fontFamily, font->getSize()), mode);
-		}
+		setFont(Font::create(fontFamily, getFont()), mode);
 	}
 
 	sl_bool View::isUsingFont()

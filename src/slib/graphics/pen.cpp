@@ -80,13 +80,13 @@ namespace slib
 		return ret;
 	}
 
-	Ref<Pen> Pen::create(const PenDesc& desc, const Ref<Pen>& orignal)
+	Ref<Pen> Pen::create(const PenDesc& desc, const Ref<Pen>& original)
 	{
 		Ref<Pen> ret = new Pen;
 		if (ret.isNotNull()) {
 			PenDesc& descNew = ret->m_desc;
-			if (orignal.isNotNull()) {
-				orignal->getDesc(descNew);
+			if (original.isNotNull()) {
+				original->getDesc(descNew);
 			}
 			if (desc.style != PenStyle::Default) {
 				descNew.style = desc.style;

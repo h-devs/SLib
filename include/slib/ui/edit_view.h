@@ -80,6 +80,8 @@ namespace slib
 
 		void setHintFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void setHintFont(const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		sl_bool isReadOnly();
 
 		void setReadOnly(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);

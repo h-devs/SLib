@@ -102,6 +102,8 @@ namespace slib
 
 		void setFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void setFont(const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		Ref<Drawable> getBackground(ViewState state = ViewState::Default);
 
 		void setBackground(const Ref<Drawable>& background, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -304,8 +306,6 @@ namespace slib
 
 		void setTextIndent(sl_ui_pos indent, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::UpdateLayout) override;
-
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(TreeView, SelectItem, TreeViewItem* item, TreeViewItem* former, UIEvent* ev /* nullable */)
 		SLIB_DECLARE_EVENT_HANDLER(TreeView, ClickItem, TreeViewItem* item, UIEvent* ev)
@@ -317,6 +317,8 @@ namespace slib
 
 	protected:
 		void onChangePadding(UIUpdateMode mode) override;
+
+		void onUpdateFont(const Ref<Font>& font) override;
 
 	private:
 		void _createRootItem();

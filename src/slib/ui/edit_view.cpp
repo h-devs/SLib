@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -252,13 +252,19 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setHintFont, font, mode)
+			void (EditView::*func)(const Ref<Font>&, UIUpdateMode) = &EditView::setHintFont;
+			SLIB_VIEW_RUN_ON_UI_THREAD2(func, font, mode)
 			m_hintFont = font;
 			instance->setHintFont(this, getHintFont());
 		} else {
 			m_hintFont = font;
 			invalidate(mode);
 		}
+	}
+
+	void EditView::setHintFont(const FontDesc& desc, UIUpdateMode mode)
+	{
+		setHintFont(Font::create(desc, getHintFont()), mode);
 	}
 
 	sl_bool EditView::isReadOnly()

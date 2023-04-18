@@ -302,12 +302,29 @@ namespace slib
 
 	Ref<Font> TreeViewItem::getFont()
 	{
-		return m_font;
+		if (m_font.isNotNull()) {
+			return m_font;
+		}
+		Ref<TreeViewItem> parent = m_parent;
+		if (parent.isNotNull()) {
+			return parent->getFont();
+		}
+		Ref<TreeView> view = m_tree;
+		if (view.isNotNull()) {
+			return view->getFont();
+		}
+		return sl_null;
 	}
 
 	void TreeViewItem::setFont(const Ref<Font>& font, UIUpdateMode mode)
 	{
 		m_font = font;
+		_relayoutItem(mode);
+	}
+
+	void TreeViewItem::setFont(const FontDesc& desc, UIUpdateMode mode)
+	{
+		m_font = Font::create(desc, getFont());
 		_relayoutItem(mode);
 	}
 
@@ -939,12 +956,6 @@ namespace slib
 		_redrawContent(mode);
 	}
 
-	void TreeView::setFont(const Ref<Font>& font, UIUpdateMode mode)
-	{
-		ScrollView::setFont(font, mode);
-		_relayoutContent(mode);
-	}
-
 	void TreeView::onDraw(Canvas* canvas)
 	{
 		if (m_flagInvalidTreeLayout) {
@@ -967,8 +978,15 @@ namespace slib
 
 	void TreeView::onChangePadding(UIUpdateMode mode)
 	{
+		ScrollView::onChangePadding(mode);
 		mode = SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None;
 		_relayoutContent(mode);
+	}
+
+	void TreeView::onUpdateFont(const Ref<Font>& font)
+	{
+		ScrollView::onUpdateFont(font);
+		_relayoutContent(UIUpdateMode::Redraw);
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(TreeView, SelectItem, (TreeViewItem* item, TreeViewItem* former, UIEvent* ev), item, former, ev)
