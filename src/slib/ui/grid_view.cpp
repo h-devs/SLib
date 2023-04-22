@@ -113,7 +113,11 @@ namespace slib
 				param.text = text;
 			}
 		}
-		param.font = font;
+		if (font.isNotNull()) {
+			param.font = font;
+		} else {
+			param.font = view->getFont();
+		}
 		param.align = align;
 		param.multiLineMode = multiLineMode;
 		param.ellipsizeMode = ellipsizeMode;
@@ -209,19 +213,19 @@ namespace slib
 	
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, Column)
 
-	GridView::Column::Column(): width(-1)
+	GridView::Column::Column(): width(-1), fixedWidth(0)
 	{
 	}
 	
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, Row)
 
-	GridView::Row::Row(): height(-1)
+	GridView::Row::Row(): height(-1), fixedHeight(0)
 	{
 	}
 
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, Selection)
 
-	GridView::Selection::Selection(): record(-1), row(-1), column(-1)
+	GridView::Selection::Selection(): record(GridView::OUTSIDE), row(-1), column(-1)
 	{
 	}
 
@@ -230,27 +234,32 @@ namespace slib
 		return row == other.row && column == other.column && record == other.record;
 	}
 
-	sl_bool GridView::Selection::match(Cell* cell)
+	sl_bool GridView::Selection::match(RecordIndex _record, sl_uint32 _row, sl_uint32 _column) const
 	{
-		if (record < 0 && row < 0 && column < 0) {
+		if (record == OUTSIDE && row < 0 && column < 0) {
 			return sl_false;
 		}
-		if (record >= 0) {
-			if (record != cell->record) {
+		if (record != OUTSIDE) {
+			if (record != _record) {
 				return sl_false;
 			}
 		}
 		if (row >= 0) {
-			if (row != cell->row) {
+			if (row != _row) {
 				return sl_false;
 			}
 		}
 		if (column >= 0) {
-			if (column != cell->column) {
+			if (column != _column) {
 				return sl_false;
 			}
 		}
 		return sl_true;
+	}
+
+	sl_bool GridView::Selection::match(Cell* cell) const
+	{
+		return match(cell->record, cell->row, cell->column);
 	}
 
 
@@ -258,20 +267,34 @@ namespace slib
 
 	GridView::GridView()
 	{
+		m_nRecords = 1;
+		m_nLeftColumns = 0;
+		m_nRightColumns = 0;
+
+		m_defaultBodyRowHeight = -1;
+		m_defaultHeaderRowHeight = -1;
+		m_defaultFooterRowHeight = -1;
+
+		m_flagInvalidateBodyRows = sl_true;
+		m_flagInvalidateHeaderRows = sl_true;
+		m_flagInvalidateFooterRows = sl_true;
+
+		m_flagInitialize = sl_true;
+	}
+
+	void GridView::init()
+	{
+		View::init();
+
 		setCanvasScrolling(sl_false);
 		setVerticalScrolling(sl_true, UIUpdateMode::Init);
 		setHorizontalScrolling(sl_true, UIUpdateMode::Init);
 		setContentScrollingByMouse(sl_false);
 		setFocusable();
 		setUsingFont();
-
-		m_nRecords = 1;
-		m_nLeftColumns = 0;
-		m_nRightColumns = 0;
-
-		m_flagInvalidateBodyRows = sl_true;
-		m_flagInvalidateHeaderRows = sl_true;
-		m_flagInvalidateFooterRows = sl_true;
+		setRedrawingOnChangeState();
+		setClipping(sl_true, UIUpdateMode::Init);
+		setBorder(sl_true, UIUpdateMode::Init);
 	}
 
 	GridView::~GridView()
@@ -380,14 +403,12 @@ namespace slib
 	DEFINE_SET_ROW_COUNT(Header,)
 	DEFINE_SET_ROW_COUNT(Footer, )
 
-	namespace {
-		SLIB_INLINE static sl_ui_len FixColumnWidth(sl_ui_len width)
-		{
-			if (width >= 0) {
-				return width;
-			} else {
-				return DEFAULT_COLUMN_WIDTH;
-			}
+	SLIB_INLINE sl_ui_len GridView::_fixColumnWidth(Column& column)
+	{
+		if (column.width >= 0) {
+			return column.width;
+		} else {
+			return DEFAULT_COLUMN_WIDTH;
 		}
 	}
 
@@ -396,7 +417,7 @@ namespace slib
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(index);
 		if (col) {
-			return FixColumnWidth(col->width);
+			return _fixColumnWidth(*col);
 		}
 		return 0;
 	}
@@ -420,10 +441,29 @@ namespace slib
 		}
 	}
 
-	namespace {
-		SLIB_INLINE static sl_ui_len GetDefaultRowHeight(const Ref<Font>& font)
-		{
+#define DEFINE_FIX_ROW_HEIGHT(SECTION) \
+	SLIB_INLINE sl_ui_len GridView::_fix##SECTION##RowHeight(Row& row, sl_ui_len defaultRowHeight) \
+	{ \
+		if (row.height >= 0) { \
+			return row.height; \
+		} else if (m_default##SECTION##RowHeight >= 0) { \
+			return m_default##SECTION##RowHeight; \
+		} else { \
+			return defaultRowHeight; \
+		} \
+	}
+
+	DEFINE_FIX_ROW_HEIGHT(Body)
+	DEFINE_FIX_ROW_HEIGHT(Header)
+	DEFINE_FIX_ROW_HEIGHT(Footer)
+
+	SLIB_INLINE sl_ui_len GridView::_getDefaultRowHeight()
+	{
+		Ref<Font> font = getFont();
+		if (font.isNotNull()) {
 			return (sl_ui_len)(font->getSize() * 1.5f);
+		} else {
+			return 0;
 		}
 	}
 
@@ -433,16 +473,10 @@ namespace slib
 		sl_ui_len height = 0; \
 		ObjectLocker lock(this); \
 		ListElements<Row> rows(m_list##SECTION##Row); \
-		sl_uint32 nDefault = 0; \
+		sl_ui_len defaultRowHeight = _getDefaultRowHeight(); \
 		for (sl_size i = 0; i < rows.count; i++) { \
-			Row& row = rows[i]; \
-			if (row.height >= 0) { \
-				height += row.height; \
-			} else { \
-				nDefault++; \
-			} \
+			height += _fix##SECTION##RowHeight(rows[i], defaultRowHeight); \
 		} \
-		height += GetDefaultRowHeight(getFont()) * nDefault; \
 		return height; \
 	}
 
@@ -461,17 +495,9 @@ namespace slib
 		ObjectLocker lock(this); \
 		Row* row = m_list##SECTION##Row.getPointerAt(index); \
 		if (row) { \
-			return _get##SECTION##RowHeight(*row); \
+			return _fix##SECTION##RowHeight(*row, _getDefaultRowHeight()); \
 		} else { \
 			return 0; \
-		} \
-	} \
-	sl_ui_len GridView::_get##SECTION##RowHeight(Row& row) \
-	{ \
-		if (row.height >= 0) { \
-			return row.height; \
-		} else { \
-			return GetDefaultRowHeight(getFont()); \
 		} \
 	} \
 	void GridView::set##SECTION##RowHeight(sl_uint32 index, sl_ui_len height, UIUpdateMode mode) \
@@ -541,26 +567,296 @@ namespace slib
 		refreshContentHeight(mode);
 	}
 
-	void GridView::refreshContentWidth(UIUpdateMode mode)
+#define DEFINE_GET_SET_DEFAULT_ROW_HEIGHT(SECTION) \
+	sl_ui_len GridView::getDefault##SECTION##RowHeight() \
+	{ \
+		return m_default##SECTION##RowHeight; \
+	} \
+	void GridView::setDefault##SECTION##RowHeight(sl_ui_len height, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		m_default##SECTION##RowHeight = height; \
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
+			return; \
+		} \
+		_invalidate##SECTION##Cells(); \
+		refreshContentHeight(mode); \
+	}
+
+	DEFINE_GET_SET_DEFAULT_ROW_HEIGHT(Body)
+	DEFINE_GET_SET_DEFAULT_ROW_HEIGHT(Header)
+	DEFINE_GET_SET_DEFAULT_ROW_HEIGHT(Footer)
+
+	void GridView::setDefaultRowHeight(sl_ui_len height, UIUpdateMode mode)
 	{
+		ObjectLocker lock(this);
+		m_defaultBodyRowHeight = height;
+		m_defaultHeaderRowHeight = height;
+		m_defaultFooterRowHeight = height;
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			return;
 		}
-		ListElements<Column> columns(m_columns);
-		sl_ui_len total = 0;
-		for (sl_size i = 0; i < columns.count; i++) {
-			total += FixColumnWidth(columns[i].width);
+		_invalidateBodyCells();
+		_invalidateHeaderCells();
+		_invalidateFooterCells();
+		refreshContentHeight(mode);
+	}
+
+	namespace {
+		SLIB_INLINE static void DissolveSectionValue(unsigned int section, int& v, int& h)
+		{
+			h = (int)(section & 3) - 1;
+			v = (int)((section >> 2) & 3) - 1;
 		}
-		setContentWidth(total, mode);
+	}
+
+	Ref<Pen> GridView::getGrid(Section section)
+	{
+		int h, v;
+		DissolveSectionValue((int)section, h, v);
+		if (h < 0) {
+			h = 2;
+		}
+		if (v < 0) {
+			v = 2;
+		}
+		Ref<Pen> grid = m_grid[v][h];
+		if (grid.isNotNull()) {
+			return grid;
+		}
+		return getBorder();
+	}
+
+	void GridView::setGrid(const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				m_grid[i][j] = pen;
+			}
+		}
+		invalidate(mode);
+	}
+
+	void GridView::setGrid(const PenDesc& desc, UIUpdateMode mode)
+	{
+		setGrid(Pen::create(desc, getBorder()), mode);
+	}
+
+	void GridView::setGrid(Section section, const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		int h, v;
+		DissolveSectionValue((int)section, h, v);
+		if (v >= 0) {
+			if (h >= 0) {
+				m_grid[v][h] = pen;
+			} else {
+				m_grid[v][0] = pen;
+				m_grid[v][1] = pen;
+				m_grid[v][2] = pen;
+			}
+		} else {
+			for (v = 0; v < 3; v++) {
+				if (h >= 0) {
+					m_grid[v][h] = pen;
+				} else {
+					m_grid[v][0] = pen;
+					m_grid[v][1] = pen;
+					m_grid[v][2] = pen;
+				}
+			}
+		}
+		invalidate(mode);
+	}
+
+	void GridView::setGrid(Section section, const PenDesc& desc, UIUpdateMode mode)
+	{
+		setGrid(Pen::create(desc, getGrid(section)), mode);
+	}
+
+	Ref<Pen> GridView::getSectionBorder(Section section, Axis axis)
+	{
+		int h, v;
+		DissolveSectionValue((int)section, h, v);
+		if (h < 0) {
+			h = 2;
+		}
+		if (v < 0) {
+			v = 2;
+		}
+		sl_uint32 a = (sl_uint32)axis;
+		if (a > 1) {
+			a = 1;
+		}
+		Ref<Pen> border = m_sectionBorder[a][v][h];
+		if (border.isNotNull()) {
+			return border;
+		}
+		if (axis == Axis::X) {
+			if (v != 2) {
+				border = m_sectionBorder[a][2][h];
+				if (border.isNotNull()) {
+					return border;
+				}
+			}
+		} else {
+			if (h != 2) {
+				border = m_sectionBorder[a][v][2];
+				if (border.isNotNull()) {
+					return border;
+				}
+			}
+		}
+		return getGrid(section);
+	}
+
+	void GridView::setSectionBorder(const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				m_sectionBorder[0][i][j] = pen;
+				m_sectionBorder[1][i][j] = pen;
+			}
+		}
+		invalidate(mode);
+	}
+
+	void GridView::setSectionBorder(const PenDesc& desc, UIUpdateMode mode)
+	{
+		setSectionBorder(Pen::create(desc, getBorder()), mode);
+	}
+
+	void GridView::setSectionBorder(Section section, const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		setSectionBorder(section, Axis::All, pen, mode);
+	}
+
+	void GridView::setSectionBorder(Section section, const PenDesc& desc, UIUpdateMode mode)
+	{
+		setSectionBorder(section, Pen::create(desc, getGrid(section)), mode);
+	}
+
+	void GridView::setSectionBorder(Axis axis, const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		sl_uint32 a = (sl_uint32)axis;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				if (a < 2) {
+					m_sectionBorder[a][i][j] = pen;
+				} else {
+					m_sectionBorder[0][i][j] = pen;
+					m_sectionBorder[1][i][j] = pen;
+				}
+			}
+		}
+		invalidate(mode);
+	}
+
+	void GridView::setSectionBorder(Axis axis, const PenDesc& desc, UIUpdateMode mode)
+	{
+		setSectionBorder(axis, Pen::create(desc, getBorder()), mode);
+	}
+
+	void GridView::setSectionBorder(Section section, Axis axis, const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		int h, v;
+		DissolveSectionValue((int)section, h, v);
+		sl_uint32 a = (sl_uint32)axis;
+		if (v >= 0) {
+			if (h >= 0) {
+				if (a < 2) {
+					m_sectionBorder[a][v][h] = pen;
+				} else {
+					m_sectionBorder[0][v][h] = pen;
+					m_sectionBorder[1][v][h] = pen;
+				}
+			} else {
+				if (a < 2) {
+					m_sectionBorder[a][v][0] = pen;
+					m_sectionBorder[a][v][1] = pen;
+					m_sectionBorder[a][v][2] = pen;
+				} else {
+					for (a = 0; a < 2; a++) {
+						m_sectionBorder[a][v][0] = pen;
+						m_sectionBorder[a][v][1] = pen;
+						m_sectionBorder[a][v][2] = pen;
+					}
+				}
+			}
+		} else {
+			for (v = 0; v < 3; v++) {
+				if (h >= 0) {
+					if (a < 2) {
+						m_sectionBorder[a][v][h] = pen;
+					} else {
+						m_sectionBorder[0][v][h] = pen;
+						m_sectionBorder[1][v][h] = pen;
+					}
+				} else {
+					if (a < 2) {
+						m_sectionBorder[a][v][0] = pen;
+						m_sectionBorder[a][v][1] = pen;
+						m_sectionBorder[a][v][2] = pen;
+					} else {
+						for (a = 0; a < 2; a++) {
+							m_sectionBorder[a][v][0] = pen;
+							m_sectionBorder[a][v][1] = pen;
+							m_sectionBorder[a][v][2] = pen;
+						}
+					}
+				}
+			}
+		}
+		invalidate(mode);
+	}
+
+	void GridView::setSectionBorder(Section section, Axis axis, const PenDesc& desc, UIUpdateMode mode)
+	{
+		setSectionBorder(section, axis, Pen::create(desc, getSectionBorder(section, axis)), mode);
+	}
+
+	void GridView::refreshContentWidth(UIUpdateMode mode)
+	{
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			m_flagInitialize = sl_true;
+			return;
+		}
+		ListElements<Column> columns(m_columns);
+		sl_ui_len width = getWidth();
+		sl_ui_len content = 0;
+		sl_ui_len fixed = 0;
+		for (sl_size i = 0; i < columns.count; i++) {
+			sl_ui_len w = _fixColumnWidth(columns[i]);
+			if (i < m_nLeftColumns || i >= columns.count - m_nRightColumns) {
+				fixed += w;
+			} else {
+				content += w;
+			}
+		}
+		if (fixed < width) {
+			setPageWidth((sl_scroll_pos)(width - fixed), SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
+			setContentWidth((sl_scroll_pos)content, mode);
+		} else {
+			setPageWidth(0, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
+			setContentWidth(0, mode);
+		}
 	}
 
 	void GridView::refreshContentHeight(UIUpdateMode mode)
 	{
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			m_flagInitialize = sl_true;
 			return;
 		}
-		sl_int64 total = getRecordHeight() * (sl_int64)m_nRecords + getHeaderHeight() + getFooterHeight();
-		setContentHeight((sl_scroll_pos)total, mode);
+		sl_ui_len height = getHeight();
+		sl_ui_len fixed = getHeaderHeight() + getFooterHeight();
+		if (fixed < height) {
+			sl_int64 content = getRecordHeight() * (sl_int64)m_nRecords;
+			setPageHeight((sl_scroll_pos)(height - fixed), SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
+			setContentHeight((sl_scroll_pos)content, mode);
+		} else {
+			setPageHeight(0, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
+			setContentHeight(0, mode);
+		}
 	}
 
 	GridView::DataFunction GridView::getDataFunction()
@@ -605,16 +901,7 @@ namespace slib
 	DEFINE_GET_CELL_PROP(Header)
 	DEFINE_GET_CELL_PROP(Footer)
 
-#define DEFINE_GET_SET_CELL_ATTR_SUB(SECTION, FUNC, RET, ARG, NAME, DEF) \
-	RET GridView::get##SECTION##FUNC(sl_uint32 iRow, sl_uint32 iCol) \
-	{ \
-		ObjectLocker lock(this); \
-		SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
-		if (prop) { \
-			return prop->NAME; \
-		} \
-		return DEF; \
-	} \
+#define DEFINE_SET_CELL_ATTR_SUB(SECTION, FUNC, RET, ARG, NAME, DEF) \
 	void GridView::set##SECTION##FUNC(sl_int32 iRow, sl_int32 iCol, ARG NAME, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
@@ -667,6 +954,18 @@ namespace slib
 		} \
 	}
 
+#define DEFINE_GET_SET_CELL_ATTR_SUB(SECTION, FUNC, RET, ARG, NAME, DEF) \
+	RET GridView::get##SECTION##FUNC(sl_uint32 iRow, sl_uint32 iCol) \
+	{ \
+		ObjectLocker lock(this); \
+		SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
+		if (prop) { \
+			return prop->NAME; \
+		} \
+		return DEF; \
+	} \
+	DEFINE_SET_CELL_ATTR_SUB(SECTION, FUNC, RET, ARG, NAME, DEF)
+
 #define DEFINE_SET_COLUMN_ATTR_SUB(...) \
 	{ \
 		ListElements<BodyCellProp> props(col.listBodyCell); \
@@ -713,11 +1012,16 @@ namespace slib
 			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 				return; \
 			} \
-			_invalidateBodyCells(); \
-			_invalidateFixedCells(); \
+			_invalidateColumns(); \
 			invalidate(mode); \
 		} \
 	}
+
+#define DEFINE_SET_CELL_ATTR(FUNC, RET, ARG, NAME, DEF) \
+	DEFINE_SET_CELL_ATTR_SUB(Body, FUNC, RET, ARG, NAME, DEF) \
+	DEFINE_SET_CELL_ATTR_SUB(Header, FUNC, RET, ARG, NAME, DEF) \
+	DEFINE_SET_CELL_ATTR_SUB(Footer, FUNC, RET, ARG, NAME, DEF) \
+	DEFINE_SET_COLUMN_ATTR(FUNC, ARG, NAME)
 
 #define DEFINE_GET_SET_CELL_ATTR(FUNC, RET, ARG, NAME, DEF) \
 	DEFINE_GET_SET_CELL_ATTR_SUB(Body, FUNC, RET, ARG, NAME, DEF) \
@@ -727,11 +1031,35 @@ namespace slib
 
 	DEFINE_GET_SET_CELL_ATTR(Creator, GridView::CellCreator, const CellCreator&, creator, sl_null)
 	DEFINE_GET_SET_CELL_ATTR(Text, String, const String&, text, sl_null)
-	DEFINE_GET_SET_CELL_ATTR(Font, Ref<Font>, const Ref<Font>&, font, sl_null)
 	DEFINE_GET_SET_CELL_ATTR(MultiLine, MultiLineMode, MultiLineMode, multiLineMode, MultiLineMode::Single)
 	DEFINE_GET_SET_CELL_ATTR(Ellipsize, EllipsizeMode, EllipsizeMode, ellipsizeMode, EllipsizeMode::None)
 	DEFINE_GET_SET_CELL_ATTR(LineCount, sl_uint32, sl_uint32, lineCount, 0)
 	DEFINE_GET_SET_CELL_ATTR(Alignment, Alignment, const Alignment&, align, 0)
+
+	DEFINE_SET_CELL_ATTR(Font, Ref<Font>, const Ref<Font>&, font, sl_null)
+#define DEFINE_GET_SET_FONT(SECTION) \
+	Ref<Font> GridView::get##SECTION##Font(sl_uint32 iRow, sl_uint32 iCol) \
+	{ \
+		ObjectLocker lock(this); \
+		SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
+		if (prop) { \
+			return prop->font; \
+		} \
+		return getFont(); \
+	} \
+	void GridView::set##SECTION##Font(sl_int32 iRow, sl_int32 iCol, const FontDesc& desc, UIUpdateMode mode) \
+	{ \
+		set##SECTION##Font(iRow, iCol, Font::create(desc, get##SECTION##Font(iRow, iCol)), mode); \
+	}
+
+	DEFINE_GET_SET_FONT(Body)
+	DEFINE_GET_SET_FONT(Header)
+	DEFINE_GET_SET_FONT(Footer)
+
+	void GridView::setColumnFont(sl_int32 iCol, const FontDesc& desc, UIUpdateMode mode)
+	{
+		setColumnFont(iCol, Font::create(desc, getFont()), mode);
+	}
 
 #define DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(SECTION, FUNC, RET, ARG, NAME, DEF) \
 	RET GridView::get##SECTION##FUNC(sl_uint32 iRow, sl_uint32 iCol, ViewState state) \
@@ -962,12 +1290,12 @@ namespace slib
 
 	void GridView::selectColumn(sl_uint32 column, UIUpdateMode mode)
 	{
-		select(-1, column, -1, mode);
+		select(-1, column, OUTSIDE, mode);
 	}
 
 	void GridView::selectNone(UIUpdateMode mode)
 	{
-		select(-1, -1, -1, mode);
+		select(-1, -1, OUTSIDE, mode);
 	}
 
 	void GridView::_select(const Selection& selection, UIEvent* ev, UIUpdateMode mode)
@@ -1008,7 +1336,7 @@ namespace slib
 		_getRowAt(&row, y, sl_false, sl_false, sl_true);
 		return row;
 	}
-	
+
 #define DEFINE_GET_ROW_AT(SECTION) \
 	sl_uint32 GridView::_get##SECTION##RowAt(sl_ui_pos y) \
 	{ \
@@ -1020,7 +1348,7 @@ namespace slib
 		if (rows.count) { \
 			sl_ui_pos t = 0; \
 			for (sl_size i = 0; i < rows.count - 1; i++) { \
-				sl_ui_len h = _get##SECTION##RowHeight(rows[i]); \
+				sl_ui_len h = rows[i].fixedHeight; \
 				if (y < t + h) { \
 					return (sl_uint32)i; \
 				} \
@@ -1121,7 +1449,7 @@ namespace slib
 		sl_ui_len pos = 0;
 		sl_uint32 i;
 		for (i = 0; i < nLeft; i++) {
-			sl_ui_len w = FixColumnWidth(columns[i].width);
+			sl_ui_len w = columns[i].fixedWidth;
 			if (x < pos + w) {
 				return i;
 			}
@@ -1131,7 +1459,7 @@ namespace slib
 		pos = widthView;
 		for (i = 0; i < nRight; i++) {
 			sl_uint32 k = nColumns - 1 - i;
-			sl_ui_len w = FixColumnWidth(columns[k].width);
+			sl_ui_len w = columns[k].fixedWidth;
 			if (pos - w <= x) {
 				return k;
 			}
@@ -1141,7 +1469,7 @@ namespace slib
 		x += (sl_ui_len)(getScrollX()) - widthLeft;
 		pos = 0;
 		for (i = nLeft; i < nColumns; i++) {
-			sl_ui_len w = FixColumnWidth(columns[i].width);
+			sl_ui_len w = columns[i].fixedWidth;
 			if (x < pos + w) {
 				return i;
 			}
@@ -1210,10 +1538,10 @@ namespace slib
 		return sl_null;
 	}
 
-	ViewState GridView::getCellState(Cell* cell)
+	ViewState GridView::getCellState(RecordIndex record, sl_uint32 row, sl_uint32 column)
 	{
 		ViewState state;
-		if (m_hover.match(cell)) {
+		if (m_hover.match(record, row, column)) {
 			if (isPressedState()) {
 				state = ViewState::Pressed;
 			} else {
@@ -1222,11 +1550,16 @@ namespace slib
 		} else {
 			state = ViewState::Normal;
 		}
-		if (m_selection.match(cell)) {
+		if (m_selection.match(record, row, column)) {
 			return (ViewState)((int)state + (int)(ViewState::Selected));
 		} else {
 			return state;
 		}
+	}
+
+	ViewState GridView::getCellState(Cell* cell)
+	{
+		return getCellState(cell->record, cell->row, cell->column);
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(GridView, ClickCell, (GridView::Cell* cell, UIEvent* ev), cell, ev)
@@ -1250,57 +1583,237 @@ namespace slib
 	void GridView::onDraw(Canvas* canvas)
 	{
 		ObjectLocker lock(this);
+
+		if (m_flagInitialize) {
+			m_flagInitialize = sl_false;
+			refreshContentWidth(UIUpdateMode::None);
+			refreshContentHeight();
+		}
+
+		sl_ui_len widthView = getWidth();
+		sl_ui_len heightView = getHeight();
+		if (widthView < 0 || heightView <= 0) {
+			return;
+		}
+
+		sl_ui_len defaultRowHeight = _getDefaultRowHeight();
+
 		ListElements<Column> columns(m_columns);
 		sl_uint32 nColumns = (sl_uint32)(columns.count);
+		if (nColumns) {
+			for (sl_uint32 i = 0; i < nColumns; i++) {
+				Column& col = columns[i];
+				col.fixedWidth = _fixColumnWidth(col);
+			}
+		} else {
+			return;
+		}
+
 		sl_uint32 nLeft = m_nLeftColumns;
 		sl_uint32 nRight = m_nRightColumns;
 		FixLeftRightColumnCount(nColumns, nLeft, nRight);
-		sl_uint32 iStartMidColumn = nLeft;
-		sl_ui_pos xStartMidColumn = -(sl_ui_len)(getScrollX());
+
+		sl_ui_pos xLeft = 0;
 		{
-			sl_uint32 iRight = nColumns - nRight;
-			for (sl_uint32 i = nLeft; i < iRight; i++) {
-				sl_ui_len w = FixColumnWidth(columns[i].width);
-				if (0 < xStartMidColumn + w) {
-					iStartMidColumn = i;
-					break;
-				}
-				xStartMidColumn += w;
+			for (sl_uint32 i = 0; i < nLeft; i++) {
+				xLeft += columns[i].fixedWidth;
 			}
 		}
-		
-		sl_ui_len heightHeader = getHeaderHeight();
-		_drawHeader(canvas, 0, heightHeader, columns.data, nColumns, nLeft, nRight, iStartMidColumn, xStartMidColumn);
-		sl_ui_len heightView = getHeight();
-		sl_ui_len yFooter = heightView - getFooterHeight();
-		_drawFooter(canvas, yFooter, heightView, columns.data, nColumns, nLeft, nRight, iStartMidColumn, xStartMidColumn);
-		_drawRecords(canvas, heightHeader, yFooter, columns.data, nColumns, nLeft, nRight, iStartMidColumn, xStartMidColumn);
+		sl_ui_pos xRight = widthView;
+		if (nRight) {
+			sl_uint32 iRight = nColumns - nRight;
+			sl_uint32 i = nColumns - 1;
+			for (;;) {
+				xRight -= columns[i].fixedWidth;
+				if (i > iRight) {
+					i--;
+				} else {
+					break;
+				}
+			}
+		}
+		sl_uint32 iRight = nColumns - nRight;
+		if (xLeft < xRight && iRight > nLeft) {
+			sl_ui_len wMid = 0;
+			{
+				for (sl_uint32 i = nLeft; i < iRight; i++) {
+					wMid += columns[i].fixedWidth;
+				}
+			}
+			if (wMid) {
+				sl_ui_len wView = xRight - xLeft;
+				if (wMid < wView) {
+					sl_ui_len t = 0;
+					for (sl_uint32 i = nLeft; i + 1 < iRight; i++) {
+						Column& col = columns[i];
+						col.fixedWidth = col.fixedWidth * wView / wMid;
+						t += col.fixedWidth;
+					}
+					columns[iRight - 1].fixedWidth = wView - t;
+				}
+			}
+		}
+
+		sl_uint32 iStartMidColumn = nLeft;
+		sl_uint32 nMidColumns = 0;
+		sl_ui_pos xStartMidColumn = -(sl_ui_len)(getScrollX());
+		{
+			{
+				for (sl_uint32 i = nLeft; i < iRight; i++) {
+					sl_ui_len w = columns[i].fixedWidth;
+					if (0 < xStartMidColumn + w) {
+						iStartMidColumn = i;
+						break;
+					}
+					xStartMidColumn += w;
+				}
+			}
+			if (iStartMidColumn > nLeft) {
+				Column& col = columns[iStartMidColumn];
+				sl_uint32 newStart = iStartMidColumn;
+				_fixHeaderStartMidColumn(columns.data, nColumns, nLeft, iStartMidColumn, newStart);
+				_fixFooterStartMidColumn(columns.data, nColumns, nLeft, iStartMidColumn, newStart);
+				_fixBodyStartMidColumn(columns.data, nColumns, nLeft, iStartMidColumn, newStart);
+				for (sl_uint32 i = newStart; i < iStartMidColumn; i++) {
+					xStartMidColumn -= columns[i].fixedWidth;
+				}
+				iStartMidColumn = newStart;
+			}
+			{
+				sl_uint32 i = iStartMidColumn;
+				sl_ui_pos x = xStartMidColumn;
+				for (; i < iRight && x < xRight; i++) {
+					x += columns[i].fixedWidth;
+				}
+				nMidColumns = i - iStartMidColumn;
+			}
+		}
+
+		sl_ui_len heightHeader = 0;
+		{
+			ListElements<Row> rows(m_listHeaderRow);
+			for (sl_size i = 0; i < rows.count; i++) {
+				Row& row = rows[i];
+				row.fixedHeight = _fixHeaderRowHeight(row, defaultRowHeight);
+				heightHeader += row.fixedHeight;
+			}
+		}
+		sl_ui_len heightFooter = 0;
+		{
+			ListElements<Row> rows(m_listFooterRow);
+			if (rows.count) {
+				for (sl_size i = 0; i < rows.count; i++) {
+					Row& row = rows[i];
+					row.fixedHeight = _fixFooterRowHeight(row, defaultRowHeight);
+					heightFooter += row.fixedHeight;
+				}
+			}
+		}
+		sl_ui_pos yFooter = heightView - heightFooter;
+
+		if (m_nRecords) {
+			ListElements<Row> rows(m_listBodyRow);
+			if (rows.count) {
+				for (sl_size i = 0; i < rows.count; i++) {
+					Row& row = rows[i];
+					row.fixedHeight = _fixBodyRowHeight(row, defaultRowHeight);
+				}
+				CanvasStateScope scope(canvas);
+				canvas->clipToRectangle(0, (sl_real)heightHeader, (sl_real)widthView, (sl_real)(yFooter - heightHeader));
+				_drawRecords(canvas, heightHeader, yFooter, columns.data, nColumns, nLeft, xLeft, nRight, xRight, iStartMidColumn, nMidColumns, xStartMidColumn);
+			}
+		}
+		if (heightFooter) {
+			CanvasStateScope scope(canvas);
+			canvas->clipToRectangle(0, (sl_real)heightHeader, (sl_real)widthView, (sl_real)(heightView - heightHeader));
+			_drawFooter(canvas, yFooter, heightView, columns.data, nColumns, nLeft, xLeft, nRight, xRight, iStartMidColumn, nMidColumns, xStartMidColumn);
+		}
+		if (heightHeader) {
+			_drawHeader(canvas, 0, heightHeader, columns.data, nColumns, nLeft, xLeft, nRight, xRight, iStartMidColumn, nMidColumns, xStartMidColumn);
+		}
+
+		if (nRight) {
+			CanvasStateScope scope(canvas);
+			canvas->clipToRectangle((sl_real)xLeft, 0, (sl_real)(widthView - xLeft), (sl_real)heightView);
+			_drawVertOuterGrid(canvas, xRight, 0, heightHeader, yFooter, heightView, getSectionBorder(Section::HeaderRight, Axis::Y), getSectionBorder(Section::BodyRight, Axis::Y), getSectionBorder(Section::FooterRight, Axis::Y));
+		}
+		if (nLeft) {
+			_drawVertOuterGrid(canvas, xLeft, 0, heightHeader, yFooter, heightView, getSectionBorder(Section::HeaderLeft, Axis::Y), getSectionBorder(Section::BodyLeft, Axis::Y), getSectionBorder(Section::FooterLeft, Axis::Y));
+		}
+		if (heightFooter) {
+			CanvasStateScope scope(canvas);
+			canvas->clipToRectangle(0, (sl_real)heightHeader, (sl_real)widthView, (sl_real)(heightView - heightHeader));
+			_drawHorzOuterGrid(canvas, 0, xLeft, xRight, widthView, yFooter, getSectionBorder(Section::FooterLeft, Axis::X), getSectionBorder(Section::FooterMiddle, Axis::X), getSectionBorder(Section::FooterRight, Axis::X));
+		}
+		if (heightHeader) {
+			_drawHorzOuterGrid(canvas, 0, xLeft, xRight, widthView, heightHeader, getSectionBorder(Section::HeaderLeft, Axis::X), getSectionBorder(Section::HeaderMiddle, Axis::X), getSectionBorder(Section::HeaderRight, Axis::X));
+		}
 	}
 
-	void GridView::_drawRecords(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn)
+#define DEFINE_FIX_BODY_START_MID_COLUMN(SECTION) \
+	void GridView::_fix##SECTION##StartMidColumn(Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 iStart, sl_uint32& newStart) \
+	{ \
+		ListElements<SECTION##CellProp> props(columns[iStart].list##SECTION##Cell); \
+		for (sl_size i = 0; i < props.count; i++) { \
+			if (props[i].flagCoveredX) { \
+				sl_uint32 k = iStart; \
+				while (k > nLeft) { \
+					SECTION##CellProp* prop = columns[k].list##SECTION##Cell.getPointerAt(i); \
+					if (prop) { \
+						if (!(prop->flagCoveredX)) { \
+							break; \
+						} \
+					} else { \
+						break; \
+					} \
+					k--; \
+				} \
+				if (k < newStart) { \
+					newStart = k; \
+				} \
+			} \
+		} \
+	}
+
+	DEFINE_FIX_BODY_START_MID_COLUMN(Body)
+	DEFINE_FIX_BODY_START_MID_COLUMN(Header)
+	DEFINE_FIX_BODY_START_MID_COLUMN(Footer)
+
+	void GridView::_drawRecords(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_ui_pos xLeft, sl_uint32 nRight, sl_ui_pos xRight, sl_uint32 iStartMidColumn, sl_uint32 nMidColumns, sl_ui_pos xStartMidColumn)
 	{
 		ListElements<Row> rows(m_listBodyRow);
 		sl_size nCells = rows.count * nColumns;
 		if (!nCells) {
 			return;
 		}
+
 		sl_ui_len widthView = getWidth();
 		Ref<Drawable> background = m_backgroundBody;
 		if (background.isNotNull()) {
 			canvas->draw(UIRect(0, top, widthView, bottom), background);
 		}
+
 		_prepareBodyCells(columns, nColumns);
+
 		sl_ui_len heightRecord = getRecordHeight();
 		if (heightRecord <= 0) {
 			return;
 		}
 		sl_int64 sy = (sl_int64)(getScrollY());
 		sl_uint64 iRecord = Math::max(sy / heightRecord, (sl_int64)0);
-		sl_ui_pos yRecord = (sl_ui_pos)((sl_int64)iRecord * heightRecord - sy) + top;
-		sl_uint32 nRecords = Math::clamp((sl_int32)((bottom - yRecord + heightRecord - 1) / heightRecord), (sl_int32)0, (sl_int32)MAX_RECORDS_PER_SCREEN);
+		if (iRecord >= m_nRecords) {
+			return;
+		}
+		sl_ui_pos yRecordFirst = (sl_ui_pos)((sl_int64)iRecord * heightRecord - sy) + top;
+		sl_uint32 nRecords = Math::clamp((sl_int32)((bottom - yRecordFirst + heightRecord - 1) / heightRecord), (sl_int32)0, (sl_int32)MAX_RECORDS_PER_SCREEN);
+		nRecords = Math::min(nRecords, (sl_uint32)(m_nRecords - iRecord));
+		sl_uint32 iRight = nColumns - nRight;
+
 		Function<Variant(sl_uint64 record)> recordDataFunc(m_recordData);
 		HashMap< sl_uint64, List< Ref<Cell> > > cache = Move(m_mapRecordCache);
 		HashMap< sl_uint64, List< Ref<Cell> > > map;
+
+		sl_ui_pos yRecord = yRecordFirst;
 		for (sl_uint32 i = 0; i < nRecords; i++) {
 			List< Ref<Cell> > cells = cache.getValue_NoLock(iRecord);
 			if (cells.getCount() != nCells) {
@@ -1316,22 +1829,26 @@ namespace slib
 					recordData.setNull();
 				}
 			}
-			sl_ui_pos xLeft = 0;
 			{
-				for (sl_uint32 iCol = 0; iCol < nLeft; iCol++) {
+				CanvasStateScope scope(canvas);
+				canvas->clipToRectangle((sl_real)xLeft, (sl_real)yRecord, (sl_real)(xRight - xLeft), (sl_real)heightRecord);
+				sl_ui_len xCell = xLeft + xStartMidColumn;
+				for (sl_uint32 k = 0; k < nMidColumns; k++) {
+					sl_uint32 iCol = iStartMidColumn + k;
 					Column& col = columns[iCol];
-					_drawBodyColumn(canvas, xLeft, top, col, iCol, rows.data, (sl_uint32)(rows.count), iRecord, recordData, cells);
-					xLeft += col.width;
+					_drawBodyColumn(canvas, xCell, yRecord, col, iCol, rows.data, (sl_uint32)(rows.count), iRecord, recordData, cells);
+					xCell += col.fixedWidth;
 				}
 			}
-			sl_uint32 iRight = nColumns - nRight;
-			sl_ui_pos xRight = widthView;
 			if (nRight) {
+				CanvasStateScope scope(canvas);
+				canvas->clipToRectangle((sl_real)xLeft, (sl_real)yRecord, (sl_real)(widthView - xLeft), (sl_real)heightRecord);
 				sl_uint32 iCol = nColumns - 1;
+				sl_ui_pos x = widthView;
 				for (;;) {
 					Column& col = columns[iCol];
-					xRight -= col.width;
-					_drawBodyColumn(canvas, xRight, top, col, iCol, rows.data, (sl_uint32)(rows.count), iRecord, recordData, cells);
+					x -= col.fixedWidth;
+					_drawBodyColumn(canvas, x, yRecord, col, iCol, rows.data, (sl_uint32)(rows.count), iRecord, recordData, cells);
 					if (iCol > iRight) {
 						iCol--;
 					} else {
@@ -1340,22 +1857,40 @@ namespace slib
 				}
 			}
 			{
-				sl_ui_len xCell = xLeft + xStartMidColumn;
-				for (sl_uint32 iCol = iStartMidColumn; iCol < iRight && xCell < xRight; iCol++) {
+				sl_ui_pos x = 0;
+				for (sl_uint32 iCol = 0; iCol < nLeft; iCol++) {
 					Column& col = columns[iCol];
-					_drawBodyColumn(canvas, xCell, top, col, iCol, rows.data, (sl_uint32)(rows.count), iRecord, recordData, cells);
-					xCell += col.width;
+					_drawBodyColumn(canvas, x, yRecord, col, iCol, rows.data, (sl_uint32)(rows.count), iRecord, recordData, cells);
+					x += col.fixedWidth;
 				}
 			}
 			map.put_NoLock(iRecord, Move(cells));
-			top += heightRecord;
+			yRecord += heightRecord;
 			iRecord++;
 		}
+		// Draw Grid
+		{
+			{
+				CanvasStateScope scope(canvas);
+				canvas->clipToRectangle((sl_real)xLeft, (sl_real)top, (sl_real)(xRight - xLeft), (sl_real)(bottom - top));
+				Ref<Pen> pen = getGrid(Section::BodyMiddle);
+				_drawBodyInnerGrid(canvas, xLeft + xStartMidColumn, yRecordFirst, bottom, columns + iStartMidColumn, nMidColumns, rows.data, (sl_uint32)(rows.count), nRecords, sl_true, pen);
+			}
+			{
+				CanvasStateScope scope(canvas);
+				canvas->clipToRectangle((sl_real)xLeft, (sl_real)top, (sl_real)(widthView - xLeft), (sl_real)(bottom - top));
+				_drawBodyInnerGrid(canvas, xRight, yRecordFirst, bottom, columns + iRight, nRight, rows.data, (sl_uint32)(rows.count), nRecords, sl_true, getGrid(Section::BodyRight));
+			}
+			{
+				_drawBodyInnerGrid(canvas, 0, yRecordFirst, bottom, columns, nLeft, rows.data, (sl_uint32)(rows.count), nRecords, sl_true, getGrid(Section::BodyLeft));
+			}
+		}
+
 		m_mapRecordCache = Move(map);
 	}
 
 #define DEFINE_DRAW_FIXED(SECTION) \
-	void GridView::_draw##SECTION(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn) \
+	void GridView::_draw##SECTION(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_ui_pos xLeft, sl_uint32 nRight, sl_ui_pos xRight, sl_uint32 iStartMidColumn, sl_uint32 nMidColumns, sl_ui_pos xStartMidColumn) \
 	{ \
 		sl_ui_len widthView = getWidth(); \
 		Ref<Drawable> background = m_background##SECTION; \
@@ -1364,36 +1899,44 @@ namespace slib
 		} \
 		_prepare##SECTION##Cells(columns, nColumns); \
 		ListElements<Row> rows(m_list##SECTION##Row); \
-		sl_ui_pos xLeft = 0; \
-		{ \
-			for (sl_uint32 iCol = 0; iCol < nLeft; iCol++) { \
-				Column& col = columns[iCol]; \
-				_draw##SECTION##Column(canvas, xLeft, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
-				xLeft += col.width; \
-			} \
-		} \
 		sl_uint32 iRight = nColumns - nRight; \
-		sl_ui_pos xRight = widthView; \
+		{ \
+			CanvasStateScope scope(canvas); \
+			canvas->clipToRectangle((sl_real)xLeft, (sl_real)top, (sl_real)(xRight - xLeft), (sl_real)(bottom - top)); \
+			sl_ui_pos xCell = xLeft + xStartMidColumn; \
+			for (sl_uint32 k = 0; k < nMidColumns; k++) { \
+				sl_uint32 iCol = iStartMidColumn + k; \
+				Column& col = columns[iCol]; \
+				_draw##SECTION##Column(canvas, xCell, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
+				xCell += col.fixedWidth; \
+			} \
+			_draw##SECTION##InnerGrid(canvas, xLeft + xStartMidColumn, top, bottom, columns + iStartMidColumn, nMidColumns, rows.data, (sl_uint32)(rows.count), 1, sl_false, getGrid(Section::SECTION)); \
+		} \
 		if (nRight) { \
+			CanvasStateScope scope(canvas); \
+			canvas->clipToRectangle((sl_real)xLeft, (sl_real)top, (sl_real)(widthView - xLeft), (sl_real)(bottom - top)); \
 			sl_uint32 iCol = nColumns - 1; \
+			sl_ui_pos x = widthView; \
 			for (;;) { \
 				Column& col = columns[iCol]; \
-				xRight -= col.width; \
-				_draw##SECTION##Column(canvas, xRight, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
+				x -= col.fixedWidth; \
+				_draw##SECTION##Column(canvas, x, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
 				if (iCol > iRight) { \
 					iCol--; \
 				} else { \
 					break; \
 				} \
 			} \
+			_draw##SECTION##InnerGrid(canvas, xRight, top, bottom, columns + iCol, nRight, rows.data, (sl_uint32)(rows.count), 1, sl_false, getGrid(Section::SECTION)); \
 		} \
 		{ \
-			sl_ui_pos xCell = xLeft + xStartMidColumn; \
-			for (sl_uint32 iCol = iStartMidColumn; iCol < iRight && xCell < xRight; iCol++) { \
+			sl_ui_pos x = 0; \
+			for (sl_uint32 iCol = 0; iCol < nLeft; iCol++) { \
 				Column& col = columns[iCol]; \
-				_draw##SECTION##Column(canvas, xCell, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
-				xCell += col.width; \
+				_draw##SECTION##Column(canvas, x, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
+				x += col.fixedWidth; \
 			} \
+			_draw##SECTION##InnerGrid(canvas, 0, top, bottom, columns, nLeft, rows.data, (sl_uint32)(rows.count), 1, sl_false, getGrid(Section::SECTION)); \
 		} \
 	}
 
@@ -1420,9 +1963,141 @@ namespace slib
 			}
 			if (cell) {
 				_drawCell(canvas, x, y, cell);
+			} else {
+				if (!(prop.flagCoveredX || prop.flagCoveredY)) {
+					ViewState state = getCellState(iRecord, iRow, iCol);
+					Ref<Drawable> background = prop.backgrounds.evaluate(state);
+					if (background.isNotNull()) {
+						canvas->draw(Rectangle((sl_real)x, (sl_real)y, (sl_real)(x + prop.width), (sl_real)(y + prop.height)), background); \
+					}
+				} 
 			}
-			y += rows[iRow].height;
+			y += rows[iRow].fixedHeight;
 			iCell++;
+		}
+	}
+
+#define DEFINE_DRAW_INNER_GRID(SECTION) \
+	void GridView::_draw##SECTION##InnerGrid(Canvas* canvas, sl_ui_pos _x, sl_ui_pos top, sl_ui_pos bottom, Column* columns, sl_uint32 nColumns, Row* rows, sl_uint32 nRows, sl_uint32 nRecords, sl_bool flagBody, const Ref<Pen>& pen) \
+	{ \
+		/* Vertical Lines */ { \
+			sl_ui_pos x = _x; \
+			for (sl_uint32 iCol = 1; iCol < nColumns; iCol++) { \
+				x += columns[iCol-1].fixedWidth; \
+				ListElements<SECTION##CellProp> props(columns[iCol].list##SECTION##Cell); \
+				if (props.count > nRows) { \
+					props.count = nRows; \
+				} \
+				sl_ui_pos y = top; \
+				sl_ui_pos start = y; \
+				for (sl_uint32 iRecord = 0; iRecord < nRecords; iRecord++) { \
+					for (sl_uint32 iRow = 0; iRow < props.count; iRow++) { \
+						sl_ui_pos y2 = y + rows[iRow].fixedHeight; \
+						if (props[iRow].flagCoveredX) { \
+							if (y != start) { \
+								canvas->drawLine((sl_real)x, (sl_real)start, (sl_real)x, (sl_real)y, pen); \
+							} \
+							start = y2; \
+						} \
+						y = y2; \
+					} \
+				} \
+				if (y < bottom) { \
+					y = bottom; \
+				} \
+				if (y != start) { \
+					canvas->drawLine((sl_real)x, (sl_real)start, (sl_real)x, (sl_real)y, pen); \
+				} \
+			} \
+		} \
+		/* Horizontal Lines */ { \
+			sl_ui_pos w = 0; \
+			if (nRecords) { \
+				for (sl_uint32 iCol = 0; iCol < nColumns; iCol++) { \
+					w += columns[iCol].fixedWidth; \
+				} \
+			} \
+			sl_ui_pos y = top; \
+			for (sl_uint32 iRecord = 0; iRecord < nRecords; iRecord++) { \
+				for (sl_uint32 iRow = 1; iRow < nRows; iRow++) { \
+					y += rows[iRow-1].fixedHeight; \
+					sl_ui_pos x = _x; \
+					sl_ui_pos start = x; \
+					for (sl_uint32 iCol = 0; iCol < nColumns; iCol++) { \
+						Column& col = columns[iCol]; \
+						sl_ui_pos x2 = x + col.fixedWidth; \
+						SECTION##CellProp* prop = col.list##SECTION##Cell.getPointerAt(iRow); \
+						if (prop) { \
+							if (prop->flagCoveredY) { \
+								if (x != start) { \
+									canvas->drawLine((sl_real)start, (sl_real)y, (sl_real)x, (sl_real)y, pen); \
+								} \
+								start = x2; \
+							} \
+						} \
+						x = x2; \
+					} \
+					if (x != start) { \
+						canvas->drawLine((sl_real)start, (sl_real)y, (sl_real)x, (sl_real)y, pen); \
+					} \
+				} \
+				y += rows[nRows-1].fixedHeight; \
+				if (flagBody || iRecord + 1 < nRecords) { \
+					canvas->drawLine((sl_real)_x, (sl_real)y, (sl_real)(_x + w), (sl_real)y, pen); \
+				} \
+			} \
+		} \
+	}
+
+	DEFINE_DRAW_INNER_GRID(Body)
+	DEFINE_DRAW_INNER_GRID(Header)
+	DEFINE_DRAW_INNER_GRID(Footer)
+
+	void GridView::_drawHorzOuterGrid(Canvas* canvas, sl_ui_pos x1, sl_ui_pos x2, sl_ui_pos x3, sl_ui_pos x4, sl_ui_pos y, const Ref<Pen>& penLeft, const Ref<Pen>& penMid, const Ref<Pen>& penRight)
+	{
+		if (x3 < x2) {
+			x3 = x2;
+		}
+		if (penLeft == penMid) {
+			x2 = x1;
+		} else {
+			if (x1 != x2) {
+				canvas->drawLine((sl_real)x1, (sl_real)y, (sl_real)x2, (sl_real)y, penLeft);
+			}
+		}
+		if (penRight == penMid) {
+			x3 = x4;
+		} else {
+			if (x3 != x4) {
+				canvas->drawLine((sl_real)x3, (sl_real)y, (sl_real)x4, (sl_real)y, penLeft);
+			}
+		}
+		if (x2 != x3) {
+			canvas->drawLine((sl_real)x2, (sl_real)y, (sl_real)x3, (sl_real)y, penMid);
+		}
+	}
+
+	void GridView::_drawVertOuterGrid(Canvas* canvas, sl_ui_pos x, sl_ui_pos y1, sl_ui_pos y2, sl_ui_pos y3, sl_ui_pos y4, const Ref<Pen>& penTop, const Ref<Pen>& penMid, const Ref<Pen>& penBottom)
+	{
+		if (y3 < y2) {
+			y3 = y2;
+		}
+		if (penTop == penMid) {
+			y2 = y1;
+		} else {
+			if (y1 != y2) {
+				canvas->drawLine((sl_real)x, (sl_real)y1, (sl_real)x, (sl_real)y2, penTop);
+			}
+		}
+		if (penBottom == penMid) {
+			y3 = y4;
+		} else {
+			if (y3 != y4) {
+				canvas->drawLine((sl_real)x, (sl_real)y3, (sl_real)x, (sl_real)y4, penBottom);
+			}
+		}
+		if (y2 != y3) {
+			canvas->drawLine((sl_real)x, (sl_real)y2, (sl_real)x, (sl_real)y3, penMid);
 		}
 	}
 
@@ -1438,8 +2113,16 @@ namespace slib
 			Cell* cell = _getFixedCell(prop, SECTION_CONSTANT, iRow, iCol); \
 			if (cell) { \
 				_drawCell(canvas, x, y, cell); \
+			} else { \
+				if (!(prop.flagCoveredX || prop.flagCoveredY)) { \
+					ViewState state = getCellState(SECTION_CONSTANT, iRow, iCol); \
+					Ref<Drawable> background = prop.backgrounds.evaluate(state); \
+					if (background.isNotNull()) { \
+						canvas->draw(Rectangle((sl_real)x, (sl_real)y, (sl_real)(x + prop.width), (sl_real)(y + prop.height)), background); \
+					} \
+				} \
 			} \
-			y += rows[iRow].height; \
+			y += rows[iRow].fixedHeight; \
 		} \
 	}
 
@@ -1479,8 +2162,8 @@ namespace slib
 			} \
 			for (sl_uint32 iRow = 0; iRow < nRows; iRow++) { \
 				SECTION##CellProp& prop = props[iRow]; \
-				prop.width = col.width; \
-				prop.height = rows[iRow].height; \
+				prop.width = col.fixedWidth; \
+				prop.height = rows[iRow].fixedHeight; \
 				if (prop.flagCoveredX || prop.flagCoveredY) { \
 					continue; \
 				} \
@@ -1495,11 +2178,11 @@ namespace slib
 				sl_uint32 i; \
 				for (i = iRow + 1; i < iRowEnd; i++) { \
 					props[i].flagCoveredY = sl_true; \
-					prop.height += rows[i].height; \
+					prop.height += rows[i].fixedHeight; \
 				} \
 				for (i = iCol + 1; i < iColEnd; i++) { \
 					Column& spanCol = columns[i]; \
-					prop.width += spanCol.width; \
+					prop.width += spanCol.fixedWidth; \
 					ListElements<SECTION##CellProp> spanProps(spanCol.list##SECTION##Cell); \
 					if (iRowEnd <= spanProps.count) { \
 						spanProps[iRow].flagCoveredX = sl_true; \
@@ -1598,16 +2281,10 @@ namespace slib
 				break;
 			case UIAction::MouseMove:
 				{
-					sl_uint32 row = 0;
-					sl_uint32 col = 0;
-					sl_int64 record = -1;
-					if (getCellAt((sl_ui_pos)(ev->getX()), (sl_ui_pos)(ev->getY()), &row, &col, &record)) {
-						if (record < 0) {
-							row = 0;
-							col = 0;
-							record = -1;
-						}
-					}
+					sl_uint32 row = -1;
+					sl_uint32 col = -1;
+					sl_int64 record = OUTSIDE;
+					getCellAt((sl_ui_pos)(ev->getX()), (sl_ui_pos)(ev->getY()), &row, &col, &record);
 					if (m_hover.record != record || m_hover.row != row || m_hover.column != col) {
 						m_hover.record = record;
 						m_hover.row = row;
@@ -1618,7 +2295,7 @@ namespace slib
 				break;
 			case UIAction::MouseLeave:
 				{
-					m_hover.record = -1;
+					m_hover.record = OUTSIDE;
 					m_hover.row = -1;
 					m_hover.column = -1;
 					invalidate();
@@ -1643,11 +2320,20 @@ namespace slib
 		View::onKeyEvent(ev);
 	}
 
+	void GridView::onResize(sl_ui_len width, sl_ui_len height)
+	{
+		View::onResize(width, height);
+		_invalidateBodyCells();
+		_invalidateHeaderCells();
+		_invalidateFooterCells();
+		refreshContentWidth(UIUpdateMode::None);
+		refreshContentHeight();
+	}
+
 	void GridView::onUpdateFont(const Ref<Font>& font)
 	{
 		ObjectLocker lock(this);
-		_invalidateBodyCells();
-		_invalidateFixedCells();
+		_invalidateColumns();
 		refreshContentHeight(UIUpdateMode::None);
 	}
 
@@ -1695,8 +2381,9 @@ namespace slib
 		}
 	}
 
-	void GridView::_invalidateFixedCells()
+	void GridView::_invalidateColumns()
 	{
+		_invalidateBodyCells();
 		ListElements<Column> columns(m_columns);
 		for (sl_size iCol = 0; iCol < columns.count; iCol++) {
 			Column& col = columns[iCol];

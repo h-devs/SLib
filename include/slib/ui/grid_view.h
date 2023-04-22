@@ -175,6 +175,9 @@ namespace slib
 
 		~GridView();
 
+	protected:
+		void init() override;
+
 	public:
 		sl_uint32 getColumnCount();
 		sl_bool setColumnCount(sl_uint32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -217,6 +220,61 @@ namespace slib
 		void setHeaderRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		sl_ui_len getDefaultBodyRowHeight();
+		sl_ui_len getDefaultHeaderRowHeight();
+		sl_ui_len getDefaultFooterRowHeight();
+
+		void setDefaultRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setDefaultBodyRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setDefaultHeaderRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setDefaultFooterRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		enum class Section
+		{
+			All = 0,
+
+			Left = 1,
+			Right = 2,
+			Middle = 3,
+
+			Header = 4,
+			Footer = 8,
+			Body = 12,
+
+			HeaderLeft = 5,
+			HeaderRight = 6,
+			HeaderMiddle = 7,
+			FooterLeft = 9,
+			FooterRight = 10,
+			FooterMiddle = 11,
+			BodyLeft = 13,
+			BodyRight = 14,
+			BodyMiddle = 15
+		};
+
+		Ref<Pen> getGrid(Section section);
+		void setGrid(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setGrid(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setGrid(Section section, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setGrid(Section section, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		enum class Axis
+		{
+			X = 0,
+			Y = 1,
+			All = 2
+		};
+
+		Ref<Pen> getSectionBorder(Section section, Axis axis);
+		void setSectionBorder(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSectionBorder(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSectionBorder(Section section, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSectionBorder(Section section, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSectionBorder(Axis axis, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSectionBorder(Axis axis, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSectionBorder(Section section, Axis axis, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSectionBorder(Section section, Axis axis, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+		
 		void refreshContentWidth(UIUpdateMode mode = UIUpdateMode::Redraw);
 		void refreshContentHeight(UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -246,9 +304,13 @@ namespace slib
 		Ref<Font> getFooterFont(sl_uint32 row, sl_uint32 column);
 
 		void setBodyFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyFont(sl_int32 row, sl_int32 column, const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderFont(sl_int32 row, sl_int32 column, const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterFont(sl_int32 row, sl_int32 column, const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setColumnFont(sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnFont(sl_int32 column, const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		MultiLineMode getBodyMultiLine(sl_uint32 row, sl_uint32 column);
 		MultiLineMode getHeaderMultiLine(sl_uint32 row, sl_uint32 column);
@@ -355,6 +417,7 @@ namespace slib
 		sl_bool getCellAt(sl_ui_pos x, sl_ui_pos y, sl_uint32* outRow = sl_null, sl_uint32* outColumn = sl_null, RecordIndex * outRecord = sl_null);
 		Ref<Cell> getVisibleCellAt(sl_ui_pos x, sl_ui_pos y);
 
+		ViewState getCellState(RecordIndex record, sl_uint32 row, sl_uint32 column);
 		ViewState getCellState(Cell* cell);
 
 	public:
@@ -373,7 +436,9 @@ namespace slib
 			sl_bool operator==(const Selection& other) const;
 
 		public:
-			sl_bool match(Cell* cell);
+			sl_bool match(RecordIndex record, sl_uint32 row, sl_uint32 column) const;
+			sl_bool match(Cell* cell) const;
+
 		};
 
 		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickCell, Cell*, UIEvent*)
@@ -387,6 +452,7 @@ namespace slib
 		void onClickEvent(UIEvent* ev) override;
 		void onMouseEvent(UIEvent* ev) override;
 		void onKeyEvent(UIEvent* ev) override;
+		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 	protected:
 		void onUpdateFont(const Ref<Font>& font) override;
@@ -423,6 +489,8 @@ namespace slib
 		{
 		public:
 			sl_ui_len width;
+			sl_ui_len fixedWidth;
+
 			List<BodyCellProp> listBodyCell;
 			List<HeaderCellProp> listHeaderCell;
 			List<FooterCellProp> listFooterCell;
@@ -436,15 +504,18 @@ namespace slib
 		{
 		public:
 			sl_ui_len height;
+			sl_ui_len fixedHeight;
 
 		public:
 			Row();
 			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Row)
 		};
 
-		sl_ui_len _getBodyRowHeight(Row& row);
-		sl_ui_len _getHeaderRowHeight(Row& row);
-		sl_ui_len _getFooterRowHeight(Row& row);
+		static sl_ui_len _fixColumnWidth(Column& column);
+		sl_ui_len _fixBodyRowHeight(Row& row, sl_ui_len defaultHeight);
+		sl_ui_len _fixHeaderRowHeight(Row& row, sl_ui_len defaultHeight);
+		sl_ui_len _fixFooterRowHeight(Row& row, sl_ui_len defaultHeight);
+		sl_ui_len _getDefaultRowHeight();
 
 		CellProp* _getCellProp(RecordIndex record, sl_uint32 row, sl_uint32 column);
 		BodyCellProp* _getBodyCellProp(sl_uint32 row, sl_uint32 col);
@@ -459,13 +530,24 @@ namespace slib
 
 		void _select(const Selection& selection, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void _drawRecords(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn);
-		void _drawHeader(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn);
-		void _drawFooter(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn);
+		void _fixBodyStartMidColumn(Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 iStart, sl_uint32& newStart);
+		void _fixHeaderStartMidColumn(Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 iStart, sl_uint32& newStart);
+		void _fixFooterStartMidColumn(Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 iStart, sl_uint32& newStart);
+
+		void _drawRecords(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_ui_pos xLeft, sl_uint32 nRight, sl_ui_pos xRight, sl_uint32 iStartMidColumn, sl_uint32 nMidColumns, sl_ui_pos xStartMidColumn);
+		void _drawHeader(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_ui_pos xLeft, sl_uint32 nRight, sl_ui_pos xRight, sl_uint32 iStartMidColumn, sl_uint32 nMidColumns, sl_ui_pos xStartMidColumn);
+		void _drawFooter(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_ui_pos xLeft, sl_uint32 nRight, sl_ui_pos xRight, sl_uint32 iStartMidColumn, sl_uint32 nMidColumns, sl_ui_pos xStartMidColumn);
 
 		void _drawBodyColumn(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column& column, sl_uint32 iColumn, Row* rows, sl_uint32 nRows, sl_uint64 iRecord, const Variant& recordData, List< Ref<Cell> >& cells);
 		void _drawHeaderColumn(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column& column, sl_uint32 iColumn, Row* rows, sl_uint32 nRows);
 		void _drawFooterColumn(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column& column, sl_uint32 iColumn, Row* rows, sl_uint32 nRows);
+
+		void _drawBodyInnerGrid(Canvas* canvas, sl_ui_pos x, sl_ui_pos top, sl_ui_pos bottom, Column* columns, sl_uint32 nColumns, Row* rows, sl_uint32 nRows, sl_uint32 nRecords, sl_bool flagBody, const Ref<Pen>& pen);
+		void _drawHeaderInnerGrid(Canvas* canvas, sl_ui_pos x, sl_ui_pos top, sl_ui_pos bottom, Column* columns, sl_uint32 nColumns, Row* rows, sl_uint32 nRows, sl_uint32 nRecords, sl_bool flagBody, const Ref<Pen>& pen);
+		void _drawFooterInnerGrid(Canvas* canvas, sl_ui_pos x, sl_ui_pos top, sl_ui_pos bottom, Column* columns, sl_uint32 nColumns, Row* rows, sl_uint32 nRows, sl_uint32 nRecords, sl_bool flagBody, const Ref<Pen>& pen);
+
+		void _drawHorzOuterGrid(Canvas* canvas, sl_ui_pos x1, sl_ui_pos x2, sl_ui_pos x3, sl_ui_pos x4, sl_ui_pos y, const Ref<Pen>& penLeft, const Ref<Pen>& penMid, const Ref<Pen>& penRight);
+		void _drawVertOuterGrid(Canvas* canvas, sl_ui_pos x, sl_ui_pos y1, sl_ui_pos y2, sl_ui_pos y3, sl_ui_pos y4, const Ref<Pen>& penTop, const Ref<Pen>& penMid, const Ref<Pen>& penBottom);
 
 		void _drawCell(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Cell* cell);
 
@@ -483,7 +565,7 @@ namespace slib
 		void _invalidateBodyCells(Column& column, sl_uint32 iCol);
 		void _invalidateBodyCell(BodyCellProp& prop, sl_uint32 row, sl_uint32 column);
 
-		void _invalidateFixedCells();
+		void _invalidateColumns();
 
 		void _invalidateHeaderCells();
 		void _invalidateHeaderCells(Column& column, sl_uint32 iCol, sl_bool flagAllColumns = sl_false);
@@ -503,17 +585,26 @@ namespace slib
 		CList<Row> m_listBodyRow;
 		CList<Row> m_listHeaderRow;
 		CList<Row> m_listFooterRow;
-		sl_bool m_flagInvalidateBodyRows;
-		sl_bool m_flagInvalidateHeaderRows;
-		sl_bool m_flagInvalidateFooterRows;
+
+		sl_ui_len m_defaultBodyRowHeight;
+		sl_ui_len m_defaultHeaderRowHeight;
+		sl_ui_len m_defaultFooterRowHeight;
 		AtomicRef<Drawable> m_backgroundBody;
 		AtomicRef<Drawable> m_backgroundHeader;
 		AtomicRef<Drawable> m_backgroundFooter;
 
+		AtomicRef<Pen> m_grid[3][3];
+		AtomicRef<Pen> m_sectionBorder[2][3][3];
+
+		Atomic<DataFunction> m_recordData;
+
 		Selection m_hover;
 		Selection m_selection;
 
-		Atomic<DataFunction> m_recordData;
+		sl_bool m_flagInitialize;
+		sl_bool m_flagInvalidateBodyRows;
+		sl_bool m_flagInvalidateHeaderRows;
+		sl_bool m_flagInvalidateFooterRows;
 
 		HashMap< sl_uint64, List< Ref<Cell> > > m_mapRecordCache;
 

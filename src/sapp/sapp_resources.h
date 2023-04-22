@@ -919,12 +919,13 @@ namespace slib
 	{
 	public:
 		enum class Creator {
+			None,
 			Label,
 			Text,
 			HyperText,
 			Numero
 		};
-		Creator creator = Creator::Label;
+		Creator creator = Creator::None;
 		SAppUint32Value rowspan;
 		SAppUint32Value colspan;
 	};
@@ -933,6 +934,7 @@ namespace slib
 	{
 	public:
 		SAppDimensionValue width;
+		SAppBooleanValue fixed;
 		SAppLayoutGridCellAttributes bodyAttrs;
 		SAppLayoutGridCellAttributes headerAttrs;
 		SAppLayoutGridCellAttributes footerAttrs;
@@ -950,6 +952,19 @@ namespace slib
 	public:
 		CList<SAppLayoutGridRow> rows;
 		SAppDimensionValue rowHeight;
+		SAppDrawableValue sectionBackground;
+		SAppBorderValue grid;
+		SAppBorderValue leftGrid;
+		SAppBorderValue rightGrid;
+		SAppBorderValue border;
+		SAppBorderValue leftBorder;
+		SAppBorderValue rightBorder;
+		SAppBorderValue horizontalBorder;
+		SAppBorderValue horizontalLeftBorder;
+		SAppBorderValue horizontalRightBorder;
+		SAppBorderValue verticalBorder;
+		SAppBorderValue verticalLeftBorder;
+		SAppBorderValue verticalRightBorder;
 	};
 
 	class SAppLayoutGridAttributes : public SAppLayoutViewAttributes
@@ -961,6 +976,7 @@ namespace slib
 
 		SAppUint64Value recordCount;
 		SAppDimensionValue rowHeight;
+		SAppBorderValue grid;
 
 		SAppLayoutGridSection body;
 		SAppLayoutGridSection header;
