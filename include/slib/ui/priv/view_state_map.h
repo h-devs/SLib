@@ -92,6 +92,14 @@ namespace slib
 	}
 
 	template <class VALUE>
+	void ViewStateMap<VALUE>::copyFrom(const ViewStateMap& other)
+	{
+		defaultValue = other.defaultValue;
+		HashMap<ViewState, VALUE> map(*(reinterpret_cast<AtomicHashMap<ViewState, VALUE>*>(&other.values)));
+		values = map.duplicate();
+	}
+
+	template <class VALUE>
 	template <class MAP>
 	sl_bool ViewStateMap<VALUE>::_evaluate(VALUE& ret, const MAP& map, ViewState state, ViewState def, sl_bool& flagReturnDefault)
 	{

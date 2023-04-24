@@ -4370,7 +4370,7 @@ namespace slib
 
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setDefaultRowHeight, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setRowHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(BORDER, grid, setGrid)
 
 		if (op == SAppLayoutOperation::Parse) {
@@ -4581,7 +4581,7 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_GRID_SECTION(SECTION, PREFIX) \
 			{ \
 				auto& section = attr->SECTION; \
-				LAYOUT_CONTROL_GENERATE_UI_ATTR(DIMENSION, section.rowHeight, setDefault##PREFIX##RowHeight) \
+				LAYOUT_CONTROL_GENERATE_UI_ATTR(DIMENSION, section.rowHeight, set##PREFIX##RowHeight) \
 				LAYOUT_CONTROL_GENERATE_UI_ATTR(DRAWABLE, section.sectionBackground, set##PREFIX##Background) \
 				LAYOUT_CONTROL_GENERATE_BORDER(section.grid, setGrid, ITEM, "slib::GridView::Section::" #PREFIX ", %s", value) \
 				LAYOUT_CONTROL_GENERATE_BORDER(section.leftGrid, setGrid, ITEM, "slib::GridView::Section::" #PREFIX "Left, %s", value) \
@@ -4661,7 +4661,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_GRID_SECTION(SECTION, PREFIX) \
 			{ \
 				auto& section = attr->SECTION; \
-				LAYOUT_CONTROL_SIMULATE_UI_ATTR(DIMENSION, section.rowHeight, setDefault##PREFIX##RowHeight) \
+				LAYOUT_CONTROL_SIMULATE_UI_ATTR(DIMENSION, section.rowHeight, set##PREFIX##RowHeight) \
 				LAYOUT_CONTROL_SIMULATE_UI_ATTR(DRAWABLE, section.sectionBackground, set##PREFIX##Background) \
 				LAYOUT_CONTROL_SIMULATE_BORDER(section.grid, setGrid, ITEM, GridView::Section::PREFIX, value) \
 				LAYOUT_CONTROL_SIMULATE_BORDER(section.leftGrid, setGrid, ITEM, GridView::Section::PREFIX##Left, value) \

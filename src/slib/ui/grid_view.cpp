@@ -26,7 +26,6 @@
 #include "slib/graphics/canvas.h"
 #include "slib/core/safe_static.h"
 
-#define DEFAULT_COLUMN_WIDTH 80
 #define DEFAULT_TEXT_COLOR Color::Black
 #define MAX_RECORDS_PER_SCREEN 1000
 
@@ -44,6 +43,17 @@ namespace slib
 	GridView::CellAttribute::CellAttribute(): multiLineMode(MultiLineMode::Single), ellipsizeMode(EllipsizeMode::None), lineCount(0), align(Alignment::MiddleCenter), colspan(1), rowspan(1), width(0), height(0)
 	{
 		textColors.defaultValue = Color::Black;
+	}
+
+	void GridView::CellAttribute::inheritFrom(const CellAttribute& other)
+	{
+		font = other.font;
+		multiLineMode = other.multiLineMode;
+		ellipsizeMode = other.ellipsizeMode;
+		lineCount = other.lineCount;
+		align = other.align;
+		backgrounds.copyFrom(other.backgrounds);
+		textColors.copyFrom(other.textColors);
 	}
 
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellParam)
@@ -204,7 +214,8 @@ namespace slib
 	GridView::CellProp::CellProp(): flagCoveredX(sl_false), flagCoveredY(sl_false)
 	{
 	}
-	
+
+
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, FixedCellProp)
 
 	GridView::FixedCellProp::FixedCellProp(): flagMadeCell(sl_false)
@@ -213,7 +224,7 @@ namespace slib
 	
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, Column)
 
-	GridView::Column::Column(): width(-1), fixedWidth(0)
+	GridView::Column::Column(): width(0), fixedWidth(0)
 	{
 	}
 	
@@ -271,6 +282,7 @@ namespace slib
 		m_nLeftColumns = 0;
 		m_nRightColumns = 0;
 
+		m_defaultColumnWidth = 80;
 		m_defaultBodyRowHeight = -1;
 		m_defaultHeaderRowHeight = -1;
 		m_defaultFooterRowHeight = -1;
@@ -309,11 +321,42 @@ namespace slib
 	sl_bool GridView::setColumnCount(sl_uint32 count, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
-		if (m_columns.getCount() == count) {
+		sl_uint32 nOldCount = (sl_uint32)(m_columns.getCount());
+		if (nOldCount == count) {
 			return sl_true;
 		}
 		if (!(m_columns.setCount_NoLock(count))) {
 			return sl_false;
+		}
+		if (count > nOldCount) {
+			Column* columns = m_columns.getData();
+			Column& lastCol = columns[nOldCount];
+			for (sl_uint32 iCol = nOldCount; iCol < count; iCol++) {
+				Column& col = columns[iCol];
+				col.width = m_defaultColumnWidth;
+#define SET_COLUMN_COUNT_INHERIT(SECTION) \
+				{ \
+					sl_uint32 nRows = (sl_uint32)(m_list##SECTION##Row.getCount()); \
+					if (nRows) { \
+						if (!(col.list##SECTION##Cell.setCount_NoLock(nRows))) { \
+							return sl_false; \
+						} \
+						if (nOldCount) { \
+							ListElements<SECTION##CellProp> lastProps(lastCol.list##SECTION##Cell); \
+							if (nRows > lastProps.count) { \
+								nRows = lastProps.count; \
+							} \
+							SECTION##CellProp* props = col.list##SECTION##Cell.getData(); \
+							for (sl_uint32 i = 0; i < nRows; i++) { \
+								props[i].inheritFrom(lastProps[i]); \
+							} \
+						} \
+					} \
+				}
+				SET_COLUMN_COUNT_INHERIT(Body)
+				SET_COLUMN_COUNT_INHERIT(Header)
+				SET_COLUMN_COUNT_INHERIT(Footer)
+			}
 		}
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			return sl_true;
@@ -378,18 +421,33 @@ namespace slib
 	sl_bool GridView::set##SECTION##RowCount(sl_uint32 count, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
-		if (m_list##SECTION##Row.getCount() == count) { \
+		sl_uint32 nOld = (sl_uint32)(m_list##SECTION##Row.getCount()); \
+		if (nOld == count) { \
 			return sl_true; \
 		} \
 		ListElements<Column> columns(m_columns); \
-		for (sl_size i = 0; i < columns.count; i++) { \
-			Column& col = columns[i]; \
+		for (sl_size iCol = 0; iCol < columns.count; iCol++) { \
+			Column& col = columns[iCol]; \
+			nOld = (sl_uint32)(col.list##SECTION##Cell.getCount()); \
 			if (!(col.list##SECTION##Cell.setCount_NoLock(count))) { \
 				return sl_false; \
+			} \
+			if (nOld < count) { \
+				SECTION##CellProp* props = col.list##SECTION##Cell.getData(); \
+				SECTION##CellProp& lastProp = props[nOld]; \
+				for (sl_uint32 i = nOld; i < count; i++) { \
+					props[i].inheritFrom(lastProp); \
+				} \
 			} \
 		} \
 		if (!(m_list##SECTION##Row.setCount_NoLock(count))) { \
 			return sl_false; \
+		} \
+		if (nOld < count) { \
+			Row* rows = m_list##SECTION##Row.getData(); \
+			for (sl_uint32 i = nOld; i < count; i++) { \
+				rows[i].height = m_default##SECTION##RowHeight; \
+			} \
 		} \
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 			return sl_true; \
@@ -403,21 +461,12 @@ namespace slib
 	DEFINE_SET_ROW_COUNT(Header,)
 	DEFINE_SET_ROW_COUNT(Footer, )
 
-	SLIB_INLINE sl_ui_len GridView::_fixColumnWidth(Column& column)
-	{
-		if (column.width >= 0) {
-			return column.width;
-		} else {
-			return DEFAULT_COLUMN_WIDTH;
-		}
-	}
-
 	sl_ui_len GridView::getColumnWidth(sl_uint32 index)
 	{
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(index);
 		if (col) {
-			return _fixColumnWidth(*col);
+			return col->width;
 		}
 		return 0;
 	}
@@ -441,21 +490,33 @@ namespace slib
 		}
 	}
 
-#define DEFINE_FIX_ROW_HEIGHT(SECTION) \
-	SLIB_INLINE sl_ui_len GridView::_fix##SECTION##RowHeight(Row& row, sl_ui_len defaultRowHeight) \
-	{ \
-		if (row.height >= 0) { \
-			return row.height; \
-		} else if (m_default##SECTION##RowHeight >= 0) { \
-			return m_default##SECTION##RowHeight; \
-		} else { \
-			return defaultRowHeight; \
-		} \
+	void GridView::setColumnWidth(sl_ui_len width, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		ListElements<Column> columns(m_columns);
+		for (sl_size i = 0; i < columns.count; i++) {
+			columns[i].width = width;
+		}
+		m_defaultColumnWidth = width;
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
+		_invalidateHeaderCells();
+		_invalidateFooterCells();
+		_invalidateBodyCells();
+		refreshContentWidth(mode);
 	}
 
-	DEFINE_FIX_ROW_HEIGHT(Body)
-	DEFINE_FIX_ROW_HEIGHT(Header)
-	DEFINE_FIX_ROW_HEIGHT(Footer)
+	namespace {
+		SLIB_INLINE static sl_ui_len FixLength(sl_ui_len value, sl_ui_len defaultRowHeight)
+		{
+			if (value >= 0) {
+				return value;
+			} else {
+				return defaultRowHeight;
+			}
+		}
+	}
 
 	SLIB_INLINE sl_ui_len GridView::_getDefaultRowHeight()
 	{
@@ -475,7 +536,7 @@ namespace slib
 		ListElements<Row> rows(m_list##SECTION##Row); \
 		sl_ui_len defaultRowHeight = _getDefaultRowHeight(); \
 		for (sl_size i = 0; i < rows.count; i++) { \
-			height += _fix##SECTION##RowHeight(rows[i], defaultRowHeight); \
+			height += FixLength(rows[i].height, defaultRowHeight); \
 		} \
 		return height; \
 	}
@@ -495,7 +556,7 @@ namespace slib
 		ObjectLocker lock(this); \
 		Row* row = m_list##SECTION##Row.getPointerAt(index); \
 		if (row) { \
-			return _fix##SECTION##RowHeight(*row, _getDefaultRowHeight()); \
+			return FixLength(row->height, _getDefaultRowHeight()); \
 		} else { \
 			return 0; \
 		} \
@@ -526,6 +587,7 @@ namespace slib
 		for (sl_size i = 0; i < rows.count; i++) { \
 			rows[i].height = height; \
 		} \
+		m_default##SECTION##RowHeight = height; \
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 			return; \
 		} \
@@ -558,41 +620,6 @@ namespace slib
 				rows[i].height = height; \
 			}
 		}
-		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
-			return;
-		}
-		_invalidateBodyCells();
-		_invalidateHeaderCells();
-		_invalidateFooterCells();
-		refreshContentHeight(mode);
-	}
-
-#define DEFINE_GET_SET_DEFAULT_ROW_HEIGHT(SECTION) \
-	sl_ui_len GridView::getDefault##SECTION##RowHeight() \
-	{ \
-		return m_default##SECTION##RowHeight; \
-	} \
-	void GridView::setDefault##SECTION##RowHeight(sl_ui_len height, UIUpdateMode mode) \
-	{ \
-		ObjectLocker lock(this); \
-		m_default##SECTION##RowHeight = height; \
-		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
-			return; \
-		} \
-		_invalidate##SECTION##Cells(); \
-		refreshContentHeight(mode); \
-	}
-
-	DEFINE_GET_SET_DEFAULT_ROW_HEIGHT(Body)
-	DEFINE_GET_SET_DEFAULT_ROW_HEIGHT(Header)
-	DEFINE_GET_SET_DEFAULT_ROW_HEIGHT(Footer)
-
-	void GridView::setDefaultRowHeight(sl_ui_len height, UIUpdateMode mode)
-	{
-		ObjectLocker lock(this);
-		m_defaultBodyRowHeight = height;
-		m_defaultHeaderRowHeight = height;
-		m_defaultFooterRowHeight = height;
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			return;
 		}
@@ -825,7 +852,7 @@ namespace slib
 		sl_ui_len content = 0;
 		sl_ui_len fixed = 0;
 		for (sl_size i = 0; i < columns.count; i++) {
-			sl_ui_len w = _fixColumnWidth(columns[i]);
+			sl_ui_len w = columns[i].width;
 			if (i < m_nLeftColumns || i >= columns.count - m_nRightColumns) {
 				fixed += w;
 			} else {
@@ -898,8 +925,8 @@ namespace slib
 	}
 
 	DEFINE_GET_CELL_PROP(Body)
-	DEFINE_GET_CELL_PROP(Header)
-	DEFINE_GET_CELL_PROP(Footer)
+		DEFINE_GET_CELL_PROP(Header)
+		DEFINE_GET_CELL_PROP(Footer)
 
 #define DEFINE_SET_CELL_ATTR_SUB(SECTION, FUNC, RET, ARG, NAME, DEF) \
 	void GridView::set##SECTION##FUNC(sl_int32 iRow, sl_int32 iCol, ARG NAME, UIUpdateMode mode) \
@@ -919,6 +946,7 @@ namespace slib
 			} else { \
 				Column* col = m_columns.getPointerAt(iCol); \
 				if (col) { \
+					col->default##SECTION##Props.NAME = NAME; \
 					ListElements<SECTION##CellProp> props(col->list##SECTION##Cell); \
 					for (sl_size i = 0; i < props.count; i++) { \
 						props[i].NAME = NAME; \
@@ -931,6 +959,18 @@ namespace slib
 				} \
 			} \
 		} else { \
+			if (iRow >= 0) { \
+				Row* row = m_list##SECTION##Row.getPointerAt(iRow); \
+				if (row) { \
+					row->defaultProps.NAME = NAME; \
+				} \
+			} else { \
+				m_default##SECTION##Props.NAME = NAME; \
+				ListElements<Row> rows(m_list##SECTION##Row); \
+				for (sl_size k = 0; k < rows.count; k++) { \
+					rows[k].defaultProps.NAME = NAME; \
+				} \
+			} \
 			ListElements<Column> columns(m_columns); \
 			for (sl_size k = 0; k < columns.count; k++) { \
 				Column& col = columns[k]; \
@@ -940,6 +980,7 @@ namespace slib
 						prop->NAME = NAME; \
 					} \
 				} else { \
+					col.default##SECTION##Props.NAME = NAME; \
 					ListElements<SECTION##CellProp> props(col.list##SECTION##Cell); \
 					for (sl_size i = 0; i < props.count; i++) { \
 						props[i].NAME = NAME; \
@@ -968,18 +1009,21 @@ namespace slib
 
 #define DEFINE_SET_COLUMN_ATTR_SUB(...) \
 	{ \
+		col.defaultBodyProps.__VA_ARGS__; \
 		ListElements<BodyCellProp> props(col.listBodyCell); \
 		for (sl_size i = 0; i < props.count; i++) { \
 			props[i].__VA_ARGS__; \
 		} \
 	} \
 	{ \
+		col.defaultHeaderProps.__VA_ARGS__; \
 		ListElements<HeaderCellProp> props(col.listHeaderCell); \
 		for (sl_size i = 0; i < props.count; i++) { \
 			props[i].__VA_ARGS__; \
 		} \
 	} \
 	{ \
+		col.defaultFooterProps.__VA_ARGS__; \
 		ListElements<FooterCellProp> props(col.listFooterCell); \
 		for (sl_size i = 0; i < props.count; i++) { \
 			props[i].__VA_ARGS__; \
@@ -1004,10 +1048,33 @@ namespace slib
 				invalidate(mode); \
 			} \
 		} else { \
-			ListElements<Column> columns(m_columns); \
-			for (sl_size k = 0; k < columns.count; k++) { \
-				Column& col = columns[k]; \
-				DEFINE_SET_COLUMN_ATTR_SUB(NAME = NAME) \
+			{ \
+				ListElements<Column> columns(m_columns); \
+				for (sl_size k = 0; k < columns.count; k++) { \
+					Column& col = columns[k]; \
+					DEFINE_SET_COLUMN_ATTR_SUB(NAME = NAME) \
+				} \
+			} \
+			{ \
+				m_defaultBodyProps.NAME = NAME; \
+				ListElements<Row> rows(m_listBodyRow); \
+				for (sl_size k = 0; k < rows.count; k++) { \
+					rows[k].defaultProps.NAME = NAME; \
+				} \
+			} \
+			{ \
+				m_defaultHeaderProps.NAME = NAME; \
+				ListElements<Row> rows(m_listHeaderRow); \
+				for (sl_size k = 0; k < rows.count; k++) { \
+					rows[k].defaultProps.NAME = NAME; \
+				} \
+			} \
+			{ \
+				m_defaultFooterProps.NAME = NAME; \
+				ListElements<Row> rows(m_listFooterRow); \
+				for (sl_size k = 0; k < rows.count; k++) { \
+					rows[k].defaultProps.NAME = NAME; \
+				} \
 			} \
 			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 				return; \
@@ -1030,13 +1097,11 @@ namespace slib
 	DEFINE_SET_COLUMN_ATTR(FUNC, ARG, NAME)
 
 	DEFINE_GET_SET_CELL_ATTR(Creator, GridView::CellCreator, const CellCreator&, creator, sl_null)
+
 	DEFINE_GET_SET_CELL_ATTR(Text, String, const String&, text, sl_null)
-	DEFINE_GET_SET_CELL_ATTR(MultiLine, MultiLineMode, MultiLineMode, multiLineMode, MultiLineMode::Single)
-	DEFINE_GET_SET_CELL_ATTR(Ellipsize, EllipsizeMode, EllipsizeMode, ellipsizeMode, EllipsizeMode::None)
-	DEFINE_GET_SET_CELL_ATTR(LineCount, sl_uint32, sl_uint32, lineCount, 0)
-	DEFINE_GET_SET_CELL_ATTR(Alignment, Alignment, const Alignment&, align, 0)
 
 	DEFINE_SET_CELL_ATTR(Font, Ref<Font>, const Ref<Font>&, font, sl_null)
+
 #define DEFINE_GET_SET_FONT(SECTION) \
 	Ref<Font> GridView::get##SECTION##Font(sl_uint32 iRow, sl_uint32 iCol) \
 	{ \
@@ -1055,6 +1120,17 @@ namespace slib
 	DEFINE_GET_SET_FONT(Body)
 	DEFINE_GET_SET_FONT(Header)
 	DEFINE_GET_SET_FONT(Footer)
+
+	DEFINE_GET_SET_CELL_ATTR(MultiLine, MultiLineMode, MultiLineMode, multiLineMode, MultiLineMode::Single)
+
+	void GridView::setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode)
+	{
+		setColumnMultiLine(-1, multiLineMode, updateMode);
+	}
+
+	DEFINE_GET_SET_CELL_ATTR(Ellipsize, EllipsizeMode, EllipsizeMode, ellipsizeMode, EllipsizeMode::None)
+	DEFINE_GET_SET_CELL_ATTR(LineCount, sl_uint32, sl_uint32, lineCount, 0)
+	DEFINE_GET_SET_CELL_ATTR(Alignment, Alignment, const Alignment&, align, 0)
 
 	void GridView::setColumnFont(sl_int32 iCol, const FontDesc& desc, UIUpdateMode mode)
 	{
@@ -1112,7 +1188,7 @@ namespace slib
 	}
 
 #define DEFINE_SET_COLUMN_DRAWING_ATTR(FUNC, ARG, NAME) \
-	void GridView::setColumn##FUNC(sl_int32 iCol, ARG NAME, ViewState state, UIUpdateMode mode) \
+	void GridView::FUNC(sl_int32 iCol, ARG NAME, ViewState state, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
 		if (iCol >= 0) { \
@@ -1136,9 +1212,9 @@ namespace slib
 	DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(Body, FUNC, RET, ARG, NAME, DEF) \
 	DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(Header, FUNC, RET, ARG, NAME, DEF) \
 	DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(Footer, FUNC, RET, ARG, NAME, DEF) \
-	DEFINE_SET_COLUMN_DRAWING_ATTR(FUNC, ARG, NAME)
 
 	DEFINE_GET_SET_CELL_DRAWING_ATTR(Background, Ref<Drawable>, const Ref<Drawable>&, background, sl_null)
+	DEFINE_SET_COLUMN_DRAWING_ATTR(setCellBackground, const Ref<Drawable>&, background)
 
 #define DEFINE_GET_SET_BACKGROUND(SECTION) \
 	Ref<Drawable> GridView::get##SECTION##Background() \
@@ -1156,6 +1232,7 @@ namespace slib
 	DEFINE_GET_SET_BACKGROUND(Footer)
 
 	DEFINE_GET_SET_CELL_DRAWING_ATTR(TextColor, Color, const Color&, textColor, Color::zero())
+	DEFINE_SET_COLUMN_DRAWING_ATTR(setColumnTextColor, const Color&, textColor)
 
 #define DEFINE_GET_SET_SPAN(SECTION) \
 	sl_uint32 GridView::get##SECTION##Rowspan(sl_uint32 iRow, sl_uint32 iCol) \
@@ -1603,7 +1680,7 @@ namespace slib
 		if (nColumns) {
 			for (sl_uint32 i = 0; i < nColumns; i++) {
 				Column& col = columns[i];
-				col.fixedWidth = _fixColumnWidth(col);
+				col.fixedWidth = col.width;
 			}
 		} else {
 			return;
@@ -1694,7 +1771,7 @@ namespace slib
 			ListElements<Row> rows(m_listHeaderRow);
 			for (sl_size i = 0; i < rows.count; i++) {
 				Row& row = rows[i];
-				row.fixedHeight = _fixHeaderRowHeight(row, defaultRowHeight);
+				row.fixedHeight = FixLength(row.height, defaultRowHeight);
 				heightHeader += row.fixedHeight;
 			}
 		}
@@ -1704,7 +1781,7 @@ namespace slib
 			if (rows.count) {
 				for (sl_size i = 0; i < rows.count; i++) {
 					Row& row = rows[i];
-					row.fixedHeight = _fixFooterRowHeight(row, defaultRowHeight);
+					row.fixedHeight = FixLength(row.height, defaultRowHeight);
 					heightFooter += row.fixedHeight;
 				}
 			}
@@ -1716,7 +1793,7 @@ namespace slib
 			if (rows.count) {
 				for (sl_size i = 0; i < rows.count; i++) {
 					Row& row = rows[i];
-					row.fixedHeight = _fixBodyRowHeight(row, defaultRowHeight);
+					row.fixedHeight = FixLength(row.height, defaultRowHeight);
 				}
 				CanvasStateScope scope(canvas);
 				canvas->clipToRectangle(0, (sl_real)heightHeader, (sl_real)widthView, (sl_real)(yFooter - heightHeader));

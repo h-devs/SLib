@@ -65,6 +65,9 @@ namespace slib
 		public:
 			CellAttribute();
 			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CellAttribute)
+
+		public:
+			void inheritFrom(const CellAttribute& other);
 		};
 
 		// Special values for `RecordIndex`
@@ -201,6 +204,7 @@ namespace slib
 
 		sl_ui_len getColumnWidth(sl_uint32 index);
 		sl_bool setColumnWidth(sl_uint32 index, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_ui_len getRecordHeight();
 		sl_ui_len getHeaderHeight();
@@ -219,15 +223,6 @@ namespace slib
 		void setBodyRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		sl_ui_len getDefaultBodyRowHeight();
-		sl_ui_len getDefaultHeaderRowHeight();
-		sl_ui_len getDefaultFooterRowHeight();
-
-		void setDefaultRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setDefaultBodyRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setDefaultHeaderRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setDefaultFooterRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		enum class Section
 		{
@@ -320,6 +315,7 @@ namespace slib
 		void setHeaderMultiLine(sl_int32 row, sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setFooterMultiLine(sl_int32 row, sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setColumnMultiLine(sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 		EllipsizeMode getBodyEllipsize(sl_uint32 row, sl_uint32 column);
 		EllipsizeMode getHeaderEllipsize(sl_uint32 row, sl_uint32 column);
@@ -348,6 +344,7 @@ namespace slib
 		void setFooterAlignment(sl_int32 row, sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setColumnAlignment(sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		// Cell Background
 		Ref<Drawable> getBodyBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 		Ref<Drawable> getHeaderBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 		Ref<Drawable> getFooterBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
@@ -355,7 +352,8 @@ namespace slib
 		void setBodyBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setColumnBackground(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellBackground(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellBackground(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Drawable> getBodyBackground();
 		Ref<Drawable> getHeaderBackground();
@@ -364,6 +362,28 @@ namespace slib
 		void setBodyBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<Drawable> getRecordBackground();
+		void setRecordBackground(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<Drawable> getColumnBackground(sl_uint32 column, ViewState state = ViewState::Default);
+		void setColumnBackground(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<Drawable> getBodyRowBackground(sl_uint32 row, ViewState state = ViewState::Default);
+		Ref<Drawable> getHeaderRowBackground(sl_uint32 row, ViewState state = ViewState::Default);
+		Ref<Drawable> getFooterRowBackground(sl_uint32 row, ViewState state = ViewState::Default);
+
+		void setBodyRowBackground(sl_int32 row, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderRowBackground(sl_int32 row, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterRowBackground(sl_int32 row, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<Drawable> getBodyColumnBackground(sl_uint32 column, ViewState state = ViewState::Default);
+		Ref<Drawable> getHeaderColumnBackground(sl_uint32 column, ViewState state = ViewState::Default);
+		Ref<Drawable> getFooterColumnBackground(sl_uint32 column, ViewState state = ViewState::Default);
+
+		void setBodyColumnBackground(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderColumnBackground(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterColumnBackground(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Color getBodyTextColor(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 		Color getHeaderTextColor(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
@@ -490,10 +510,15 @@ namespace slib
 		public:
 			sl_ui_len width;
 			sl_ui_len fixedWidth;
+			ViewStateMap< Ref<Drawable> > backgrounds;
 
 			List<BodyCellProp> listBodyCell;
 			List<HeaderCellProp> listHeaderCell;
 			List<FooterCellProp> listFooterCell;
+
+			CellProp defaultBodyProps;
+			CellProp defaultHeaderProps;
+			CellProp defaultFooterProps;
 
 		public:
 			Column();
@@ -505,16 +530,15 @@ namespace slib
 		public:
 			sl_ui_len height;
 			sl_ui_len fixedHeight;
+			ViewStateMap< Ref<Drawable> > backgrounds;
+
+			CellProp defaultProps;
 
 		public:
 			Row();
 			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Row)
 		};
 
-		static sl_ui_len _fixColumnWidth(Column& column);
-		sl_ui_len _fixBodyRowHeight(Row& row, sl_ui_len defaultHeight);
-		sl_ui_len _fixHeaderRowHeight(Row& row, sl_ui_len defaultHeight);
-		sl_ui_len _fixFooterRowHeight(Row& row, sl_ui_len defaultHeight);
 		sl_ui_len _getDefaultRowHeight();
 
 		CellProp* _getCellProp(RecordIndex record, sl_uint32 row, sl_uint32 column);
@@ -586,12 +610,16 @@ namespace slib
 		CList<Row> m_listHeaderRow;
 		CList<Row> m_listFooterRow;
 
+		sl_ui_len m_defaultColumnWidth;
 		sl_ui_len m_defaultBodyRowHeight;
 		sl_ui_len m_defaultHeaderRowHeight;
 		sl_ui_len m_defaultFooterRowHeight;
 		AtomicRef<Drawable> m_backgroundBody;
 		AtomicRef<Drawable> m_backgroundHeader;
 		AtomicRef<Drawable> m_backgroundFooter;
+		CellProp m_defaultBodyProps;
+		CellProp m_defaultHeaderProps;
+		CellProp m_defaultFooterProps;
 
 		AtomicRef<Pen> m_grid[3][3];
 		AtomicRef<Pen> m_sectionBorder[2][3][3];

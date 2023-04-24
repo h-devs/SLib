@@ -48,6 +48,8 @@ namespace slib
 
 		VALUE evaluate(ViewState state, sl_bool* outFlagReturnDefault = sl_null);
 
+		void copyFrom(const ViewStateMap& other);
+
 	private:
 		template <class MAP>
 		static sl_bool _evaluate(VALUE& ret, const MAP& map, ViewState state, ViewState def, sl_bool& flagReturnDefault);
