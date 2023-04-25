@@ -330,11 +330,12 @@ namespace slib
 		}
 		if (count > nOldCount) {
 			Column* columns = m_columns.getData();
-			Column& lastCol = columns[nOldCount];
 			for (sl_uint32 iCol = nOldCount; iCol < count; iCol++) {
 				Column& col = columns[iCol];
 				col.width = m_defaultColumnWidth;
+
 #define SET_COLUMN_COUNT_INHERIT(SECTION) \
+				col.default##SECTION##Props.inheritFrom(m_default##SECTION##Props); \
 				{ \
 					sl_uint32 nRows = (sl_uint32)(m_list##SECTION##Row.getCount()); \
 					if (nRows) { \
@@ -342,17 +343,18 @@ namespace slib
 							return sl_false; \
 						} \
 						if (nOldCount) { \
-							ListElements<SECTION##CellProp> lastProps(lastCol.list##SECTION##Cell); \
-							if (nRows > lastProps.count) { \
-								nRows = lastProps.count; \
+							ListElements<Row> rows(m_list##SECTION##Row); \
+							if (nRows > rows.count) { \
+								nRows = (sl_uint32)(rows.count); \
 							} \
 							SECTION##CellProp* props = col.list##SECTION##Cell.getData(); \
 							for (sl_uint32 i = 0; i < nRows; i++) { \
-								props[i].inheritFrom(lastProps[i]); \
+								props[i].inheritFrom(rows[i].defaultProps); \
 							} \
 						} \
 					} \
 				}
+
 				SET_COLUMN_COUNT_INHERIT(Body)
 				SET_COLUMN_COUNT_INHERIT(Header)
 				SET_COLUMN_COUNT_INHERIT(Footer)
@@ -361,6 +363,8 @@ namespace slib
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			return sl_true;
 		}
+		_invalidateHeaderCells();
+		_invalidateFooterCells();
 		_invalidateBodyCells();
 		refreshContentWidth(mode);
 		return sl_true;
@@ -434,9 +438,8 @@ namespace slib
 			} \
 			if (nOld < count) { \
 				SECTION##CellProp* props = col.list##SECTION##Cell.getData(); \
-				SECTION##CellProp& lastProp = props[nOld]; \
 				for (sl_uint32 i = nOld; i < count; i++) { \
-					props[i].inheritFrom(lastProp); \
+					props[i].inheritFrom(col.default##SECTION##Props); \
 				} \
 			} \
 		} \
@@ -446,7 +449,9 @@ namespace slib
 		if (nOld < count) { \
 			Row* rows = m_list##SECTION##Row.getData(); \
 			for (sl_uint32 i = nOld; i < count; i++) { \
-				rows[i].height = m_default##SECTION##RowHeight; \
+				Row& row = rows[i]; \
+				row.height = m_default##SECTION##RowHeight; \
+				row.defaultProps.inheritFrom(m_default##SECTION##Props); \
 			} \
 		} \
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
@@ -603,18 +608,21 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 		{
+			m_defaultBodyRowHeight = height;
 			ListElements<Row> rows(m_listBodyRow);
 			for (sl_size i = 0; i < rows.count; i++) {
-				rows[i].height = height; \
+				rows[i].height = height;
 			}
 		}
 		{
+			m_defaultHeaderRowHeight = height;
 			ListElements<Row> rows(m_listHeaderRow);
 			for (sl_size i = 0; i < rows.count; i++) {
 				rows[i].height = height; \
 			}
 		}
 		{
+			m_defaultFooterRowHeight = height;
 			ListElements<Row> rows(m_listFooterRow);
 			for (sl_size i = 0; i < rows.count; i++) {
 				rows[i].height = height; \
@@ -925,8 +933,8 @@ namespace slib
 	}
 
 	DEFINE_GET_CELL_PROP(Body)
-		DEFINE_GET_CELL_PROP(Header)
-		DEFINE_GET_CELL_PROP(Footer)
+	DEFINE_GET_CELL_PROP(Header)
+	DEFINE_GET_CELL_PROP(Footer)
 
 #define DEFINE_SET_CELL_ATTR_SUB(SECTION, FUNC, RET, ARG, NAME, DEF) \
 	void GridView::set##SECTION##FUNC(sl_int32 iRow, sl_int32 iCol, ARG NAME, UIUpdateMode mode) \
@@ -1129,7 +1137,14 @@ namespace slib
 	}
 
 	DEFINE_GET_SET_CELL_ATTR(Ellipsize, EllipsizeMode, EllipsizeMode, ellipsizeMode, EllipsizeMode::None)
+
+	void GridView::setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode)
+	{
+		setColumnEllipsize(-1, ellipsizeMode, updateMode);
+	}
+
 	DEFINE_GET_SET_CELL_ATTR(LineCount, sl_uint32, sl_uint32, lineCount, 0)
+
 	DEFINE_GET_SET_CELL_ATTR(Alignment, Alignment, const Alignment&, align, 0)
 
 	void GridView::setColumnFont(sl_int32 iCol, const FontDesc& desc, UIUpdateMode mode)

@@ -978,6 +978,8 @@ namespace slib
 		SAppDimensionValue rowHeight;
 		SAppBorderValue grid;
 
+		SAppMultiLineModeValue multiLine;
+
 		SAppLayoutGridSection body;
 		SAppLayoutGridSection header;
 		SAppLayoutGridSection footer;

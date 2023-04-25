@@ -95,8 +95,11 @@ namespace slib
 	void ViewStateMap<VALUE>::copyFrom(const ViewStateMap& other)
 	{
 		defaultValue = other.defaultValue;
-		HashMap<ViewState, VALUE> map(*(reinterpret_cast<AtomicHashMap<ViewState, VALUE>*>(&other.values)));
-		values = map.duplicate();
+		HashMap<ViewState, VALUE> map(*(reinterpret_cast<const AtomicHashMap<ViewState, VALUE>*>(&(other.values))));
+		if (map.isNotNull()) {
+			map = map.duplicate();
+			values = Move(map.ref);
+		}
 	}
 
 	template <class VALUE>

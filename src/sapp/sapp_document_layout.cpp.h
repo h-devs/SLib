@@ -4372,6 +4372,7 @@ namespace slib
 
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setRowHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(BORDER, grid, setGrid)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setMultiLine)
 
 		if (op == SAppLayoutOperation::Parse) {
 
@@ -4545,9 +4546,9 @@ namespace slib
 			}
 
 		} else if (op == SAppLayoutOperation::Generate) {
-		
+
 			ListElements<SAppLayoutGridColumn> columns(attr->columns);
-			
+
 			LAYOUT_CONTROL_GENERATE(setColumnCount, "%d, slib::UIUpdateMode::Init", columns.count)
 			LAYOUT_CONTROL_GENERATE(setLeftColumnCount, "%d, slib::UIUpdateMode::Init", attr->nLeftColumns)
 			LAYOUT_CONTROL_GENERATE(setRightColumnCount, "%d, slib::UIUpdateMode::Init", attr->nRightColumns)

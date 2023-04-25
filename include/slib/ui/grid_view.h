@@ -325,6 +325,7 @@ namespace slib
 		void setHeaderEllipsize(sl_int32 row, sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setFooterEllipsize(sl_int32 row, sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setColumnEllipsize(sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+		void setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 		sl_uint32 getBodyLineCount(sl_uint32 row, sl_uint32 column);
 		sl_uint32 getHeaderLineCount(sl_uint32 row, sl_uint32 column);
@@ -334,6 +335,7 @@ namespace slib
 		void setHeaderLineCount(sl_int32 row, sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterLineCount(sl_int32 row, sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setColumnLineCount(sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setLineCount(sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Alignment getBodyAlignment(sl_uint32 row, sl_uint32 column);
 		Alignment getHeaderAlignment(sl_uint32 row, sl_uint32 column);
