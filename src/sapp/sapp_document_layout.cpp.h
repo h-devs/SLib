@@ -4372,7 +4372,13 @@ namespace slib
 
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setRowHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(BORDER, grid, setGrid)
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setMultiLine)
+		LAYOUT_CONTROL_ATTR(GENERIC, selection, setSelectionMode)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setCellMultiLine)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, ellipsize, setCellEllipsize)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, lineCount, setCellLineCount)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellAlign, setCellAlignment)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, cellBackground, setCellBackground)
+		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setCellTextColor)
 
 		if (op == SAppLayoutOperation::Parse) {
 
@@ -4386,6 +4392,16 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_STATE_MAP_XML(DRAWABLE, XML, ATTR., background) \
 				LAYOUT_CONTROL_PARSE_STATE_MAP_XML(COLOR, XML, ATTR., textColor) \
 			}
+#define LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(ATTR, XML, SECTION) \
+			{ \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Align", , ATTR.align) \
+				LAYOUT_CONTROL_PARSE_FONT(XML, #SECTION "Font", , ATTR.font) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "MultiLine", , ATTR.multiLine) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Ellipsize", , ATTR.ellipsize) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "LineCount", , ATTR.lineCount) \
+				LAYOUT_CONTROL_PARSE_STATE_MAP(DRAWABLE, XML, #SECTION "Background", , ATTR.background) \
+				LAYOUT_CONTROL_PARSE_STATE_MAP(COLOR, XML, #SECTION "TextColor", , ATTR.textColor) \
+			}
 			{
 				LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(columnXmls, "column")
 				for (sl_size i = 0; i < columnXmls.count; i++) {
@@ -4394,17 +4410,22 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., width, checkScalarSize)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., fixed)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column, columnXml)
-					SAppLayoutXmlItem header(LAYOUT_CONTROL_GET_XML_CHILDREN(columnXml, "header").getFirstValue_NoLock());
-					if (header.element.isNotNull()) {
-						LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column.headerAttrs, header)
+					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.bodyAttrs, columnXml, body)
+					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.headerAttrs, columnXml, header)
+					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.footerAttrs, columnXml, footer)
+					String text = columnXml.getXmlText();
+					if (text.isNotEmpty()) {
+						if (!(column.bodyAttrs.text.parse(text, columnXml.element))) {
+							logError(columnXml.element, g_str_error_resource_layout_value_invalid, text);
+							return sl_false;
+						}
 					}
-					SAppLayoutXmlItem body(LAYOUT_CONTROL_GET_XML_CHILDREN(columnXml, "body").getFirstValue_NoLock());
-					if (body.element.isNotNull()) {
-						LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column.bodyAttrs, body)
-					}
-					SAppLayoutXmlItem footer(LAYOUT_CONTROL_GET_XML_CHILDREN(columnXml, "footer").getFirstValue_NoLock());
-					if (footer.element.isNotNull()) {
-						LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column.footerAttrs, footer)
+					text = columnXml.getXmlAttribute("title");
+					if (text.isNotEmpty()) {
+						if (!(column.headerAttrs.text.parse(text, columnXml.element))) {
+							logError(columnXml.element, g_str_error_resource_layout_value_invalid, text);
+							return sl_false;
+						}
 					}
 					if (!(attr->columns.add_NoLock(Move(column)))) {
 						logError(columnXml.element, g_str_error_out_of_memory);
@@ -4485,42 +4506,36 @@ namespace slib
 			}
 
 #define LAYOUT_CONTROL_PARSE_GRID_SECTION(SECTION, XML) \
-			{ \
+			LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(attr->SECTION, *resourceItem, SECTION) \
+			LAYOUT_CONTROL_PARSE_DIMENSION(*resourceItem, #SECTION "RowHeight", , attr->SECTION.rowHeight, checkScalarSize) \
+			LAYOUT_CONTROL_PARSE_BORDER(*resourceItem, #SECTION "Grid", , attr->SECTION.grid) \
+			if (XML.element.isNotNull()) { \
 				LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(attr->SECTION, XML) \
 				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, attr->SECTION., rowHeight, checkScalarSize) \
 				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., grid) \
-				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., leftGrid) \
-				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., rightGrid) \
-				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., border) \
-				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., leftBorder) \
-				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., rightBorder) \
-				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., horizontalBorder) \
-				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., horizontalLeftBorder) \
-				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., horizontalRightBorder) \
-				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., verticalBorder) \
-				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., verticalLeftBorder) \
-				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., verticalRightBorder) \
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(rowXmls, XML, "row") \
 				LAYOUT_CONTROL_PARSE_GRID_ROWS(SECTION) \
 				attr->SECTION.font.inheritFrom(attr->font); \
-				auto background = attr->SECTION.background.values.find_NoLock(ViewState::Default); \
-				if (background) { \
-					attr->SECTION.sectionBackground = background->value; \
-					attr->SECTION.background.values.removeAt(background); \
-				} \
+			}
+
+			LAYOUT_CONTROL_DEFINE_XML(body, LAYOUT_CONTROL_GET_ITEM_CHILDREN("body").getFirstValue_NoLock())
+			LAYOUT_CONTROL_PARSE_GRID_SECTION(body, body)
+			if (body.element.isNull()) {
+				LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(rowXmls, "row")
+				LAYOUT_CONTROL_PARSE_GRID_ROWS(body)
+				if (attr->body.rows.isEmpty()) {
+					attr->body.rows.setCount_NoLock(1);
+				}
 			}
 
 			LAYOUT_CONTROL_DEFINE_XML(header, LAYOUT_CONTROL_GET_ITEM_CHILDREN("header").getFirstValue_NoLock())
-			if (header.element.isNotNull()) {
-				LAYOUT_CONTROL_PARSE_GRID_SECTION(header, header)
+			if (header.element.isNull()) {
+				if (attr->header.rows.isEmpty()) {
+					attr->header.rows.setCount_NoLock(1);
+				}
 			}
-			LAYOUT_CONTROL_DEFINE_XML(body, LAYOUT_CONTROL_GET_ITEM_CHILDREN("body").getFirstValue_NoLock())
-			if (body.element.isNotNull()) {
-				LAYOUT_CONTROL_PARSE_GRID_SECTION(body, body)
-			} else {
-				LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(rowXmls, "row")
-				LAYOUT_CONTROL_PARSE_GRID_ROWS(body)
-			}
+			LAYOUT_CONTROL_PARSE_GRID_SECTION(header, header)
+
 			LAYOUT_CONTROL_DEFINE_XML(footer, LAYOUT_CONTROL_GET_ITEM_CHILDREN("footer").getFirstValue_NoLock())
 			if (footer.element.isNotNull()) {
 				LAYOUT_CONTROL_PARSE_GRID_SECTION(footer, footer)
@@ -4572,10 +4587,7 @@ namespace slib
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) {
 					SAppLayoutGridColumn& column = columns[iCol];
 					LAYOUT_CONTROL_GENERATE_DIMENSION(column.width, setColumnWidth, ITEM, "%d, %s", iCol, value)
-					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Column, column, "%d, %s", iCol, value)
-					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Body, column.bodyAttrs, "-1, %d, %s", iCol, value)
-					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Header, column.headerAttrs, "-1, %d, %s", iCol, value)
-					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Footer, column.footerAttrs, "-1, %d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Cell, column, "%d, %s", iCol, value)
 				}
 			}
 
@@ -4583,20 +4595,12 @@ namespace slib
 			{ \
 				auto& section = attr->SECTION; \
 				LAYOUT_CONTROL_GENERATE_UI_ATTR(DIMENSION, section.rowHeight, set##PREFIX##RowHeight) \
-				LAYOUT_CONTROL_GENERATE_UI_ATTR(DRAWABLE, section.sectionBackground, set##PREFIX##Background) \
-				LAYOUT_CONTROL_GENERATE_BORDER(section.grid, setGrid, ITEM, "slib::GridView::Section::" #PREFIX ", %s", value) \
-				LAYOUT_CONTROL_GENERATE_BORDER(section.leftGrid, setGrid, ITEM, "slib::GridView::Section::" #PREFIX "Left, %s", value) \
-				LAYOUT_CONTROL_GENERATE_BORDER(section.rightGrid, setGrid, ITEM, "slib::GridView::Section::" #PREFIX "Right, %s", value) \
-				LAYOUT_CONTROL_GENERATE_BORDER(section.border, setSectionBorder, ITEM, "slib::GridView::Section::" #PREFIX ", %s", value) \
-				LAYOUT_CONTROL_GENERATE_BORDER(section.leftBorder, setSectionBorder, ITEM, "slib::GridView::Section::" #PREFIX "Left, %s", value) \
-				LAYOUT_CONTROL_GENERATE_BORDER(section.rightBorder, setSectionBorder, ITEM, "slib::GridView::Section::" #PREFIX "Right, %s", value) \
-				LAYOUT_CONTROL_GENERATE_BORDER(section.horizontalBorder, setSectionBorder, ITEM, "slib::GridView::Section::" #PREFIX ", slib::GridView::Axis::X, %s", value) \
-				LAYOUT_CONTROL_GENERATE_BORDER(section.horizontalLeftBorder, setSectionBorder, ITEM, "slib::GridView::Section::" #PREFIX "Left, slib::GridView::Axis::X, %s", value) \
-				LAYOUT_CONTROL_GENERATE_BORDER(section.horizontalRightBorder, setSectionBorder, ITEM, "slib::GridView::Section::" #PREFIX "Right, slib::GridView::Axis::X, %s", value) \
-				LAYOUT_CONTROL_GENERATE_BORDER(section.verticalBorder, setSectionBorder, ITEM, "slib::GridView::Section::" #PREFIX ", slib::GridView::Axis::Y, %s", value) \
-				LAYOUT_CONTROL_GENERATE_BORDER(section.verticalLeftBorder, setSectionBorder, ITEM, "slib::GridView::Section::" #PREFIX "Left, slib::GridView::Axis::Y, %s", value) \
-				LAYOUT_CONTROL_GENERATE_BORDER(section.verticalRightBorder, setSectionBorder, ITEM, "slib::GridView::Section::" #PREFIX "Right, slib::GridView::Axis::Y, %s", value) \
+				LAYOUT_CONTROL_GENERATE_UI_ATTR(BORDER, section.grid, set##PREFIX##Grid) \
 				LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, section, "-1, -1, %s", value) \
+				for (sl_size iCol = 0; iCol < columns.count; iCol++) { \
+					SAppLayoutGridColumn& column = columns[iCol]; \
+					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, column.SECTION##Attrs, "-1, %d, %s", iCol, value) \
+				} \
 				ListElements<SAppLayoutGridRow> rows(section.rows); \
 				for (sl_size iRow = 0; iRow < rows.count; iRow++) { \
 					SAppLayoutGridRow& row = rows[iRow]; \
@@ -4609,6 +4613,7 @@ namespace slib
 							auto creator = GenerateGridCellCreator(cell.creator); \
 							LAYOUT_CONTROL_GENERATE(set##PREFIX##Creator, "%d, %d, %s, slib::UIUpdateMode::Init", iRow, iCell, creator) \
 						} \
+						LAYOUT_CONTROL_GENERATE_STRING(cell.text, set##PREFIX##Text, ITEM, "%d, %d, %s", iRow, iCell, value) \
 						LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, cell, "%d, %d, %s", iRow, iCell, value) \
 						if (cell.colspan.flagDefined && cell.rowspan.flagDefined) { \
 							LAYOUT_CONTROL_GENERATE(set##PREFIX##Span, "%d, %d, %d, %d, slib::UIUpdateMode::Init", iRow, iCell, cell.rowspan.value, cell.colspan.value) \
@@ -4652,10 +4657,7 @@ namespace slib
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) {
 					SAppLayoutGridColumn& column = columns[iCol];
 					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.width, setColumnWidth, ITEM, (sl_uint32)iCol, value)
-					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Column, column, (sl_uint32)iCol)
-					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Body, column.bodyAttrs, -1, (sl_uint32)iCol)
-					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Header, column.headerAttrs, -1, (sl_uint32)iCol)
-					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Footer, column.footerAttrs, -1, (sl_uint32)iCol)
+					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Cell, column, (sl_uint32)iCol)
 				}
 			}
 
@@ -4663,20 +4665,12 @@ namespace slib
 			{ \
 				auto& section = attr->SECTION; \
 				LAYOUT_CONTROL_SIMULATE_UI_ATTR(DIMENSION, section.rowHeight, set##PREFIX##RowHeight) \
-				LAYOUT_CONTROL_SIMULATE_UI_ATTR(DRAWABLE, section.sectionBackground, set##PREFIX##Background) \
-				LAYOUT_CONTROL_SIMULATE_BORDER(section.grid, setGrid, ITEM, GridView::Section::PREFIX, value) \
-				LAYOUT_CONTROL_SIMULATE_BORDER(section.leftGrid, setGrid, ITEM, GridView::Section::PREFIX##Left, value) \
-				LAYOUT_CONTROL_SIMULATE_BORDER(section.rightGrid, setGrid, ITEM, GridView::Section::PREFIX##Right, value) \
-				LAYOUT_CONTROL_SIMULATE_BORDER(section.border, setSectionBorder, ITEM, GridView::Section::PREFIX, value) \
-				LAYOUT_CONTROL_SIMULATE_BORDER(section.leftBorder, setSectionBorder, ITEM, GridView::Section::PREFIX##Left, value) \
-				LAYOUT_CONTROL_SIMULATE_BORDER(section.rightBorder, setSectionBorder, ITEM, GridView::Section::PREFIX##Right, value) \
-				LAYOUT_CONTROL_SIMULATE_BORDER(section.horizontalBorder, setSectionBorder, ITEM, GridView::Section::PREFIX, GridView::Axis::X, value) \
-				LAYOUT_CONTROL_SIMULATE_BORDER(section.horizontalLeftBorder, setSectionBorder, ITEM, GridView::Section::PREFIX##Left, GridView::Axis::X, value) \
-				LAYOUT_CONTROL_SIMULATE_BORDER(section.horizontalRightBorder, setSectionBorder, ITEM, GridView::Section::PREFIX##Right, GridView::Axis::X, value) \
-				LAYOUT_CONTROL_SIMULATE_BORDER(section.verticalBorder, setSectionBorder, ITEM, GridView::Section::PREFIX, GridView::Axis::Y, value) \
-				LAYOUT_CONTROL_SIMULATE_BORDER(section.verticalLeftBorder, setSectionBorder, ITEM, GridView::Section::PREFIX##Left, GridView::Axis::Y, value) \
-				LAYOUT_CONTROL_SIMULATE_BORDER(section.verticalRightBorder, setSectionBorder, ITEM, GridView::Section::PREFIX##Right, GridView::Axis::Y, value) \
+				LAYOUT_CONTROL_SIMULATE_UI_ATTR(BORDER, section.grid, set##PREFIX##Grid) \
 				LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, section, -1, -1) \
+				for (sl_size iCol = 0; iCol < columns.count; iCol++) { \
+					SAppLayoutGridColumn& column = columns[iCol]; \
+					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, column.SECTION##Attrs, -1, (sl_uint32)iCol) \
+				} \
 				ListElements<SAppLayoutGridRow> rows(section.rows); \
 				for (sl_size iRow = 0; iRow < rows.count; iRow++) { \
 					SAppLayoutGridRow& row = rows[iRow]; \
@@ -4706,6 +4700,8 @@ namespace slib
 			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(footer, Footer)
 		}
 
+		LAYOUT_CONTROL_UI_ATTR(BORDER, leftGrid, setLeftGrid)
+		LAYOUT_CONTROL_UI_ATTR(BORDER, rightGrid, setRightGrid)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, recordCount, setRecordCount)
 
 		LAYOUT_CONTROL_ADD_STATEMENT

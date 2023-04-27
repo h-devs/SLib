@@ -647,6 +647,19 @@ namespace slib
 
 	};
 
+	class SAppGridSelectionModeValue
+	{
+	public:
+		sl_bool flagDefined = sl_false;
+		GridView::SelectionMode value = GridView::SelectionMode::Cell;
+
+	public:
+		String getAccessString() const;
+
+		sl_bool parse(const String& str);
+
+	};
+
 }
 
 #endif

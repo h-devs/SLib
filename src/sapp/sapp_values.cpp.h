@@ -50,7 +50,6 @@ namespace slib
 	{
 		String str = _str;
 		if (str.isNull()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		if (str.startsWith('@')) {
@@ -332,9 +331,6 @@ namespace slib
 		do {
 			String str = _str.trim();
 			if (str.isEmpty()) {
-				flagDefined = sl_false;
-				unit = PX;
-				amount = 0;
 				return sl_true;
 			}
 			str = str.toLower();
@@ -614,7 +610,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -643,7 +638,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		float f;
@@ -668,7 +662,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		sl_int32 f;
@@ -692,7 +685,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		sl_uint32 f;
@@ -716,7 +708,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		sl_int64 f;
@@ -740,7 +731,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		sl_uint64 f;
@@ -765,7 +755,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		if (str.getLength() == 1) {
@@ -789,7 +778,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		sl_size pos = 0;
@@ -851,7 +839,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		sl_size pos = 0;
@@ -914,7 +901,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		sl_size pos = 0;
@@ -985,7 +971,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -1028,7 +1013,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -1061,9 +1045,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
-			horizontalScrollBar = sl_false;
-			verticalScrollBar = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -1102,8 +1083,6 @@ namespace slib
 		String str = _str.trim();
 		str = str.trim();
 		if (str.isEmpty()) {
-			value.setEmpty();
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		if (!(SAppUtil::checkName(str.getData(), str.getLength()))) {
@@ -1119,7 +1098,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		if (str.startsWith('@')) {
@@ -1162,7 +1140,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		return value.parse(str);
@@ -1173,7 +1150,6 @@ namespace slib
 	{
 		String str = _str;
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		if (str == "@null") {
@@ -1501,7 +1477,6 @@ namespace slib
 	{
 		String str = _str;
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		if (str == "@null") {
@@ -1721,7 +1696,6 @@ namespace slib
 	{
 		String str = _str;
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		if (str == "@null") {
@@ -1752,11 +1726,9 @@ namespace slib
 		String str = _str.trim();
 		str = str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		if (str == "false") {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		if (str == "true") {
@@ -1778,9 +1750,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
-			horizontal = sl_false;
-			vertical = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -1820,7 +1789,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -1880,7 +1848,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -1935,7 +1902,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -1982,7 +1948,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -2025,7 +1990,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -2064,7 +2028,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -2131,7 +2094,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -2230,7 +2192,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -2315,7 +2276,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -2364,7 +2324,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -2413,7 +2372,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -2462,7 +2420,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -2515,7 +2472,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -2570,7 +2526,6 @@ namespace slib
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
-			flagDefined = sl_false;
 			return sl_true;
 		}
 		str = str.toLower();
@@ -2580,6 +2535,52 @@ namespace slib
 			return sl_true;
 		} else if (str == "off") {
 			value = SwitchValue::Off;
+			flagDefined = sl_true;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+
+	String SAppGridSelectionModeValue::getAccessString() const
+	{
+		if (!flagDefined) {
+			return "slib::GridView::SelectionMode::Cell";
+		}
+		switch (value) {
+			case GridView::SelectionMode::Row:
+				return "slib::GridView::SelectionMode::Row";
+			case GridView::SelectionMode::Column:
+				return "slib::GridView::SelectionMode::Column";
+			case GridView::SelectionMode::Record:
+				return "slib::GridView::SelectionMode::Record";
+			default:
+				break;
+		}
+		return "slib::GridView::SelectionMode::Cell";
+	}
+
+	sl_bool SAppGridSelectionModeValue::parse(const String& _str)
+	{
+		String str = _str.trim();
+		if (str.isEmpty()) {
+			return sl_true;
+		}
+		str = str.toLower();
+		if (str == "cell") {
+			value = GridView::SelectionMode::Cell;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "row") {
+			value = GridView::SelectionMode::Row;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "column") {
+			value = GridView::SelectionMode::Column;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "record") {
+			value = GridView::SelectionMode::Record;
 			flagDefined = sl_true;
 			return sl_true;
 		}
