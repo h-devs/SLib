@@ -905,6 +905,14 @@ namespace slib
 	class SAppLayoutGridCellAttributes
 	{
 	public:
+		enum class Creator {
+			None,
+			Text,
+			HyperText,
+			Numero
+		};
+		Creator creator = Creator::None;
+
 		SAppStringValue text;
 		SAppAlignmentValue align;
 		SAppFontValue font;
@@ -918,15 +926,6 @@ namespace slib
 	class SAppLayoutGridCell : public SAppLayoutGridCellAttributes
 	{
 	public:
-		enum class Creator {
-			None,
-			Label,
-			Text,
-			HyperText,
-			Numero
-		};
-		Creator creator = Creator::None;
-
 		SAppUint32Value rowspan;
 		SAppUint32Value colspan;
 	};

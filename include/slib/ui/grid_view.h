@@ -108,11 +108,11 @@ namespace slib
 
 		typedef Function<Ref<Cell>(CellParam&)> CellCreator;
 
-		class LabelCell : public Cell
+		class TextCell : public Cell
 		{
 		public:
-			LabelCell();
-			~LabelCell();
+			TextCell();
+			~TextCell();
 
 		public:
 			static const CellCreator& creator();
@@ -125,19 +125,6 @@ namespace slib
 
 		private:
 			TextBox m_textBox;
-		};
-
-		class TextCell : public LabelCell
-		{
-		public:
-			TextCell();
-			~TextCell();
-
-		public:
-			static const CellCreator& creator();
-
-		public:
-			void onPrepareTextBox(TextBoxParam& param) override;
 		};
 
 		class HyperTextCell : public TextCell
@@ -153,7 +140,7 @@ namespace slib
 			void onPrepareTextBox(TextBoxParam& param) override;
 		};
 
-		class NumeroCell : public LabelCell
+		class NumeroCell : public TextCell
 		{
 		public:
 			NumeroCell(sl_int64 start = 1);

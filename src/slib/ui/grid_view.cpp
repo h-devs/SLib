@@ -75,35 +75,35 @@ namespace slib
 	{
 	}
 
-	GridView::LabelCell::LabelCell()
+	GridView::TextCell::TextCell()
 	{
 	}
 
-	GridView::LabelCell::~LabelCell()
+	GridView::TextCell::~TextCell()
 	{
 	}
 
-	const GridView::CellCreator& GridView::LabelCell::creator()
+	const GridView::CellCreator& GridView::TextCell::creator()
 	{
 		SLIB_SAFE_LOCAL_STATIC(CellCreator, ret, [](CellParam&) {
-			return new LabelCell;
+			return new TextCell;
 		})
 		return ret;
 	}
 
-	void GridView::LabelCell::onInit()
+	void GridView::TextCell::onInit()
 	{
 		TextBoxParam tp;
 		onPrepareTextBox(tp);
 		m_textBox.update(tp);
 	}
 
-	void GridView::LabelCell::onDraw(Canvas* canvas, DrawParam& param)
+	void GridView::TextCell::onDraw(Canvas* canvas, DrawParam& param)
 	{
 		m_textBox.draw(canvas, param);
 	}
 
-	void GridView::LabelCell::onPrepareTextBox(TextBoxParam& param)
+	void GridView::TextCell::onPrepareTextBox(TextBoxParam& param)
 	{
 		if (text.isNotNull()) {
 			if (record >= 0 && recordData.isNotUndefined()) {
@@ -121,27 +121,6 @@ namespace slib
 		param.multiLineMode = multiLineMode;
 		param.ellipsizeMode = ellipsizeMode;
 		param.lineCount = lineCount;
-	}
-
-	GridView::TextCell::TextCell()
-	{
-	}
-
-	GridView::TextCell::~TextCell()
-	{
-	}
-
-	const GridView::CellCreator& GridView::TextCell::creator()
-	{
-		SLIB_SAFE_LOCAL_STATIC(CellCreator, ret, [](CellParam&) {
-			return new TextCell;
-		})
-		return ret;
-	}
-
-	void GridView::TextCell::onPrepareTextBox(TextBoxParam& param)
-	{
-		LabelCell::onPrepareTextBox(param);
 	}
 
 	GridView::HyperTextCell::HyperTextCell()
@@ -191,7 +170,7 @@ namespace slib
 
 	void GridView::NumeroCell::onPrepareTextBox(TextBoxParam& param)
 	{
-		LabelCell::onPrepareTextBox(param);
+		TextCell::onPrepareTextBox(param);
 		if (record >= 0) {
 			param.text = String::fromInt64(m_start + record);
 		}
@@ -272,7 +251,7 @@ namespace slib
 
 	GridView::GridView()
 	{
-		m_nRecords = 1;
+		m_nRecords = 0;
 		m_nLeftColumns = 0;
 		m_nRightColumns = 0;
 
@@ -284,8 +263,9 @@ namespace slib
 		m_defaultFooterRowHeight = -1;
 
 		m_defaultBodyProps.creator = TextCell::creator();
-		m_defaultHeaderProps.creator = LabelCell::creator();
-		m_defaultFooterProps.creator = LabelCell::creator();
+		m_defaultHeaderProps.creator = TextCell::creator();
+		m_defaultHeaderProps.backgrounds.defaultValue = Drawable::fromColor(Color(230, 230, 230));
+		m_defaultFooterProps.creator = TextCell::creator();
 
 		m_flagInvalidateBodyRows = sl_true;
 		m_flagInvalidateHeaderRows = sl_true;
@@ -307,6 +287,7 @@ namespace slib
 		setRedrawingOnChangeState();
 		setClipping(sl_true, UIUpdateMode::Init);
 		setBorder(sl_true, UIUpdateMode::Init);
+		setBackgroundColor(Color::White, UIUpdateMode::Init);
 	}
 
 	GridView::~GridView()

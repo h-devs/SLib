@@ -4325,7 +4325,7 @@ namespace slib
 				return sl_true; \
 			}
 
-			DEFINE_CHECK_GRID_CELL_CREATOR(Label, "label")
+			DEFINE_CHECK_GRID_CELL_CREATOR(None, "cell")
 			DEFINE_CHECK_GRID_CELL_CREATOR(Text, "text")
 			DEFINE_CHECK_GRID_CELL_CREATOR(HyperText, "hyper")
 			DEFINE_CHECK_GRID_CELL_CREATOR(Numero, "no")
@@ -4335,8 +4335,6 @@ namespace slib
 		static String GenerateGridCellCreator(SAppLayoutGridCell::Creator creator)
 		{
 			switch (creator) {
-				case SAppLayoutGridCell::Creator::Label:
-					return "slib::GridView::LabelCell::creator()";
 				case SAppLayoutGridCell::Creator::Text:
 					return "slib::GridView::TextCell::creator()";
 				case SAppLayoutGridCell::Creator::HyperText:
@@ -4351,8 +4349,6 @@ namespace slib
 		static GridView::CellCreator SimulateGridCellCreator(SAppLayoutGridCell::Creator creator)
 		{
 			switch (creator) {
-				case SAppLayoutGridCell::Creator::Label:
-					return GridView::LabelCell::creator();
 				case SAppLayoutGridCell::Creator::Text:
 					return GridView::TextCell::creator();
 				case SAppLayoutGridCell::Creator::HyperText:
@@ -4420,10 +4416,17 @@ namespace slib
 							return sl_false;
 						}
 					}
-					text = columnXml.getXmlAttribute("title");
-					if (text.isNotEmpty()) {
-						if (!(column.headerAttrs.text.parse(text, columnXml.element))) {
-							logError(columnXml.element, g_str_error_resource_layout_value_invalid, text);
+					String title = columnXml.getXmlAttribute("title");
+					if (title.isNotEmpty()) {
+						if (!(column.headerAttrs.text.parse(title, columnXml.element))) {
+							logError(columnXml.element, g_str_error_resource_layout_value_invalid, title);
+							return sl_false;
+						}
+					}
+					String type = columnXml.getXmlAttribute("type");
+					if (type.isNotEmpty()) {
+						if (!(GetGridCellCreator(column.bodyAttrs.creator, type))) {
+							logError(columnXml.element, g_str_error_resource_layout_gridview_unknown_cell_creator, type);
 							return sl_false;
 						}
 					}
@@ -4432,7 +4435,7 @@ namespace slib
 						return sl_false;
 					}
 				}
-		}
+			}
 
 #define LAYOUT_CONTROL_PARSE_GRID_ROWS(SECTION) \
 			if (rowXmls.count) { \
@@ -4573,6 +4576,10 @@ namespace slib
 
 #define LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, ATTR, ARG_FORMAT, ...) \
 			{ \
+				if (ATTR.creator != SAppLayoutGridCell::Creator::None) { \
+					auto value = GenerateGridCellCreator(ATTR.creator); \
+					LAYOUT_CONTROL_GENERATE(set##PREFIX##Creator, ARG_FORMAT ", slib::UIUpdateMode::Init", ##__VA_ARGS__) \
+				} \
 				LAYOUT_CONTROL_GENERATE_STRING(ATTR.text, set##PREFIX##Text, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.align, set##PREFIX##Alignment, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_FONT(ATTR.font, set##PREFIX##Font, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
@@ -4609,10 +4616,6 @@ namespace slib
 					ListElements<SAppLayoutGridCell> cells(row.cells); \
 					for (sl_size iCell = 0; iCell < cells.count; iCell++) { \
 						SAppLayoutGridCell& cell = cells[iCell]; \
-						if (cell.creator != SAppLayoutGridCell::Creator::None) { \
-							auto creator = GenerateGridCellCreator(cell.creator); \
-							LAYOUT_CONTROL_GENERATE(set##PREFIX##Creator, "%d, %d, %s, slib::UIUpdateMode::Init", iRow, iCell, creator) \
-						} \
 						LAYOUT_CONTROL_GENERATE_STRING(cell.text, set##PREFIX##Text, ITEM, "%d, %d, %s", iRow, iCell, value) \
 						LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, cell, "%d, %d, %s", iRow, iCell, value) \
 						if (cell.colspan.flagDefined && cell.rowspan.flagDefined) { \
@@ -4643,6 +4646,10 @@ namespace slib
 
 #define LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, ATTR, ...) \
 			{ \
+				if (ATTR.creator != SAppLayoutGridCell::Creator::None && op == SAppLayoutOperation::SimulateInit) { \
+					auto value = SimulateGridCellCreator(ATTR.creator); \
+					view->set##PREFIX##Creator(##__VA_ARGS__, value, UIUpdateMode::Init); \
+				} \
 				LAYOUT_CONTROL_SIMULATE_STRING(ATTR.text, set##PREFIX##Text, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.align, set##PREFIX##Alignment, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_FONT(ATTR.font, set##PREFIX##Font, ITEM, ##__VA_ARGS__, value) \
@@ -4679,9 +4686,6 @@ namespace slib
 					ListElements<SAppLayoutGridCell> cells(row.cells); \
 					for (sl_size iCell = 0; iCell < cells.count; iCell++) { \
 						SAppLayoutGridCell& cell = cells[iCell]; \
-						if (cell.creator != SAppLayoutGridCell::Creator::None) { \
-							view->set##PREFIX##Creator((sl_uint32)iRow, (sl_uint32)iCell, SimulateGridCellCreator(cell.creator)); \
-						} \
 						LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, cell, (sl_uint32)iRow, (sl_uint32)iCell) \
 						if (cell.colspan.flagDefined && cell.rowspan.flagDefined) { \
 							if (op == SAppLayoutOperation::SimulateInit) { \
@@ -4698,6 +4702,12 @@ namespace slib
 			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(body, Body)
 			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(header, Header)
 			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(footer, Footer)
+
+			if (op == SAppLayoutOperation::SimulateInit) {
+				if (!(attr->recordCount.flagDefined)) {
+					view->setRecordCount(100, UIUpdateMode::Init);
+				}
+			}
 		}
 
 		LAYOUT_CONTROL_UI_ATTR(BORDER, leftGrid, setLeftGrid)
