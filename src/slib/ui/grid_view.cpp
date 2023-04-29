@@ -23,6 +23,7 @@
 #include "slib/ui/grid_view.h"
 
 #include "slib/ui/priv/view_state_map.h"
+#include "slib/ui/clipboard.h"
 #include "slib/graphics/canvas.h"
 #include "slib/core/safe_static.h"
 
@@ -40,7 +41,7 @@ namespace slib
 
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellAttribute)
 
-	GridView::CellAttribute::CellAttribute(): multiLineMode(MultiLineMode::Single), ellipsizeMode(EllipsizeMode::None), lineCount(0), align(Alignment::MiddleCenter), colspan(1), rowspan(1), width(0), height(0)
+	GridView::CellAttribute::CellAttribute(): multiLineMode(MultiLineMode::Single), ellipsizeMode(EllipsizeMode::None), lineCount(0), align(Alignment::MiddleCenter), flagSelectable(sl_false), flagEditable(sl_false), colspan(1), rowspan(1), width(0), height(0)
 	{
 		textColors.defaultValue = Color::Black;
 	}
@@ -75,6 +76,10 @@ namespace slib
 	{
 	}
 
+	void GridView::Cell::onCopy()
+	{
+	}
+
 	GridView::TextCell::TextCell()
 	{
 	}
@@ -101,6 +106,11 @@ namespace slib
 	void GridView::TextCell::onDraw(Canvas* canvas, DrawParam& param)
 	{
 		m_textBox.draw(canvas, param);
+	}
+
+	void GridView::TextCell::onCopy()
+	{
+		Clipboard::setText(m_textBox.getText());
 	}
 
 	void GridView::TextCell::onPrepareTextBox(TextBoxParam& param)
@@ -224,9 +234,14 @@ namespace slib
 		return row == other.row && column == other.column && record == other.record;
 	}
 
+	sl_bool GridView::Selection::isNone() const
+	{
+		return record == OUTSIDE && row < 0 && column < 0;
+	}
+
 	sl_bool GridView::Selection::match(RecordIndex _record, sl_int32 _row, sl_int32 _column) const
 	{
-		if (record == OUTSIDE && row < 0 && column < 0) {
+		if (isNone()) {
 			return sl_false;
 		}
 		if (record != OUTSIDE && _record != OUTSIDE && record != _record) {
@@ -263,6 +278,8 @@ namespace slib
 		m_defaultFooterRowHeight = -1;
 
 		m_defaultBodyProps.creator = TextCell::creator();
+		m_defaultBodyProps.flagSelectable = sl_true;
+		m_defaultBodyProps.selectionBorder = Pen::create(PenStyle::Solid, 3, Color(33, 115, 70));
 		m_defaultHeaderProps.creator = TextCell::creator();
 		m_defaultHeaderProps.backgrounds.defaultValue = Drawable::fromColor(Color(230, 230, 230));
 		m_defaultFooterProps.creator = TextCell::creator();
@@ -1501,6 +1518,136 @@ namespace slib
 		return sl_null;
 	}
 
+	sl_bool GridView::getCellLocation(UIPoint& _out, RecordIndex iRecord, sl_int32 _iRow, sl_int32 _iCol)
+	{
+		sl_ui_pos x, y;
+		ObjectLocker lock(this);
+		if (_iCol >= 0) {
+			sl_uint32 iCol = _iCol;
+			ListElements<Column> columns(m_columns);
+			sl_uint32 nColumns = (sl_uint32)(columns.count);
+			if (iCol >= nColumns) {
+				return sl_false;
+			}
+			if (iCol < m_nLeftColumns) {
+				x = 0;
+				for (sl_uint32 i = 0; i < iCol; i++) {
+					x += columns[i].fixedWidth;
+				}
+			} else {
+				sl_uint32 iRight = nColumns - m_nRightColumns;
+				if (iCol < iRight) {
+					x = -(sl_ui_pos)(getScrollX());
+					for (sl_uint32 i = 0; i < iCol; i++) {
+						x += columns[i].fixedWidth;
+					}
+				} else {
+					x = getWidth();
+					for (sl_uint32 i = nColumns; i > iCol;) {
+						i--;
+						x -= columns[i].fixedWidth;
+					}
+				}
+			}
+		} else {
+			x = 0;
+		}
+		if (iRecord >= 0) {
+			y = getHeaderHeight() + (sl_ui_pos)(iRecord * getRecordHeight() - (sl_int64)(getScrollY()));
+			if (_iRow >= 0) {
+				sl_uint32 iRow = _iRow;
+				ListElements<Row> rows(m_listBodyRow);
+				if (iRow >= rows.count) {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < iRow; i++) {
+					y += rows[i].fixedHeight;
+				}
+			}
+		} else if (iRecord == HEADER) {
+			y = 0;
+			if (_iRow >= 0) {
+				sl_uint32 iRow = _iRow;
+				ListElements<Row> rows(m_listHeaderRow);
+				if (iRow >= rows.count) {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < iRow; i++) {
+					y += rows[i].fixedHeight;
+				}
+			}
+		} else if (iRecord == FOOTER) {
+			y = getHeight() - getFooterHeight();
+			if (_iRow >= 0) {
+				sl_uint32 iRow = _iRow;
+				ListElements<Row> rows(m_listFooterRow);
+				if (iRow >= rows.count) {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < iRow; i++) {
+					y += rows[i].fixedHeight;
+				}
+			}
+		} else {
+			y = 0;
+		}
+		_out.x = x;
+		_out.y = y;
+		return sl_true;
+	}
+
+	sl_bool GridView::getCellFrame(UIRect& _out, RecordIndex iRecord, sl_int32 iRow, sl_int32 iCol)
+	{
+		UIPoint pt;
+		if (getCellLocation(pt, iRecord, iRow, iCol)) {
+			_out.setLeftTop(pt);
+			ObjectLocker lock(this);
+			if (iRow >= 0) {
+				if (iCol >= 0) {
+					CellProp* prop = _getCellProp(iRecord, iRow, iCol);
+					if (prop) {
+						_out.setWidth(prop->width);
+						_out.setHeight(prop->height);
+						return sl_true;
+					}
+				} else {
+					Row* row;
+					if (iRecord == HEADER) {
+						row = m_listHeaderRow.getPointerAt(iRow);
+					} else if (iRecord == FOOTER) {
+						row = m_listFooterRow.getPointerAt(iRow);
+					} else {
+						row = m_listBodyRow.getPointerAt(iRow);
+					}
+					if (row) {
+						_out.setHeight(row->height);
+						_out.setWidth(getWidth());
+						return sl_true;
+					}
+				}
+			} else {
+				if (iRecord == HEADER) {
+					_out.setHeight(getHeaderHeight());
+				} else if (iRecord == FOOTER) {
+					_out.setHeight(getFooterHeight());
+				} else {
+					_out.setHeight(getRecordHeight());
+				}
+				if (iCol >= 0) {
+					Column* col = m_columns.getPointerAt(iCol);
+					if (col) {
+						_out.setWidth(col->fixedWidth);
+						return sl_true;
+					}
+				} else {
+					_out.setWidth(getWidth());
+					return sl_true;
+				}
+			}
+		}
+		return sl_false;
+	}
+
 	ViewState GridView::getCellState(RecordIndex record, sl_int32 row, sl_int32 column)
 	{
 		SelectionMode mode = m_selectionMode;
@@ -1728,6 +1875,51 @@ namespace slib
 		if (heightHeader) {
 			Ref<Pen> grid = getHeaderGrid();
 			_drawHorzOuterGrid(canvas, 0, xLeft, xRight, widthView, heightHeader, grid, grid, grid);
+		}
+
+		Selection selection = m_selection;
+		switch (m_selectionMode) {
+			case SelectionMode::Record:
+				selection.row = -1;
+				selection.column = -1;
+				break;
+			case SelectionMode::Row:
+				selection.column = -1;
+				break;
+			case SelectionMode::Column:
+				selection.record = OUTSIDE;
+				selection.row = -1;
+				break;
+		}
+		if (!(selection.isNone())) {
+			Ref<Pen> border;
+			if (selection.record == HEADER) {
+				border = getHeaderSelectionBorder(selection.row, selection.column);
+			} else if (selection.record == FOOTER) {
+				border = getFooterSelectionBorder(selection.row, selection.column);
+			} else {
+				border = getBodySelectionBorder(selection.row, selection.column);
+			}
+			if (border.isNotNull()) {
+				UIRect frame;
+				if (getCellFrame(frame, selection.record, selection.row, selection.column)) {
+					if (frame.left < xLeft) {
+						frame.left = xLeft;
+					}
+					if (frame.right < xRight) {
+						frame.right = xRight;
+					}
+					if (frame.top < heightHeader) {
+						frame.top = heightHeader;
+					}
+					if (frame.bottom > yFooter) {
+						frame.bottom = yFooter;
+					}
+					if (frame.right > frame.left && frame.bottom > frame.top) {
+						canvas->drawRectangle(frame, border);
+					}
+				}
+			}
 		}
 	}
 
@@ -2270,6 +2462,15 @@ namespace slib
 
 	void GridView::onKeyEvent(UIEvent* ev)
 	{
+		if (ev->getAction() == UIAction::KeyDown) {
+			if ((ev ->isControlKey() || ev->isCommandKey()) && ev->getKeycode() == Keycode::C) {
+				Ref<Cell> cell = getVisibleCell(m_selection.record, m_selection.row, m_selection.column);
+				if (cell.isNotNull()) {
+					cell->onCopy();
+				}
+			}
+			return;
+		}
 		View::onKeyEvent(ev);
 	}
 

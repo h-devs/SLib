@@ -53,11 +53,15 @@ namespace slib
 			EllipsizeMode ellipsizeMode;
 			sl_uint32 lineCount;
 			Alignment align;
+			sl_bool flagSelectable;
+			sl_bool flagEditable;
+
 			sl_uint32 colspan;
 			sl_uint32 rowspan;
 
 			ViewStateMap< Ref<Drawable> > backgrounds;
 			ViewStateMap<Color> textColors;
+			Ref<Pen> selectionBorder;
 
 			sl_ui_len width;
 			sl_ui_len height;
@@ -104,6 +108,7 @@ namespace slib
 			virtual void onInit();
 			virtual void onDraw(Canvas*, DrawParam&);
 			virtual void onEvent(UIEvent*);
+			virtual void onCopy();
 		};
 
 		typedef Function<Ref<Cell>(CellParam&)> CellCreator;
@@ -120,6 +125,7 @@ namespace slib
 		public:
 			void onInit() override;
 			void onDraw(Canvas*, DrawParam&) override;
+			void onCopy() override;
 
 			virtual void onPrepareTextBox(TextBoxParam& param);
 
@@ -304,6 +310,41 @@ namespace slib
 		void setCellAlignment(sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setCellAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		sl_bool isBodySelectable(sl_uint32 row, sl_uint32 column);
+		sl_bool isHeaderSelectable(sl_uint32 row, sl_uint32 column);
+		sl_bool isFooterSelectable(sl_uint32 row, sl_uint32 column);
+
+		void setBodySelectable(sl_int32 row, sl_int32 column, sl_bool flag);
+		void setHeaderSelectable(sl_int32 row, sl_int32 column, sl_bool flag);
+		void setFooterSelectable(sl_int32 row, sl_int32 column, sl_bool flag);
+		void setCellSelectable(sl_int32 column, sl_bool flag);
+		void setCellSelectable(sl_bool flag);
+
+		sl_bool isBodyEditable(sl_uint32 row, sl_uint32 column);
+		sl_bool isHeaderEditable(sl_uint32 row, sl_uint32 column);
+		sl_bool isFooterEditable(sl_uint32 row, sl_uint32 column);
+
+		void setBodyEditable(sl_int32 row, sl_int32 column, sl_bool flag);
+		void setHeaderEditable(sl_int32 row, sl_int32 column, sl_bool flag);
+		void setFooterEditable(sl_int32 row, sl_int32 column, sl_bool flag);
+		void setCellEditable(sl_int32 column, sl_bool flag);
+		void setCellEditable(sl_bool flag);
+
+		Ref<Pen> getBodySelectionBorder(sl_int32 row, sl_int32 column);
+		Ref<Pen> getHeaderSelectionBorder(sl_int32 row, sl_int32 column);
+		Ref<Pen> getFooterSelectionBorder(sl_int32 row, sl_int32 column);
+
+		void setBodySelectionBorder(sl_int32 row, sl_int32 column, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodySelectionBorder(sl_int32 row, sl_int32 column, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderSelectionBorder(sl_int32 row, sl_int32 column, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderSelectionBorder(sl_int32 row, sl_int32 column, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterSelectionBorder(sl_int32 row, sl_int32 column, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterSelectionBorder(sl_int32 row, sl_int32 column, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellSelectionBorder(sl_int32 column, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellSelectionBorder(sl_int32 column, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellSelectionBorder(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellSelectionBorder(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		Ref<Drawable> getBodyBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 		Ref<Drawable> getHeaderBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 		Ref<Drawable> getFooterBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
@@ -377,6 +418,9 @@ namespace slib
 		sl_bool getCellAt(sl_ui_pos x, sl_ui_pos y, sl_uint32* outRow = sl_null, sl_uint32* outColumn = sl_null, RecordIndex * outRecord = sl_null);
 		Ref<Cell> getVisibleCellAt(sl_ui_pos x, sl_ui_pos y);
 
+		sl_bool getCellLocation(UIPoint& _out, RecordIndex record, sl_int32 row, sl_int32 column);
+		sl_bool getCellFrame(UIRect& _out, RecordIndex record, sl_int32 row, sl_int32 column);
+
 		ViewState getCellState(RecordIndex record, sl_int32 row, sl_int32 column);
 		ViewState getCellState(Cell* cell);
 
@@ -396,6 +440,7 @@ namespace slib
 			sl_bool operator==(const Selection& other) const;
 
 		public:
+			sl_bool isNone() const;
 			sl_bool match(RecordIndex record, sl_int32 row, sl_int32 column) const;
 			sl_bool match(Cell* cell) const;
 
