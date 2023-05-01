@@ -4664,7 +4664,7 @@ namespace slib
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) {
 					SAppLayoutGridColumn& column = columns[iCol];
 					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.width, setColumnWidth, ITEM, (sl_uint32)iCol, value)
-					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Cell, column, (sl_uint32)iCol)
+					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Column, column, (sl_uint32)iCol)
 				}
 			}
 
@@ -4717,6 +4717,7 @@ namespace slib
 		LAYOUT_CONTROL_ADD_STATEMENT
 
 	}
+
 	END_PROCESS_LAYOUT_CONTROL
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(XControl, XControl)

@@ -61,7 +61,6 @@ namespace slib
 
 			ViewStateMap< Ref<Drawable> > backgrounds;
 			ViewStateMap<Color> textColors;
-			Ref<Pen> selectionBorder;
 
 			sl_ui_len width;
 			sl_ui_len height;
@@ -233,6 +232,10 @@ namespace slib
 		void setRightGrid(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setRightGrid(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Ref<Pen> getSelectionBorder();
+		void setSelectionBorder(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSelectionBorder(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		void refreshContentWidth(UIUpdateMode mode = UIUpdateMode::Redraw);
 		void refreshContentHeight(UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -246,7 +249,8 @@ namespace slib
 		void setBodyCreator(sl_int32 row, sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderCreator(sl_int32 row, sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterCreator(sl_int32 row, sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellCreator(sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnCreator(sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellCreator(const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		String getBodyText(sl_uint32 row, sl_uint32 column);
 		String getHeaderText(sl_uint32 row, sl_uint32 column);
@@ -255,7 +259,8 @@ namespace slib
 		void setBodyText(sl_int32 row, sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderText(sl_int32 row, sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterText(sl_int32 row, sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellText(sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnText(sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellText(const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Font> getBodyFont(sl_uint32 row, sl_uint32 column);
 		Ref<Font> getHeaderFont(sl_uint32 row, sl_uint32 column);
@@ -267,8 +272,10 @@ namespace slib
 		void setHeaderFont(sl_int32 row, sl_int32 column, const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterFont(sl_int32 row, sl_int32 column, const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellFont(sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellFont(sl_int32 column, const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnFont(sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnFont(sl_int32 column, const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellFont(FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		MultiLineMode getBodyMultiLine(sl_uint32 row, sl_uint32 column);
 		MultiLineMode getHeaderMultiLine(sl_uint32 row, sl_uint32 column);
@@ -277,7 +284,7 @@ namespace slib
 		void setBodyMultiLine(sl_int32 row, sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setHeaderMultiLine(sl_int32 row, sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setFooterMultiLine(sl_int32 row, sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
-		void setCellMultiLine(sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+		void setColumnMultiLine(sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setCellMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 		EllipsizeMode getBodyEllipsize(sl_uint32 row, sl_uint32 column);
@@ -287,7 +294,7 @@ namespace slib
 		void setBodyEllipsize(sl_int32 row, sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setHeaderEllipsize(sl_int32 row, sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setFooterEllipsize(sl_int32 row, sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
-		void setCellEllipsize(sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+		void setColumnEllipsize(sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setCellEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 		sl_uint32 getBodyLineCount(sl_uint32 row, sl_uint32 column);
@@ -297,7 +304,7 @@ namespace slib
 		void setBodyLineCount(sl_int32 row, sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderLineCount(sl_int32 row, sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterLineCount(sl_int32 row, sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellLineCount(sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnLineCount(sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setCellLineCount(sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Alignment getBodyAlignment(sl_uint32 row, sl_uint32 column);
@@ -307,7 +314,7 @@ namespace slib
 		void setBodyAlignment(sl_int32 row, sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderAlignment(sl_int32 row, sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterAlignment(sl_int32 row, sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellAlignment(sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnAlignment(sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setCellAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isBodySelectable(sl_uint32 row, sl_uint32 column);
@@ -317,7 +324,7 @@ namespace slib
 		void setBodySelectable(sl_int32 row, sl_int32 column, sl_bool flag);
 		void setHeaderSelectable(sl_int32 row, sl_int32 column, sl_bool flag);
 		void setFooterSelectable(sl_int32 row, sl_int32 column, sl_bool flag);
-		void setCellSelectable(sl_int32 column, sl_bool flag);
+		void setColumnSelectable(sl_int32 column, sl_bool flag);
 		void setCellSelectable(sl_bool flag);
 
 		sl_bool isBodyEditable(sl_uint32 row, sl_uint32 column);
@@ -327,23 +334,8 @@ namespace slib
 		void setBodyEditable(sl_int32 row, sl_int32 column, sl_bool flag);
 		void setHeaderEditable(sl_int32 row, sl_int32 column, sl_bool flag);
 		void setFooterEditable(sl_int32 row, sl_int32 column, sl_bool flag);
-		void setCellEditable(sl_int32 column, sl_bool flag);
+		void setColumnEditable(sl_int32 column, sl_bool flag);
 		void setCellEditable(sl_bool flag);
-
-		Ref<Pen> getBodySelectionBorder(sl_int32 row, sl_int32 column);
-		Ref<Pen> getHeaderSelectionBorder(sl_int32 row, sl_int32 column);
-		Ref<Pen> getFooterSelectionBorder(sl_int32 row, sl_int32 column);
-
-		void setBodySelectionBorder(sl_int32 row, sl_int32 column, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setBodySelectionBorder(sl_int32 row, sl_int32 column, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setHeaderSelectionBorder(sl_int32 row, sl_int32 column, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setHeaderSelectionBorder(sl_int32 row, sl_int32 column, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setFooterSelectionBorder(sl_int32 row, sl_int32 column, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setFooterSelectionBorder(sl_int32 row, sl_int32 column, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellSelectionBorder(sl_int32 column, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellSelectionBorder(sl_int32 column, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellSelectionBorder(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellSelectionBorder(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Drawable> getBodyBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 		Ref<Drawable> getHeaderBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
@@ -352,7 +344,7 @@ namespace slib
 		void setBodyBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellBackground(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnBackground(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setCellBackground(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Color getBodyTextColor(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
@@ -362,7 +354,7 @@ namespace slib
 		void setBodyTextColor(sl_int32 row, sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderTextColor(sl_int32 row, sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterTextColor(sl_int32 row, sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellTextColor(sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnTextColor(sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setCellTextColor(const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_uint32 getBodyRowspan(sl_uint32 row, sl_uint32 column);
@@ -615,6 +607,7 @@ namespace slib
 		AtomicRef<Pen> m_gridFooter;
 		AtomicRef<Pen> m_gridLeft;
 		AtomicRef<Pen> m_gridRight;
+		AtomicRef<Pen> m_selectionBorder;
 
 		typedef Function<Variant(sl_uint64 record)> DataFunction;
 		Atomic<DataFunction> m_recordData;
