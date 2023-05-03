@@ -1207,7 +1207,7 @@ namespace slib
 		if (!flagUseIcon) {
 			for (sl_uint32 i = 0; i < nCategories; i++) {
 				ButtonCategory& props = categories[i];
-				if (props.icons.defaultValue.isNotNull() || props.icons.values.isNotNull()) {
+				if (props.icons.isNotNone()) {
 					flagUseIcon = sl_true;
 					break;
 				}

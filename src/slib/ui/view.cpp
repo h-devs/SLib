@@ -1440,7 +1440,7 @@ namespace slib
 				sl_bool flagDrawOutside = sl_false;
 				Ref<DrawAttributes>& attrs = m_drawAttrs;
 				if (attrs.isNotNull()) {
-					if (attrs->shadowOpacity > 0.0001f || attrs->borders.defaultValue.isNotNull() || attrs->borders.values.isNotNull()) {
+					if (attrs->shadowOpacity > 0.0001f || attrs->borders.isNotNone()) {
 						flagDrawOutside = sl_true;
 					}
 				}

@@ -38,6 +38,16 @@ namespace slib
 		AtomicRef<CRef> values;
 
 	public:
+		sl_bool isNone()
+		{
+			return defaultValue.isNull() && values.isNull();
+		}
+
+		sl_bool isNotNone()
+		{
+			return defaultValue.isNotNull() || values.isNotNull();
+		}
+
 		VALUE get(ViewState state);
 
 		void set(ViewState state, const VALUE& value);
