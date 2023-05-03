@@ -192,8 +192,11 @@ namespace slib
 		sl_bool setFooterRowCount(sl_uint32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_ui_len getColumnWidth(sl_uint32 index);
-		sl_bool setColumnWidth(sl_uint32 index, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnWidth(sl_uint32 index, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setColumnWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isColumnVisible(sl_uint32 index);
+		void setColumnVisible(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_ui_len getRecordHeight();
 		sl_ui_len getHeaderHeight();
@@ -212,6 +215,14 @@ namespace slib
 		void setBodyRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isBodyRowVisible(sl_uint32 index);
+		sl_bool isHeaderRowVisible(sl_uint32 index);
+		sl_bool isFooterRowVisible(sl_uint32 index);
+
+		void setBodyRowVisible(sl_uint32 index, sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderRowVisible(sl_uint32 index, sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterRowVisible(sl_uint32 index, sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Pen> getBodyGrid();
 		Ref<Pen> getHeaderGrid();
@@ -267,15 +278,10 @@ namespace slib
 		Ref<Font> getFooterFont(sl_uint32 row, sl_uint32 column);
 
 		void setBodyFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setBodyFont(sl_int32 row, sl_int32 column, const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setHeaderFont(sl_int32 row, sl_int32 column, const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setFooterFont(sl_int32 row, sl_int32 column, const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setColumnFont(sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setColumnFont(sl_int32 column, const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setCellFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellFont(FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		MultiLineMode getBodyMultiLine(sl_uint32 row, sl_uint32 column);
 		MultiLineMode getHeaderMultiLine(sl_uint32 row, sl_uint32 column);
@@ -490,11 +496,7 @@ namespace slib
 		public:
 			sl_ui_len width;
 			sl_ui_len fixedWidth;
-			ViewStateMap< Ref<Drawable> > backgrounds;
-			ViewStateMap< Ref<Drawable> > backgroundsBody;
-			ViewStateMap< Ref<Drawable> > backgroundsHeader;
-			ViewStateMap< Ref<Drawable> > backgroundsFooter;
-			ViewStateMap< Ref<Drawable> > backgroundsRecord;
+			sl_bool flagVisible;
 
 			List<BodyCellProp> listBodyCell;
 			List<HeaderCellProp> listHeaderCell;
@@ -514,7 +516,7 @@ namespace slib
 		public:
 			sl_ui_len height;
 			sl_ui_len fixedHeight;
-			ViewStateMap< Ref<Drawable> > backgrounds;
+			sl_bool flagVisible;
 
 			CellProp defaultProps;
 

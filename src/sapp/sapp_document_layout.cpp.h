@@ -3280,7 +3280,8 @@ namespace slib
 			for (iCol = 0; iCol < nCols; iCol++) {
 				SAppLayoutTableColumn& col = cols[iCol];
 				if (col.name.flagDefined) {
-					params->sbDeclare->add(String::format("\t\t\tsl_uint32 %s = %d;%n", col.name.value, iCol));
+					params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::TableLayout::Column> %s;%n", col.name.value));
+					params->sbDefineInit->add(String::format("\t\t\t%s = %s->getColumn(%d);%n", col.name.value, resourceItem->name, iCol));
 				}
 				LAYOUT_CONTROL_GENERATE_SIZE(col.width, setColumnWidth, ITEM, "%d, %s", iCol, value)
 				LAYOUT_CONTROL_GENERATE_DIMENSION(col.minWidth, setColumnMinimumWidth, ITEM, "%d, %s", iCol, value)
@@ -3298,7 +3299,8 @@ namespace slib
 			for (iRow = 0; iRow < nRows; iRow++) {
 				SAppLayoutTableRow& row = rows[iRow];
 				if (row.name.flagDefined) {
-					params->sbDeclare->add(String::format("\t\t\tsl_uint32 %s = %d;%n", row.name.value, iRow));
+					params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::TableLayout::Row> %s;%n", row.name.value));
+					params->sbDefineInit->add(String::format("\t\t\t%s = %s->getRow(%d);%n", row.name.value, resourceItem->name, iRow));
 				}
 				LAYOUT_CONTROL_GENERATE_SIZE(row.height, setRowHeight, ITEM, "%d, %s", iRow, value)
 				LAYOUT_CONTROL_GENERATE_DIMENSION(row.minHeight, setRowMinimumHeight, ITEM, "%d, %s", iRow, value)
@@ -4373,6 +4375,8 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, ellipsize, setCellEllipsize)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, lineCount, setCellLineCount)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellAlign, setCellAlignment)
+		LAYOUT_CONTROL_ATTR(GENERIC, selectable, setCellSelectable)
+		LAYOUT_CONTROL_ATTR(GENERIC, editable, setCellEditable)
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, cellBackground, setCellBackground)
 		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setCellTextColor)
 
@@ -4385,6 +4389,8 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., multiLine) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., ellipsize) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., lineCount) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., selectable) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., editable) \
 				LAYOUT_CONTROL_PARSE_STATE_MAP_XML(DRAWABLE, XML, ATTR., background) \
 				LAYOUT_CONTROL_PARSE_STATE_MAP_XML(COLOR, XML, ATTR., textColor) \
 			}
@@ -4395,6 +4401,8 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "MultiLine", , ATTR.multiLine) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Ellipsize", , ATTR.ellipsize) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "LineCount", , ATTR.lineCount) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Selectable", , ATTR.selectable) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Editable", , ATTR.editable) \
 				LAYOUT_CONTROL_PARSE_STATE_MAP(DRAWABLE, XML, #SECTION "Background", , ATTR.background) \
 				LAYOUT_CONTROL_PARSE_STATE_MAP(COLOR, XML, #SECTION "TextColor", , ATTR.textColor) \
 			}
@@ -4405,6 +4413,7 @@ namespace slib
 					SAppLayoutGridColumn column;
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., width, checkScalarSize)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., fixed)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., visible)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column, columnXml)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.bodyAttrs, columnXml, body)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.headerAttrs, columnXml, header)
@@ -4446,6 +4455,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(row, rowXml) \
 					row.font.inheritFrom(attr->SECTION.font); \
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., height, checkScalarSize) \
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml, row., visible) \
 					sl_uint32 iCell = 0; \
 					LAYOUT_CONTROL_DEFINE_XML_CHILDREN(cellXmls, rowXml, sl_null) \
 					for (sl_size k = 0; k < cellXmls.count; k++) { \
@@ -4586,6 +4596,8 @@ namespace slib
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.multiLine, set##PREFIX##MultiLine, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.ellipsize, set##PREFIX##Ellipsize, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.selectable, set##PREFIX##Selectable, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.editable, set##PREFIX##Editable, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_STATE_MAP(DRAWABLE, ATTR.background, set##PREFIX##Background, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_STATE_MAP(COLOR, ATTR.textColor, set##PREFIX##TextColor, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 			}
@@ -4594,6 +4606,7 @@ namespace slib
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) {
 					SAppLayoutGridColumn& column = columns[iCol];
 					LAYOUT_CONTROL_GENERATE_DIMENSION(column.width, setColumnWidth, ITEM, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(column.visible, setColumnVisible, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Cell, column, "%d, %s", iCol, value)
 				}
 			}
@@ -4612,6 +4625,7 @@ namespace slib
 				for (sl_size iRow = 0; iRow < rows.count; iRow++) { \
 					SAppLayoutGridRow& row = rows[iRow]; \
 					LAYOUT_CONTROL_GENERATE_DIMENSION(row.height, set##PREFIX##RowHeight, ITEM, "%d, %s", iRow, value) \
+					LAYOUT_CONTROL_GENERATE_GENERIC(row.visible, set##PREFIX##RowVisible, ITEM, "%d, %s", iRow, value) \
 					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, row, "%d, -1, %s", iRow, value) \
 					ListElements<SAppLayoutGridCell> cells(row.cells); \
 					for (sl_size iCell = 0; iCell < cells.count; iCell++) { \
@@ -4656,6 +4670,8 @@ namespace slib
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.multiLine, set##PREFIX##MultiLine, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.ellipsize, set##PREFIX##Ellipsize, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.selectable, set##PREFIX##Selectable, BASIC, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.editable, set##PREFIX##Editable, BASIC, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_STATE_MAP(DRAWABLE, ATTR.background, set##PREFIX##Background, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_STATE_MAP(COLOR, ATTR.textColor, set##PREFIX##TextColor, ITEM, ##__VA_ARGS__, value) \
 			}

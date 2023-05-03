@@ -919,6 +919,8 @@ namespace slib
 		SAppMultiLineModeValue multiLine;
 		SAppEllipsizeModeValue ellipsize;
 		SAppUint32Value lineCount;
+		SAppBooleanValue selectable;
+		SAppBooleanValue editable;
 		SAppStateMap<SAppDrawableValue> background;
 		SAppStateMap<SAppColorValue> textColor;
 	};
@@ -935,6 +937,7 @@ namespace slib
 	public:
 		SAppDimensionValue width;
 		SAppBooleanValue fixed;
+		SAppBooleanValue visible;
 
 		SAppLayoutGridCellAttributes bodyAttrs;
 		SAppLayoutGridCellAttributes headerAttrs;
@@ -945,6 +948,7 @@ namespace slib
 	{
 	public:
 		SAppDimensionValue height;
+		SAppBooleanValue visible;
 
 		List<SAppLayoutGridCell> cells;
 	};
@@ -976,6 +980,8 @@ namespace slib
 		SAppEllipsizeModeValue ellipsize;
 		SAppUint32Value lineCount;
 		SAppAlignmentValue cellAlign;
+		SAppBooleanValue selectable;
+		SAppBooleanValue editable;
 		SAppStateMap<SAppDrawableValue> cellBackground;
 		SAppStateMap<SAppColorValue> textColor;
 
