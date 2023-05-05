@@ -67,7 +67,7 @@ namespace slib
 		WNDPROC g_wndProc_CustomMsgBox = NULL;
 		WNDPROC g_wndProc_SystemTrayIcon = NULL;
 
-		void RunUiLoop(HWND hWndModalDialog)
+		void RunUiLoop(HWND hWndModalDialog, sl_bool flagEnableParent)
 		{
 			if (g_bFlagQuit) {
 				return;
@@ -92,6 +92,10 @@ namespace slib
 					break;
 				case SLIB_UI_MESSAGE_CLOSE:
 				case WM_DESTROY:
+					if (flagEnableParent) {
+						HWND hWndParent = GetWindow(msg.hwnd, GW_OWNER);
+						EnableWindow(hWndParent, TRUE);
+					}
 					DestroyWindow(msg.hwnd);
 					if (hWndModalDialog) {
 						if (msg.hwnd == hWndModalDialog) {
@@ -378,7 +382,7 @@ namespace slib
 
 	void UIPlatform::runLoop(sl_uint32 level)
 	{
-		RunUiLoop(NULL);
+		RunUiLoop(NULL, sl_false);
 	}
 
 	void UIPlatform::quitLoop()
@@ -416,7 +420,7 @@ namespace slib
 
 		UIDispatcher::processCallbacks();
 		UIApp::Current::invokeStart();
-		RunUiLoop(NULL);
+		RunUiLoop(NULL, sl_false);
 		UIApp::Current::invokeExit();
 	}
 

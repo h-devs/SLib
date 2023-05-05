@@ -33,7 +33,7 @@ namespace slib
 
 	namespace priv
 	{
-		void RunUiLoop(HWND hWndModalDialog);
+		void RunUiLoop(HWND hWndModalDialog, sl_bool flagEnableParent);
 		sl_bool IsAnyViewPainting();
 	}
 
@@ -542,11 +542,7 @@ namespace slib
 							flagEnableParent = sl_true;
 						}
 					}
-					RunUiLoop(hWnd);
-					if (flagEnableParent) {
-						EnableWindow(hWndParent, TRUE);
-						SetForegroundWindow(hWndParent);
-					}
+					RunUiLoop(hWnd, flagEnableParent);
 				}
 				return sl_true;
 			}
