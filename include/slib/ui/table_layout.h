@@ -240,33 +240,11 @@ namespace slib
 			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Cell)
 		};
 
-		Cell* _getCell(sl_uint32 row, sl_uint32 col);
-
-		Cell* _allocCell(sl_uint32 row, sl_uint32 col);
-
-		Alignment _getCellAlign(sl_uint32 row, sl_uint32 col);
-
-		void _initCellAlign(Cell* cell, sl_uint32 row, sl_uint32 col);
-
-		void _applyCellAlign(Cell* cell, sl_uint32 row, sl_uint32 col, UIUpdateMode mode);
-
-		void _setColumnAlignment(Column* col, sl_uint32 iCol, const Alignment& align, UIUpdateMode mode);
-
-		void _setColumnVisible(Column* col, sl_uint32 iCol, sl_bool flagVisible, UIUpdateMode mode);
-
-		void _setRowAlignment(Row* row, sl_uint32 iRow, const Alignment& align, UIUpdateMode mode);
-
-		void _setRowVisible(Row* row, sl_uint32 iRow, sl_bool flagVisible, UIUpdateMode mode);
-
 	public:
 		class Column : public CRef
 		{
 		public:
-			template <class T>
-			Column(T&& table): m_table(Forward<T>(table))
-			{
-				_initialize();
-			}
+			Column(TableLayout* table);
 
 			~Column();
 
@@ -346,8 +324,6 @@ namespace slib
 			void setVisible(sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		private:
-			void _initialize();
-
 			sl_ui_len _restrictWidth(sl_ui_len width);
 
 			sl_ui_len _getFixedWidth();
@@ -386,11 +362,7 @@ namespace slib
 		class Row : public CRef
 		{
 		public:
-			template <class T>
-			Row(T&& table): m_table(Forward<T>(table))
-			{
-				_initialize();
-			}
+			Row(TableLayout* table);
 
 			~Row();
 
@@ -470,8 +442,6 @@ namespace slib
 			void setVisible(sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		private:
-			void _initialize();
-
 			sl_ui_len _restrictHeight(sl_ui_len height);
 
 			sl_ui_len _getFixedHeight();
@@ -508,6 +478,25 @@ namespace slib
 
 			friend class TableLayout;
 		};
+
+	private:
+		Cell* _getCell(sl_uint32 row, sl_uint32 col);
+
+		Cell* _allocCell(sl_uint32 row, sl_uint32 col);
+
+		Alignment _getCellAlign(sl_uint32 row, sl_uint32 col);
+
+		void _initCellAlign(Cell* cell, sl_uint32 row, sl_uint32 col);
+
+		void _applyCellAlign(Cell* cell, sl_uint32 row, sl_uint32 col, UIUpdateMode mode);
+
+		void _setColumnAlignment(Column* col, sl_uint32 iCol, const Alignment& align, UIUpdateMode mode);
+
+		void _setColumnVisible(Column* col, sl_uint32 iCol, sl_bool flagVisible, UIUpdateMode mode);
+
+		void _setRowAlignment(Row* row, sl_uint32 iRow, const Alignment& align, UIUpdateMode mode);
+
+		void _setRowVisible(Row* row, sl_uint32 iRow, sl_bool flagVisible, UIUpdateMode mode);
 
 	protected:
 		CList< Ref<Column> > m_columns;

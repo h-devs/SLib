@@ -39,11 +39,7 @@ namespace slib
 	};
 
 
-	TableLayout::Column::~Column()
-	{
-	}
-
-	void TableLayout::Column::_initialize()
+	TableLayout::Column::Column(TableLayout* table): m_table(table)
 	{
 		m_index = -1;
 
@@ -63,6 +59,10 @@ namespace slib
 
 		m_align = Alignment::Default;
 		m_flagVisible = sl_true;
+	}
+
+	TableLayout::Column::~Column()
+	{
 	}
 
 	Ref<TableLayout> TableLayout::Column::getTable()
@@ -127,21 +127,7 @@ namespace slib
 	}
 
 
-	TableLayout::Row::~Row()
-	{
-	}
-
-	Ref<TableLayout> TableLayout::Row::getTable()
-	{
-		return m_table;
-	}
-
-	sl_uint32 TableLayout::Row::getIndex()
-	{
-		return m_index;
-	}
-
-	void TableLayout::Row::_initialize()
+	TableLayout::Row::Row(TableLayout* table): m_table(table)
 	{
 		m_index = -1;
 
@@ -161,6 +147,20 @@ namespace slib
 
 		m_align = Alignment::Default;
 		m_flagVisible = sl_true;
+	}
+
+	TableLayout::Row::~Row()
+	{
+	}
+
+	Ref<TableLayout> TableLayout::Row::getTable()
+	{
+		return m_table;
+	}
+
+	sl_uint32 TableLayout::Row::getIndex()
+	{
+		return m_index;
 	}
 
 	sl_ui_len TableLayout::Row::_restrictHeight(sl_ui_len height)
@@ -256,19 +256,27 @@ namespace slib
 				return sl_true;
 			}
 		} else {
-			UIUpdateMode modeNone = (mode == UIUpdateMode::Init) ? (UIUpdateMode::Init) : (UIUpdateMode::None);
-			ListElements< Ref<Row> > rows(m_rows);
-			for (sl_size i = 0; i < rows.count; i++) {
-				Row* row = rows[i].get();
-				ListElements<Cell> cells(row->m_cells);
-				if (cells.count > nColumns) {
-					for (sl_size k = nColumns; k < cells.count; k++) {
-						Ref<View>& view = cells[k].view;
-						if (view.isNotNull()) {
-							removeChild(view, modeNone);
+			{
+				UIUpdateMode modeNone = (mode == UIUpdateMode::Init) ? (UIUpdateMode::Init) : (UIUpdateMode::None);
+				ListElements< Ref<Row> > rows(m_rows);
+				for (sl_size i = 0; i < rows.count; i++) {
+					Row* row = rows[i].get();
+					ListElements<Cell> cells(row->m_cells);
+					if (cells.count > nColumns) {
+						for (sl_size k = nColumns; k < cells.count; k++) {
+							Ref<View>& view = cells[k].view;
+							if (view.isNotNull()) {
+								removeChild(view, modeNone);
+							}
 						}
+						row->m_cells.setCount_NoLock(nColumns);
 					}
-					row->m_cells.setCount_NoLock(nColumns);
+				}
+			}
+			{
+				Ref<Column>* columns = m_columns.getData();
+				for (sl_uint32 i = nColumns; i < nColumnsOld; i++) {
+					columns[i]->m_index = -1;
 				}
 			}
 			if (m_columns.setCount_NoLock(nColumns)) {
@@ -978,6 +986,7 @@ namespace slib
 			Ref<Row>* rows = m_rows.getData();
 			for (sl_uint32 i = nRows; i < nRowsOld; i++) {
 				Row* row = rows[i].get();
+				row->m_index = -1;
 				ListElements<Cell> cells(row->m_cells);
 				for (sl_size k = 0; k < cells.count; k++) {
 					Ref<View>& view = cells[k].view;
