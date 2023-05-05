@@ -935,6 +935,7 @@ namespace slib
 	class SAppLayoutGridColumn : public SAppLayoutGridCellAttributes
 	{
 	public:
+		SAppNameValue name;
 		SAppDimensionValue width;
 		SAppBooleanValue fixed;
 		SAppBooleanValue visible;
@@ -947,6 +948,7 @@ namespace slib
 	class SAppLayoutGridRow : public SAppLayoutGridCellAttributes
 	{
 	public:
+		SAppNameValue name;
 		SAppDimensionValue height;
 		SAppBooleanValue visible;
 
