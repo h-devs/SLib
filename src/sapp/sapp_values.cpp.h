@@ -60,6 +60,12 @@ namespace slib
 				flagDefined = sl_true;
 				return sl_true;
 			}
+			if (str == "empty") {
+				flagReferResource = sl_false;
+				valueOrName = String::getEmpty();
+				flagDefined = sl_true;
+				return sl_true;
+			}
 			if (str.startsWith('@')) {
 				flagReferResource = sl_false;
 				valueOrName = str;

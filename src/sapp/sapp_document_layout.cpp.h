@@ -4411,6 +4411,13 @@ namespace slib
 				for (sl_size i = 0; i < columnXmls.count; i++) {
 					LAYOUT_CONTROL_DEFINE_XML(columnXml, columnXmls[i])
 					SAppLayoutGridColumn column;
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., name)
+					if (column.name.flagDefined) {
+						if (!(_checkLayoutResourceItemName(resource, column.name.value, columnXml.element))) {
+							return sl_false;
+						}
+						resource->otherNames.put(column.name.value, sl_true);
+					}
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., width, checkScalarSize)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., fixed)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., visible)
@@ -4452,6 +4459,13 @@ namespace slib
 				for (sl_size iRow = 0; iRow < rowXmls.count; iRow++) { \
 					LAYOUT_CONTROL_DEFINE_XML(rowXml, rowXmls[iRow]) \
 					SAppLayoutGridRow row; \
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml, row., name) \
+					if (row.name.flagDefined) { \
+						if (!(_checkLayoutResourceItemName(resource, row.name.value, rowXml.element))) { \
+							return sl_false; \
+						} \
+						resource->otherNames.put(row.name.value, sl_true); \
+					} \
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(row, rowXml) \
 					row.font.inheritFrom(attr->SECTION.font); \
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., height, checkScalarSize) \
@@ -4605,6 +4619,10 @@ namespace slib
 			{
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) {
 					SAppLayoutGridColumn& column = columns[iCol];
+					if (column.name.flagDefined) {
+						params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::GridView::Column> %s;%n", column.name.value));
+						params->sbDefineInit->add(String::format("\t\t\t%s = %s->getColumn(%d);%n", column.name.value, resourceItem->name, iCol));
+					}
 					LAYOUT_CONTROL_GENERATE_DIMENSION(column.width, setColumnWidth, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GENERIC(column.visible, setColumnVisible, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Cell, column, "%d, %s", iCol, value)
@@ -4624,6 +4642,10 @@ namespace slib
 				ListElements<SAppLayoutGridRow> rows(section.rows); \
 				for (sl_size iRow = 0; iRow < rows.count; iRow++) { \
 					SAppLayoutGridRow& row = rows[iRow]; \
+					if (row.name.flagDefined) { \
+						params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::GridView::Row> %s;%n", row.name.value)); \
+						params->sbDefineInit->add(String::format("\t\t\t%s = %s->get" #PREFIX "Row(%d);%n", row.name.value, resourceItem->name, iRow)); \
+					} \
 					LAYOUT_CONTROL_GENERATE_DIMENSION(row.height, set##PREFIX##RowHeight, ITEM, "%d, %s", iRow, value) \
 					LAYOUT_CONTROL_GENERATE_GENERIC(row.visible, set##PREFIX##RowVisible, ITEM, "%d, %s", iRow, value) \
 					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, row, "%d, -1, %s", iRow, value) \
