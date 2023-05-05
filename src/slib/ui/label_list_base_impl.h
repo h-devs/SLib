@@ -412,8 +412,8 @@ namespace slib
 				if (!(UI::isUiThread())) {
 					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::selectItem, index, mode));
 					return;
-				}
 			}
+				}
 			if (index >= m_countItems) {
 				return;
 			}
@@ -535,7 +535,7 @@ namespace slib
 	void VIEW_CLASS::notifySelectItem(INDEX_TYPE index, UIEvent* ev, UIUpdateMode mode) \
 	{ \
 		ObjectLocker locker(this); \
-		INDEX_TYPE former = index; \
+		INDEX_TYPE former = m_indexSelected; \
 		if (former == index) { \
 			return; \
 		} \
@@ -554,7 +554,7 @@ namespace slib
 	void VIEW_CLASS::notifySelectItem(INDEX_TYPE index, UIEvent* ev, UIUpdateMode mode) \
 	{ \
 		ObjectLocker locker(this); \
-		INDEX_TYPE former = index; \
+		INDEX_TYPE former = m_indexSelected; \
 		if (former == index) { \
 			return; \
 		} \

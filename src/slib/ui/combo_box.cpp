@@ -130,7 +130,7 @@ namespace slib
 			_changeText(sl_null, text, ev, mode);
 		}
 		ObjectLocker locker(this);
-		sl_int32 former = index;
+		sl_int32 former = m_indexSelected;
 		if (former == index) {
 			return;
 		}
