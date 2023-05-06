@@ -44,10 +44,14 @@ namespace slib
 			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DrawCellParam)
 		};
 
+		class Cell;
+		typedef Function<String(Cell*)> TextFormatter;
+
 		class CellAttribute
 		{
 		public:
 			String text;
+			TextFormatter formatter;
 			Ref<Font> font;
 			MultiLineMode multiLineMode;
 			EllipsizeMode ellipsizeMode;
@@ -56,11 +60,11 @@ namespace slib
 			sl_bool flagSelectable;
 			sl_bool flagEditable;
 
-			sl_uint32 colspan;
-			sl_uint32 rowspan;
-
 			ViewStateMap< Ref<Drawable> > backgrounds;
 			ViewStateMap<Color> textColors;
+
+			sl_uint32 colspan;
+			sl_uint32 rowspan;
 
 			sl_ui_len width;
 			sl_ui_len height;
@@ -215,8 +219,20 @@ namespace slib
 		void setColumnWidth(sl_uint32 index, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setColumnWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		sl_ui_len getMinimumColumnWidth(sl_uint32 index);
+		void setMinimumColumnWidth(sl_uint32 index, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setMinimumColumnWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getMaximumColumnWidth(sl_uint32 index);
+		void setMaximumColumnWidth(sl_uint32 index, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setMaximumColumnWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		sl_bool isColumnVisible(sl_uint32 index);
 		void setColumnVisible(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isColumnResizable(sl_uint32 index);
+		void setColumnResizable(sl_uint32 index, sl_bool flagResizable = sl_true);
+		void setColumnResizable(sl_bool flagResizable = sl_true);
 
 		sl_uint64 getRecordCount();
 		void setRecordCount(sl_uint64 count, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -319,6 +335,16 @@ namespace slib
 		void setFooterText(sl_int32 row, sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setColumnText(sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setCellText(const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Function<String(Cell*)> getBodyTextFormatter(sl_uint32 row, sl_uint32 column);
+		Function<String(Cell*)> getHeaderTextFormatter(sl_uint32 row, sl_uint32 column);
+		Function<String(Cell*)> getFooterTextFormatter(sl_uint32 row, sl_uint32 column);
+
+		void setBodyTextFormatter(sl_int32 row, sl_int32 column, const Function<String(Cell*)>& formatter, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderTextFormatter(sl_int32 row, sl_int32 column, const Function<String(Cell*)>& formatter, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterTextFormatter(sl_int32 row, sl_int32 column, const Function<String(Cell*)>& formatter, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnTextFormatter(sl_int32 column, const Function<String(Cell*)>& formatter, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellTextFormatter(const Function<String(Cell*)>& formatter, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Font> getBodyFont(sl_uint32 row, sl_uint32 column);
 		Ref<Font> getHeaderFont(sl_uint32 row, sl_uint32 column);
@@ -481,6 +507,7 @@ namespace slib
 		void onDraw(Canvas* canvas) override;
 		void onClickEvent(UIEvent* ev) override;
 		void onMouseEvent(UIEvent* ev) override;
+		void onSetCursor(UIEvent* ev) override;
 		void onKeyEvent(UIEvent* ev) override;
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 
@@ -538,18 +565,24 @@ namespace slib
 
 		public:
 			Ref<GridView> getView();
-
 			sl_uint32 getIndex();
 
 			sl_bool remove(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 			sl_ui_len getWidth();
-
 			void setWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-			sl_bool isVisible();
+			sl_ui_len getMinimumWidth();
+			void setMinimumWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+			sl_ui_len getMaximumWidth();
+			void setMaximumWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+			sl_bool isVisible();
 			void setVisible(sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+			sl_bool isResizable();
+			void setResizable(sl_bool flagResizable = sl_true);
 
 		private:
 			void _invalidateLayout(UIUpdateMode mode);
@@ -560,7 +593,10 @@ namespace slib
 
 			sl_ui_len m_width;
 			sl_ui_len m_fixedWidth;
+			sl_ui_len m_minWidth;
+			sl_ui_len m_maxWidth;
 			sl_bool m_flagVisible;
+			sl_bool m_flagResizable;
 
 			List<BodyCellProp> m_listBodyCell;
 			List<HeaderCellProp> m_listHeaderCell;
@@ -592,11 +628,9 @@ namespace slib
 			sl_bool remove(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 			sl_ui_len getHeight();
-
 			void setHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 			sl_bool isVisible();
-
 			void setVisible(sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		private:
@@ -631,6 +665,8 @@ namespace slib
 		sl_uint32 _getFooterRowAt(sl_ui_pos y);
 
 		RecordIndex _getRowAt(sl_int32* outRow, sl_ui_pos y, sl_bool flagRecord, sl_bool flagHeader, sl_bool flagFooter);
+		sl_bool _fixCellAddress(RecordIndex record, sl_uint32 row, sl_uint32* outRow, sl_uint32 col, sl_uint32* outCol);
+		void _fixSelection(Selection& sel);
 
 		void _select(const Selection& selection, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -664,6 +700,8 @@ namespace slib
 		Cell* _getFixedCell(FixedCellProp& prop, RecordIndex iRecord, sl_uint32 iRow, sl_uint32 iCol);
 
 		Ref<Cell> _getEventCell(UIEvent* ev);
+		sl_int32 _getColumnForResizing(UIEvent* ev, sl_bool& flagRight, sl_bool& flagDual);
+		sl_ui_len _getMiddleColumnOffset(sl_uint32 iCol);
 
 		void _invalidateLayout();
 
@@ -697,9 +735,14 @@ namespace slib
 		CList< Ref<Row> > m_listFooterRow;
 
 		sl_ui_len m_defaultColumnWidth;
+		sl_ui_len m_defaultColumnMinWidth;
+		sl_ui_len m_defaultColumnMaxWidth;
+		sl_bool m_defaultColumnResizable;
+
 		sl_ui_len m_defaultBodyRowHeight;
 		sl_ui_len m_defaultHeaderRowHeight;
 		sl_ui_len m_defaultFooterRowHeight;
+
 		CellProp m_defaultBodyProps;
 		CellProp m_defaultHeaderProps;
 		CellProp m_defaultFooterProps;
@@ -723,6 +766,12 @@ namespace slib
 		sl_bool m_flagInvalidateHeaderLayout;
 		sl_bool m_flagInvalidateFooterLayout;
 
+		sl_int32 m_iResizingColumn;
+		sl_bool m_flagResizingRightColumn;
+		sl_bool m_flagResizingDualColumn;
+		sl_ui_len m_formerResizingColumnWidth;
+		sl_ui_len m_formerResizingColumnWidth2;
+		sl_ui_pos m_formerResizingColumnEventX;
 	};
 
 }

@@ -4368,6 +4368,10 @@ namespace slib
 
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, maxColumnWidth, setMaximumColumnWidth, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, minColumnWidth, setMinimumColumnWidth, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, columnWidth, setColumnWidth, checkScalarSize)
+		LAYOUT_CONTROL_ATTR(GENERIC, resizableColumn, setColumnResizable)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setRowHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(BORDER, grid, setGrid)
 		LAYOUT_CONTROL_ATTR(GENERIC, selection, setSelectionMode)
@@ -4418,9 +4422,12 @@ namespace slib
 						}
 						resource->otherNames.put(column.name.value, sl_true);
 					}
+					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., minWidth, checkScalarSize)
+					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., maxWidth, checkScalarSize)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., width, checkScalarSize)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., fixed)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., visible)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., resizable)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column, columnXml)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.bodyAttrs, columnXml, body)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.headerAttrs, columnXml, header)
@@ -4623,9 +4630,12 @@ namespace slib
 						params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::GridView::Column> %s;%n", column.name.value));
 						params->sbDefineInit->add(String::format("\t\t\t%s = %s->getColumn(%d);%n", column.name.value, resourceItem->name, iCol));
 					}
+					LAYOUT_CONTROL_GENERATE_DIMENSION(column.maxWidth, setMaximumColumnWidth, ITEM, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_DIMENSION(column.minWidth, setMinimumColumnWidth, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_DIMENSION(column.width, setColumnWidth, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GENERIC(column.visible, setColumnVisible, ITEM, "%d, %s", iCol, value)
-					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Cell, column, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(column.resizable, setColumnResizable, BASIC, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Column, column, "%d, %s", iCol, value)
 				}
 			}
 
@@ -4701,7 +4711,11 @@ namespace slib
 			{
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) {
 					SAppLayoutGridColumn& column = columns[iCol];
+					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.maxWidth, setMaximumColumnWidth, ITEM, (sl_uint32)iCol, value)
+					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.minWidth, setMinimumColumnWidth, ITEM, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.width, setColumnWidth, ITEM, (sl_uint32)iCol, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(column.visible, setColumnVisible, ITEM, (sl_uint32)iCol, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(column.resizable, setColumnResizable, BASIC, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Column, column, (sl_uint32)iCol)
 				}
 			}
@@ -4720,6 +4734,7 @@ namespace slib
 				for (sl_size iRow = 0; iRow < rows.count; iRow++) { \
 					SAppLayoutGridRow& row = rows[iRow]; \
 					LAYOUT_CONTROL_SIMULATE_DIMENSION(row.height, set##PREFIX##RowHeight, ITEM, (sl_uint32)iRow, value) \
+					LAYOUT_CONTROL_SIMULATE_GENERIC(row.visible, set##PREFIX##RowVisible, ITEM, (sl_uint32)iRow, value) \
 					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, row, (sl_uint32)iRow, -1) \
 					ListElements<SAppLayoutGridCell> cells(row.cells); \
 					for (sl_size iCell = 0; iCell < cells.count; iCell++) { \

@@ -937,8 +937,11 @@ namespace slib
 	public:
 		SAppNameValue name;
 		SAppDimensionValue width;
+		SAppDimensionValue minWidth;
+		SAppDimensionValue maxWidth;
 		SAppBooleanValue fixed;
 		SAppBooleanValue visible;
+		SAppBooleanValue resizable;
 
 		SAppLayoutGridCellAttributes bodyAttrs;
 		SAppLayoutGridCellAttributes headerAttrs;
@@ -972,6 +975,10 @@ namespace slib
 		sl_uint32 nRightColumns = 0;
 
 		SAppUint64Value recordCount;
+		SAppDimensionValue columnWidth;
+		SAppDimensionValue minColumnWidth;
+		SAppDimensionValue maxColumnWidth;
+		SAppBooleanValue resizableColumn;
 		SAppDimensionValue rowHeight;
 		SAppBorderValue grid;
 		SAppBorderValue leftGrid;

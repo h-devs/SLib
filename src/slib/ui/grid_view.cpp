@@ -23,12 +23,14 @@
 #include "slib/ui/grid_view.h"
 
 #include "slib/ui/priv/view_state_map.h"
+#include "slib/ui/cursor.h"
 #include "slib/ui/clipboard.h"
 #include "slib/graphics/canvas.h"
 #include "slib/core/safe_static.h"
 
 #define DEFAULT_TEXT_COLOR Color::Black
 #define MAX_RECORDS_PER_SCREEN 1000
+#define COLUMN_RESIZER_SIZE 3
 
 namespace slib
 {
@@ -115,11 +117,15 @@ namespace slib
 
 	void GridView::TextCell::onPrepareTextBox(TextBoxParam& param)
 	{
-		if (text.isNotNull()) {
-			if (record >= 0 && recordData.isNotUndefined()) {
-				param.text = String::format(text, recordData);
-			} else {
-				param.text = text;
+		if (formatter.isNotNull()) {
+			param.text = formatter(this);
+		} else {
+			if (text.isNotNull()) {
+				if (record >= 0 && recordData.isNotUndefined()) {
+					param.text = String::format(text, recordData);
+				} else {
+					param.text = text;
+				}
 			}
 		}
 		if (font.isNotNull()) {
@@ -196,6 +202,8 @@ namespace slib
 	void GridView::CellProp::inheritFrom(const CellProp& other)
 	{
 		creator = other.creator;
+		text = other.text;
+		formatter = other.formatter;
 		font = other.font;
 		multiLineMode = other.multiLineMode;
 		ellipsizeMode = other.ellipsizeMode;
@@ -373,6 +381,10 @@ namespace slib
 		m_selectionMode = SelectionMode::Cell;
 
 		m_defaultColumnWidth = 80;
+		m_defaultColumnMinWidth = 30;
+		m_defaultColumnMaxWidth = -1;
+		m_defaultColumnResizable = sl_true;
+
 		m_defaultBodyRowHeight = -1;
 		m_defaultHeaderRowHeight = -1;
 		m_defaultFooterRowHeight = -1;
@@ -389,6 +401,8 @@ namespace slib
 		m_flagInvalidateFooterLayout = sl_true;
 
 		m_flagInitialize = sl_true;
+
+		m_iResizingColumn = -1;
 	}
 
 	void GridView::init()
@@ -420,6 +434,9 @@ namespace slib
 	{
 #define INHERIT_COLUMN_SECTION(SECTION) \
 		col->m_width = m_defaultColumnWidth; \
+		col->m_minWidth = m_defaultColumnMinWidth; \
+		col->m_maxWidth = m_defaultColumnMaxWidth; \
+		col->m_flagResizable = m_defaultColumnResizable; \
 		col->m_default##SECTION##Props.inheritFrom(m_default##SECTION##Props); \
 		{ \
 			sl_uint32 nRows = (sl_uint32)(m_list##SECTION##Row.getCount()); \
@@ -599,7 +616,7 @@ namespace slib
 		ObjectLocker lock(this);
 		Ref<Column> col = m_columns.getValueAt_NoLock(index);
 		if (col.isNotNull()) {
-			col->m_width = width;
+			col->setWidth(width, UIUpdateMode::Init);
 			_invalidateLayout();
 			refreshContentWidth(mode);
 		}
@@ -607,6 +624,12 @@ namespace slib
 
 	void GridView::Column::setWidth(sl_ui_len width, UIUpdateMode mode)
 	{
+		if (m_maxWidth >= 0 && width > m_maxWidth) {
+			width = m_maxWidth;
+		}
+		if (width < m_minWidth) {
+			width = m_minWidth;
+		}
 		m_width = width;
 		_invalidateLayout(mode);
 	}
@@ -616,11 +639,148 @@ namespace slib
 		ObjectLocker lock(this);
 		ListElements< Ref<Column> > columns(m_columns);
 		for (sl_size i = 0; i < columns.count; i++) {
-			columns[i]->m_width = width;
+			columns[i]->setWidth(width, UIUpdateMode::Init);
+		}
+		if (m_defaultColumnMaxWidth >= 0 && width > m_defaultColumnMaxWidth) {
+			width = m_defaultColumnMaxWidth;
+		}
+		if (width < m_defaultColumnMinWidth) {
+			width = m_defaultColumnMinWidth;
 		}
 		m_defaultColumnWidth = width;
 		_invalidateLayout();
 		refreshContentWidth(mode);
+	}
+
+	sl_ui_len GridView::getMinimumColumnWidth(sl_uint32 index)
+	{
+		ObjectLocker lock(this);
+		Ref<Column> col = m_columns.getValueAt_NoLock(index);
+		if (col.isNotNull()) {
+			return col->m_minWidth;
+		}
+		return 0;
+	}
+
+	sl_ui_len GridView::Column::getMinimumWidth()
+	{
+		return m_minWidth;
+	}
+
+	void GridView::setMinimumColumnWidth(sl_uint32 index, sl_ui_len width, UIUpdateMode mode)
+	{
+		if (width < 0) {
+			width = 0;
+		}
+		ObjectLocker lock(this);
+		Ref<Column> col = m_columns.getValueAt_NoLock(index);
+		if (col.isNotNull()) {
+			col->m_minWidth = width;
+			if (col->m_width < width) {
+				col->m_width = width;
+				_invalidateLayout();
+				refreshContentWidth(mode);
+			}
+		}
+	}
+
+	void GridView::Column::setMinimumWidth(sl_ui_len width, UIUpdateMode mode)
+	{
+		if (width < 0) {
+			width = 0;
+		}
+		m_minWidth = width;
+		if (m_width < width) {
+			m_width = width;
+			_invalidateLayout(mode);
+		}
+	}
+
+	void GridView::setMinimumColumnWidth(sl_ui_len width, UIUpdateMode mode)
+	{
+		if (width < 0) {
+			return;
+		}
+		sl_bool flagChange = sl_false;
+		ObjectLocker lock(this);
+		ListElements< Ref<Column> > columns(m_columns);
+		for (sl_size i = 0; i < columns.count; i++) {
+			Column* col = columns[i].get();
+			col->m_minWidth = width;
+			if (col->m_width < width) {
+				col->m_width = width;
+				flagChange = sl_true;
+			}
+		}
+		m_defaultColumnMinWidth = width;
+		if (m_defaultColumnWidth < width) {
+			m_defaultColumnWidth = width;
+		}
+		if (flagChange) {
+			_invalidateLayout();
+			refreshContentWidth(mode);
+		}
+	}
+
+	sl_ui_len GridView::getMaximumColumnWidth(sl_uint32 index)
+	{
+		ObjectLocker lock(this);
+		Ref<Column> col = m_columns.getValueAt_NoLock(index);
+		if (col.isNotNull()) {
+			return col->m_maxWidth;
+		}
+		return 0;
+	}
+
+	sl_ui_len GridView::Column::getMaximumWidth()
+	{
+		return m_maxWidth;
+	}
+
+	void GridView::setMaximumColumnWidth(sl_uint32 index, sl_ui_len width, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Ref<Column> col = m_columns.getValueAt_NoLock(index);
+		if (col.isNotNull()) {
+			col->m_maxWidth = width;
+			if (width >= 0 && col->m_width > width) {
+				col->m_width = width;
+				_invalidateLayout();
+				refreshContentWidth(mode);
+			}
+		}
+	}
+
+	void GridView::Column::setMaximumWidth(sl_ui_len width, UIUpdateMode mode)
+	{
+		m_maxWidth = width;
+		if (width >= 0 && m_width > width) {
+			m_width = width;
+			_invalidateLayout(mode);
+		}
+	}
+
+	void GridView::setMaximumColumnWidth(sl_ui_len width, UIUpdateMode mode)
+	{
+		sl_bool flagChange = sl_false;
+		ObjectLocker lock(this);
+		ListElements< Ref<Column> > columns(m_columns);
+		for (sl_size i = 0; i < columns.count; i++) {
+			Column* col = columns[i].get();
+			col->m_maxWidth = width;
+			if (width >= 0 && col->m_width > width) {
+				col->m_width = width;
+				flagChange = sl_true;
+			}
+		}
+		m_defaultColumnMaxWidth = width;
+		if (width >= 0 && m_defaultColumnWidth > width) {
+			m_defaultColumnWidth = width;
+		}
+		if (flagChange) {
+			_invalidateLayout();
+			refreshContentWidth(mode);
+		}
 	}
 
 	sl_bool GridView::isColumnVisible(sl_uint32 index)
@@ -654,6 +814,46 @@ namespace slib
 	{
 		m_flagVisible = flagVisible;
 		_invalidateLayout(mode);
+	}
+
+	sl_bool GridView::isColumnResizable(sl_uint32 index)
+	{
+		ObjectLocker lock(this);
+		Ref<Column> col = m_columns.getValueAt_NoLock(index);
+		if (col.isNotNull()) {
+			return col->m_flagResizable;
+		} else {
+			return sl_false;
+		}
+	}
+
+	sl_bool GridView::Column::isResizable()
+	{
+		return m_flagResizable;
+	}
+
+	void GridView::setColumnResizable(sl_uint32 index, sl_bool flag)
+	{
+		ObjectLocker lock(this);
+		Ref<Column> col = m_columns.getValueAt_NoLock(index);
+		if (col.isNotNull()) {
+			col->m_flagResizable = flag;
+		}
+	}
+
+	void GridView::Column::setResizable(sl_bool flagVisible)
+	{
+		m_flagVisible = flagVisible;
+	}
+
+	void GridView::setColumnResizable(sl_bool flag)
+	{
+		ObjectLocker lock(this);
+		ListElements< Ref<Column> > columns(m_columns);
+		for (sl_size i = 0; i < columns.count; i++) {
+			columns[i]->m_flagResizable = flag;
+		}
+		m_defaultColumnResizable = flag;
 	}
 
 	sl_uint64 GridView::getRecordCount()
@@ -937,6 +1137,9 @@ namespace slib
 	} \
 	void GridView::set##SECTION##RowHeight(sl_uint32 index, sl_ui_len height, UIUpdateMode mode) \
 	{ \
+		if (height < 0) { \
+			height = 0; \
+		} \
 		ObjectLocker lock(this); \
 		Ref<Row> row = m_list##SECTION##Row.getValueAt_NoLock(index); \
 		if (row.isNotNull()) { \
@@ -966,6 +1169,9 @@ namespace slib
 
 	void GridView::Row::setHeight(sl_ui_len height, UIUpdateMode mode)
 	{
+		if (height < 0) {
+			height = 0;
+		}
 		m_height = height;
 		_invalidateLayout(mode);
 	}
@@ -973,6 +1179,9 @@ namespace slib
 #define DEFINE_SET_ALL_ROW_HEIGHT(SECTION) \
 	void GridView::set##SECTION##RowHeight(sl_ui_len height, UIUpdateMode mode) \
 	{ \
+		if (height < 0) { \
+			height = 0; \
+		} \
 		ObjectLocker lock(this); \
 		ListElements< Ref<Row> > rows(m_list##SECTION##Row); \
 		for (sl_size i = 0; i < rows.count; i++) { \
@@ -989,6 +1198,9 @@ namespace slib
 
 	void GridView::setRowHeight(sl_ui_len height, UIUpdateMode mode)
 	{
+		if (height < 0) {
+			height = 0;
+		}
 		ObjectLocker lock(this);
 		{
 			m_defaultBodyRowHeight = height;
@@ -1146,11 +1358,12 @@ namespace slib
 		}
 		if (fixed < width) {
 			setPageWidth((sl_scroll_pos)(width - fixed), SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
-			setContentWidth((sl_scroll_pos)content, mode);
+			setContentWidth((sl_scroll_pos)content, UIUpdateMode::None);
 		} else {
 			setPageWidth(0, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
-			setContentWidth(0, mode);
+			setContentWidth(0, UIUpdateMode::None);
 		}
+		invalidate(mode);
 	}
 
 	void GridView::refreshContentHeight(UIUpdateMode mode)
@@ -1164,11 +1377,12 @@ namespace slib
 		if (fixed < height) {
 			sl_int64 content = getRecordHeight() * (sl_int64)m_nRecords;
 			setPageHeight((sl_scroll_pos)(height - fixed), SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
-			setContentHeight((sl_scroll_pos)content, mode);
+			setContentHeight((sl_scroll_pos)content, UIUpdateMode::None);
 		} else {
 			setPageHeight(0, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
-			setContentHeight(0, mode);
+			setContentHeight(0, UIUpdateMode::None);
 		}
+		invalidate(mode);
 	}
 
 	GridView::DataFunction GridView::getDataFunction()
@@ -1382,6 +1596,8 @@ namespace slib
 	DEFINE_GET_SET_CELL_LAYOUT_ATTR(Creator, GridView::CellCreator, const CellCreator&, creator, sl_null)
 
 	DEFINE_GET_SET_CELL_LAYOUT_ATTR(Text, String, const String&, text, sl_null)
+
+	DEFINE_GET_SET_CELL_LAYOUT_ATTR(TextFormatter, GridView::TextFormatter, const TextFormatter&, formatter, sl_null)
 
 	DEFINE_SET_CELL_LAYOUT_ATTR(Font, const Ref<Font>&, font)
 
@@ -1869,6 +2085,43 @@ namespace slib
 		return -1;
 	}
 
+	sl_bool GridView::_fixCellAddress(RecordIndex iRecord, sl_uint32 iRow, sl_uint32* outRow, sl_uint32 iCol, sl_uint32* outCol)
+	{
+		CellProp* prop = _getCellProp(iRecord, iRow, iCol);
+		if (prop) {
+			if (outRow) {
+				while (prop->flagCoveredY && iRow > 0) {
+					iRow--;
+					prop = _getCellProp(iRecord, iRow, iCol);
+					if (!prop) {
+						return sl_false;
+					}
+				}
+				*outRow = iRow;
+			}
+			if (outCol) {
+				while (prop->flagCoveredX && iCol > 0) {
+					iCol--;
+					prop = _getCellProp(iRecord, iRow, iCol);
+					if (!prop) {
+						return sl_false;
+					}
+				}
+				*outCol = iCol;
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	void GridView::_fixSelection(Selection& sel)
+	{
+		if (sel.row < 0 || sel.column < 0) {
+			return;
+		}
+		_fixCellAddress(sel.record, sel.row, (sl_uint32*)(&(sel.row)), sel.column, (sl_uint32*)(&(sel.column)));
+	}
+
 	sl_bool GridView::getCellAt(sl_ui_pos x, sl_ui_pos y, sl_uint32* outRow, sl_uint32* outColumn, RecordIndex* outRecord)
 	{
 		if (outRow || outColumn) {
@@ -1878,33 +2131,10 @@ namespace slib
 				sl_int32 iCol = getColumnAt(x);
 				if (iCol >= 0) {
 					ObjectLocker lock(this);
-					CellProp* prop = _getCellProp(iRecord, iRow, iCol);
-					if (prop) {
-						if (outRecord) {
-							*outRecord = iRecord;
-						}
-						if (outRow) {
-							while (prop->flagCoveredY && iRow > 0) {
-								iRow--;
-								prop = _getCellProp(iRecord, iRow, iCol);
-								if (!prop) {
-									return sl_false;
-								}
-							}
-							*outRow = iRow;
-						}
-						if (outColumn) {
-							while (prop->flagCoveredX && iCol > 0) {
-								iCol--;
-								prop = _getCellProp(iRecord, iRow, iCol);
-								if (!prop) {
-									return sl_false;
-								}
-							}
-							*outColumn = iCol;
-						}
-						return sl_true;
+					if (outRecord) {
+						*outRecord = iRecord;
 					}
+					return _fixCellAddress(iRecord, iRow, outRow, iCol, outColumn);
 				}
 			}
 		} else {
@@ -2308,6 +2538,7 @@ namespace slib
 
 		Selection selection = m_selection;
 		if (!(selection.isNone())) {
+			_fixSelection(selection);
 			Ref<Pen> border = m_selectionBorder;
 			if (border.isNotNull()) {
 				UIRect frame;
@@ -2864,10 +3095,151 @@ namespace slib
 		}
 	}
 
+	Ref<GridView::Cell> GridView::_getEventCell(UIEvent* ev)
+	{
+		if (ev->isMouseEvent()) {
+			return getVisibleCellAt((sl_ui_pos)(ev->getX()), (sl_ui_pos)(ev->getY()));
+		}
+		return sl_null;
+	}
+
+	sl_int32 GridView::_getColumnForResizing(UIEvent* ev, sl_bool& flagRight, sl_bool& flagDual)
+	{
+		flagRight = sl_false;
+		flagDual = sl_false;
+		sl_ui_pos y = (sl_ui_pos)(ev->getY());
+		sl_ui_len heightHeader = getHeaderHeight();
+		if (heightHeader) {
+			if (y > heightHeader) {
+				return -1;
+			}
+		}
+		ObjectLocker lock(this);
+		ListElements< Ref<Column> > columns(m_columns);
+		sl_uint32 nColumns = (sl_uint32)(columns.count);
+		sl_uint32 nLeft = m_nLeftColumns;
+		sl_uint32 nRight = m_nRightColumns;
+		FixLeftRightColumnCount(nColumns, nLeft, nRight);
+		sl_uint32 iRight = nColumns - nRight;
+		sl_ui_pos xRight = getWidth();
+		sl_ui_pos xLeft = 0;
+		if (nLeft) {
+			for (sl_uint32 i = 0; i < nLeft; i++) {
+				xLeft += columns[i]->m_fixedWidth;
+			}
+		}
+		if (nRight) {
+			sl_uint32 i = nColumns - 1;
+			for (;;) {
+				xRight -= columns[i]->m_fixedWidth;
+				if (i > iRight) {
+					i--;
+				} else {
+					break;
+				}
+			}
+		}
+		sl_ui_pos x = (sl_ui_pos)(ev->getX());
+		sl_ui_pos x2 = x;
+		if (nRight && x + COLUMN_RESIZER_SIZE >= xRight) {
+			if (x2 <= xRight) {
+				x2 = xRight + 1;
+			}
+		} else if (nLeft && x <= xLeft + COLUMN_RESIZER_SIZE) {
+			if (x2 >= xLeft) {
+				x2 = xLeft - 1;
+			}
+		}
+		RecordIndex iRecord;
+		sl_uint32 iRow;
+		sl_uint32 iCol;
+		if (getCellAt(x2, y, &iRow, &iCol, &iRecord)) {
+			UIRect rect;
+			if (getCellFrame(rect, iRecord, iRow, iCol)) {
+				if (x > rect.left + COLUMN_RESIZER_SIZE && x < rect.right - COLUMN_RESIZER_SIZE) {
+					return -1;
+				}
+				sl_int32 _iCol = getColumnAt(x2);
+				if (_iCol < 0) {
+					return -1;
+				}
+				iCol = _iCol;
+				if (x <= rect.left + COLUMN_RESIZER_SIZE) {
+					if (iCol < iRight) {
+						if (!iCol) {
+							return -1;
+						}
+						iCol--;
+					}
+				} else {
+					if (iCol >= iRight) {
+						if (iCol + 1 == nColumns) {
+							return -1;
+						}
+						iCol++;
+					}
+				}
+				if (iCol >= iRight) {
+					flagRight = sl_true;
+				}
+				if (ev->isShiftKey()) {
+					if (iCol < nLeft) {
+						if (iCol + 1 < nLeft) {
+							flagDual = sl_true;
+						}
+					} else if (iCol < iRight) {
+						if (iCol + 1 < iRight) {
+							flagDual = sl_true;
+						}
+					} else {
+						if (iCol != iRight) {
+							flagDual = sl_true;
+							iCol--;
+						}
+					}
+				}
+				if (!(isColumnResizable(iCol))) {
+					return -1;
+				}
+				if (flagDual) {
+					if (!(isColumnResizable(iCol + 1))) {
+						return -1;
+					}
+				}
+				return iCol;
+			}
+		}
+		return -1;
+	}
+
 	void GridView::onMouseEvent(UIEvent* ev)
 	{
 		UIAction action = ev->getAction();
 		switch (action) {
+			case UIAction::LeftButtonDown:
+				m_iResizingColumn = _getColumnForResizing(ev, m_flagResizingRightColumn, m_flagResizingDualColumn);
+				if (m_iResizingColumn >= 0) {
+					m_formerResizingColumnWidth = getColumnWidth(m_iResizingColumn);
+					m_formerResizingColumnWidth2 = getColumnWidth(m_iResizingColumn + 1);
+					m_formerResizingColumnEventX = (sl_ui_pos)(ev->getX());
+				}
+				break;
+			case UIAction::LeftButtonDrag:
+				if (m_iResizingColumn >= 0) {
+					sl_ui_len dx = (sl_ui_pos)(ev->getX()) - m_formerResizingColumnEventX;
+					if (m_flagResizingDualColumn) {
+						setColumnWidth(m_iResizingColumn, m_formerResizingColumnWidth + dx, UIUpdateMode::None);
+						setColumnWidth(m_iResizingColumn + 1, m_formerResizingColumnWidth2 - dx);
+					} else if (m_flagResizingRightColumn) {
+						setColumnWidth(m_iResizingColumn, m_formerResizingColumnWidth - dx);
+					} else {
+						setColumnWidth(m_iResizingColumn, m_formerResizingColumnWidth + dx);
+					}
+				}
+				break;
+			case UIAction::LeftButtonUp:
+				m_iResizingColumn = -1;
+				break;
 			case UIAction::RightButtonDown:
 				{
 					Ref<Cell> cell = _getEventCell(ev);
@@ -2912,24 +3284,170 @@ namespace slib
 		View::onMouseEvent(ev);
 	}
 
-	Ref<GridView::Cell> GridView::_getEventCell(UIEvent* ev)
+	void GridView::onSetCursor(UIEvent* ev)
 	{
-		if (ev->isMouseEvent()) {
-			return getVisibleCellAt((sl_ui_pos)(ev->getX()), (sl_ui_pos)(ev->getY()));
+		sl_bool flagRight, flagBalance;
+		if (_getColumnForResizing(ev, flagRight, flagBalance) >= 0) {
+			ev->setCursor(Cursor::getResizeLeftRight());
+			return;
 		}
-		return sl_null;
+		View::onSetCursor(ev);
+	}
+
+	sl_ui_len GridView::_getMiddleColumnOffset(sl_uint32 iCol)
+	{
+		ObjectLocker lock(this);
+		ListElements< Ref<Column> > columns(m_columns);
+		sl_uint32 nColumns = (sl_uint32)(columns.count);
+		sl_uint32 nLeft = m_nLeftColumns;
+		sl_uint32 nRight = m_nRightColumns;
+		FixLeftRightColumnCount(nColumns, nLeft, nRight);
+		if (iCol >= nLeft && iCol + nRight < nColumns) {
+			sl_ui_len offset = 0;
+			for (sl_uint32 i = nLeft; i < iCol; i++) {
+				offset += columns[i]->m_fixedWidth;
+			}
+			return offset;
+		} else {
+			return -1;
+		}
 	}
 
 	void GridView::onKeyEvent(UIEvent* ev)
 	{
 		if (ev->getAction() == UIAction::KeyDown) {
-			if ((ev ->isControlKey() || ev->isCommandKey()) && ev->getKeycode() == Keycode::C) {
-				Ref<Cell> cell = getVisibleCell(m_selection.record, m_selection.row, m_selection.column);
-				if (cell.isNotNull()) {
-					cell->onCopy();
-				}
+			Keycode keycode = ev->getKeycode();
+			switch (keycode) {
+				case Keycode::C:
+					if ((ev->isControlKey() || ev->isCommandKey())) {
+						Ref<Cell> cell = getVisibleCell(m_selection.record, m_selection.row, m_selection.column);
+						if (cell.isNotNull()) {
+							cell->onCopy();
+							return;
+						}
+					}
+					break;
+				case Keycode::Left:
+					if (m_selection.column > 0) {
+						m_selection.column--;
+						sl_ui_len offset = _getMiddleColumnOffset(m_selection.column);
+						if (offset >= 0) {
+							if ((sl_ui_len)(getScrollX()) > offset) {
+								scrollToX((sl_scroll_pos)offset, UIUpdateMode::None);
+							}
+						}
+						invalidate();
+						return;
+					}
+					break;
+				case Keycode::Right:
+					if (m_selection.column >= 0 && (sl_uint32)(m_selection.column + 1) < m_columns.getCount()) {
+						m_selection.column++;
+						sl_ui_len offset = _getMiddleColumnOffset(m_selection.column);
+						if (offset >= 0) {
+							Ref<Column> col = m_columns.getValueAt_NoLock(m_selection.column);
+							if (col.isNotNull()) {
+								offset += col->m_fixedWidth;
+								sl_ui_len page = (sl_ui_len)(getPageWidth());
+								if (offset > (sl_ui_len)(getScrollX()) + page) {
+									scrollToX(offset - page, UIUpdateMode::None);
+								}
+							}
+						}
+						invalidate();
+						return;
+					}
+					break;
+				case Keycode::Up:
+					if (m_selection.record >= 0) {
+						if (m_selectionMode == SelectionMode::Record || m_selection.row < 0) {
+							if (m_selection.record > 0) {
+								m_selection.record--;
+							} else {
+								break;
+							}
+						} else {
+							if (m_selection.row > 0 || m_selection.record > 0) {
+								if (m_selection.row > 0) {
+									m_selection.row--;
+								} else {
+									sl_uint32 nRows = (sl_uint32)(m_listBodyRow.getCount());
+									if (!nRows) {
+										break;
+									}
+									m_selection.record--;
+									m_selection.row = nRows - 1;
+								}
+							} else {
+								break;
+							}
+						}
+						sl_int64 offset = m_selection.record * getRecordHeight();
+						if ((sl_ui_len)(getScrollY()) > offset) {
+							scrollToY((sl_scroll_pos)offset, UIUpdateMode::None);
+						}
+						invalidate();
+						return;
+					} else {
+						if (m_selection.row > 0) {
+							m_selection.row--;
+							invalidate();
+							return;
+						}
+					}
+					break;
+				case Keycode::Down:
+					if (m_selection.record >= 0) {
+						if (m_selectionMode == SelectionMode::Record || m_selection.row < 0) {
+							if ((sl_uint64)(m_selection.record + 1) < m_nRecords) {
+								m_selection.record++;
+							} else {
+								break;
+							}
+						} else {
+							sl_uint32 nRows = (sl_uint32)(m_listBodyRow.getCount());
+							if ((sl_uint32)(m_selection.row + 1) < nRows) {
+								m_selection.row++;
+							} else {
+								if ((sl_uint64)(m_selection.record + 1) < m_nRecords) {
+									m_selection.record++;
+									m_selection.row = 0;
+								} else {
+									break;
+								}
+							}
+						}
+						sl_int64 offset = (m_selection.record + 1) * getRecordHeight();
+						sl_ui_len page = (sl_ui_len)(getPageHeight());
+						if ((sl_ui_len)(getScrollY()) + page < offset) {
+							scrollToY((sl_scroll_pos)(offset - page), UIUpdateMode::None);
+						}
+						invalidate();
+						return;
+					} else {
+						if (m_selection.row < 0) {
+							break;
+						}
+						if (m_selection.record == HEADER) {
+							sl_uint32 nRows = (sl_uint32)(m_listHeaderRow.getCount());
+							if ((sl_uint32)(m_selection.row + 1) < nRows) {
+								m_selection.row++;
+								invalidate();
+								return;
+							}
+						} else if (m_selection.record == FOOTER) {
+							sl_uint32 nRows = (sl_uint32)(m_listFooterRow.getCount());
+							if ((sl_uint32)(m_selection.row + 1) < nRows) {
+								m_selection.row++;
+								invalidate();
+								return;
+							}
+						}
+					}
+					break;
+				default:
+					break;
 			}
-			return;
 		}
 		View::onKeyEvent(ev);
 	}
