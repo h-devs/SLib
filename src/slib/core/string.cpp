@@ -3691,7 +3691,7 @@ namespace slib
 		*/
 
 		template <typename CHAR, typename STRING>
-		class StringFormator
+		class StringFormatter
 		{
 		public:
 			CHAR* format;
@@ -4253,7 +4253,7 @@ namespace slib
 			if (!nParams) {
 				return view;
 			}
-			StringFormator<typename VIEW::Char, typename VIEW::StringType> formator;
+			StringFormatter<typename VIEW::Char, typename VIEW::StringType> formator;
 			formator.format = view.getUnsafeData();
 			sl_reg len = view.getUnsafeLength();
 			formator.len = len;
