@@ -1,4 +1,4 @@
-#/*
+/*
 *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,12 +20,10 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_DB_DATA_STORE
-#define CHECKHEADER_SLIB_DB_DATA_STORE
+#ifndef CHECKHEADER_SLIB_EXTRA_DATA_STORE
+#define CHECKHEADER_SLIB_EXTRA_DATA_STORE
 
-#include "definition.h"
-
-#include "../data/json.h"
+#include <slib/data/json.h>
 
 namespace slib
 {

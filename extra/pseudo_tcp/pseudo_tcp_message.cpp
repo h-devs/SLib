@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,14 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/network/pseudo_tcp_message.h"
+#include "pseudo_tcp_message.h"
 
-#include "slib/core/thread.h"
-#include "slib/core/event.h"
-#include "slib/core/time.h"
-#include "slib/core/system.h"
-#include "slib/core/mio.h"
-#include "slib/core/shared.h"
+#include <slib/core/thread.h>
+#include <slib/core/event.h>
+#include <slib/core/time.h>
+#include <slib/core/system.h>
+#include <slib/core/mio.h>
+#include <slib/core/shared.h>
 
 #define DEFAULT_MTU 1024
 #define DEFAULT_TIMEOUT 30000

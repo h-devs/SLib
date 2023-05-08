@@ -22,6 +22,8 @@
 
 #include "chat.h"
 
+#include "../file_encrypt/chacha.h"
+
 #include <slib/db/sqlite.h>
 
 namespace slib
@@ -61,7 +63,7 @@ namespace slib
 				if (ret.isNotNull()) {
 					SQLiteParam param;
 					param.path = dbPath;
-					param.encryptionKey = encryptionKey;
+					param.encryption = new ChaChaFileEncryption(encryptionKey);
 					Ref<SQLite> db = SQLite::open(param);
 					if (db.isNotNull()) {
 						ret->m_db = db;

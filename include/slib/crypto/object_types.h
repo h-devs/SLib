@@ -32,6 +32,7 @@ namespace slib
 
 		enum {
 			Package_Crypto = packages::Crypto,
+			FileEncryption,
 			TlsContext,
 			TlsAsyncStream,
 			OAuth1,

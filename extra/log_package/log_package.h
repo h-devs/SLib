@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -20,16 +20,14 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_DB_LOG_PACKAGE_HEADER
-#define CHECKHEADER_SLIB_DB_LOG_PACKAGE_HEADER
+#ifndef CHECKHEADER_SLIB_EXTRA_LOG_PACKAGE
+#define CHECKHEADER_SLIB_EXTRA_LOG_PACKAGE
 
-#include "definition.h"
-
-#include "../io/file.h"
-#include "../core/string.h"
-#include "../core/memory.h"
-#include "../core/list.h"
-#include "../core/pair.h"
+#include <slib/io/file.h>
+#include <slib/core/string.h>
+#include <slib/core/memory.h>
+#include <slib/core/list.h>
+#include <slib/core/pair.h>
 
 namespace slib
 {

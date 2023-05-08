@@ -48,10 +48,8 @@ namespace slib
 
 	public:
 		// key: 32 bytes
+		void getKey(void* key) const noexcept;
 		void setKey(const void* key) noexcept;
-
-		// key: 32 bytes
-		void getKey(void* key) noexcept;
 
 		// key: 16 bytes
 		void setKey16(const void* key) noexcept;
@@ -91,10 +89,9 @@ namespace slib
 			encrypt(offset, src, dst, size);
 		}
 
-		// _in, _out: `IvSize` bytes
-		void getIV(void* _out) const noexcept;
-
-		void setIV(const void* _in) noexcept;
+		// iv: 16 Bytes
+		void getIV(void* iv) const noexcept;
+		void setIV(const void* iv) noexcept;
 
 	};
 
@@ -191,32 +188,6 @@ namespace slib
 		Poly1305 m_auth;
 		sl_size m_lenAAD;
 		sl_size m_lenInput;
-
-	};
-
-	class SLIB_EXPORT ChaCha20_FileEncryptor : public ChaCha20_IO
-	{
-	public:
-		enum {
-			HeaderSize = 128
-		};
-
-	public:
-		// outHeader: `HeaderSize` bytes
-		void create(void* outHeader, const void* password, sl_size lenPassword) noexcept;
-		void create(void* outHeader, const void* password, sl_size lenPassword, sl_uint32 iterationBitCount) noexcept;
-
-		// header: `HeaderSize` bytes
-		sl_bool open(const void* header, const void* password, sl_size lenPassword) noexcept;
-		sl_bool open(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitCountLimit) noexcept;
-
-		// header: `HeaderSize` bytes
-		static sl_bool checkPassword(const void* header, const void* password, sl_size lenPassword) noexcept;
-		static sl_bool checkPassword(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitCountLimit) noexcept;
-
-		// header: `HeaderSize` bytes
-		static sl_bool changePassword(void* header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword) noexcept;
-		static sl_bool changePassword(void* header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword, sl_uint32 iterationBitCountLimit) noexcept;
 
 	};
 

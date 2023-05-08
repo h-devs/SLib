@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -20,16 +20,16 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/network/pseudo_tcp.h"
+#include "pseudo_tcp.h"
 
-#include "slib/math/math.h"
-#include "slib/io/memory_reader.h"
-#include "slib/io/memory_writer.h"
-#include "slib/core/mio.h"
-#include "slib/core/system.h"
-#include "slib/core/hash_map.h"
-#include "slib/core/assert.h"
-#include "slib/core/scoped_buffer.h"
+#include <slib/math/math.h>
+#include <slib/io/memory_reader.h>
+#include <slib/io/memory_writer.h>
+#include <slib/core/mio.h>
+#include <slib/core/system.h>
+#include <slib/core/hash_map.h>
+#include <slib/core/assert.h>
+#include <slib/core/scoped_buffer.h>
 
 /*
 	This code is ported from WebRTC source
