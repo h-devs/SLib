@@ -1,6 +1,6 @@
-#include "slib/db/log_package.h"
+#include "log_package.h"
 
-#include "slib/core/mio.h"
+#include <slib/core/mio.h>
 
 namespace slib
 {

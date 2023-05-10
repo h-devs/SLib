@@ -111,13 +111,13 @@ namespace slib
 
 		void setFrame(const UIRect& frame, UIUpdateMode mode = UIUpdateMode::UpdateLayout) override;
 
-		void setFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::UpdateLayout) override;
-
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ChatView, DeleteItem, const String& itemId)
 
 	protected:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
+
+		void onUpdateFont(const Ref<Font>& font) override;
 
 	protected:
 		void _updateListContent(UIUpdateMode mode);

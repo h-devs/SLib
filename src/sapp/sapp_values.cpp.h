@@ -54,28 +54,26 @@ namespace slib
 		}
 		if (str.startsWith('@')) {
 			str = str.substring(1);
-			if (str == "null") {
-				flagReferResource = sl_false;
-				valueOrName = String::null();
-				flagDefined = sl_true;
-				return sl_true;
-			}
-			if (str == "empty") {
-				flagReferResource = sl_false;
-				valueOrName = String::getEmpty();
-				flagDefined = sl_true;
-				return sl_true;
-			}
 			if (str.startsWith('@')) {
 				flagReferResource = sl_false;
 				valueOrName = str;
 			} else {
-				if (str.startsWith("string/")) {
-					str = str.substring(7);
-				} else {
-					return sl_false;
-				}
 				str = str.trim();
+				if (str == "null") {
+					flagReferResource = sl_false;
+					valueOrName = String::null();
+					flagDefined = sl_true;
+					return sl_true;
+				}
+				if (str == "empty") {
+					flagReferResource = sl_false;
+					valueOrName = String::getEmpty();
+					flagDefined = sl_true;
+					return sl_true;
+				}
+				if (str.startsWith("string/")) {
+					str = str.substring(7).trim();
+				}
 				if (!(SAppUtil::checkName(str.getData(), str.getLength()))) {
 					return sl_false;
 				}
@@ -1102,18 +1100,15 @@ namespace slib
 
 	sl_bool SAppColorValue::parse(const String& _str, const Ref<XmlElement>& element)
 	{
-		String str = _str.trim();
+		String str = _str;
 		if (str.isEmpty()) {
 			return sl_true;
 		}
 		if (str.startsWith('@')) {
-			str = str.substring(1);
+			str = str.substring(1).trim();
 			if (str.startsWith("color/")) {
-				str = str.substring(6);
-			} else {
-				return sl_false;
+				str = str.substring(6).trim();
 			}
-			str = str.trim();
 			if (!(SAppUtil::checkName(str.getData(), str.getLength()))) {
 				return sl_false;
 			}
@@ -1122,6 +1117,7 @@ namespace slib
 			flagDefined = sl_true;
 			return sl_true;
 		} else {
+			str = str.trim();
 			Color c;
 			if (c.parse(str)) {
 				color = c;
@@ -1158,24 +1154,51 @@ namespace slib
 		if (str.isEmpty()) {
 			return sl_true;
 		}
-		if (str == "@null") {
-			flagDefined = sl_true;
-			flagNull = sl_true;
-			return sl_true;
-		}
 
-		if (SAppColorValue::parse(str, element)) {
-			if (flagDefined) {
-				flagNull = sl_false;
-				flagColor = sl_true;
+		if (str.startsWith('@')) {
+			String res = str.substring(1).trim();
+			if (res == "null") {
+				flagDefined = sl_true;
+				flagNull = sl_true;
+				return sl_true;
 			}
-			return sl_true;
+			if (res.startsWith("color/")) {
+				if (SAppColorValue::parse(str, element)) {
+					if (flagDefined) {
+						flagNull = sl_false;
+						flagColor = sl_true;
+					}
+					return sl_true;
+				}
+				return sl_false;
+			}
+			if (res.startsWith("drawable/")) {
+				res = res.substring(9).trim();
+			}
+			str = Move(res);
+		} else {
+			if (SAppColorValue::parse(str, element)) {
+				if (flagDefined) {
+					flagNull = sl_false;
+					flagColor = sl_true;
+				}
+				return sl_true;
+			}
+			return sl_false;
 		}
 
-		if (str.startsWith("@drawable/")) {
-			str = str.substring(10);
+		if (!doc) {
+			if (!(SAppUtil::checkName(str.getData(), str.getLength()))) {
+				return sl_false;
+			}
+			func = FUNC_NONE;
+			flagWhole = sl_true;
+			resourceName = str;
+			referingElement = element;
+			flagNull = sl_false;
+			flagDefined = sl_true;
+			return sl_true;
 		}
-		str = str.trim();
 
 		sl_char8* data = str.getData();
 		sl_size len = str.getLength();
@@ -1479,41 +1502,9 @@ namespace slib
 
 	}
 
-	sl_bool SAppDrawableValue::parseWhole(const String& _str, const Ref<XmlElement>& element)
+	sl_bool SAppDrawableValue::parseWhole(const String& str, const Ref<XmlElement>& element)
 	{
-		String str = _str;
-		if (str.isEmpty()) {
-			return sl_true;
-		}
-		if (str == "@null") {
-			flagDefined = sl_true;
-			flagNull = sl_true;
-			return sl_true;
-		}
-
-		if (SAppColorValue::parse(str, element)) {
-			if (flagDefined) {
-				flagNull = sl_false;
-				flagColor = sl_true;
-			}
-			return sl_true;
-		}
-
-		if (str.startsWith("@drawable/")) {
-			str = str.substring(10);
-		}
-		str = str.trim();
-
-		if (!(SAppUtil::checkName(str.getData(), str.getLength()))) {
-			return sl_false;
-		}
-		func = FUNC_NONE;
-		flagWhole = sl_true;
-		resourceName = str;
-		referingElement = element;
-		flagNull = sl_false;
-		flagDefined = sl_true;
-		return sl_true;
+		return parse(str, sl_null, element);
 	}
 
 	sl_bool SAppDrawableValue::isAbsoluteUnit()
@@ -1704,16 +1695,18 @@ namespace slib
 		if (str.isEmpty()) {
 			return sl_true;
 		}
-		if (str == "@null") {
+		if (!(str.startsWith('@'))) {
+			return sl_false;
+		}
+		str = str.substring(1).trim();
+		if (str == "null") {
 			flagDefined = sl_true;
 			flagNull = sl_true;
 			return sl_true;
 		}
-
-		if (str.startsWith("@menu/")) {
-			str = str.substring(6);
+		if (str.startsWith("menu/")) {
+			str = str.substring(5).trim();
 		}
-		str = str.trim();
 
 		if (!(SAppUtil::checkName(str.getData(), str.getLength()))) {
 			return sl_false;

@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -20,13 +20,11 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_PSEUDO_TCP
-#define CHECKHEADER_SLIB_NETWORK_PSEUDO_TCP
+#ifndef CHECKHEADER_SLIB_EXTRA_PSEUDO_TCP
+#define CHECKHEADER_SLIB_EXTRA_PSEUDO_TCP
 
-#include "definition.h"
-
-#include "../core/linked_list.h"
-#include "../core/unique_ptr.h"
+#include <slib/core/linked_list.h>
+#include <slib/core/unique_ptr.h>
 
 namespace slib
 {

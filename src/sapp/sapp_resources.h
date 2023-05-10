@@ -913,6 +913,7 @@ namespace slib
 		};
 		Creator creator = Creator::None;
 
+		SAppStringValue field;
 		SAppStringValue text;
 		SAppAlignmentValue align;
 		SAppFontValue font;

@@ -25,6 +25,8 @@
 
 #include "database.h"
 
+#include "../crypto/file_encryption.h"
+
 namespace slib
 {
 
@@ -34,7 +36,7 @@ namespace slib
 		StringParam path;
 		sl_bool flagCreate;
 		sl_bool flagReadonly;
-		StringParam encryptionKey;
+		Ref<FileEncryption> encryption;
 
 	public:
 		SQLiteParam();

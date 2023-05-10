@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 #include "key_value_store.h"
 
 #include "../core/string.h"
+#include "../crypto/file_encryption.h"
 
 namespace slib
 {
@@ -42,7 +43,7 @@ namespace slib
 	{
 	public:
 		StringParam path;
-		StringParam encryptionKey;
+		Ref<FileEncryption> encryption;
 
 		sl_bool flagCreateIfMissing;
 

@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -20,17 +20,17 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_PSEUDO_TCP_MESSAGE
-#define CHECKHEADER_SLIB_NETWORK_PSEUDO_TCP_MESSAGE
+#ifndef CHECKHEADER_SLIB_EXTRA_PSEUDO_TCP_MESSAGE
+#define CHECKHEADER_SLIB_EXTRA_PSEUDO_TCP_MESSAGE
 
 #include "pseudo_tcp.h"
 
-#include "../core/string.h"
-#include "../core/hash_map.h"
-#include "../core/queue.h"
-#include "../core/function.h"
-#include "../core/promise.h"
-#include "../io/memory_output.h"
+#include <slib/core/string.h>
+#include <slib/core/hash_map.h>
+#include <slib/core/queue.h>
+#include <slib/core/function.h>
+#include <slib/core/promise.h>
+#include <slib/io/memory_output.h>
 
 namespace slib
 {

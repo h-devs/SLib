@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -20,20 +20,20 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/network/p2p.h"
+#include "p2p.h"
 
-#include "slib/network/socket.h"
-#include "slib/network/event.h"
-#include "slib/network/async.h"
-#include "slib/network/os.h"
-#include "slib/core/thread.h"
-#include "slib/core/dispatch_loop.h"
-#include "slib/core/system.h"
-#include "slib/core/scoped_buffer.h"
-#include "slib/crypto/chacha.h"
-#include "slib/crypto/serialize/ecc.h"
-#include "slib/data/expiring_map.h"
-#include "slib/data/serialize.h"
+#include <slib/network/socket.h>
+#include <slib/network/event.h>
+#include <slib/network/async.h>
+#include <slib/network/os.h>
+#include <slib/core/thread.h>
+#include <slib/core/dispatch_loop.h>
+#include <slib/core/system.h>
+#include <slib/core/scoped_buffer.h>
+#include <slib/crypto/chacha.h>
+#include <slib/crypto/serialize/ecc.h>
+#include <slib/data/expiring_map.h>
+#include <slib/data/serialize.h>
 
 #define NODE_ID_SIZE SLIB_P2P_NODE_ID_SIZE
 
@@ -831,17 +831,17 @@ namespace slib
 							SerializeBuffer bufRead(packet + 27, sizePacket - 27);
 							P2PPublicKey remoteKey;
 							if (remoteKey.deserialize(&bufRead)) {
-								ChaCha20_Poly1305 encryptor;
+								ChaCha20_Poly1305 encryption;
 								sl_uint8 key[32];
 								_deriveEncryptionKey(remoteKey, key);
-								encryptor.setKey(key);
+								encryption.setKey(key);
 								packet[0] = (sl_uint8)(Command::ReplyVerifyNode);
 								GetNodeId(remoteKey, packet + 1);
 								sl_uint8* iv = packet + 17;
 								Math::randomMemory(iv, 12);
-								encryptor.start(iv);
-								encryptor.encrypt(contentToEncrypt, packet + 29, sizeof(contentToEncrypt));
-								encryptor.finish(packet + 39);
+								encryption.start(iv);
+								encryption.encrypt(contentToEncrypt, packet + 29, sizeof(contentToEncrypt));
+								encryption.finish(packet + 39);
 								SerializeBuffer bufWrite(packet + 55, 1024);
 								if (P2PPublicKey(m_key).serialize(&bufWrite)) {
 									_sendUdp(address, packet, bufWrite.current - packet);
@@ -1058,17 +1058,17 @@ namespace slib
 							if (memPacket.isNull()) {
 								return sl_false;
 							}
-							ChaCha20_Poly1305 encryptor;
-							encryptor.setKey(stream->m_encryptionKey);
+							ChaCha20_Poly1305 encryption;
+							encryption.setKey(stream->m_encryptionKey);
 							packet = (sl_uint8*)(memPacket.getData());
 							*(packet++) = (sl_uint8)(Command::ReplyMessage);
 							Base::copyMemory(packet, bufSize, nSize);
 							packet += nSize;
 							Math::randomMemory(packet, 12); // iv
-							encryptor.start(packet);
+							encryption.start(packet);
 							packet += 12;
-							encryptor.encrypt(response.data, packet + 16, response.size);
-							encryptor.finish(packet);
+							encryption.encrypt(response.data, packet + 16, response.size);
+							encryption.finish(packet);
 							return _sendTcpServerStream(stream, memPacket);
 						} else {
 							sl_uint8 buf[2];

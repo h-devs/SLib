@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,13 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_P2P
-#define CHECKHEADER_SLIB_NETWORK_P2P
+#ifndef CHECKHEADER_SLIB_EXTRA_P2P
+#define CHECKHEADER_SLIB_EXTRA_P2P
 
-#include "socket_address.h"
-
-#include "../data/json.h"
-#include "../io/async.h"
-#include "../crypto/ecc.h"
+#include <slib/network/socket_address.h>
+#include <slib/data/json.h>
+#include <slib/io/async.h>
+#include <slib/crypto/ecc.h>
 
 #define SLIB_P2P_DEFAULT_PORT 39000
 #define SLIB_P2P_NODE_ID_SIZE 16

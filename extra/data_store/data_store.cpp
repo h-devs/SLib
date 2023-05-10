@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,16 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/db/data_package.h"
-#include "slib/db/data_store.h"
+#include "data_package.h"
+#include "data_store.h"
 
-#include "slib/db/leveldb.h"
-#include "slib/crypto/chacha.h"
-#include "slib/crypto/sha3.h"
-#include "slib/io/file.h"
-#include "slib/data/lender.h"
+#include "../file_encrypt/chacha.h"
+
+#include <slib/db/leveldb.h>
+#include <slib/crypto/chacha.h>
+#include <slib/crypto/sha3.h>
+#include <slib/io/file.h>
+#include <slib/data/lender.h>
 
 /*
 
@@ -659,7 +661,7 @@ namespace slib
 			{
 				// Check encryption
 				{
-					ChaCha20_FileEncryptor enc;
+					ChaChaFileEncryption enc;
 					String pathEnc = File::concatPath(param.path, "ENC");
 					Memory mem = File::readAllBytes(pathEnc);
 					sl_size size = mem.getSize();
@@ -677,7 +679,7 @@ namespace slib
 							if (param.encrytionKey.isNull()) {
 								return sl_false;
 							}
-							if (size != ChaCha20_FileEncryptor::HeaderSize) {
+							if (size != ChaChaFileEncryption::HeaderSize) {
 								return sl_false;
 							}
 							StringData key(param.encrytionKey);
@@ -689,9 +691,9 @@ namespace slib
 					} else {
 						m_flagEncrypted = param.encrytionKey.isNotNull();
 						if (m_flagEncrypted) {
-							sl_uint8 header[ChaCha20_FileEncryptor::HeaderSize];
+							sl_uint8 header[ChaChaFileEncryption::HeaderSize];
 							StringData key(param.encrytionKey);
-							enc.create(header, key.getData(), key.getLength());
+							enc.generateHeader(header, key.getData(), key.getLength());
 							if (!(File::writeAllBytes(pathEnc, header, sizeof(header)))) {
 								return sl_false;
 							}

@@ -20,61 +20,38 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/crypto/block_cipher.h"
-#include "slib/crypto/file_encryption.h"
+#ifndef CHECKHEADER_SLIB_CRYPTO_FILE_ENCRYPTION
+#define CHECKHEADER_SLIB_CRYPTO_FILE_ENCRYPTION
+
+#include "definition.h"
+
+#include "../core/object.h"
 
 namespace slib
 {
 
-/*
-				BlockCipherPadding_PKCS7
- 
-	Defines padding method described in PKCS#5, PKCS#7.
- 
-	Padding is added at the end of the message as following.
- 
-	01
-	02 02
-	03 03 03
-	04 04 04 04
-	05 05 05 05 05
- 
-	only applicable up to 256-bytes
-*/
-
-	void BlockCipherPadding_PKCS7::addPadding(void* buf, sl_size padding)
+	class SLIB_EXPORT FileEncryption : public Object
 	{
-		sl_uint8* c = (sl_uint8*)buf;
-		sl_uint8 n = (sl_uint8)padding;
-		for (sl_uint8 i = 0; i < n; i++) {
-			c[i] = n;
-		}
-	}
+		SLIB_DECLARE_OBJECT
 
-	sl_uint32 BlockCipherPadding_PKCS7::removePadding(const void* buf, sl_uint32 blockSize)
-	{
-		sl_uint8* c = (sl_uint8*)buf;
-		sl_uint8 n = c[blockSize - 1];
-		for (sl_uint32 i = blockSize - n; i < blockSize - 1; i++) {
-			if (c[i] != n) {
-				return 0;
-			}
-		}
-		if (blockSize < n) {
-			return 0;
-		}
-		return n;
-	}
+	public:
+		FileEncryption();
 
+		~FileEncryption();
 
-	SLIB_DEFINE_OBJECT(FileEncryption, Object)
+	public:
+		virtual sl_uint32 getHeaderSize() = 0;
 
-	FileEncryption::FileEncryption()
-	{
-	}
+		virtual void generateHeader(void* _out) = 0;
 
-	FileEncryption::~FileEncryption()
-	{
-	}
+		virtual sl_bool open(const void* header) = 0;
+
+		virtual void encrypt(sl_uint64 offset, const void* input, void* output, sl_size size) = 0;
+
+		virtual void decrypt(sl_uint64 offset, const void* input, void* output, sl_size size) = 0;
+
+	};
 
 }
+
+#endif

@@ -63,15 +63,11 @@ namespace slib
 			ObjectStoreDictionary,
 			ObjectStoreManager,
 			DocumentStore,
+			DocumentStorePool,
 			DocumentDatabase,
 			DocumentCollection,
 			DocumentCursor,
-			MongoDB,
-			DocumentStorePool,
-			DataStore,
-			DataStoreItem,
-			DataPackageReader,
-			DataPackageWriter
+			MongoDB
 		};
 
 	}

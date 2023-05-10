@@ -4388,6 +4388,7 @@ namespace slib
 
 #define LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(ATTR, XML) \
 			{ \
+				LAYOUT_CONTROL_PARSE_XML(STRING, XML, ATTR., field) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., align) \
 				LAYOUT_CONTROL_PARSE_XML(FONT, XML, ATTR., font) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., multiLine) \
@@ -4400,6 +4401,7 @@ namespace slib
 			}
 #define LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(ATTR, XML, SECTION) \
 			{ \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Field", , ATTR.field) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Align", , ATTR.align) \
 				LAYOUT_CONTROL_PARSE_FONT(XML, #SECTION "Font", , ATTR.font) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "MultiLine", , ATTR.multiLine) \
@@ -4611,6 +4613,7 @@ namespace slib
 					auto value = GenerateGridCellCreator(ATTR.creator); \
 					LAYOUT_CONTROL_GENERATE(set##PREFIX##Creator, ARG_FORMAT ", slib::UIUpdateMode::Init", ##__VA_ARGS__) \
 				} \
+				LAYOUT_CONTROL_GENERATE_STRING(ATTR.field, set##PREFIX##Field, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_STRING(ATTR.text, set##PREFIX##Text, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.align, set##PREFIX##Alignment, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_FONT(ATTR.font, set##PREFIX##Font, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
@@ -4696,6 +4699,7 @@ namespace slib
 					auto value = SimulateGridCellCreator(ATTR.creator); \
 					view->set##PREFIX##Creator(##__VA_ARGS__, value, UIUpdateMode::Init); \
 				} \
+				LAYOUT_CONTROL_SIMULATE_STRING(ATTR.field, set##PREFIX##Field, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_STRING(ATTR.text, set##PREFIX##Text, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.align, set##PREFIX##Alignment, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_FONT(ATTR.font, set##PREFIX##Font, ITEM, ##__VA_ARGS__, value) \

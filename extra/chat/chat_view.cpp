@@ -627,9 +627,9 @@ namespace slib
 		}
 	}
 
-	void ChatView::setFont(const Ref<Font>& font, UIUpdateMode mode)
+	void ChatView::onUpdateFont(const Ref<Font>& font)
 	{
-		ListView::setFont(font, UIUpdateMode::None);
+		ListView::onUpdateFont(font);
 		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _updateListContent, UIUpdateMode::UpdateLayout));
 	}
 
