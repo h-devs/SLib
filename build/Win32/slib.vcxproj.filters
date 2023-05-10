@@ -1358,5 +1358,8 @@
     <ClCompile Include="..\..\src\slib\media\wav.cpp">
       <Filter>src\media</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\ui_text.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -25,8 +25,6 @@
 namespace slib
 {
 
-	SLIB_DEFINE_OBJECT(TextInput, Object)
-
 	TextInput::TextInput()
 	{
 		m_selectedRange.location = 0;
@@ -77,7 +75,7 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(UITextBox, TextInput)
+	SLIB_DEFINE_OBJECT(UITextBox, TextBox)
 
 	UITextBox::UITextBox()
 	{
