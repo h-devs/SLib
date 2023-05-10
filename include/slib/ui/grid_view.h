@@ -50,6 +50,7 @@ namespace slib
 		class CellAttribute
 		{
 		public:
+			String field;
 			String text;
 			TextFormatter formatter;
 			Ref<Font> font;
@@ -113,6 +114,11 @@ namespace slib
 			virtual void onDraw(Canvas*, DrawParam&);
 			virtual void onEvent(UIEvent*);
 			virtual void onCopy();
+
+		public:
+			String getText();
+			String getFormattedText();
+
 		};
 
 		typedef Function<Ref<Cell>(CellParam&)> CellCreator;
@@ -310,6 +316,12 @@ namespace slib
 		void setSelectionBorder(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setSelectionBorder(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Ref<Drawable> getAscendingIcon();
+		void setAscendingIcon(const Ref<Drawable>& icon);
+
+		Ref<Drawable> getDescendingIcon();
+		void setDescendingIcon(const Ref<Drawable>& icon);
+
 		void refreshContentWidth(UIUpdateMode mode = UIUpdateMode::Redraw);
 		void refreshContentHeight(UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -325,6 +337,16 @@ namespace slib
 		void setFooterCreator(sl_int32 row, sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setColumnCreator(sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setCellCreator(const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		String getBodyField(sl_uint32 row, sl_uint32 column);
+		String getHeaderField(sl_uint32 row, sl_uint32 column);
+		String getFooterField(sl_uint32 row, sl_uint32 column);
+
+		void setBodyField(sl_int32 row, sl_int32 column, const String& field, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderField(sl_int32 row, sl_int32 column, const String& field, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterField(sl_int32 row, sl_int32 column, const String& field, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnField(sl_int32 column, const String& field, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellField(const String& field, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		String getBodyText(sl_uint32 row, sl_uint32 column);
 		String getHeaderText(sl_uint32 row, sl_uint32 column);
@@ -700,7 +722,10 @@ namespace slib
 		Cell* _getFixedCell(FixedCellProp& prop, RecordIndex iRecord, sl_uint32 iRow, sl_uint32 iCol);
 
 		Ref<Cell> _getEventCell(UIEvent* ev);
+
 		sl_int32 _getColumnForResizing(UIEvent* ev, sl_bool& flagRight, sl_bool& flagDual);
+		void _processResizingColumn(UIEvent* ev);
+
 		sl_ui_len _getMiddleColumnOffset(sl_uint32 iCol);
 
 		void _invalidateLayout();
@@ -754,6 +779,9 @@ namespace slib
 		AtomicRef<Pen> m_gridRight;
 		AtomicRef<Pen> m_selectionBorder;
 
+		AtomicRef<Drawable> m_iconAsc;
+		AtomicRef<Drawable> m_iconDesc;
+
 		typedef Function<Variant(sl_uint64 record)> DataFunction;
 		Atomic<DataFunction> m_recordData;
 
@@ -766,12 +794,15 @@ namespace slib
 		sl_bool m_flagInvalidateHeaderLayout;
 		sl_bool m_flagInvalidateFooterLayout;
 
-		sl_int32 m_iResizingColumn;
-		sl_bool m_flagResizingRightColumn;
-		sl_bool m_flagResizingDualColumn;
-		sl_ui_len m_formerResizingColumnWidth;
-		sl_ui_len m_formerResizingColumnWidth2;
-		sl_ui_pos m_formerResizingColumnEventX;
+		struct ResizingColumn
+		{
+			sl_int32 index;
+			sl_bool flagRight;
+			sl_bool flagDual;
+			sl_ui_len formerWidth;
+			sl_ui_len formerWidth2;
+			sl_ui_pos formerEventX;
+		} m_resizingColumn;
 	};
 
 }

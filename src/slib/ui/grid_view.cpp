@@ -82,6 +82,31 @@ namespace slib
 	{
 	}
 
+	String GridView::Cell::getText()
+	{
+		if (text.isNotNull()) {
+			if (record >= 0 && recordData.isNotUndefined()) {
+				return String::format(text, recordData);
+			} else {
+				return text;
+			}
+		} else {
+			if (field.isNotEmpty() && record >= 0 && recordData.isNotUndefined()) {
+				return recordData.getItem(field).toString();
+			}
+		}
+		return sl_null;
+	}
+
+	String GridView::Cell::getFormattedText()
+	{
+		if (formatter.isNotNull()) {
+			return formatter(this);
+		} else {
+			return getText();
+		}
+	}
+
 	GridView::TextCell::TextCell()
 	{
 	}
@@ -117,17 +142,7 @@ namespace slib
 
 	void GridView::TextCell::onPrepareTextBox(TextBoxParam& param)
 	{
-		if (formatter.isNotNull()) {
-			param.text = formatter(this);
-		} else {
-			if (text.isNotNull()) {
-				if (record >= 0 && recordData.isNotUndefined()) {
-					param.text = String::format(text, recordData);
-				} else {
-					param.text = text;
-				}
-			}
-		}
+		param.text = getFormattedText();
 		if (font.isNotNull()) {
 			param.font = font;
 		} else {
@@ -202,6 +217,7 @@ namespace slib
 	void GridView::CellProp::inheritFrom(const CellProp& other)
 	{
 		creator = other.creator;
+		field = other.field;
 		text = other.text;
 		formatter = other.formatter;
 		font = other.font;
@@ -369,6 +385,57 @@ namespace slib
 	}
 
 
+	namespace {
+
+		class DefaultSortIcon : public Drawable
+		{
+		public:
+			Ref<Brush> m_brush;
+			Point m_pts[3];
+
+		public:
+			DefaultSortIcon(const Color& color, sl_bool flagAsc)
+			{
+				m_brush = Brush::createSolidBrush(color);
+				if (flagAsc) {
+					m_pts[0] = Point(0.3f, 0.65f);
+					m_pts[1] = Point(0.5f, 0.35f);
+					m_pts[2] = Point(0.7f, 0.65f);
+				} else {
+					m_pts[0] = Point(0.3f, 0.35f);
+					m_pts[1] = Point(0.5f, 0.65f);
+					m_pts[2] = Point(0.7f, 0.35f);
+				}
+			}
+
+		public:
+			sl_real getDrawableWidth() override
+			{
+				return 16;
+			}
+
+			sl_real getDrawableHeight() override
+			{
+				return 16;
+			}
+
+			void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
+			{
+				if (m_brush.isNotNull()) {
+					Point pts[3];
+					for (int i = 0; i < 3; i++) {
+						pts[i].x = rectDst.left + rectDst.getWidth() * m_pts[i].x;
+						pts[i].y = rectDst.top + rectDst.getHeight() * m_pts[i].y;
+					}
+					canvas->fillPolygon(pts, 3, m_brush);
+				}
+			}
+
+		};
+
+	}
+
+
 	SLIB_DEFINE_OBJECT(GridView, View)
 
 	GridView::GridView()
@@ -379,6 +446,9 @@ namespace slib
 
 		m_selectionBorder = Pen::create(PenStyle::Solid, 3, Color(33, 115, 70));
 		m_selectionMode = SelectionMode::Cell;
+
+		m_iconAsc = new DefaultSortIcon(Color::Black, sl_true);
+		m_iconAsc = new DefaultSortIcon(Color::Black, sl_false);
 
 		m_defaultColumnWidth = 80;
 		m_defaultColumnMinWidth = 30;
@@ -402,7 +472,7 @@ namespace slib
 
 		m_flagInitialize = sl_true;
 
-		m_iResizingColumn = -1;
+		m_resizingColumn.index = -1;
 	}
 
 	void GridView::init()
@@ -1334,6 +1404,36 @@ namespace slib
 		invalidate(mode);
 	}
 
+	Ref<Drawable> GridView::getAscendingIcon()
+	{
+		return m_iconAsc;
+	}
+
+	void GridView::setAscendingIcon(const Ref<Drawable>& icon)
+	{
+		Color c;
+		if (ColorDrawable::check(icon, &c)) {
+			m_iconAsc = new DefaultSortIcon(c, sl_true);
+		} else {
+			m_iconAsc = icon;
+		}
+	}
+
+	Ref<Drawable> GridView::getDescendingIcon()
+	{
+		return m_iconDesc;
+	}
+
+	void GridView::setDescendingIcon(const Ref<Drawable>& icon)
+	{
+		Color c;
+		if (ColorDrawable::check(icon, &c)) {
+			m_iconDesc = new DefaultSortIcon(c, sl_true);
+		} else {
+			m_iconDesc = icon;
+		}
+	}
+
 	void GridView::refreshContentWidth(UIUpdateMode mode)
 	{
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
@@ -1594,6 +1694,8 @@ namespace slib
 	DEFINE_SET_COLUMN_LAYOUT_ATTR(FUNC, ARG, NAME)
 
 	DEFINE_GET_SET_CELL_LAYOUT_ATTR(Creator, GridView::CellCreator, const CellCreator&, creator, sl_null)
+
+	DEFINE_GET_SET_CELL_LAYOUT_ATTR(Field, String, const String&, field, sl_null)
 
 	DEFINE_GET_SET_CELL_LAYOUT_ATTR(Text, String, const String&, text, sl_null)
 
@@ -3212,34 +3314,43 @@ namespace slib
 		return -1;
 	}
 
-	void GridView::onMouseEvent(UIEvent* ev)
+	void GridView::_processResizingColumn(UIEvent* ev)
 	{
+		ResizingColumn& attr = m_resizingColumn;
 		UIAction action = ev->getAction();
 		switch (action) {
 			case UIAction::LeftButtonDown:
-				m_iResizingColumn = _getColumnForResizing(ev, m_flagResizingRightColumn, m_flagResizingDualColumn);
-				if (m_iResizingColumn >= 0) {
-					m_formerResizingColumnWidth = getColumnWidth(m_iResizingColumn);
-					m_formerResizingColumnWidth2 = getColumnWidth(m_iResizingColumn + 1);
-					m_formerResizingColumnEventX = (sl_ui_pos)(ev->getX());
+				attr.index = _getColumnForResizing(ev, attr.flagRight, attr.flagDual);
+				if (attr.index >= 0) {
+					attr.formerWidth = getColumnWidth(attr.index);
+					attr.formerWidth2 = getColumnWidth(attr.index + 1);
+					attr.formerEventX = (sl_ui_pos)(ev->getX());
 				}
 				break;
 			case UIAction::LeftButtonDrag:
-				if (m_iResizingColumn >= 0) {
-					sl_ui_len dx = (sl_ui_pos)(ev->getX()) - m_formerResizingColumnEventX;
-					if (m_flagResizingDualColumn) {
-						setColumnWidth(m_iResizingColumn, m_formerResizingColumnWidth + dx, UIUpdateMode::None);
-						setColumnWidth(m_iResizingColumn + 1, m_formerResizingColumnWidth2 - dx);
-					} else if (m_flagResizingRightColumn) {
-						setColumnWidth(m_iResizingColumn, m_formerResizingColumnWidth - dx);
+				if (attr.index >= 0) {
+					sl_ui_len dx = (sl_ui_pos)(ev->getX()) - attr.formerEventX;
+					if (attr.flagDual) {
+						setColumnWidth(attr.index, attr.formerWidth + dx, UIUpdateMode::None);
+						setColumnWidth(attr.index + 1, attr.formerWidth2 - dx);
+					} else if (attr.flagRight) {
+						setColumnWidth(attr.index, attr.formerWidth - dx);
 					} else {
-						setColumnWidth(m_iResizingColumn, m_formerResizingColumnWidth + dx);
+						setColumnWidth(attr.index, attr.formerWidth + dx);
 					}
 				}
 				break;
 			case UIAction::LeftButtonUp:
-				m_iResizingColumn = -1;
+				attr.index = -1;
 				break;
+		}
+	}
+
+	void GridView::onMouseEvent(UIEvent* ev)
+	{
+		_processResizingColumn(ev);
+		UIAction action = ev->getAction();
+		switch (action) {
 			case UIAction::RightButtonDown:
 				{
 					Ref<Cell> cell = _getEventCell(ev);

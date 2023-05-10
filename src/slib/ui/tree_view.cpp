@@ -553,9 +553,9 @@ namespace slib
 			Point m_pts[3];
 
 		public:
-			DefaultIndentIcon(sl_bool flagCollapse)
+			DefaultIndentIcon(const Color& color, sl_bool flagCollapse)
 			{
-				m_brush = Brush::createSolidBrush(Color(50, 50, 50));
+				m_brush = Brush::createSolidBrush(color);
 				if (flagCollapse) {
 					m_pts[0] = Point(0.33f, 0.34f);
 					m_pts[1] = Point(0.67f, 0.51f);
@@ -621,8 +621,8 @@ namespace slib
 		m_itemIconWidth = 0;
 		m_itemIconHeight = 0;
 
-		m_iconCollapsed = new DefaultIndentIcon(sl_true);
-		m_iconExpanded = new DefaultIndentIcon(sl_false);
+		m_iconCollapsed = new DefaultIndentIcon(Color(50, 50, 50), sl_true);
+		m_iconExpanded = new DefaultIndentIcon(Color(50, 50, 50), sl_false);
 		
 	}
 
@@ -817,7 +817,12 @@ namespace slib
 
 	void TreeView::setCollapsedIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
-		m_iconCollapsed = icon;
+		Color c;
+		if (ColorDrawable::check(icon, &c)) {
+			m_iconCollapsed = new DefaultIndentIcon(c, sl_true);
+		} else {
+			m_iconCollapsed = icon;
+		}
 		_relayoutContent(mode);
 	}
 
@@ -828,7 +833,12 @@ namespace slib
 
 	void TreeView::setExpandedIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
-		m_iconExpanded = icon;
+		Color c;
+		if (ColorDrawable::check(icon, &c)) {
+			m_iconExpanded = new DefaultIndentIcon(c, sl_false);
+		} else {
+			m_iconExpanded = icon;
+		}
 		_relayoutContent(mode);
 	}
 
