@@ -4332,6 +4332,7 @@ namespace slib
 			DEFINE_CHECK_GRID_CELL_CREATOR(Text, "text")
 			DEFINE_CHECK_GRID_CELL_CREATOR(HyperText, "hyper")
 			DEFINE_CHECK_GRID_CELL_CREATOR(Numero, "no")
+			DEFINE_CHECK_GRID_CELL_CREATOR(Sort, "sort")
 			return sl_false;
 		} while(0);
 		attr.creator = creator;
@@ -4358,6 +4359,8 @@ namespace slib
 				} else {
 					return "slib::GridView::NumeroCell::creator()";
 				}
+			case SAppLayoutGridCell::Creator::Sort:
+				return "slib::GridView::SortCell::creator()";
 			default:
 				return sl_null;
 		}
@@ -4376,6 +4379,8 @@ namespace slib
 				} else {
 					return GridView::NumeroCell::creator();
 				}
+			case SAppLayoutGridCell::Creator::Sort:
+				return GridView::SortCell::creator();
 			default:
 				return sl_null;
 		}
@@ -4392,6 +4397,8 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, resizableColumn, setColumnResizable)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setRowHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(BORDER, grid, setGrid)
+		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, ascendingIcon, setAscendingIcon)
+		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, descendingIcon, setDescendingIcon)
 		LAYOUT_CONTROL_ATTR(GENERIC, selection, setSelectionMode)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setCellMultiLine)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, ellipsize, setCellEllipsize)
@@ -4471,6 +4478,15 @@ namespace slib
 						if (!(_processLayoutResourceControl_Grid_ParseCellCreator(column.bodyAttrs, type, columnXml))) {
 							logError(columnXml.element, g_str_error_resource_layout_gridview_unknown_cell_creator, type);
 							return sl_false;
+						}
+					}
+					SAppBooleanValue sort;
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, , sort)
+					if (sort.flagDefined) {
+						if (sort.value) {
+							column.headerAttrs.creator = SAppLayoutGridCellAttributes::Creator::Sort;
+						} else {
+							column.headerAttrs.creator = SAppLayoutGridCellAttributes::Creator::Text;
 						}
 					}
 					if (!(attr->columns.add_NoLock(Move(column)))) {
@@ -4627,9 +4643,11 @@ namespace slib
 
 #define LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, ATTR, ARG_FORMAT, ...) \
 			{ \
-				if (ATTR.creator != SAppLayoutGridCell::Creator::None) { \
+				{ \
 					auto value = _processLayoutResourceControl_Grid_GenerateCellCreator(ATTR); \
-					LAYOUT_CONTROL_GENERATE(set##PREFIX##Creator, ARG_FORMAT ", slib::UIUpdateMode::Init", ##__VA_ARGS__) \
+					if (value.isNotNull()) { \
+						LAYOUT_CONTROL_GENERATE(set##PREFIX##Creator, ARG_FORMAT ", slib::UIUpdateMode::Init", ##__VA_ARGS__) \
+					} \
 				} \
 				LAYOUT_CONTROL_GENERATE_STRING(ATTR.field, set##PREFIX##Field, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_STRING(ATTR.text, set##PREFIX##Text, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
@@ -4713,9 +4731,11 @@ namespace slib
 
 #define LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, ATTR, ...) \
 			{ \
-				if (ATTR.creator != SAppLayoutGridCell::Creator::None && op == SAppLayoutOperation::SimulateInit) { \
-					auto value = _processLayoutResourceControl_Grid_SimulateCellCreator(ATTR); \
-					view->set##PREFIX##Creator(##__VA_ARGS__, value, UIUpdateMode::Init); \
+				if (op == SAppLayoutOperation::SimulateInit) { \
+					auto creator = _processLayoutResourceControl_Grid_SimulateCellCreator(ATTR); \
+					if (creator.isNotNull()) { \
+						view->set##PREFIX##Creator(##__VA_ARGS__, creator, UIUpdateMode::Init); \
+					} \
 				} \
 				LAYOUT_CONTROL_SIMULATE_STRING(ATTR.field, set##PREFIX##Field, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_STRING(ATTR.text, set##PREFIX##Text, ITEM, ##__VA_ARGS__, value) \

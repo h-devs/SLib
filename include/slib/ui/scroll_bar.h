@@ -125,6 +125,8 @@ namespace slib
 
 		void onMouseWheelEvent(UIEvent* ev) override;
 
+		void onSetCursor(UIEvent* ev) override;
+
 	protected:
 		sl_scroll_pos _normalizeValue(sl_scroll_pos value);
 

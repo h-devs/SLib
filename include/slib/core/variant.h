@@ -984,14 +984,14 @@ namespace slib
 		}
 
 		template <class KT, class VT, class KEY_COMPARE>
-		void get(const Map<KT, VT, KEY_COMPARE>& _out) const noexcept
+		void get(Map<KT, VT, KEY_COMPARE>& _out) const noexcept
 		{
 			_out.setNull();
 			priv::variant::BuildMapFromVariant(_out, *this);
 		}
 
 		template <class KT, class VT, class HASH, class KEY_COMPARE>
-		void get(const HashMap<KT, VT, HASH, KEY_COMPARE>& _out)
+		void get(HashMap<KT, VT, HASH, KEY_COMPARE>& _out)
 		{
 			_out.setNull();
 			priv::variant::BuildMapFromVariant(_out, *this);

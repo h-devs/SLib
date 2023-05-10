@@ -909,7 +909,8 @@ namespace slib
 			None,
 			Text,
 			HyperText,
-			Numero
+			Numero,
+			Sort
 		};
 		Creator creator = Creator::None;
 
@@ -990,6 +991,8 @@ namespace slib
 		SAppBorderValue leftGrid;
 		SAppBorderValue rightGrid;
 		SAppGridSelectionModeValue selection;
+		SAppDrawableValue ascendingIcon;
+		SAppDrawableValue descendingIcon;
 
 		SAppMultiLineModeValue multiLine;
 		SAppEllipsizeModeValue ellipsize;

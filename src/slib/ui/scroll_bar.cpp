@@ -546,6 +546,12 @@ namespace slib
 		ev->stopPropagation();
 	}
 
+	void ScrollBar::onSetCursor(UIEvent* ev)
+	{
+		View::onSetCursor(ev);
+		CHECK_STATUS()
+		ev->stopPropagation();
+	}
 
 	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Changing, (sl_scroll_pos& value, UIEvent* ev), value, ev)
 

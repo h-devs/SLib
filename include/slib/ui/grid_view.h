@@ -112,6 +112,7 @@ namespace slib
 		public:
 			virtual void onInit();
 			virtual void onDraw(Canvas*, DrawParam&);
+			virtual void onClick(UIEvent*);
 			virtual void onEvent(UIEvent*);
 			virtual void onCopy();
 
@@ -185,10 +186,9 @@ namespace slib
 		public:
 			void onDraw(Canvas*, DrawParam&) override;
 
-			void onEvent(UIEvent*) override;
+			void onClick(UIEvent*) override;
 
 		protected:
-			sl_bool m_flagSort;
 			sl_bool m_flagAsc;
 		};
 
@@ -335,17 +335,25 @@ namespace slib
 		void setSelectionBorder(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setSelectionBorder(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		sl_bool isSorting();
+		void setSorting(sl_bool flag);
+
 		Ref<Drawable> getAscendingIcon();
-		void setAscendingIcon(const Ref<Drawable>& icon);
+		void setAscendingIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Drawable> getDescendingIcon();
-		void setDescendingIcon(const Ref<Drawable>& icon);
+		void setDescendingIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void refreshContentWidth(UIUpdateMode mode = UIUpdateMode::Redraw);
 		void refreshContentHeight(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Function<Variant(sl_uint64 record)> getDataFunction();
 		void setDataFunction(const Function<Variant(sl_uint64 record)>& func, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setData(const VariantList& data, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setData(const JsonList& data, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setData(const Variant& data, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setData(const Json& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		CellCreator getBodyCreator(sl_uint32 row, sl_uint32 column);
 		CellCreator getHeaderCreator(sl_uint32 row, sl_uint32 column);
@@ -544,6 +552,8 @@ namespace slib
 
 		SLIB_DECLARE_EVENT_HANDLER(GridView, Select, const Selection& selection, const Selection& former, UIEvent* /* nullable */)
 
+		SLIB_DECLARE_EVENT_HANDLER(GridView, Sort, const String& field, sl_bool flagAscending)
+
 	public:
 		void onDraw(Canvas* canvas) override;
 		void onClickEvent(UIEvent* ev) override;
@@ -696,6 +706,8 @@ namespace slib
 
 		sl_ui_len _getDefaultRowHeight();
 
+		void _setData(const VariantList& list);
+
 		CellProp* _getCellProp(RecordIndex section, sl_uint32 row, sl_uint32 column);
 		BodyCellProp* _getBodyCellProp(sl_uint32 row, sl_uint32 col);
 		HeaderCellProp* _getHeaderCellProp(sl_uint32 row, sl_uint32 col);
@@ -715,17 +727,18 @@ namespace slib
 		void _fixHeaderStartMidColumn(Ref<Column>* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 iStart, sl_uint32& newStart);
 		void _fixFooterStartMidColumn(Ref<Column>* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 iStart, sl_uint32& newStart);
 
-		void _drawRecords(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Ref<Column>* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_ui_pos xLeft, sl_uint32 nRight, sl_ui_pos xRight, sl_uint32 iStartMidColumn, sl_uint32 nMidColumns, sl_ui_pos xStartMidColumn);
-		void _drawHeader(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Ref<Column>* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_ui_pos xLeft, sl_uint32 nRight, sl_ui_pos xRight, sl_uint32 iStartMidColumn, sl_uint32 nMidColumns, sl_ui_pos xStartMidColumn);
-		void _drawFooter(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Ref<Column>* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_ui_pos xLeft, sl_uint32 nRight, sl_ui_pos xRight, sl_uint32 iStartMidColumn, sl_uint32 nMidColumns, sl_ui_pos xStartMidColumn);
+		void _drawRecords(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Ref<Column>* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_ui_pos xLeft, sl_uint32 nRight, sl_ui_pos xRight, sl_uint32 iStartMidColumn, sl_uint32 nMidColumns, sl_ui_pos xStartMidColumn, sl_bool flagExtendMid);
+		void _drawHeader(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Ref<Column>* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_ui_pos xLeft, sl_uint32 nRight, sl_ui_pos xRight, sl_uint32 iStartMidColumn, sl_uint32 nMidColumns, sl_ui_pos xStartMidColumn, sl_bool flagExtendMid);
+		void _drawFooter(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Ref<Column>* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_ui_pos xLeft, sl_uint32 nRight, sl_ui_pos xRight, sl_uint32 iStartMidColumn, sl_uint32 nMidColumns, sl_ui_pos xStartMidColumn, sl_bool flagExtendMid);
 
 		void _drawBodyColumn(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column* column, sl_uint32 iColumn, Ref<Row>* rows, sl_uint32 nRows, sl_uint64 iRecord, const Variant& recordData);
 		void _drawHeaderColumn(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column* column, sl_uint32 iColumn, Ref<Row>* rows, sl_uint32 nRows);
 		void _drawFooterColumn(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column* column, sl_uint32 iColumn, Ref<Row>* rows, sl_uint32 nRows);
+		void _drawExtendedColumn(Canvas* canvas, sl_ui_pos x, sl_ui_pos xExtend, sl_ui_pos y, Ref<Row>* rows, sl_uint32 nRows);
 
-		void _drawBodyInnerGrid(Canvas* canvas, sl_ui_pos x, sl_ui_pos top, sl_ui_pos bottom, Ref<Column>* columns, sl_uint32 nColumns, Ref<Row>* rows, sl_uint32 nRows, sl_uint32 nRecords, sl_bool flagBody, const Ref<Pen>& pen);
-		void _drawHeaderInnerGrid(Canvas* canvas, sl_ui_pos x, sl_ui_pos top, sl_ui_pos bottom, Ref<Column>* columns, sl_uint32 nColumns, Ref<Row>* rows, sl_uint32 nRows, sl_uint32 nRecords, sl_bool flagBody, const Ref<Pen>& pen);
-		void _drawFooterInnerGrid(Canvas* canvas, sl_ui_pos x, sl_ui_pos top, sl_ui_pos bottom, Ref<Column>* columns, sl_uint32 nColumns, Ref<Row>* rows, sl_uint32 nRows, sl_uint32 nRecords, sl_bool flagBody, const Ref<Pen>& pen);
+		void _drawBodyInnerGrid(Canvas* canvas, sl_ui_pos x, sl_ui_pos xExtend, sl_ui_pos top, sl_ui_pos bottom, Ref<Column>* columns, sl_uint32 nColumns, Ref<Row>* rows, sl_uint32 nRows, sl_uint32 nRecords, sl_bool flagBody, const Ref<Pen>& pen);
+		void _drawHeaderInnerGrid(Canvas* canvas, sl_ui_pos x, sl_ui_pos xExtend, sl_ui_pos top, sl_ui_pos bottom, Ref<Column>* columns, sl_uint32 nColumns, Ref<Row>* rows, sl_uint32 nRows, sl_uint32 nRecords, sl_bool flagBody, const Ref<Pen>& pen);
+		void _drawFooterInnerGrid(Canvas* canvas, sl_ui_pos x, sl_ui_pos xExtend, sl_ui_pos top, sl_ui_pos bottom, Ref<Column>* columns, sl_uint32 nColumns, Ref<Row>* rows, sl_uint32 nRows, sl_uint32 nRecords, sl_bool flagBody, const Ref<Pen>& pen);
 
 		void _drawHorzOuterGrid(Canvas* canvas, sl_ui_pos x1, sl_ui_pos x2, sl_ui_pos x3, sl_ui_pos x4, sl_ui_pos y, const Ref<Pen>& penLeft, const Ref<Pen>& penMid, const Ref<Pen>& penRight);
 		void _drawVertOuterGrid(Canvas* canvas, sl_ui_pos x, sl_ui_pos y1, sl_ui_pos y2, sl_ui_pos y3, sl_ui_pos y4, const Ref<Pen>& penTop, const Ref<Pen>& penMid, const Ref<Pen>& penBottom);
@@ -743,7 +756,7 @@ namespace slib
 		Ref<Cell> _getEventCell(UIEvent* ev);
 
 		sl_int32 _getColumnForResizing(UIEvent* ev, sl_bool& flagRight, sl_bool& flagDual);
-		void _processResizingColumn(UIEvent* ev);
+		sl_bool _processResizingColumn(UIEvent* ev);
 
 		sl_ui_len _getMiddleColumnOffset(sl_uint32 iCol);
 
@@ -798,6 +811,8 @@ namespace slib
 		AtomicRef<Pen> m_gridRight;
 		AtomicRef<Pen> m_selectionBorder;
 
+		sl_bool m_flagSorting;
+		sl_bool m_flagDefinedSorting;
 		AtomicRef<Drawable> m_iconAsc;
 		AtomicRef<Drawable> m_iconDesc;
 
