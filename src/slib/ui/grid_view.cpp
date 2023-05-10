@@ -207,6 +207,49 @@ namespace slib
 		}
 	}
 
+	GridView::SortCell::SortCell(): m_flagSort(sl_false), m_flagAsc(sl_true)
+	{
+	}
+
+	GridView::SortCell::~SortCell()
+	{
+	}
+
+	const GridView::CellCreator& GridView::SortCell::creator()
+	{
+		SLIB_SAFE_LOCAL_STATIC(CellCreator, ret, [](CellParam&) {
+			return new SortCell;
+		})
+		return ret;
+	}
+
+	void GridView::SortCell::onDraw(Canvas* canvas, DrawParam& param)
+	{
+		TextCell::onDraw(canvas, param);
+		if (field.isNull()) {
+			return;
+		}
+		if (m_flagSort) {
+			Ref<Drawable> icon;
+			if (m_flagAsc) {
+				icon = view->m_iconAsc;
+			} else {
+				icon = view->m_iconDesc;
+			}
+			if (icon.isNotNull()) {
+				canvas->draw(param.frame, icon, ScaleMode::Contain, Alignment::MiddleRight);
+			}
+		}
+	}
+
+	void GridView::SortCell::onEvent(UIEvent* ev)
+	{
+		UIAction action = ev->getAction();
+		if (action == UIAction::LeftButtonDown) {
+
+		}
+	}
+
 
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellProp)
 

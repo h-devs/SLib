@@ -924,6 +924,11 @@ namespace slib
 		SAppBooleanValue editable;
 		SAppStateMap<SAppDrawableValue> background;
 		SAppStateMap<SAppColorValue> textColor;
+
+		struct NumeroParam
+		{
+			SAppInt64Value start;
+		} numero;
 	};
 
 	class SAppLayoutGridCell : public SAppLayoutGridCellAttributes

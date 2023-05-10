@@ -4318,48 +4318,66 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-	namespace {
-		static sl_bool GetGridCellCreator(SAppLayoutGridCell::Creator& creator, const String& tagName)
-		{
-#define DEFINE_CHECK_GRID_CELL_CREATOR(NAME, TAG) \
+	sl_bool SAppDocument::_processLayoutResourceControl_Grid_ParseCellCreator(SAppLayoutGridCellAttributes& attr, const String& tagName, SAppLayoutXmlItem& xml)
+	{
+		#define DEFINE_CHECK_GRID_CELL_CREATOR(NAME, TAG) \
 			if (tagName == TAG) { \
-				creator = SAppLayoutGridCell::Creator::NAME; \
-				return sl_true; \
+				creator = SAppLayoutGridCellAttributes::Creator::NAME; \
+				break; \
 			}
 
+		SAppLayoutGridCellAttributes::Creator creator = SAppLayoutGridCellAttributes::Creator::None;
+		do {
 			DEFINE_CHECK_GRID_CELL_CREATOR(None, "cell")
 			DEFINE_CHECK_GRID_CELL_CREATOR(Text, "text")
 			DEFINE_CHECK_GRID_CELL_CREATOR(HyperText, "hyper")
 			DEFINE_CHECK_GRID_CELL_CREATOR(Numero, "no")
 			return sl_false;
+		} while(0);
+		attr.creator = creator;
+		switch (creator) {
+			case SAppLayoutGridCellAttributes::Creator::Numero:
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, xml, attr.numero., start)
+				break;
+			default:
+				break;
 		}
+		return sl_true;
+	}
 
-		static String GenerateGridCellCreator(SAppLayoutGridCell::Creator creator)
-		{
-			switch (creator) {
-				case SAppLayoutGridCell::Creator::Text:
-					return "slib::GridView::TextCell::creator()";
-				case SAppLayoutGridCell::Creator::HyperText:
-					return "slib::GridView::HyperTextCell::creator()";
-				case SAppLayoutGridCell::Creator::Numero:
+	String SAppDocument::_processLayoutResourceControl_Grid_GenerateCellCreator(SAppLayoutGridCellAttributes& attr)
+	{
+		switch (attr.creator) {
+			case SAppLayoutGridCell::Creator::Text:
+				return "slib::GridView::TextCell::creator()";
+			case SAppLayoutGridCell::Creator::HyperText:
+				return "slib::GridView::HyperTextCell::creator()";
+			case SAppLayoutGridCell::Creator::Numero:
+				if (attr.numero.start.flagDefined) {
+					return String::format("slib::GridView::NumeroCell::creator(%s)", attr.numero.start.getAccessString());
+				} else {
 					return "slib::GridView::NumeroCell::creator()";
-				default:
-					return sl_null;
-			}
+				}
+			default:
+				return sl_null;
 		}
+	}
 
-		static GridView::CellCreator SimulateGridCellCreator(SAppLayoutGridCell::Creator creator)
-		{
-			switch (creator) {
-				case SAppLayoutGridCell::Creator::Text:
-					return GridView::TextCell::creator();
-				case SAppLayoutGridCell::Creator::HyperText:
-					return GridView::HyperTextCell::creator();
-				case SAppLayoutGridCell::Creator::Numero:
+	GridView::CellCreator SAppDocument::_processLayoutResourceControl_Grid_SimulateCellCreator(SAppLayoutGridCellAttributes& attr)
+	{
+		switch (attr.creator) {
+			case SAppLayoutGridCell::Creator::Text:
+				return GridView::TextCell::creator();
+			case SAppLayoutGridCell::Creator::HyperText:
+				return GridView::HyperTextCell::creator();
+			case SAppLayoutGridCell::Creator::Numero:
+				if (attr.numero.start.flagDefined) {
+					return GridView::NumeroCell::creator(attr.numero.start.value);
+				} else {
 					return GridView::NumeroCell::creator();
-				default:
-					return sl_null;
-			}
+				}
+			default:
+				return sl_null;
 		}
 	}
 
@@ -4401,7 +4419,7 @@ namespace slib
 			}
 #define LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(ATTR, XML, SECTION) \
 			{ \
-				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Field", , ATTR.field) \
+				LAYOUT_CONTROL_PARSE_STRING(XML, #SECTION "Field", , ATTR.field) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Align", , ATTR.align) \
 				LAYOUT_CONTROL_PARSE_FONT(XML, #SECTION "Font", , ATTR.font) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "MultiLine", , ATTR.multiLine) \
@@ -4450,7 +4468,7 @@ namespace slib
 					}
 					String type = columnXml.getXmlAttribute("type");
 					if (type.isNotEmpty()) {
-						if (!(GetGridCellCreator(column.bodyAttrs.creator, type))) {
+						if (!(_processLayoutResourceControl_Grid_ParseCellCreator(column.bodyAttrs, type, columnXml))) {
 							logError(columnXml.element, g_str_error_resource_layout_gridview_unknown_cell_creator, type);
 							return sl_false;
 						}
@@ -4484,7 +4502,7 @@ namespace slib
 					for (sl_size k = 0; k < cellXmls.count; k++) { \
 						LAYOUT_CONTROL_DEFINE_XML(cellXml, cellXmls[k]) \
 						SAppLayoutGridCell cell; \
-						if (!(GetGridCellCreator(cell.creator, cellXml.getTagName()))) { \
+						if (!(_processLayoutResourceControl_Grid_ParseCellCreator(cell, cellXml.getTagName(), cellXml))) { \
 							logError(cellXml.element, g_str_error_resource_layout_gridview_unknown_cell_creator, cellXml.getTagName()); \
 							return sl_false; \
 						} \
@@ -4610,7 +4628,7 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, ATTR, ARG_FORMAT, ...) \
 			{ \
 				if (ATTR.creator != SAppLayoutGridCell::Creator::None) { \
-					auto value = GenerateGridCellCreator(ATTR.creator); \
+					auto value = _processLayoutResourceControl_Grid_GenerateCellCreator(ATTR); \
 					LAYOUT_CONTROL_GENERATE(set##PREFIX##Creator, ARG_FORMAT ", slib::UIUpdateMode::Init", ##__VA_ARGS__) \
 				} \
 				LAYOUT_CONTROL_GENERATE_STRING(ATTR.field, set##PREFIX##Field, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
@@ -4696,7 +4714,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, ATTR, ...) \
 			{ \
 				if (ATTR.creator != SAppLayoutGridCell::Creator::None && op == SAppLayoutOperation::SimulateInit) { \
-					auto value = SimulateGridCellCreator(ATTR.creator); \
+					auto value = _processLayoutResourceControl_Grid_SimulateCellCreator(ATTR); \
 					view->set##PREFIX##Creator(##__VA_ARGS__, value, UIUpdateMode::Init); \
 				} \
 				LAYOUT_CONTROL_SIMULATE_STRING(ATTR.field, set##PREFIX##Field, ITEM, ##__VA_ARGS__, value) \

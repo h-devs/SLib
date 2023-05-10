@@ -173,6 +173,25 @@ namespace slib
 			sl_int64 m_start;
 		};
 
+		class SortCell : public TextCell
+		{
+		public:
+			SortCell();
+			~SortCell();
+
+		public:
+			static const CellCreator& creator();
+
+		public:
+			void onDraw(Canvas*, DrawParam&) override;
+
+			void onEvent(UIEvent*) override;
+
+		protected:
+			sl_bool m_flagSort;
+			sl_bool m_flagAsc;
+		};
+
 		class Selection
 		{
 		public:
@@ -803,6 +822,8 @@ namespace slib
 			sl_ui_len formerWidth2;
 			sl_ui_pos formerEventX;
 		} m_resizingColumn;
+
+		Ref<Cell> m_cellSorting;
 	};
 
 }

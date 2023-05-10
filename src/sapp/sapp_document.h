@@ -301,6 +301,9 @@ namespace slib
 		sl_bool _processLayoutResourceControl_Pdf(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_GroupBox(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Grid(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_Grid_ParseCellCreator(SAppLayoutGridCellAttributes& attr, const String& tagName, SAppLayoutXmlItem& xml);
+		String _processLayoutResourceControl_Grid_GenerateCellCreator(SAppLayoutGridCellAttributes& attr);
+		GridView::CellCreator _processLayoutResourceControl_Grid_SimulateCellCreator(SAppLayoutGridCellAttributes& attr);
 		sl_bool _processLayoutResourceControl_XControl(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_XButton(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_XEdit(LayoutControlProcessParams* params);
