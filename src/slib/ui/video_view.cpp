@@ -277,7 +277,7 @@ namespace slib
 		requestRender();
 	}
 
-	Sizei VideoView::getLastFrameSize()
+	SizeI VideoView::getLastFrameSize()
 	{
 		return m_sizeLastFrame;
 	}
@@ -316,11 +316,11 @@ namespace slib
 		return sl_true;
 	}
 
-	void VideoView::dispatchFrame(RenderEngine* engine)
+	void VideoView::handleFrame(RenderEngine* engine)
 	{
 		if (engine->isShaderAvailable()) {
 			m_flagAllowYUV = sl_true;
-			RenderView::dispatchFrame(engine);
+			RenderView::handleFrame(engine);
 		} else {
 			m_flagAllowYUV = sl_false;
 			disableRendering();
@@ -399,7 +399,7 @@ namespace slib
 				scope->setTransform(mat);
 				scope->setTexture(texture);
 				scope->setTextureTransform(textureMatrix);
-				scope->setColor(Color4f(1, 1, 1, canvas->getAlpha()));
+				scope->setColor(Color4F(1, 1, 1, canvas->getAlpha()));
 				engine->drawPrimitive(4, vb, PrimitiveType::TriangleStrip);
 			}
 		}
@@ -572,7 +572,7 @@ namespace slib
 		}
 	}
 
-	void VideoView::_onSeek(Slider* slider, float value)
+	void VideoView::_onSeek(Slider* slider, float value, UIEvent* ev)
 	{
 		Ref<MediaPlayer> player = m_mediaPlayer;
 		if (player.isNotNull()) {

@@ -90,7 +90,9 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(WebView, StartLoad, const String& url)
 		SLIB_DECLARE_EVENT_HANDLER(WebView, FinishLoad, const String& url, sl_bool flagFailed)
+		void handleFinishLoad(const String& url, sl_bool flagFailed);
 		SLIB_DECLARE_EVENT_HANDLER(WebView, MessageFromJavaScript, const String& msg, const String& param)
+		void handleMessageFromJavaScript(const String& msg, const String& param);
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
@@ -98,7 +100,7 @@ namespace slib
 		virtual Ptr<IWebViewInstance> getWebViewInstance();
 
 	public:
-		void dispatchResize(sl_ui_len width, sl_ui_len height) override;
+		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 	protected:
 		AtomicString m_urlOrigin;

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_UI_LIST_BOX
 
 #include "view.h"
+#include "view_state_map.h"
 
 namespace slib
 {
@@ -50,7 +51,7 @@ namespace slib
 
 		void setMultipleSelection(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_bool isSelectedIndex(sl_int64 index);
+		sl_bool isSelectedIndex(sl_uint64 index);
 
 		sl_int64 getSelectedIndex();
 
@@ -62,60 +63,64 @@ namespace slib
 
 		void selectItem(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void unselectItem(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void unselectItem(sl_uint64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void toggleItemSelection(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void toggleItemSelection(sl_uint64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void selectItems(const ListParam<sl_uint64>& indices, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void unselectItems(const ListParam<sl_uint64>& indices, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setSelectedRange(sl_int64 from, sl_int64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSelectedRange(sl_uint64 from, sl_uint64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void selectRange(sl_int64 from, sl_int64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void selectRange(sl_uint64 from, sl_uint64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void unselectAll(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_int64 getHoverIndex();
 
+		ViewState getItemState(sl_uint64 index);
+
 		sl_int64 getItemIndexAt(const UIPoint& pt);
 
-		Ref<Drawable> getItemBackground();
+		Ref<Drawable> getItemBackground(ViewState state = ViewState::Default);
+
+		void setItemBackground(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void setItemBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		void setItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getSelectedItemBackground();
+	public:
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, DrawItem, sl_uint64 index, Canvas* canvas, const UIRect& rcItem)
 
-		void setSelectedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, ClickItem, sl_uint64 index, UIEvent* ev)
 
-		void setSelectedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, RightButtonClickItem, sl_uint64 index, UIEvent* ev)
 
-		Ref<Drawable> getHoverItemBackground();
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, DoubleClickItem, sl_uint64 index, UIEvent* ev)
 
-		void setHoverItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, ChangeSelection, UIEvent* ev /* nullable */)
 
-		void setHoverItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getFocusedItemBackground();
-
-		void setFocusedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setFocusedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		// Only called on single-selection mode
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, SelectItem, sl_int64 index, sl_int64 former, UIEvent* ev /* nullable */)
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, DrawItem, sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
+		void _changeSelection(UIEvent* ev, UIUpdateMode mode, ObjectLocker* locker);
 
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, ClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+		void _selectItem(sl_int64 index, UIEvent* ev, UIUpdateMode mode, ObjectLocker* locker);
 
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, RightButtonClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+		void _selectItem(sl_int64 index, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, DoubleClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+		void _toggleItem(sl_uint64 index, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, ChangedSelection, UIEvent* ev)
+		void _setSelectedRange(sl_uint64 from, sl_uint64 to, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-	protected:
+		void _selectRange(sl_uint64 from, sl_uint64 to, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onClickEvent(UIEvent* ev) override;
@@ -125,7 +130,7 @@ namespace slib
 		void onKeyEvent(UIEvent* ev) override;
 
 	protected:
-		sl_int64 m_countItems;
+		sl_uint64 m_nItems;
 		sl_ui_len m_heightItem;
 		sl_int64 m_indexHover;
 
@@ -135,10 +140,7 @@ namespace slib
 		sl_int64 m_indexLastSelected;
 		CHashMap<sl_uint64, sl_bool> m_mapSelection;
 
-		AtomicRef<Drawable> m_backgroundItem;
-		AtomicRef<Drawable> m_backgroundSelectedItem;
-		AtomicRef<Drawable> m_backgroundHoverItem;
-		AtomicRef<Drawable> m_backgroundFocusedItem;
+		ViewStateMap< Ref<Drawable> > m_itemBackgrounds;
 
 	};
 

@@ -33,7 +33,7 @@ namespace slib
 
 	namespace priv
 	{
-		void RunUiLoop(HWND hWndModalDialog);
+		void RunUiLoop(HWND hWndModalDialog, sl_bool flagEnableParent);
 		sl_bool IsAnyViewPainting();
 	}
 
@@ -264,7 +264,7 @@ namespace slib
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
-					RECT rect;
+					RECT rect = { 0 };
 					GetWindowRect(hWnd, &rect);
 					_out.left = (sl_ui_pos)(rect.left);
 					_out.top = (sl_ui_pos)(rect.top);
@@ -542,21 +542,19 @@ namespace slib
 							flagEnableParent = sl_true;
 						}
 					}
-					RunUiLoop(hWnd);
-					if (flagEnableParent) {
-						EnableWindow(hWndParent, TRUE);
-						SetForegroundWindow(hWndParent);
-					}
+					RunUiLoop(hWnd, flagEnableParent);
 				}
 				return sl_true;
 			}
 
-			void doPostCreate()
+			void doPostCreate() override
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
 					if (GetWindowLongW(hWnd, GWL_STYLE) & WS_POPUP) {
-						WindowInstance::onResize();
+						RECT rc = { 0 };
+						GetWindowRect(hWnd, &rc);
+						WindowInstance::onResize((sl_ui_len)(rc.right - rc.left), (sl_ui_len)(rc.bottom - rc.top));
 					}
 				}
 			}
@@ -577,7 +575,7 @@ namespace slib
 
 			void applyRegion(HWND hWnd)
 			{
-				RECT rc;
+				RECT rc = { 0 };
 				GetWindowRect(hWnd, &rc);
 				applyRegion(hWnd, (sl_ui_pos)(rc.right - rc.left), (sl_ui_pos)(rc.bottom - rc.top));
 			}
@@ -824,7 +822,9 @@ namespace slib
 					}
 				case WM_MOVE:
 					{
-						window->onMove();
+						short x = (short)(lParam & 0xFFFF);
+						short y = (short)((lParam >> 16) & 0xFFFF);
+						window->onMove((sl_ui_pos)x, (sl_ui_pos)y);
 						break;
 					}
 				case WM_NCHITTEST:
@@ -833,7 +833,7 @@ namespace slib
 							if (window->m_flagResizable) {
 								short x = (short)(lParam & 0xFFFF);
 								short y = (short)((lParam >> 16) & 0xFFFF);
-								RECT rc;
+								RECT rc = { 0 };
 								GetWindowRect(hWnd, &rc);
 #define BORDER_SIZE 4
 								rc.left += BORDER_SIZE;

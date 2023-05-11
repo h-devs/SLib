@@ -7,9 +7,6 @@
     <Filter Include="src\qrcode">
       <UniqueIdentifier>{84871635-dc4a-4d00-a58e-ef2496f0ee6e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\capcha">
-      <UniqueIdentifier>{a55186fe-e100-4ec3-b43a-362445cdad08}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\chat">
       <UniqueIdentifier>{ccb34cee-d24a-4afa-be61-45cdc55eb292}</UniqueIdentifier>
     </Filter>
@@ -18,6 +15,27 @@
     </Filter>
     <Filter Include="src\keygen">
       <UniqueIdentifier>{c9c8c9d7-4b41-4078-860f-f6fe2e358efc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\dbip">
+      <UniqueIdentifier>{6e5e8620-6dc2-434b-a81e-f6ad68f08a4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\captcha">
+      <UniqueIdentifier>{a55186fe-e100-4ec3-b43a-362445cdad08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\file_encrypt">
+      <UniqueIdentifier>{92c97861-fb8e-4e49-93fa-69f1cc3679db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\data_store">
+      <UniqueIdentifier>{f500317c-27f0-4284-8839-c54ee4fb0db0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\log_package">
+      <UniqueIdentifier>{b0a56988-21f2-471b-9a87-0f834e3d0462}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\p2p">
+      <UniqueIdentifier>{0dfc0fd8-a6ce-4572-a5a4-2e2150fd92a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\pseudo_tcp">
+      <UniqueIdentifier>{4180a0ea-a09f-4f6a-821b-d745a5744082}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -28,7 +46,7 @@
       <Filter>src\qrcode</Filter>
     </ClInclude>
     <ClInclude Include="..\..\extra\captcha\captcha.h">
-      <Filter>src\capcha</Filter>
+      <Filter>src\captcha</Filter>
     </ClInclude>
     <ClInclude Include="..\..\extra\chat\chat_client.h">
       <Filter>src\chat</Filter>
@@ -72,6 +90,30 @@
     <ClInclude Include="..\..\extra\social\twitter.h">
       <Filter>src\social</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\extra\dbip\dbip.h">
+      <Filter>src\dbip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\file_encrypt\chacha.h">
+      <Filter>src\file_encrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\log_package\log_package.h">
+      <Filter>src\log_package</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\data_store\data_store.h">
+      <Filter>src\data_store</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\data_store\data_package.h">
+      <Filter>src\data_store</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\p2p\p2p.h">
+      <Filter>src\p2p</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\pseudo_tcp\pseudo_tcp_message.h">
+      <Filter>src\pseudo_tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\pseudo_tcp\pseudo_tcp.h">
+      <Filter>src\pseudo_tcp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\extra\qrcode\zxing.cpp">
@@ -81,7 +123,7 @@
       <Filter>src\qrcode</Filter>
     </ClCompile>
     <ClCompile Include="..\..\extra\captcha\captcha.cpp">
-      <Filter>src\capcha</Filter>
+      <Filter>src\captcha</Filter>
     </ClCompile>
     <ClCompile Include="..\..\extra\chat\chat_sqlite.cpp">
       <Filter>src\chat</Filter>
@@ -160,6 +202,27 @@
     </ClCompile>
     <ClCompile Include="..\..\extra\social\twitter.cpp">
       <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\dbip\dbip.cpp">
+      <Filter>src\dbip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\file_encrypt\chacha.cpp">
+      <Filter>src\file_encrypt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\log_package\log_package.cpp">
+      <Filter>src\log_package</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\data_store\data_store.cpp">
+      <Filter>src\data_store</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\p2p\p2p.cpp">
+      <Filter>src\p2p</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\pseudo_tcp\pseudo_tcp_message.cpp">
+      <Filter>src\pseudo_tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\pseudo_tcp\pseudo_tcp.cpp">
+      <Filter>src\pseudo_tcp</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

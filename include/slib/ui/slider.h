@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_UI_SLIDER
 
 #include "progress_bar.h"
+#include "view_state_map.h"
 
 namespace slib
 {
@@ -38,23 +39,19 @@ namespace slib
 		~Slider();
 
 	public:
-		Ref<Drawable> getThumbDrawable();
+		void setValue(float value, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 
-		void setThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSecondaryValue(float value, UIUpdateMode mode = UIUpdateMode::Redraw) override;
+
+		Ref<Drawable> getThumb(ViewState state = ViewState::Default);
+
+		void setThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setThumb(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setThumbColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setThumbColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getPressedThumbDrawable();
-
-		void setPressedThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setPressedThumbColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getHoverThumbDrawable();
-
-		void setHoverThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setHoverThumbColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 
 		const UISize& getThumbSize();
@@ -74,10 +71,12 @@ namespace slib
 		void setThumbHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(Slider, Change, float value)
-		SLIB_DECLARE_EVENT_HANDLER(Slider, ChangeSecondary, float value)
+		SLIB_DECLARE_EVENT_HANDLER(Slider, Changing, float& value, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(Slider, Change, float value, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(Slider, ChangingSecondary, float& value, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(Slider, ChangeSecondary, float value, UIEvent* ev /* nullable */)
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onMouseEvent(UIEvent* ev) override;
@@ -105,14 +104,17 @@ namespace slib
 
 		void getRegions(UIRect& outTrack, UIRect& outProgress, UIRect& outSecondaryProgress, UIRect& outThumb, UIRect& outSecondaryThumb);
 
-		void setHoverThumb(int index);
+	private:
+		void _changeValue(float value, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void changeValue(float value, sl_bool flagChange2);
+		void _changeValue2(float value, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		ViewState _getThumbState(int index);
+
+		void _setHoverThumb(int index, UIAction action);
 
 	protected:
-		AtomicRef<Drawable> m_thumb;
-		AtomicRef<Drawable> m_pressedThumb;
-		AtomicRef<Drawable> m_hoverThumb;
+		ViewStateMap< Ref<Drawable> > m_thumbs;
 
 		UISize m_thumbSize;
 

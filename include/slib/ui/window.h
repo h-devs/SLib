@@ -241,29 +241,29 @@ namespace slib
 
 		UISize getClientSizeFromWindowSize(const UISize& sizeWindow);
 
-		UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen);
+		UIPointF convertCoordinateFromScreenToWindow(const UIPointF& ptScreen);
 
-		UIRectf convertCoordinateFromScreenToWindow(const UIRectf& rect);
+		UIRectF convertCoordinateFromScreenToWindow(const UIRectF& rect);
 
-		UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow);
+		UIPointF convertCoordinateFromWindowToScreen(const UIPointF& ptWindow);
 
-		UIRectf convertCoordinateFromWindowToScreen(const UIRectf& rect);
+		UIRectF convertCoordinateFromWindowToScreen(const UIRectF& rect);
 
-		UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen);
+		UIPointF convertCoordinateFromScreenToClient(const UIPointF& ptScreen);
 
-		UIRectf convertCoordinateFromScreenToClient(const UIRectf& rect);
+		UIRectF convertCoordinateFromScreenToClient(const UIRectF& rect);
 
-		UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient);
+		UIPointF convertCoordinateFromClientToScreen(const UIPointF& ptClient);
 
-		UIRectf convertCoordinateFromClientToScreen(const UIRectf& rect);
+		UIRectF convertCoordinateFromClientToScreen(const UIRectF& rect);
 
-		UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow);
+		UIPointF convertCoordinateFromWindowToClient(const UIPointF& ptWindow);
 
-		UIRectf convertCoordinateFromWindowToClient(const UIRectf& rect);
+		UIRectF convertCoordinateFromWindowToClient(const UIRectF& rect);
 
-		UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient);
+		UIPointF convertCoordinateFromClientToWindow(const UIPointF& ptClient);
 
-		UIRectf convertCoordinateFromClientToWindow(const UIRectf& rect);
+		UIRectF convertCoordinateFromClientToWindow(const UIRectF& rect);
 
 
 		// For client size
@@ -447,10 +447,10 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(Window, Create)
 		SLIB_DECLARE_EVENT_HANDLER(Window, CreateFailed)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Close, UIEvent* ev)
-		SLIB_DECLARE_EVENT_HANDLER(Window, Destroy)
+		SLIB_DECLARE_EVENT_HANDLER(Window, Destroy, UIEvent* ev /* nullable */)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Activate)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Deactivate)
-		SLIB_DECLARE_EVENT_HANDLER(Window, Move)
+		SLIB_DECLARE_EVENT_HANDLER(Window, Move, sl_ui_pos x, sl_ui_pos y)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Resizing, UISize& clientSize)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Resize, sl_ui_len clientWidth, sl_ui_len clientHeight)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Minimize)
@@ -459,15 +459,14 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(Window, Demaximize)
 		SLIB_DECLARE_EVENT_HANDLER(Window, EnterFullScreen)
 		SLIB_DECLARE_EVENT_HANDLER(Window, ExitFullScreen)
-		SLIB_DECLARE_EVENT_HANDLER(Window, OK, UIEvent* ev)
-		SLIB_DECLARE_EVENT_HANDLER(Window, Cancel, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(Window, OK)
+		SLIB_DECLARE_EVENT_HANDLER(Window, Cancel)
 
-	public:
-		void dispatchOK();
-
-		void dispatchCancel();
-
-		void dispatchResize();
+	private:
+		void _doClose(UIEvent* ev);
+		void _doDestroy(UIEvent* ev);
+		void _doResizing(UISize& clientSize);
+		void _doResize(sl_ui_len clientWidth, sl_ui_len clientHeight);
 
 	protected:
 		Ref<WindowInstance> createWindowInstance();
@@ -662,13 +661,11 @@ namespace slib
 
 		void onDeactivate();
 
-		void onMove();
+		void onMove(sl_ui_pos x, sl_ui_pos y);
 
 		void onResizing(UISize& clientSize, sl_bool flagResizingWidth);
 
 		void onResize(sl_ui_len clientWidth, sl_ui_len clientHeight);
-
-		void onResize();
 
 		void onMinimize();
 

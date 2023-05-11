@@ -918,7 +918,7 @@ namespace slib
 
 		static void removeOnChangeCurrentLocale(const Function<void()>& callback);
 
-		static void dispatchChangeCurrentLocale();
+		static void onChangeCurrentLocale();
 
 	private:
 		static Locale _getCurrent();

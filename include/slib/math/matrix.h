@@ -378,12 +378,6 @@ namespace slib
 	template <sl_uint32 ROWS, sl_uint32 COLS>
 	using Matrix = MatrixT<ROWS, COLS, sl_real>;
 
-	template <sl_uint32 ROWS, sl_uint32 COLS>
-	using Matrixf = MatrixT<ROWS, COLS, float>;
-
-	template <sl_uint32 ROWS, sl_uint32 COLS>
-	using Matrixlf = MatrixT<ROWS, COLS, double>;
-
 }
 
 #endif

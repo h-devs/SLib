@@ -48,7 +48,7 @@ namespace slib
 	};
 
 	// GraphicsPath is not thread-safe.
-	class SLIB_EXPORT GraphicsPath : public Referable
+	class SLIB_EXPORT GraphicsPath : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -143,23 +143,23 @@ namespace slib
 
 		void _initPlatformObject();
 
-		static Ref<Referable> _createPlatformObject();
+		static Ref<CRef> _createPlatformObject();
 
-		static void _moveTo_PO(Referable* po, sl_real x, sl_real y);
+		static void _moveTo_PO(CRef* po, sl_real x, sl_real y);
 
-		static void _lineTo_PO(Referable* po, sl_real x, sl_real y);
+		static void _lineTo_PO(CRef* po, sl_real x, sl_real y);
 
-		static void _cubicTo_PO(Referable* po, sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye);
+		static void _cubicTo_PO(CRef* po, sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye);
 
-		static void _closeSubpath_PO(Referable* po);
+		static void _closeSubpath_PO(CRef* po);
 
-		static void _setFillMode_PO(Referable* po, FillMode mode);
+		static void _setFillMode_PO(CRef* po, FillMode mode);
 
 	protected:
 		CList<GraphicsPathPoint> m_points;
 		FillMode m_fillMode;
 
-		Ref<Referable> m_platformObject;
+		Ref<CRef> m_platformObject;
 		SpinLock m_lock;
 
 	};

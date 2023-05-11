@@ -30,7 +30,7 @@
 namespace slib
 {
 
-	class PipeStream : public Referable, public Stream<Pipe>
+	class PipeStream : public CRef, public Stream<Pipe>
 	{
 	public:
 		SLIB_DECLARE_OBJECT

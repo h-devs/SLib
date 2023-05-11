@@ -40,18 +40,18 @@ namespace slib
 		return Apple::getStringFromNSString(currentDeviceId);
 	}
 
-	Sizei Device::getScreenSize()
+	SizeI Device::getScreenSize()
 	{
 		UIScreen* screen = [UIScreen mainScreen];
 		if (screen != nil) {
-			Sizei ret;
+			SizeI ret;
 			CGRect screenRect = screen.bounds;
 			CGFloat scale = screen.scale;
 			ret.x = (int)(screenRect.size.width * scale);
 			ret.y = (int)(screenRect.size.height * scale);
 			return ret;
 		}
-		return Sizei::zero();
+		return SizeI::zero();
 	}
 
 	double Device::getScreenPPI()

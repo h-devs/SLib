@@ -75,7 +75,7 @@ namespace slib
 			dlg->increaseReference();
 			const Function<void(String&)>& _onOK = onOK;
 			const Function<void()>& _onCancel = onCancel;
-			dlg->setOnDestroy([_onOK, _onCancel](Window* dlg) {
+			dlg->setOnDestroy([_onOK, _onCancel](Window* dlg, UIEvent*) {
 				if (dlg->getResult() == DialogResult::OK) {
 					String text = ((ui::PromptDialog*)dlg)->input->getText();
 					_onOK(text);

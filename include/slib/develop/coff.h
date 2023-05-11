@@ -72,107 +72,98 @@
 namespace slib
 {
 
-	class SLIB_EXPORT CoffHeader
-	{
-	public:
-		sl_uint16 machine; // SLIB_COFF_MACHINE_*
-		sl_uint16 numberOfSections;
-		sl_uint32 timeDateStamp; // represents the time the image was created by the linker - the number of seconds elapsed since 1970-01-01 00:00:00, UTC, according to the system clock.
-		sl_uint32 offsetToSymbolTable; // The offset of the symbol table. 0 if no COFF symbol table exists.
-		sl_uint32 numberOfSymbols;
-		sl_uint16 sizeOfOptionalHeader; // The size of the optional header. This value should be 0 for object files.
-		sl_uint16 characteristics; // SLIB_COFF_CHARACTERISTICS_*
-	};
-
-	class SLIB_EXPORT CoffSectionDesc
-	{
-	public:
-		char name[8]; // An 8-byte, null-padded UTF-8 string. There is no terminating null character if the string is exactly eight characters long. For longer names, this member contains a forward slash (/) followed by an ASCII representation of a decimal number that is an offset into the string table. Executable images do not use a string table and do not support section names longer than eight characters.
-		union {
-			sl_uint32 physicalAddress; // The file address
-			sl_uint32 virtualSize; // The total size of the section when loaded into memory. If this value is greater than the `sizeOfRawData` member, the section is filled with zeroes. This field is valid only for executable images and should be set to 0 for object files.
-		};
-		sl_uint32 virtualAddress; // The address of the first byte of the section when loaded into memory, relative to the image base. For object files, this is the address of the first byte before relocation is applied.
-		sl_uint32 sizeOfRawData; // The size of the initialized data on disk. This value must be a multiple of the `fileAlignment` member of the `PE_OptionalHeader`. If this value is less than the `virtualSize` member, the remainder of the section is filled with zeroes. If the section contains only uninitialized data, the member is zero.
-		sl_uint32 offsetToRawData; // A file pointer to the first page within the COFF file. This value must be a multiple of the `fileAlignment` member of the `PE_OptionalHeader`. If a section contains only uninitialized data, set this member is zero.
-		sl_uint32 offsetToRelocations; // A file pointer to the beginning of the relocation entries for the section. If there are no relocations, this value is zero.
-		sl_uint32 offsetToLinenumbers; // A file pointer to the beginning of the line-number entries for the section. If there are no COFF line numbers, this value is zero.
-		sl_uint16 numberOfRelocations;
-		sl_uint16 numberOfLinenumbers;
-		sl_uint32 characteristics; // SLIB_COFF_SECTION_CHARACTERISTICS_*
-	};
-
-#pragma pack(push, 1)
-	class SLIB_EXPORT CoffSectionRelocation
-	{
-	public:
-		union
-		{
-			sl_uint32 virtualAddress;
-			sl_uint32 relocCount; // Set to the real count when IMAGE_SCN_LNK_NRELOC_OVFL is set
-		};
-		sl_uint32 symbolTableIndex;
-		sl_int16 type;
-	};
-
-	class SLIB_EXPORT CoffSymbolDesc
-	{
-	public:
-		union
-		{
-			sl_char8 shortName[8];
-			sl_uint32 longName[2];
-		} name;
-		sl_uint32 value;
-		sl_uint16 sectionNumber;
-		sl_uint16 type;
-		sl_uint8 storageClass;
-		sl_uint8 numberOfAuxSymbols;
-	};
-#pragma pack(pop)
-
-	class SLIB_EXPORT CoffSection : public CoffSectionDesc
-	{
-	public:
-		String name;
-
-	public:
-		CoffSection();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CoffSection)
-
-	};
-
-	class SLIB_EXPORT CoffCodeSection : public CoffSection
-	{
-	public:
-		sl_uint32 sectionIndex;
-		sl_uint32 codeOffset;
-
-	public:
-		CoffCodeSection();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CoffCodeSection)
-
-	};
-
-	class SLIB_EXPORT CoffSymbol : public CoffSymbolDesc
-	{
-	public:
-		String name;
-
-	public:
-		CoffSymbol();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CoffSymbol)
-
-	};
-
 	class SLIB_EXPORT Coff
 	{
 	public:
+		struct Header
+		{
+			sl_uint16 machine; // SLIB_COFF_MACHINE_*
+			sl_uint16 numberOfSections;
+			sl_uint32 timeDateStamp; // represents the time the image was created by the linker - the number of seconds elapsed since 1970-01-01 00:00:00, UTC, according to the system clock.
+			sl_uint32 offsetToSymbolTable; // The offset of the symbol table. 0 if no COFF symbol table exists.
+			sl_uint32 numberOfSymbols;
+			sl_uint16 sizeOfOptionalHeader; // The size of the optional header. This value should be 0 for object files.
+			sl_uint16 characteristics; // SLIB_COFF_CHARACTERISTICS_*
+		};
+
+		struct SectionDesc
+		{
+			char name[8]; // An 8-byte, null-padded UTF-8 string. There is no terminating null character if the string is exactly eight characters long. For longer names, this member contains a forward slash (/) followed by an ASCII representation of a decimal number that is an offset into the string table. Executable images do not use a string table and do not support section names longer than eight characters.
+			union {
+				sl_uint32 physicalAddress; // The file address
+				sl_uint32 virtualSize; // The total size of the section when loaded into memory. If this value is greater than the `sizeOfRawData` member, the section is filled with zeroes. This field is valid only for executable images and should be set to 0 for object files.
+			};
+			sl_uint32 virtualAddress; // The address of the first byte of the section when loaded into memory, relative to the image base. For object files, this is the address of the first byte before relocation is applied.
+			sl_uint32 sizeOfRawData; // The size of the initialized data on disk. This value must be a multiple of the `fileAlignment` member of the `PE_OptionalHeader`. If this value is less than the `virtualSize` member, the remainder of the section is filled with zeroes. If the section contains only uninitialized data, the member is zero.
+			sl_uint32 offsetToRawData; // A file pointer to the first page within the COFF file. This value must be a multiple of the `fileAlignment` member of the `PE_OptionalHeader`. If a section contains only uninitialized data, set this member is zero.
+			sl_uint32 offsetToRelocations; // A file pointer to the beginning of the relocation entries for the section. If there are no relocations, this value is zero.
+			sl_uint32 offsetToLinenumbers; // A file pointer to the beginning of the line-number entries for the section. If there are no COFF line numbers, this value is zero.
+			sl_uint16 numberOfRelocations;
+			sl_uint16 numberOfLinenumbers;
+			sl_uint32 characteristics; // SLIB_COFF_SECTION_CHARACTERISTICS_*
+		};
+		
+#pragma pack(push, 1)
+		struct SectionRelocation
+		{
+			union
+			{
+				sl_uint32 virtualAddress;
+				sl_uint32 relocCount; // Set to the real count when IMAGE_SCN_LNK_NRELOC_OVFL is set
+			};
+			sl_uint32 symbolTableIndex;
+			sl_int16 type;
+		};
+
+		struct SymbolDesc
+		{
+			union
+			{
+				sl_char8 shortName[8];
+				sl_uint32 longName[2];
+			} name;
+			sl_uint32 value;
+			sl_uint16 sectionNumber;
+			sl_uint16 type;
+			sl_uint8 storageClass;
+			sl_uint8 numberOfAuxSymbols;
+		};
+#pragma pack(pop)
+
+		class Section : public SectionDesc
+		{
+		public:
+			String name;
+
+		public:
+			Section();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Section)
+		};
+
+		class CodeSection : public Section
+		{
+		public:
+			sl_uint32 sectionIndex;
+			sl_uint32 codeOffset;
+
+		public:
+			CodeSection();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CodeSection)
+		};
+
+		class Symbol : public SymbolDesc
+		{
+		public:
+			String name;
+
+		public:
+			Symbol();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Symbol)
+		};
+
+	public:
 		sl_uint8* baseAddress;
-		CoffHeader header;
+		Header header;
 
 		sl_uint32 offsetToSections;
 		sl_uint32 offsetToSymbolNames;
@@ -189,21 +180,35 @@ namespace slib
 
 		sl_bool isLoaded();
 
-		sl_bool getSection(sl_uint32 index, CoffSection& outSection);
+		sl_bool getSection(sl_uint32 index, Section& outSection);
 
-		Memory getSectionData(const CoffSectionDesc& section);
+		Memory getSectionData(const SectionDesc& section);
 
-		sl_bool getSectionRelocation(const CoffSectionDesc& section, sl_uint32 index, CoffSectionRelocation& outRelocation);
+		sl_bool getSectionRelocation(const SectionDesc& section, sl_uint32 index, SectionRelocation& outRelocation);
 
-		CoffSymbol* getSymbol(sl_uint32 index);
+		Symbol* getSymbol(sl_uint32 index);
 
-		CoffSymbol* findSymbol(const StringParam& name);
+		Symbol* findSymbol(const StringParam& name);
 
-		List<CoffCodeSection> getCodeSections();
+		List<CodeSection> getCodeSections();
 
-		List<CoffCodeSection> getCodeSectionsReferencedFrom(const StringParam& entrySymbolName);
+		List<CodeSection> getCodeSectionsReferencedFrom(const StringParam& entrySymbolName);
 
-		sl_uint32 getCodeSectionSize(const CoffSectionDesc& section);
+		sl_uint32 getCodeSectionSize(const SectionDesc& section);
+
+	public:
+		class CodeSectionSet : public ListElements<CodeSection>
+		{
+		public:
+			CodeSectionSet(const List<CodeSection>& sections);
+			~CodeSectionSet();
+
+		public:
+			CodeSection * getSectionByNumber(sl_uint32 sectionNumber);
+
+		private:
+			CMap<sl_uint32, sl_uint32> m_mapSectionIndex;
+		};
 
 	protected:
 		void _init(const void* baseAddress, const Ptr<IReader, ISeekable>& reader);
@@ -213,24 +218,9 @@ namespace slib
 	protected:
 		IReader* m_reader;
 		ISeekable* m_seekable;
-		Ref<Referable> m_ref;
+		Ref<CRef> m_ref;
 
-		List<CoffSymbol> m_symbols;
-
-	};
-
-	class CoffCodeSectionSet : public ListElements<CoffCodeSection>
-	{
-	public:
-		CoffCodeSectionSet(const List<CoffCodeSection>& sections);
-
-		~CoffCodeSectionSet();
-
-	public:
-		CoffCodeSection* getSectionByNumber(sl_uint32 sectionNumber);
-
-	private:
-		CMap<sl_uint32, sl_uint32> m_mapSectionIndex;
+		List<Symbol> m_symbols;
 
 	};
 

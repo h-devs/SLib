@@ -128,17 +128,17 @@ namespace slib
 
 	};
 
-	class ViewBackgroundColorAnimationTarget : public AnimationTargetT<Color4f>
+	class ViewBackgroundColorAnimationTarget : public AnimationTargetT<Color4F>
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		ViewBackgroundColorAnimationTarget(const Ref<View>& view, const AnimationFrames<Color4f>& frames);
+		ViewBackgroundColorAnimationTarget(const Ref<View>& view, const AnimationFrames<Color4F>& frames);
 
 	public:
 		Ref<View> getView();
 
-		void update(float fraction, const Color4f& value) override;
+		void update(float fraction, const Color4F& value) override;
 
 	private:
 		WeakRef<View> m_view;

@@ -49,7 +49,7 @@ namespace slib
 			return fillMode;
 		}
 
-		class PlatformObject : public Referable
+		class PlatformObject : public CRef
 		{
 		public:
 			Gdiplus::GraphicsPath* path;
@@ -97,12 +97,12 @@ namespace slib
 
 	}
 
-	Ref<Referable> GraphicsPath::_createPlatformObject()
+	Ref<CRef> GraphicsPath::_createPlatformObject()
 	{
-		return Ref<Referable>::from(PlatformObject::create());
+		return Ref<CRef>::from(PlatformObject::create());
 	}
 
-	void GraphicsPath::_moveTo_PO(Referable* _po, sl_real x, sl_real y)
+	void GraphicsPath::_moveTo_PO(CRef* _po, sl_real x, sl_real y)
 	{
 		PlatformObject* po = (PlatformObject*)_po;
 		po->lastX = x;
@@ -110,7 +110,7 @@ namespace slib
 		po->path->StartFigure();
 	}
 
-	void GraphicsPath::_lineTo_PO(Referable* _po, sl_real x, sl_real y)
+	void GraphicsPath::_lineTo_PO(CRef* _po, sl_real x, sl_real y)
 	{
 		PlatformObject* po = (PlatformObject*)_po;
 		po->path->AddLine((Gdiplus::REAL)(po->lastX), (Gdiplus::REAL)(po->lastY), (Gdiplus::REAL)(x), (Gdiplus::REAL)(y));
@@ -118,7 +118,7 @@ namespace slib
 		po->lastY = y;
 	}
 
-	void GraphicsPath::_cubicTo_PO(Referable* _po, sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye)
+	void GraphicsPath::_cubicTo_PO(CRef* _po, sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye)
 	{
 		PlatformObject* po = (PlatformObject*)_po;
 		po->path->AddBezier(
@@ -131,13 +131,13 @@ namespace slib
 		po->lastY = ye;
 	}
 
-	void GraphicsPath::_closeSubpath_PO(Referable* _po)
+	void GraphicsPath::_closeSubpath_PO(CRef* _po)
 	{
 		PlatformObject* po = (PlatformObject*)_po;
 		po->path->CloseFigure();
 	}
 
-	void GraphicsPath::_setFillMode_PO(Referable* _po, FillMode mode)
+	void GraphicsPath::_setFillMode_PO(CRef* _po, FillMode mode)
 	{
 		PlatformObject* po = (PlatformObject*)_po;
 		po->path->SetFillMode(ConvertFillMode(mode));

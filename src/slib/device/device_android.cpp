@@ -373,7 +373,7 @@ namespace slib
 	}
 
 	// From Java code: slib.android.ui.Util.getScreenSize
-	Sizei Device::getScreenSize()
+	SizeI Device::getScreenSize()
 	{
 		jobject context = Android::getCurrentContext();
 		if (android::Activity::isActivity(context)) {
@@ -383,12 +383,12 @@ namespace slib
 				if (display.isNotNull()) {
 					JniLocal<jobject> metrics = android::Display::getMetrics(display);
 					if (metrics.isNotNull()) {
-						return Sizei(android::DisplayMetrics::getWidthPixels(metrics), android::DisplayMetrics::getHeightPixels(metrics));
+						return SizeI(android::DisplayMetrics::getWidthPixels(metrics), android::DisplayMetrics::getHeightPixels(metrics));
 					}
 				}
 			}
 		}
-		return Sizei::zero();
+		return SizeI::zero();
 	}
 
 	// From Java code: slib.android.ui.Util.getScreenPPI

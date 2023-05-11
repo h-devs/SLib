@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -65,20 +65,43 @@ namespace slib
 		Ptr<IDatePickerInstance> instance = getDatePickerInstance();
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(setDate, date, mode)
-			m_date = date;
-			instance->setDate(this, date);
-		} else {
-			m_date = date;
-			invalidate(mode);
 		}
+		Time _date = date;
+		_change(instance.get(), _date, sl_null, mode);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(DatePicker, Change, Time&)
+	SLIB_DEFINE_EVENT_HANDLER(DatePicker, Changing, (Time& date, UIEvent* ev /* nullable */), date, ev)
 
-	void DatePicker::dispatchChange(Time& date)
+	SLIB_DEFINE_EVENT_HANDLER(DatePicker, Change, (const Time& date, UIEvent* ev /* nullable */), date, ev)
+
+	void DatePicker::_change(IDatePickerInstance* instance, Time& date, UIEvent* ev, UIUpdateMode mode)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, date)
+		ObjectLocker locker(this);
+		if (m_date == date) {
+			return;
+		}
+		invokeChanging(date, ev);
+		if (m_date == date) {
+			return;
+		}
 		m_date = date;
+		if (instance) {
+			if (!ev) {
+				instance->setDate(this, date);
+			}
+		} else {
+			invalidate(mode);
+		}
+		locker.unlock();
+		invokeChange(date, ev);
+	}
+
+	void DatePicker::_onChange_NW(IDatePickerInstance* instance, Time& date)
+	{
+		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+		if (ev.isNotNull()) {
+			_change(instance, date, ev.get());
+		}
 	}
 
 	void DatePicker::onUpdateLayout()

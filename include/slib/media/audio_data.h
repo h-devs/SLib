@@ -36,7 +36,7 @@ namespace slib
 		void* data;
 		sl_size count; // count of samples
 		sl_int32 stride; // bytes offset between samples
-		Ref<Referable> ref;
+		Ref<CRef> ref;
 
 	public:
 		AudioChannelBuffer();
@@ -53,11 +53,11 @@ namespace slib
 
 		// main data
 		void* data; // samples
-		Ref<Referable> ref; // reference for samples
+		Ref<CRef> ref; // reference for samples
 
 		// additional data for non-interleaved formats
 		void* data1; // samples
-		Ref<Referable> ref1; // reference for samples
+		Ref<CRef> ref1; // reference for samples
 
 	public:
 		AudioData();
@@ -76,6 +76,9 @@ namespace slib
 
 		void copySamplesFrom(const AudioData& other) const;
 
+		sl_int16 getSample(sl_uint32 sampleIndex, sl_uint32 channelIndex = 0);
+
+		sl_int16 getPeakSample(sl_uint32 startSampleIndex, sl_uint32 endSampleIndex, sl_bool flagPositive, sl_uint32 channelIndex = 0);
 	};
 }
 

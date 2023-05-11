@@ -93,13 +93,14 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(LabelView, ClickLink, const String& href, UIEvent* ev)
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onClickEvent(UIEvent* ev) override;
 
 		void onSetCursor(UIEvent* ev) override;
 
+	protected:
 		void onUpdateLayout() override;
 
 	protected:
@@ -160,7 +161,8 @@ namespace slib
 		void _updateTextBox(sl_bool flagWrapping, sl_ui_len width, sl_ui_len padding, const Alignment& align);
 
 	protected:
-		SimpleTextBox m_textBox;
+		TextBox m_textBox;
+		sl_ui_len m_textHeight;
 
 	};
 

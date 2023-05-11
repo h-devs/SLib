@@ -33,33 +33,51 @@
 #include "slib/graphics/font.h"
 #include "slib/ui/constants.h"
 #include "slib/ui/cursor.h"
+#include "slib/data/xml.h"
 
 namespace slib
 {
 
+	template <class T>
+	class SAppStateMap
+	{
+	public:
+		typedef T VALUE;
+		HashMap<ViewState, T> values;
+
+	public:
+		void mergeDefault(SAppStateMap& base)
+		{
+			for (auto& item : base.values) {
+				if (!(values.find_NoLock(item.key))) {
+					values.put_NoLock(item.key, item.value);
+				}
+			}
+		}
+	};
+
 	class SAppDocument;
+	class SAppLayoutXmlItem;
 
 	class SAppStringValue
 	{
 	public:
-		sl_bool flagDefined;
-		sl_bool flagReferResource;
+		sl_bool flagDefined = sl_false;
+		sl_bool flagReferResource = sl_false;
 		String valueOrName;
+		Ref<XmlElement> referingElement;
 
 	public:
-		SAppStringValue();
-
-	public:
-		sl_bool parse(const String& str);
+		sl_bool parse(const String& str, const Ref<XmlElement>& element);
 
 	};
 
-	class SAppDimensionValue
+	class SAppDimensionBaseValue
 	{
 	public:
-		sl_bool flagDefined;
+		sl_bool flagDefined = sl_false;
 		enum {
-			FILL, WRAP, WEIGHT,
+			FILL, WRAP, WEIGHT, // Special Units
 			PX,
 			SW, SH, SMIN, SMAX,
 			VW, VH, VMIN, VMAX,
@@ -68,46 +86,35 @@ namespace slib
 			SBAR,
 			SAFE_L, SAFE_T, SAFE_R, SAFE_B, SAFE_W, SAFE_H
 		};
-		int unit;
-		sl_real amount;
+		int unit = PX;
+		sl_real amount = 0;
 
 	public:
-		SAppDimensionValue();
-
-	public:
-		String getAccessString() const;
-
 		sl_bool parse(const String& str, SAppDocument* doc);
 
-		sl_bool checkGlobal();
+		sl_bool checkGlobal(sl_bool flagRoot = sl_false);
 
-		sl_bool checkSP();
+		sl_bool checkSP(sl_bool flagRoot = sl_false);
 
-		sl_bool checkPosition();
+		sl_bool checkPosition(sl_bool flagRoot = sl_false);
 
-		sl_bool checkSize();
+		sl_bool checkSize(sl_bool flagRoot = sl_false);
 
-		sl_bool checkScalarSize();
+		sl_bool checkScalarSize(sl_bool flagRoot = sl_false);
 
-		sl_bool checkScalarSizeOrWeight();
+		sl_bool checkScalarSizeOrWeight(sl_bool flagRoot = sl_false);
 
-		sl_bool checkMargin();
+		sl_bool checkMargin(sl_bool flagRoot = sl_false);
 
-		sl_bool checkForWindow();
+		sl_bool checkForWindow(sl_bool flagRoot = sl_false);
 
-		sl_bool checkForWindowSize();
-
-		sl_bool checkForRootViewPosition();
-
-		sl_bool checkForRootViewSize();
-
-		sl_bool checkForRootViewScalarSize();
-
-		sl_bool checkForRootViewMargin();
+		sl_bool checkForWindowSize(sl_bool flagRoot = sl_false);
 
 		sl_bool isNeededOnLayoutFunction();
 
-		static sl_bool isRelativeUnit(int unit);
+		static sl_bool isSpecialUnit(int unit);
+
+		static sl_bool isAbsoluteUnit(int unit);
 
 		static sl_bool isGlobalUnit(int unit);
 
@@ -115,24 +122,26 @@ namespace slib
 
 	};
 
-	class SAppDimensionFloatValue : public SAppDimensionValue
+	class SAppDimensionValue : public SAppDimensionBaseValue
 	{
 	public:
 		String getAccessString() const;
+	};
 
+	class SAppDimensionFloatValue : public SAppDimensionBaseValue
+	{
+	public:
+		String getAccessString() const;
 	};
 
 	class SAppBooleanValue
 	{
 	public:
-		sl_bool flagDefined;
-		sl_bool value;
+		sl_bool flagDefined = sl_false;
+		sl_bool value = sl_false;
 
 	public:
-		SAppBooleanValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -141,14 +150,11 @@ namespace slib
 	class SAppFloatValue
 	{
 	public:
-		sl_bool flagDefined;
-		float value;
+		sl_bool flagDefined = sl_false;
+		float value = 0;
 
 	public:
-		SAppFloatValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -157,14 +163,11 @@ namespace slib
 	class SAppInt32Value
 	{
 	public:
-		sl_bool flagDefined;
-		sl_int32 value;
+		sl_bool flagDefined = sl_false;
+		sl_int32 value = 0;
 
 	public:
-		SAppInt32Value();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -173,14 +176,11 @@ namespace slib
 	class SAppUint32Value
 	{
 	public:
-		sl_bool flagDefined;
-		sl_uint32 value;
+		sl_bool flagDefined = sl_false;
+		sl_uint32 value = 0;
 
 	public:
-		SAppUint32Value();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -189,14 +189,11 @@ namespace slib
 	class SAppInt64Value
 	{
 	public:
-		sl_bool flagDefined;
-		sl_int64 value;
+		sl_bool flagDefined = sl_false;
+		sl_int64 value = 0;
 
 	public:
-		SAppInt64Value();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -205,14 +202,11 @@ namespace slib
 	class SAppUint64Value
 	{
 	public:
-		sl_bool flagDefined;
-		sl_uint64 value;
+		sl_bool flagDefined = sl_false;
+		sl_uint64 value = 0;
 
 	public:
-		SAppUint64Value();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -221,14 +215,11 @@ namespace slib
 	class SAppChar8Value
 	{
 	public:
-		sl_bool flagDefined;
-		sl_char8 value;
+		sl_bool flagDefined = sl_false;
+		sl_char8 value = 0;
 
 	public:
-		SAppChar8Value();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -237,14 +228,11 @@ namespace slib
 	class SAppVector2Value
 	{
 	public:
-		sl_bool flagDefined;
+		sl_bool flagDefined = sl_false;
 		Vector2 value;
 
 	public:
-		SAppVector2Value();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -253,14 +241,11 @@ namespace slib
 	class SAppVector3Value
 	{
 	public:
-		sl_bool flagDefined;
+		sl_bool flagDefined = sl_false;
 		Vector3 value;
 
 	public:
-		SAppVector3Value();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -269,14 +254,11 @@ namespace slib
 	class SAppVector4Value
 	{
 	public:
-		sl_bool flagDefined;
+		sl_bool flagDefined = sl_false;
 		Vector4 value;
 
 	public:
-		SAppVector4Value();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -285,14 +267,11 @@ namespace slib
 	class SAppVisibilityValue
 	{
 	public:
-		sl_bool flagDefined;
-		Visibility value;
+		sl_bool flagDefined = sl_false;
+		Visibility value = Visibility::Visible;
 
 	public:
-		SAppVisibilityValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -301,14 +280,11 @@ namespace slib
 	class SAppPenStyleValue
 	{
 	public:
-		sl_bool flagDefined;
-		PenStyle value;
+		sl_bool flagDefined = sl_false;
+		PenStyle value = PenStyle::Solid;
 
 	public:
-		SAppPenStyleValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -318,12 +294,9 @@ namespace slib
 	class SAppScrollBarsValue
 	{
 	public:
-		sl_bool flagDefined;
-		sl_bool horizontalScrollBar;
-		sl_bool verticalScrollBar;
-
-	public:
-		SAppScrollBarsValue();
+		sl_bool flagDefined = sl_false;
+		sl_bool horizontalScrollBar = sl_false;
+		sl_bool verticalScrollBar = sl_false;
 
 	public:
 		sl_bool parse(const String& str);
@@ -333,14 +306,11 @@ namespace slib
 	class SAppNameValue
 	{
 	public:
-		sl_bool flagDefined;
+		sl_bool flagDefined = sl_false;
 		String value;
 
 	public:
-		SAppNameValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -349,30 +319,25 @@ namespace slib
 	class SAppColorValue
 	{
 	public:
-		sl_bool flagDefined;
+		sl_bool flagDefined = sl_false;
 
 		String resourceName;
 		Color color;
+		Ref<XmlElement> referingElement;
 
 	public:
-		SAppColorValue();
-
-	public:
-		sl_bool parse(const String& str);
+		sl_bool parse(const String& str, const Ref<XmlElement>& element);
 
 	};
 
 	class SAppTimeValue
 	{
 	public:
-		sl_bool flagDefined;
+		sl_bool flagDefined = sl_false;
 		Time value;
 
 	public:
-		SAppTimeValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -381,41 +346,45 @@ namespace slib
 	class SAppDrawableValue : public SAppColorValue
 	{
 	public:
-		sl_bool flagNull;
-		sl_bool flagColor;
+		sl_bool flagNull = sl_false;
+		sl_bool flagColor = sl_false;
 
-		sl_bool flagWhole;
-		sl_real x;
-		sl_real y;
-		sl_real width;
-		sl_real height;
+		sl_bool flagWhole = sl_false;
+		sl_real x = 0;
+		sl_real y = 0;
+		sl_real width = 0;
+		sl_real height = 0;
 
 		enum {
 			FUNC_NONE, FUNC_NINEPATCH, FUNC_THREEPATCH_HORIZONTAL, FUNC_THREEPATCH_VERTICAL
 		};
-		int func;
+		int func = FUNC_NONE;
 		SAppDimensionValue patchLeftWidthDst;
 		SAppDimensionValue patchRightWidthDst;
 		SAppDimensionValue patchTopHeightDst;
 		SAppDimensionValue patchBottomHeightDst;
-		sl_real patchLeftWidth;
-		sl_real patchRightWidth;
-		sl_real patchTopHeight;
-		sl_real patchBottomHeight;
+		sl_real patchLeftWidth = 0;
+		sl_real patchRightWidth = 0;
+		sl_real patchTopHeight = 0;
+		sl_real patchBottomHeight = 0;
+
+		Ref<XmlElement> referingElement;
 
 	public:
-		SAppDrawableValue();
+		sl_bool parse(const String& str, SAppDocument* doc, const Ref<XmlElement>& element);
 
-	public:
-		sl_bool parse(const String& str, SAppDocument* doc);
+		sl_bool parseWhole(const String& str, const Ref<XmlElement>& element);
 
-		sl_bool parseWhole(const String& str);
+		sl_bool isAbsoluteUnit();
+
+		sl_bool isGlobalUnit();
 
 	};
 
 	class SAppFontValue
 	{
 	public:
+		sl_bool flagDefined = sl_false;
 		SAppStringValue family;
 		SAppDimensionFloatValue size;
 		SAppBooleanValue bold;
@@ -423,39 +392,49 @@ namespace slib
 		SAppBooleanValue underline;
 
 	public:
-		SAppFontValue();
+		void inheritFrom(const SAppFontValue& parent);
+
+		sl_bool parse(SAppLayoutXmlItem* xml, const StringView& name, const StringView& suffix, SAppDocument* doc, sl_bool flagRoot);
+
+	};
+
+	class SAppBorderValue
+	{
+	public:
+		sl_bool flagDefined = sl_false;
+		SAppPenStyleValue style;
+		SAppDimensionFloatValue width;
+		SAppColorValue color;
 
 	public:
-		sl_bool isDefined();
+		void inheritFrom(const SAppBorderValue& parent);
 
-		void inheritFrom(const SAppFontValue& parent);
+		static void normalizeStateMap(SAppStateMap<SAppBorderValue>& map);
+
+		sl_bool parse(SAppLayoutXmlItem* xml, const StringView& name, const StringView& suffix, SAppDocument* doc, sl_bool flagRoot);
 
 	};
 
 	class SAppMenuValue
 	{
 	public:
-		sl_bool flagDefined;
-		sl_bool flagNull;
+		sl_bool flagDefined = sl_false;
+		sl_bool flagNull = sl_false;
+
 		String resourceName;
+		Ref<XmlElement> referingElement;
 
 	public:
-		SAppMenuValue();
-
-	public:
-		sl_bool parse(const String& str);
+		sl_bool parse(const String& str, const Ref<XmlElement>& element);
 
 	};
 
 	class SAppAlignLayoutValue
 	{
 	public:
-		sl_bool flagDefined;
-		sl_bool flagAlignParent;
+		sl_bool flagDefined = sl_false;
+		sl_bool flagAlignParent = sl_false;
 		String referingView;
-
-	public:
-		SAppAlignLayoutValue();
 
 	public:
 		sl_bool parse(const String& str);
@@ -466,12 +445,9 @@ namespace slib
 	class SAppScrollingValue
 	{
 	public:
-		sl_bool flagDefined;
-		sl_bool horizontal;
-		sl_bool vertical;
-
-	public:
-		SAppScrollingValue();
+		sl_bool flagDefined = sl_false;
+		sl_bool horizontal = sl_false;
+		sl_bool vertical = sl_false;
 
 	public:
 		sl_bool parse(const String& str);
@@ -481,14 +457,11 @@ namespace slib
 	class SAppLayoutOrientationValue
 	{
 	public:
-		sl_bool flagDefined;
-		LayoutOrientation value;
+		sl_bool flagDefined = sl_false;
+		LayoutOrientation value = LayoutOrientation::Vertical;
 
 	public:
-		SAppLayoutOrientationValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -497,14 +470,11 @@ namespace slib
 	class SAppAlignmentValue
 	{
 	public:
-		sl_bool flagDefined;
-		Alignment value;
+		sl_bool flagDefined = sl_false;
+		Alignment value = Alignment::Default;
 
 	public:
-		SAppAlignmentValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -513,14 +483,11 @@ namespace slib
 	class SAppScaleModeValue
 	{
 	public:
-		sl_bool flagDefined;
-		ScaleMode value;
+		sl_bool flagDefined = sl_false;
+		ScaleMode value = ScaleMode::None;
 
 	public:
-		SAppScaleModeValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -529,14 +496,11 @@ namespace slib
 	class SAppBoundShapeValue
 	{
 	public:
-		sl_bool flagDefined;
-		BoundShape value;
+		sl_bool flagDefined = sl_false;
+		BoundShape value = BoundShape::None;
 
 	public:
-		SAppBoundShapeValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -545,14 +509,11 @@ namespace slib
 	class SAppRedrawModeValue
 	{
 	public:
-		sl_bool flagDefined;
-		RedrawMode value;
+		sl_bool flagDefined = sl_false;
+		RedrawMode value = RedrawMode::Continuously;
 
 	public:
-		SAppRedrawModeValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -561,14 +522,11 @@ namespace slib
 	class SAppMultiLineModeValue
 	{
 	public:
-		sl_bool flagDefined;
-		MultiLineMode value;
+		sl_bool flagDefined = sl_false;
+		MultiLineMode value = MultiLineMode::Single;
 
 	public:
-		SAppMultiLineModeValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -577,14 +535,11 @@ namespace slib
 	class SAppUIReturnKeyTypeValue
 	{
 	public:
-		sl_bool flagDefined;
-		UIReturnKeyType value;
+		sl_bool flagDefined = sl_false;
+		UIReturnKeyType value = UIReturnKeyType::Default;
 
 	public:
-		SAppUIReturnKeyTypeValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -593,14 +548,11 @@ namespace slib
 	class SAppUIKeyboardTypeValue
 	{
 	public:
-		sl_bool flagDefined;
-		UIKeyboardType value;
+		sl_bool flagDefined = sl_false;
+		UIKeyboardType value = UIKeyboardType::Default;
 
 	public:
-		SAppUIKeyboardTypeValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -609,14 +561,11 @@ namespace slib
 	class SAppUIAutoCapitalizationTypeValue
 	{
 	public:
-		sl_bool flagDefined;
-		UIAutoCapitalizationType value;
+		sl_bool flagDefined = sl_false;
+		UIAutoCapitalizationType value = UIAutoCapitalizationType::None;
 
 	public:
-		SAppUIAutoCapitalizationTypeValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -625,14 +574,11 @@ namespace slib
 	class SAppRotationModeValue
 	{
 	public:
-		sl_bool flagDefined;
-		RotationMode value;
+		sl_bool flagDefined = sl_false;
+		RotationMode value = RotationMode::Rotate0;
 
 	public:
-		SAppRotationModeValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -641,14 +587,11 @@ namespace slib
 	class SAppFlipModeValue
 	{
 	public:
-		sl_bool flagDefined;
-		FlipMode value;
+		sl_bool flagDefined = sl_false;
+		FlipMode value = FlipMode::None;
 
 	public:
-		SAppFlipModeValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -657,14 +600,11 @@ namespace slib
 	class SAppEllipsizeModeValue
 	{
 	public:
-		sl_bool flagDefined;
-		EllipsizeMode value;
+		sl_bool flagDefined = sl_false;
+		EllipsizeMode value = EllipsizeMode::None;
 
 	public:
-		SAppEllipsizeModeValue();
-
-	public:
-		String getAccessString();
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 
@@ -673,25 +613,48 @@ namespace slib
 	class SAppCursorValue
 	{
 	public:
-		sl_bool flagDefined;
+		sl_bool flagDefined = sl_false;
 		Ref<Cursor> value;
 
-		enum class Type
+		enum Type
 		{
-			Arrow,
-			IBeam,
-			Cross,
-			Hand,
-			ResizeLeftRight,
-			ResizeUpDown
+			ARROW,
+			IBEAM,
+			CROSS,
+			HAND,
+			RESIZE_LEFT_RIGHT,
+			RESIZE_UP_DOWN
 		};
-		Type type;
+		int type = ARROW;
 
 	public:
-		SAppCursorValue();
+		String getAccessString() const;
+
+		sl_bool parse(const String& str);
+
+	};
+
+	class SAppSwitchValue
+	{
+	public:
+		sl_bool flagDefined = sl_false;
+		SwitchValue value = SwitchValue::Off;
 
 	public:
-		String getAccessString();
+		String getAccessString() const;
+
+		sl_bool parse(const String& str);
+
+	};
+
+	class SAppGridSelectionModeValue
+	{
+	public:
+		sl_bool flagDefined = sl_false;
+		GridView::SelectionMode value = GridView::SelectionMode::Cell;
+
+	public:
+		String getAccessString() const;
 
 		sl_bool parse(const String& str);
 

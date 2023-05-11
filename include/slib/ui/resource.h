@@ -112,7 +112,7 @@ namespace slib
 	};
 
 #define SLIB_DECLARE_MENU_BEGIN(NAME) \
-	class NAME : public slib::Referable { \
+	class NAME : public slib::CRef { \
 	public: \
 		static const NAME* get(); \
 		NAME(); \
@@ -247,7 +247,7 @@ namespace slib
 		UISize getContentSize();
 
 	public:
-		void dispatchResize(sl_ui_len width, sl_ui_len height) override;
+		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 	protected:
 		sl_ui_len m_contentWidth;
@@ -279,7 +279,7 @@ namespace slib
 		UISize getContentSize();
 
 	public:
-		void dispatchResize(sl_ui_len width, sl_ui_len height) override;
+		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 	};
 
@@ -309,7 +309,7 @@ namespace slib
 		UISize getContentSize();
 
 	public:
-		void dispatchResize(sl_ui_len width, sl_ui_len height) override;
+		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 	};
 
@@ -353,6 +353,7 @@ namespace slib
 	class ListBox;
 	class LabelList;
 	class TileLayout;
+	class GridView;
 	class PdfView;
 
 	class XControl;

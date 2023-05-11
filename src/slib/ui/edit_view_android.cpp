@@ -69,6 +69,8 @@ namespace slib
 		public:
 			void apply(jobject handle, EditViewInstance* instance);
 
+			using EditView::_onChange_NW;
+			using EditView::_onPostChange_NW;
 		};
 
 		class EditViewInstance : public Android_ViewInstance, public IEditViewInstance
@@ -255,7 +257,7 @@ namespace slib
 						if (helper->isChangeEventEnabled()) {
 							String text = JEditView::getText.callString(sl_null, handle);
 							String textNew = text;
-							helper->dispatchChange(textNew);
+							helper->_onChange_NW(this, textNew);
 							if (text != textNew) {
 								JniLocal<jstring> jstr = Jni::getJniString(textNew);
 								JEditView::setText.callBoolean(sl_null, handle, jstr.get());
@@ -263,7 +265,7 @@ namespace slib
 						} else {
 							helper->invalidateText();
 						}
-						helper->dispatchPostChange();
+						helper->_onPostChange_NW();
 					}
 				}
 			}
@@ -272,7 +274,7 @@ namespace slib
 			{
 				Ref<EditViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->dispatchReturnKey();
+					helper->invokeReturnKey();
 				}
 			}
 
@@ -284,7 +286,7 @@ namespace slib
 		{
 			JniLocal<jstring> jtext = Jni::getJniString(m_text);
 			JEditView::setText.callBoolean(sl_null, handle, jtext.get());
-			JEditView::setBorder.callBoolean(sl_null, handle, isBorder());
+			JEditView::setBorder.callBoolean(sl_null, handle, hasBorder());
 			JEditView::setAlignment.callBoolean(sl_null, handle, m_gravity.value);
 			JEditView::setTextColor.callBoolean(sl_null, handle, m_textColor.getARGB());
 			JniLocal<jstring> jhintText = Jni::getJniString(m_hintText);

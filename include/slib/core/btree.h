@@ -758,7 +758,7 @@ namespace slib
 			return sl_null;
 		}
 
-		sl_bool get(const KT& key, VT* value = sl_null) const
+		sl_bool get(const KT& key, VT* value) const
 		{
 			return find(key, sl_null, value);
 		}

@@ -47,7 +47,7 @@ namespace slib
 	class Image;
 	class GraphicsPath;
 
-	class SLIB_EXPORT FreeTypeGlyph : public Referable
+	class SLIB_EXPORT FreeTypeGlyph : public CRef
 	{
 	public:
 		Ref<GraphicsPath> outline;
@@ -165,16 +165,16 @@ namespace slib
 		Ref<FreeTypeGlyph> getGlyph(sl_uint32 glyphId);
 
 	protected:
-		static Ref<FreeType> _create(Referable* lib, FT_FaceRec_* face, Referable* source);
+		static Ref<FreeType> _create(CRef* lib, FT_FaceRec_* face, CRef* source);
 
 		void _strokeString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const sl_char32* str, sl_uint32 len, sl_bool flagBorder, sl_bool flagOutside, sl_uint32 radius, const Color& color);
 
 		Ref<FreeTypeGlyph> _getGlyph(sl_uint32 glyphId);
 
 	protected:
-		Ref<Referable> m_lib;
+		Ref<CRef> m_lib;
 		FT_FaceRec_* m_face;
-		Ref<Referable> m_source;
+		Ref<CRef> m_source;
 
 	};
 

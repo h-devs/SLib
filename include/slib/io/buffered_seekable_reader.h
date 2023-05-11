@@ -88,7 +88,7 @@ namespace slib
 		sl_reg _readFillingBuf(sl_uint64 pos, void* buf, sl_size size);
 
 	private:
-		Ref<Referable> m_ref;
+		Ref<CRef> m_ref;
 		IReader* m_reader;
 		ISeekable* m_seekable;
 		IClosable* m_closable;

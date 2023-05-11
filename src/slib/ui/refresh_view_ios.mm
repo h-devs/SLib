@@ -44,7 +44,7 @@ namespace slib
 
 	namespace {
 
-		class PlatformContainer : public Referable
+		class PlatformContainer : public CRef
 		{
 		public:
 			UIRefreshControl* m_refreshControl;

@@ -148,7 +148,7 @@ namespace slib
 		try {
 			std::shared_ptr<GenericLuminanceSource> src;
 			if (param.flagSubRegion) {
-				Rectanglei region = param.subRegion;
+				RectangleI region = param.subRegion;
 				int width = region.getWidth();
 				if (region.left + width > (int)(image->getWidth())) {
 					return sl_null;

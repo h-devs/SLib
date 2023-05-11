@@ -79,7 +79,7 @@ namespace slib
 		color = [color colorUsingColorSpaceName:NSDeviceRGBColorSpace];
 		CGFloat red, green, blue, alpha;
 		[color getRed:&red green:&green blue:&blue alpha:&alpha];
-		return Color4f((sl_real)red, (sl_real)green, (sl_real)blue, (sl_real)alpha);
+		return Color4F((sl_real)red, (sl_real)green, (sl_real)blue, (sl_real)alpha);
 	}
 
 	NSImage* GraphicsPlatform::createNSImageFromBitmap(const Ref<Bitmap>& bitmap)
@@ -170,7 +170,7 @@ namespace slib
 		}
 		CGFloat red, green, blue, alpha;
 		[color getRed:&red green:&green blue:&blue alpha:&alpha];
-		return Color4f((sl_real)red, (sl_real)green, (sl_real)blue, (sl_real)alpha);
+		return Color4F((sl_real)red, (sl_real)green, (sl_real)blue, (sl_real)alpha);
 	}
 
 #endif

@@ -104,7 +104,7 @@ namespace slib
 			SLIB_VIEW_RUN_ON_UI_THREAD2(func, _width, _height, mode)
 		}
 		_initializeScrollAttributes();
-		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNull()) {
 			return;
 		}
@@ -132,24 +132,26 @@ namespace slib
 		}
 	}
 
-	void ScrollView::dispatchScroll(sl_scroll_pos x, sl_scroll_pos y)
+	void ScrollView::onScroll(ScrollEvent* ev)
 	{
-		ViewGroup::dispatchScroll(x, y);
+		ViewGroup::onScroll(ev);
 		Ref<View> view = m_viewContent;
 		if (view.isNotNull()) {
 			if (!(isNativeWidget())) {
-				view->setLocation((sl_ui_pos)-x, (sl_ui_pos)-y);
+				view->setLocation((sl_ui_pos)(-ev->x), (sl_ui_pos)(-ev->y));
 			}
 		}
 	}
 
 	void ScrollView::onResize(sl_ui_len width, sl_ui_len height)
 	{
+		ViewGroup::onResize(width, height);
 		_refreshSize();
 	}
 
 	void ScrollView::onResizeChild(View* child, sl_ui_len width, sl_ui_len height)
 	{
+		ViewGroup::onResizeChild(child, width, height);
 		if (child == m_viewContent) {
 			ViewGroup::setContentSize(width, height);
 			_refreshSize();

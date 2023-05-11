@@ -205,8 +205,6 @@ namespace slib
 	};
 
 	typedef QuaternionT<sl_real> Quaternion;
-	typedef QuaternionT<float> Quaternionf;
-	typedef QuaternionT<double> Quaternionlf;
 
 }
 

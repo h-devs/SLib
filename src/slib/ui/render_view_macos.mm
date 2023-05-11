@@ -206,14 +206,14 @@ namespace slib
 
 								Ref<macOS_ViewInstance> instance = handle->m_viewInstance;
 								if (instance.isNotNull()) {
-									Ref<View> _view = instance->getView();
-									if (RenderView* view = CastInstance<RenderView>(_view.get())) {
+									RenderView* view = CastRef<RenderView>(instance->getView());
+									if (view.isNotNull()) {
 										if (flagFirstFrame) {
 											flagFirstFrame = sl_false;
-											view->dispatchCreateEngine(engine.get());
+											view->invokeCreateEngine(engine.get());
 										}
 										engine->setViewport(0, 0, viewportWidth, viewportHeight);
-										view->dispatchFrame(engine.get());
+										view->handleFrame(engine.get());
 									}
 								} else {
 									return;

@@ -441,13 +441,13 @@ namespace slib
 		}
 	}
 
-	UIPointf Android_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen)
+	UIPointF Android_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
 	{
 		jobject handle = m_handle;
 		if (handle) {
 			JniLocal<jobject> jpt = JView::convertCoordinateFromScreenToView.callObject(sl_null, handle, 0, 0);
 			if (jpt.isNotNull()) {
-				UIPointf ret;
+				UIPointF ret;
 				ret.x = ptScreen.x + (sl_ui_pos)(JPoint::x.get(jpt));
 				ret.y = ptScreen.y + (sl_ui_pos)(JPoint::y.get(jpt));
 				return ret;
@@ -456,13 +456,13 @@ namespace slib
 		return ptScreen;
 	}
 
-	UIPointf Android_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView)
+	UIPointF Android_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
 	{
 		jobject handle = m_handle;
 		if (handle) {
 			JniLocal<jobject> jpt = JView::convertCoordinateFromViewToScreen.callObject(sl_null, handle, 0, 0);
 			if (jpt.isNotNull()) {
-				UIPointf ret;
+				UIPointF ret;
 				ret.x = ptView.x + (sl_ui_pos)(JPoint::x.get(jpt));
 				ret.y = ptView.y + (sl_ui_pos)(JPoint::y.get(jpt));
 				return ret;

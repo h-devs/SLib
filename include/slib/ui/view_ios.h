@@ -123,9 +123,9 @@ namespace slib
 
 		void setDrawing(View* view, sl_bool flag) override;
 
-		UIPointf convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen) override;
+		UIPointF convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen) override;
 
-		UIPointf convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView) override;
+		UIPointF convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView) override;
 
 		void addChildInstance(View* view, const Ref<ViewInstance>& instance) override;
 

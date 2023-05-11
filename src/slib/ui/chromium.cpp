@@ -445,7 +445,7 @@ namespace slib
 			{
 				Ref<ChromiumViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->dispatchStartLoad(GetString(request->GetURL()));
+					helper->invokeStartLoad(GetString(request->GetURL()));
 					if (m_flagLoadOffline) {
 						if (frame->IsMain()) {
 							m_flagLoadOffline = sl_false;
@@ -460,7 +460,7 @@ namespace slib
 			{
 				Ref<ChromiumViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->dispatchFinishLoad(GetString(url), sl_false);
+					helper->handleFinishLoad(GetString(url), sl_false);
 				}
 			}
 
@@ -468,7 +468,7 @@ namespace slib
 			{
 				Ref<ChromiumViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->dispatchFinishLoad(GetString(url), sl_true);
+					helper->handleFinishLoad(GetString(url), sl_true);
 				}
 			}
 
@@ -476,7 +476,7 @@ namespace slib
 			{
 				Ref<ChromiumViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->dispatchMessageFromJavaScript(name, param);
+					helper->handleMessageFromJavaScript(name, param);
 				}
 			}
 

@@ -489,10 +489,7 @@ namespace slib
 	};
 
 	typedef RectangleT<sl_real> Rectangle;
-	typedef RectangleT<float> Rectanglef;
-	typedef RectangleT<double> Rectanglelf;
-	typedef RectangleT<sl_int32, float> Rectanglei;
-	typedef RectangleT<sl_int64, double> Rectangleli;
+	typedef RectangleT<sl_int32, float> RectangleI;
 
 }
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -80,6 +80,8 @@ namespace slib
 
 		void setHintFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void setHintFont(const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		sl_bool isReadOnly();
 
 		void setReadOnly(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -142,7 +144,9 @@ namespace slib
 		void setAutoVerticalScrolling(sl_bool flag = sl_true);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, String& value)
+		SLIB_DECLARE_EVENT_HANDLER(EditView, Changing, String& value, UIEvent* ev /* nullable */)
+
+		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, const String& value, UIEvent* ev /* nullable */)
 
 		SLIB_DECLARE_EVENT_HANDLER(EditView, PostChange)
 
@@ -151,6 +155,7 @@ namespace slib
 	protected:
 		void onUpdateLayout() override;
 
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onClickEvent(UIEvent* ev) override;
@@ -162,8 +167,15 @@ namespace slib
 
 		virtual Ptr<IEditViewInstance> getEditViewInstance();
 
-	public:
-		void dispatchKeyEvent(UIEvent* ev) override;
+	protected:
+		void onKeyEvent(UIEvent* ev) override;
+
+	protected:
+		void _change(IEditViewInstance* instance, String& text, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void _onChange_NW(IEditViewInstance* instance, String& text);
+
+		void _onPostChange_NW();
 
 	protected:
 		sl_bool m_flagInvalidateText : 1;
@@ -190,7 +202,7 @@ namespace slib
 		sl_reg m_indexSelectionStart; // In character unit
 		sl_reg m_indexSelectionEnd; // In character unit
 
-		Ref<Referable> m_dialog;
+		Ref<CRef> m_dialog;
 
 		AtomicRef<Timer> m_timerDrawCaret;
 		sl_uint32 m_nCountDrawCaret;

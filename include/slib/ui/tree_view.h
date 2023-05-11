@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_UI_TREE_VIEW
 
 #include "scroll_view.h"
+#include "view_state_map.h"
 
 #include "../core/string.h"
 #include "../core/function.h"
@@ -91,44 +92,69 @@ namespace slib
 
 		void close(UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void select(UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		String getText();
 
 		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getIcon();
+		Ref<Font> getFont();
 
-		void setIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getOpenedIcon();
+		void setFont(const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<Drawable> getBackground(ViewState state = ViewState::Default);
+
+		void setBackground(const Ref<Drawable>& background, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBackground(const Ref<Drawable>& background, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<Drawable> getOpenedIcon(ViewState state = ViewState::Default);
+
+		void setOpenedIcon(const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setOpenedIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getClosedIcon();
+		Ref<Drawable> getClosedIcon(ViewState state = ViewState::Default);
+
+		void setClosedIcon(const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setClosedIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<View> getCustomView();
+		void setIcon(const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setCustomView(const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getTextColor();
+		sl_ui_len getIconWidth();
+
+		void setIconWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getIconHeight();
+
+		void setIconHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setIconSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setIconSize(sl_ui_len size, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Color getTextColor(ViewState state = ViewState::Default);
+
+		void setTextColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getHoverTextColor();
-
-		void setHoverTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getSelectedTextColor();
-
-		void setSelectedTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_ui_len getHeight();
 
 		void setHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_PROPERTY_FUNCTION(void(TreeViewItem*), OnSelect)
+		SLIB_PROPERTY_FUNCTION(void(TreeViewItem* item, TreeViewItem* former, UIEvent* /* nullable */), OnSelect)
+		SLIB_PROPERTY_FUNCTION(void(TreeViewItem* item, UIEvent*), OnClick)
 
 	private:
 		void _addChild(TreeViewItem* item, UIUpdateMode mode);
@@ -139,6 +165,8 @@ namespace slib
 
 		void _relayoutTree(UIUpdateMode mode);
 
+		void _relayoutItem(UIUpdateMode mode);
+
 		void _redrawTree(UIUpdateMode mode);
 
 	private:
@@ -148,19 +176,18 @@ namespace slib
 		sl_uint32 m_level;
 		CList< Ref<TreeViewItem> > m_children;
 		sl_bool m_flagOpened;
-		AtomicRef<Drawable> m_icon;
-		AtomicRef<Drawable> m_iconOpened;
-		AtomicRef<Drawable> m_iconClosed;
+		ViewStateMap< Ref<Drawable> > m_backgrounds;
+		ViewStateMap< Ref<Drawable> > m_closedIcons;
+		ViewStateMap< Ref<Drawable> > m_openedIcons;
+		sl_ui_len m_iconWidth;
+		sl_ui_len m_iconHeight;
 		AtomicString m_text;
-		AtomicRef<View> m_customView;
-		Color m_textColor;
-		Color m_hoverTextColor;
-		Color m_selectedTextColor;
+		AtomicRef<Font> m_font;
+		ViewStateMap<Color> m_textColors;
 		sl_ui_len m_height;
 
 		UIRect m_frame;
 		sl_ui_pos m_bottomChildren;
-		AtomicRef<Drawable> m_iconDrawing;
 
 		friend class TreeView;
 	};
@@ -207,17 +234,25 @@ namespace slib
 
 		void removeAllItems(UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getItemIcon();
+		Ref<TreeViewItem> getSelectedItem();
 
-		void setItemIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void selectItem(const Ref<TreeViewItem>& item, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getOpenedItemIcon();
+		Ref<Drawable> getOpenedItemIcon(ViewState state = ViewState::Default);
+
+		void setOpenedItemIcon(const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setOpenedItemIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getClosedItemIcon();
+		Ref<Drawable> getClosedItemIcon(ViewState state = ViewState::Default);
+
+		void setClosedItemIcon(const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setClosedItemIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setItemIcon(const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setItemIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Drawable> getCollapsedIcon();
 
@@ -227,21 +262,33 @@ namespace slib
 
 		void setExpandedIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getSelectedItemBackgroundColor();
+		Ref<Drawable> getItemBackground(ViewState state = ViewState::Default);
 
-		void setSelectedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setItemBackground(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getItemTextColor();
+		void setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setItemBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Color getItemTextColor(ViewState state);
+
+		void setItemTextColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setItemTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getHoverItemTextColor();
+		sl_ui_len getItemIconWidth();
 
-		void setHoverItemTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setItemIconWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getSelectedItemTextColor();
+		sl_ui_len getItemIconHeight();
 
-		void setSelectedItemTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setItemIconHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setItemIconSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setItemIconSize(sl_ui_len size, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_ui_len getItemHeight();
 
@@ -259,15 +306,19 @@ namespace slib
 
 		void setTextIndent(sl_ui_pos indent, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::UpdateLayout) override;
+	public:
+		SLIB_DECLARE_EVENT_HANDLER(TreeView, SelectItem, TreeViewItem* item, TreeViewItem* former, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(TreeView, ClickItem, TreeViewItem* item, UIEvent* ev)
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(TreeView, SelectItem, TreeViewItem* item)
+		void onDraw(Canvas* canvas) override;
 
-	protected:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 
+	protected:
 		void onChangePadding(UIUpdateMode mode) override;
+
+		void onUpdateFont(const Ref<Font>& font) override;
 
 	private:
 		void _createRootItem();
@@ -282,15 +333,21 @@ namespace slib
 
 		void _makeLayoutContent();
 
-		void _makeLayoutItem(TreeViewItem* item, sl_ui_pos& top, sl_ui_pos left, sl_ui_pos right, sl_bool flagRoot);
+		void _makeLayoutItem(TreeViewItem* item, sl_ui_pos& top, sl_ui_pos left, sl_ui_pos right, sl_ui_len defaultTextHeight, sl_bool flagRoot);
 
-		void _drawItem(Canvas* canvas, TreeViewItem* item, sl_bool flagRoot);
+		sl_ui_len _getItemHeight(TreeViewItem* item, sl_ui_len& textHeight);
+
+		ViewState _getItemState(TreeViewItem* item);
+
+		void _drawItem(Canvas* canvas, TreeViewItem* item, const Ref<Font>& parentFont, sl_bool flagRoot);
 
 		void _processMouseEvent(UIEvent* ev);
 
-		void _processMouseEventItem(UIEvent* ev, sl_bool flagClick, TreeViewItem* item, sl_bool flagRoot);
+		void _processMouseEventItem(UIEvent* ev, sl_bool flagClick, const Ref<TreeViewItem>& item, sl_bool flagRoot);
 
-		void _processClickItem(TreeViewItem* item);
+		void _selectItem(const Ref<TreeViewItem>& item, UIEvent* ev, UIUpdateMode mode);
+
+		void _clickItem(const Ref<TreeViewItem>& item, UIEvent* ev);
 
 	private:
 		class ContentView;
@@ -300,29 +357,26 @@ namespace slib
 
 		Ref<TreeViewItem> m_root;
 
-		AtomicRef<Drawable> m_itemIcon;
-		AtomicRef<Drawable> m_itemIconOpened;
-		AtomicRef<Drawable> m_itemIconClosed;
+		ViewStateMap< Ref<Drawable> > m_openedItemIcons;
+		ViewStateMap< Ref<Drawable> > m_closedItemIcons;
 		AtomicRef<Drawable> m_iconCollapsed;
 		AtomicRef<Drawable> m_iconExpanded;
+		sl_ui_len m_itemIconWidth;
+		sl_ui_len m_itemIconHeight;
 
-		Color m_selectedItemBackgroundColor;
-		Color m_itemTextColor;
-		Color m_hoverItemTextColor;
-		Color m_selectedItemTextColor;
+		ViewStateMap< Ref<Drawable> > m_itemBackgrounds;
+		ViewStateMap<Color> m_itemTextColors;
 
 		sl_ui_len m_itemHeight;
 		sl_ui_pos m_itemPadding;
 		sl_ui_pos m_itemIndent;
 		sl_ui_pos m_textIndent;
 
-		sl_ui_len m_layoutTextHeight;
-
 		AtomicRef<TreeViewItem> m_itemHover;
 		AtomicRef<TreeViewItem> m_itemSelected;
 
 		sl_bool m_flagBeginTapping;
-		UIPointf m_pointBeginTapping;
+		UIPointF m_pointBeginTapping;
 
 		friend class TreeViewItem;
 

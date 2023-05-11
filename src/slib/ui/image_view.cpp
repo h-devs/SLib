@@ -167,7 +167,7 @@ namespace slib
 	void ImageView::onDraw(Canvas* canvas)
 	{
 		if (m_timerAnimation.isNotNull()) {
-			double time = (Time::now() - m_timeStartAnimation).getSecondCountf();
+			double time = (Time::now() - m_timeStartAnimation).getSecondCountF();
 			Canvas::DrawParam param;
 			param.time = (float)time;
 			canvas->draw(getBoundsInnerPadding(), m_source, m_scaleMode, m_gravity, param);

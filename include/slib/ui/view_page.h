@@ -94,19 +94,17 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, Resume)
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, Pause)
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, PageAction, ViewPageNavigationController* controller, UIPageAction action)
+		void handlePageAction(ViewPageNavigationController* controller, UIPageAction action);
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, EndPageAnimation, ViewPageNavigationController* controller, UIPageAction action)
+		void handleEndPageAnimation(ViewPageNavigationController* controller, UIPageAction action);
 		// For mobile platforms
-		SLIB_DECLARE_EVENT_HANDLER(ViewPage, BackPressed, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ViewPage, PressBack, UIEvent* ev)
 		// Pressed mobile back button or Closed popup window
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, Back, UIEvent* ev)
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, ClickBackground, UIEvent* ev)
 
 	public:
-		using View::dispatchOK;
-		void dispatchOK(UIEvent* ev) override;
-
-		using View::dispatchCancel;
-		void dispatchCancel(UIEvent* ev) override;
+		void onCancel() override;
 
 	protected:
 		void _openPopup(const Ref<View>& parent, Transition transition, sl_bool flagFillParentBackground);

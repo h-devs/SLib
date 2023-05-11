@@ -358,7 +358,6 @@
 		D7C3BB0E26AEF20F00FD529D /* p2p.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C3BB0C26AEF20F00FD529D /* p2p.cpp */; };
 		D7C7097B26458FD700FB3A32 /* pseudo_tcp_message.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C7097926458FD600FB3A32 /* pseudo_tcp_message.cpp */; };
 		D7C7097C26458FD700FB3A32 /* pseudo_tcp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C7097A26458FD600FB3A32 /* pseudo_tcp.cpp */; };
-		D7C7097F26458FDF00FB3A32 /* dbip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C7097E26458FDF00FB3A32 /* dbip.cpp */; };
 		D7ECA21A26317C2800D366A8 /* decimal128.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA21926317C2800D366A8 /* decimal128.cpp */; };
 		D7ECA21E26317C6800D366A8 /* zlib_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA21D26317C6700D366A8 /* zlib_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7ECA22226317C7600D366A8 /* zstd_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA22126317C7600D366A8 /* zstd_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -812,7 +811,6 @@
 		D7C3BB0C26AEF20F00FD529D /* p2p.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = p2p.cpp; sourceTree = "<group>"; };
 		D7C7097926458FD600FB3A32 /* pseudo_tcp_message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp_message.cpp; sourceTree = "<group>"; };
 		D7C7097A26458FD600FB3A32 /* pseudo_tcp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp.cpp; sourceTree = "<group>"; };
-		D7C7097E26458FDF00FB3A32 /* dbip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dbip.cpp; sourceTree = "<group>"; };
 		D7ECA21926317C2800D366A8 /* decimal128.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = decimal128.cpp; sourceTree = "<group>"; };
 		D7ECA21D26317C6700D366A8 /* zlib_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zlib_unity.c; path = ../../external/src/zlib/zlib_unity.c; sourceTree = "<group>"; };
 		D7ECA22126317C7600D366A8 /* zstd_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zstd_unity.c; path = ../../external/src/zstd/zstd_unity.c; sourceTree = "<group>"; };
@@ -1379,7 +1377,6 @@
 			isa = PBXGroup;
 			children = (
 				26B5717C1C9D44930099E69B /* arp.cpp */,
-				D7C7097E26458FDF00FB3A32 /* dbip.cpp */,
 				266DD3BB1C1181B500D47AB0 /* dns.cpp */,
 				266DD3BC1C1181B500D47AB0 /* ethernet.cpp */,
 				266DD3BE1C1181B500D47AB0 /* http_common.cpp */,
@@ -1984,7 +1981,6 @@
 				26D9D8721E96294F005F7BD3 /* graphics_resource.cpp in Sources */,
 				26635CA1226706FD005E4BA6 /* ui_photo.cpp in Sources */,
 				26D9D8E71E962976005F7BD3 /* video_view.cpp in Sources */,
-				D7C7097F26458FDF00FB3A32 /* dbip.cpp in Sources */,
 				26D9D8D31E962976005F7BD3 /* select_view.cpp in Sources */,
 				18A3420627357C7C001F7E4F /* smb.cpp in Sources */,
 				26D9D84A1E9628E0005F7BD3 /* dispatch.cpp in Sources */,

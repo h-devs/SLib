@@ -41,7 +41,7 @@ namespace slib
 	public:
 		T* data;
 		sl_size count;
-		Ref<Referable> ref;
+		Ref<CRef> ref;
 
 	public:
 		T& operator[](sl_reg index) const noexcept
@@ -57,7 +57,7 @@ namespace slib
 	template <class T>
 	using AtomicArray = Atomic< Array<T> >;
 
-	class SLIB_EXPORT CArrayBase : public Referable
+	class SLIB_EXPORT CArrayBase : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -77,7 +77,7 @@ namespace slib
 	protected:
 		T* m_data;
 		sl_size m_count;
-		Ref<Referable> m_ref;
+		Ref<CRef> m_ref;
 		sl_bool m_flagStatic;
 
 	public:
@@ -118,7 +118,7 @@ namespace slib
 			m_count = 0;
 		}
 
-		CArray(const T* data, sl_size count, Referable* ref) noexcept: m_ref(ref)
+		CArray(const T* data, sl_size count, CRef* ref) noexcept: m_ref(ref)
 		{
 			m_data = const_cast<T*>(data);
 			m_count = count;
@@ -204,7 +204,7 @@ namespace slib
 			return sl_null;
 		}
 
-		static CArray<T>* createStatic(const T* data, sl_size count, Referable* ref = sl_null) noexcept
+		static CArray<T>* createStatic(const T* data, sl_size count, CRef* ref = sl_null) noexcept
 		{
 			if (data && count) {
 				return new CArray<T>(data, count, ref);
@@ -235,7 +235,7 @@ namespace slib
 			return m_flagStatic;
 		}
 
-		const Ref<Referable>& getRef() const noexcept
+		const Ref<CRef>& getRef() const noexcept
 		{
 			return m_ref;
 		}
@@ -310,7 +310,7 @@ namespace slib
 					if (m_flagStatic) {
 						return createStatic(m_data + start, count, m_ref.ptr);
 					} else {
-						return createStatic(m_data + start, count, (Referable*)this);
+						return createStatic(m_data + start, count, (CRef*)this);
 					}
 				}
 			}
@@ -463,7 +463,7 @@ namespace slib
 			pos = sl_null;
 		}
 
-		ArrayPosition(T* _pos, sl_size _count, Referable* _ref) noexcept: ref(_ref)
+		ArrayPosition(T* _pos, sl_size _count, CRef* _ref) noexcept: ref(_ref)
 		{
 			count = _count;
 			if (_count) {
@@ -514,7 +514,7 @@ namespace slib
 	private:
 		T* pos;
 		sl_size count;
-		Ref<Referable> ref;
+		Ref<CRef> ref;
 
 	};
 
@@ -534,7 +534,7 @@ namespace slib
 		template <class VALUE>
 		Array(const VALUE* data, sl_size count) noexcept: ref(CArray<T>::create(data, count)) {}
 
-		Array(const T* data, sl_size count, Referable* ref) noexcept: ref(CArray<T>::createStatic(data, count, ref)) {}
+		Array(const T* data, sl_size count, CRef* ref) noexcept: ref(CArray<T>::createStatic(data, count, ref)) {}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Array(const std::initializer_list<T>& l) noexcept: ref(CArray<T>::create(l.begin(), l.size())) {}
@@ -552,7 +552,7 @@ namespace slib
 			return CArray<T>::create(data, count);
 		}
 
-		static Array<T> createStatic(const T* data, sl_size count, Referable* ref = sl_null) noexcept
+		static Array<T> createStatic(const T* data, sl_size count, CRef* ref = sl_null) noexcept
 		{
 			return CArray<T>::createStatic(data, count, ref);
 		}
@@ -840,7 +840,7 @@ namespace slib
 		SLIB_ATOMIC_REF_WRAPPER(CArray<T>)
 
 	public:
-		Atomic(const T* data, sl_size count, Referable* ref, sl_bool flagStatic = sl_true) noexcept: ref(CArray<T>::create(data, count, ref, flagStatic)) {}
+		Atomic(const T* data, sl_size count, CRef* ref, sl_bool flagStatic = sl_true) noexcept: ref(CArray<T>::create(data, count, ref, flagStatic)) {}
 
 		Atomic(sl_size count) noexcept: ref(CArray<T>::create(count)) {}
 

@@ -437,8 +437,6 @@ namespace slib
 	using Matrix3T = MatrixT<3, 3, T>;
 
 	typedef Matrix3T<sl_real> Matrix3;
-	typedef Matrix3T<float> Matrix3f;
-	typedef Matrix3T<double> Matrix3lf;
 
 }
 

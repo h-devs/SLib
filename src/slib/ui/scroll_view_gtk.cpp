@@ -56,7 +56,7 @@ namespace slib
 				GtkScrolledWindow* handle = getHandle();
 
 				setScrollBarsVisible(view, view->isHorizontalScrollBarVisible(), view->isVerticalScrollBarVisible());
-				setBorder(view, view->isBorder());
+				setBorder(view, view->hasBorder());
 				setBackgroundColor(view, view->getBackgroundColor());
 				setContentView(view, view->getContentView());
 				scrollTo(view, view->getScrollX(), view->getScrollY(), sl_false);
@@ -96,7 +96,7 @@ namespace slib
 				return sl_false;
 			}
 
-			sl_bool getScrollPosition(View* view, ScrollPoint& _out) override
+			sl_bool getScrollPosition(View* view, ScrollPosition& _out) override
 			{
 				GtkScrolledWindow* handle = getHandle();
 				if (handle) {
@@ -109,7 +109,7 @@ namespace slib
 				return sl_false;
 			}
 
-			sl_bool getScrollRange(View* view, ScrollPoint& _out) override
+			sl_bool getScrollRange(View* view, ScrollPosition& _out) override
 			{
 				GtkScrolledWindow* handle = getHandle();
 				if (handle) {

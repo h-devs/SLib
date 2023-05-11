@@ -259,10 +259,8 @@ namespace slib
 	using Vector2T = VectorT<2, T, FT>;
 
 	typedef Vector2T<sl_real> Vector2;
-	typedef Vector2T<float> Vector2f;
-	typedef Vector2T<double> Vector2lf;
-	typedef Vector2T<sl_int32, float> Vector2i;
-	typedef Vector2T<sl_int64, double> Vector2li;
+	typedef Vector2T<float> Float2;
+	typedef Vector2T<double> Double2;
 
 }
 

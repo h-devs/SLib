@@ -240,27 +240,21 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_EVENT_HANDLER(WebView, StartLoad, const String& url)
+	SLIB_DEFINE_EVENT_HANDLER(WebView, StartLoad, (const String& url), url)
 
-	void WebView::dispatchStartLoad(const String& url)
+	SLIB_DEFINE_EVENT_HANDLER(WebView, FinishLoad, (const String& url, sl_bool flagFailed), url, flagFailed)
+
+	void WebView::handleFinishLoad(const String& url, sl_bool flagFailed)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(StartLoad, url)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(WebView, FinishLoad, const String& url, sl_bool flagFailed)
-
-	void WebView::dispatchFinishLoad(const String& url, sl_bool flagFailed)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(FinishLoad, url, flagFailed)
-
+		invokeFinishLoad(url, flagFailed);
 		if (!flagFailed && m_callbackQueryUserAgentCompletion.isNotNull()) {
 			runJavaScript("slib.send('result_query_user_agent', navigator.userAgent);");
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(WebView, MessageFromJavaScript, const String& msg, const String& param)
+	SLIB_DEFINE_EVENT_HANDLER(WebView, MessageFromJavaScript, (const String& msg, const String& param), msg, param)
 
-	void WebView::dispatchMessageFromJavaScript(const String& msg, const String& param)
+	void WebView::handleMessageFromJavaScript(const String& msg, const String& param)
 	{
 		if (msg == "result_query_user_agent") {
 			Function<void(WebView*, String)> callback = m_callbackQueryUserAgentCompletion;
@@ -268,15 +262,14 @@ namespace slib
 				callback(this, param);
 				m_callbackQueryUserAgentCompletion.setNull();
 			}
-			return;
+		} else {
+			invokeMessageFromJavaScript(msg, param);
 		}
-
-		SLIB_INVOKE_EVENT_HANDLER(MessageFromJavaScript, msg, param)
 	}
 
-	void WebView::dispatchResize(sl_ui_len width, sl_ui_len height)
+	void WebView::onResize(sl_ui_len width, sl_ui_len height)
 	{
-		View::dispatchResize(width, height);
+		View::onResize(width, height);
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {
 			instance->refreshSize(this);

@@ -382,8 +382,6 @@ namespace slib
 	};
 
 	typedef Transform2T<sl_real> Transform2;
-	typedef Transform2T<float> Transform2f;
-	typedef Transform2T<double> Transform2lf;
 
 }
 

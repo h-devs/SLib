@@ -325,18 +325,6 @@ namespace slib
 	template <sl_uint32 N>
 	using Vector = VectorT<N, sl_real>;
 
-	template <sl_uint32 N>
-	using Vectorf = VectorT<N, float>;
-
-	template <sl_uint32 N>
-	using Vectorlf = VectorT<N, double>;
-
-	template <sl_uint32 N>
-	using Vectori = VectorT<N, sl_int32, float>;
-
-	template <sl_uint32 N>
-	using Vectorli = VectorT<N, sl_int64, double>;
-
 }
 
 #endif

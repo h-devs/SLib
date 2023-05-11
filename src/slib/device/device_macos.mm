@@ -40,14 +40,14 @@ namespace slib
 		return displayPixelSize.width / displayPhysicalSize.width * 25.4;
 	}
 
-	Sizei Device::getScreenSize()
+	SizeI Device::getScreenSize()
 	{
 		NSScreen* screen = [NSScreen mainScreen];
 		if (screen != nil) {
 			NSRect frame = screen.frame;
-			return Sizei((int)(frame.size.width), (int)(frame.size.height));
+			return SizeI((int)(frame.size.width), (int)(frame.size.height));
 		}
-		return Sizei::zero();
+		return SizeI::zero();
 	}
 
 }

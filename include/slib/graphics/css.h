@@ -63,7 +63,7 @@ namespace slib
 
 	class StringBuffer;
 
-	class SLIB_EXPORT CascadingStyleValue : public Referable
+	class SLIB_EXPORT CascadingStyleValue : public CRef
 	{
 	public:
 		CascadingStyleValue(CascadingStyleValueType type);
@@ -168,7 +168,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT CascadingStyleSelector : public Referable
+	class SLIB_EXPORT CascadingStyleSelector : public CRef
 	{
 	public:
 		String namespaceName;

@@ -45,7 +45,7 @@ namespace slib
 		virtual void notifyUpdated(Texture* texture, sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
 
 	protected:
-		Rectanglei m_updatedRegion;
+		RectangleI m_updatedRegion;
 
 	};
 

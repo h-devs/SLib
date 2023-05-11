@@ -830,7 +830,7 @@ namespace slib
 			RadialGradient = 3
 		};
 
-		class Paint : public Referable
+		class Paint : public CRef
 		{
 		public:
 			PaintType type;
@@ -1008,7 +1008,7 @@ namespace slib
 			return sl_false;
 		}
 
-		class Element : public Referable, public Styler
+		class Element : public CRef, public Styler
 		{
 		public:
 			Element* parent = sl_null;
@@ -1697,7 +1697,7 @@ namespace slib
 				} else {
 					CanvasStateScope scope(canvas);
 					canvas->clipToRectangle(rectDst);
-					canvas->concatMatrix(Transform2f::getTransformMatrixFromRectToRect(rectViewBox, rectTarget));
+					canvas->concatMatrix(Transform2::getTransformMatrixFromRectToRect(rectViewBox, rectTarget));
 					Group::render(canvas, param);
 				}
 			}
@@ -1718,7 +1718,7 @@ namespace slib
 					Group::render(canvas, param);
 				} else {
 					CanvasStateScope scope(canvas);
-					canvas->concatMatrix(Transform2f::getTransformMatrixFromRectToRect(rectViewBox, rectDraw));
+					canvas->concatMatrix(Transform2::getTransformMatrixFromRectToRect(rectViewBox, rectDraw));
 					Group::render(canvas, param);
 				}
 			}

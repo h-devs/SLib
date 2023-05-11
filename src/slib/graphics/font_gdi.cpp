@@ -53,6 +53,9 @@ namespace slib
 				image = new Gdiplus::Bitmap(1, 1, PixelFormat24bppRGB);
 				if (image) {
 					graphics = new Gdiplus::Graphics(image);
+					if (graphics) {
+						graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
+					}
 				}
 			}
 
@@ -87,7 +90,7 @@ namespace slib
 
 		SLIB_SAFE_STATIC_GETTER(FontStaticContext, GetFontStaticContext)
 
-		class FontPlatformObject : public Referable
+		class FontPlatformObject : public CRef
 		{
 		public:
 			Gdiplus::Font* m_fontGdiplus;
@@ -289,11 +292,9 @@ namespace slib
 		Size ret(0, 0);
 		if (fs->graphics) {
 			StringData16 text(_text);
-			Gdiplus::StringFormat format(Gdiplus::StringFormat::GenericTypographic());
-			format.SetFormatFlags(format.GetFormatFlags() | Gdiplus::StringFormatFlagsMeasureTrailingSpaces);
 			Gdiplus::RectF bound;
 			Gdiplus::PointF origin(0, 0);
-			Gdiplus::Status result = fs->graphics->MeasureString((WCHAR*)(text.getData()), (INT)(text.getLength()), handle, origin, &format, &bound);
+			Gdiplus::Status result = fs->graphics->MeasureString((WCHAR*)(text.getData()), (INT)(text.getLength()), handle, origin, Gdiplus::StringFormat::GenericTypographic(), &bound);
 			if (result == Gdiplus::Ok) {
 				ret.x = bound.Width;
 				ret.y = bound.Height;

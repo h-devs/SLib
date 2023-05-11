@@ -136,6 +136,7 @@ namespace slib
 				return UIRect((sl_ui_pos)(rc.left), (sl_ui_pos)(rc.top), (sl_ui_pos)(rc.right), (sl_ui_pos)(rc.bottom));
 			}
 
+			using TabView::_onSelectTab_NW;
 		};
 
 		class TabViewInstance : public Win32_ViewInstance, public ITabViewInstance
@@ -215,7 +216,7 @@ namespace slib
 						UINT code = nmhdr->code;
 						if (code == TCN_SELCHANGE) {
 							sl_uint32 index = (sl_uint32)(SendMessageW(handle, TCM_GETCURSEL, 0, 0));
-							helper->dispatchSelectTab(index);
+							helper->_onSelectTab_NW(this, index);
 							helper->applyTabContents(this, handle);
 							return sl_true;
 						}

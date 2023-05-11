@@ -82,7 +82,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT CHashMapBase : public Referable, public Lockable
+	class SLIB_EXPORT CHashMapBase : public CRef, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -263,7 +263,7 @@ namespace slib
 			return RedBlackTree::find(entry, key, m_compare) != sl_null;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_bool getEqualRange(const KT& key, MapNode<KT, VT>** pStart = sl_null, MapNode<KT, VT>** pEnd = sl_null) const noexcept
 		{
 			NODE* entry = _getEntry(key);
@@ -297,7 +297,7 @@ namespace slib
 			return sl_null;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		VT* getItemPointer(const KT& key) const noexcept
 		{
 			NODE* entry = _getEntry(key);
@@ -308,7 +308,7 @@ namespace slib
 			return sl_null;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -320,7 +320,7 @@ namespace slib
 			return sl_null;
 		}
 
-		sl_bool get_NoLock(const KT& key, VT* _out = sl_null) const noexcept
+		sl_bool get_NoLock(const KT& key, VT* _out) const noexcept
 		{
 			NODE* entry = _getEntry(key);
 			NODE* node = RedBlackTree::find(entry, key, m_compare);
@@ -333,7 +333,7 @@ namespace slib
 			return sl_false;
 		}
 
-		sl_bool get(const KT& key, VT* _out = sl_null) const noexcept
+		sl_bool get(const KT& key, VT* _out) const noexcept
 		{
 			ObjectLocker lock(this);
 			NODE* entry = _getEntry(key);
@@ -729,7 +729,7 @@ namespace slib
 			return sl_true;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		void removeAt(NODE* node) noexcept
 		{
 			sl_size capacity = m_table.capacity;
@@ -740,7 +740,7 @@ namespace slib
 			RedBlackTree::removeNode(m_table.nodes + (node->hash & (capacity - 1)), m_table.count, node);
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_size removeAt(NODE* node, sl_size count) noexcept
 		{
 			sl_size capacity = m_table.capacity;
@@ -759,7 +759,7 @@ namespace slib
 			return n;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_size removeRange(NODE* first, NODE* last) noexcept
 		{
 			sl_size capacity = m_table.capacity;
@@ -1511,7 +1511,7 @@ namespace slib
 			return sl_false;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_bool getEqualRange(const KT& key, MapNode<KT, VT>** pStart = sl_null, MapNode<KT, VT>** pEnd = sl_null) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1541,7 +1541,7 @@ namespace slib
 			return sl_false;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		VT* getItemPointer(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1551,7 +1551,7 @@ namespace slib
 			return sl_null;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1562,7 +1562,7 @@ namespace slib
 			return sl_null;
 		}
 
-		sl_bool get_NoLock(const KT& key, VT* _out = sl_null) const noexcept
+		sl_bool get_NoLock(const KT& key, VT* _out) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
@@ -1571,7 +1571,7 @@ namespace slib
 			return sl_false;
 		}
 
-		sl_bool get(const KT& key, VT* _out = sl_null) const noexcept
+		sl_bool get(const KT& key, VT* _out) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
@@ -1786,7 +1786,7 @@ namespace slib
 			return MapBaseHelper::emplaceAll(this, other);
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		void removeAt(NODE* node) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1795,7 +1795,7 @@ namespace slib
 			}
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_size removeAt(NODE* node, sl_size count) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1805,7 +1805,7 @@ namespace slib
 			return 0;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_size removeRange(NODE* first, NODE* last) const noexcept
 		{
 			CMAP* obj = ref.ptr;

@@ -74,7 +74,7 @@ namespace slib
 		return createStatic(desc.width, desc.height, desc.colors, desc.stride, desc.ref.get());
 	}
 
-	Ref<Image> Image::createStatic(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride, Referable* ref)
+	Ref<Image> Image::createStatic(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride, CRef* ref)
 	{
 		if (!width || !height || !pixels) {
 			return sl_null;
@@ -1083,11 +1083,11 @@ namespace slib
 		class ColorOp_MulAddColor
 		{
 		public:
-			Color4f colorMul;
-			Color4f colorAdd;
+			Color4F colorMul;
+			Color4F colorAdd;
 
 		public:
-			SLIB_INLINE ColorOp_MulAddColor(const Color4f& _colorMul, const Color4f& _colorAdd): colorMul(_colorMul), colorAdd(_colorAdd)
+			SLIB_INLINE ColorOp_MulAddColor(const Color4F& _colorMul, const Color4F& _colorAdd): colorMul(_colorMul), colorAdd(_colorAdd)
 			{
 			}
 
@@ -2038,7 +2038,7 @@ namespace slib
 
 		static void DrawImage(
 			ImageDesc& dst, sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-			ImageDesc& src, const Color4f& srcMul, const Color4f& srcAdd,
+			ImageDesc& src, const Color4F& srcMul, const Color4F& srcAdd,
 			sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
 			BlendMode blend, StretchMode stretch)
 		{
@@ -2092,8 +2092,8 @@ namespace slib
 		drawImage(dx, dy, w, h, src, 0, 0, w, h, blend, stretch);
 	}
 
-	void Image::drawImage(const Rectanglei& rectDst,
-		const Ref<Image>& src, const Rectanglei& rectSrc,
+	void Image::drawImage(const RectangleI& rectDst,
+		const Ref<Image>& src, const RectangleI& rectSrc,
 		BlendMode blend, StretchMode stretch)
 	{
 		drawImage(rectDst.left, rectDst.top, rectDst.getWidth(), rectDst.getHeight(),
@@ -2101,7 +2101,7 @@ namespace slib
 			blend, stretch);
 	}
 
-	void Image::drawImage(const Rectanglei& rectDst,
+	void Image::drawImage(const RectangleI& rectDst,
 		const Ref<Image>& src, BlendMode blend, StretchMode stretch)
 	{
 		if (src.isNull()) {
@@ -2113,7 +2113,7 @@ namespace slib
 	}
 
 	void Image::drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-		const Ref<Image>& src, const Color4f& srcMul, const Color4f& srcAdd,
+		const Ref<Image>& src, const Color4F& srcMul, const Color4F& srcAdd,
 		sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
 		BlendMode blend, StretchMode stretch)
 	{
@@ -3325,9 +3325,11 @@ namespace slib
 				for (sl_int32 dy = top; dy <= bottom; dy++) {
 					Color* c = row;
 					for (sl_int32 dx = left; dx <= right; dx++) {
-						Pointi pt = transformInverse.transformPosition((sl_real)dx, (sl_real)dy);
-						if (pt.x >= 0 && pt.x < sw && pt.y >= 0 && pt.y < sh) {
-							blend(*c, src_colors[src_stride * pt.y + pt.x]);
+						Point p = transformInverse.transformPosition((sl_real)dx, (sl_real)dy);
+						sl_int32 x = (sl_int32)(p.x);
+						sl_int32 y = (sl_int32)(p.y);
+						if (x >= 0 && x < sw && y >= 0 && y < sh) {
+							blend(*c, src_colors[src_stride * y + x]);
 						}
 						c++;
 					}
@@ -3412,7 +3414,7 @@ namespace slib
 			DrawImage(dst, src, ColorOp_None(), transform, blend, stretch);
 		}
 
-		static void DrawImage(ImageDesc& dst, ImageDesc& src, const Color4f& srcMul, const Color4f& srcAdd, const Matrix3& transform, BlendMode blend, StretchMode stretch)
+		static void DrawImage(ImageDesc& dst, ImageDesc& src, const Color4F& srcMul, const Color4F& srcAdd, const Matrix3& transform, BlendMode blend, StretchMode stretch)
 		{
 			DrawImage(dst, src, ColorOp_MulAddColor(srcMul, srcAdd), transform, blend, stretch);
 		}
@@ -3434,7 +3436,7 @@ namespace slib
 		DrawImage(m_desc, srcDesc, transform, blend, stretch);
 	}
 
-	void Image::drawImage(const Ref<Image>& src, const Color4f& srcMul, const Color4f& srcAdd, const Matrix3& transform, BlendMode blend, StretchMode stretch)
+	void Image::drawImage(const Ref<Image>& src, const Color4F& srcMul, const Color4F& srcAdd, const Matrix3& transform, BlendMode blend, StretchMode stretch)
 	{
 		if (src.isNull()) {
 			return;
@@ -3454,7 +3456,7 @@ namespace slib
 		DrawImage(m_desc, srcDesc, cm, transform, blend, stretch);
 	}
 
-	sl_bool Image::getDrawnBounds(Rectanglei* _out) const
+	sl_bool Image::getDrawnBounds(RectangleI* _out) const
 	{
 		sl_uint32 w = m_desc.width;
 		if (!w) {

@@ -40,7 +40,7 @@ namespace slib
 	typedef CIterator<String, Variant> CPropertyIterator;
 	typedef Iterator<String, Variant> PropertyIterator;
 
-	class SLIB_EXPORT Object : public Referable, public Lockable
+	class SLIB_EXPORT Object : public CRef, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
 

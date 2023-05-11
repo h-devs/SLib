@@ -607,8 +607,6 @@ namespace slib
 	};
 
 	typedef Transform3T<sl_real> Transform3;
-	typedef Transform3T<float> Transform3f;
-	typedef Transform3T<double> Transform3lf;
 
 }
 

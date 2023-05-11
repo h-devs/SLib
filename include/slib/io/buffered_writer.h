@@ -76,7 +76,7 @@ namespace slib
 		void _init(const Ptrx<IWriter, IClosable>& writer, const Memory& buf);
 
 	protected:
-		Ref<Referable> m_ref;
+		Ref<CRef> m_ref;
 		IWriter* m_writer;
 		IClosable* m_closable;
 

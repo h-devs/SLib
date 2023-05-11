@@ -284,6 +284,8 @@ namespace slib
 				}
 			}
 
+			using EditView::_onChange_NW;
+			using EditView::_onPostChange_NW;
 		};
 
 		class EditViewInstance : public EFL_ViewInstance, public IEditViewInstance
@@ -445,7 +447,7 @@ namespace slib
 				if (helper.isNotNull()) {
 					if (!(helper->isChangeEventEnabled())) {
 						helper->invalidateText();
-						helper->dispatchPostChange();
+						helper->_onPostChange_NW();
 						return;
 					}
 					String text;
@@ -458,7 +460,7 @@ namespace slib
 						}
 					}
 					String textNew = text;
-					helper->dispatchChange(textNew);
+					helper->_onChange_NW(this, textNew);
 					if (text != textNew) {
 						if (textNew.isEmpty()) {
 							elm_entry_entry_set(obj, "");
@@ -471,7 +473,7 @@ namespace slib
 							}
 						}
 					}
-					helper->dispatchPostChange();
+					helper->_onPostChange_NW();
 				}
 			}
 
@@ -479,7 +481,7 @@ namespace slib
 			{
 				Ref<EditViewHelper> helper = CastRef<EditViewHelper>(UIPlatform::getView(obj));
 				if (helper.isNotNull()) {
-					helper->dispatchReturnKey();
+					helper->invokeReturnKey();
 				}
 			}
 

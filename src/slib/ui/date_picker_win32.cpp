@@ -35,6 +35,12 @@ namespace slib
 
 	namespace {
 
+		class DatePickerHelper : public DatePicker
+		{
+		public:
+			using DatePicker::_onChange_NW;
+		};
+
 		class DatePickerInstance : public Win32_ViewInstance, public IDatePickerInstance
 		{
 			SLIB_DECLARE_OBJECT
@@ -104,7 +110,7 @@ namespace slib
 							time = Win32::getTime(&(change->st), sl_false);
 						}
 						Time old = time;
-						view->dispatchChange(time);
+						((DatePickerHelper*)(view.get()))->_onChange_NW(this, time);
 						if (old != time) {
 							setDate(view.get(), time);
 						}

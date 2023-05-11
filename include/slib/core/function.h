@@ -717,7 +717,7 @@ namespace slib
 	}
 
 
-	class CallableBase : public Referable
+	class CallableBase : public CRef
 	{
 	public:
 		SLIB_DECLARE_OBJECT
@@ -1320,42 +1320,49 @@ namespace slib
 #define SLIB_FUNCTION_WEAKREF(OBJECT, CALLBACK) slib::CreateWeakRefFunction(OBJECT, &PRIV_SLIB_FUNCTION_GET_CLASS(OBJECT)::CALLBACK)
 
 #define SLIB_PROPERTY_FUNCTION(TYPE, NAME) \
-protected:	slib::AtomicFunction<TYPE> m_function_##NAME; \
-public:		slib::Function<TYPE> get##NAME() const { return m_function_##NAME; } \
- 			slib::Function<TYPE> set##NAME(const slib::Function<TYPE>& value) { m_function_##NAME = value; return value; } \
-			slib::Function<TYPE> add##NAME(const slib::Function<TYPE>& value) { return m_function_##NAME.add(value); } \
-			void remove##NAME(const slib::Function<TYPE>& value) { m_function_##NAME.remove(value); }
+	protected: \
+		slib::AtomicFunction<TYPE> m_function_##NAME; \
+	public: \
+		slib::Function<TYPE> get##NAME() const { return m_function_##NAME; } \
+ 		slib::Function<TYPE> set##NAME(const slib::Function<TYPE>& value) { m_function_##NAME = value; return value; } \
+		slib::Function<TYPE> add##NAME(const slib::Function<TYPE>& value) { return m_function_##NAME.add(value); } \
+		void remove##NAME(const slib::Function<TYPE>& value) { m_function_##NAME.remove(value); }
 
 #define SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(CLASS, NAME, ...) \
-public:		slib::Function<void(CLASS* sender, ##__VA_ARGS__)> getOn##NAME() const; \
-			slib::Function<void(CLASS* sender, ##__VA_ARGS__)> setOn##NAME(const slib::Function<void(CLASS* sender, ##__VA_ARGS__)>& handler); \
-			slib::Function<void(CLASS* sender, ##__VA_ARGS__)> addOn##NAME(const slib::Function<void(CLASS* sender, ##__VA_ARGS__)>& handler); \
-			void removeOn##NAME(const slib::Function<void(CLASS* sender, ##__VA_ARGS__)>& handler);
-
-#define SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_DISPATCH(CLASS, NAME, ...) \
-protected:	virtual void on##NAME(__VA_ARGS__); \
-			SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(CLASS, NAME, ##__VA_ARGS__);
+	public: \
+		typedef slib::Function<void(CLASS* sender, ##__VA_ARGS__)> On##NAME; \
+		slib::Function<void(CLASS* sender, ##__VA_ARGS__)> getOn##NAME() const; \
+		On##NAME setOn##NAME(const slib::Function<void(CLASS* sender, ##__VA_ARGS__)>& handler); \
+		On##NAME addOn##NAME(const slib::Function<void(CLASS* sender, ##__VA_ARGS__)>& handler); \
+		void removeOn##NAME(const slib::Function<void(CLASS* sender, ##__VA_ARGS__)>& handler); 
 
 #define SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(CLASS, NAME, ...) \
-			SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_DISPATCH(CLASS, NAME, ##__VA_ARGS__) \
-public:		virtual void dispatch##NAME(__VA_ARGS__);
+	SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(CLASS, NAME, ##__VA_ARGS__); \
+	public: \
+		virtual void on##NAME(__VA_ARGS__); \
+		void invoke##NAME(__VA_ARGS__);
 
 #define SLIB_DECLARE_EVENT_HANDLER(CLASS, NAME, ...) \
-protected:	slib::AtomicFunction<void(CLASS* sender, ##__VA_ARGS__)> m_eventHandler_on##NAME; \
-			SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(CLASS, NAME, ##__VA_ARGS__)
+	protected: \
+		slib::AtomicFunction<void(CLASS* sender, ##__VA_ARGS__)> m_eventHandler_on##NAME; \
+	SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(CLASS, NAME, ##__VA_ARGS__)
 
-#define SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(CLASS, NAME, ...) \
-	slib::Function<void(CLASS* sender, ##__VA_ARGS__)> CLASS::getOn##NAME() const { return m_eventHandler_on##NAME; } \
-	slib::Function<void(CLASS* sender, ##__VA_ARGS__)> CLASS::setOn##NAME(const slib::Function<void(CLASS* sender, ##__VA_ARGS__)>& handler) { m_eventHandler_on##NAME = handler; return handler; } \
-	slib::Function<void(CLASS* sender, ##__VA_ARGS__)> CLASS::addOn##NAME(const slib::Function<void(CLASS* sender, ##__VA_ARGS__)>& handler) { return m_eventHandler_on##NAME.add(handler); } \
-	void CLASS::removeOn##NAME(const slib::Function<void(CLASS* sender, ##__VA_ARGS__)>& handler) { m_eventHandler_on##NAME.remove(handler); }
+#define SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(CLASS, NAME, DEFINE_ARGS, ...) \
+	CLASS::On##NAME CLASS::getOn##NAME() const { return m_eventHandler_on##NAME; } \
+	CLASS::On##NAME CLASS::setOn##NAME(const On##NAME& handler) { m_eventHandler_on##NAME = handler; return handler; } \
+	CLASS::On##NAME CLASS::addOn##NAME(const On##NAME& handler) { return m_eventHandler_on##NAME.add(handler); } \
+	void CLASS::removeOn##NAME(const On##NAME& handler) { m_eventHandler_on##NAME.remove(handler); } \
+	void CLASS::invoke##NAME DEFINE_ARGS \
+	{ \
+		if (m_eventHandler_on##NAME.isNotNull()) { \
+			m_eventHandler_on##NAME(this, ##__VA_ARGS__); \
+		} else { \
+			on##NAME(__VA_ARGS__); \
+		} \
+	}
 
-#define SLIB_DEFINE_EVENT_HANDLER(CLASS, NAME, ...) \
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(CLASS, NAME, ##__VA_ARGS__) \
-	void CLASS::on##NAME(__VA_ARGS__) {}
-
-#define SLIB_INVOKE_EVENT_HANDLER(NAME, ...) \
-	getOn##NAME()(this, ##__VA_ARGS__); \
-	on##NAME(__VA_ARGS__);
+#define SLIB_DEFINE_EVENT_HANDLER(CLASS, NAME, DEFINE_ARGS, ...) \
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(CLASS, NAME, DEFINE_ARGS, ##__VA_ARGS__) \
+	void CLASS::on##NAME DEFINE_ARGS {}
 
 #endif

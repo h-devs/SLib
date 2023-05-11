@@ -66,9 +66,10 @@ namespace slib
 
 		void setGravity(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
+	protected:
 		void onUpdateLayout() override;
 
 	private:

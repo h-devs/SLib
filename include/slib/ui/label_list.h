@@ -151,7 +151,7 @@ public: \
 
 #define SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
 	SLIB_DECLARE_LABEL_LIST_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
-	virtual void notifySelectItem(INDEX_TYPE index, UIUpdateMode mode); \
+	virtual void notifySelectItem(INDEX_TYPE index, UIEvent* ev, UIUpdateMode mode); \
 	friend class SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>;
 
 #define SLIB_DECLARE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
@@ -184,30 +184,21 @@ public: \
 		void setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
 
 
-		Color getTextColor();
+		Color getTextColor(ViewState state = ViewState::Default);
+
+		void setTextColor(const Color& color, ViewState state, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
-
-		Color getSelectedTextColor();
-
-		void setSelectedTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getHoverTextColor();
-
-		void setHoverTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getFocusedTextColor();
-
-		void setFocusedTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void invalidateLabelAppearance(UIUpdateMode mode);
 
 	public:
-		void dispatchDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem) override;
+		void onDrawItem(sl_uint64 itemIndex, Canvas* canvas, const UIRect& rcItem) override;
 
 	protected:
 		void onUpdateFont(const Ref<Font>& font) override;
 
+	public:
 		void onDraw(Canvas* canvas) override;
 
 	public:
@@ -224,10 +215,7 @@ public: \
 		Alignment m_gravity;
 		EllipsizeMode m_ellipsizeMode;
 
-		Color m_textColor;
-		Color m_textColorSelected;
-		Color m_textColorHover;
-		Color m_textColorFocused;
+		ViewStateMap<Color> m_textColors;
 
 	};
 

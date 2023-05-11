@@ -62,7 +62,7 @@ namespace slib
 		void sendMessage(const String& receiverId, const String& message);
 
 	public:
-		void dispatchReceiveMessage(const String& roomId, ChatMessage& message);
+		void onReceiveMessage(const String& roomId, ChatMessage& message);
 
 	protected:
 		sl_bool initialize(const ChatClientParam& param);

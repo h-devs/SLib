@@ -356,7 +356,7 @@ namespace slib
 		sl_real stepX = GetStep(rectSrc.getWidth());
 		sl_real stepY = GetStep(rectSrc.getHeight());
 
-		Rectanglei rectSrci;
+		RectangleI rectSrci;
 		rectSrci.left = (sl_int32)(Math::floor(rectSrc.left / stepX));
 		rectSrci.right = (sl_int32)(Math::ceil(rectSrc.right / stepX));
 		rectSrci.top = (sl_int32)(Math::floor(rectSrc.top / stepY));

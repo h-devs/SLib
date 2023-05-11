@@ -69,7 +69,7 @@ namespace slib
 
 	}
 
-	void ChatClient::dispatchReceiveMessage(const String& roomId, ChatMessage& message)
+	void ChatClient::onReceiveMessage(const String& roomId, ChatMessage& message)
 	{
 
 	}

@@ -183,7 +183,7 @@ namespace slib
 				if (flagUpdate) {
 					if (attrs.width != 0 && attrs.height != 0) {
 						engine->setViewport(0, 0, attrs.width, attrs.height);
-						dispatchFrame(engine);
+						handleFrame(engine);
 						glXSwapBuffers(m_xdisplay, m_xwindow);
 					}
 				}

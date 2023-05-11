@@ -26,7 +26,7 @@ int main(int argc, const char * argv[])
 	hlinear->addChild(viewScreen);
 	window->addView(hlinear);
 
-	window->setOnDestroy([](Window*) {
+	window->setOnDestroy([](Window*, UIEvent*) {
 		UI::quitApp();
 	});
 	window->setMaximized(sl_true);
@@ -36,7 +36,7 @@ int main(int argc, const char * argv[])
 	window->setTitle("Browse Screens");
 	window->show();
 
-	lvUsers->setOnChangedSelection([viewScreen](ListBox*, UIEvent*) {
+	lvUsers->setOnChangeSelection([viewScreen](ListBox*, UIEvent*) {
 		viewScreen->setSource(sl_null);
 	});
 

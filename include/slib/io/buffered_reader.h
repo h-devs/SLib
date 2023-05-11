@@ -92,7 +92,7 @@ namespace slib
 		void _init(const Ptrx<IReader, IClosable>& reader, const Memory& buf);
 
 	private:
-		Ref<Referable> m_ref;
+		Ref<CRef> m_ref;
 		IReader* m_reader;
 		IClosable* m_closable;
 

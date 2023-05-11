@@ -90,13 +90,13 @@ namespace slib
 			return Time::zero();
 		}
 		Time time;
-		time.setSecondCountf([date timeIntervalSince1970]);
+		time.setSecondCountF([date timeIntervalSince1970]);
 		return time;
 	}
 
 	NSDate* Apple::getNSDateFromTime(const Time& time)
 	{
-		return [NSDate dateWithTimeIntervalSince1970:(time.getSecondCountf())];
+		return [NSDate dateWithTimeIntervalSince1970:(time.getSecondCountF())];
 	}
 
 	String Apple::getFilePathFromNSURL(NSURL* url)

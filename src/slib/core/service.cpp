@@ -81,16 +81,6 @@ namespace slib
 		}
 	}
 
-	sl_bool Service::dispatchStartService()
-	{
-		return onStartService();
-	}
-
-	void Service::dispatchStopService()
-	{
-		onStopService();
-	}
-
 #define START_ID "_STARTED"
 #define STOP_ID "_STOPPING"
 
@@ -373,8 +363,8 @@ namespace slib
 
 		String appName = getServiceId();
 
-		if (!(dispatchStartService())) {
-			dispatchStopService();
+		if (!(onStartService())) {
+			onStopService();
 			return -1;
 		}
 
@@ -389,7 +379,7 @@ namespace slib
 			m_eventQuit->wait(500);
 		}
 
-		dispatchStopService();
+		onStopService();
 
 		return 0;
 

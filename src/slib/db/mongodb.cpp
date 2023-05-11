@@ -350,7 +350,7 @@ namespace slib
 			return GetJsonFromBsonDocument(&iter);
 		}
 
-		class MongoDBEnv : public Referable
+		class MongoDBEnv : public CRef
 		{
 		public:
 			MongoDBEnv()

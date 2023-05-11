@@ -38,16 +38,17 @@ namespace slib
 		class ComboBoxHelper : public ComboBox
 		{
 		public:
-			void onChange(HWND handle)
+			void onChange(IComboBoxInstance* instance, HWND handle)
 			{
 				String text = UIPlatform::getWindowText(handle);
 				String textNew = text;
-				dispatchChange(textNew);
+				 _onChange_NW(instance, textNew);
 				if (text != textNew) {
 					UIPlatform::setWindowText(handle, textNew);
 				}
 			}
 
+			using ComboBox::_onSelectItem_NW;
 		};
 
 		LRESULT CALLBACK EditChildSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
@@ -177,7 +178,7 @@ namespace slib
 					if (font.isNotNull()) {
 						sl_ui_len height = (sl_ui_len)(font->getFontHeight());
 						height += 4;
-						if (view->isBorder()) {
+						if (view->hasBorder()) {
 							height += 2;
 						}
 						return height;
@@ -192,14 +193,14 @@ namespace slib
 					Ref<ComboBoxHelper> helper = CastRef<ComboBoxHelper>(getView());
 					if (helper.isNotNull()) {
 						sl_uint32 index = (sl_uint32)(SendMessageW(m_handle, CB_GETCURSEL, 0, 0));
-						helper->dispatchSelectItem(index);
+						helper->_onSelectItem_NW(index);
 						result = 0;
 						return sl_true;
 					}
 				} else if (code == CBN_EDITCHANGE) {
 					Ref<ComboBoxHelper> helper = CastRef<ComboBoxHelper>(getView());
 					if (helper.isNotNull()) {
-						helper->onChange(m_handle);
+						helper->onChange(this, m_handle);
 						result = 0;
 						return sl_true;
 					}

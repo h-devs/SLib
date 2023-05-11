@@ -63,6 +63,7 @@ void ExampleFCMApp::onStart()
 
 void ExampleFCMApp::onResume()
 {
+	MobileApp::onResume();
 	setBadgeNumber(0);
 }
 

@@ -43,7 +43,7 @@ namespace slib
 
 		void setEditable(sl_bool flagEditable);
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onMouseEvent(UIEvent* ev) override;

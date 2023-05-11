@@ -2,6 +2,7 @@
 
 #include "slib/ui/cursor.h"
 #include "slib/graphics/font.h"
+#include "slib/graphics/pen.h"
 
 namespace slib
 {
@@ -34,14 +35,17 @@ namespace slib
 			m_edit->setAlignParentTop(UIUpdateMode::Init);
 			m_edit->setBorder(sl_false, UIUpdateMode::Init);
 
-			m_edit->setOnChange([this](EditView*, String& value) {
-				dispatchChange(value);
+			m_edit->setOnChanging([this](EditView*, String& value, UIEvent* ev) {
+				invokeChanging(value, ev);
+			});
+			m_edit->setOnChange([this](EditView*, const String& value, UIEvent* ev) {
+				invokeChange(value, ev);
 			});
 			m_edit->setOnPostChange([this](EditView*) {
-				dispatchPostChange();
+				invokePostChange();
 			});
 			m_edit->setOnReturnKey([this](EditView*) {
-				dispatchReturnKey();
+				invokeReturnKey();
 			});
 
 			addChild(m_edit, UIUpdateMode::Init);
@@ -383,6 +387,22 @@ namespace slib
 		}
 	}
 
+	void XEditView::setEnabled(sl_bool flagEnabled, UIUpdateMode mode)
+	{
+		setEnabled(flagEnabled, mode);
+		if (m_edit.isNotNull()) {
+			m_edit->setEnabled(flagEnabled, mode);
+		}
+	}
+
+	sl_bool XEditView::isFocused()
+	{
+		if (m_edit.isNotNull()) {
+			return m_edit->isFocused();
+		}
+		return sl_false;
+	}
+
 	void XEditView::setFocus(sl_bool flagFocused, UIUpdateMode mode)
 	{
 		if (m_edit.isNotNull()) {
@@ -391,26 +411,13 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_EVENT_HANDLER(XEditView, Change, String& value)
+	SLIB_DEFINE_EVENT_HANDLER(XEditView, Changing, (String& value, UIEvent* ev /* nullable */), value, ev)
 
-	void XEditView::dispatchChange(String& value)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, value)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(XEditView, Change, (const String& value, UIEvent* ev /* nullable */), value, ev)
 
-	SLIB_DEFINE_EVENT_HANDLER(XEditView, PostChange)
+	SLIB_DEFINE_EVENT_HANDLER(XEditView, PostChange, ())
 
-	void XEditView::dispatchPostChange()
-	{
-		SLIB_INVOKE_EVENT_HANDLER(PostChange)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(XEditView, ReturnKey)
-
-	void XEditView::dispatchReturnKey()
-	{
-		SLIB_INVOKE_EVENT_HANDLER(ReturnKey)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(XEditView, ReturnKey, ())
 
 	void XEditView::onChangeSizeMode(UIUpdateMode mode)
 	{
@@ -429,15 +436,12 @@ namespace slib
 		}
 	}
 
-	void XEditView::dispatchClickEvent(UIEvent* ev)
+	void XEditView::onClickEvent(UIEvent* ev)
 	{
-		XControl::dispatchClickEvent(ev);
-		if (ev->isPreventedDefault()) {
-			return;
-		}
 		if (m_edit.isNotNull()) {
 			m_edit->setFocus();
 		}
+		XControl::onClickEvent(ev);
 	}
 
 

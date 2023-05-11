@@ -40,6 +40,17 @@ namespace slib
 		miterLimit = 10;
 	}
 
+	PenDesc::PenDesc(PenStyle _style, sl_real _width, const Color& _color)
+	{
+		style = _style;
+		width = _width;
+		color = _color;
+
+		cap = LineCap::Flat;
+		join = LineJoin::Miter;
+		miterLimit = 10;
+	}
+
 
 	SLIB_DEFINE_ROOT_OBJECT(Pen)
 
@@ -69,21 +80,35 @@ namespace slib
 		return ret;
 	}
 
+	Ref<Pen> Pen::create(const PenDesc& desc, const Ref<Pen>& original)
+	{
+		Ref<Pen> ret = new Pen;
+		if (ret.isNotNull()) {
+			PenDesc& descNew = ret->m_desc;
+			if (original.isNotNull()) {
+				original->getDesc(descNew);
+			}
+			if (desc.style != PenStyle::Default) {
+				descNew.style = desc.style;
+			}
+			if (desc.width >= 0.0f) {
+				descNew.width = desc.width;
+			}
+			if (desc.color.isNotZero()) {
+				descNew.color = desc.color;
+			}
+		}
+		return ret;
+	}
+
 	Ref<Pen> Pen::create(PenStyle style, sl_real width, const Color& color)
 	{
-		PenDesc desc;
-		desc.style = style;
-		desc.width = width;
-		desc.color = color;
-		return create(desc);
+		return create(PenDesc(style, width, color));
 	}
 
 	Ref<Pen> Pen::createSolidPen(sl_real width, const Color& color)
 	{
-		PenDesc desc;
-		desc.width = width;
-		desc.color = color;
-		return create(desc);
+		return create(PenDesc(PenStyle::Solid, width, color));
 	}
 
 	void Pen::getDesc(PenDesc& desc)

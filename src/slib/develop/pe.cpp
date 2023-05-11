@@ -29,12 +29,12 @@
 namespace slib
 {
 
-	sl_bool PE_DosHeader::checkSignature() const
+	sl_bool PE::DosHeader::checkSignature() const
 	{
 		return signature[0] == 'M' && signature[1] == 'Z';
 	}
 
-	sl_bool PE_Signature::check() const
+	sl_bool PE::Signature::check() const
 	{
 		return signature[0] == 'P' && signature[1] == 'E' && signature[2] == 0 && signature[3] == 0;
 	}
@@ -76,7 +76,7 @@ namespace slib
 			return sl_false;
 		}
 
-		PE_Signature sig;
+		Signature sig;
 		if (!(reader->readFully(&sig, sizeof(sig)))) {
 			return sl_false;
 		}
@@ -104,15 +104,15 @@ namespace slib
 			return sl_false;
 		}
 
-		offsetToSections = dos.newHeader + sizeof(PE_Signature) + sizeof(CoffHeader) + header.sizeOfOptionalHeader;
-		offsetToSymbolNames = header.offsetToSymbolTable + header.numberOfSymbols * sizeof(CoffSymbolDesc);
+		offsetToSections = dos.newHeader + sizeof(Signature) + sizeof(Header) + header.sizeOfOptionalHeader;
+		offsetToSymbolNames = header.offsetToSymbolTable + header.numberOfSymbols * sizeof(SymbolDesc);
 
 		_init(_baseAddress, _reader);
 
 		return sl_true;
 	}
 
-	PE_DirectoryEntry* PE::getImportTableDirectory()
+	PE::DirectoryEntry* PE::getImportTableDirectory()
 	{
 		if (!(isLoaded())) {
 			return sl_null;
@@ -124,7 +124,19 @@ namespace slib
 		}
 	}
 
-	PE_DirectoryEntry* PE::getExportTableDirectory()
+	PE::DirectoryEntry* PE::getDelayImportDescriptors()
+	{
+		if (!(isLoaded())) {
+			return sl_null;
+		}
+		if (flag64Bit) {
+			return optional64.directoryEntry + SLIB_PE_DIRECTORY_DELAY_IMPORT_DESCRIPTOR;
+		} else {
+			return optional32.directoryEntry + SLIB_PE_DIRECTORY_DELAY_IMPORT_DESCRIPTOR;
+		}
+	}
+
+	PE::DirectoryEntry* PE::getExportTableDirectory()
 	{
 		if (!(isLoaded())) {
 			return sl_null;
@@ -136,18 +148,40 @@ namespace slib
 		}
 	}
 
-	PE_ImportDescriptor* PE::findImportTable(const StringView& dllName)
+	PE::ImportDescriptor* PE::findImportTable(const StringView& dllName)
 	{
-		PE_DirectoryEntry* pImportEntry = getImportTableDirectory();
-		if (!pImportEntry) {
+		DirectoryEntry* entry = getImportTableDirectory();
+		if (!entry) {
 			return sl_null;
 		}
 		sl_uint8* base = (sl_uint8*)baseAddress;
-		sl_uint32 n = pImportEntry->size / sizeof(PE_ImportDescriptor);
-		PE_ImportDescriptor* import = (PE_ImportDescriptor*)(base + pImportEntry->address);
+		sl_uint32 n = entry->size / sizeof(ImportDescriptor);
+		ImportDescriptor* import = (ImportDescriptor*)(base + entry->address);
 		for (sl_uint32 i = 0; i < n; i++) {
-			if (dllName.equals_IgnoreCase((char*)(base + import->name))) {
-				return import;
+			if (import->dllName) {
+				if (dllName.equals_IgnoreCase((char*)(base + import->dllName))) {
+					return import;
+				}
+			}
+			import++;
+		}
+		return sl_null;
+	}
+
+	PE::DelayImportDescriptor* PE::findDelayImportDescriptor(const StringView& dllName)
+	{
+		DirectoryEntry* entry = getDelayImportDescriptors();
+		if (!entry) {
+			return sl_null;
+		}
+		sl_uint8* base = (sl_uint8*)baseAddress;
+		sl_uint32 n = entry->size / sizeof(DelayImportDescriptor);
+		DelayImportDescriptor* import = (DelayImportDescriptor*)(base + entry->address);
+		for (sl_uint32 i = 0; i < n; i++) {
+			if (import->dllName) {
+				if (dllName.equals_IgnoreCase((char*)(base + import->dllName))) {
+					return import;
+				}
 			}
 			import++;
 		}
@@ -156,12 +190,12 @@ namespace slib
 
 	sl_uint32* PE::_findExportFunctionOffsetEntry(const StringView& functionName)
 	{
-		PE_DirectoryEntry* pExportEntry = getExportTableDirectory();
+		DirectoryEntry* pExportEntry = getExportTableDirectory();
 		if (!pExportEntry) {
 			return sl_null;
 		}
 		sl_uint8* base = (sl_uint8*)baseAddress;
-		PE_ExportDirectory* pExportDirectory = (PE_ExportDirectory*)(base + pExportEntry->address);
+		ExportDirectory* pExportDirectory = (ExportDirectory*)(base + pExportEntry->address);
 		sl_uint32 nameRVA = pExportDirectory->addressOfNames;
 		sl_uint32 funcRVA = pExportDirectory->addressOfFunctions;
 		sl_uint32 nameOrdinalRVA = pExportDirectory->addressOfNameOrdinals;
@@ -198,25 +232,25 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CoffSection)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Coff, Section)
 
-	CoffSection::CoffSection()
+	Coff::Section::Section()
 	{
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CoffCodeSection)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Coff, CodeSection)
 
-	CoffCodeSection::CoffCodeSection()
+	Coff::CodeSection::CodeSection()
 	{
 		sectionIndex = 0;
 		codeOffset = 0;
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CoffSymbol)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Coff, Symbol)
 
-	CoffSymbol::CoffSymbol()
+	Coff::Symbol::Symbol()
 	{
 	}
 
@@ -265,7 +299,7 @@ namespace slib
 		}
 
 		offsetToSections = sizeof(header);
-		offsetToSymbolNames = header.offsetToSymbolTable + header.numberOfSymbols * sizeof(CoffSymbolDesc);
+		offsetToSymbolNames = header.offsetToSymbolTable + header.numberOfSymbols * sizeof(SymbolDesc);
 
 		_init(_baseAddress, _reader);
 
@@ -282,25 +316,25 @@ namespace slib
 		return m_reader != sl_null;
 	}
 
-	sl_bool Coff::getSection(sl_uint32 index, CoffSection& outSection)
+	sl_bool Coff::getSection(sl_uint32 index, Section& outSection)
 	{
 		if (!(isLoaded())) {
 			return sl_false;
 		}
 		IReader* reader = m_reader;
 		ISeekable* seeker = m_seekable;
-		if (!(seeker->seek(offsetToSections + index * sizeof(CoffSectionDesc), SeekPosition::Begin))) {
+		if (!(seeker->seek(offsetToSections + index * sizeof(SectionDesc), SeekPosition::Begin))) {
 			return sl_false;
 		}
-		CoffSectionDesc& desc = outSection;
-		if (!(reader->readFully(&desc, sizeof(CoffSectionDesc)))) {
+		SectionDesc& desc = outSection;
+		if (!(reader->readFully(&desc, sizeof(SectionDesc)))) {
 			return sl_false;
 		}
 		outSection.name = String(desc.name, Base::getStringLength(desc.name, 8));
 		return sl_true;
 	}
 
-	Memory Coff::getSectionData(const CoffSectionDesc& section)
+	Memory Coff::getSectionData(const SectionDesc& section)
 	{
 		if (!(isLoaded())) {
 			return sl_null;
@@ -318,20 +352,20 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool Coff::getSectionRelocation(const CoffSectionDesc& section, sl_uint32 index, CoffSectionRelocation& outRelocation)
+	sl_bool Coff::getSectionRelocation(const SectionDesc& section, sl_uint32 index, SectionRelocation& outRelocation)
 	{
 		if (!(isLoaded())) {
 			return sl_false;
 		}
 		IReader* reader = m_reader;
 		ISeekable* seeker = m_seekable;
-		if (!(seeker->seek(section.offsetToRelocations + sizeof(CoffSectionRelocation) * index, SeekPosition::Begin))) {
+		if (!(seeker->seek(section.offsetToRelocations + sizeof(SectionRelocation) * index, SeekPosition::Begin))) {
 			return sl_null;
 		}
-		return reader->readFully(&outRelocation, sizeof(CoffSectionRelocation));
+		return reader->readFully(&outRelocation, sizeof(SectionRelocation));
 	}
 
-	CoffSymbol* Coff::getSymbol(sl_uint32 index)
+	Coff::Symbol* Coff::getSymbol(sl_uint32 index)
 	{
 		if (!(isLoaded())) {
 			return sl_null;
@@ -342,16 +376,16 @@ namespace slib
 		return sl_null;
 	}
 
-	CoffSymbol* Coff::findSymbol(const StringParam& _name)
+	Coff::Symbol* Coff::findSymbol(const StringParam& _name)
 	{
 		if (!(isLoaded())) {
 			return sl_null;
 		}
 		if (_loadSymbols()) {
-			ListElements<CoffSymbol> symbols(m_symbols);
+			ListElements<Symbol> symbols(m_symbols);
 			StringData name(_name);
 			for (sl_uint32 i = 0; i < symbols.count; i++) {
-				CoffSymbol& symbol = symbols[i];
+				Symbol& symbol = symbols[i];
 				if (symbol.name == name) {
 					return &symbol;
 				}
@@ -360,15 +394,15 @@ namespace slib
 		return sl_null;
 	}
 
-	List<CoffCodeSection> Coff::getCodeSections()
+	List<Coff::CodeSection> Coff::getCodeSections()
 	{
 		if (!(isLoaded())) {
 			return sl_null;
 		}
-		List<CoffCodeSection> ret;
+		List<CodeSection> ret;
 		sl_uint32 codeOffset = 0;
 		for (sl_uint32 i = 0; i < header.numberOfSections; i++) {
-			CoffCodeSection section;
+			CodeSection section;
 			if (getSection(i, section)) {
 				if (section.name == "text") {
 					section.codeOffset = codeOffset;
@@ -383,7 +417,7 @@ namespace slib
 		return ret;
 	}
 
-	List<CoffCodeSection> Coff::getCodeSectionsReferencedFrom(const StringParam& entrySymbolName)
+	List<Coff::CodeSection> Coff::getCodeSectionsReferencedFrom(const StringParam& entrySymbolName)
 	{
 		if (!(isLoaded())) {
 			return sl_null;
@@ -392,12 +426,12 @@ namespace slib
 		IReader* reader = m_reader;
 		ISeekable* seeker = m_seekable;
 
-		CoffCodeSectionSet sections(getCodeSections());
+		CodeSectionSet sections(getCodeSections());
 		if (!(sections.count)) {
 			return sl_null;
 		}
 
-		CoffSymbol* pSymbolEntry = findSymbol(entrySymbolName);
+		Symbol* pSymbolEntry = findSymbol(entrySymbolName);
 		if (!pSymbolEntry) {
 			return sl_null;
 		}
@@ -408,7 +442,7 @@ namespace slib
 		for (;;) {
 			sl_bool flagFoundNewSection = sl_false;
 			for (auto& item : refSections) {
-				CoffCodeSection* pSection = sections.getSectionByNumber(item.key);
+				CodeSection* pSection = sections.getSectionByNumber(item.key);
 				if (pSection) {
 					if (!(item.value)) {
 						item.value = 1;
@@ -417,12 +451,12 @@ namespace slib
 							return sl_null;
 						}
 						for (sl_uint32 i = 0; i < pSection->numberOfRelocations; i++) {
-							CoffSectionRelocation relocation;
+							SectionRelocation relocation;
 							if (!(reader->readFully(&relocation, sizeof(relocation)))) {
 								return sl_null;
 							}
 							if (relocation.type == SLIB_PE_RELOC_I386_REL32 || relocation.type == SLIB_PE_REL_AMD64_REL32) {
-								CoffSymbol* pSymbol = getSymbol(relocation.symbolTableIndex);
+								Symbol* pSymbol = getSymbol(relocation.symbolTableIndex);
 								if (pSymbol) {
 									if (!(refSections.find_NoLock(pSymbol->sectionNumber))) {
 										refSections.put_NoLock(pSymbol->sectionNumber, 0);
@@ -442,10 +476,10 @@ namespace slib
 			}
 		}
 
-		List<CoffCodeSection> ret;
+		List<CodeSection> ret;
 		{
 			for (auto& item : refSections) {
-				CoffCodeSection* pSection = sections.getSectionByNumber(item.key);
+				CodeSection* pSection = sections.getSectionByNumber(item.key);
 				if (pSection) {
 					ret.add_NoLock(*pSection);
 				} else {
@@ -456,7 +490,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_uint32 Coff::getCodeSectionSize(const CoffSectionDesc& section)
+	sl_uint32 Coff::getCodeSectionSize(const SectionDesc& section)
 	{
 		sl_uint32 sizeOfRawData = section.sizeOfRawData;
 		if (header.machine == SLIB_COFF_MACHINE_I386) {
@@ -480,11 +514,11 @@ namespace slib
 			return sl_false;
 		}
 
-		List<CoffSymbol> list;
+		List<Symbol> list;
 		for (sl_uint32 i = 0; i < header.numberOfSymbols; i++) {
-			CoffSymbol symbol;
-			CoffSymbolDesc& desc = symbol;
-			if (!(reader->readFully(&desc, sizeof(CoffSymbolDesc)))) {
+			Symbol symbol;
+			SymbolDesc& desc = symbol;
+			if (!(reader->readFully(&desc, sizeof(SymbolDesc)))) {
 				return sl_false;
 			}
 			if (desc.name.longName[0]) {
@@ -495,7 +529,7 @@ namespace slib
 					return sl_false;
 				}
 				symbol.name = SeekableReaderHelper::readNullTerminatedString(reader, seeker);
-				if (!(seeker->seek(header.offsetToSymbolTable + (i + 1) * sizeof(CoffSymbolDesc), SeekPosition::Begin))) {
+				if (!(seeker->seek(header.offsetToSymbolTable + (i + 1) * sizeof(SymbolDesc), SeekPosition::Begin))) {
 					return sl_false;
 				}
 			}
@@ -508,18 +542,18 @@ namespace slib
 	}
 
 
-	CoffCodeSectionSet::CoffCodeSectionSet(const List<CoffCodeSection>& sections): ListElements(sections)
+	Coff::CodeSectionSet::CodeSectionSet(const List<CodeSection>& sections): ListElements(sections)
 	{
 		for (sl_uint32 i = 0; i < count; i++) {
 			m_mapSectionIndex.put_NoLock(data[i].sectionIndex + 1, (sl_uint32)i);
 		}
 	}
 
-	CoffCodeSectionSet::~CoffCodeSectionSet()
+	Coff::CodeSectionSet::~CodeSectionSet()
 	{
 	}
 
-	CoffCodeSection* CoffCodeSectionSet::getSectionByNumber(sl_uint32 sectionNumber)
+	Coff::CodeSection* Coff::CodeSectionSet::getSectionByNumber(sl_uint32 sectionNumber)
 	{
 		sl_uint32 index;
 		if (m_mapSectionIndex.get_NoLock(sectionNumber, &index)) {

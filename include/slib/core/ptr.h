@@ -39,43 +39,43 @@ namespace slib
 			extern const ConstStruct g_null;
 
 			template <class... TYPES>
-			static const Ref<Referable>& GetRef(const Ref<TYPES...>& ref) noexcept
+			static const Ref<CRef>& GetRef(const Ref<TYPES...>& ref) noexcept
 			{
-				return Ref<Referable>::from(ref);
+				return Ref<CRef>::from(ref);
 			}
 
 			template <class... TYPES>
-			static Ref<Referable>&& GetRef(Ref<TYPES...>&& ref) noexcept
+			static Ref<CRef>&& GetRef(Ref<TYPES...>&& ref) noexcept
 			{
-				return Move(Ref<Referable>::from(ref));
+				return Move(Ref<CRef>::from(ref));
 			}
 
 			template <class OTHER>
-			static const AtomicRef<Referable>& GetRef(const AtomicRef<OTHER>& ref) noexcept
+			static const AtomicRef<CRef>& GetRef(const AtomicRef<OTHER>& ref) noexcept
 			{
-				return AtomicRef<Referable>::from(ref);
+				return AtomicRef<CRef>::from(ref);
 			}
 
 			template <class OTHER>
-			static const Ref<Referable>& GetRef(const WeakRef<OTHER>& weak) noexcept
+			static const Ref<CRef>& GetRef(const WeakRef<OTHER>& weak) noexcept
 			{
-				return Ref<Referable>::from(weak._weak);
+				return Ref<CRef>::from(weak._weak);
 			}
 
 			template <class OTHER>
-			static Ref<Referable>&& GetRef(WeakRef<OTHER>&& weak) noexcept
+			static Ref<CRef>&& GetRef(WeakRef<OTHER>&& weak) noexcept
 			{
-				return Move(Ref<Referable>::from(weak._weak));
+				return Move(Ref<CRef>::from(weak._weak));
 			}
 
 			template <class OTHER>
-			static const AtomicRef<Referable>& GetRef(const AtomicWeakRef<OTHER>& weak) noexcept
+			static const AtomicRef<CRef>& GetRef(const AtomicWeakRef<OTHER>& weak) noexcept
 			{
-				return AtomicRef<Referable>::from(weak._weak);
+				return AtomicRef<CRef>::from(weak._weak);
 			}
 
 			template <class T>
-			class ManagedPtrContainer : public Referable
+			class ManagedPtrContainer : public CRef
 			{
 			public:
 				T* ptr;
@@ -91,7 +91,7 @@ namespace slib
 			};
 
 			template <class T, class Deleter>
-			class ManagedPtrContainerWithDeleter : public Referable
+			class ManagedPtrContainerWithDeleter : public CRef
 			{
 			public:
 				T* ptr;
@@ -122,7 +122,7 @@ namespace slib
 	{
 	public:
 		T* ptr;
-		Ref<Referable> ref;
+		Ref<CRef> ref;
 
 	public:
 		SLIB_CONSTEXPR Ptr(): ptr(sl_null) {}
@@ -225,7 +225,7 @@ namespace slib
 		static Ptr createManaged(const T* ptr)
 		{
 			if (ptr) {
-				Ref<Referable> ref = new priv::ptr::ManagedPtrContainer<T>(ptr);
+				Ref<CRef> ref = new priv::ptr::ManagedPtrContainer<T>(ptr);
 				if (ref.isNotNull()) {
 					return Ptr((T*)ptr, Move(ref));
 				}
@@ -237,7 +237,7 @@ namespace slib
 		static Ptr createManagedWithDeleter(const T* ptr, DELETER&& deleter)
 		{
 			if (ptr) {
-				Ref<Referable> ref = new priv::ptr::ManagedPtrContainerWithDeleter<T, typename RemoveConstReference<DELETER>::Type>(ptr, deleter);
+				Ref<CRef> ref = new priv::ptr::ManagedPtrContainerWithDeleter<T, typename RemoveConstReference<DELETER>::Type>(ptr, deleter);
 				if (ref.isNotNull()) {
 					return Ptr((T*)ptr, Move(ref));
 				}
@@ -297,17 +297,17 @@ namespace slib
 
 		sl_bool isWeak() const noexcept
 		{
-			Referable* obj = ref.ptr;
+			CRef* obj = ref.ptr;
 			return obj && obj->_isWeakRef();
 		}
 
-		sl_bool lockRef(Ref<Referable>& outRef) const noexcept
+		sl_bool lockRef(Ref<CRef>& outRef) const noexcept
 		{
-			Referable* obj = ref.ptr;
+			CRef* obj = ref.ptr;
 			if (obj) {
 				if (obj->_isWeakRef()) {
 					CWeakRef* weak = static_cast<CWeakRef*>(obj);
-					Ref<Referable> r(weak->lock());
+					Ref<CRef> r(weak->lock());
 					if (r.isNotNull()) {
 						outRef = Move(r);
 						return sl_true;
@@ -323,10 +323,10 @@ namespace slib
 
 		Ptr lock() const noexcept
 		{
-			Referable* obj = ref.ptr;
+			CRef* obj = ref.ptr;
 			if (obj && obj->_isWeakRef()) {
 				CWeakRef* weak = static_cast<CWeakRef*>(obj);
-				Ref<Referable> r(weak->lock());
+				Ref<CRef> r(weak->lock());
 				if (r.isNotNull()) {
 					return Ptr(ptr, Move(r));
 				} else {
@@ -339,9 +339,9 @@ namespace slib
 
 		Ptr toWeak() const noexcept
 		{
-			Referable* obj = ref.ptr;
+			CRef* obj = ref.ptr;
 			if (obj && !(obj->_isWeakRef())) {
-				return Ptr(ptr, WeakRef<Referable>(obj));
+				return Ptr(ptr, WeakRef<CRef>(obj));
 			} else {
 				return *this;
 			}
@@ -571,7 +571,7 @@ namespace slib
 	{
 	public:
 		T* _ptr;
-		Ref<Referable> _ref;
+		Ref<CRef> _ref;
 
 	public:
 		SLIB_CONSTEXPR Atomic(): _ptr(sl_null) {}
@@ -674,7 +674,7 @@ namespace slib
 
 		void setNull() noexcept
 		{
-			_replace(sl_null, Ref<Referable>::null());
+			_replace(sl_null, Ref<CRef>::null());
 		}
 
 		template <class OTHER>
@@ -698,19 +698,19 @@ namespace slib
 	public:
 		void set(T* pointer) noexcept
 		{
-			_replace(pointer, Ref<Referable>::null());
+			_replace(pointer, Ref<CRef>::null());
 		}
 
 		void set(sl_null_t) noexcept
 		{
-			_replace(sl_null, Ref<Referable>::null());
+			_replace(sl_null, Ref<CRef>::null());
 		}
 
 		template <class OTHER>
 		void set(const AtomicPtr<OTHER>& other) noexcept
 		{
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
-			Ref<Referable> reference;
+			Ref<CRef> reference;
 			T* pointer = other._retain(reference);
 			_replace(pointer, Move(reference));
 		}
@@ -734,7 +734,7 @@ namespace slib
 		void set(const Ref<OTHER>& reference) noexcept
 		{
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
-			_replace(reference.ptr, Ref<Referable>::from(reference));
+			_replace(reference.ptr, Ref<CRef>::from(reference));
 		}
 
 		template <class OTHER>
@@ -742,7 +742,7 @@ namespace slib
 		{
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 			Ref<OTHER> reference(_reference);
-			_replace(reference.ptr, Ref<Referable>::from(reference));
+			_replace(reference.ptr, Ref<CRef>::from(reference));
 		}
 
 		template <class OTHER>
@@ -751,9 +751,9 @@ namespace slib
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 			Ref<OTHER> o(weak);
 			if (o.isNotNull()) {
-				_replace(o.ptr, Ref<Referable>::from(weak._weak));
+				_replace(o.ptr, Ref<CRef>::from(weak._weak));
 			} else {
-				_replace(sl_null, Ref<Referable>::null());
+				_replace(sl_null, Ref<CRef>::null());
 			}
 		}
 
@@ -764,9 +764,9 @@ namespace slib
 			WeakRef<OTHER> weak(_weak);
 			Ref<OTHER> o(weak);
 			if (o.isNotNull()) {
-				_replace(o.ptr, Ref<Referable>::from(Move(weak._weak)));
+				_replace(o.ptr, Ref<CRef>::from(Move(weak._weak)));
 			} else {
-				_replace(sl_null, Ref<Referable>::null());
+				_replace(sl_null, Ref<CRef>::null());
 			}
 		}
 
@@ -791,7 +791,7 @@ namespace slib
 	public:
 		Atomic& operator=(const Atomic& other) noexcept
 		{
-			Ref<Referable> reference;
+			Ref<CRef> reference;
 			T* pointer = other._retain(reference);
 			_replace(pointer, Move(reference));
 			return *this;
@@ -854,7 +854,7 @@ namespace slib
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
 
 	public:
-		T* _retain(Ref<Referable>& reference) const noexcept
+		T* _retain(Ref<CRef>& reference) const noexcept
 		{
 			if ((void*)this == (void*)(&(priv::ptr::g_null))) {
 				return sl_null;
@@ -867,24 +867,24 @@ namespace slib
 			}
 		}
 
-		void _replace(T* pointer, const Ref<Referable>& reference) noexcept
+		void _replace(T* pointer, const Ref<CRef>& reference) noexcept
 		{
 			m_lock.lock();
 			_ptr = pointer;
-			Referable* refOld = _ref.ptr;
-			new (&_ref) Ref<Referable>(reference);
+			CRef* refOld = _ref.ptr;
+			new (&_ref) Ref<CRef>(reference);
 			m_lock.unlock();
 			if (refOld) {
 				refOld->decreaseReference();
 			}
 		}
 
-		void _replace(T* pointer, Ref<Referable>&& reference) noexcept
+		void _replace(T* pointer, Ref<CRef>&& reference) noexcept
 		{
 			m_lock.lock();
 			_ptr = pointer;
-			Referable* refOld = _ref.ptr;
-			new (&_ref) Ref<Referable>(Move(reference));
+			CRef* refOld = _ref.ptr;
+			new (&_ref) Ref<CRef>(Move(reference));
 			m_lock.unlock();
 			if (refOld) {
 				refOld->decreaseReference();
@@ -903,7 +903,7 @@ namespace slib
 			if ((void*)this != _other) {
 				Ptr<T>& other = *(reinterpret_cast<Ptr<T>*>(_other));
 				m_lock.lock();
-				Referable* refOld = _ref.ptr;
+				CRef* refOld = _ref.ptr;
 				_ref.ptr = other.ref.ptr;
 				other.ref.ptr = sl_null;
 				m_lock.unlock();

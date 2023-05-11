@@ -278,9 +278,10 @@ namespace slib
 		m_flagCuttingOverflowItems = flag;
 	}
 
-	void CollectionView::onScroll(sl_scroll_pos x, sl_scroll_pos y)
+	void CollectionView::onScroll(ScrollEvent* ev)
 	{
-		if (Math::isAlmostZero(y - (sl_scroll_pos)m_lastScrollY)) {
+		VerticalScrollView::onScroll(ev);
+		if (Math::isAlmostZero(ev->y - (sl_scroll_pos)m_lastScrollY)) {
 			return;
 		}
 		_requestLayout();
@@ -288,6 +289,7 @@ namespace slib
 
 	void CollectionView::onResize(sl_ui_len x, sl_ui_len y)
 	{
+		VerticalScrollView::onResize(x, y);
 		_requestLayout();
 	}
 
@@ -304,7 +306,7 @@ namespace slib
 				view->setCreatingInstance(sl_true);
 			}
 #endif
-			ViewLayoutAttributes* attrs = view->m_layoutAttrs.get();
+			LayoutAttributes* attrs = view->m_layoutAttrs.get();
 			if (attrs) {
 				attrs->topMode = PositionMode::Free;
 				attrs->bottomMode = PositionMode::Free;
@@ -594,7 +596,7 @@ namespace slib
 		itemView->setPressedState(sl_false, UIUpdateMode::None);
 		itemView->setHoverState(sl_false, UIUpdateMode::None);
 
-		Ref<ViewLayoutAttributes>& layoutAttrs = itemView->m_layoutAttrs;
+		Ref<LayoutAttributes>& layoutAttrs = itemView->m_layoutAttrs;
 		if (layoutAttrs.isNotNull()) {
 			layoutAttrs->flagInvalidLayoutInParent = sl_true;
 			SizeMode mode = itemView->getHeightMode();

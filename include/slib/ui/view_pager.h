@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -62,17 +62,18 @@ namespace slib
 		void setLockScroll(sl_bool flag) override;
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(ViewPager, SelectPage, sl_uint64 index)
+		SLIB_DECLARE_EVENT_HANDLER(ViewPager, SelectPage, sl_uint64 index, sl_uint64 former, UIEvent* ev /* nullable */)
 
-	protected:
+	public:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
-
-		void onChangePadding(UIUpdateMode mode) override;
 
 		void onMouseEvent(UIEvent* ev) override;
 
+	protected:
+		void onChangePadding(UIUpdateMode mode) override;
+
 	private:
-		void _selectPage(sl_bool flagEvent, sl_uint64 index, UIUpdateMode mode = UIUpdateMode::Animate);
+		void _selectPage(sl_uint64 index, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Animate);
 
 		Ref<View> _loadPage(sl_uint64 index);
 

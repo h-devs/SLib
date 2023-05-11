@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -139,7 +139,8 @@ namespace slib
 
 	void ProgressBar::setValue(float value, UIUpdateMode mode)
 	{
-		if (tryChangeValue(value, m_value2, sl_false)) {
+		value = refineValue(value);
+		if (m_value != value) {
 			m_value = value;
 			invalidate(mode);
 		}
@@ -152,9 +153,12 @@ namespace slib
 
 	void ProgressBar::setSecondaryValue(float value, UIUpdateMode mode)
 	{
-		if (tryChangeValue(m_value, value, sl_true)) {
-			m_value2 = value;
-			invalidate(mode);
+		if (m_flagDualValues) {
+			value = refineValue(value);
+			if (m_value2 != value) {
+				m_value2 = value;
+				invalidate(mode);
+			}
 		}
 	}
 
@@ -166,7 +170,7 @@ namespace slib
 	void ProgressBar::setDualValues(sl_bool flagDualValues, UIUpdateMode mode)
 	{
 		m_flagDualValues = flagDualValues;
-		tryChangeValue(m_value, m_value2, sl_false);
+		setSecondaryValue(m_value2, UIUpdateMode::None);
 		invalidate(mode);
 	}
 
@@ -205,12 +209,12 @@ namespace slib
 		invalidate(mode);
 	}
 
-	Ref<Drawable> ProgressBar::getTrackDrawable()
+	Ref<Drawable> ProgressBar::getTrack()
 	{
 		return m_track;
 	}
 
-	void ProgressBar::setTrackDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	void ProgressBar::setTrack(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_track = drawable;
 		invalidate(mode);
@@ -218,15 +222,15 @@ namespace slib
 
 	void ProgressBar::setTrackColor(const Color& color, UIUpdateMode mode)
 	{
-		setTrackDrawable(ColorDrawable::create(color), mode);
+		setTrack(ColorDrawable::create(color), mode);
 	}
 
-	Ref<Drawable> ProgressBar::getProgressDrawable()
+	Ref<Drawable> ProgressBar::getProgress()
 	{
 		return m_progress;
 	}
 
-	void ProgressBar::setProgressDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	void ProgressBar::setProgress(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_progress = drawable;
 		invalidate(mode);
@@ -234,15 +238,15 @@ namespace slib
 
 	void ProgressBar::setProgressColor(const Color &color, UIUpdateMode mode)
 	{
-		setProgressDrawable(ColorDrawable::create(color), mode);
+		setProgress(ColorDrawable::create(color), mode);
 	}
 
-	Ref<Drawable> ProgressBar::getSecondaryProgressDrawable()
+	Ref<Drawable> ProgressBar::getSecondaryProgress()
 	{
 		return m_progress2;
 	}
 
-	void ProgressBar::setSecondaryProgressDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	void ProgressBar::setSecondaryProgress(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_progress2 = drawable;
 		invalidate(mode);
@@ -250,7 +254,7 @@ namespace slib
 
 	void ProgressBar::setSecondaryProgressColor(const Color &color, UIUpdateMode mode)
 	{
-		setSecondaryProgressDrawable(ColorDrawable::create(color), mode);
+		setSecondaryProgress(ColorDrawable::create(color), mode);
 	}
 
 	void ProgressBar::onDraw(Canvas* canvas)
@@ -330,33 +334,6 @@ namespace slib
 			value = m_value_min;
 		}
 		return value;
-	}
-
-	int ProgressBar::tryChangeValue(float& value, float& value2, sl_bool flagChange2)
-	{
-		int ret = 0;
-		float newValue = refineValue(value);
-		if (m_flagDualValues) {
-			float newValue2 = refineValue(value2);
-			if (flagChange2) {
-				if (newValue > newValue2) {
-					newValue = newValue2;
-				}
-			} else {
-				if (newValue > newValue2) {
-					newValue2 = newValue;
-				}
-			}
-			if (!(Math::isAlmostZero(newValue2 - m_value2))) {
-				ret |= 2;
-			}
-			value2 = newValue2;
-		}
-		if (!(Math::isAlmostZero(newValue - m_value))) {
-			ret |= 1;
-		}
-		value = newValue;
-		return ret;
 	}
 
 	float ProgressBar::refineStep()

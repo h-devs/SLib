@@ -55,7 +55,7 @@ namespace slib
 
 		void pushFrames(const AudioData& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 	protected:

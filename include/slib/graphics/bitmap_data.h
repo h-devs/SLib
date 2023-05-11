@@ -39,7 +39,7 @@ namespace slib
 		void* data;
 		sl_reg pitch; // bytes of a physical row
 		sl_reg sampleStride; // The distance between adjacent pixel samples, in bytes
-		Ref<Referable> ref;
+		Ref<CRef> ref;
 
 	public:
 		ColorComponentBuffer();
@@ -59,25 +59,25 @@ namespace slib
 		void* data; // samples
 		sl_reg pitch; // number of bytes of a row
 		sl_reg sampleStride; // The distance between adjacent pixel samples, in bytes
-		Ref<Referable> ref; // reference for samples
+		Ref<CRef> ref; // reference for samples
 
 		// plane1
 		void* data1; // samples
 		sl_reg pitch1; // number of bytes of a row
 		sl_reg sampleStride1; // The distance between adjacent pixel samples, in bytes
-		Ref<Referable> ref1; // reference for samples
+		Ref<CRef> ref1; // reference for samples
 
 		// plane2
 		void* data2; // samples
 		sl_reg pitch2; // number of bytes of a row
 		sl_reg sampleStride2; // The distance between adjacent pixel samples, in bytes
-		Ref<Referable> ref2; // reference for samples
+		Ref<CRef> ref2; // reference for samples
 
 		// plane3
 		void* data3; // samples
 		sl_reg pitch3; // number of bytes of a row
 		sl_reg sampleStride3; // The distance between adjacent pixel samples, in bytes
-		Ref<Referable> ref3; // reference for samples
+		Ref<CRef> ref3; // reference for samples
 
 	public:
 		BitmapData();

@@ -480,6 +480,7 @@ namespace slib
 
 	void SplitLayout::onResize(sl_ui_len width, sl_ui_len height)
 	{
+		ViewGroup::onResize(width, height);
 		ObjectLocker lock(this);
 		_resetWeights(UIUpdateMode::UpdateLayout);
 	}

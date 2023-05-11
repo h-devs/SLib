@@ -52,10 +52,10 @@ namespace slib
 		static Gdiplus::Graphics* getCanvasHandle(Canvas* canvas);
 		static void drawImage(Canvas* canvas, const Rectangle& rectDst, Gdiplus::Image* image, const Rectangle& rectSrc, const Drawable::DrawParam& param);
 
-		static Ref<Drawable> createImageDrawable(Gdiplus::Image* image, sl_bool flagFreeOnRelease = sl_true, Referable* ref = sl_null);
+		static Ref<Drawable> createImageDrawable(Gdiplus::Image* image, sl_bool flagFreeOnRelease = sl_true, CRef* ref = sl_null);
 		static Gdiplus::Image* getImageDrawableHandle(Drawable* drawable);
 
-		static Ref<Bitmap> createBitmap(Gdiplus::Bitmap* bitmap, sl_bool flagFreeOnRelease = sl_true, Referable* ref = sl_null);
+		static Ref<Bitmap> createBitmap(Gdiplus::Bitmap* bitmap, sl_bool flagFreeOnRelease = sl_true, CRef* ref = sl_null);
 		static Ref<Bitmap> createBitmap(HBITMAP hbm);
 		static Gdiplus::Bitmap* getBitmapHandle(Bitmap* bitmap);
 

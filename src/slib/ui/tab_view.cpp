@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #include "slib/ui/tab_view.h"
 
+#include "slib/ui/priv/view_state_map.h"
 #include "slib/ui/core.h"
 #include "slib/ui/cursor.h"
 #include "slib/graphics/canvas.h"
@@ -56,17 +57,19 @@ namespace slib
 		setUsingFont(sl_true);
 		setSavingCanvasState(sl_false);
 
-		m_items.setCount(1);
+		m_items.setCount_NoLock(1);
 		m_indexSelected = 0;
 		m_indexHover = -1;
 
 		setBackgroundColor(Color::White, UIUpdateMode::Init);
-		setBarBackground(Color(230, 230, 230), UIUpdateMode::Init);
-		setSelectedTabBackground(Color(150, 150, 150), UIUpdateMode::Init);
-		setHoverTabBackground(Color(210, 210, 210), UIUpdateMode::Init);
-		m_labelColor = Color(50, 50, 50);
-		m_selectedLabelColor = Color::Black;
-		m_hoverLabelColor = Color(0, 20, 250);
+		
+		m_barBackground = Drawable::fromColor(Color(230, 230, 230));
+		m_tabBackgrounds.set(ViewState::Selected, Drawable::fromColor(Color(150, 150, 150)));
+		m_tabBackgrounds.set(ViewState::Hover, Drawable::fromColor(Color(210, 210, 210)));
+
+		m_labelColors.defaultValue = Color(50, 50, 50);
+		m_labelColors.set(ViewState::Selected, Color::Black);
+		m_labelColors.set(ViewState::Hover, Color(0, 20, 250));
 
 		m_orientation = LayoutOrientation::Horizontal;
 		m_tabWidth = 0;
@@ -98,7 +101,7 @@ namespace slib
 			SLIB_VIEW_RUN_ON_UI_THREAD(setTabCount, nNew, mode)
 		}
 		ObjectLocker lock(this);
-		ListLocker<Item> items(m_items);
+		ListElements<Item> items(m_items);
 		if (nNew < 1) {
 			nNew = 1;
 		}
@@ -115,7 +118,7 @@ namespace slib
 				removeChild(item.contentView, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
 			}
 		}
-		m_items.setCount(nNew);
+		m_items.setCount_NoLock(nNew);
 		if (instance.isNotNull()) {
 			instance->refreshTabCount(this);
 		}
@@ -125,9 +128,9 @@ namespace slib
 
 	String TabView::getTabLabel(sl_uint32 index)
 	{
-		MutexLocker lock(m_items.getLocker());
-		if (index < m_items.getCount()) {
-			Item* item = m_items.getPointerAt(index);
+		ObjectLocker lock(this);
+		Item* item = m_items.getPointerAt(index);
+		if (item) {
 			return item->label;
 		}
 		return sl_null;
@@ -140,8 +143,8 @@ namespace slib
 			SLIB_VIEW_RUN_ON_UI_THREAD(setTabLabel, index, text, mode)
 		}
 		ObjectLocker lock(this);
-		if (index < m_items.getCount()) {
-			Item* item = m_items.getPointerAt(index);
+		Item* item = m_items.getPointerAt(index);
+		if (item) {
 			item->label = text;
 			if (instance.isNotNull()) {
 				instance->setTabLabel(this, index, text);
@@ -153,9 +156,9 @@ namespace slib
 
 	Ref<Drawable> TabView::getTabIcon(sl_uint32 index)
 	{
-		MutexLocker lock(m_items.getLocker());
-		if (index < m_items.getCount()) {
-			Item* item = m_items.getPointerAt(index);
+		ObjectLocker lock(this);
+		Item* item = m_items.getPointerAt(index);
+		if (item) {
 			return item->icon;
 		}
 		return sl_null;
@@ -164,8 +167,8 @@ namespace slib
 	void TabView::setTabIcon(sl_uint32 index, const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
-		if (index < m_items.getCount()) {
-			Item* item = m_items.getPointerAt(index);
+		Item* item = m_items.getPointerAt(index);
+		if (item) {
 			item->icon = icon;
 			if (!(isNativeWidget())) {
 				_invalidateTabBar(mode);
@@ -175,9 +178,9 @@ namespace slib
 
 	Ref<View> TabView::getTabContentView(sl_uint32 index)
 	{
-		MutexLocker lock(m_items.getLocker());
-		if (index < m_items.getCount()) {
-			Item* item = m_items.getPointerAt(index);
+		ObjectLocker lock(this);
+		Item* item = m_items.getPointerAt(index);
+		if (item) {
 			return item->contentView;
 		}
 		return sl_null;
@@ -189,9 +192,9 @@ namespace slib
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(setTabContentView, index, view, mode)
 		}
-		MutexLocker lock(m_items.getLocker());
-		if (index < m_items.getCount()) {
-			Item* item = m_items.getPointerAt(index);
+		ObjectLocker lock(this);
+		Item* item = m_items.getPointerAt(index);
+		if (item) {
 			if (item->contentView != view) {
 				removeChild(item->contentView, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
 				if (view.isNotNull()) {
@@ -222,33 +225,36 @@ namespace slib
 
 	void TabView::selectTab(sl_uint32 index, UIUpdateMode mode)
 	{
-		_selectTab(sl_false, index, mode);
-	}
-
-	void TabView::_selectTab(sl_bool flagEvent, sl_uint32 index, UIUpdateMode mode)
-	{
 		Ptr<ITabViewInstance> instance = getTabViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(_selectTab, flagEvent, index, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(selectTab, index, mode)
 		}
-		ObjectLocker lock(this);
-		if (instance.isNull()) {
-			if (m_indexSelected == index) {
-				return;
-			}
+		_selectTab(instance.get(), index, sl_null, mode);
+	}
+
+	void TabView::_selectTab(ITabViewInstance* instance, sl_uint32 index, UIEvent* ev, UIUpdateMode mode)
+	{
+		ObjectLocker locker(this);
+		if (index >= m_items.getCount()) {
+			return;
 		}
-		ListLocker<Item> items(m_items);
-		if (index >= items.count) {
+		sl_uint32 former = m_indexSelected;
+		if (former == index) {
 			return;
 		}
 		m_indexSelected = index;
-		if (instance.isNotNull()) {
-			if (index < items.count) {
+		if (instance) {
+			if (!ev) {
 				instance->selectTab(this, index);
 			}
 		} else {
+			ObjectLocker lock(this);
+			ListElements<Item> items(m_items);
+			if (index >= items.count) {
+				return;
+			}
 			for (sl_size i = 0; i < items.count; i++) {
-				Ref<View> view = items[i].contentView;
+				Ref<View>& view = items[i].contentView;
 				if (view.isNotNull()) {
 					if (i == index) {
 						view->setVisible(sl_true, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
@@ -259,10 +265,8 @@ namespace slib
 			}
 			invalidate(mode);
 		}
-		if (flagEvent) {
-			lock.unlock();
-			dispatchSelectTab(index);
-		}
+		locker.unlock();
+		invokeSelectTab(index, former, ev);
 	}
 
 	UISize TabView::getContentViewSize()
@@ -359,9 +363,9 @@ namespace slib
 		_invalidateTabBar(mode);
 	}
 
-	void TabView::setBarBackground(const Color& color, UIUpdateMode mode)
+	void TabView::setBarBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
-		setBarBackground(Drawable::createColorDrawable(color), mode);
+		setBarBackground(Drawable::fromColor(color), mode);
 	}
 
 	Ref<Drawable> TabView::getContentBackground()
@@ -375,89 +379,52 @@ namespace slib
 		invalidate(mode);
 	}
 
-	void TabView::setContentBackground(const Color& color, UIUpdateMode mode)
+	void TabView::setContentBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
-		setContentBackground(Drawable::createColorDrawable(color), mode);
+		setContentBackground(Drawable::fromColor(color), mode);
 	}
 
-	Ref<Drawable> TabView::getTabBackground()
+	Ref<Drawable> TabView::getTabBackground(ViewState state)
 	{
-		return m_tabBackground;
+		return m_tabBackgrounds.get(state);
+	}
+
+	void TabView::setTabBackground(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		m_tabBackgrounds.set(state, drawable);
+		_invalidateTabBar(mode);
 	}
 
 	void TabView::setTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_tabBackground = drawable;
+		m_tabBackgrounds.defaultValue = drawable;
 		_invalidateTabBar(mode);
 	}
 
-	void TabView::setTabBackground(const Color& color, UIUpdateMode mode)
+	void TabView::setTabBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setTabBackground(Drawable::createColorDrawable(color), mode);
+		setTabBackground(Drawable::fromColor(color), state, mode);
 	}
 
-	Ref<Drawable> TabView::getSelectedTabBackground()
+	void TabView::setTabBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
-		return m_selectedTabBackground;
+		setTabBackground(Drawable::fromColor(color), mode);
 	}
 
-	void TabView::setSelectedTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	Color TabView::getLabelColor(ViewState state)
 	{
-		m_selectedTabBackground = drawable;
+		return m_labelColors.get(state);
+	}
+
+	void TabView::setLabelColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		m_labelColors.set(state, color);
 		_invalidateTabBar(mode);
-	}
-
-	void TabView::setSelectedTabBackground(const Color& color, UIUpdateMode mode)
-	{
-		setSelectedTabBackground(Drawable::createColorDrawable(color), mode);
-	}
-
-	Ref<Drawable> TabView::getHoverTabBackground()
-	{
-		return m_hoverTabBackground;
-	}
-
-	void TabView::setHoverTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_hoverTabBackground = drawable;
-		_invalidateTabBar(mode);
-	}
-
-	void TabView::setHoverTabBackground(const Color& color, UIUpdateMode mode)
-	{
-		setHoverTabBackground(Drawable::createColorDrawable(color), mode);
-	}
-
-	Color TabView::getLabelColor()
-	{
-		return m_labelColor;
 	}
 
 	void TabView::setLabelColor(const Color& color, UIUpdateMode mode)
 	{
-		m_labelColor = color;
-		_invalidateTabBar(mode);
-	}
-
-	Color TabView::getSelectedLabelColor()
-	{
-		return m_selectedLabelColor;
-	}
-
-	void TabView::setSelectedLabelColor(const Color& color, UIUpdateMode mode)
-	{
-		m_selectedLabelColor = color;
-		_invalidateTabBar(mode);
-	}
-
-	Color TabView::getHoverLabelColor()
-	{
-		return m_hoverLabelColor;
-	}
-
-	void TabView::setHoverLabelColor(const Color& color, UIUpdateMode mode)
-	{
-		m_hoverLabelColor = color;
+		m_labelColors.defaultValue = color;
 		_invalidateTabBar(mode);
 	}
 
@@ -668,9 +635,9 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 		UIRect bound = getTabContentRegion();
-		ListLocker<Item> items(m_items);
+		ListElements<Item> items(m_items);
 		for (sl_size i = 0; i < items.count; i++) {
-			Ref<View> view = items[i].contentView;
+			Ref<View>& view = items[i].contentView;
 			if (view.isNotNull()) {
 				view->setFrame(bound, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::UpdateLayout);
 			}
@@ -678,67 +645,79 @@ namespace slib
 		invalidate(mode);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(TabView, SelectTab, sl_uint32 index)
-
-	void TabView::dispatchSelectTab(sl_uint32 index)
+	sl_int32 TabView::_getTabIndexAt(const UIPoint& pt)
 	{
-		m_indexSelected = index;
+		ObjectLocker lock(this);
+		ListElements<Item> items(m_items);
+		sl_uint32 n = (sl_uint32)(items.count);
+		for (sl_uint32 i = 0; i < n; i++) {
+			if (getTabRegion(i).containsPoint(pt)) {
+				return i;
+			}
+		}
+		return -1;
+	}
 
-		SLIB_INVOKE_EVENT_HANDLER(SelectTab, index)
+	SLIB_DEFINE_EVENT_HANDLER(TabView, SelectTab, (sl_uint32 index, sl_uint32 former, UIEvent* ev), index, former, ev)
+
+	void TabView::_onSelectTab_NW(ITabViewInstance* instance, sl_uint32 index)
+	{
+		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+		if (ev.isNotNull()) {
+			_selectTab(instance, index, ev.get(), UIUpdateMode::Redraw);
+		}
 	}
 
 	void TabView::onClickEvent(UIEvent* ev)
 	{
-		UIPoint pt = ev->getPoint();
-		ObjectLocker lock(this);
-		ListLocker<Item> items(m_items);
-		sl_uint32 n = (sl_uint32)(items.count);
-		for (sl_uint32 i = 0; i < n; i++) {
-			if (getTabRegion(i).containsPoint(pt)) {
-				_selectTab(sl_true, i);
-				return;
-			}
+		ViewGroup::onClickEvent(ev);
+
+		if (isNativeWidget()) {
+			return;
+		}
+		sl_int32 index = _getTabIndexAt(ev->getPoint());
+		if (index >= 0) {
+			_selectTab(sl_null, index, ev, UIUpdateMode::Redraw);
 		}
 	}
 
 	void TabView::onMouseEvent(UIEvent* ev)
 	{
-		if (ev->getAction() == UIAction::MouseLeave || ev->getAction() == UIAction::LeftButtonUp || ev->getAction() == UIAction::TouchEnd || ev->getAction() == UIAction::TouchCancel) {
+		if (isNativeWidget()) {
+			return;
+		}
+
+		UIAction action = ev->getAction();
+		if (action == UIAction::MouseLeave) {
 			m_indexHover = -1;
 			_invalidateTabBar(UIUpdateMode::Redraw);
-		} else if (ev->getAction() == UIAction::MouseMove || ev->getAction() == UIAction::LeftButtonDrag || ev->getAction() == UIAction::TouchBegin || ev->getAction() == UIAction::TouchMove) {
-			UIPoint pt = ev->getPoint();
-			ObjectLocker lock(this);
-			ListLocker<Item> items(m_items);
-			sl_int32 n = (sl_int32)(items.count);
-			for (sl_int32 i = 0; i < n; i++) {
-				if (getTabRegion(i).containsPoint(pt)) {
-					if (i != m_indexHover) {
-						m_indexHover = i;
-						_invalidateTabBar(UIUpdateMode::Redraw);
-					}
-					return;
+		} else {
+			sl_int32 index = _getTabIndexAt(ev->getPoint());
+			if (action == UIAction::MouseMove || action == UIAction::TouchMove || action == UIAction::LeftButtonDrag) {
+				if (m_indexHover != index) {
+					m_indexHover = index;
+					_invalidateTabBar(UIUpdateMode::Redraw);
 				}
-			}
-			if (-1 != m_indexHover) {
-				m_indexHover = -1;
+			} else {
+				m_indexHover = index;
 				_invalidateTabBar(UIUpdateMode::Redraw);
 			}
 		}
+
+		ViewGroup::onMouseEvent(ev);
 	}
 
 	void TabView::onSetCursor(UIEvent* ev)
 	{
-		UIPoint pt = ev->getPoint();
-		ObjectLocker lock(this);
-		ListLocker<Item> items(m_items);
-		sl_int32 n = (sl_int32)(items.count);
-		for (sl_int32 i = 0; i < n; i++) {
-			if (getTabRegion(i).containsPoint(pt)) {
-				ev->setCursor(Cursor::getHand());
-				return;
-			}
+		if (isNativeWidget()) {
+			return;
 		}
+		sl_int32 index = _getTabIndexAt(ev->getPoint());
+		if (index >= 0) {
+			ev->setCursor(Cursor::getHand());
+			return;
+		}
+		ViewGroup::onSetCursor(ev);
 	}
 
 	void TabView::onDraw(Canvas* canvas)
@@ -746,10 +725,29 @@ namespace slib
 		canvas->draw(getTabBarRegion(), m_barBackground);
 		canvas->draw(getWholeContentRegion(), m_contentBackground);
 		ObjectLocker lock(this);
-		ListLocker<Item> items(m_items);
+		ListElements<Item> items(m_items);
 		sl_uint32 n = (sl_uint32)(items.count);
 		for (sl_uint32 i = 0; i < n; i++) {
 			onDrawTab(canvas, getTabRegion(i), i, items[i].icon, items[i].label);
+		}
+	}
+
+	ViewState TabView::_getTabState(sl_uint32 index)
+	{
+		ViewState state;
+		if (m_indexHover == (sl_int32)index) {
+			if (isPressedState()) {
+				state = ViewState::Pressed;
+			} else {
+				state = ViewState::Hover;
+			}
+		} else {
+			state = ViewState::Normal;
+		}
+		if (m_indexSelected == index) {
+			return (ViewState)((int)state + (int)(ViewState::Selected));
+		} else {
+			return state;
 		}
 	}
 
@@ -757,26 +755,9 @@ namespace slib
 	{
 		UIRect rc = getTabRegion(index);
 
-		Color labelColor;
-		Ref<Drawable> background;
-
-		if (m_indexSelected == index) {
-			background = m_selectedTabBackground;
-			labelColor = m_selectedLabelColor;
-		} else if (m_indexHover == (sl_int32)index) {
-			background = m_hoverTabBackground;
-			labelColor = m_hoverLabelColor;
-		} else {
-			background = m_tabBackground;
-			labelColor = m_labelColor;
-		}
-
-		if (background.isNull()) {
-			background = m_tabBackground;
-		}
-		if (labelColor.isZero()) {
-			labelColor = m_labelColor;
-		}
+		ViewState state = _getTabState(index);
+		Color labelColor = m_labelColors.evaluate(state);
+		Ref<Drawable> background = m_tabBackgrounds.evaluate(state);
 
 		if (background.isNotNull()) {
 			canvas->draw(rc, background);
@@ -850,6 +831,7 @@ namespace slib
 
 	void TabView::onResize(sl_ui_len width, sl_ui_len height)
 	{
+		ViewGroup::onResize(width, height);
 		_refreshSize();
 	}
 

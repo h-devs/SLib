@@ -82,7 +82,7 @@ namespace slib
 			sl_bool flagTryRotate;
 
 			sl_bool flagSubRegion;
-			Rectanglei subRegion;
+			RectangleI subRegion;
 
 		public:
 			ScanParam();

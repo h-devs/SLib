@@ -30,10 +30,8 @@
 namespace slib
 {
 
-	class TextInput : public Object
+	class TextInput
 	{
-		SLIB_DECLARE_OBJECT
-
 	public:
 		TextInput();
 
@@ -78,7 +76,7 @@ namespace slib
 
 	};
 
-	class UITextBox : public TextInput
+	class UITextBox : public TextBox, public TextInput
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -104,9 +102,6 @@ namespace slib
 		void onChangeMarkedRange() override;
 
 		void onChangeSelectedRange() override;
-
-	public:
-		CList< Ref<TextParagraph> > m_paragraphs;
 
 	};
 

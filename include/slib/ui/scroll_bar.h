@@ -25,6 +25,8 @@
 
 #include "view.h"
 
+#include "view_state_map.h"
+
 namespace slib
 {
 
@@ -77,42 +79,26 @@ namespace slib
 		void setRange(sl_scroll_pos range, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 
-		Ref<Drawable> getThumbDrawable();
+		Ref<Drawable> getThumb(ViewState state = ViewState::Default);
 
-		void setThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setThumb(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setThumbColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setThumbColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getPressedThumbDrawable();
 
-		void setPressedThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		Ref<Drawable> getTrack(ViewState state = ViewState::Default);
 
-		void setPressedThumbColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTrack(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getHoverThumbDrawable();
+		void setTrack(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setHoverThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setHoverThumbColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-
-		Ref<Drawable> getTrackDrawable();
-
-		void setTrackDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTrackColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setTrackColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getPressedTrackDrawable();
-
-		void setPressedTrackDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setPressedTrackColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getHoverTrackDrawable();
-
-		void setHoverTrackDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setHoverTrackColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 
 		float getMinimumThumbLengthRatio();
@@ -129,17 +115,22 @@ namespace slib
 		sl_bool isValid();
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(ScrollBar, Change, sl_scroll_pos value)
+		SLIB_DECLARE_EVENT_HANDLER(ScrollBar, Changing, sl_scroll_pos& value, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(ScrollBar, Change, sl_scroll_pos value, UIEvent* ev /* nullable */)
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onMouseEvent(UIEvent* ev) override;
 
 		void onMouseWheelEvent(UIEvent* ev) override;
 
+		void onSetCursor(UIEvent* ev) override;
+
 	protected:
-		void changeValue(sl_scroll_pos value);
+		sl_scroll_pos _normalizeValue(sl_scroll_pos value);
+
+		void _changeValue(sl_scroll_pos value, UIEvent* ev, UIUpdateMode mode);
 
 		void _setHoverThumb(sl_bool flag, UIUpdateMode mode);
 
@@ -151,13 +142,8 @@ namespace slib
 		sl_scroll_pos m_value_min;
 		sl_scroll_pos m_value_max;
 
-		AtomicRef<Drawable> m_thumb;
-		AtomicRef<Drawable> m_pressedThumb;
-		AtomicRef<Drawable> m_hoverThumb;
-
-		AtomicRef<Drawable> m_track;
-		AtomicRef<Drawable> m_pressedTrack;
-		AtomicRef<Drawable> m_hoverTrack;
+		ViewStateMap< Ref<Drawable> > m_thumbs;
+		ViewStateMap< Ref<Drawable> > m_tracks;
 
 		float m_thumb_len_ratio_min;
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,11 +23,11 @@
 #ifndef CHECKHEADER_SLIB_UI_VIEW_ATTRIBUTES
 #define CHECKHEADER_SLIB_UI_VIEW_ATTRIBUTES
 
-#include "constants.h"
+#include "view.h"
+#include "view_state_map.h"
 #include "motion_tracker.h"
 
 #include "../math/matrix3.h"
-#include "../graphics/color.h"
 #include "../core/linked_list.h"
 #include "../core/function.h"
 #include "../core/string.h"
@@ -36,20 +36,7 @@
 namespace slib
 {
 
-	class View;
-	class GraphicsPath;
-	class Pen;
-	class Font;
-	class Drawable;
-	class Bitmap;
-	class Canvas;
-	class Timer;
-	class ScrollBar;
-	class Animation;
-	class UIEvent;
-	class GestureEvent;
-
-	class ViewLayoutAttributes : public Referable
+	class View::LayoutAttributes : public CRef
 	{
 	public:
 		sl_bool flagMarginLeftWeight : 1;
@@ -95,20 +82,17 @@ namespace slib
 		sl_real marginBottomWeight;
 
 	public:
-		ViewLayoutAttributes();
-
-		~ViewLayoutAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewLayoutAttributes)
+		LayoutAttributes();
+		~LayoutAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(LayoutAttributes)
 
 	public:
 		void applyMarginWeightsX(sl_ui_pos parentWidth);
 		void applyMarginWeightsY(sl_ui_pos parentHeight);
 		void applyMarginWeights(sl_ui_pos parentWidth, sl_ui_pos parentHeight);
-
 	};
 
-	class ViewPaddingAttributes : public Referable
+	class View::PaddingAttributes : public CRef
 	{
 	public:
 		sl_bool flagPaddingLeftWeight : 1;
@@ -126,20 +110,17 @@ namespace slib
 		sl_real paddingBottomWeight;
 
 	public:
-		ViewPaddingAttributes();
-
-		~ViewPaddingAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewPaddingAttributes)
+		PaddingAttributes();
+		~PaddingAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(PaddingAttributes)
 
 	public:
 		void applyPaddingWeightsX(sl_ui_pos width);
 		void applyPaddingWeightsY(sl_ui_pos height);
 		void applyPaddingWeights(sl_ui_pos width, sl_ui_pos height);
-
 	};
 
-	class ViewTransformAttributes : public Referable
+	class View::TransformAttributes : public CRef
 	{
 	public:
 		sl_bool flagTransformFinalInvalid : 1;
@@ -168,15 +149,13 @@ namespace slib
 		AtomicWeakRef<Animation> m_animationBackgroundColor;
 
 	public:
-		ViewTransformAttributes();
-
-		~ViewTransformAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewTransformAttributes)
+		TransformAttributes();
+		~TransformAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(TransformAttributes)
 
 	};
 
-	class ViewDrawAttributes : public Referable
+	class View::DrawAttributes : public CRef
 	{
 	public:
 		sl_bool flagUsingFont : 1;
@@ -188,16 +167,11 @@ namespace slib
 		sl_bool flagInvalidatedLayer : 1;
 		sl_bool flagInvalidatedWholeLayer : 1;
 
-		AtomicRef<Drawable> background;
-		AtomicRef<Drawable> backgroundPressed;
-		AtomicRef<Drawable> backgroundHover;
+		ViewStateMap< Ref<Drawable> > backgrounds;
 		ScaleMode backgroundScaleMode;
 		Alignment backgroundAlignment;
 
-		AtomicRef<Pen> penBorder;
-		PenStyle borderStyle;
-		sl_real borderWidth;
-		Color borderColor;
+		ViewStateMap< Ref<Pen> > borders;
 
 		BoundShape boundShape;
 		Size boundRadius;
@@ -216,21 +190,19 @@ namespace slib
 
 		float shadowOpacity;
 		sl_ui_posf shadowRadius;
-		UIPointf shadowOffset;
+		UIPointF shadowOffset;
 		Color shadowColor;
 
 		LinkedList< Function<void()> > runAfterDrawCallbacks;
 
 	public:
-		ViewDrawAttributes();
-
-		~ViewDrawAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewDrawAttributes)
+		DrawAttributes();
+		~DrawAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(DrawAttributes)
 
 	};
 
-	class ViewScrollAttributes : public Referable
+	class View::ScrollAttributes : public CRef
 	{
 	public:
 		sl_bool flagHorz : 1;
@@ -248,8 +220,6 @@ namespace slib
 
 		sl_bool flagValidHorz : 1;
 		sl_bool flagValidVert : 1;
-		sl_bool flagInitHorzScrollBar : 1;
-		sl_bool flagInitVertScrollBar : 1;
 		sl_bool flagDownContent : 1;
 
 		AtomicRef<ScrollBar> horz;
@@ -265,25 +235,30 @@ namespace slib
 		Point mousePointDown;
 		Point mousePointBefore;
 		sl_uint64 touchPointerIdBefore;
-		MotionTracker motionTracker;
-		Ref<Timer> timerFlow;
-		Time timeFlowFrameBefore;
-		Point speedFlow;
-		sl_bool flagSmoothTarget;
-		sl_scroll_pos xSmoothTarget;
-		sl_scroll_pos ySmoothTarget;
 		Time timeLastInside;
 
+		struct SmoothFlow
+		{
+			MotionTracker motionTracker;
+			Ref<Timer> timer;
+			Time timeFrameBefore;
+			ScrollEvent::Source source;
+			sl_bool flagTarget;
+			sl_scroll_pos speedX;
+			sl_scroll_pos speedY;
+			sl_scroll_pos targetX;
+			sl_scroll_pos targetY;
+		};
+		Shared<SmoothFlow> smooth;
+
 	public:
-		ViewScrollAttributes();
-
-		~ViewScrollAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewScrollAttributes)
+		ScrollAttributes();
+		~ScrollAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ScrollAttributes)
 
 	};
 
-	class ViewChildAttributes : public Referable
+	class View::ChildAttributes : public CRef
 	{
 	public:
 		sl_bool flagTouchMultipleChildren : 1;
@@ -303,15 +278,13 @@ namespace slib
 		AtomicFunction<sl_bool(const UIPoint& pt)> hitTestCapturingChildInstanceEvents;
 
 	public:
-		ViewChildAttributes();
-
-		~ViewChildAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewChildAttributes)
+		ChildAttributes();
+		~ChildAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ChildAttributes)
 
 	};
 
-	class ViewOtherAttributes : public Referable
+	class View::OtherAttributes : public CRef
 	{
 	public:
 		AtomicString _id;
@@ -325,15 +298,13 @@ namespace slib
 		char mnemonicKey;
 
 	public:
-		ViewOtherAttributes();
-
-		~ViewOtherAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewOtherAttributes)
+		OtherAttributes();
+		~OtherAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(OtherAttributes)
 
 	};
 
-	class ViewEventAttributes : public Referable
+	class View::EventAttributes : public CRef
 	{
 	public:
 		AtomicFunction<void(View*)> onAttach;
@@ -350,22 +321,20 @@ namespace slib
 		AtomicFunction<void(View*, UIEvent*)> onClickEvent;
 		AtomicFunction<void(View*, UIEvent*)> onSetCursor;
 		AtomicFunction<void(View*, UIEvent*)> onDragDropEvent;
-		AtomicFunction<void(View*, sl_bool flagFocused)> onChangeFocus;
+		AtomicFunction<void(View*, sl_bool)> onChangeFocus;
 		AtomicFunction<void(View*, sl_ui_pos, sl_ui_pos)> onMove;
 		AtomicFunction<void(View*, sl_ui_len, sl_ui_len)> onResize;
 		AtomicFunction<void(View*, Visibility, Visibility)> onChangeVisibility;
-		AtomicFunction<void(View*, sl_scroll_pos, sl_scroll_pos)> onScroll;
+		AtomicFunction<void(View*, ScrollEvent*)> onScroll;
 		AtomicFunction<void(View*, GestureEvent*)> onSwipe;
-		AtomicFunction<void(View*, UIEvent*)> onOK;
-		AtomicFunction<void(View*, UIEvent*)> onCancel;
+		AtomicFunction<void(View*)> onOK;
+		AtomicFunction<void(View*)> onCancel;
 		AtomicFunction<void(View*, UIEvent*)> onMnemonic;
 
 	public:
-		ViewEventAttributes();
-
-		~ViewEventAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewEventAttributes)
+		EventAttributes();
+		~EventAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(EventAttributes)
 
 	};
 

@@ -230,7 +230,7 @@ namespace slib
 
 		Ptr lock() const noexcept
 		{
-			Ref<Referable> r;
+			Ref<CRef> r;
 			if (lockRef(r)) {
 				return Ptr(ptr, Move(r));
 			}
@@ -294,7 +294,7 @@ namespace slib
 
 		Ptr lock() const noexcept
 		{
-			Ref<Referable> r;
+			Ref<CRef> r;
 			if (lockRef(r)) {
 				return Ptr(ptr, ptr2, Move(r));
 			}
@@ -366,7 +366,7 @@ namespace slib
 
 		Ptr lock() const noexcept
 		{
-			Ref<Referable> r;
+			Ref<CRef> r;
 			if (lockRef(r)) {
 				return Ptr(ptr, ptr2, ptr3, Move(r));
 			}
@@ -447,7 +447,7 @@ namespace slib
 
 		Ptr lock() const noexcept
 		{
-			Ref<Referable> r;
+			Ref<CRef> r;
 			if (lockRef(r)) {
 				return Ptr(ptr, ptr2, ptr3, ptr4, Move(r));
 			}
@@ -550,14 +550,14 @@ namespace slib
 	template <class T1, class T2, class... TYPES>
 	void Atomic< Ptr<T> >::set(const Ref<T1, T2, TYPES...>& other) noexcept
 	{
-		_replace(other, Ref<Referable>::from(other));
+		_replace(other, Ref<CRef>::from(other));
 	}
 
 	template <class T>
 	template <class... TYPES>
 	void Atomic< Ptr<T> >::set(const Pointer<TYPES...>& other) noexcept
 	{
-		_replace(other, Ref<Referable>::null());
+		_replace(other, Ref<CRef>::null());
 	}
 
 }

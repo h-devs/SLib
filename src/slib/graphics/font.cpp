@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -62,13 +62,23 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontDesc)
 
-	FontDesc::FontDesc()
+	FontDesc::FontDesc(): size(-1)
 	{
-		size = g_defaultSize;
-		flagBold = sl_false;
-		flagItalic = sl_false;
-		flagUnderline = sl_false;
-		flagStrikeout = sl_false;
+		flags = 0;
+	}
+
+	FontDesc::FontDesc(const String& _familyName, sl_real _size, sl_bool _flagBold, sl_bool _flagItalic, sl_bool _flagUnderline, sl_bool _flagStrikeout): familyName(_familyName), size(_size)
+	{
+		flags = 0;
+		flagBold = _flagBold;
+		flagItalic = _flagItalic;
+		flagUnderline = _flagUnderline;
+		flagStrikeout = _flagStrikeout;
+	}
+
+	FontDesc::FontDesc(const String& _familyName, sl_real _size, sl_int32 _flags): familyName(_familyName), size(_size)
+	{
+		flags = _flags;
 	}
 
 
@@ -92,11 +102,10 @@ namespace slib
 			} else {
 				ret->m_desc.familyName = getDefaultFontFamily();
 			}
-			ret->m_desc.size = SLIB_FONT_SIZE_PRECISION_APPLY(desc.size);
-			ret->m_desc.flagBold = desc.flagBold;
-			ret->m_desc.flagItalic = desc.flagItalic;
-			ret->m_desc.flagUnderline = desc.flagUnderline;
-			ret->m_desc.flagStrikeout = desc.flagStrikeout;
+			ret->m_desc.size = SLIB_FONT_SIZE_PRECISION_APPLY(desc.size >= 0 ? desc.size : g_defaultSize);
+			if (desc.flags >= 0) {
+				ret->m_desc.flags = desc.flags;
+			}
 			return ret;
 		}
 		return sl_null;
@@ -104,21 +113,139 @@ namespace slib
 
 	Ref<Font> Font::create(const String& familyName, sl_real size, sl_bool flagBold, sl_bool flagItalic, sl_bool flagUnderline, sl_bool flagStrikeout)
 	{
+		return create(FontDesc(familyName, size, flagBold, flagItalic, flagUnderline, flagStrikeout));
+	}
+
+	Ref<Font> Font::create(const String& familyName, sl_real size, const Ref<Font>& original)
+	{
+		if (original.isNull()) {
+			return create(familyName, size, getDefault());
+		}
+		if ((familyName.isEmpty() || familyName == original->getFamilyName()) && (size < 0.0f || size == original->getSize())) {
+			return original;
+		}
 		Ref<Font> ret = new Font;
 		if (ret.isNotNull()) {
+			FontDesc& descNew = ret->m_desc;
+			original->getDesc(descNew);
 			if (familyName.isNotEmpty()) {
-				ret->m_desc.familyName = familyName;
-			} else {
-				ret->m_desc.familyName = getDefaultFontFamily();
+				descNew.familyName = familyName;
 			}
-			ret->m_desc.size = SLIB_FONT_SIZE_PRECISION_APPLY(size);
-			ret->m_desc.flagBold = flagBold;
-			ret->m_desc.flagItalic = flagItalic;
-			ret->m_desc.flagUnderline = flagUnderline;
-			ret->m_desc.flagStrikeout = flagStrikeout;
-			return ret;
+			if (size >= 0.0f) {
+				descNew.size = size;
+			}
 		}
-		return sl_null;
+		return ret;
+	}
+
+	Ref<Font> Font::create(const String& familyName, const Ref<Font>& original)
+	{
+		if (original.isNull()) {
+			return create(familyName, getDefault());
+		}
+		if (familyName.isEmpty() || familyName == original->getFamilyName()) {
+			return original;
+		}
+		Ref<Font> ret = new Font;
+		if (ret.isNotNull()) {
+			FontDesc& descNew = ret->m_desc;
+			original->getDesc(descNew);
+			descNew.familyName = familyName;
+		}
+		return ret;
+	}
+
+	Ref<Font> Font::create(sl_real size, const Ref<Font>& original)
+	{
+		if (original.isNull()) {
+			return create(size, getDefault());
+		}
+		if (size < 0.0f || size == original->getSize()) {
+			return original;
+		}
+		Ref<Font> ret = new Font;
+		if (ret.isNotNull()) {
+			FontDesc& descNew = ret->m_desc;
+			original->getDesc(descNew);
+			descNew.size = size;
+		}
+		return ret;
+	}
+
+	Ref<Font> Font::create(const FontDesc& desc, const Ref<Font>& original)
+	{
+		if (original.isNull()) {
+			return create(desc, getDefault());
+		}
+		if ((desc.familyName.isEmpty() || desc.familyName == original->getFamilyName()) && (desc.size < 0.0f || desc.size == original->getSize()) && (desc.flags < 0 || desc.flags == original->getFlags())) {
+			return original;
+		}
+		Ref<Font> ret = new Font;
+		if (ret.isNotNull()) {
+			FontDesc& descNew = ret->m_desc;
+			original->getDesc(descNew);
+			if (desc.familyName.isNotEmpty()) {
+				descNew.familyName = desc.familyName;
+			}
+			if (desc.size >= 0.0f) {
+				descNew.size = desc.size;
+			}
+			if (desc.flags >= 0) {
+				descNew.flags = desc.flags;
+			}
+		}
+		return ret;
+	}
+
+	Ref<Font> Font::createBold(const Ref<Font>& original)
+	{
+		if (original.isNull()) {
+			return createBold(getDefault());
+		}
+		if (original->isBold()) {
+			return original;
+		}
+		Ref<Font> ret = new Font;
+		if (ret.isNotNull()) {
+			FontDesc& descNew = ret->m_desc;
+			original->getDesc(descNew);
+			descNew.flagBold = sl_true;
+		}
+		return ret;
+	}
+
+	Ref<Font> Font::createItalic(const Ref<Font>& original)
+	{
+		if (original.isNull()) {
+			return createItalic(getDefault());
+		}
+		if (original->isItalic()) {
+			return original;
+		}
+		Ref<Font> ret = new Font;
+		if (ret.isNotNull()) {
+			FontDesc& descNew = ret->m_desc;
+			original->getDesc(descNew);
+			descNew.flagItalic = sl_true;
+		}
+		return ret;
+	}
+
+	Ref<Font> Font::createUnderline(const Ref<Font>& original)
+	{
+		if (original.isNull()) {
+			return createUnderline(getDefault());
+		}
+		if (original->isUnderline()) {
+			return original;
+		}
+		Ref<Font> ret = new Font;
+		if (ret.isNotNull()) {
+			FontDesc& descNew = ret->m_desc;
+			original->getDesc(descNew);
+			descNew.flagUnderline = sl_true;
+		}
+		return ret;
 	}
 
 	Ref<Font> Font::getDefault()
@@ -285,6 +412,11 @@ namespace slib
 		return m_desc.size;
 	}
 
+	sl_uint32 Font::getFlags()
+	{
+		return m_desc.flags;
+	}
+
 	sl_bool Font::isBold()
 	{
 		return m_desc.flagBold;
@@ -390,7 +522,7 @@ namespace slib
 		return Size(width, height);
 	}
 
-	Ref<Referable> Font::getPlatformObject()
+	Ref<CRef> Font::getPlatformObject()
 	{
 		return m_platformObject;
 	}

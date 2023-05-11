@@ -233,7 +233,7 @@ namespace slib
 			if (view->isVisibleInInstance()) {
 				style |= WS_VISIBLE;
 			}
-			if (view->isBorder()) {
+			if (view->hasBorder()) {
 				if (view->isClientEdge()) {
 					styleEx |= WS_EX_CLIENTEDGE;
 				} else {
@@ -470,7 +470,7 @@ namespace slib
 	{
 	}
 
-	UIPointf Win32_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen)
+	UIPointF Win32_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -478,12 +478,12 @@ namespace slib
 			pt.x = (LONG)(ptScreen.x);
 			pt.y = (LONG)(ptScreen.y);
 			ScreenToClient(hWnd, &pt);
-			return UIPointf((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y));
+			return UIPointF((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y));
 		}
 		return ptScreen;
 	}
 
-	UIPointf Win32_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView)
+	UIPointF Win32_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -491,7 +491,7 @@ namespace slib
 			pt.x = (LONG)(ptView.x);
 			pt.y = (LONG)(ptView.y);
 			ClientToScreen(hWnd, &pt);
-			return UIPointf((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y));
+			return UIPointF((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y));
 		}
 		return ptView;
 	}
@@ -566,7 +566,7 @@ namespace slib
 		}
 	}
 
-	sl_bool Win32_ViewInstance::getScrollPosition(View* view, ScrollPoint& _out)
+	sl_bool Win32_ViewInstance::getScrollPosition(View* view, ScrollPosition& _out)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -583,7 +583,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::getScrollRange(View* view, ScrollPoint& _out)
+	sl_bool Win32_ViewInstance::getScrollRange(View* view, ScrollPosition& _out)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -1237,7 +1237,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam)
+	sl_bool Win32_ViewInstance::onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam, sl_bool* pFlagUseDrag)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -1253,7 +1253,13 @@ namespace slib
 			if (ev.isNotNull()) {
 				UIPlatform::applyEventModifiers(ev.get());
 				ev->addFlag(UIEventFlags::DispatchToParent);
+				if (action == UIAction::LeftButtonDown) {
+					ev->addFlag(UIEventFlags::UseDrag);
+				}
 				onMouseEvent(ev.get());
+				if (pFlagUseDrag) {
+					*pFlagUseDrag = ev->getFlags() && UIEventFlags::UseDrag;
+				}
 				if (ev->isPreventedDefault()) {
 					return sl_true;
 				}
@@ -1341,7 +1347,8 @@ namespace slib
 					DragContext& dragContext = UIEvent::getCurrentDragContext();
 					dragContext.release();
 
-					sl_bool flag = onEventMouse(UIAction::LeftButtonDown, wParam, lParam);
+					sl_bool flagUseDrag = sl_false;
+					sl_bool flagPreventDefault = onEventMouse(UIAction::LeftButtonDown, wParam, lParam, &flagUseDrag);
 
 					Ref<View>& viewDrag = dragContext.view;
 					if (viewDrag.isNotNull()) {
@@ -1378,18 +1385,26 @@ namespace slib
 							data->Release();
 						}
 					} else {
-						m_actionMouseCapture = UIAction::LeftButtonDown;
-						SetCapture(hWnd);
+						if (flagUseDrag) {
+							m_actionMouseCapture = UIAction::LeftButtonDown;
+							SetCapture(hWnd);
+						}
 					}
-					if (flag) {
+					if (flagPreventDefault) {
 						return 0;
 					}
 					break;
 				}
 			case WM_LBUTTONDBLCLK:
 				{
-					onEventMouse(UIAction::LeftButtonDown, wParam, lParam);
-					if (onEventMouse(UIAction::LeftButtonDoubleClick, wParam, lParam)) {
+					sl_bool flagUseDrag = sl_false;
+					onEventMouse(UIAction::LeftButtonDown, wParam, lParam, &flagUseDrag);
+					sl_bool flagPreventDefault = onEventMouse(UIAction::LeftButtonDoubleClick, wParam, lParam);
+					if (flagUseDrag) {
+						m_actionMouseCapture = UIAction::LeftButtonDown;
+						SetCapture(hWnd);
+					}
+					if (flagPreventDefault) {
 						return 0;
 					}
 					break;
@@ -1404,18 +1419,27 @@ namespace slib
 				}
 			case WM_RBUTTONDOWN:
 				{
-					sl_bool flag = onEventMouse(UIAction::RightButtonDown, wParam, lParam);
-					m_actionMouseCapture = UIAction::RightButtonDown;
-					SetCapture(hWnd);
-					if (flag) {
+					sl_bool flagUseDrag = sl_false;
+					sl_bool flagPreventDefault = onEventMouse(UIAction::RightButtonDown, wParam, lParam, &flagUseDrag);
+					if (flagUseDrag) {
+						m_actionMouseCapture = UIAction::RightButtonDown;
+						SetCapture(hWnd);
+					}
+					if (flagPreventDefault) {
 						return 0;
 					}
 					break;
 				}
 			case WM_RBUTTONDBLCLK:
 				{
-					onEventMouse(UIAction::RightButtonDown, wParam, lParam);
-					if (onEventMouse(UIAction::RightButtonDoubleClick, wParam, lParam)) {
+					sl_bool flagUseDrag = sl_false;
+					onEventMouse(UIAction::RightButtonDown, wParam, lParam, &flagUseDrag);
+					sl_bool flagPreventDefault = onEventMouse(UIAction::RightButtonDoubleClick, wParam, lParam);
+					if (flagUseDrag) {
+						m_actionMouseCapture = UIAction::RightButtonDown;
+						SetCapture(hWnd);
+					}
+					if (flagPreventDefault) {
 						return 0;
 					}
 					break;
@@ -1430,18 +1454,27 @@ namespace slib
 				}
 			case WM_MBUTTONDOWN:
 				{
-					sl_bool flag = onEventMouse(UIAction::MiddleButtonDown, wParam, lParam);
-					m_actionMouseCapture = UIAction::MiddleButtonDown;
-					SetCapture(hWnd);
-					if (flag) {
+					sl_bool flagUseDrag = sl_false;
+					sl_bool flagPreventDefault = onEventMouse(UIAction::MiddleButtonDown, wParam, lParam, &flagUseDrag);
+					if (flagUseDrag) {
+						m_actionMouseCapture = UIAction::MiddleButtonDown;
+						SetCapture(hWnd);
+					}
+					if (flagPreventDefault) {
 						return 0;
 					}
 					break;
 				}
 			case WM_MBUTTONDBLCLK:
 				{
-					onEventMouse(UIAction::MiddleButtonDown, wParam, lParam);
-					if (onEventMouse(UIAction::MiddleButtonDoubleClick, wParam, lParam)) {
+					sl_bool flagUseDrag = sl_false;
+					onEventMouse(UIAction::MiddleButtonDown, wParam, lParam, &flagUseDrag);
+					sl_bool flagPreventDefault = onEventMouse(UIAction::MiddleButtonDoubleClick, wParam, lParam);
+					if (flagUseDrag) {
+						m_actionMouseCapture = UIAction::MiddleButtonDown;
+						SetCapture(hWnd);
+					}
+					if (flagPreventDefault) {
 						return 0;
 					}
 					break;
@@ -1462,7 +1495,7 @@ namespace slib
 					track.hwndTrack = hWnd;
 					track.dwHoverTime = 0;
 					TrackMouseEvent(&track);
-					if (track.dwFlags == 0) {
+					if (!(track.dwFlags)) {
 						track.cbSize = sizeof(track);
 						track.dwFlags = TME_LEAVE;
 						track.hwndTrack = hWnd;

@@ -243,24 +243,24 @@ namespace slib
 		}
 	}
 
-	UIPointf GTK_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen)
+	UIPointF GTK_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
 			sl_ui_len x, y;
 			UIPlatform::getScreenLocationOfWidget(handle, &x, &y);
-			return UIPointf((sl_ui_posf)(ptScreen.x - x), (sl_ui_posf)(ptScreen.y - y));
+			return UIPointF((sl_ui_posf)(ptScreen.x - x), (sl_ui_posf)(ptScreen.y - y));
 		}
 		return ptScreen;
 	}
 
-	UIPointf GTK_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView)
+	UIPointF GTK_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
 			sl_ui_len x, y;
 			UIPlatform::getScreenLocationOfWidget(handle, &x, &y);
-			return UIPointf((sl_ui_posf)(ptView.x + x), (sl_ui_posf)(ptView.y + y));
+			return UIPointF((sl_ui_posf)(ptView.x + x), (sl_ui_posf)(ptView.y + y));
 		}
 		return ptView;
 	}

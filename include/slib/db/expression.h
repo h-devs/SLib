@@ -32,7 +32,7 @@ namespace slib
 
 	class SqlBuilder;
 
-	class SLIB_EXPORT CDatabaseExpression : public Referable
+	class SLIB_EXPORT CDatabaseExpression : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 

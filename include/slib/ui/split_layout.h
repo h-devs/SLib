@@ -115,12 +115,11 @@ namespace slib
 
 		void relayout(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
-	protected:
+	public:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 		void onDraw(Canvas* canvas) override;
 
-	public:
 		void dispatchMouseEvent(UIEvent* ev) override;
 
 		void dispatchSetCursor(UIEvent* ev) override;

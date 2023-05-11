@@ -78,9 +78,10 @@ namespace slib
 
 		void loadUrl(const UrlRequestParam& param);
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
+	protected:
 		void onUpdateLayout() override;
 
 		virtual void onAnimationFrame(Timer* timer);
@@ -95,7 +96,7 @@ namespace slib
 
 		AtomicRef<Timer> m_timerAnimation;
 		Time m_timeStartAnimation;
-		AtomicRef<Referable> m_request;
+		AtomicRef<CRef> m_request;
 
 	};
 

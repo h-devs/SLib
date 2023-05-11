@@ -50,7 +50,7 @@ namespace slib
 			SLIB_JNI_METHOD(measureText, "measureText", "(Ljava/lang/String;)Landroid/graphics/PointF;");
 		SLIB_JNI_END_CLASS
 
-		class FontPlatformObject : public Referable
+		class FontPlatformObject : public CRef
 		{
 		public:
 			JniGlobal<jobject> m_font;

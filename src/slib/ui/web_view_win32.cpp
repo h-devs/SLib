@@ -468,7 +468,7 @@ namespace slib
 			{
 				Ref<WebViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->dispatchStartLoad(String::from(szURL));
+					helper->invokeStartLoad(String::from(szURL));
 					*pFlagCancel = 0;
 				}
 			}
@@ -484,8 +484,8 @@ namespace slib
 				Ref<WebViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
 					String url = String::from(szURL);
-					helper->dispatchStartLoad(url);
-					helper->dispatchFinishLoad(url, sl_true);
+					helper->invokeStartLoad(url);
+					helper->handleFinishLoad(url, sl_true);
 				}
 			}
 
@@ -493,7 +493,7 @@ namespace slib
 			{
 				Ref<WebViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->dispatchFinishLoad(String::from(szURL), sl_false);
+					helper->handleFinishLoad(String::from(szURL), sl_false);
 				}
 			}
 
@@ -522,7 +522,7 @@ namespace slib
 					String msg = params.getValueAt(0);
 					if (msg.isNotEmpty()) {
 						String param = params.getValueAt(1);
-						helper->dispatchMessageFromJavaScript(msg, param);
+						helper->handleMessageFromJavaScript(msg, param);
 					}
 				}
 			}

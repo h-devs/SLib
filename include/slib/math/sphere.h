@@ -101,8 +101,6 @@ namespace slib
 	};
 
 	typedef SphereT<sl_real> Sphere;
-	typedef SphereT<float> Spheref;
-	typedef SphereT<double> Spherelf;
 
 }
 

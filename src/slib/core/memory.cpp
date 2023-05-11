@@ -158,7 +158,7 @@ namespace slib
 			StaticMemory(const void* _data, sl_size _size) noexcept: CMemory(_data, _size) {}
 
 		public:
-			Referable * getRef() noexcept override
+			CRef * getRef() noexcept override
 			{
 				return sl_null;
 			}
@@ -176,14 +176,14 @@ namespace slib
 		class MemoryWithRef : public CMemory
 		{
 		public:
-			Ref<Referable> ref;
+			Ref<CRef> ref;
 
 		public:
 			template <class REF>
 			MemoryWithRef(const void* _data, sl_size _size, REF&& _ref) noexcept: CMemory(_data, _size), ref(Forward<REF>(_ref)) {}
 
 		public:
-			Referable* getRef() noexcept override
+			CRef* getRef() noexcept override
 			{
 				return ref.get();
 			}
@@ -209,7 +209,7 @@ namespace slib
 		if (p) {
 			data = p->data;
 			size = p->size;
-			new (&ref) Ref<Referable>(p->getRef());
+			new (&ref) Ref<CRef>(p->getRef());
 		} else {
 			data = sl_null;
 			size = 0;
@@ -222,11 +222,11 @@ namespace slib
 		if (p) {
 			data = p->data;
 			size = p->size;
-			Referable* r = p->getRef();
+			CRef* r = p->getRef();
 			if (r == p) {
-				new (&ref) Ref<Referable>(Move(memory.ref));
+				new (&ref) Ref<CRef>(Move(memory.ref));
 			} else {
-				new (&ref) Ref<Referable>(p->getRef());
+				new (&ref) Ref<CRef>(p->getRef());
 			}
 		} else {
 			data = sl_null;
@@ -266,7 +266,7 @@ namespace slib
 		if (p) {
 			data = p->data;
 			size = p->size;
-			Referable* r = p->getRef();
+			CRef* r = p->getRef();
 			if (r == p) {
 				ref = Move(memory.ref);
 			} else {
@@ -325,7 +325,7 @@ namespace slib
 		return sl_false;
 	}
 
-	Referable* CMemory::getRef() noexcept
+	CRef* CMemory::getRef() noexcept
 	{
 		return this;
 	}
@@ -338,7 +338,7 @@ namespace slib
 			if (!(str[len - 1])) {
 				len--;
 			}
-			Referable* ref = getRef();
+			CRef* ref = getRef();
 			if (ref) {
 				return String::fromRef(ref, str, len);
 			} else {
@@ -356,7 +356,7 @@ namespace slib
 			if (!(str[len - 1])) {
 				len--;
 			}
-			Referable* ref = getRef();
+			CRef* ref = getRef();
 			if (ref) {
 				return String16::fromRef(ref, str, len);
 			} else {
@@ -374,7 +374,7 @@ namespace slib
 			if (!(str[len - 1])) {
 				len--;
 			}
-			Referable* ref = getRef();
+			CRef* ref = getRef();
 			if (ref) {
 				return String32::fromRef(ref, str, len);
 			} else {
@@ -535,7 +535,7 @@ namespace slib
 		return CreateStatic(buf, size);
 	}
 
-	Memory Memory::_createStatic(const void* buf, sl_size size, Referable* ref) noexcept
+	Memory Memory::_createStatic(const void* buf, sl_size size, CRef* ref) noexcept
 	{
 		if (ref) {
 			return CreateStatic(buf, size, ref);
@@ -546,7 +546,7 @@ namespace slib
 
 	Memory Memory::_createStaticMove(const void* buf, sl_size size, void* pRef) noexcept
 	{
-		return CreateStatic(buf, size, Move(*((Ref<Referable>*)pRef)));
+		return CreateStatic(buf, size, Move(*((Ref<CRef>*)pRef)));
 	}
 
 	namespace {
@@ -728,7 +728,7 @@ namespace slib
 		}
 	}
 
-	Referable* Memory::getRef() const noexcept
+	CRef* Memory::getRef() const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {

@@ -486,7 +486,7 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		PdfArray(Referable* context) noexcept;
+		PdfArray(CRef* context) noexcept;
 
 		~PdfArray();
 
@@ -499,7 +499,7 @@ namespace slib
 		static Ref<PdfArray> create(const Rectangle& rc);
 
 	private:
-		WeakRef<Referable> m_context;
+		WeakRef<CRef> m_context;
 
 	};
 
@@ -508,7 +508,7 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		PdfDictionary(Referable* context) noexcept;
+		PdfDictionary(CRef* context) noexcept;
 
 		~PdfDictionary();
 
@@ -518,11 +518,11 @@ namespace slib
 		PdfValue get(const String& name, const String& alternateName, sl_bool flagResolveReference = sl_true) const;
 
 	private:
-		WeakRef<Referable> m_context;
+		WeakRef<CRef> m_context;
 
 	};
 
-	class SLIB_EXPORT PdfStream : public Referable
+	class SLIB_EXPORT PdfStream : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -530,7 +530,7 @@ namespace slib
 		Ref<PdfDictionary> properties;
 
 	public:
-		PdfStream(Referable* context) noexcept;
+		PdfStream(CRef* context) noexcept;
 
 		~PdfStream();
 
@@ -565,7 +565,7 @@ namespace slib
 		static Ref<PdfStream> createJpegImage(sl_uint32 width, sl_uint32 height, const Memory& content);
 
 	private:
-		WeakRef<Referable> m_context;
+		WeakRef<CRef> m_context;
 		AtomicMemory m_contentEncoded;
 		PdfReference m_ref;
 		sl_uint32 m_offsetContent;
@@ -780,7 +780,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PdfFont : public Referable, public PdfFontResource
+	class SLIB_EXPORT PdfFont : public CRef, public PdfFontResource
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -811,7 +811,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PdfExternalObject : public Referable
+	class SLIB_EXPORT PdfExternalObject : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -1011,7 +1011,7 @@ namespace slib
 
 	};
 
-	class PdfPageTreeItem : public Referable
+	class PdfPageTreeItem : public CRef
 	{
 	public:
 		PdfReference reference;
@@ -1033,7 +1033,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PdfResourceCache : public Referable
+	class SLIB_EXPORT PdfResourceCache : public CRef
 	{
 	public:
 		sl_bool flagUseFontsCache;
@@ -1053,7 +1053,7 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		PdfPage(Referable* context) noexcept;
+		PdfPage(CRef* context) noexcept;
 
 		~PdfPage();
 
@@ -1087,7 +1087,7 @@ namespace slib
 		PdfValue getResource(const String& type, const String& name, sl_bool flagResolveReference = sl_true) override;
 
 	protected:
-		WeakRef<Referable> m_context;
+		WeakRef<CRef> m_context;
 		AtomicList<PdfOperation> m_content;
 		sl_bool m_flagContent;
 
@@ -1108,7 +1108,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PdfDocument : public Referable
+	class SLIB_EXPORT PdfDocument : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -1167,7 +1167,7 @@ namespace slib
 		sl_bool isAuthenticated();
 
 	private:
-		Ref<Referable> m_context; // NotNull
+		Ref<CRef> m_context; // NotNull
 
 		friend class Pdf;
 	};

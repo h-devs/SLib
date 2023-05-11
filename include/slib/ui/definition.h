@@ -41,13 +41,12 @@ typedef double sl_scroll_pos;
 
 namespace slib
 {
-	typedef Rectanglei UIRect;
-	typedef Pointi UIPoint;
-	typedef Sizei UISize;
-	typedef Pointf UIPointf;
-	typedef Sizef UISizef;
-	typedef Rectanglef UIRectf;
-	typedef Pointlf ScrollPoint;
+	typedef RectangleI UIRect;
+	typedef PointI UIPoint;
+	typedef SizeI UISize;
+	typedef PointT<float> UIPointF;
+	typedef RectangleT<float> UIRectF;
+	typedef PointT<double> ScrollPosition;
 }
 
 #endif

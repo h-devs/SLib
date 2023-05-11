@@ -724,7 +724,7 @@ namespace slib
 				if (flagMove) {
 					m_location.x = x;
 					m_location.y = y;
-					onMove();
+					onMove(x, y);
 				}
 			}
 

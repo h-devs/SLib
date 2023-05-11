@@ -28,7 +28,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT Collection : public Referable
+	class SLIB_EXPORT Collection : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 

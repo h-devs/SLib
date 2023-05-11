@@ -34,18 +34,16 @@ namespace slib
 {
 	namespace {
 
+		class EditViewHelper : public EditView
+		{
+		public:
+			using EditView::_onChange_NW;
+			using EditView::_onPostChange_NW;
+		};
+
 		class EditViewInstance : public GTK_ViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
-
-		public:
-			EditViewInstance()
-			{
-			}
-
-			~EditViewInstance()
-			{
-			}
 
 		public:
 			void initialize(View* _view) override
@@ -69,7 +67,7 @@ namespace slib
 				if (view->isReadOnly()) {
 					setReadOnly(view, sl_true);
 				}
-				if (!(view->isBorder())) {
+				if (!(view->hasBorder())) {
 					setBorder(view, sl_false);
 				}
 				Color backColor = view->getBackgroundColor();
@@ -226,7 +224,7 @@ namespace slib
 					if (view->isChangeEventEnabled()) {
 						String text = gtk_entry_get_text(handle);
 						String textNew = text;
-						view->dispatchChange(textNew);
+						((EditViewHelper*)(view.get()))->_onChange_NW(this, textNew);
 						if (text != textNew) {
 							StringCstr _text(textNew);
 							gtk_entry_set_text(handle, _text.getData());
@@ -234,7 +232,7 @@ namespace slib
 					} else {
 						view->invalidateText();
 					}
-					view->dispatchPostChange();
+					((EditViewHelper*)(view.get()))->_onPostChange_NW();
 				}
 			}
 
@@ -488,14 +486,14 @@ namespace slib
 					if (view->isChangeEventEnabled()) {
 						String text = _getText(buffer);
 						String textNew = text;
-						view->dispatchChange(textNew);
+						((EditViewHelper*)(view.get()))->_onChange_NW(this, textNew);
 						if (text != textNew) {
 							gtk_text_buffer_set_text(buffer, textNew.getData(), textNew.getLength());
 						}
 					} else {
 						view->invalidateText();
 					}
-					view->dispatchPostChange();
+					((EditViewHelper*)(view.get()))->_onPostChange_NW();
 				}
 			}
 

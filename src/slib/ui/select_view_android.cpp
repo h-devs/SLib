@@ -72,6 +72,8 @@ namespace slib
 				}
 			}
 
+			using SelectView::_onSelectItem_NW;
+
 		};
 
 		class SelectViewInstance : public Android_ViewInstance, public ISelectViewInstance
@@ -86,7 +88,7 @@ namespace slib
 
 				JSelectView::setAlignment.callBoolean(sl_null, jhandle, view->getGravity().value);
 				JSelectView::setTextColor.callBoolean(sl_null, jhandle, view->getTextColor().getARGB());
-				JSelectView::setBorder.callBoolean(sl_null, jhandle, view->isBorder());
+				JSelectView::setBorder.callBoolean(sl_null, jhandle, view->hasBorder());
 				JSelectView::setBackgroundColor.callBoolean(sl_null, jhandle, view->getBackgroundColor().getARGB());
 				setFont(view, view->getFont());
 				refreshItems(view);
@@ -159,7 +161,7 @@ namespace slib
 		{
 			Ref<SelectViewHelper> helper = CastRef<SelectViewHelper>(Android_ViewInstance::findView(instance));
 			if (helper.isNotNull()) {
-				helper->dispatchSelectItem(n);
+				helper->_onSelectItem_NW(n);
 			}
 		}
 

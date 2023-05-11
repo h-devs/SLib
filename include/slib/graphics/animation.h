@@ -212,13 +212,19 @@ namespace slib
 
 	public:
 		SLIB_PROPERTY_FUNCTION(void(), OnStop)
+
 		SLIB_DECLARE_EVENT_HANDLER(Animation, AnimationFrame, float seconds)
+		void handleAnimationFrame(float seconds);
+
 		SLIB_DECLARE_EVENT_HANDLER(Animation, RepeatAnimation, sl_int32 nRemainingRepeatCount)
+
 		SLIB_DECLARE_EVENT_HANDLER(Animation, StopAnimation)
+		void handleStopAnimation();
 
 	public:
-		void dispatchStartFrame();
-		void dispatchEndFrame();
+		void invokeStartFrame();
+
+		void invokeEndFrame();
 
 	private:
 		float _getTime(sl_uint32& iRepeat, sl_bool& flagStop);
@@ -265,7 +271,7 @@ namespace slib
 		sl_uint32 m_lastRepeatedCount;
 		sl_bool m_flagStartedNative;
 
-		AtomicRef<Referable> m_nativeInstance;
+		AtomicRef<CRef> m_nativeInstance;
 
 		friend class AnimationLoop;
 	};
@@ -300,9 +306,9 @@ namespace slib
 	protected:
 		void _stopAnimationFromNative(Animation* animation);
 
-		Ref<Referable> _getNativeInstance(Animation* animation);
+		Ref<CRef> _getNativeInstance(Animation* animation);
 
-		void _setNativeInstance(Animation* animation, Referable* instance);
+		void _setNativeInstance(Animation* animation, CRef* instance);
 
 	protected:
 		virtual void _wake() = 0;

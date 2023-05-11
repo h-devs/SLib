@@ -134,10 +134,16 @@ namespace slib
 
 		void setAutoVerticalScrolling(sl_bool flag = sl_true);
 
+		void setEnabled(sl_bool flagEnabled = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
+
+		sl_bool isFocused() override;
+
 		void setFocus(sl_bool flagFocused = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(XEditView, Change, String& value)
+		SLIB_DECLARE_EVENT_HANDLER(XEditView, Changing, String& value, UIEvent* ev /* nullable */)
+
+		SLIB_DECLARE_EVENT_HANDLER(XEditView, Change, const String& value, UIEvent* ev /* nullable */)
 
 		SLIB_DECLARE_EVENT_HANDLER(XEditView, PostChange)
 
@@ -147,7 +153,7 @@ namespace slib
 		void onChangeSizeMode(UIUpdateMode mode) override;
 
 	public:
-		void dispatchClickEvent(UIEvent* ev) override;
+		void onClickEvent(UIEvent* ev) override;
 
 	protected:
 		Ref<EditView> m_edit;

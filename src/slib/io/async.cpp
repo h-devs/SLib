@@ -405,7 +405,7 @@ namespace slib
 		sl_bool _flagRead,
 		const void* _data,
 		sl_size _size,
-		Referable* _userObject,
+		CRef* _userObject,
 		const Function<void(AsyncStreamResult&)>& _callback)
 	 : flagRead(_flagRead), data((void*)_data), size(_size), userObject(_userObject), callback(_callback), sizeWritten(0)
 	{
@@ -418,7 +418,7 @@ namespace slib
 	Ref<AsyncStreamRequest> AsyncStreamRequest::createRead(
 		void* data,
 		sl_size size,
-		Referable* userObject,
+		CRef* userObject,
 		const Function<void(AsyncStreamResult&)>& callback)
 	{
 		if (!size) {
@@ -430,7 +430,7 @@ namespace slib
 	Ref<AsyncStreamRequest> AsyncStreamRequest::createWrite(
 		const void* data,
 		sl_size size,
-		Referable* userObject,
+		CRef* userObject,
 		const Function<void(AsyncStreamResult&)>& callback)
 	{
 		if (!size) {
@@ -598,7 +598,7 @@ namespace slib
 		return create(instance, mode, sl_null);
 	}
 
-	sl_bool AsyncStream::read(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject)
+	sl_bool AsyncStream::read(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
 	{
 		Ref<AsyncStreamRequest> req = AsyncStreamRequest::createRead(data, size, userObject, callback);
 		if (req.isNotNull()) {
@@ -612,7 +612,7 @@ namespace slib
 		return read(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
 
-	sl_bool AsyncStream::write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject)
+	sl_bool AsyncStream::write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
 	{
 		Ref<AsyncStreamRequest> req = AsyncStreamRequest::createWrite(data, size, userObject, callback);
 		if (req.isNotNull()) {
@@ -1812,7 +1812,7 @@ namespace slib
 						auto thiz = ToWeakRef(this);
 						void* data = request->data;
 						sl_size size = request->size;
-						MoveT< Ref<Referable> > _userObject = Move(request->userObject);
+						MoveT< Ref<CRef> > _userObject = Move(request->userObject);
 						MoveT< Function<void(AsyncStreamResult&)> > callback = Move(request->callback);
 						request->callback = [thiz, this, data, size, _userObject, callback](AsyncStreamResult& result) {
 							auto ref = ToRef(thiz);
@@ -1845,7 +1845,7 @@ namespace slib
 		}
 	}
 
-	sl_bool AsyncStreamFilter::addReadData(void* data, sl_size size, Referable* userObject)
+	sl_bool AsyncStreamFilter::addReadData(void* data, sl_size size, CRef* userObject)
 	{
 		if (data) {
 			if (size) {
@@ -2033,7 +2033,7 @@ namespace slib
 		m_flagWritingEnded = sl_true;
 	}
 
-	sl_bool AsyncStreamFilter::filterRead(MemoryData& output, void* data, sl_size size, Referable* userObject)
+	sl_bool AsyncStreamFilter::filterRead(MemoryData& output, void* data, sl_size size, CRef* userObject)
 	{
 		output.data = data;
 		output.size = size;
@@ -2041,7 +2041,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool AsyncStreamFilter::filterWrite(MemoryData& output, void* data, sl_size size, Referable* userObject)
+	sl_bool AsyncStreamFilter::filterWrite(MemoryData& output, void* data, sl_size size, CRef* userObject)
 	{
 		output.data = data;
 		output.size = size;

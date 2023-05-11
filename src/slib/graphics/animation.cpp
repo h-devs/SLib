@@ -461,7 +461,7 @@ namespace slib
 		sl_bool flagStarted = _stop(sl_false);
 		if (flagStarted) {
 			lock.unlock();
-			dispatchStopAnimation();
+			handleStopAnimation();
 		}
 	}
 
@@ -471,7 +471,7 @@ namespace slib
 		sl_bool flagStarted = _stop(sl_true);
 		if (flagStarted) {
 			lock.unlock();
-			dispatchStopAnimation();
+			handleStopAnimation();
 		}
 	}
 
@@ -594,37 +594,37 @@ namespace slib
 			lock.unlock();
 			if (repeat != 0 && lastRepeat < iRepeat) {
 				if (repeat < 0) {
-					dispatchRepeatAnimation(-1);
+					invokeRepeatAnimation(-1);
 				} else {
 					sl_int32 remainRepeat = repeat - iRepeat;
 					if (remainRepeat < 0) {
 						remainRepeat = 0;
 					}
-					dispatchRepeatAnimation(remainRepeat);
+					invokeRepeatAnimation(remainRepeat);
 				}
 			}
 		}
 
-		dispatchAnimationFrame(time);
+		handleAnimationFrame(time);
 		if (flagStopped) {
-			dispatchStopAnimation();
+			handleStopAnimation();
 		}
 
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(Animation, AnimationFrame, float seconds)
+	SLIB_DEFINE_EVENT_HANDLER(Animation, AnimationFrame, (float seconds), seconds)
 
-	void Animation::dispatchAnimationFrame(float time)
+	void Animation::handleAnimationFrame(float time)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(AnimationFrame, time);
+		invokeAnimationFrame(time);
 
 		float fraction = _getFraction(time);
 		ListLocker< Ref<AnimationTarget> > _targets(m_targets);
 		sl_size n = _targets.count;
 		SLIB_SCOPED_BUFFER(Ref<AnimationTarget>, 8, targets, n)
-		if (!targets) {
-			return;
-		}
+			if (!targets) {
+				return;
+			}
 		sl_size i;
 		for (i = 0; i < n; i++) {
 			targets[i] = _targets[i];
@@ -638,30 +638,28 @@ namespace slib
 		}
 	}
 
-	void Animation::dispatchStartFrame()
+	void Animation::invokeStartFrame()
 	{
-		dispatchAnimationFrame(0);
+		handleAnimationFrame(0);
 	}
 
-	void Animation::dispatchEndFrame()
+	void Animation::invokeEndFrame()
 	{
-		dispatchAnimationFrame(m_duration);
+		handleAnimationFrame(m_duration);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(Animation, RepeatAnimation, sl_int32 nRemainingRepeatCount)
+	SLIB_DEFINE_EVENT_HANDLER(Animation, RepeatAnimation, (sl_int32 nRemainingRepeatCount), nRemainingRepeatCount)
 
-	void Animation::dispatchRepeatAnimation(sl_int32 nRemainingRepeatCount)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(Animation, StopAnimation, ())
+
+	void Animation::onStopAnimation()
 	{
-		SLIB_INVOKE_EVENT_HANDLER(RepeatAnimation, nRemainingRepeatCount)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(Animation, StopAnimation)
-
-	void Animation::dispatchStopAnimation()
-	{
-		SLIB_INVOKE_EVENT_HANDLER(StopAnimation)
-
 		getOnStop()();
+	}
+
+	void Animation::handleStopAnimation()
+	{
+		invokeStopAnimation();
 
 		ListLocker< Ref<Animation> > linkedAnimations(m_linkedAnimations);
 		for (sl_size i = 0; i < linkedAnimations.count; i++) {
@@ -902,12 +900,12 @@ namespace slib
 		animation->_stopFromNative();
 	}
 
-	Ref<Referable> AnimationLoop::_getNativeInstance(Animation* animation)
+	Ref<CRef> AnimationLoop::_getNativeInstance(Animation* animation)
 	{
 		return animation->m_nativeInstance;
 	}
 
-	void AnimationLoop::_setNativeInstance(Animation* animation, Referable* instance)
+	void AnimationLoop::_setNativeInstance(Animation* animation, CRef* instance)
 	{
 		animation->m_nativeInstance = instance;
 	}

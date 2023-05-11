@@ -69,7 +69,7 @@ namespace slib
 
 				[handle setHasHorizontalScroller:(view->isHorizontalScrollBarVisible() ? YES : NO)];
 				[handle setHasVerticalScroller:(view->isVerticalScrollBarVisible() ? YES : NO)];
-				[handle setBorderType:(view->isBorder() ? NSBezelBorder : NSNoBorder)];
+				[handle setBorderType:(view->hasBorder() ? NSBezelBorder : NSNoBorder)];
 				_setBackgroundColor(handle, view->getBackgroundColor());
 				applyContent(view, handle, view->getContentView());
 				_scrollTo(handle, view->getScrollX(), view->getScrollY(), sl_false);
@@ -87,7 +87,7 @@ namespace slib
 				}
 			}
 
-			sl_bool getScrollPosition(View* view, ScrollPoint& _out) override
+			sl_bool getScrollPosition(View* view, ScrollPosition& _out) override
 			{
 				NSScrollView* handle = getHandle();
 				if (handle != nil) {
@@ -102,7 +102,7 @@ namespace slib
 				return sl_false;
 			}
 
-			sl_bool getScrollRange(View* view, ScrollPoint& _out) override
+			sl_bool getScrollRange(View* view, ScrollPosition& _out) override
 			{
 				NSScrollView* handle = getHandle();
 				if (handle != nil) {

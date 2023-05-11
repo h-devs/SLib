@@ -170,8 +170,6 @@ namespace slib
 	};
 
 	typedef ViewFrustumT<sl_real> ViewFrustum;
-	typedef ViewFrustumT<float> ViewFrustumf;
-	typedef ViewFrustumT<double> ViewFrustumlf;
 
 }
 

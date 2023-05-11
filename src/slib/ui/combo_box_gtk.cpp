@@ -33,6 +33,13 @@ namespace slib
 
 	namespace {
 
+		class ComboBoxHelper : public ComboBox
+		{
+		public:
+			using ComboBox::_onChange_NW;
+			using ComboBox::_onSelectItem_NW;
+		};
+
 		class ComboBoxInstance : public GTK_ViewInstance, public IComboBoxInstance
 		{
 			SLIB_DECLARE_OBJECT
@@ -169,17 +176,17 @@ namespace slib
 				GtkComboBox* handle = (GtkComboBox*)userinfo;
 				Ref<ComboBoxInstance> instance = CastRef<ComboBoxInstance>(UIPlatform::getViewInstance((GtkWidget*)handle));
 				if (instance.isNotNull()) {
-					Ref<ComboBox> view = CastRef<ComboBox>(instance->getView());
+					Ref<ComboBoxHelper> view = CastRef<ComboBoxHelper>(instance->getView());
 					if (view.isNotNull()) {
 						int index = gtk_combo_box_get_active(handle);
 						if (index != view->getSelectedIndex()) {
-							view->dispatchSelectItem(index);
-						}
-						String text = getTextFromHanlde(handle);
-						String textNew = text;
-						view->dispatchChange(textNew);
-						if (text != textNew) {
-							instance->setText(view, textNew);
+							view->_onSelectItem_NW(index);
+						} else {
+							String text = getTextFromHanlde(handle);
+							String modified = view->_onChange_NW(text);
+							if (text != modified) {
+								instance->setText(view.get(), modified);
+							}
 						}
 					}
 				}

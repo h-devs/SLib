@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -90,10 +90,10 @@ namespace slib
 
 	void ViewPager::selectPage(sl_uint64 index, UIUpdateMode mode)
 	{
-		_selectPage(sl_false, index, mode);
+		_selectPage(index, sl_null, mode);
 	}
 
-	void ViewPager::_selectPage(sl_bool flagEvent, sl_uint64 index, UIUpdateMode mode)
+	void ViewPager::_selectPage(sl_uint64 index, UIEvent* ev, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 
@@ -115,21 +115,21 @@ namespace slib
 			}
 		}
 
-		sl_uint64 indexCurrent = m_indexCurrent;
+		sl_uint64 former = m_indexCurrent;
 
 		do {
 			if (!SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
 				break;
 			}
 			if (m_cache.isEmpty()) {
-				if (indexCurrent != index) {
+				if (former != index) {
 					m_indexCurrent = index;
-					_reloadPages();
 				}
+				_reloadPages();
 				break;
 			}
 			if (!SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode)) {
-				if (indexCurrent == index) {
+				if (former == index) {
 					if (m_offsetPages != 0) {
 						_relocatePages();
 					}
@@ -139,39 +139,39 @@ namespace slib
 				}
 				break;
 			}
-			if (index != indexCurrent) {
+			if (index != former) {
 				if (m_flagLoop) {
 					sl_uint64 m = 0;
 					sl_ui_len k = 0;
 					if (m_offsetPages < 0) {
-						if (index > indexCurrent) {
-							m = index - indexCurrent;
+						if (index > former) {
+							m = index - former;
 						} else {
-							m = index + n - indexCurrent;
+							m = index + n - former;
 						}
 						k = getWidth();
 					} else if (m_offsetPages > 0) {
-						if (index < indexCurrent) {
-							m = indexCurrent - index;
+						if (index < former) {
+							m = former - index;
 						} else {
-							m = indexCurrent + n - index;
+							m = former + n - index;
 						}
 						k = - getWidth();
 					} else {
-						if (index > indexCurrent) {
-							if (indexCurrent == 0 && index + 1 == n) {
+						if (index > former) {
+							if (!former && index + 1 == n) {
 								m = 1;
 								k = - getWidth();
 							} else {
-								m = index - indexCurrent;
+								m = index - former;
 								k = getWidth();
 							}
 						} else {
-							if (indexCurrent + 1 == n && index == 0) {
+							if (former + 1 == n && index == 0) {
 								m = 1;
 								k = getWidth();
 							} else {
-								m = indexCurrent - index;
+								m = former - index;
 								k = - getWidth();
 							}
 						}
@@ -183,15 +183,15 @@ namespace slib
 					}
 					m_offsetPages += k;
 				} else {
-					if (index > indexCurrent) {
-						if (index > indexCurrent + 1) {
+					if (index > former) {
+						if (index > former + 1) {
 							m_indexCurrent = index;
 							_reloadPages();
 							break;
 						}
 						m_offsetPages += getWidth();
 					} else {
-						if (indexCurrent > index + 1) {
+						if (former > index + 1) {
 							m_indexCurrent = index;
 							_reloadPages();
 							break;
@@ -207,12 +207,10 @@ namespace slib
 			}
 		} while (0);
 
-		if (indexCurrent != index) {
+		if (former != index) {
 			m_indexCurrent = index;
-			if (flagEvent) {
-				lock.unlock();
-				dispatchSelectPage(index);
-			}
+			lock.unlock();
+			invokeSelectPage(index, former, ev);
 		}
 	}
 
@@ -241,19 +239,18 @@ namespace slib
 		ViewGroup::setLockScroll(flag);
 		if (flag) {
 			m_flagMouseDown = sl_false;
-			_selectPage(sl_true, m_indexCurrent);
+			Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+			if (ev.isNotNull()) {
+				_selectPage(m_indexCurrent, ev.get());
+			}
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ViewPager, SelectPage, sl_uint64 index)
-
-	void ViewPager::dispatchSelectPage(sl_uint64 index)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(SelectPage, index)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(ViewPager, SelectPage, (sl_uint64 index, sl_uint64 former, UIEvent* ev), index, former, ev)
 
 	void ViewPager::onResize(sl_ui_len width, sl_ui_len height)
 	{
+		ViewGroup::onResize(width, height);
 		_resizePages();
 	}
 
@@ -264,6 +261,8 @@ namespace slib
 
 	void ViewPager::onMouseEvent(UIEvent* ev)
 	{
+		ViewGroup::onMouseEvent(ev);
+
 		sl_uint64 countPages = getPageCount();
 		if (countPages <= 0) {
 			return;
@@ -297,7 +296,7 @@ namespace slib
 			if (m_flagMouseDown) {
 				if (isLockScroll()) {
 					if (m_offsetPages && m_timer.isNull()) {
-						_selectPage(sl_true, m_indexCurrent);
+						_selectPage(m_indexCurrent, ev);
 					}
 					return;
 				}
@@ -317,7 +316,7 @@ namespace slib
 					if (dy >= dx) {
 						m_flagMouseDown = sl_false;
 						m_motionTracker.clearMovements();
-						_selectPage(sl_true, m_indexCurrent);
+						_selectPage(m_indexCurrent, ev);
 						return;
 					}
 				}
@@ -380,28 +379,28 @@ namespace slib
 				sl_real t = dimUnit * 10;
 				if (v > t) {
 					if (m_offsetPages > 0) {
-						_selectPage(sl_true, m_indexCurrent - 1);
+						_selectPage(m_indexCurrent - 1, ev);
 					} else {
-						_selectPage(sl_true, m_indexCurrent);
+						_selectPage(m_indexCurrent, ev);
 					}
 				} else if (v < -t) {
 					if (m_offsetPages < 0) {
-						_selectPage(sl_true, m_indexCurrent + 1);
+						_selectPage(m_indexCurrent + 1, ev);
 					} else {
-						_selectPage(sl_true, m_indexCurrent);
+						_selectPage(m_indexCurrent, ev);
 					}
 				} else {
 					sl_ui_len o = (sl_ui_len)(getWidth() * 0.4f);
 					if (m_offsetPages > o) {
-						_selectPage(sl_true, m_indexCurrent - 1);
+						_selectPage(m_indexCurrent - 1, ev);
 					} else if (m_offsetPages < -o) {
-						_selectPage(sl_true, m_indexCurrent + 1);
+						_selectPage(m_indexCurrent + 1, ev);
 					} else {
-						_selectPage(sl_true, m_indexCurrent);
+						_selectPage(m_indexCurrent, ev);
 					}
 				}
 			} else {
-				_selectPage(sl_true, m_indexCurrent);
+				_selectPage(m_indexCurrent, ev);
 			}
 			m_flagMouseDown = sl_false;
 			m_motionTracker.clearMovements();

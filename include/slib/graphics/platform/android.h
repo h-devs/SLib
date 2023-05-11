@@ -44,7 +44,7 @@ namespace slib
 		static Ref<Canvas> createCanvas(CanvasType type, jobject canvas);
 		static jobject getCanvasHandle(Canvas* canvas);
 
-		static Ref<Bitmap> createBitmap(jobject bitmap, sl_bool flagRecycleOnRelease = sl_true, Referable* ref = sl_null);
+		static Ref<Bitmap> createBitmap(jobject bitmap, sl_bool flagRecycleOnRelease = sl_true, CRef* ref = sl_null);
 		static jobject getBitmapHandle(Bitmap* bitmap);
 
 	};

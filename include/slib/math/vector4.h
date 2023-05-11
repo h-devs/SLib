@@ -299,10 +299,8 @@ namespace slib
 	using Vector4T = VectorT<4, T, FT>;
 
 	typedef Vector4T<sl_real> Vector4;
-	typedef Vector4T<float> Vector4f;
-	typedef Vector4T<double> Vector4lf;
-	typedef Vector4T<sl_int32, float> Vector4i;
-	typedef Vector4T<sl_int64, double> Vector4li;
+	typedef Vector4T<float> Float4;
+	typedef Vector4T<double> Double4;
 
 }
 

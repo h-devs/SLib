@@ -107,7 +107,7 @@ namespace slib
 	};
 
 
-	class SLIB_EXPORT RenderInputLayout : public Referable
+	class SLIB_EXPORT RenderInputLayout : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -119,7 +119,7 @@ namespace slib
 	};
 
 
-	class SLIB_EXPORT RenderProgramState : public Referable
+	class SLIB_EXPORT RenderProgramState : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -433,7 +433,7 @@ namespace slib
 	struct RenderVertex2D_PositionColor
 	{
 		Vector2 position;
-		Color4f color;
+		Color4F color;
 	};
 
 	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState2D_PositionColor, RenderVertex2D_PositionColor)
@@ -496,7 +496,7 @@ namespace slib
 	{
 		Vector3 position;
 		Vector3 normal;
-		Color4f color;
+		Color4F color;
 	};
 
 	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState3D_PositionNormalColor, RenderVertex3D_PositionNormalColor)
@@ -525,7 +525,7 @@ namespace slib
 	struct RenderVertex3D_PositionColor
 	{
 		Vector3 position;
-		Color4f color;
+		Color4F color;
 	};
 
 	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState3D_PositionColor, RenderVertex3D_PositionColor)

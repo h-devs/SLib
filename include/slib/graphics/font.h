@@ -38,15 +38,24 @@ namespace slib
 	class SLIB_EXPORT FontDesc
 	{
 	public:
-		String familyName;
-		sl_real size;
-		sl_bool flagBold;
-		sl_bool flagItalic;
-		sl_bool flagUnderline;
-		sl_bool flagStrikeout;
+		String familyName; // empty value means default
+		sl_real size; // negative value means default
+		union {
+			sl_int32 flags; // negative value means default
+			struct {
+				sl_bool flagBold : 1;
+				sl_bool flagItalic : 1;
+				sl_bool flagUnderline : 1;
+				sl_bool flagStrikeout : 1;
+			};
+		};
 
 	public:
 		FontDesc();
+
+		FontDesc(const String& familyName, sl_real size = -1, sl_bool flagBold = sl_false, sl_bool flagItalic = sl_false, sl_bool flagUnderline = sl_false, sl_bool flagStrikeout = sl_false);
+
+		FontDesc(const String& familyName, sl_real size, sl_int32 flags);
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FontDesc)
 
@@ -62,7 +71,7 @@ namespace slib
 	class Locale;
 	class FontAtlas;
 
-	class SLIB_EXPORT Font : public Referable
+	class SLIB_EXPORT Font : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -74,7 +83,21 @@ namespace slib
 	public:
 		static Ref<Font> create(const FontDesc& desc);
 
-		static Ref<Font> create(const String& familyName, sl_real size, sl_bool flagBold = sl_false, sl_bool flagItalic = sl_false, sl_bool flagUnderline = sl_false, sl_bool flagStrikeout = sl_false);
+		static Ref<Font> create(const String& familyName, sl_real size = -1, sl_bool flagBold = sl_false, sl_bool flagItalic = sl_false, sl_bool flagUnderline = sl_false, sl_bool flagStrikeout = sl_false);
+
+		static Ref<Font> create(const String& familyName, sl_real size, const Ref<Font>& original);
+
+		static Ref<Font> create(const String& familyName, const Ref<Font>& original);
+
+		static Ref<Font> create(sl_real size, const Ref<Font>& original);
+
+		static Ref<Font> create(const FontDesc& desc, const Ref<Font>& original);
+
+		static Ref<Font> createBold(const Ref<Font>& original);
+
+		static Ref<Font> createItalic(const Ref<Font>& original);
+
+		static Ref<Font> createUnderline(const Ref<Font>& original);
 
 		static Ref<Font> getDefault();
 
@@ -107,6 +130,8 @@ namespace slib
 
 		sl_real getSize();
 
+		sl_uint32 getFlags();
+
 		sl_bool isBold();
 
 		sl_bool isItalic();
@@ -131,7 +156,7 @@ namespace slib
 
 		Ref<FontAtlas> getSharedAtlas();
 
-		Ref<Referable> getPlatformObject();
+		Ref<CRef> getPlatformObject();
 
 	private:
 		sl_bool _getFontMetrics_PO(FontMetrics& _out);
@@ -145,7 +170,7 @@ namespace slib
 
 		AtomicRef<FontAtlas> m_fontAtlas;
 
-		Ref<Referable> m_platformObject;
+		Ref<CRef> m_platformObject;
 		SpinLock m_lock;
 
 	};

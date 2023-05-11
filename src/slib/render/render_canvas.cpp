@@ -582,7 +582,7 @@ namespace slib
 
 		};
 
-		class EngineContext : public Referable
+		class EngineContext : public CRef
 		{
 		public:
 			CHashMap< String, Ref<RenderCanvasProgram> > programs;
@@ -1011,7 +1011,7 @@ namespace slib
 			mat *= state->matrix;
 			mat *= m_matViewport;
 			scope->setTransform(mat);
-			Color4f color = _color;
+			Color4F color = _color;
 			color.w *= getAlpha();
 			scope->setColor(color);
 			m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
@@ -1057,7 +1057,7 @@ namespace slib
 				mat *= state->matrix;
 				mat *= m_matViewport;
 				scope->setTransform(mat);
-				Color4f color = brush->getColor();
+				Color4F color = brush->getColor();
 				color.w *= getAlpha();
 				scope->setColor(color);
 				m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
@@ -1077,7 +1077,7 @@ namespace slib
 	{
 	}
 
-	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& _rectSrc, const DrawParam& param, const Color4f& color)
+	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& _rectSrc, const DrawParam& param, const Color4F& color)
 	{
 
 		EngineContext* context = GetEngineContext(this);
@@ -1117,9 +1117,9 @@ namespace slib
 				scope->setColorFilterM(Vector4(param.colorMatrix.red.x, param.colorMatrix.green.y, param.colorMatrix.blue.z, param.colorMatrix.alpha.w));
 			}
 			if (param.useAlpha) {
-				scope->setColor(Color4f(color.x, color.y, color.z, color.w * param.alpha * getAlpha()));
+				scope->setColor(Color4F(color.x, color.y, color.z, color.w * param.alpha * getAlpha()));
 			} else {
-				scope->setColor(Color4f(color.x, color.y, color.z, color.w * getAlpha()));
+				scope->setColor(Color4F(color.x, color.y, color.z, color.w * getAlpha()));
 			}
 			m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 		}
@@ -1128,15 +1128,15 @@ namespace slib
 
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param)
 	{
-		drawTexture(transform, texture, rectSrc, param, Color4f(1, 1, 1, 1));
+		drawTexture(transform, texture, rectSrc, param, Color4F(1, 1, 1, 1));
 	}
 
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha)
 	{
-		drawTexture(transform, texture, rectSrc, DrawParam(), Color4f(1, 1, 1, alpha));
+		drawTexture(transform, texture, rectSrc, DrawParam(), Color4F(1, 1, 1, alpha));
 	}
 
-	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const DrawParam& param, const Color4f& color)
+	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const DrawParam& param, const Color4F& color)
 	{
 		if (texture.isNotNull()) {
 			drawTexture(transform, texture, Rectangle(0, 0, (sl_real)(texture->getWidth()), (sl_real)(texture->getHeight())), param, color);
@@ -1145,15 +1145,15 @@ namespace slib
 
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const DrawParam& param)
 	{
-		drawTexture(transform, texture, param, Color4f(1, 1, 1, 1));
+		drawTexture(transform, texture, param, Color4F(1, 1, 1, 1));
 	}
 
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, sl_real alpha)
 	{
-		drawTexture(transform, texture, DrawParam(), Color4f(1, 1, 1, alpha));
+		drawTexture(transform, texture, DrawParam(), Color4F(1, 1, 1, alpha));
 	}
 
-	void RenderCanvas::drawTexture(const Rectangle& _rectDst, const Ref<Texture>& texture, const Rectangle& _rectSrc, const DrawParam& param, const Color4f& color)
+	void RenderCanvas::drawTexture(const Rectangle& _rectDst, const Ref<Texture>& texture, const Rectangle& _rectSrc, const DrawParam& param, const Color4F& color)
 	{
 
 		EngineContext* context = GetEngineContext(this);
@@ -1211,9 +1211,9 @@ namespace slib
 				scope->setColorFilterM(Vector4(param.colorMatrix.red.x, param.colorMatrix.green.y, param.colorMatrix.blue.z, param.colorMatrix.alpha.w));
 			}
 			if (param.useAlpha) {
-				scope->setColor(Color4f(color.x, color.y, color.z, color.w * param.alpha * getAlpha()));
+				scope->setColor(Color4F(color.x, color.y, color.z, color.w * param.alpha * getAlpha()));
 			} else {
-				scope->setColor(Color4f(color.x, color.y, color.z, color.w * getAlpha()));
+				scope->setColor(Color4F(color.x, color.y, color.z, color.w * getAlpha()));
 			}
 			m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 		}
@@ -1222,15 +1222,15 @@ namespace slib
 
 	void RenderCanvas::drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param)
 	{
-		drawTexture(rectDst, texture, rectSrc, param, Color4f(1, 1, 1, 1));
+		drawTexture(rectDst, texture, rectSrc, param, Color4F(1, 1, 1, 1));
 	}
 
 	void RenderCanvas::drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha)
 	{
-		drawTexture(rectDst, texture, rectSrc, DrawParam(), Color4f(1, 1, 1, alpha));
+		drawTexture(rectDst, texture, rectSrc, DrawParam(), Color4F(1, 1, 1, alpha));
 	}
 
-	void RenderCanvas::drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const DrawParam& param, const Color4f& color)
+	void RenderCanvas::drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const DrawParam& param, const Color4F& color)
 	{
 		if (texture.isNotNull()) {
 			drawTexture(rectDst, texture, Rectangle(0, 0, (sl_real)(texture->getWidth()), (sl_real)(texture->getHeight())), param, color);
@@ -1239,12 +1239,12 @@ namespace slib
 
 	void RenderCanvas::drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const DrawParam& param)
 	{
-		drawTexture(rectDst, texture, param, Color4f(1, 1, 1, 1));
+		drawTexture(rectDst, texture, param, Color4F(1, 1, 1, 1));
 	}
 
 	void RenderCanvas::drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, sl_real alpha)
 	{
-		drawTexture(rectDst, texture, DrawParam(), Color4f(1, 1, 1, alpha));
+		drawTexture(rectDst, texture, DrawParam(), Color4F(1, 1, 1, alpha));
 	}
 
 	Matrix3 RenderCanvas::getTransformMatrixForRectangle(const Rectangle& rect)
@@ -1276,7 +1276,7 @@ namespace slib
 		mat *= m_matViewport;
 		programState->setTransform(mat);
 
-		Color4f color(1, 1, 1, param.alpha * getAlpha());
+		Color4F color(1, 1, 1, param.alpha * getAlpha());
 		programState->setColor(color);
 
 		m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
@@ -1289,7 +1289,7 @@ namespace slib
 		if (texture.isNull()) {
 			return;
 		}
-		drawTexture(rectDst, texture, rectSrc, param, Color4f(1, 1, 1, 1));
+		drawTexture(rectDst, texture, rectSrc, param, Color4F(1, 1, 1, 1));
 	}
 
 	void RenderCanvas::onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const Canvas::DrawTextParam& param)
@@ -1330,7 +1330,7 @@ namespace slib
 		Ref<Texture> textureBefore;
 
 		FontAtlasChar fac;
-		Color4f color = param.color;
+		Color4F color = param.color;
 		sl_real fx = x;
 
 		for (sl_size i = 0; i < len;) {
@@ -1385,7 +1385,7 @@ namespace slib
 									if (!(scope.begin(m_engine.get(), program))) {
 										return;
 									}
-									scope->setColor(Color4f(color.x, color.y, color.z, color.w * getAlpha()));
+									scope->setColor(Color4F(color.x, color.y, color.z, color.w * getAlpha()));
 									flagBeginScope = sl_true;
 								}
 

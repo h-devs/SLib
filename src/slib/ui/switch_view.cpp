@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -34,76 +34,26 @@ namespace slib
 	SLIB_DEFINE_OBJECT(SwitchView, View)
 
 	SwitchView::SwitchView():
-		m_flagDefaultTextOff(sl_true),
-		m_flagDefaultTextOn(sl_true),
-		m_flagDefaultTextColorOff(sl_true),
-		m_flagDefaultTextColorOn(sl_true),
-		m_flagDefaultThumbOff(sl_true),
-		m_flagDefaultThumbOn(sl_true),
-		m_flagDefaultTrackOff(sl_true),
-		m_flagDefaultTrackOn(sl_true),
-		m_flagDefaultPressedThumbOff(sl_true),
-		m_flagDefaultPressedThumbOn(sl_true),
-		m_flagDefaultPressedTrackOff(sl_true),
-		m_flagDefaultPressedTrackOn(sl_true),
-		m_flagDefaultHoverThumbOff(sl_true),
-		m_flagDefaultHoverThumbOn(sl_true),
-		m_flagDefaultHoverTrackOff(sl_true),
-		m_flagDefaultHoverTrackOn(sl_true),
-
-		m_value(sl_false),
+		m_value(SwitchValue::Off),
 		m_flagTextInButton(sl_false),
-
 		m_posThumb(0)
 	{
 		setCursor(Cursor::getHand());
+		setRedrawingOnChangeState();
 	}
 
 	SwitchView::~SwitchView()
 	{
 	}
 
-	sl_bool SwitchView::getValue()
+	SwitchValue SwitchView::getValue()
 	{
 		return m_value;
 	}
 
-	sl_bool SwitchView::isLeft()
+	void SwitchView::setValue(SwitchValue value, UIUpdateMode mode)
 	{
-		return !m_value;
-	}
-
-	void SwitchView::switchToLeft(UIUpdateMode mode)
-	{
-		setValue(sl_false, mode);
-	}
-
-	sl_bool SwitchView::isRight()
-	{
-		return m_value;
-	}
-
-	void SwitchView::switchToRight(UIUpdateMode mode)
-	{
-		setValue(sl_true, mode);
-	}
-
-	void SwitchView::setValue(sl_bool value, UIUpdateMode mode)
-	{
-		{
-			ObjectLocker lock(this);
-			m_value = value;
-			sl_real f = value ? 1.0f : 0.0f;
-			if (SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode) && !(Math::isAlmostZero(f - m_posThumb))) {
-				if (m_timer.isNull()) {
-					m_timer = startTimer(SLIB_FUNCTION_WEAKREF(this, _onTimerAnimation), 10);
-				}
-				return;
-			}
-			m_timer.setNull();
-			m_posThumb = f;
-		}
-		invalidate(mode);
+		_changeValue(value, sl_null, mode);
 	}
 
 	sl_bool SwitchView::isTextInButton()
@@ -117,169 +67,212 @@ namespace slib
 		invalidate(mode);
 	}
 
-#define SWITCH_VIEW_GET_SET_1(BIG_NAME, SMALL_NAME, TYPE) \
-	TYPE SwitchView::get##BIG_NAME() \
-	{ \
-		return m_##SMALL_NAME; \
-	} \
-	void SwitchView::set##BIG_NAME(const TYPE& v, UIUpdateMode mode) \
-	{ \
-		m_##SMALL_NAME = v; \
-		m_flagDefault##BIG_NAME = sl_false; \
-		invalidate(mode); \
-	}
-
-#define SWITCH_VIEW_GET_SET(BIG_NAME, SMALL_NAME, TYPE) \
-	SWITCH_VIEW_GET_SET_1(BIG_NAME##Off, SMALL_NAME##Off, TYPE) \
-	SWITCH_VIEW_GET_SET_1(BIG_NAME##On, SMALL_NAME##On, TYPE) \
-	TYPE SwitchView::get##BIG_NAME() \
-	{ \
-		if (m_value) { \
-			return m_##SMALL_NAME##On; \
-		} else { \
-			return m_##SMALL_NAME##Off; \
-		} \
-	} \
-	void SwitchView::set##BIG_NAME(const TYPE& v, UIUpdateMode mode) \
-	{ \
-		m_##SMALL_NAME##Off = v; \
-		m_##SMALL_NAME##On = v; \
-		m_flagDefault##BIG_NAME##Off = sl_false; \
-		m_flagDefault##BIG_NAME##On = sl_false; \
-		invalidate(mode); \
-	} \
-
-	SWITCH_VIEW_GET_SET(Text, text, String)
-	SWITCH_VIEW_GET_SET(TextColor, textColor, Color)
-
-#define SWITCH_VIEW_GET_SET_DRAWABLE(BIG_NAME, SMALL_NAME) \
-	SWITCH_VIEW_GET_SET(BIG_NAME, SMALL_NAME, Ref<Drawable>) \
-	void SwitchView::set##BIG_NAME##ColorOff(const Color& color, UIUpdateMode mode) \
-	{ \
-		m_##SMALL_NAME##Off = ColorDrawable::create(color); \
-		m_flagDefault##BIG_NAME##Off = sl_false; \
-		invalidate(mode); \
-	} \
-	void SwitchView::set##BIG_NAME##ColorOn(const Color& color, UIUpdateMode mode) \
-	{ \
-		m_##SMALL_NAME##On = ColorDrawable::create(color); \
-		m_flagDefault##BIG_NAME##On = sl_false; \
-		invalidate(mode); \
-	} \
-	void SwitchView::set##BIG_NAME##Color(const Color& color, UIUpdateMode mode) \
-	{ \
-		m_##SMALL_NAME##Off = ColorDrawable::create(color); \
-		m_##SMALL_NAME##On = ColorDrawable::create(color); \
-		m_flagDefault##BIG_NAME##Off = sl_false; \
-		m_flagDefault##BIG_NAME##On = sl_false; \
-		invalidate(mode); \
-	}
-
-	SWITCH_VIEW_GET_SET_DRAWABLE(Thumb, thumb)
-	SWITCH_VIEW_GET_SET_DRAWABLE(Track, track)
-	SWITCH_VIEW_GET_SET_DRAWABLE(PressedThumb, pressedThumb)
-	SWITCH_VIEW_GET_SET_DRAWABLE(PressedTrack, pressedTrack)
-	SWITCH_VIEW_GET_SET_DRAWABLE(HoverThumb, hoverThumb)
-	SWITCH_VIEW_GET_SET_DRAWABLE(HoverTrack, hoverTrack)
-
-	String SwitchView::getLeftText()
+	String SwitchView::getText(SwitchValue value)
 	{
-		return m_textOff;
+		return m_texts[(int)value];
 	}
 
-	void SwitchView::setLeftText(const String& text, UIUpdateMode mode)
+	void SwitchView::setText(SwitchValue value, const String& text, UIUpdateMode mode)
 	{
-		setTextOff(text, mode);
-	}
-
-	String SwitchView::getRightText()
-	{
-		return m_textOn;
-	}
-
-	void SwitchView::setRightText(const String& text, UIUpdateMode mode)
-	{
-		setTextOn(text, mode);
-	}
-
-	void SwitchView::setPressedState(sl_bool flagState, UIUpdateMode mode)
-	{
-		View::setPressedState(flagState, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
-		if (flagState) {
-			invalidate(mode);
-		} else {
-			setValue(m_value);
-		}
-	}
-
-	void SwitchView::setHoverState(sl_bool flagState, UIUpdateMode mode)
-	{
-		View::setHoverState(flagState, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
+		m_texts[(int)value] = text;
 		invalidate(mode);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(SwitchView, Change, sl_bool newValue)
-
-	void SwitchView::dispatchChange(sl_bool newValue)
+	Color SwitchView::getTextColor(SwitchValue value)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, newValue)
+		return m_textColors[(int)value];
 	}
+
+	void SwitchView::setTextColor(SwitchValue value, const Color& color, UIUpdateMode mode)
+	{
+		m_textColors[(int)value] = color;
+		invalidate(mode);
+	}
+
+	void SwitchView::setTextColor(const Color& color, UIUpdateMode mode)
+	{
+		m_textColors[0] = color;
+		m_textColors[1] = color;
+		invalidate(mode);
+	}
+
+	Ref<Drawable> SwitchView::getThumb(SwitchValue value, ViewState state)
+	{
+		return m_thumbs[(int)value].get(state);
+	}
+
+	void SwitchView::setThumb(SwitchValue value, const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		m_thumbs[(int)value].set(state, drawable);
+		invalidate(mode);
+	}
+
+	void SwitchView::setThumb(SwitchValue value, const Ref<Drawable>& drawable, UIUpdateMode mode)
+	{
+		m_thumbs[(int)value].defaultValue = drawable;
+		invalidate(mode);
+	}
+
+	void SwitchView::setThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		m_thumbs[0].set(state, drawable);
+		m_thumbs[1].set(state, drawable);
+		invalidate(mode);
+	}
+
+	void SwitchView::setThumb(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	{
+		m_thumbs[0].defaultValue = drawable;
+		m_thumbs[1].defaultValue = drawable;
+		invalidate(mode);
+	}
+
+	void SwitchView::setThumbColor(SwitchValue value, const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		setThumb(value, Drawable::fromColor(color), state, mode);
+	}
+
+	void SwitchView::setThumbColor(SwitchValue value, const Color& color, UIUpdateMode mode)
+	{
+		setThumb(value, Drawable::fromColor(color), mode);
+	}
+
+	void SwitchView::setThumbColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		setThumb(Drawable::fromColor(color), state, mode);
+	}
+
+	void SwitchView::setThumbColor(const Color& color, UIUpdateMode mode)
+	{
+		setThumb(Drawable::fromColor(color), mode);
+	}
+
+	Ref<Drawable> SwitchView::getTrack(SwitchValue value, ViewState state)
+	{
+		return m_tracks[(int)value].get(state);
+	}
+
+	void SwitchView::setTrack(SwitchValue value, const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		m_tracks[(int)value].set(state, drawable);
+		invalidate(mode);
+	}
+
+	void SwitchView::setTrack(SwitchValue value, const Ref<Drawable>& drawable, UIUpdateMode mode)
+	{
+		m_tracks[(int)value].defaultValue = drawable;
+		invalidate(mode);
+	}
+
+	void SwitchView::setTrack(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		m_tracks[0].set(state, drawable);
+		m_tracks[1].set(state, drawable);
+		invalidate(mode);
+	}
+
+	void SwitchView::setTrack(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	{
+		m_tracks[0].defaultValue = drawable;
+		m_tracks[1].defaultValue = drawable;
+		invalidate(mode);
+	}
+
+	void SwitchView::setTrackColor(SwitchValue value, const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		setTrack(value, Drawable::fromColor(color), state, mode);
+	}
+
+	void SwitchView::setTrackColor(SwitchValue value, const Color& color, UIUpdateMode mode)
+	{
+		setTrack(value, Drawable::fromColor(color), mode);
+	}
+
+	void SwitchView::setTrackColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		setTrack(Drawable::fromColor(color), state, mode);
+	}
+
+	void SwitchView::setTrackColor(const Color& color, UIUpdateMode mode)
+	{
+		setTrack(Drawable::fromColor(color), mode);
+	}
+
+	
+	SLIB_DEFINE_EVENT_HANDLER(SwitchView, Change, (SwitchValue value, UIEvent* ev),  value, ev)
 
 	namespace {
 		class DrawContext
 		{
 		public:
-			Color textColorOff;
-			Color textColorOn;
+			Color textColors[2];
 
-			Ref<Drawable> thumbOff;
-			Ref<Drawable> trackOff;
-			Ref<Drawable> pressedThumbOff;
-			Ref<Drawable> pressedTrackOff;
-			Ref<Drawable> hoverThumbOff;
-			Ref<Drawable> hoverTrackOff;
-			Ref<Drawable> thumbOn;
-			Ref<Drawable> trackOn;
-			Ref<Drawable> pressedThumbOn;
-			Ref<Drawable> pressedTrackOn;
-			Ref<Drawable> hoverThumbOn;
-			Ref<Drawable> hoverTrackOn;
+			Ref<Drawable> thumbs[2];
+			Ref<Drawable> tracks[2];
+			Ref<Drawable> pressedThumbs[2];
+			Ref<Drawable> pressedTracks[2];
+			Ref<Drawable> hoverThumbs[2];
+			Ref<Drawable> hoverTracks[2];
 
 		public:
 			DrawContext(sl_bool flagLabel)
 			{
 				if (flagLabel) {
-					textColorOff = Color::White;
-					textColorOn = Color::Black;
-					thumbOff = ColorDrawable::create(Color(255, 255, 255));
-					trackOff = ColorDrawable::create(Color(130, 130, 130));
-					pressedThumbOff = ColorDrawable::create(Color(255, 255, 255));
-					pressedTrackOff = ColorDrawable::create(Color(100, 100, 100));
-					hoverThumbOff = ColorDrawable::create(Color(255, 255, 255));
-					hoverTrackOff = ColorDrawable::create(Color(120, 120, 120));
-					thumbOn = thumbOff;
-					trackOn = trackOff;
-					pressedThumbOn = pressedThumbOff;
-					pressedTrackOn = pressedTrackOff;
-					hoverThumbOn = hoverThumbOff;
-					hoverTrackOn = hoverTrackOff;
+					textColors[0] = Color::White;
+					textColors[1] = Color::Black;
+					thumbs[0] = ColorDrawable::create(Color(255, 255, 255));
+					tracks[0] = ColorDrawable::create(Color(130, 130, 130));
+					pressedThumbs[0] = ColorDrawable::create(Color(255, 255, 255));
+					pressedTracks[0] = ColorDrawable::create(Color(100, 100, 100));
+					hoverThumbs[0] = ColorDrawable::create(Color(255, 255, 255));
+					hoverTracks[0] = ColorDrawable::create(Color(120, 120, 120));
+					thumbs[1] = thumbs[0];
+					tracks[1] = tracks[0];
+					pressedThumbs[1] = pressedThumbs[0];
+					pressedTracks[1] = pressedTracks[0];
+					hoverThumbs[1] = hoverThumbs[0];
+					hoverTracks[1] = hoverTracks[0];
 				} else {
-					textColorOff = Color::Black;
-					textColorOn = Color::Black;
-					thumbOff = ColorDrawable::create(Color(255, 255, 255));
-					trackOff = ColorDrawable::create(Color(120, 120, 120));
-					pressedThumbOff = ColorDrawable::create(Color(255, 255, 255));
-					pressedTrackOff = ColorDrawable::create(Color(0, 70, 210));
-					hoverThumbOff = ColorDrawable::create(Color(255, 255, 255));
-					hoverTrackOff = ColorDrawable::create(Color(90, 90, 90));
-					thumbOn = ColorDrawable::create(Color(255, 255, 255));
-					trackOn = ColorDrawable::create(Color(0, 80, 230));
-					pressedThumbOn = ColorDrawable::create(Color(255, 255, 255));
-					pressedTrackOn = ColorDrawable::create(Color(0, 70, 210));
-					hoverThumbOn = ColorDrawable::create(Color(255, 255, 255));
-					hoverTrackOn = ColorDrawable::create(Color(30, 90, 210));
+					textColors[0] = Color::Black;
+					textColors[1] = Color::Black;
+					thumbs[0] = ColorDrawable::create(Color(255, 255, 255));
+					tracks[0] = ColorDrawable::create(Color(120, 120, 120));
+					pressedThumbs[0] = ColorDrawable::create(Color(255, 255, 255));
+					pressedTracks[0] = ColorDrawable::create(Color(0, 70, 210));
+					hoverThumbs[0] = ColorDrawable::create(Color(255, 255, 255));
+					hoverTracks[0] = ColorDrawable::create(Color(90, 90, 90));
+					thumbs[1] = ColorDrawable::create(Color(255, 255, 255));
+					tracks[1] = ColorDrawable::create(Color(0, 80, 230));
+					pressedThumbs[1] = ColorDrawable::create(Color(255, 255, 255));
+					pressedTracks[1] = ColorDrawable::create(Color(0, 70, 210));
+					hoverThumbs[1] = ColorDrawable::create(Color(255, 255, 255));
+					hoverTracks[1] = ColorDrawable::create(Color(30, 90, 210));
 				}
 			}
+
+		public:
+			Ref<Drawable> getTrack(sl_uint32 value, ViewState state)
+			{
+				if (SLIB_VIEW_STATE_IS_PRESSED(state)) {
+					return pressedTracks[(int)value];
+				}
+				if (SLIB_VIEW_STATE_IS_HOVER(state)) {
+					return hoverTracks[(int)value];
+				}
+				return tracks[value];
+			}
+
+			Ref<Drawable> getThumb(sl_uint32 value, ViewState state)
+			{
+				if (SLIB_VIEW_STATE_IS_PRESSED(state)) {
+					return pressedThumbs[value];
+				}
+				if (SLIB_VIEW_STATE_IS_HOVER(state)) {
+					return hoverThumbs[value];
+				}
+				return thumbs[value];
+			}
+
 		};
 
 		SLIB_SAFE_STATIC_GETTER(DrawContext, GetDrawContext, sl_false)
@@ -301,112 +294,15 @@ namespace slib
 		if (!(calculateSwitchRegion(rect))) {
 			return;
 		}
-		Ref<Drawable> track;
-		Ref<Drawable> thumb;
-		if (isPressedState()) {
-			if (m_value) {
-				if (m_flagDefaultPressedTrackOn) {
-					if (m_flagDefaultTrackOn) {
-						track = s->pressedTrackOn;
-					} else {
-						track = m_trackOn;
-					}
-				} else {
-					track = m_pressedTrackOn;
-				}
-				if (m_flagDefaultPressedThumbOn) {
-					if (m_flagDefaultThumbOn) {
-						thumb = s->pressedThumbOn;
-					} else {
-						thumb = m_thumbOn;
-					}
-				} else {
-					thumb = m_pressedThumbOn;
-				}
-			} else {
-				if (m_flagDefaultPressedTrackOff) {
-					if (m_flagDefaultTrackOff) {
-						track = s->pressedTrackOff;
-					} else {
-						track = m_trackOff;
-					}
-				} else {
-					track = m_pressedTrackOff;
-				}
-				if (m_flagDefaultPressedThumbOff) {
-					if (m_flagDefaultThumbOff) {
-						thumb = s->pressedThumbOff;
-					} else {
-						thumb = m_thumbOff;
-					}
-				} else {
-					thumb = m_pressedThumbOff;
-				}
-			}
-		} else if (isHoverState()) {
-			if (m_value) {
-				if (m_flagDefaultHoverTrackOn) {
-					if (m_flagDefaultTrackOn) {
-						track = s->hoverTrackOn;
-					} else {
-						track = m_trackOn;
-					}
-				} else {
-					track = m_hoverTrackOn;
-				}
-				if (m_flagDefaultHoverThumbOn) {
-					if (m_flagDefaultThumbOn) {
-						thumb = s->hoverThumbOn;
-					} else {
-						thumb = m_thumbOn;
-					}
-				} else {
-					thumb = m_hoverThumbOn;
-				}
-			} else {
-				if (m_flagDefaultHoverTrackOff) {
-					if (m_flagDefaultTrackOff) {
-						track = s->hoverTrackOff;
-					} else {
-						track = m_trackOff;
-					}
-				} else {
-					track = m_hoverTrackOff;
-				}
-				if (m_flagDefaultHoverThumbOff) {
-					if (m_flagDefaultThumbOff) {
-						thumb = s->hoverThumbOff;
-					} else {
-						thumb = m_thumbOff;
-					}
-				} else {
-					thumb = m_hoverThumbOff;
-				}
-			}
-		} else {
-			if (m_value) {
-				if (m_flagDefaultTrackOn) {
-					track = s->trackOn;
-				} else {
-					track = m_trackOn;
-				}
-				if (m_flagDefaultThumbOn) {
-					thumb = s->thumbOn;
-				} else {
-					thumb = m_thumbOn;
-				}
-			} else {
-				if (m_flagDefaultTrackOff) {
-					track = s->trackOff;
-				} else {
-					track = m_trackOff;
-				}
-				if (m_flagDefaultThumbOff) {
-					thumb = s->thumbOff;
-				} else {
-					thumb = m_thumbOff;
-				}
-			}
+		sl_uint32 value = m_value == SwitchValue::On ? 1 : 0;
+		ViewState state = getState();
+		Ref<Drawable> track = m_tracks[value].evaluate(state);
+		if (track.isNull()) {
+			track = s->getTrack(value, state);
+		}
+		Ref<Drawable> thumb = m_thumbs[value].evaluate(state);
+		if (thumb.isNull()) {
+			thumb = s->getThumb(value, state);
 		}
 
 		sl_ui_len widthTrack = rect.getWidth();
@@ -432,45 +328,29 @@ namespace slib
 		if (m_flagTextInButton) {
 			Ref<Font> font = getFont();
 			if (font.isNotNull()) {
-				Color colorOn, colorOff;
-				if (m_flagDefaultTextColorOn) {
-					colorOn = s->textColorOn;
-				} else {
-					colorOn = m_textColorOn;
+				Color textColors[2] = { m_textColors[0], m_textColors[1] };
+				if (textColors[0].isZero()) {
+					textColors[0] = s->textColors[0];
 				}
-				if (m_flagDefaultTextColorOff) {
-					colorOff = s->textColorOff;
-				} else {
-					colorOff = m_textColorOff;
+				if (textColors[1].isZero()) {
+					textColors[1] = s->textColors[1];
 				}
 				UIRect rectThumb = rect;
 				rectThumb.setWidth(widthThumb);
-				canvas->drawText(m_textOff, rectThumb, font, m_value && !(isPressedState()) ? colorOff : colorOn, Alignment::MiddleCenter);
+				canvas->drawText(m_texts[0], rectThumb, font, textColors[!value || isPressedState() ? 1 : 0], Alignment::MiddleCenter);
 				rectThumb.left = rect.left + widthThumb;
 				rectThumb.setWidth(widthThumb);
-				canvas->drawText(m_textOn, rectThumb, font, m_value || isPressedState() ? colorOn : colorOff, Alignment::MiddleCenter);
+				canvas->drawText(m_texts[1], rectThumb, font, textColors[value || isPressedState() ? 1 : 0], Alignment::MiddleCenter);
 			}
 		} else {
-			String text;
-			Color textColor;
-			if (m_value) {
-				text = m_textOn;
-				if (m_flagDefaultTextColorOn) {
-					textColor = s->textColorOn;
-				} else {
-					textColor = m_textColorOn;
-				}
-			} else {
-				text = m_textOff;
-				if (m_flagDefaultTextColorOff) {
-					textColor = s->textColorOff;
-				} else {
-					textColor = m_textColorOff;
-				}
-			}
+			String text = m_texts[value];
 			if (text.isNotEmpty()) {
 				Ref<Font> font = getFont();
 				if (font.isNotNull()) {
+					Color textColor = m_textColors[value];
+					if (textColor.isZero()) {
+						textColor = s->textColors[value];
+					}
 					canvas->drawText(text, (sl_real)(getPaddingLeft()), (sl_real)(rect.top + (rect.getHeight() - font->getFontHeight()) / 2), font, textColor);
 				}
 			}
@@ -499,12 +379,11 @@ namespace slib
 				heightSwitch = 0;
 			}
 			sl_ui_len widthText = 0;
-			String textOn(m_textOn);
-			String textOff(m_textOff);
-			if (textOn.isNotEmpty() || textOff.isNotEmpty()) {
+			String texts[2] = { m_texts[0], m_texts[1] };
+			if (texts[0].isNotEmpty() || texts[1].isNotEmpty()) {
 				Ref<Font> font = getFont();
 				if (font.isNotNull()) {
-					widthText = (sl_ui_len)(Math::max(font->measureText(m_textOn).x, font->measureText(textOff).x));
+					widthText = (sl_ui_len)(Math::max(font->measureText(texts[0]).x, font->measureText(texts[1]).x));
 				}
 			}
 			if (m_flagTextInButton) {
@@ -545,8 +424,6 @@ namespace slib
 					m_posMouseDown = m_posThumb;
 					m_flagTapping = sl_true;
 					m_tracker.clearMovements();
-					View::setPressedState(sl_true);
-
 					ObjectLocker lock(this);
 					m_timer.setNull();
 				}
@@ -585,23 +462,23 @@ namespace slib
 			case UIAction::TouchEnd:
 				if (isPressedState()) {
 					if (m_flagTapping && (ev->getTime() - m_timeMouseDown).getMillisecondCount() < 250) {
-						_changeValue(!m_value);
+						_changeValue(m_value == SwitchValue::On ? SwitchValue::Off : SwitchValue::On, ev);
 					} else {
 						sl_real v = 0;
 						m_tracker.getVelocity(&v, sl_null);
 						sl_real t = dimUnit * 10;
 						if (v > t) {
-							_changeValue(sl_true);
+							_changeValue(SwitchValue::On, ev);
 						} else if (v < -t) {
-							_changeValue(sl_false);
+							_changeValue(SwitchValue::Off, ev);
 						} else {
 							if (m_flagTapping) {
-								_changeValue(!m_value);
+								_changeValue(m_value == SwitchValue::On ? SwitchValue::Off : SwitchValue::On, ev);
 							} else {
 								if (m_posThumb > 0.5f) {
-									_changeValue(sl_true);
+									_changeValue(SwitchValue::On, ev);
 								} else {
-									_changeValue(sl_false);
+									_changeValue(SwitchValue::Off, ev);
 								}
 							}
 						}
@@ -616,6 +493,8 @@ namespace slib
 			default:
 				break;
 		}
+
+		View::onMouseEvent(ev);
 	}
 
 	sl_bool SwitchView::calculateSwitchRegion(UIRect& rect)
@@ -685,35 +564,46 @@ namespace slib
 		}
 	}
 
-	void SwitchView::_changeValue(sl_bool value)
+	void SwitchView::_changeValue(SwitchValue value, UIEvent* ev, UIUpdateMode mode)
 	{
-		if (value != m_value) {
-			setValue(value);
-			dispatchChange(value);
-		} else {
-			setValue(value);
+		ObjectLocker locker(this);
+		SwitchValue former = m_value;
+		m_value = value;
+		sl_real posThumb = value == SwitchValue::On ? 1.0f : 0.0f;
+		if (!(Math::isAlmostZero(posThumb - m_posThumb))) {
+			if (SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode)) {
+				if (m_timer.isNull()) {
+					m_timer = startTimer(SLIB_FUNCTION_WEAKREF(this, _onTimerAnimation), 10);
+				}
+			} else {
+				m_posThumb = posThumb;
+				m_timer.setNull();
+				invalidate(mode);
+			}
+		}
+		locker.unlock();
+		if (value != former) {
+			invokeChange(value, ev);
 		}
 	}
 
 	void SwitchView::_onTimerAnimation(Timer* timer)
 	{
-		do {
+		sl_real target = m_value == SwitchValue::On ? 1.0f : 0.0f;
+		sl_real pos = m_posThumb;
+		sl_real d = 0.1f;
+		sl_real a = Math::abs(target - pos);
+		if (a < d || a > 2) {
+			m_posThumb = target;
 			ObjectLocker lock(this);
-			sl_real target = m_value ? 1.0f : 0.0f;
-			sl_real pos = m_posThumb;
-			sl_real d = 0.1f;
-			sl_real a = Math::abs(target - pos);
-			if (a < d || a > 2) {
-				m_posThumb = target;
-				m_timer.setNull();
-				break;
-			}
+			m_timer.setNull();
+		} else {
 			if (target > m_posThumb) {
 				m_posThumb += d;
 			} else {
 				m_posThumb -= d;
 			}
-		} while (0);
+		}
 		invalidate();
 	}
 

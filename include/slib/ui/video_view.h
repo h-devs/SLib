@@ -94,13 +94,13 @@ namespace slib
 
 		void updateCurrentFrame(VideoFrame& frame);
 
-		Sizei getLastFrameSize();
+		SizeI getLastFrameSize();
 
 		// texture coordinate: [0, 0] - left top, [1, 1] - right bottom
 		sl_bool convertCoordinateToTexture(Point& pt);
 
-	protected:
-		void dispatchFrame(RenderEngine* engine) override;
+	public:
+		void handleFrame(RenderEngine* engine) override;
 
 		void onDraw(Canvas* canvas) override;
 
@@ -119,7 +119,7 @@ namespace slib
 
 		void _onTimerPlayVideo(Timer* timer);
 
-		void _onSeek(Slider* slider, float value);
+		void _onSeek(Slider* slider, float value, UIEvent* ev);
 
 	protected:
 		AtomicRef<MediaPlayer> m_mediaPlayer;
@@ -142,7 +142,7 @@ namespace slib
 		RotationMode m_rotationFrameApplied;
 		FlipMode m_flipApplied;
 		RotationMode m_rotationApplied;
-		Sizei m_sizeLastFrame;
+		SizeI m_sizeLastFrame;
 
 		MediaPlayer::RenderVideoParam m_renderVideoParam;
 		Ref<Timer> m_timerPlayVideo;

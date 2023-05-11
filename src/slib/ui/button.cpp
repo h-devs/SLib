@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 #include "slib/ui/button.h"
 
 #include "slib/ui/view_attributes.h"
+#include "slib/ui/priv/view_state_map.h"
 #include "slib/ui/core.h"
 #include "slib/ui/cursor.h"
 #include "slib/graphics/util.h"
@@ -37,17 +38,14 @@
 
 #define BUTTON_TEXT_DEFAULT_COLOR Color(0, 100, 200)
 
+#ifdef SLIB_PLATFORM_IS_MOBILE
+#define BUTTON_DEFAULT_USE_FOCUSED_COLOR_FILTER sl_false
+#else
+#define BUTTON_DEFAULT_USE_FOCUSED_COLOR_FILTER sl_true
+#endif
+
 namespace slib
 {
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ButtonCategoryProperties)
-
-	ButtonCategoryProperties::ButtonCategoryProperties()
-	{
-		textColor = Color::zero();
-		flagFilter = sl_false;
-	}
-
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ButtonCategory)
 
@@ -66,6 +64,7 @@ namespace slib
 		setSavingCanvasState(sl_false);
 		setUsingFont(sl_true);
 		setFocusable(sl_true);
+		setRedrawingOnChangeState(sl_true);
 
 		m_flagDefaultButton = sl_false;
 	}
@@ -182,23 +181,6 @@ namespace slib
 		}
 	}
 
-	Color Button::getTextColor()
-	{
-		if (m_cell.isNotNull()) {
-			return m_cell->textColor;
-		}
-		return BUTTON_TEXT_DEFAULT_COLOR;
-	}
-
-	void Button::setTextColor(const Color& color, UIUpdateMode updateMode)
-	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			m_cell->textColor = color;
-			invalidate(updateMode);
-		}
-	}
-
 	Alignment Button::getGravity()
 	{
 		_initCell();
@@ -272,30 +254,6 @@ namespace slib
 			return (sl_uint32)(m_cell->categories.getCount());
 		}
 		return 2;
-	}
-
-	ButtonState Button::getButtonState()
-	{
-		if (m_cell.isNotNull()) {
-			return m_cell->state;
-		}
-		return ButtonState::Normal;
-	}
-
-	sl_bool Button::isUsingFocusedState()
-	{
-		if (m_cell.isNotNull()) {
-			return m_cell->flagUseFocusedState;
-		}
-		return sl_false;
-	}
-
-	void Button::setUsingFocusedState(sl_bool flag)
-	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			m_cell->flagUseFocusedState = flag;
-		}
 	}
 
 	sl_uint32 Button::getCurrentCategory()
@@ -642,178 +600,120 @@ namespace slib
 		}
 	}
 
-	Color Button::getTextColor(ButtonState state, sl_uint32 category)
+#define DEFINE_STATE_MAP_FUNCS_SUB(FUNC, NAME, TYPE, CHECK_NOT_NULL, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
+	TYPE Button::get##FUNC(sl_uint32 category, ViewState state) \
+	{ \
+		if (m_cell.isNotNull()) { \
+			if (category < m_cell->categories.getCount()) { \
+				TYPE value = m_cell->categories[category].NAME.get(state); \
+				if (value.CHECK_NOT_NULL()) { \
+					return value; \
+				} \
+			} \
+		} \
+		return NULL_VALUE; \
+	} \
+	void Button::set##FUNC(sl_uint32 category, SET_TYPE value, ViewState state, UIUpdateMode mode) \
+	{ \
+		_initCell(); \
+		if (m_cell.isNotNull()) { \
+			if (category < m_cell->categories.getCount()) { \
+				if (value SET_CHECK_NOT_NULL) { \
+					m_cell->categories[category].NAME.set(state, SET_VALUE); \
+				} else { \
+					m_cell->categories[category].NAME.remove(state); \
+				} \
+				invalidate(mode); \
+			} \
+		} \
+	} \
+	void Button::set##FUNC(sl_uint32 category, SET_TYPE value, UIUpdateMode mode) \
+	{ \
+		set##FUNC(category, value, ViewState::Default, mode); \
+	}
+
+#define DEFINE_STATE_MAP_FUNCS(FUNC, NAME, TYPE, CHECK_NOT_NULL, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
+	DEFINE_STATE_MAP_FUNCS_SUB(FUNC, NAME, TYPE, CHECK_NOT_NULL, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
+	TYPE Button::get##FUNC(ViewState state) \
+	{ \
+		return get##FUNC(0, state); \
+	} \
+	void Button::set##FUNC(SET_TYPE value, ViewState state, UIUpdateMode mode) \
+	{ \
+		sl_uint32 nCategories = getCategoryCount(); \
+		for (sl_uint32 i = 0; i < nCategories; i++) { \
+			set##FUNC(i, value, state, mode); \
+		} \
+	} \
+	void Button::set##FUNC(SET_TYPE value, UIUpdateMode mode) \
+	{ \
+		set##FUNC(value, ViewState::Default, mode); \
+	}
+
+	DEFINE_STATE_MAP_FUNCS(TextColor, textColors, Color, isNotZero, Color::zero(), const Color&, .isNotZero(), value)
+	DEFINE_STATE_MAP_FUNCS(Icon, icons, Ref<Drawable>, isNotNull, sl_null, const Ref<Drawable>&, .isNotNull(), value)
+	DEFINE_STATE_MAP_FUNCS_SUB(Background, backgrounds, Ref<Drawable>, isNotNull, sl_null, const Ref<Drawable>&, .isNotNull(), value)
+
+	Color Button::getBackgroundColor(sl_uint32 category, ViewState state)
 	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount() && (int)state < (int)(ButtonState::Count)) {
-				return m_cell->categories[category].properties[(int)state].textColor;
-			}
+		Color color;
+		if (ColorDrawable::check(getBackground(category, state), &color)) {
+			return color;
 		}
 		return Color::zero();
 	}
 
-	void Button::setTextColor(const Color& color, ButtonState state, sl_uint32 category, UIUpdateMode mode)
+	void Button::setBackgroundColor(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				if ((int)state < (int)(ButtonState::Count)) {
-					m_cell->categories[category].properties[(int)state].textColor = color;
-					invalidate(mode);
-				}
-			}
-		}
+		setBackground(category, Drawable::fromColor(color), state, mode);
 	}
 
-	Ref<Drawable> Button::getIcon(ButtonState state, sl_uint32 category)
+	void Button::setBackgroundColor(sl_uint32 category, const Color& color, UIUpdateMode mode)
 	{
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount() && (int)state < (int)(ButtonState::Count)) {
-				return m_cell->categories[category].properties[(int)state].icon;
-			}
-		}
-		return sl_null;
+		setBackground(category, Drawable::fromColor(color), mode);
 	}
 
-	void Button::setIcon(const Ref<Drawable>& icon, ButtonState state, sl_uint32 category, UIUpdateMode mode)
+	DEFINE_STATE_MAP_FUNCS_SUB(Border, borders, Ref<Pen>, isNotNull, sl_null, const Ref<Pen>&, .isNotNull(), value)
+
+	void Button::setBorder(sl_uint32 category, const PenDesc& desc, ViewState state, UIUpdateMode mode)
 	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				if ((int)state < (int)(ButtonState::Count)) {
-					m_cell->categories[category].properties[(int)state].icon = icon;
-					invalidateLayoutOfWrappingControl(mode);
-				}
-			}
-		}
+		setBorder(category, Pen::create(desc, getBorder(category, state)), state, mode);
 	}
 
-	Ref<Drawable> Button::getIcon()
+	void Button::setBorder(sl_uint32 category, const PenDesc& desc, UIUpdateMode mode)
 	{
-		if (m_cell.isNotNull()) {
-			return m_cell->iconDefault;
-		}
-		return sl_null;
+		setBorder(category, desc, ViewState::Default, mode);
 	}
 
-	void Button::setIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
-	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			m_cell->iconDefault = icon;
-			invalidateLayoutOfWrappingControl(mode);
-		}
-	}
+	DEFINE_STATE_MAP_FUNCS(ColorFilter, filters, Shared<ColorMatrix>, isNotNull, sl_null, ColorMatrix*, , Shared<ColorMatrix>::create(*value))
 
-	Ref<Drawable> Button::getBackground(ButtonState state, sl_uint32 category)
-	{
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount() && (int)state < (int)(ButtonState::Count)) {
-				return m_cell->categories[category].properties[(int)state].background;
-			}
-		}
-		return sl_null;
-	}
-
-	void Button::setBackground(const Ref<Drawable>& background, ButtonState state, sl_uint32 category, UIUpdateMode mode)
-	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				if ((int)state < (int)(ButtonState::Count)) {
-					m_cell->categories[category].properties[(int)state].background = background;
-					invalidate(mode);
-				}
-			}
-		}
-	}
-
-	void Button::setBackground(const Color& color, ButtonState state, sl_uint32 category, UIUpdateMode mode)
-	{
-		setBackground(Drawable::createColorDrawable(color), state, category, mode);
-	}
-
-	Ref<Pen> Button::getBorder(ButtonState state, sl_uint32 category)
-	{
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount() && (int)state < (int)(ButtonState::Count)) {
-				return m_cell->categories[category].properties[(int)state].border;
-			}
-		}
-		return sl_null;
-	}
-
-	void Button::setBorder(const Ref<Pen>& pen, ButtonState state, sl_uint32 category, UIUpdateMode mode)
-	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				if ((int)state < (int)(ButtonState::Count)) {
-					m_cell->categories[category].properties[(int)state].border = pen;
-					invalidate(mode);
-				}
-			}
-		}
-	}
-
-	ColorMatrix* Button::getColorFilter(ButtonState state, sl_uint32 category)
-	{
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount() && (int)state < (int)(ButtonState::Count)) {
-				ButtonCategoryProperties& props = m_cell->categories[category].properties[(int)state];
-				if (props.flagFilter) {
-					return &(props.filter);
-				}
-			}
-		}
-		return sl_null;
-	}
-
-	void Button::setColorFilter(ColorMatrix* filter, ButtonState state, sl_uint32 category, UIUpdateMode mode)
-	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				if ((int)state < (int)(ButtonState::Count)) {
-					m_cell->flagUseDefaultColorFilter = sl_false;
-					ButtonCategoryProperties& props = m_cell->categories[category].properties[(int)state];
-					if (filter) {
-						props.flagFilter = sl_true;
-						props.filter = *filter;
-					} else {
-						props.flagFilter = sl_false;
-					}
-					invalidate(mode);
-				}
-			}
-		}
-	}
-
-	ColorMatrix* Button::getColorFilter()
-	{
-		return getColorFilter(ButtonState::Default);
-	}
-
-	void Button::setColorFilter(ColorMatrix* filter, UIUpdateMode mode)
-	{
-		setColorFilter(filter, ButtonState::Default, 0, mode);
-	}
-
-	void Button::setColorOverlay(const Color& color, ButtonState state, sl_uint32 category, UIUpdateMode mode)
+	void Button::setColorOverlay(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode)
 	{
 		if (color.isZero()) {
-			setColorFilter(sl_null, state, category, mode);
+			setColorFilter(category, sl_null, state, mode);
 		} else {
 			ColorMatrix cm;
 			cm.setOverlay(color);
-			setColorFilter(&cm, state, category, mode);
+			setColorFilter(category, &cm, state, mode);
+		}
+	}
+
+	void Button::setColorOverlay(sl_uint32 category, const Color& color, UIUpdateMode mode)
+	{
+		setColorOverlay(category, color, ViewState::Default, mode);
+	}
+
+	void Button::setColorOverlay(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		sl_uint32 nCategories = getCategoryCount();
+		for (sl_uint32 i = 0; i < nCategories; i++) {
+			setColorOverlay(i, color, state, mode);
 		}
 	}
 
 	void Button::setColorOverlay(const Color& color, UIUpdateMode mode)
 	{
-		setColorOverlay(color, ButtonState::Normal, 0, mode);
+		setColorOverlay(color, ViewState::Default, mode);
 	}
 
 	sl_bool Button::isUsingDefaultColorFilter()
@@ -833,90 +733,40 @@ namespace slib
 		}
 	}
 
-	Ref<Drawable> Button::getCurrentBackground()
+	sl_bool Button::isUsingFocusedColorFilter()
 	{
 		if (m_cell.isNotNull()) {
-			Ref<Drawable> background = m_cell->getCurrentBackground();
-			if (background.isNotNull()) {
-				return background;
-			}
-			sl_bool flagUseDefaultColorFilter = m_cell->flagUseDefaultColorFilter;
-			Ref<ViewDrawAttributes>& attrs = m_drawAttrs;
-			if (attrs.isNotNull()) {
-				switch (m_cell->state) {
-				case ButtonState::Hover:
-					background = attrs->backgroundHover;
-					break;
-				case ButtonState::Pressed:
-					background = attrs->backgroundPressed;
-					break;
-				default:
-					break;
-				}
-				if (background.isNull()) {
-					background = attrs->background;
-				} else {
-					flagUseDefaultColorFilter = sl_false;
-				}
-				if (background.isNotNull()) {
-					const ColorMatrix* cm = m_cell->getCurrentColorFilter(flagUseDefaultColorFilter);
-					if (cm) {
-						background = background->filter(*cm);
-					}
-				}
-				return background;
-			}
+			return m_cell->flagUseFocusedColorFilter;
 		}
-		return sl_null;
+		return BUTTON_DEFAULT_USE_FOCUSED_COLOR_FILTER;
+	}
+
+	void Button::setUsingFocusedColorFilter(sl_bool flag, UIUpdateMode mode)
+	{
+		_initCell();
+		if (m_cell.isNotNull()) {
+			m_cell->flagUseFocusedColorFilter = flag;
+			invalidate(mode);
+		}
+	}
+
+	Ref<Drawable> Button::getCurrentBackground()
+	{
+		ViewState state = getState();
+		if (m_cell.isNotNull()) {
+			return m_cell->getFinalBackground(state);
+		} else {
+			return View::getCurrentBackground();
+		}
 	}
 
 	Ref<Pen> Button::getCurrentBorder()
 	{
+		ViewState state = getState();
 		if (m_cell.isNotNull()) {
-			Ref<Pen> pen = m_cell->getCurrentBorder();
-			if (pen.isNotNull()) {
-				return pen;
-			}
-		}
-		return getBorder();
-	}
-
-	void Button::setEnabled(sl_bool flagEnabled, UIUpdateMode mode)
-	{
-		if (m_cell.isNotNull()) {
-			if (isEnabled() != flagEnabled) {
-				View::setEnabled(flagEnabled, UIUpdateMode::None);
-				m_cell->invalidateButtonState();
-				invalidate(mode);
-			}
+			return m_cell->getFinalBorder(state);
 		} else {
-			View::setEnabled(flagEnabled, mode);
-		}
-	}
-
-	void Button::setPressedState(sl_bool flagState, UIUpdateMode mode)
-	{
-		if (m_cell.isNotNull()) {
-			if (isPressedState() != flagState) {
-				View::setPressedState(flagState, UIUpdateMode::None);
-				m_cell->invalidateButtonState();
-				invalidate(mode);
-			}
-		} else {
-			View::setPressedState(flagState, mode);
-		}
-	}
-
-	void Button::setHoverState(sl_bool flagState, UIUpdateMode mode)
-	{
-		if (m_cell.isNotNull()) {
-			if (isHoverState() != flagState) {
-				View::setHoverState(flagState, UIUpdateMode::None);
-				m_cell->invalidateButtonState();
-				invalidate(mode);
-			}
-		} else {
-			View::setHoverState(flagState, mode);
+			return View::getCurrentBorder();
 		}
 	}
 
@@ -939,7 +789,7 @@ namespace slib
 		_initCell();
 		ButtonCell* cell = m_cell.get();
 		if (cell) {
-			if (isLayer() || getCurrentBackground().isNotNull()) {
+			if (isLayer()) {
 				cell->shadowOpacity = 0;
 			} else {
 				sl_real shadowOpacity = (sl_real)(getShadowOpacity());
@@ -959,32 +809,6 @@ namespace slib
 	{
 		if (m_cell.isNotNull()) {
 			m_cell->onDrawContent(canvas);
-		}
-	}
-
-	void Button::onDrawBackground(Canvas* canvas)
-	{
-		Ref<Drawable> background = getCurrentBackground();
-		if (background.isNotNull()) {
-			drawBackground(canvas, background);
-		}
-	}
-
-	void Button::onDrawBorder(Canvas* canvas)
-	{
-		Ref<Pen> border = getCurrentBorder();
-		if (border.isNotNull()) {
-			drawBorder(canvas, border);
-		}
-	}
-
-	void Button::onDrawShadow(Canvas* canvas)
-	{
-		if (drawLayerShadow(canvas)) {
-			return;
-		}
-		if (getCurrentBackground().isNotNull()) {
-			drawBoundShadow(canvas);
 		}
 	}
 
@@ -1010,24 +834,23 @@ namespace slib
 		if (m_cell.isNotNull()) {
 			m_cell->onKeyEvent(ev);
 		}
+		if (ev->isPreventedDefault()) {
+			return;
+		}
+		View::onKeyEvent(ev);
 	}
 
 	void Button::onMnemonic(UIEvent* ev)
 	{
 		setFocus();
-		sl_bool flag = ev->isInternal();
-		ev->setInternal(sl_true);
-		dispatchClickEvent(ev);
-		ev->setInternal(flag);
+		invokeClickEvent(ev);
 		ev->stopPropagation();
-		ev->preventDefault();
 	}
 
 	void Button::onChangeFocus(sl_bool flagFocused)
 	{
 		if (m_cell.isNotNull()) {
 			m_cell->setFocused(flagFocused);
-			m_cell->invalidateButtonState();
 			invalidate();
 		}
 	}
@@ -1057,8 +880,8 @@ namespace slib
 
 		if (m_cell.isNull()) {
 			if (isCreatingNativeWidget()) {
-				SimpleTextBox box;
-				SimpleTextBoxParam param;
+				TextBox box;
+				TextBoxParam param;
 				param.font = getFont();
 				param.text = m_text;
 				param.multiLineMode = MultiLineMode::Single;
@@ -1102,12 +925,17 @@ namespace slib
 		}
 		Ref<ButtonCell> cell = createButtonCell();
 		if (cell.isNotNull()) {
-			cell->setView(this);
+			cell->setView(this, sl_true);
 			cell->text = m_text;
 			cell->category = m_flagDefaultButton ? 1 : 0;
-			cell->onClick = SLIB_FUNCTION_WEAKREF(this, dispatchClickEvent);
+			cell->onClick = SLIB_FUNCTION_WEAKREF(this, _invokeClickEvent);
 			m_cell = cell;
 		}
+	}
+
+	void Button::_invokeClickEvent(UIEvent* ev)
+	{
+		invokeClickEvent(ev);
 	}
 
 
@@ -1135,6 +963,24 @@ namespace slib
 		};
 		static const ColorMatrix& g_colorMatrix_hover = *((const ColorMatrix*)((void*)g_colorMatrix_hover_buf));
 
+		static const sl_real g_colorMatrix_pressed_buf[20] = {
+			0.5f, 0, 0, 0,
+			0, 0.5f, 0, 0,
+			0, 0, 0.5f, 0,
+			0, 0, 0, 1,
+			0.3f, 0.4f, 0.6f, 0
+		};
+		static const ColorMatrix& g_colorMatrix_pressed = *((const ColorMatrix*)((void*)g_colorMatrix_pressed_buf));
+
+		static const sl_real g_colorMatrix_disabled_buf[20] = {
+			0.2f, 0.2f, 0.2f, 0,
+			0.2f, 0.2f, 0.2f, 0,
+			0.2f, 0.2f, 0.2f, 0,
+			0, 0, 0, 1,
+			0, 0, 0, 0
+		};
+		static const ColorMatrix& g_colorMatrix_disabled = *((const ColorMatrix*)((void*)g_colorMatrix_disabled_buf));
+
 		static const sl_real g_colorMatrix_focused_buf[20] = {
 			0.5f, 0, 0, 0,
 			0, 0.5f, 0, 0,
@@ -1153,46 +999,31 @@ namespace slib
 		};
 		static const ColorMatrix& g_colorMatrix_focused_hover = *((const ColorMatrix*)((void*)g_colorMatrix_focused_hover_buf));
 
-		static const sl_real g_colorMatrix_pressed_buf[20] = {
-			0.5f, 0, 0, 0,
-			0, 0.5f, 0, 0,
-			0, 0, 0.5f, 0,
-			0, 0, 0, 1,
-			0.3f, 0.4f, 0.6f, 0
-
-		};
-		static const ColorMatrix& g_colorMatrix_pressed = *((const ColorMatrix*)((void*)g_colorMatrix_pressed_buf));
-
-		static const sl_real g_colorMatrix_disabled_buf[20] = {
-			0.2f, 0.2f, 0.2f, 0,
-			0.2f, 0.2f, 0.2f, 0,
-			0.2f, 0.2f, 0.2f, 0,
-			0, 0, 0, 1,
-			0, 0, 0, 0
-		};
-		static const ColorMatrix& g_colorMatrix_disabled = *((const ColorMatrix*)((void*)g_colorMatrix_disabled_buf));
-
 		class Categories
 		{
 		public:
-			ButtonCategory categories[2];
-			Array<ButtonCategory> arrCategories;
+			Ref<Pen> defaultButtonPen;
 
 		public:
 			Categories()
 			{
-				categories[1].properties[(int)(ButtonState::Default)].border = Pen::create(PenStyle::Solid, 3, Color(0, 100, 250));
-				arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
+				defaultButtonPen = Pen::create(PenStyle::Solid, 3, Color(0, 100, 250));
 			}
 
 		public:
-			static Array<ButtonCategory> getInitialCategories()
+			static Array<ButtonCategory> createDefault()
 			{
-				SLIB_SAFE_LOCAL_STATIC(Categories, s)
-				if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
+				SLIB_SAFE_LOCAL_STATIC(Categories, context)
+				if (SLIB_SAFE_STATIC_CHECK_FREED(context)) {
 					return sl_null;
 				}
-				return s.arrCategories;
+				Array<ButtonCategory> ret = Array<ButtonCategory>::create(2);
+				if (ret.isNotNull()) {
+					ButtonCategory* c = ret.getData();
+					c[1].borders.defaultValue = context.defaultButtonPen;
+					return ret;
+				}
+				return sl_null;
 			}
 		};
 
@@ -1200,7 +1031,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(ButtonCell, LabelViewCell)
 
-	ButtonCell::ButtonCell(): ButtonCell(Categories::getInitialCategories().duplicate())
+	ButtonCell::ButtonCell(): ButtonCell(Categories::createDefault())
 	{
 	}
 
@@ -1208,12 +1039,9 @@ namespace slib
 	{
 		categories = _categories;
 
-		textColor = BUTTON_TEXT_DEFAULT_COLOR;
 		gravity = Alignment::Default;
 
-		state = ButtonState::Normal;
 		category = 0;
-		flagUseFocusedState = sl_false;
 
 		iconSize.x = 0;
 		iconSize.y = 0;
@@ -1234,96 +1062,116 @@ namespace slib
 		textMarginBottom = 1;
 
 		flagUseDefaultColorFilter = sl_true;
-
+		flagUseFocusedColorFilter = BUTTON_DEFAULT_USE_FOCUSED_COLOR_FILTER;
 	}
 
 	ButtonCell::~ButtonCell()
 	{
 	}
 
-	void ButtonCell::invalidateButtonState()
+	Ref<Drawable> ButtonCell::getFinalBackground(ViewState state)
 	{
-		if (isEnabled()) {
-			if (isPressedState()) {
-				state = ButtonState::Pressed;
-			} else if (isHoverState()) {
-				state = ButtonState::Hover;
-				if (flagUseFocusedState) {
-					if (isFocused()) {
-						state = ButtonState::FocusedHover;
-					}
-				}
-			} else {
-				state = ButtonState::Normal;
-				if (flagUseFocusedState) {
-					if (isFocused()) {
-						state = ButtonState::Focused;
-					}
-				}
-			}
-		} else {
-			state = ButtonState::Disabled;
-		}
-	}
-
-	Ref<Drawable> ButtonCell::getCurrentBackground()
-	{
-		ButtonCategoryProperties& params = categories[category].properties[(int)state];
-		Ref<Drawable> background = params.background;
-		sl_bool flagUseDefaultColorFilter = this->flagUseDefaultColorFilter;
+		sl_bool flagUseDefaultBackground;
+		Ref<Drawable> background = categories[category].backgrounds.evaluate(state, &flagUseDefaultBackground);
 		if (background.isNull()) {
-			ButtonCategoryProperties& paramsDefault = categories[category].properties[(int)(ButtonState::Default)];
-			background = paramsDefault.background;
-		} else {
-			flagUseDefaultColorFilter = sl_false;
-		}
-		if (background.isNotNull()) {
-			const ColorMatrix* cm = getCurrentColorFilter(flagUseDefaultColorFilter);
-			if (cm) {
-				background = background->filter(*cm);
+			Ref<View> view = m_view;
+			if (view.isNull()) {
+				return sl_null;
 			}
+			background = view->getFinalBackground(state, &flagUseDefaultBackground);
+			if (background.isNull()) {
+				return sl_null;
+			}
+		}
+		ColorMatrix cm;
+		if (getFinalColorFilter(cm, state, flagUseDefaultBackground && flagUseDefaultColorFilter)) {
+			background = background->filter(cm);
 		}
 		return background;
 	}
 
-	Ref<Pen> ButtonCell::getCurrentBorder()
+	Ref<Pen> ButtonCell::getFinalBorder(ViewState state)
 	{
-		ButtonCategoryProperties& params = categories[category].properties[(int)state];
-		Ref<Pen> pen = params.border;
-		if (pen.isNotNull()) {
-			return pen;
+		Ref<Pen> border = categories[category].borders.evaluate(state);
+		if (border.isNotNull()) {
+			return border;
 		}
-		ButtonCategoryProperties& paramsDefault = categories[category].properties[(int)(ButtonState::Default)];
-		return paramsDefault.border;
+		Ref<View> view = m_view;
+		if (view.isNotNull()) {
+			return view->getFinalBorder(state);
+		} else {
+			return sl_null;
+		}
 	}
 
-	const ColorMatrix* ButtonCell::getCurrentColorFilter(sl_bool flagUseDefaultFilter)
+	Color ButtonCell::getFinalTextColor(ViewState state)
 	{
-		ButtonCategoryProperties& params = categories[category].properties[(int)state];
-		if (params.flagFilter) {
-			return &(params.filter);
+		sl_bool flagUseDefaultColor;
+		Color color = categories[category].textColors.evaluate(state, &flagUseDefaultColor);
+		if (color.isZero()) {
+			flagUseDefaultColor = sl_true;
+			color = BUTTON_TEXT_DEFAULT_COLOR;
 		}
-		ButtonCategoryProperties& paramsDefault = categories[category].properties[(int)(ButtonState::Default)];
-		if (paramsDefault.flagFilter) {
-			return &(paramsDefault.filter);
+		ColorMatrix cm;
+		if (getFinalColorFilter(cm, state, flagUseDefaultColor && flagUseDefaultColorFilter)) {
+			color = cm.transformColor(color);
 		}
-		if (flagUseDefaultFilter) {
-			switch (state) {
-				case ButtonState::Hover:
-					return &g_colorMatrix_hover;
-				case ButtonState::Focused:
-					return &g_colorMatrix_focused;
-				case ButtonState::FocusedHover:
-					return &g_colorMatrix_focused_hover;
-				case ButtonState::Pressed:
-					return &g_colorMatrix_pressed;
-				case ButtonState::Disabled:
-					return &g_colorMatrix_disabled;
-				default:
-					break;
-			}
+		return color;
+	}
+
+	Ref<Drawable> ButtonCell::getFinalIcon(ViewState state)
+	{
+		sl_bool flagUseDefaultIcon;
+		Ref<Drawable> icon = categories[category].icons.evaluate(state, &flagUseDefaultIcon);
+		if (icon.isNull()) {
+			return sl_null;
 		}
-		return sl_null;
+		ColorMatrix cm;
+		if (getFinalColorFilter(cm, state, flagUseDefaultIcon && flagUseDefaultColorFilter)) {
+			icon = icon->filter(cm);
+		}
+		return icon;
+	}
+
+	sl_bool ButtonCell::getFinalColorFilter(ColorMatrix& _out, ViewState state, sl_bool flagDefaultFilter)
+	{
+		Shared<ColorMatrix> cm = categories[category].filters.evaluate(state);
+		if (cm.isNotNull()) {
+			_out = *cm;
+			return sl_true;
+		}
+		if (!flagDefaultFilter) {
+			return sl_false;
+		}
+		switch (state) {
+			case ViewState::Hover:
+				_out = g_colorMatrix_hover;
+				break;
+			case ViewState::Pressed:
+			case ViewState::FocusedPressed:
+				_out = g_colorMatrix_pressed;
+				break;
+			case ViewState::FocusedNormal:
+				if (flagUseFocusedColorFilter) {
+					_out = g_colorMatrix_focused;
+				} else {
+					return sl_false;
+				}
+				break;
+			case ViewState::FocusedHover:
+				if (flagUseFocusedColorFilter) {
+					_out = g_colorMatrix_focused_hover;
+				} else {
+					_out = g_colorMatrix_hover;
+				}
+				break;
+			case ViewState::Disabled:
+				_out = g_colorMatrix_disabled;
+				break;
+			default:
+				return sl_false;
+		}
+		return sl_true;
 	}
 
 	UISize ButtonCell::measureContentSize(sl_ui_len widthFrame, sl_ui_len heightFrame)
@@ -1355,14 +1203,13 @@ namespace slib
 			heightIcon = 0;
 		}
 
-		sl_bool flagUseIcon = iconDefault.isNotNull() || widthIcon > 0 || heightIcon > 0;
+		sl_bool flagUseIcon = widthIcon > 0 || heightIcon > 0;
 		if (!flagUseIcon) {
 			for (sl_uint32 i = 0; i < nCategories; i++) {
-				ButtonCategory& category = categories[i];
-				for (sl_uint32 j = 0; j < (sl_uint32)(ButtonState::Count); j++) {
-					if (category.properties[j].icon.isNotNull()) {
-						flagUseIcon = sl_true;
-					}
+				ButtonCategory& props = categories[i];
+				if (props.icons.isNotNone()) {
+					flagUseIcon = sl_true;
+					break;
 				}
 			}
 		}
@@ -1567,13 +1414,14 @@ namespace slib
 
 	void ButtonCell::onDraw(Canvas* canvas)
 	{
+		ViewState state = getState();
 		UIRect frame = getFrame();
-		Ref<Drawable> background = getCurrentBackground();
+		Ref<Drawable> background = getFinalBackground(state);
 		if (background.isNotNull()) {
 			canvas->draw(frame, background);
 		}
 		onDrawContent(canvas);
-		Ref<Pen> border = getCurrentBorder();
+		Ref<Pen> border = getFinalBorder(state);
 		if (border.isNotNull()) {
 			sl_bool flagAntiAlias = canvas->isAntiAlias();
 			canvas->setAntiAlias(sl_false);
@@ -1584,39 +1432,15 @@ namespace slib
 
 	void ButtonCell::onDrawContent(Canvas* canvas)
 	{
-		ButtonCategoryProperties& params = categories[category].properties[(int)state];
-		ButtonCategoryProperties& paramsDefault = categories[category].properties[(int)(ButtonState::Default)];
+		ButtonCategory& props = categories[category];
+		ViewState state = getState();
+		sl_bool flagText = text.isNotNull();
 
-		sl_bool flagText = String(text).isNotEmpty();
-
-		Color textColor = params.textColor;
-		const ColorMatrix* cm = sl_null;
+		Color color;
 		if (flagText) {
-			cm = getCurrentColorFilter(textColor.isZero() && flagUseDefaultColorFilter);
-			if (textColor.isZero()) {
-				textColor = paramsDefault.textColor;
-				if (textColor.isZero()) {
-					textColor = this->textColor;
-				}
-			}
-			if (cm) {
-				textColor = cm->transformColor(textColor);
-			}
+			color = getFinalTextColor(state);
 		}
-		Ref<Drawable> icon = params.icon;
-		{
-			const ColorMatrix* cm = getCurrentColorFilter(icon.isNull() && flagUseDefaultColorFilter);
-			if (icon.isNull()) {
-				icon = paramsDefault.icon;
-				if (icon.isNull()) {
-					icon = iconDefault;
-				}
-			}
-			if (icon.isNotNull() && cm) {
-				icon = icon->filter(*cm);
-			}
-		}
-
+		Ref<Drawable> icon = getFinalIcon(state);
 		if (!flagText && icon.isNull()) {
 			return;
 		}
@@ -1652,9 +1476,9 @@ namespace slib
 			rcText.right += pt.x;
 			rcText.bottom += pt.y;
 
-			SimpleTextBox::DrawParam param;
+			TextBox::DrawParam param;
 			param.frame = rcText;
-			param.textColor = textColor;
+			param.textColor = color;
 			if (shadowOpacity > 0) {
 				param.shadowOpacity = shadowOpacity;
 				param.shadowRadius = (sl_real)shadowRadius;
@@ -1687,15 +1511,13 @@ namespace slib
 			case Keycode::Space:
 				switch (ev->getAction()) {
 				case UIAction::KeyDown:
-					state = ButtonState::Pressed;
-					invalidate();
+					setPressedState();
 					ev->preventDefault();
 					ev->stopPropagation();
 					break;
 				case UIAction::KeyUp:
-					if (state == ButtonState::Pressed) {
-						invalidateButtonState();
-						invalidate();
+					if (isPressedState()) {
+						setPressedState(sl_false);
 						onClick(ev);
 						ev->preventDefault();
 						ev->stopPropagation();

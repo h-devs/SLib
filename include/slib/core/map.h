@@ -84,7 +84,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT CMapBase : public Referable, public Lockable
+	class SLIB_EXPORT CMapBase : public CRef, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -203,25 +203,25 @@ namespace slib
 			return RedBlackTree::find(m_root, key, m_compare) != sl_null;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_bool getEqualRange(const KT& key, NODE** pStart = sl_null, NODE** pEnd = sl_null) const noexcept
 		{
 			return RedBlackTree::getEqualRange(m_root, key, m_compare, pStart, pEnd);
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		void getNearest(const KT& key, NODE** pLessEqual = sl_null, NODE** pGreaterEqual = sl_null) const noexcept
 		{
 			RedBlackTree::getNearest(m_root, key, m_compare, pLessEqual, pGreaterEqual);
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		NODE* getLowerBound(const KT& key) const noexcept
 		{
 			return RedBlackTree::getLowerBound(m_root, key, m_compare);
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		NODE* getUpperBound(const KT& key) const noexcept
 		{
 			return RedBlackTree::getUpperBound(m_root, key, m_compare);
@@ -240,7 +240,7 @@ namespace slib
 			return RedBlackTree::findKeyAndValue(m_root, key, m_compare, value, value_equals) != sl_null;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		VT* getItemPointer(const KT& key) const noexcept
 		{
 			NODE* node = RedBlackTree::find(m_root, key, m_compare);
@@ -250,7 +250,7 @@ namespace slib
 			return sl_null;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -261,7 +261,7 @@ namespace slib
 			return sl_null;
 		}
 
-		sl_bool get_NoLock(const KT& key, VT* _out = sl_null) const noexcept
+		sl_bool get_NoLock(const KT& key, VT* _out) const noexcept
 		{
 			NODE* node = RedBlackTree::find(m_root, key, m_compare);
 			if (node) {
@@ -273,7 +273,7 @@ namespace slib
 			return sl_false;
 		}
 
-		sl_bool get(const KT& key, VT* _out = sl_null) const noexcept
+		sl_bool get(const KT& key, VT* _out) const noexcept
 		{
 			ObjectLocker lock(this);
 			NODE* node = RedBlackTree::find(m_root, key, m_compare);
@@ -605,19 +605,19 @@ namespace slib
 			return sl_true;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		void removeAt(NODE* node) noexcept
 		{
 			RedBlackTree::removeNode(&m_root, m_count, node);
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_size removeAt(NODE* node, sl_size count) noexcept
 		{
 			return RedBlackTree::removeNodes(&m_root, m_count, node, count);
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_size removeRange(NODE* first, NODE* last) noexcept
 		{
 			return RedBlackTree::removeRange(&m_root, m_count, first, last);
@@ -1324,7 +1324,7 @@ namespace slib
 			return sl_false;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_bool getEqualRange(const KT& key, NODE** pStart = sl_null, NODE** pEnd = sl_null) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1334,7 +1334,7 @@ namespace slib
 			return sl_false;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		void getNearest(const KT& key, NODE** pLessEqual = sl_null, NODE** pGreaterEqual = sl_null) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1350,7 +1350,7 @@ namespace slib
 			}
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		NODE* getLowerBound(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1360,7 +1360,7 @@ namespace slib
 			return sl_null;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		NODE* getUpperBound(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1390,7 +1390,7 @@ namespace slib
 			return sl_false;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		VT* getItemPointer(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1400,7 +1400,7 @@ namespace slib
 			return sl_null;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1411,7 +1411,7 @@ namespace slib
 			return sl_null;
 		}
 
-		sl_bool get_NoLock(const KT& key, VT* _out = sl_null) const noexcept
+		sl_bool get_NoLock(const KT& key, VT* _out) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
@@ -1635,7 +1635,7 @@ namespace slib
 			return MapBaseHelper::emplaceAll(this, other);
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		void removeAt(NODE* node) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1644,7 +1644,7 @@ namespace slib
 			}
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_size removeAt(NODE* node, sl_size count) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1654,7 +1654,7 @@ namespace slib
 			return 0;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_size removeRange(NODE* first, NODE* last) const noexcept
 		{
 			CMAP* obj = ref.ptr;

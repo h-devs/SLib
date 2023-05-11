@@ -134,9 +134,9 @@ namespace slib
 
 		void setDrawing(View* view, sl_bool flag) override;
 
-		UIPointf convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen) override;
+		UIPointF convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen) override;
 
-		UIPointf convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView) override;
+		UIPointF convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView) override;
 
 		void addChildInstance(View* view, const Ref<ViewInstance>& instance) override;
 
@@ -150,9 +150,9 @@ namespace slib
 
 		void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override;
 
-		sl_bool getScrollPosition(View* view, ScrollPoint& _out) override;
+		sl_bool getScrollPosition(View* view, ScrollPosition& _out) override;
 
-		sl_bool getScrollRange(View* view, ScrollPoint& _out) override;
+		sl_bool getScrollRange(View* view, ScrollPosition& _out) override;
 
 		void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate) override;
 
@@ -178,7 +178,7 @@ namespace slib
 
 		sl_bool onEventKey(UIAction action, WPARAM wParam, LPARAM lParam);
 
-		sl_bool onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam);
+		sl_bool onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam, sl_bool* pFlagUseDrag = sl_null);
 
 		sl_bool onEventMouseWheel(sl_bool flagVertical, WPARAM wParam, LPARAM lParam);
 
@@ -205,7 +205,7 @@ namespace slib
 
 	};
 
-	class Win32_LayeredViewContext : public Referable
+	class Win32_LayeredViewContext : public CRef
 	{
 	public:
 		sl_bool flagInvalidated;
@@ -232,7 +232,7 @@ namespace slib
 
 	};
 
-	class Win32_ToolTipViewContext : public Referable
+	class Win32_ToolTipViewContext : public CRef
 	{
 	public:
 		HWND hWndToolTip;

@@ -30,7 +30,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT AlertDialog : public Referable
+	class SLIB_EXPORT AlertDialog : public CRef
 	{
 	public:
 		AlertDialog();
@@ -80,7 +80,7 @@ namespace slib
 
 		void _showByRun();
 
-		AlertDialog* _getReferable();
+		AlertDialog* _getRefObj();
 
 	};
 
@@ -109,7 +109,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT FileDialog : public Referable
+	class SLIB_EXPORT FileDialog : public CRef
 	{
 	public:
 		static List<String> openFiles(const Ref<Window>& parent);
@@ -165,7 +165,7 @@ namespace slib
 
 		void _showByRun();
 
-		FileDialog* _getReferable();
+		FileDialog* _getRefObj();
 
 	};
 

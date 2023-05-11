@@ -59,7 +59,7 @@ namespace slib
 	protected:
 		sl_bool m_flagRefreshing;
 
-		Ref<Referable> m_platformContainer;
+		Ref<CRef> m_platformContainer;
 
 	};
 

@@ -56,7 +56,7 @@ namespace slib
 			SLIB_JNI_NATIVE(nativeShowAlertResult, "nativeShowResult", "(JI)V", OnShowResult);
 		SLIB_JNI_END_CLASS
 
-		class AlertDialogResult : public Referable
+		class AlertDialogResult : public CRef
 		{
 		public:
 			Function<void(DialogResult)> onResult;

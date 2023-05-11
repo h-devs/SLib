@@ -91,6 +91,13 @@ namespace slib
 			return nil;
 		}
 
+		class EditViewHelper : public EditView
+		{
+		public:
+			using EditView::_onChange_NW;
+			using EditView::_onPostChange_NW;
+		};
+
 		class EditViewInstance : public macOS_ViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
@@ -124,7 +131,7 @@ namespace slib
 				setText(view, view->getText());
 				setGravity(view, view->getGravity());
 				setReadOnly(view, view->isReadOnly());
-				setBorder(view, view->isBorder());
+				setBorder(view, view->hasBorder());
 				setTextColor(view, view->getTextColor());
 				setBackgroundColor(view, view->getBackgroundColor());
 				[handle setSelectable:YES];
@@ -275,7 +282,7 @@ namespace slib
 					if (view->isChangeEventEnabled()) {
 						String text = Apple::getStringFromNSString([control stringValue]);
 						String textNew = text;
-						view->dispatchChange(textNew);
+						((EditViewHelper*)(view.get()))->_onChange_NW(this, textNew);
 						if (text != textNew) {
 							NSString* str = Apple::getNSStringFromString(textNew, @"");
 							[control setStringValue:str];
@@ -283,7 +290,7 @@ namespace slib
 					} else {
 						view->invalidateText();
 					}
-					view->dispatchPostChange();
+					((EditViewHelper*)(view.get()))->_onPostChange_NW();
 				}
 			}
 
@@ -335,7 +342,7 @@ namespace slib
 
 				updateFont(tv, view->getFont(), sl_false);
 
-				[handle setBorderType:(view->isBorder() ? NSBezelBorder : NSNoBorder)];
+				[handle setBorderType:(view->hasBorder() ? NSBezelBorder : NSNoBorder)];
 				[tv setString:Apple::getNSStringFromString(view->getText(), @"")];
 				[tv setAlignment:TranslateAlignment(view->getGravity())];
 				[tv setTextColor:(GraphicsPlatform::getNSColorFromColor(view->getTextColor()))];
@@ -522,7 +529,7 @@ namespace slib
 					if (view->isChangeEventEnabled()) {
 						String text = Apple::getStringFromNSString([control->m_textView string]);
 						String textNew = text;
-						view->dispatchChange(textNew);
+						((EditViewHelper*)(view.get()))->_onChange_NW(this, textNew);
 						if (text != textNew) {
 							NSString* str = Apple::getNSStringFromString(textNew, @"");
 							[control->m_textView setString:str];
@@ -530,7 +537,7 @@ namespace slib
 					} else {
 						view->invalidateText();
 					}
-					view->dispatchPostChange();
+					((EditViewHelper*)(view.get()))->_onPostChange_NW();
 				}
 			}
 

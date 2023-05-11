@@ -56,7 +56,7 @@ namespace slib
 
 	};
 
-	class RenderCanvasState : public Referable
+	class RenderCanvasState : public CRef
 	{
 	public:
 		RenderEngineType engineType;
@@ -148,25 +148,25 @@ namespace slib
 		void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
 
 
-		void drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param, const Color4f& color);
+		void drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param, const Color4F& color);
 
 		void drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param);
 
 		void drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha = 1);
 
-		void drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const DrawParam& param, const Color4f& color);
+		void drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const DrawParam& param, const Color4F& color);
 
 		void drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const DrawParam& param);
 
 		void drawTexture(const Matrix3& transform, const Ref<Texture>& texture, sl_real alpha = 1);
 
-		void drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param, const Color4f& color);
+		void drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param, const Color4F& color);
 
 		void drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param);
 
 		void drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha = 1);
 
-		void drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const DrawParam& param, const Color4f& color);
+		void drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const DrawParam& param, const Color4F& color);
 
 		void drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const DrawParam& param);
 

@@ -32,7 +32,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT GradientBrushDetail : public Referable
+	class SLIB_EXPORT GradientBrushDetail : public CRef
 	{
 	public:
 		Point point1;
@@ -50,7 +50,7 @@ namespace slib
 
 	class Bitmap;
 
-	class SLIB_EXPORT TextureBrushDetail : public Referable
+	class SLIB_EXPORT TextureBrushDetail : public CRef
 	{
 	public:
 		Ref<Bitmap> pattern;
@@ -67,7 +67,7 @@ namespace slib
 	public:
 		BrushStyle style;
 		Color color;
-		Ref<Referable> detail;
+		Ref<CRef> detail;
 
 	public:
 		BrushDesc();
@@ -76,7 +76,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT Brush : public Referable
+	class SLIB_EXPORT Brush : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -114,7 +114,7 @@ namespace slib
 	protected:
 		BrushDesc m_desc;
 
-		Ref<Referable> m_platformObject;
+		Ref<CRef> m_platformObject;
 		SpinLock m_lock;
 
 	};

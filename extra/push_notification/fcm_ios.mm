@@ -75,7 +75,7 @@ namespace slib
 		UIPlatform::registerDidReceiveRemoteNotificationCallback([&instance](NSDictionary* _userInfo) {
 			PushNotificationMessage message;
 			if (UIPlatform::parseRemoteNotificationInfo(_userInfo, message)) {
-				instance->dispatchReceiveMessage(message);
+				instance->invokeReceiveMessage(message);
 			}
 		});
 
@@ -94,7 +94,7 @@ using namespace slib;
 	if (instance.isNull()) {
 		return;
 	}
-	instance->dispatchRefreshToken(Apple::getStringFromNSString(fcmToken));
+	instance->invokeRefreshToken(Apple::getStringFromNSString(fcmToken));
 }
 
 @end

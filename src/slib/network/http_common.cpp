@@ -570,7 +570,7 @@ namespace slib
 	{
 	}
 
-	HttpUploadFile::HttpUploadFile(const String& fileName, const HttpHeaderMap& headers, void* data, sl_size size, const Ref<Referable>& ref)
+	HttpUploadFile::HttpUploadFile(const String& fileName, const HttpHeaderMap& headers, void* data, sl_size size, const Ref<CRef>& ref)
 	 : m_fileName(fileName), m_headers(headers), m_data(data), m_size(size), m_ref(ref)
 	{
 	}
@@ -1448,7 +1448,7 @@ namespace slib
 				if (value.isMemory()) {
 					memData = value.getMemory();
 				} else {
-					Ref<Referable> ref = value.getRef();
+					Ref<CRef> ref = value.getRef();
 					if (IsInstanceOf<HttpUploadFile>(ref)) {
 						HttpUploadFile* file = (HttpUploadFile*)(ref.get());
 						memData = file->getDataMemory();

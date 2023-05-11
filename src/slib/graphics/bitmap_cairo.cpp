@@ -41,7 +41,7 @@ namespace slib
 		public:
 			cairo_surface_t* m_bitmap;
 			sl_bool m_flagFreeOnRelease;
-			Ref<Referable> m_ref;
+			Ref<CRef> m_ref;
 
 		public:
 			BitmapImpl()
@@ -56,7 +56,7 @@ namespace slib
 			}
 
 		public:
-			static Ref<BitmapImpl> create(cairo_surface_t* bitmap, sl_bool flagFreeOnRelease, Referable* ref)
+			static Ref<BitmapImpl> create(cairo_surface_t* bitmap, sl_bool flagFreeOnRelease, CRef* ref)
 			{
 				if (bitmap) {
 					Ref<BitmapImpl> ret = new BitmapImpl();
@@ -257,7 +257,7 @@ namespace slib
 		return Bitmap::create(Image::loadFromMemory(mem, size));
 	}
 
-	Ref<Bitmap> GraphicsPlatform::createBitmap(cairo_surface_t* bitmap, sl_bool flagFreeOnRelease, Referable* ref)
+	Ref<Bitmap> GraphicsPlatform::createBitmap(cairo_surface_t* bitmap, sl_bool flagFreeOnRelease, CRef* ref)
 	{
 		if (!bitmap) {
 			return sl_null;

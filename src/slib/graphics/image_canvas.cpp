@@ -216,7 +216,7 @@ namespace slib
 								image->drawImage(
 									(sl_int32)fx, (sl_int32)(y + (fontHeight - fac.fontHeight)),
 									(sl_int32)(fac.fontWidth), (sl_int32)(fac.fontHeight),
-									fac.image, color, Color4f::zero(),
+									fac.image, color, Color4F::zero(),
 									0, 0, fac.image->getWidth(), fac.image->getHeight());
 							}
 							fx += fac.fontWidth;

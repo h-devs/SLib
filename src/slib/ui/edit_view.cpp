@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -113,21 +113,9 @@ namespace slib
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(setText, text, mode)
-			m_flagInvalidateText = sl_false;
-			m_text = text;
-			instance->setText(this, text);
-			if (isHeightWrapping()) {
-				invalidateLayoutOfWrappingControl(mode);
-			}
-		} else {
-			m_flagInvalidateText = sl_false;
-			m_text = text;
-			if (isHeightWrapping()) {
-				invalidateLayoutOfWrappingControl(mode);
-			} else {
-				invalidate(mode);
-			}
 		}
+		String _text = text;
+		_change(instance.get(), _text, sl_null, mode);
 	}
 
 	void EditView::appendText(const StringParam& text, UIUpdateMode mode)
@@ -264,13 +252,19 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setHintFont, font, mode)
+			void (EditView::*func)(const Ref<Font>&, UIUpdateMode) = &EditView::setHintFont;
+			SLIB_VIEW_RUN_ON_UI_THREAD2(func, font, mode)
 			m_hintFont = font;
 			instance->setHintFont(this, getHintFont());
 		} else {
 			m_hintFont = font;
 			invalidate(mode);
 		}
+	}
+
+	void EditView::setHintFont(const FontDesc& desc, UIUpdateMode mode)
+	{
+		setHintFont(Font::create(desc, getHintFont()), mode);
 	}
 
 	sl_bool EditView::isReadOnly()
@@ -624,7 +618,7 @@ namespace slib
 
 		};
 
-		class EditDialog : public Referable
+		class EditDialog : public CRef
 		{
 		private:
 			WeakRef<EditViewHelper> m_view;
@@ -677,7 +671,9 @@ namespace slib
 				edit->setBorder(sl_false, UIUpdateMode::Init);
 				edit->setGravity(Alignment::TopLeft, UIUpdateMode::Init);
 				edit->setMultiLine(view->getMultiLine(), UIUpdateMode::Init);
+				edit->setOnChanging(SLIB_FUNCTION_WEAKREF(this, _onChanging));
 				edit->setOnChange(SLIB_FUNCTION_WEAKREF(this, _onChange));
+				edit->setOnPostChange(SLIB_FUNCTION_WEAKREF(this, _onPostChange));
 				edit->setOnReturnKey(SLIB_FUNCTION_WEAKREF(this, _onReturnKey));
 				UIReturnKeyType returnKeyType = view->getReturnKeyType();
 				MultiLineMode multiLineMode = view->getMultiLine();
@@ -745,19 +741,37 @@ namespace slib
 				return sl_true;
 			}
 
-			void _onChange(EditView* ev, String& text)
+			void _onChanging(EditView*, String& text, UIEvent* ev)
 			{
 				Ref<EditViewHelper> view = m_view;
 				if (view.isNull()) {
 					return;
 				}
-				view->dispatchChange(text);
-				if (m_edit->getMultiLine() == MultiLineMode::Single) {
+				view->invokeChanging(text, ev);
+				if (view->getMultiLine() == MultiLineMode::Single) {
 					sl_reg index = Stringx::indexOfLine(text);
 					if (index >= 0) {
 						text = text.mid(0, index);
 					}
 				}
+			}
+
+			void _onChange(EditView*, const String& text, UIEvent* ev)
+			{
+				Ref<EditViewHelper> view = m_view;
+				if (view.isNull()) {
+					return;
+				}
+				view->invokeChange(text, ev);
+			}
+
+			void _onPostChange(EditView*)
+			{
+				Ref<EditViewHelper> view = m_view;
+				if (view.isNull()) {
+					return;
+				}
+				view->invokePostChange();
 			}
 
 			void _onReturnKey(EditView* ev)
@@ -769,7 +783,7 @@ namespace slib
 				if (m_edit->getMultiLine() == MultiLineMode::Single) {
 					_onDone(sl_null);
 				}
-				view->dispatchReturnKey();
+				view->invokeReturnKey();
 			}
 
 			void _onDone(View* v)
@@ -794,7 +808,7 @@ namespace slib
 				}
 				view->invalidate();
 				_onDone(sl_null);
-				view->dispatchReturnKey();
+				view->invokeReturnKey();
 			}
 
 		};
@@ -803,6 +817,8 @@ namespace slib
 
 	void EditView::onClickEvent(UIEvent* ev)
 	{
+		View::onClickEvent(ev);
+
 		if (m_flagReadOnly) {
 			return;
 		}
@@ -842,89 +858,120 @@ namespace slib
 		m_timerDrawCaret.setNull();
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(EditView, Change, String& value)
+	SLIB_DEFINE_EVENT_HANDLER(EditView, Changing, (String& value, UIEvent* ev /* nullable */), value, ev)
 
-	void EditView::dispatchChange(String& value)
+	SLIB_DEFINE_EVENT_HANDLER(EditView, Change, (const String& value, UIEvent* ev /* nullable */), value, ev)
+
+	void EditView::_change(IEditViewInstance* instance, String& text, UIEvent* ev, UIUpdateMode mode)
 	{
+		ObjectLocker locker(this);
 		m_flagInvalidateText = sl_false;
-		if (value == getText()) {
+		if (text == m_text) {
 			return;
 		}
-		SLIB_INVOKE_EVENT_HANDLER(Change, value)
-		if (value == getText()) {
+		invokeChanging(text, ev);
+		if (text == m_text) {
 			return;
 		}
-		m_text = value;
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(EditView, PostChange)
-
-	void EditView::dispatchPostChange()
-	{
-		SLIB_INVOKE_EVENT_HANDLER(PostChange)
-		if (isNativeWidget()) {
-			invalidateLayoutOfWrappingControl();
+		m_text = text;
+		if (instance) {
+			if (!ev) {
+				instance->setText(this, text);
+			}
+			if (isHeightWrapping()) {
+				invalidateLayoutOfWrappingControl(mode);
+			}
+		} else {
+			if (isHeightWrapping()) {
+				invalidateLayoutOfWrappingControl(mode);
+			} else {
+				invalidate(mode);
+			}
+		}
+		locker.unlock();
+		invokeChange(text, ev);
+		if (ev && !instance) {
+			invokePostChange();
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(EditView, ReturnKey)
-
-	void EditView::dispatchReturnKey()
+	void EditView::_onChange_NW(IEditViewInstance* instance, String& text)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(ReturnKey)
+		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+		if (ev.isNotNull()) {
+			_change(instance, text, ev.get());
+		}
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(EditView, PostChange, ())
+
+	void EditView::_onPostChange_NW()
+	{
+		invokePostChange();
+		invalidateLayoutOfWrappingControl();
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(EditView, ReturnKey, ())
+
+	void EditView::onReturnKey()
+	{
 		if (m_multiLine == MultiLineMode::Single && m_flagAutoDismissKeyboard) {
 			UI::dismissKeyboard();
 		}
 	}
 
-	void EditView::dispatchKeyEvent(UIEvent* ev)
+	void EditView::onKeyEvent(UIEvent* ev)
 	{
 		if (m_multiLine == MultiLineMode::Single || ev->getKeycode() == Keycode::Escape) {
 			if (ev->getAction() == UIAction::KeyDown) {
 				Keycode keycode = ev->getKeycode();
 				if (keycode == Keycode::Enter || keycode == Keycode::NumpadEnter) {
-					dispatchReturnKey();
+					invokeReturnKey();
+					View::onKeyEvent(ev);
+					return;
 				}
 			}
-			View::dispatchKeyEvent(ev);
-		} else {
-			SLIB_INVOKE_EVENT_HANDLER(KeyEvent, ev)
-			if (ev->isPreventedDefault()) {
-				return;
-			}
-			ev->stopPropagation();
+			View::onKeyEvent(ev);
 		}
 #ifdef HAS_SIMPLE_INPUT
+		if (ev->isPreventedDefault()) {
+			return;
+		}
+		if (isNativeWidget()) {
+			return;
+		}
 		if (ev->getAction() == UIAction::KeyDown) {
-			if (isNativeWidget()) {
-				return;
-			}
 			if (ev->isControlKey() || ev->isWindowsKey()) {
 				return;
 			}
 			Keycode key = ev->getKeycode();
-			if (key == Keycode::Tab) {
-				return;
-			}
-			if (key == Keycode::Enter || key == Keycode::NumpadEnter) {
-				return;
-			}
-			if (key == Keycode::Backspace) {
-				String text = m_text;
-				m_text = text.substring(0, text.getLength() - 1);
-				invalidate();
-			} else {
-				sl_bool flagUpper = ev->isShiftKey();
-				if (key >= Keycode::A && key <= Keycode::Z) {
-					if (UI::isCapsLockOn()) {
-						flagUpper = !flagUpper;
+			switch (key) {
+				case Keycode::Tab:
+				case Keycode::Enter:
+				case Keycode::NumpadEnter:
+					return;
+				case Keycode::Backspace:
+					{
+						String text = m_text;
+						text = text.substring(0, text.getLength() - 1);
+						_change(sl_null, text, ev);
 					}
-				}
-				sl_char8 ch = UIEvent::getCharFromKeycode(key, flagUpper);
-				if (ch) {
-					m_text = String(m_text) + StringView(&ch, 1);
-					invalidate();
-				}
+					break;
+				default:
+					{
+						sl_bool flagUpper = ev->isShiftKey();
+						if (key >= Keycode::A && key <= Keycode::Z) {
+							if (UI::isCapsLockOn()) {
+								flagUpper = !flagUpper;
+							}
+						}
+						sl_char8 ch = UIEvent::getCharFromKeycode(key, flagUpper);
+						if (ch) {
+							String text = String(m_text) + StringView(&ch, 1);
+							_change(sl_null, text, ev);
+						}
+					}
+					break;
 			}
 		}
 #endif

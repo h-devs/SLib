@@ -22,62 +22,9 @@
 
 #include "slib/ui/scroll_bar.h"
 
+#include "slib/ui/priv/view_state_map.h"
 #include "slib/graphics/canvas.h"
 #include "slib/core/safe_static.h"
-
-#define CHECK_STATUS(...) \
-	sl_scroll_pos value = m_value; \
-	sl_scroll_pos page = m_page; \
-	sl_scroll_pos range_max = m_value_max; \
-	sl_scroll_pos range_min = m_value_min; \
-	sl_scroll_pos range = range_max - range_min; \
-	if (page < 0) { \
-		return __VA_ARGS__; \
-	} \
-	if (range - page < SLIB_EPSILON) { \
-		return __VA_ARGS__; \
-	} \
-	sl_bool flagVertical = m_orientation == LayoutOrientation::Vertical; \
-	sl_ui_pos width = getWidth() - getPaddingLeft() - getPaddingTop(); \
-	if (width < 1) { \
-		return __VA_ARGS__; \
-	} \
-	sl_ui_pos height = getHeight() - getPaddingTop() - getPaddingBottom(); \
-	if (height < 1) { \
-		return __VA_ARGS__; \
-	} \
-	sl_ui_len depth, length; \
-	if (flagVertical) { \
-		depth = width; \
-		length = height; \
-	} else { \
-		depth = height; \
-		length = width; \
-	} \
-	float f_min_thumb_len = (float)(m_thumb_len_ratio_min * (float)depth); \
-	if (f_min_thumb_len < 0 || f_min_thumb_len >= (float)length) { \
-		return __VA_ARGS__; \
-	} \
-	sl_ui_len min_thumb_len = (sl_ui_len)(f_min_thumb_len); \
-	float f_thumb_len = (float)(page * (sl_scroll_pos)length / range); \
-	if (f_thumb_len < 0 || f_thumb_len - (float)length > SLIB_EPSILON) { \
-		return __VA_ARGS__; \
-	} \
-	sl_ui_len thumb_len = (sl_ui_len)(f_thumb_len); \
-	if (thumb_len < min_thumb_len) { \
-		thumb_len = min_thumb_len; \
-	} \
-	if (thumb_len > length) { \
-		thumb_len = length; \
-	} \
-	sl_scroll_pos ratioValuePos; \
-	if (thumb_len < length) { \
-		ratioValuePos = (range - page) / (sl_scroll_pos)(length - thumb_len); \
-	} else { \
-		ratioValuePos = 0; \
-	} \
-	SLIB_UNUSED(ratioValuePos) \
-	SLIB_UNUSED(value)
 
 namespace slib
 {
@@ -124,16 +71,6 @@ namespace slib
 
 		m_valueDown = 0;
 		m_posDown = 0;
-
-		StaticContext* s = GetStaticContext();
-		if (s) {
-			m_thumb = s->defaultThumb;
-			m_pressedThumb = s->defaultPressedThumb;
-			m_hoverThumb = s->defaultHoverThumb;
-
-			m_hoverTrack = s->defaultHoverTrack;
-			m_pressedTrack = s->defaultPressedTrack;
-		}
 
 		m_thumb_len_ratio_min = 2;
 
@@ -183,19 +120,7 @@ namespace slib
 
 	void ScrollBar::setValue(sl_scroll_pos value, UIUpdateMode mode)
 	{
-		sl_scroll_pos _max = m_value_max - m_page;
-		if (value > _max) {
-			value = _max;
-		}
-		if (value < m_value_min) {
-			value = m_value_min;
-		}
-		if (Math::isAlmostZero(value - m_value)) {
-			m_value = value;
-			return;
-		}
-		m_value = value;
-		invalidate(mode);
+		_changeValue(value, sl_null, mode);
 	}
 
 	void ScrollBar::setValueOfOutRange(sl_scroll_pos value, UIUpdateMode mode)
@@ -269,100 +194,58 @@ namespace slib
 		invalidate(mode);
 	}
 
-	Ref<Drawable> ScrollBar::getThumbDrawable()
+	Ref<Drawable> ScrollBar::getThumb(ViewState state)
 	{
-		return m_thumb;
+		return m_thumbs.get(state);
 	}
 
-	void ScrollBar::setThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	void ScrollBar::setThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
 	{
-		m_thumb = drawable;
+		m_thumbs.set(state, drawable);
 		invalidate(mode);
+	}
+
+	void ScrollBar::setThumb(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	{
+		m_thumbs.defaultValue = drawable;
+		invalidate(mode);
+	}
+
+	void ScrollBar::setThumbColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		setThumb(ColorDrawable::create(color), state, mode);
 	}
 
 	void ScrollBar::setThumbColor(const Color& color, UIUpdateMode mode)
 	{
-		setThumbDrawable(ColorDrawable::create(color), mode);
+		setThumb(ColorDrawable::create(color), mode);
 	}
 
-	Ref<Drawable> ScrollBar::getPressedThumbDrawable()
+	Ref<Drawable> ScrollBar::getTrack(ViewState state)
 	{
-		return m_pressedThumb;
+		return m_tracks.get(state);
 	}
 
-	void ScrollBar::setPressedThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	void ScrollBar::setTrack(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
 	{
-		m_pressedThumb = drawable;
+		m_tracks.set(state, drawable);
 		invalidate(mode);
 	}
 
-	void ScrollBar::setPressedThumbColor(const Color& color, UIUpdateMode mode)
+	void ScrollBar::setTrack(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		setPressedThumbDrawable(ColorDrawable::create(color), mode);
-	}
-
-	Ref<Drawable> ScrollBar::getHoverThumbDrawable()
-	{
-		return m_hoverThumb;
-	}
-
-	void ScrollBar::setHoverThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_hoverThumb = drawable;
+		m_tracks.defaultValue = drawable;
 		invalidate(mode);
 	}
 
-	void ScrollBar::setHoverThumbColor(const Color& color, UIUpdateMode mode)
+	void ScrollBar::setTrackColor(const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setHoverThumbDrawable(ColorDrawable::create(color), mode);
-	}
-
-	Ref<Drawable> ScrollBar::getTrackDrawable()
-	{
-		return m_track;
-	}
-
-	void ScrollBar::setTrackDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_track = drawable;
-		invalidate(mode);
+		setTrack(ColorDrawable::create(color), state, mode);
 	}
 
 	void ScrollBar::setTrackColor(const Color& color, UIUpdateMode mode)
 	{
-		setTrackDrawable(ColorDrawable::create(color), mode);
-	}
-
-	Ref<Drawable> ScrollBar::getPressedTrackDrawable()
-	{
-		return m_pressedTrack;
-	}
-
-	void ScrollBar::setPressedTrackDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_pressedTrack = drawable;
-		invalidate(mode);
-	}
-
-	void ScrollBar::setPressedTrackColor(const Color& color, UIUpdateMode mode)
-	{
-		setPressedTrackDrawable(ColorDrawable::create(color), mode);
-	}
-
-	Ref<Drawable> ScrollBar::getHoverTrackDrawable()
-	{
-		return m_hoverTrack;
-	}
-
-	void ScrollBar::setHoverTrackDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_hoverTrack = drawable;
-		invalidate(mode);
-	}
-
-	void ScrollBar::setHoverTrackColor(const Color& color, UIUpdateMode mode)
-	{
-		setHoverTrackDrawable(ColorDrawable::create(color), mode);
+		setTrack(ColorDrawable::create(color), mode);
 	}
 
 	float ScrollBar::getMinimumThumbLengthRatio()
@@ -377,6 +260,61 @@ namespace slib
 		}
 		m_thumb_len_ratio_min = ratio;
 	}
+
+#define CHECK_STATUS(...) \
+	sl_scroll_pos value = m_value; \
+	sl_scroll_pos page = m_page; \
+	sl_scroll_pos range_max = m_value_max; \
+	sl_scroll_pos range_min = m_value_min; \
+	sl_scroll_pos range = range_max - range_min; \
+	if (page < 0) { \
+		return __VA_ARGS__; \
+	} \
+	if (range - page < SLIB_EPSILON) { \
+		return __VA_ARGS__; \
+	} \
+	sl_bool flagVertical = m_orientation == LayoutOrientation::Vertical; \
+	sl_ui_pos width = getWidth() - getPaddingLeft() - getPaddingTop(); \
+	if (width < 1) { \
+		return __VA_ARGS__; \
+	} \
+	sl_ui_pos height = getHeight() - getPaddingTop() - getPaddingBottom(); \
+	if (height < 1) { \
+		return __VA_ARGS__; \
+	} \
+	sl_ui_len depth, length; \
+	if (flagVertical) { \
+		depth = width; \
+		length = height; \
+	} else { \
+		depth = height; \
+		length = width; \
+	} \
+	float f_min_thumb_len = (float)(m_thumb_len_ratio_min * (float)depth); \
+	if (f_min_thumb_len < 0 || f_min_thumb_len >= (float)length) { \
+		return __VA_ARGS__; \
+	} \
+	sl_ui_len min_thumb_len = (sl_ui_len)(f_min_thumb_len); \
+	float f_thumb_len = (float)(page * (sl_scroll_pos)length / range); \
+	if (f_thumb_len < 0 || f_thumb_len - (float)length > SLIB_EPSILON) { \
+		return __VA_ARGS__; \
+	} \
+	sl_ui_len thumb_len = (sl_ui_len)(f_thumb_len); \
+	if (thumb_len < min_thumb_len) { \
+		thumb_len = min_thumb_len; \
+	} \
+	if (thumb_len > length) { \
+		thumb_len = length; \
+	} \
+	sl_scroll_pos ratioValuePos; \
+	if (thumb_len < length) { \
+		ratioValuePos = (range - page) / (sl_scroll_pos)(length - thumb_len); \
+	} else { \
+		ratioValuePos = 0; \
+	} \
+	SLIB_UNUSED(ratioValuePos) \
+	SLIB_UNUSED(value)
+
 
 	sl_bool ScrollBar::getThumbPositionRange(sl_ui_pos& _pos_begin, sl_ui_pos& _pos_end)
 	{
@@ -449,28 +387,36 @@ namespace slib
 
 	void ScrollBar::onDraw(Canvas* canvas)
 	{
-		Ref<Drawable> track;
-		if (isPressedState()) {
-			track = m_pressedTrack;
-		} else if (isHoverState()) {
-			track = m_hoverTrack;
+		StaticContext* context = GetStaticContext();
+		if (!context) {
+			return;
 		}
+		ViewState state = getState();
+		Ref<Drawable> track = m_tracks.evaluate(state);
 		if (track.isNull()) {
-			track = m_track;
+			if (SLIB_VIEW_STATE_IS_PRESSED(state)) {
+				track = context->defaultPressedTrack;
+			} else if (SLIB_VIEW_STATE_IS_HOVER(state)) {
+				track = context->defaultHoverTrack;
+			}
 		}
 		if (track.isNotNull()) {
 			canvas->draw(getBoundsInnerPadding(), track);
 		}
 		UIRect thumbRegion;
 		if (getThumbRegion(thumbRegion)) {
-			Ref<Drawable> thumb;
-			if (isPressedState()) {
-				thumb = m_pressedThumb;
-			} else if (isHoverState() && m_flagHoverThumb) {
-				thumb = m_hoverThumb;
+			if (!m_flagHoverThumb && state == ViewState::Hover) {
+				state = ViewState::Normal;
 			}
+			Ref<Drawable> thumb = m_thumbs.evaluate(state);
 			if (thumb.isNull()) {
-				thumb = m_thumb;
+				if (SLIB_VIEW_STATE_IS_PRESSED(state)) {
+					thumb = context->defaultPressedThumb;
+				} else if (SLIB_VIEW_STATE_IS_HOVER(state)) {
+					thumb = context->defaultHoverThumb;
+				} else {
+					thumb = context->defaultThumb;
+				}
 			}
 			if (thumb.isNotNull()) {
 				Color color;
@@ -491,13 +437,12 @@ namespace slib
 
 	void ScrollBar::onMouseEvent(UIEvent* ev)
 	{
-		ev->preventDefault();
 		CHECK_STATUS()
-		ev->setPreventedDefault(sl_false);
 
 		sl_ui_pos pos_begin, pos_end;
 		if (!(getThumbPositionRange(pos_begin, pos_end))) {
-			ev->preventDefault();
+			View::onMouseEvent(ev);
+			ev->stopPropagation();
 			return;
 		}
 
@@ -509,62 +454,54 @@ namespace slib
 			pos = (sl_ui_pos)(ev->getX());
 		}
 
-		switch (action) {
-			case UIAction::MouseEnter:
-			case UIAction::MouseMove:
-			{
-				UIRect region;
-				if (getThumbRegion(region)) {
-					if (region.containsPoint(ev->getPoint())) {
-						if (action == UIAction::MouseEnter) {
-							_setHoverThumb(sl_true, UIUpdateMode::None);
-							invalidate();
-						} else {
-							_setHoverThumb(sl_true, UIUpdateMode::Redraw);
-						}
-						return;
+		if (action == UIAction::MouseLeave) {
+			_setHoverThumb(sl_false, UIUpdateMode::None);
+			invalidate();
+			return;
+		} else {
+			sl_bool flagHoverThumb = sl_false;
+			UIRect region;
+			if (getThumbRegion(region)) {
+				if (region.containsPoint(ev->getPoint())) {
+					if (action == UIAction::MouseMove) {
+						flagHoverThumb = sl_true;
 					}
 				}
-				if (action == UIAction::MouseEnter) {
-					_setHoverThumb(sl_false, UIUpdateMode::None);
-					invalidate();
-				} else {
-					_setHoverThumb(sl_false, UIUpdateMode::Redraw);
-				}
-				return;
 			}
-			case UIAction::MouseLeave:
-				_setHoverThumb(sl_false, UIUpdateMode::None);
-				invalidate();
+			if (action == UIAction::MouseMove) {
+				_setHoverThumb(flagHoverThumb, UIUpdateMode::Redraw);
 				return;
-
+			} else {
+				_setHoverThumb(flagHoverThumb, UIUpdateMode::None);
+			}
+		}
+		switch (action) {
 			case UIAction::LeftButtonDown:
 			case UIAction::TouchBegin:
-			{
 				m_posDown = pos;
 				if (pos < pos_begin) {
 					m_valueDown = getValueFromThumbPosition(pos);
 					if (page > 0) {
-						changeValue(value - page);
+						_changeValue(value - page, ev, UIUpdateMode::None);
 					} else {
-						changeValue(m_valueDown);
+						_changeValue(m_valueDown, ev, UIUpdateMode::None);
 					}
 				} else if (pos <= pos_end) {
 					m_valueDown = value;
 				} else {
 					m_valueDown = getValueFromThumbPosition(pos);
 					if (page > 0) {
-						changeValue(value + page);
+						_changeValue(value + page, ev, UIUpdateMode::None);
 					} else {
-						changeValue(m_valueDown);
+						_changeValue(m_valueDown, ev, UIUpdateMode::None);
 					}
 				}
+				invalidate();
 				break;
-			}
 			case UIAction::LeftButtonDrag:
 			case UIAction::TouchMove:
 				if (isPressedState()) {
-					changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos);
+					_changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos, ev, UIUpdateMode::Redraw);
 				}
 				break;
 			case UIAction::LeftButtonUp:
@@ -572,25 +509,24 @@ namespace slib
 			case UIAction::TouchCancel:
 				if (isPressedState()) {
 					if (m_posDown != pos) {
-						changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos);
-					} else {
-						invalidate();
+						_changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos, ev, UIUpdateMode::None);
 					}
+					invalidate();
 				}
 				break;
 			default:
 				return;
 		}
 
+		View::onMouseEvent(ev);
 		ev->stopPropagation();
-
 	}
 
 	void ScrollBar::onMouseWheelEvent(UIEvent* ev)
 	{
-		ev->preventDefault();
+		View::onMouseWheelEvent(ev);
+
 		CHECK_STATUS()
-		ev->setPreventedDefault(sl_false);
 
 		sl_scroll_pos line = m_line;
 		if (line < SLIB_EPSILON) {
@@ -600,30 +536,28 @@ namespace slib
 				line = range / 20;
 			}
 		}
-		sl_real delta;
-		if (flagVertical) {
-			delta = ev->getDeltaY();
-		} else {
-			delta = ev->getDeltaX();
-		}
+		sl_real delta = ev->getDelta();
 		if (delta > SLIB_EPSILON) {
-			changeValue(value - line);
+			_changeValue(value - line, ev, UIUpdateMode::Redraw);
 		} else if (delta < -SLIB_EPSILON) {
-			changeValue(value + line);
+			_changeValue(value + line, ev, UIUpdateMode::Redraw);
 		}
 
 		ev->stopPropagation();
 	}
 
-
-	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Change, sl_scroll_pos value)
-
-	void ScrollBar::dispatchChange(sl_scroll_pos value)
+	void ScrollBar::onSetCursor(UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, value)
+		View::onSetCursor(ev);
+		CHECK_STATUS()
+		ev->stopPropagation();
 	}
 
-	void ScrollBar::changeValue(sl_scroll_pos value)
+	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Changing, (sl_scroll_pos& value, UIEvent* ev), value, ev)
+
+	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Change, (sl_scroll_pos value, UIEvent* ev), value, ev)
+
+	sl_scroll_pos ScrollBar::_normalizeValue(sl_scroll_pos value)
 	{
 		sl_scroll_pos _max = m_value_max - m_page;
 		if (value > _max) {
@@ -632,13 +566,27 @@ namespace slib
 		if (value < m_value_min) {
 			value = m_value_min;
 		}
+		return value;
+	}
+
+	void ScrollBar::_changeValue(sl_scroll_pos value, UIEvent* ev, UIUpdateMode mode)
+	{
+		ObjectLocker locker(this);
+		value = _normalizeValue(value);
+		if (Math::isAlmostZero(value - m_value)) {
+			m_value = value;
+			return;
+		}
+		invokeChanging(value, ev);
+		value = _normalizeValue(value);
 		if (Math::isAlmostZero(value - m_value)) {
 			m_value = value;
 			return;
 		}
 		m_value = value;
-		dispatchChange(value);
-		invalidate();
+		invalidate(mode);
+		locker.unlock();
+		invokeChange(value, ev);
 	}
 
 	void ScrollBar::_setHoverThumb(sl_bool flag, UIUpdateMode mode)
@@ -648,4 +596,5 @@ namespace slib
 			invalidate(mode);
 		}
 	}
+
 }

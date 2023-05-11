@@ -241,10 +241,10 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_OBJECT(ViewBackgroundColorAnimationTarget, AnimationTargetT<Color4f>)
+	SLIB_DEFINE_OBJECT(ViewBackgroundColorAnimationTarget, AnimationTargetT<Color4F>)
 
-	ViewBackgroundColorAnimationTarget::ViewBackgroundColorAnimationTarget(const Ref<View>& view, const AnimationFrames<Color4f>& frames):
- AnimationTargetT<Color4f>(frames), m_view(view)
+	ViewBackgroundColorAnimationTarget::ViewBackgroundColorAnimationTarget(const Ref<View>& view, const AnimationFrames<Color4F>& frames):
+ AnimationTargetT<Color4F>(frames), m_view(view)
 	{
 	}
 
@@ -253,7 +253,7 @@ namespace slib
 		return m_view;
 	}
 
-	void ViewBackgroundColorAnimationTarget::update(float fraction, const Color4f& value)
+	void ViewBackgroundColorAnimationTarget::update(float fraction, const Color4F& value)
 	{
 		Ref<View> view(m_view);
 		if (view.isNotNull()) {

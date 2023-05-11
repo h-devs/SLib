@@ -272,8 +272,6 @@ namespace slib
 	};
 
 	typedef BoxT<sl_real> Box;
-	typedef BoxT<float> Boxf;
-	typedef BoxT<double> Boxlf;
 
 }
 

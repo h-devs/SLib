@@ -24,6 +24,9 @@
 #define CHECKHEADER_SLIB_UI_BUTTON
 
 #include "label_view.h"
+#include "view_state_map.h"
+
+#include "../core/shared.h"
 
 namespace slib
 {
@@ -68,10 +71,6 @@ namespace slib
 		void setMnemonic(sl_bool flag = sl_true);
 
 
-		Color getTextColor();
-
-		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
-
 		Alignment getGravity();
 
 		void setGravity(const Alignment& align, UIUpdateMode updateMode = UIUpdateMode::Redraw);
@@ -93,12 +92,6 @@ namespace slib
 		sl_uint32 getCurrentCategory();
 
 		void setCurrentCategory(sl_uint32 n, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		ButtonState getButtonState();
-
-		sl_bool isUsingFocusedState();
-
-		void setUsingFocusedState(sl_bool flag = sl_true);
 
 
 		const UISize& getIconSize();
@@ -181,49 +174,82 @@ namespace slib
 		void setTextMarginBottom(sl_ui_pos margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 
-		Color getTextColor(ButtonState state, sl_uint32 category = 0);
+		Color getTextColor(sl_uint32 category, ViewState state = ViewState::Default);
 
-		void setTextColor(const Color& color, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTextColor(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setTextColor(sl_uint32 category, const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Color getTextColor(ViewState state = ViewState::Default);
+
+		void setTextColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 
-		Ref<Drawable> getIcon(ButtonState state, sl_uint32 category = 0);
+		Ref<Drawable> getIcon(sl_uint32 category, ViewState state = ViewState::Default);
 
-		void setIcon(const Ref<Drawable>& icon, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setIcon(sl_uint32 category, const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
-		Ref<Drawable> getIcon();
+		void setIcon(sl_uint32 category, const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		Ref<Drawable> getIcon(ViewState state = ViewState::Default);
+
+		void setIcon(const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		void setIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 
 		using View::getBackground;
-
 		using View::setBackground;
 
-		Ref<Drawable> getBackground(ButtonState state, sl_uint32 category = 0);
+		Ref<Drawable> getBackground(sl_uint32 category, ViewState state = ViewState::Default);
 
-		void setBackground(const Ref<Drawable>& background, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBackground(sl_uint32 category, const Ref<Drawable>& background, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setBackground(const Color& backgroundColor, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBackground(sl_uint32 category, const Ref<Drawable>& background, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		using View::getBackgroundColor;
+		using View::setBackgroundColor;
+
+		Color getBackgroundColor(sl_uint32 category, ViewState state = ViewState::Default);
+
+		void setBackgroundColor(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBackgroundColor(sl_uint32 category, const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		using View::getBorder;
-
 		using View::setBorder;
 
-		Ref<Pen> getBorder(ButtonState state, sl_uint32 category = 0);
+		Ref<Pen> getBorder(sl_uint32 category, ViewState state = ViewState::Default);
 
-		void setBorder(const Ref<Pen>& pen, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBorder(sl_uint32 category, const Ref<Pen>& pen, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBorder(sl_uint32 category, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBorder(sl_uint32 category, const PenDesc& desc, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBorder(sl_uint32 category, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 
-		ColorMatrix* getColorFilter(ButtonState state, sl_uint32 category = 0);
+		Shared<ColorMatrix> getColorFilter(sl_uint32 category, ViewState state = ViewState::Default);
 
-		void setColorFilter(ColorMatrix* filter, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColorFilter(sl_uint32 category, ColorMatrix* filter, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		ColorMatrix* getColorFilter();
+		void setColorFilter(sl_uint32 category, ColorMatrix* filter, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Shared<ColorMatrix> getColorFilter(ViewState state = ViewState::Default);
+
+		void setColorFilter(ColorMatrix* filter, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setColorFilter(ColorMatrix* filter, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setColorOverlay(const Color& color, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setColorOverlay(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setColorOverlay(sl_uint32 category, const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setColorOverlay(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setColorOverlay(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -232,10 +258,14 @@ namespace slib
 
 		void setUsingDefaultColorFilter(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		sl_bool isUsingFocusedColorFilter();
 
-		Ref<Drawable> getCurrentBackground();
+		void setUsingFocusedColorFilter(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Pen> getCurrentBorder();
+
+		Ref<Drawable> getCurrentBackground() override;
+
+		Ref<Pen> getCurrentBorder() override;
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
@@ -245,24 +275,9 @@ namespace slib
 		virtual Ref<ButtonCell> createButtonCell();
 
 	public:
-		void setEnabled(sl_bool flagEnabled = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
-
-		void setPressedState(sl_bool flagState = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
-
-		void setHoverState(sl_bool flagState = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
-
 		void dispatchDraw(Canvas* canvas) override;
 
-	protected:
 		void onDraw(Canvas* canvas) override;
-
-		void onDrawBackground(Canvas* canvas) override;
-
-		void onDrawBorder(Canvas* canvas) override;
-
-		void onDrawShadow(Canvas* canvas) override;
-
-		void onUpdateLayout() override;
 
 		void onKeyEvent(UIEvent* ev) override;
 
@@ -271,10 +286,15 @@ namespace slib
 		void onChangeFocus(sl_bool flagFocused) override;
 
 	protected:
+		void onUpdateLayout() override;
+
+	protected:
 		void prepareButtonCellLayout(ButtonCell* cell);
 
 	private:
 		void _initCell();
+
+		void _invokeClickEvent(UIEvent* ev);
 
 	protected:
 		AtomicString m_text;
@@ -296,27 +316,14 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT ButtonCategoryProperties
-	{
-	public:
-		Color textColor;
-		AtomicRef<Drawable> background;
-		AtomicRef<Pen> border;
-		AtomicRef<Drawable> icon;
-		sl_bool flagFilter;
-		ColorMatrix filter;
-
-	public:
-		ButtonCategoryProperties();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ButtonCategoryProperties)
-
-	};
-
 	class SLIB_EXPORT ButtonCategory
 	{
 	public:
-		ButtonCategoryProperties properties[(int)(ButtonState::Count)];
+		ViewStateMap<Color> textColors;
+		ViewStateMap< Ref<Drawable> > backgrounds;
+		ViewStateMap< Ref<Pen> > borders;
+		ViewStateMap< Ref<Drawable> > icons;
+		ViewStateMap< Shared<ColorMatrix> > filters;
 
 	public:
 		ButtonCategory();
@@ -332,9 +339,7 @@ namespace slib
 	public:
 		Array<ButtonCategory> categories;
 
-		ButtonState state;
 		sl_uint32 category;
-		sl_bool flagUseFocusedState;
 
 		UISize iconSize;
 		Alignment iconAlignment;
@@ -350,9 +355,8 @@ namespace slib
 		sl_ui_pos textMarginTop;
 		sl_ui_pos textMarginRight;
 		sl_ui_pos textMarginBottom;
-
-		AtomicRef<Drawable> iconDefault;
 		sl_bool flagUseDefaultColorFilter;
+		sl_bool flagUseFocusedColorFilter;
 
 		Function<void(UIEvent* ev)> onClick;
 
@@ -364,13 +368,15 @@ namespace slib
 		~ButtonCell();
 
 	public:
-		void invalidateButtonState();
+		Ref<Drawable> getFinalBackground(ViewState state);
 
-		Ref<Drawable> getCurrentBackground();
+		Ref<Pen> getFinalBorder(ViewState state);
 
-		Ref<Pen> getCurrentBorder();
+		Color getFinalTextColor(ViewState state);
 
-		const ColorMatrix* getCurrentColorFilter(sl_bool flagUseDefaultFilter);
+		Ref<Drawable> getFinalIcon(ViewState state);
+
+		sl_bool getFinalColorFilter(ColorMatrix& _out, ViewState state, sl_bool flagUseDefaultFilter);
 
 		UISize measureContentSize(sl_ui_len widthFrame, sl_ui_len heightFrame);
 

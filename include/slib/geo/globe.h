@@ -63,21 +63,21 @@ namespace slib
 		double getEccentricitySquared() const;
 
 
-		Vector3lf getSurfaceNormal(double latitude, double longitude) const;
+		Double3 getSurfaceNormal(double latitude, double longitude) const;
 
-		Vector3lf getSurfaceNormal(const LatLon& latlon) const;
+		Double3 getSurfaceNormal(const LatLon& latlon) const;
 
-		Vector3lf getSurfaceNormal(const GeoLocation& location) const;
+		Double3 getSurfaceNormal(const GeoLocation& location) const;
 
-		Vector3lf getNorthPointingTangent(double latitude, double longitude) const;
+		Double3 getNorthPointingTangent(double latitude, double longitude) const;
 
-		Vector3lf getNorthPointingTangent(const LatLon& latlon) const;
+		Double3 getNorthPointingTangent(const LatLon& latlon) const;
 
-		Vector3lf getNorthPointingTangent(const GeoLocation& location) const;
+		Double3 getNorthPointingTangent(const GeoLocation& location) const;
 
-		Vector3lf getSurfaceNormalAtCartesianPosition(double x, double y, double z) const;
+		Double3 getSurfaceNormalAtCartesianPosition(double x, double y, double z) const;
 
-		Vector3lf getSurfaceNormalAtCartesianPosition(const Vector3lf& position) const;
+		Double3 getSurfaceNormalAtCartesianPosition(const Double3& position) const;
 
 		/*
 			unit: m
@@ -86,15 +86,15 @@ namespace slib
 			(1, 0, 0): direction to LatLon(0, 90)
 			(0, 0, 1): direction to LatLon(0, 180)
 		*/
-		Vector3lf getCartesianPosition(double latitude, double longitude, double altitude) const;
+		Double3 getCartesianPosition(double latitude, double longitude, double altitude) const;
 
-		Vector3lf getCartesianPosition(const LatLon& latlon) const;
+		Double3 getCartesianPosition(const LatLon& latlon) const;
 
-		Vector3lf getCartesianPosition(const GeoLocation& location) const;
+		Double3 getCartesianPosition(const GeoLocation& location) const;
 
 		GeoLocation getGeoLocation(double x, double y, double z) const;
 
-		GeoLocation getGeoLocation(const Vector3lf& position) const;
+		GeoLocation getGeoLocation(const Double3& position) const;
 
 	protected:
 		void _initializeParameters();
@@ -122,17 +122,17 @@ namespace slib
 
 		void setRadius(double radius);
 
-		Vector3lf getSurfaceNormal(double latitude, double longitude) const;
+		Double3 getSurfaceNormal(double latitude, double longitude) const;
 
-		Vector3lf getSurfaceNormal(const LatLon& latlon) const;
+		Double3 getSurfaceNormal(const LatLon& latlon) const;
 
-		Vector3lf getSurfaceNormal(const GeoLocation& location) const;
+		Double3 getSurfaceNormal(const GeoLocation& location) const;
 
-		Vector3lf getNorthPointingTangent(double latitude, double longitude) const;
+		Double3 getNorthPointingTangent(double latitude, double longitude) const;
 
-		Vector3lf getNorthPointingTangent(const LatLon& latlon) const;
+		Double3 getNorthPointingTangent(const LatLon& latlon) const;
 
-		Vector3lf getNorthPointingTangent(const GeoLocation& location) const;
+		Double3 getNorthPointingTangent(const GeoLocation& location) const;
 
 		/*
 			unit: m
@@ -141,15 +141,15 @@ namespace slib
 			(1, 0, 0): direction to LatLon(0, 90)
 			(0, 0, 1): direction to LatLon(0, 180)
 		*/
-		Vector3lf getCartesianPosition(double latitude, double longitude, double altitude) const;
+		Double3 getCartesianPosition(double latitude, double longitude, double altitude) const;
 
-		Vector3lf getCartesianPosition(const LatLon& latlon) const;
+		Double3 getCartesianPosition(const LatLon& latlon) const;
 
-		Vector3lf getCartesianPosition(const GeoLocation& location) const;
+		Double3 getCartesianPosition(const GeoLocation& location) const;
 
 		GeoLocation getGeoLocation(double x, double y, double z) const;
 
-		GeoLocation getGeoLocation(const Vector3lf& position) const;
+		GeoLocation getGeoLocation(const Double3& position) const;
 
 	};
 

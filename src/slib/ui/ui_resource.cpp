@@ -422,12 +422,12 @@ namespace slib
 		}
 	}
 
-	void WindowLayout::dispatchResize(sl_ui_len width, sl_ui_len height)
+	void WindowLayout::onResize(sl_ui_len width, sl_ui_len height)
 	{
 		m_contentWidth = width;
 		m_contentHeight = height;
 		_layoutViews_safe(width, height);
-		Window::dispatchResize(width, height);
+		Window::onResize(width, height);
 	}
 
 
@@ -453,10 +453,10 @@ namespace slib
 		return getSize();
 	}
 
-	void ViewLayout::dispatchResize(sl_ui_len width, sl_ui_len height)
+	void ViewLayout::onResize(sl_ui_len width, sl_ui_len height)
 	{
 		_layoutViews_safe(width, height);
-		ViewGroup::dispatchResize(width, height);
+		ViewGroup::onResize(width, height);
 	}
 
 
@@ -482,10 +482,10 @@ namespace slib
 		return getSize();
 	}
 
-	void PageLayout::dispatchResize(sl_ui_len width, sl_ui_len height)
+	void PageLayout::onResize(sl_ui_len width, sl_ui_len height)
 	{
 		_layoutViews_safe(width, height);
-		ViewPage::dispatchResize(width, height);
+		ViewPage::onResize(width, height);
 	}
 
 }

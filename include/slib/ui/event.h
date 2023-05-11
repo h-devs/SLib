@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ namespace slib
 	class SLIB_EXPORT TouchPoint
 	{
 	public:
-		UIPointf point;
+		UIPointF point;
 		sl_real pressure;
 		TouchPhase phase;
 		sl_uint64 pointerId;
@@ -47,13 +47,13 @@ namespace slib
 	public:
 		TouchPoint();
 
-		TouchPoint(const UIPointf& point);
+		TouchPoint(const UIPointF& point);
 
-		TouchPoint(const UIPointf& point, sl_real pressure);
+		TouchPoint(const UIPointF& point, sl_real pressure);
 
-		TouchPoint(const UIPointf& point, sl_real pressure, TouchPhase phase);
+		TouchPoint(const UIPointF& point, sl_real pressure, TouchPhase phase);
 
-		TouchPoint(const UIPointf& point, sl_real pressure, TouchPhase phase, sl_uint64 pointerId);
+		TouchPoint(const UIPointF& point, sl_real pressure, TouchPhase phase, sl_uint64 pointerId);
 
 		TouchPoint(sl_ui_posf x, sl_ui_posf y);
 
@@ -144,8 +144,7 @@ namespace slib
 	KeycodeAndModifiers operator|(int modifiers, Keycode keycode);
 
 
-
-	class SLIB_EXPORT UIEvent : public Referable
+	class SLIB_EXPORT UIEvent : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -216,9 +215,9 @@ namespace slib
 		void setSystemKeycode(sl_uint32 keycode);
 
 		// mouse, touch
-		const UIPointf& getPoint() const;
+		const UIPointF& getPoint() const;
 
-		void setPoint(const UIPointf& pt);
+		void setPoint(const UIPointF& pt);
 
 		void setPoint(sl_ui_posf x, sl_ui_posf y);
 
@@ -233,8 +232,6 @@ namespace slib
 		// mouse wheel
 		sl_real getDelta() const;
 
-		void setDelta(sl_real delta);
-
 		sl_real getDeltaX() const;
 
 		void setDeltaX(sl_real x);
@@ -248,9 +245,9 @@ namespace slib
 
 		void setTouchPoint(const TouchPoint& pt);
 
-		void setTouchPoint(const UIPointf& pt);
+		void setTouchPoint(const UIPointF& pt);
 
-		void setTouchPoint(const UIPointf& pt, sl_real pressure);
+		void setTouchPoint(const UIPointF& pt, sl_real pressure);
 
 		void setTouchPoint(sl_ui_posf x, sl_ui_posf y);
 
@@ -268,9 +265,9 @@ namespace slib
 
 		void setTouchPoints(const Array<TouchPoint>& points);
 
-		void transformPoints(const Matrix3f& mat);
+		void transformPoints(const Matrix3T<float>& mat);
 
-		void transformPoints(const Matrix3lf& mat);
+		void transformPoints(const Matrix3T<double>& mat);
 
 		// set cursor
 		const Ref<Cursor>& getCursor() const;
@@ -336,11 +333,11 @@ namespace slib
 		// flags
 		UIEventFlags getFlags() const;
 
-		void resetFlags();
+		void setFlags(const UIEventFlags& flags);
 
-		void addFlag(UIEventFlags flags);
+		void addFlag(const UIEventFlags& flags);
 
-		void removeFlag(UIEventFlags flags);
+		void removeFlag(const UIEventFlags& flags);
 
 		void preventDefault();
 
@@ -359,10 +356,6 @@ namespace slib
 		sl_bool isPassedToNext();
 
 		void setPassedToNext(sl_bool flag);
-
-		sl_bool isInternal();
-
-		void setInternal(sl_bool flag);
 
 		virtual Ref<UIEvent> duplicate() const;
 

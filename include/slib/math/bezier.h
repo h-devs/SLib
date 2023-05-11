@@ -445,8 +445,6 @@ namespace slib
 	};
 
 	typedef CubicBezierCurveT<sl_real> CubicBezierCurve;
-	typedef CubicBezierCurveT<float> CubicBezierCurvef;
-	typedef CubicBezierCurveT<double> CubicBezierCurvelf;
 
 }
 

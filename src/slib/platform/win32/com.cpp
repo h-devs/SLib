@@ -60,7 +60,7 @@ namespace slib
 			return ret;
 		}
 
-		class GenericDataObject::Element : public Referable
+		class GenericDataObject::Element : public CRef
 		{
 		public:
 			FORMATETC format;

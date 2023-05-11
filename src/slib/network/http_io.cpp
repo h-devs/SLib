@@ -184,7 +184,7 @@ namespace slib
 				m_sizeTotal = 0;
 			}
 
-			sl_bool filterRead(MemoryData& output, void* data, sl_size size, Referable* refData) override
+			sl_bool filterRead(MemoryData& output, void* data, sl_size size, CRef* refData) override
 			{
 				sl_uint64 sizeRemain = m_sizeTotal - m_sizeRead;
 				if (size < sizeRemain) {
@@ -260,7 +260,7 @@ namespace slib
 				m_sizeTrailerField = 0;
 			}
 
-			sl_bool filterRead(MemoryData& mem, void* _data, sl_size size, Referable* refData) override
+			sl_bool filterRead(MemoryData& mem, void* _data, sl_size size, CRef* refData) override
 			{
 				sl_uint8* data = (sl_uint8*)_data;
 				sl_size pos = 0;
@@ -394,7 +394,7 @@ namespace slib
 		class ContentReader_TearDown : public HttpContentReader
 		{
 		public:
-			sl_bool filterRead(MemoryData& output, void* data, sl_size size, Referable* refData) override
+			sl_bool filterRead(MemoryData& output, void* data, sl_size size, CRef* refData) override
 			{
 				return decompressData(output, data, size, refData);
 			}
@@ -464,7 +464,7 @@ namespace slib
 		}
 	}
 
-	sl_bool HttpContentReader::decompressData(MemoryData& output, void* data, sl_size size, Referable* refData)
+	sl_bool HttpContentReader::decompressData(MemoryData& output, void* data, sl_size size, CRef* refData)
 	{
 		if (m_flagDecompressing) {
 			output.setMemory(m_zlib.pass(data, size));

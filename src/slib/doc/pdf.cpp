@@ -802,7 +802,7 @@ namespace slib
 			sl_uint32 generation : 30; // For free, normal entry: 5 digits in Cross-Reference-Table. For compressed entry, objectIndex
 		};
 
-		class ObjectStream : public Referable
+		class ObjectStream : public CRef
 		{
 		public:
 			Ref<ObjectStream> extends;
@@ -863,7 +863,7 @@ namespace slib
 				}
 			}
 
-			void insertKidAfter(Referable* context, PdfPageTreeItem* item, PdfPageTreeItem* after)
+			void insertKidAfter(CRef* context, PdfPageTreeItem* item, PdfPageTreeItem* after)
 			{
 				sl_size index = 0;
 				if (after) {
@@ -901,7 +901,7 @@ namespace slib
 
 		};
 
-		class Context : public Referable, public Lockable
+		class Context : public CRef, public Lockable
 		{
 		public:
 			sl_uint8 majorVersion = 0;
@@ -925,9 +925,9 @@ namespace slib
 			Ref<PageTreeParent> m_pageTree;
 
 		public:
-			Context(sl_bool flagReferableContext)
+			Context(sl_bool flagRefContext)
 			{
-				m_baseContext = flagReferableContext ? this : sl_null;
+				m_baseContext = flagRefContext ? this : sl_null;
 				_init();
 			}
 
@@ -2139,7 +2139,7 @@ namespace slib
 		public:
 			sl_char8* source;
 			sl_uint32 sizeSource;
-			Ref<Referable> refSource;
+			Ref<CRef> refSource;
 
 		public:
 			sl_bool readChar(sl_char8& ch)
@@ -2283,7 +2283,7 @@ namespace slib
 			using Context::getObject;
 
 		public:
-			ContextT(sl_bool flagReferableContext): Context(flagReferableContext) {}
+			ContextT(sl_bool flagRefContext): Context(flagRefContext) {}
 			ContextT(Context* baseContext): Context(baseContext) {}
 
 		public:
@@ -3456,12 +3456,12 @@ namespace slib
 			return ret;
 		}
 
-		SLIB_INLINE static Context* GetContext(const Ref<Referable>& ref)
+		SLIB_INLINE static Context* GetContext(const Ref<CRef>& ref)
 		{
 			return (Context*)(ref.get());
 		}
 
-		SLIB_INLINE static Ref<Context> GetContextRef(const Ref<Referable>& ref)
+		SLIB_INLINE static Ref<Context> GetContextRef(const Ref<CRef>& ref)
 		{
 			return Ref<Context>::from(ref);
 		}
@@ -3859,7 +3859,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(PdfArray, CListBase)
 
-	PdfArray::PdfArray(Referable* context) noexcept: m_context(context) {}
+	PdfArray::PdfArray(CRef* context) noexcept: m_context(context) {}
 
 	PdfArray::~PdfArray()
 	{
@@ -3908,7 +3908,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(PdfDictionary, CHashMapBase)
 
-	PdfDictionary::PdfDictionary(Referable* context) noexcept: m_context(context) {}
+	PdfDictionary::PdfDictionary(CRef* context) noexcept: m_context(context) {}
 
 	PdfDictionary::~PdfDictionary()
 	{
@@ -3948,7 +3948,7 @@ namespace slib
 
 	SLIB_DEFINE_ROOT_OBJECT(PdfStream)
 
-	PdfStream::PdfStream(Referable* context) noexcept: m_context(context), m_ref(0, 0), m_offsetContent(0), m_sizeContent(0)
+	PdfStream::PdfStream(CRef* context) noexcept: m_context(context), m_ref(0, 0), m_offsetContent(0), m_sizeContent(0)
 	{
 	}
 
@@ -5708,7 +5708,7 @@ namespace slib
 		float l = values[0].getFloat();
 		float a = values[1].getFloat();
 		float b = values[2].getFloat();
-		Color3f c;
+		Color3F c;
 		CIE::convertLabToRGB(l, a, b, c.x, c.y, c.z);
 		_out = c;
 		return sl_true;
@@ -6633,7 +6633,7 @@ namespace slib
 
 	sl_bool PdfImage::_loadContent(Memory& content)
 	{
-		Referable* ref = content.getRef();
+		CRef* ref = content.getRef();
 		if (IsInstanceOf<Image>(ref)) {
 			object = (Image*)ref;
 		} else {
@@ -7493,7 +7493,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(PdfPage, PdfPageTreeItem)
 
-	PdfPage::PdfPage(Referable* context) noexcept: m_context(context)
+	PdfPage::PdfPage(CRef* context) noexcept: m_context(context)
 	{
 		m_flagPage = sl_true;
 		m_flagContent = sl_false;

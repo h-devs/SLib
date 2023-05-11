@@ -39,7 +39,7 @@ namespace slib
 	class SLIB_EXPORT MemoryData : public MemoryView
 	{
 	public:
-		Ref<Referable> ref;
+		Ref<CRef> ref;
 
 	public:
 		SLIB_CONSTEXPR MemoryData() {}
@@ -74,7 +74,7 @@ namespace slib
 
 	};
 
-	class CMemory : public Referable
+	class CMemory : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -101,7 +101,7 @@ namespace slib
 
 		virtual sl_bool setSize(sl_size size) noexcept;
 
-		virtual Referable* getRef() noexcept;
+		virtual CRef* getRef() noexcept;
 
 		virtual String getString() noexcept;
 
@@ -199,7 +199,7 @@ namespace slib
 
 		sl_bool setSize(sl_size size) noexcept;
 
-		Referable* getRef() const noexcept;
+		CRef* getRef() const noexcept;
 
 		sl_bool isResizable() const noexcept;
 
@@ -233,7 +233,7 @@ namespace slib
 		sl_bool deserialize(SerializeBuffer* input);
 
 	private:
-		static Memory _createStatic(const void* buf, sl_size size, Referable* ref) noexcept;
+		static Memory _createStatic(const void* buf, sl_size size, CRef* ref) noexcept;
 		static Memory _createStaticMove(const void* buf, sl_size size, void* pRef) noexcept;
 
 	};

@@ -117,9 +117,9 @@ namespace slib
 				Ref<View> _view = getView();
 				if (RenderView* view = CastInstance<RenderView>(_view.get())) {
 					if (m_pLastEngine != engine) {
-						view->dispatchCreateEngine(engine);
+						view->invokeCreateEngine(engine);
 					}
-					view->dispatchFrame(engine);
+					view->handleFrame(engine);
 					m_pLastEngine = engine;
 				}
 			}

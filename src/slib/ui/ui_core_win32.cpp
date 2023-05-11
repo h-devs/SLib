@@ -67,7 +67,7 @@ namespace slib
 		WNDPROC g_wndProc_CustomMsgBox = NULL;
 		WNDPROC g_wndProc_SystemTrayIcon = NULL;
 
-		void RunUiLoop(HWND hWndModalDialog)
+		void RunUiLoop(HWND hWndModalDialog, sl_bool flagEnableParent)
 		{
 			if (g_bFlagQuit) {
 				return;
@@ -92,6 +92,10 @@ namespace slib
 					break;
 				case SLIB_UI_MESSAGE_CLOSE:
 				case WM_DESTROY:
+					if (flagEnableParent) {
+						HWND hWndParent = GetWindow(msg.hwnd, GW_OWNER);
+						EnableWindow(hWndParent, TRUE);
+					}
 					DestroyWindow(msg.hwnd);
 					if (hWndModalDialog) {
 						if (msg.hwnd == hWndModalDialog) {
@@ -378,7 +382,7 @@ namespace slib
 
 	void UIPlatform::runLoop(sl_uint32 level)
 	{
-		RunUiLoop(NULL);
+		RunUiLoop(NULL, sl_false);
 	}
 
 	void UIPlatform::quitLoop()
@@ -415,9 +419,9 @@ namespace slib
 		}
 
 		UIDispatcher::processCallbacks();
-		UIApp::dispatchStartToApp();
-		RunUiLoop(NULL);
-		UIApp::dispatchExitToApp();
+		UIApp::Current::invokeStart();
+		RunUiLoop(NULL, sl_false);
+		UIApp::Current::invokeExit();
 	}
 
 	void UIPlatform::quitApp()
@@ -827,7 +831,7 @@ namespace slib
 				case WM_COPYDATA:
 					{
 						COPYDATASTRUCT* data = (COPYDATASTRUCT*)lParam;
-						UIApp::dispatchReopenToApp(String::fromUtf16((sl_char16*)(data->lpData), data->cbData / 2), sl_true);
+						UIApp::Current::invokeReopen(String::fromUtf16((sl_char16*)(data->lpData), data->cbData / 2), sl_true);
 					}
 					return 0;
 			}

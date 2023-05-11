@@ -217,11 +217,11 @@ namespace slib
 
 		static sl_ui_len measureHeight(const Ref<Font>& font, const String& message, sl_bool flagShowDate, sl_ui_len chatWidth, sl_ui_len userIconSize)
 		{
-			SimpleTextBoxParam tp;
+			TextBoxParam tp;
 			tp.font = font;
 			tp.text = message;
 			tp.width = (sl_real)chatWidth;
-			SimpleTextBox box;
+			TextBox box;
 			box.update(tp);
 			ItemViewLayout layout(font, flagShowDate, chatWidth, userIconSize);
 			sl_ui_len bottomUserIcon = layout.y + layout.marginIcon * 2 + userIconSize + layout.marginBottom;
@@ -299,8 +299,9 @@ namespace slib
 
 		sl_bool m_flagTrySelect = sl_false;
 
-		void onTouchMessage(View*, UIEvent* ev)
+		void onTouchMessage(View* view, UIEvent* ev)
 		{
+			view->onTouchEvent(ev);
 			UIAction action = ev->getAction();
 			if (action == UIAction::TouchBegin) {
 				if (flagMe) {
@@ -626,18 +627,13 @@ namespace slib
 		}
 	}
 
-	void ChatView::setFont(const Ref<Font>& font, UIUpdateMode mode)
+	void ChatView::onUpdateFont(const Ref<Font>& font)
 	{
-		ListView::setFont(font, UIUpdateMode::None);
+		ListView::onUpdateFont(font);
 		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _updateListContent, UIUpdateMode::UpdateLayout));
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ChatView, DeleteItem, const String& itemId)
-
-	void ChatView::dispatchDeleteItem(const String& itemId)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(DeleteItem, itemId)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(ChatView, DeleteItem, (const String& itemId), itemId)
 
 	void ChatView::onResize(sl_ui_len width, sl_ui_len height)
 	{
@@ -741,8 +737,8 @@ namespace slib
 		}
 		if (flagFound) {
 			items.list.removeAt(index);
-			dispatchDeleteItem(itemId);
 			refreshItems();
+			invokeDeleteItem(itemId);
 		}
 	}
 

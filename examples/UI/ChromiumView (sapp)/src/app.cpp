@@ -32,7 +32,7 @@ void ExampleChromiumViewApp::onStart()
 {
 	Ref<MainWindow> window = new MainWindow;
 	window->create();
-	window->setOnDestroy([](Window*) {
+	window->setOnDestroy([](Window*, UIEvent*) {
 		quit();
 	});
 	setMainWindow(window);

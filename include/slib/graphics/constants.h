@@ -36,7 +36,8 @@ namespace slib
 		Dot = 1,
 		Dash = 2,
 		DashDot = 3,
-		DashDotDot = 4
+		DashDotDot = 4,
+		Default = 0x80
 	};
 
 	enum class LineCap

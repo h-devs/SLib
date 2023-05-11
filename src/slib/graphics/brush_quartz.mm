@@ -35,7 +35,7 @@ namespace slib
 
 	namespace {
 
-		class GradientBrushPlatformObject : public Referable
+		class GradientBrushPlatformObject : public CRef
 		{
 		public:
 			CGGradientRef hGradient;
@@ -92,7 +92,7 @@ namespace slib
 
 		};
 
-		class TextureBrushPlatformObject : public Referable
+		class TextureBrushPlatformObject : public CRef
 		{
 		public:
 			CGImageRef hImage;

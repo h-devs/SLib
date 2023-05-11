@@ -73,7 +73,7 @@ namespace slib
 			TextLineBreakItem,
 			TextAttachItem,
 			TextParagraph,
-			SimpleTextBox,
+			TextBox,
 			Svg
 		};
 

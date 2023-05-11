@@ -121,6 +121,10 @@ namespace slib
 
 			void setupModel(GtkTreeView* view);
 
+			using ListControl::_onSelectRow_NW;
+			using ListControl::_onClickRow_NW;
+			using ListControl::_onRightButtonClickRow_NW;
+			using ListControl::_onDoubleClickRow_NW;
 		};
 
 		static ListControlHelper* GetModelView(GtkTreeModel* model)
@@ -410,7 +414,7 @@ namespace slib
 				}
 				GtkTreeIter iter;
 				gtk_tree_selection_get_selected(selection, sl_null, &iter);
-				helper->dispatchSelectRow(iter.stamp);
+				helper->_onSelectRow_NW(this, iter.stamp);
 			}
 
 			static gboolean _callback_button_press_event(GtkWidget*, GdkEvent* _event, gpointer user_data)
@@ -486,20 +490,20 @@ namespace slib
 				sl_int32 iSel = -1;
 				instance->getSelectedRow(helper, iSel);
 				if(iRow != iSel){
-					helper->dispatchSelectRow(iRow);
+					helper->_onSelectRow_NW(this, iRow);
 				}
 
 				UIPoint pt = helper->convertCoordinateFromScreen(UI::getCursorPos());
 
 				if (event->button == 1) {
 					if (event->type == GDK_BUTTON_PRESS) {
-						helper->dispatchClickRow(iRow, pt);
+						helper->_onClickRow_NW(iRow, pt);
 					} else if (event->type == GDK_2BUTTON_PRESS) {
-						helper->dispatchDoubleClickRow(iRow, pt);
+						helper->_onDoubleClickRow_NW(iRow, pt);
 					}
 				} else if (event->button == 3) {
 					if (event->type == GDK_BUTTON_PRESS) {
-						helper->dispatchRightButtonClickRow(iRow, pt);
+						helper->_onRightButtonClickRow_NW(iRow, pt);
 					}
 				}
 

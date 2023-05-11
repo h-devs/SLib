@@ -34,7 +34,7 @@ namespace slib
 
 	namespace {
 
-		class FontPlatformObject : public Referable
+		class FontPlatformObject : public CRef
 		{
 		public:
 			PangoFontDescription* m_font;

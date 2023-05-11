@@ -191,12 +191,10 @@
     <ClCompile Include="..\..\src\slib\db\database_expression.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_sql.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_statement.cpp" />
-    <ClCompile Include="..\..\src\slib\db\data_store.cpp" />
     <ClCompile Include="..\..\src\slib\db\document_store.cpp" />
     <ClCompile Include="..\..\src\slib\db\key_value_store.cpp" />
     <ClCompile Include="..\..\src\slib\db\leveldb.cpp" />
     <ClCompile Include="..\..\src\slib\db\lmdb.cpp" />
-    <ClCompile Include="..\..\src\slib\db\log_package.cpp" />
     <ClCompile Include="..\..\src\slib\db\mongodb.cpp" />
     <ClCompile Include="..\..\src\slib\db\mysql.cpp" />
     <ClCompile Include="..\..\src\slib\db\mysql_data.cpp" />
@@ -298,8 +296,8 @@
     <ClCompile Include="..\..\src\slib\media\video_capture.cpp" />
     <ClCompile Include="..\..\src\slib\media\video_codec.cpp" />
     <ClCompile Include="..\..\src\slib\media\video_frame.cpp" />
+    <ClCompile Include="..\..\src\slib\media\wav.cpp" />
     <ClCompile Include="..\..\src\slib\network\arp.cpp" />
-    <ClCompile Include="..\..\src\slib\network\dbip.cpp" />
     <ClCompile Include="..\..\src\slib\network\dns.cpp" />
     <ClCompile Include="..\..\src\slib\network\ethernet.cpp" />
     <ClCompile Include="..\..\src\slib\network\firewall.cpp" />
@@ -318,11 +316,8 @@
     <ClCompile Include="..\..\src\slib\network\network_os.cpp" />
     <ClCompile Include="..\..\src\slib\network\net_capture.cpp" />
     <ClCompile Include="..\..\src\slib\network\npcap_install_win32.cpp" />
-    <ClCompile Include="..\..\src\slib\network\p2p.cpp" />
     <ClCompile Include="..\..\src\slib\network\packet_analyzer.cpp" />
     <ClCompile Include="..\..\src\slib\network\pcap.cpp" />
-    <ClCompile Include="..\..\src\slib\network\pseudo_tcp.cpp" />
-    <ClCompile Include="..\..\src\slib\network\pseudo_tcp_message.cpp" />
     <ClCompile Include="..\..\src\slib\network\smb.cpp" />
     <ClCompile Include="..\..\src\slib\network\socket.cpp" />
     <ClCompile Include="..\..\src\slib\network\socket_address.cpp" />
@@ -479,6 +474,7 @@
     <ClCompile Include="..\..\src\slib\ui\ui_resource.cpp" />
     <ClCompile Include="..\..\src\slib\ui\ui_sound.cpp" />
     <ClCompile Include="..\..\src\slib\ui\ui_sound_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\ui\ui_text.cpp" />
     <ClCompile Include="..\..\src\slib\ui\video_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\view_page.cpp" />

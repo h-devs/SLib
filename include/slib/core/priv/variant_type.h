@@ -53,16 +53,16 @@ namespace slib
 			Time = 17,
 			Pointer = 18,
 			ObjectId = 19,
-			Referable = 64,
-			Weak = Referable + 1,
-			Object = Referable + 2,
-			Collection = Referable + 3,
-			Map = Referable + 4,
-			List = Referable + 5,
-			Memory = Referable + 6,
-			BigInt = Referable + 7,
-			Promise = Referable + 8,
-			Function = Referable + 9
+			Ref = 64,
+			Weak = Ref + 1,
+			Object = Ref + 2,
+			Collection = Ref + 3,
+			Map = Ref + 4,
+			List = Ref + 5,
+			Memory = Ref + 6,
+			BigInt = Ref + 7,
+			Promise = Ref + 8,
+			Function = Ref + 9
 		};
 
 	};

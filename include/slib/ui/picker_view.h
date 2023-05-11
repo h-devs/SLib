@@ -61,9 +61,9 @@ namespace slib
 		void setCircular(sl_bool flag);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(PickerView, SelectItem, sl_uint32 index)
+		SLIB_DECLARE_EVENT_HANDLER(PickerView, SelectItem, sl_uint32 index, sl_uint32 former, UIEvent* ev)
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onMouseEvent(UIEvent* ev) override;
@@ -78,6 +78,11 @@ namespace slib
 
 	private:
 		void _initCell();
+
+		void _onSelectItem(sl_uint32 index, UIEvent* ev);
+
+	protected:
+		void _onSelectItem_NW(sl_uint32 index);
 
 	protected:
 		Ref<PickerViewCell> m_cell;
@@ -107,7 +112,7 @@ namespace slib
 		sl_uint32 lineCount;
 		sl_bool flagCircular;
 
-		Function<void(sl_uint32 index)> onSelectItem;
+		Function<void(sl_uint32 index, UIEvent* ev)> onSelectItem;
 
 	public:
 		PickerViewCell();
@@ -120,13 +125,13 @@ namespace slib
 		void onMouseEvent(UIEvent* ev) override;
 
 	private:
-		void _selectItemInner(sl_int32 index);
+		void _selectItemInner(sl_int32 index, UIEvent* ev);
 
 		sl_uint32 _getCircularIndex(sl_int32 index);
 
 		sl_ui_len _getLineHeight();
 
-		void _flow(sl_ui_pos offset);
+		void _flow(sl_ui_pos offset, UIEvent* ev);
 
 		void _startFlow(sl_real speed);
 

@@ -44,11 +44,13 @@ namespace slib
 	public:
 		PenDesc();
 
+		PenDesc(PenStyle style, sl_real width, const Color& color);
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PenDesc)
 
 	};
 
-	class SLIB_EXPORT Pen : public Referable
+	class SLIB_EXPORT Pen : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -61,6 +63,8 @@ namespace slib
 		static Ref<Pen> getDefault();
 
 		static Ref<Pen> create(const PenDesc& desc);
+
+		static Ref<Pen> create(const PenDesc& desc, const Ref<Pen>& original);
 
 		static Ref<Pen> create(PenStyle style, sl_real width, const Color& color);
 
@@ -84,7 +88,7 @@ namespace slib
 	protected:
 		PenDesc m_desc;
 
-		Ref<Referable> m_platformObject;
+		Ref<CRef> m_platformObject;
 		SpinLock m_lock;
 
 	};

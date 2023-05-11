@@ -154,8 +154,8 @@ namespace slib
 	public:
 		SLIB_PROPERTY(SocketAddress, LocalAddress)
 		SLIB_PROPERTY(SocketAddress, RemoteAddress)
-		SLIB_PROPERTY(AtomicRef<Referable>, ProxyObject)
-		SLIB_PROPERTY(AtomicRef<Referable>, UserObject)
+		SLIB_PROPERTY(AtomicRef<CRef>, ProxyObject)
+		SLIB_PROPERTY(AtomicRef<CRef>, UserObject)
 
 	protected:
 		WeakRef<HttpServer> m_server;
@@ -441,11 +441,11 @@ namespace slib
 	protected:
 		virtual Variant onRequest(HttpServerContext* context);
 
-		Variant dispatchRequest(HttpServerContext* context);
+		Variant handleRequest(HttpServerContext* context);
 
 		virtual void onPostRequest(HttpServerContext* context);
 
-		void dispatchPostRequest(HttpServerContext* context);
+		void handlePostRequest(HttpServerContext* context);
 
 	public:
 		void addConnectionProvider(const Ref<HttpServerConnectionProvider>& provider);

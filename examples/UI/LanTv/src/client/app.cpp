@@ -12,6 +12,7 @@ void LanTvClientApp::onStart()
 	viewVideo->setWidthFilling();
 	viewVideo->setHeightFilling();
 	viewVideo->setOnMouseEvent([](View* view, UIEvent* ev) {
+		view->onMouseEvent(ev);
 		static UIRect lastFrame = {};
 		if (ev->getAction() == UIAction::LeftButtonDoubleClick) {
 			auto window = view->getWindow();
@@ -148,7 +149,7 @@ void LanTvClientApp::onStart()
 	Ref<Window> window = new Window;
 	window->setTitle("LanTvClient");
 	window->setFrame(100, 100, 400, 300);
-	window->setOnDestroy([threadAudio, threadVideo](Window*) {
+	window->setOnDestroy([threadAudio, threadVideo](Window*, UIEvent*) {
 		threadAudio->finishAndWait();
 		threadVideo->finishAndWait();
 		UIApp::quit();

@@ -33,7 +33,7 @@ namespace slib
 
 	namespace {
 
-		class PenPlatformObject : public Referable
+		class PenPlatformObject : public CRef
 		{
 		public:
 			Gdiplus::Pen* m_pen;

@@ -61,7 +61,7 @@ namespace slib
 		public:
 			Gdiplus::Image* m_image;
 			sl_bool m_flagFreeOnRelease;
-			Ref<Referable> m_ref;
+			Ref<CRef> m_ref;
 
 		public:
 			ImageDrawableImpl()
@@ -76,7 +76,7 @@ namespace slib
 			}
 
 		public:
-			static Ref<ImageDrawableImpl> create(Gdiplus::Image* image, sl_bool flagFreeOnRelease, Referable* ref)
+			static Ref<ImageDrawableImpl> create(Gdiplus::Image* image, sl_bool flagFreeOnRelease, CRef* ref)
 			{
 				if (image) {
 					Ref<ImageDrawableImpl> ret = new ImageDrawableImpl();
@@ -114,7 +114,7 @@ namespace slib
 
 	}
 
-	Ref<Drawable> GraphicsPlatform::createImageDrawable(Gdiplus::Image* image, sl_bool flagFreeOnRelease, Referable* ref)
+	Ref<Drawable> GraphicsPlatform::createImageDrawable(Gdiplus::Image* image, sl_bool flagFreeOnRelease, CRef* ref)
 	{
 		return ImageDrawableImpl::create(image, flagFreeOnRelease, ref);
 	}

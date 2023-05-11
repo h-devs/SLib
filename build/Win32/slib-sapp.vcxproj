@@ -19,7 +19,25 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\sapp\sapp_document.cpp" />
     <ClCompile Include="..\..\tool\src\sapp\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\sapp\sapp.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_document.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_error.inc.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_resources.cpp.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_resources.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_util.cpp.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_util.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_values.cpp.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_document_string.cpp.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_document_raw.cpp.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_document_menu.cpp.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_document_layout.cpp.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_document_drawable.cpp.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_document_color.cpp.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_values.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6AB2A19A-CCF1-4EA2-9CB1-7175B7F85EB2}</ProjectGuid>
@@ -114,7 +132,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>slib.lib;libsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>slib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /y "$(ProjectDir)..\..\bin\Windows\sapp.exe" "$(ProjectDir)..\..\tool\bin\"</Command>
@@ -136,7 +154,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>slib.lib;libsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>slib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /y "$(ProjectDir)..\..\bin\Windows\sapp.exe" "$(ProjectDir)..\..\tool\bin\"</Command>
@@ -162,7 +180,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>slib.lib;libsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>slib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /y "$(ProjectDir)..\..\bin\Windows\sapp.exe" "$(ProjectDir)..\..\tool\bin\"</Command>
@@ -188,7 +206,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>slib.lib;libsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>slib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /y "$(ProjectDir)..\..\bin\Windows\sapp.exe" "$(ProjectDir)..\..\tool\bin\"</Command>

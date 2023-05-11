@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +27,9 @@
 #include "slib/io/file.h"
 #include "slib/math/math.h"
 #include "slib/core/memory.h"
+#include "slib/core/mio.h"
 #include "slib/core/unique_ptr.h"
 #include "slib/core/safe_static.h"
-#include "slib/crypto/chacha.h"
 
 #include "leveldb/db.h"
 #include "leveldb/write_batch.h"
@@ -40,7 +40,7 @@ namespace slib
 
 	namespace {
 
-		class StdStringContainer : public Referable
+		class StdStringContainer : public CRef
 		{
 		public:
 			std::string string;
@@ -73,7 +73,7 @@ namespace slib
 			return sl_false;
 		}
 
-		class DefaultEnvironmentManager : public Referable
+		class DefaultEnvironmentManager : public CRef
 		{
 		public:
 			DefaultEnvironmentManager()
@@ -98,20 +98,21 @@ namespace slib
 		{
 		public:
 			UniquePtr<leveldb::SequentialFile> m_base;
-			ChaCha20_IO m_enc;
+			Ref<FileEncryption> m_enc;
 			sl_uint64 m_offset;
+			sl_uint64 m_iv;
 
 		public:
-			EncryptionSequentialFile(leveldb::SequentialFile* base, const ChaCha20_IO& enc): m_base(base), m_enc(enc), m_offset(0) {}
+			EncryptionSequentialFile(leveldb::SequentialFile* base, const Ref<FileEncryption>& enc): m_base(base), m_enc(enc), m_offset(0) {}
 
 		public:
 			sl_bool init()
 			{
-				char bufHeader[ChaCha20_IO::IvSize];
+				char iv[8];
 				leveldb::Slice slice;
-				if ((m_base->Read(sizeof(bufHeader), &slice, bufHeader)).ok()) {
-					if (slice.size() == sizeof(bufHeader)) {
-						m_enc.setIV(slice.data());
+				if ((m_base->Read(sizeof(iv), &slice, iv)).ok()) {
+					if (slice.size() == sizeof(iv)) {
+						m_iv = MIO::readUint64LE(iv);
 						return sl_true;
 					}
 				}
@@ -124,7 +125,7 @@ namespace slib
 				if (status.ok()) {
 					const char* data = result->data();
 					sl_size size = result->size();
-					m_enc.encrypt(m_offset, data, scratch, size);
+					m_enc->decrypt(m_iv + m_offset, data, scratch, size);
 					m_offset += size;
 					if (data != scratch) {
 						*result = leveldb::Slice(scratch, size);
@@ -147,19 +148,20 @@ namespace slib
 		{
 		public:
 			UniquePtr<leveldb::RandomAccessFile> m_base;
-			ChaCha20_IO m_enc;
+			Ref<FileEncryption> m_enc;
+			sl_uint64 m_iv;
 
 		public:
-			EncryptionRandomAccessFile(leveldb::RandomAccessFile* base, const ChaCha20_IO& enc): m_base(base), m_enc(enc) {}
+			EncryptionRandomAccessFile(leveldb::RandomAccessFile* base, const Ref<FileEncryption>& enc): m_base(base), m_enc(enc) {}
 
 		public:
 			sl_bool init()
 			{
-				char bufHeader[ChaCha20_IO::IvSize];
+				char iv[8];
 				leveldb::Slice slice;
-				if ((m_base->Read(0, sizeof(bufHeader), &slice, bufHeader)).ok()) {
-					if (slice.size() == sizeof(bufHeader)) {
-						m_enc.setIV(slice.data());
+				if ((m_base->Read(0, sizeof(iv), &slice, iv)).ok()) {
+					if (slice.size() == sizeof(iv)) {
+						m_iv = MIO::readUint64LE(iv);
 						return sl_true;
 					}
 				}
@@ -168,11 +170,11 @@ namespace slib
 
 			leveldb::Status Read(uint64_t offset, size_t n, leveldb::Slice* result, char* scratch) const override
 			{
-				leveldb::Status status = m_base->Read(ChaCha20_IO::IvSize + offset, n, result, scratch);
+				leveldb::Status status = m_base->Read(8 + offset, n, result, scratch);
 				if (status.ok()) {
 					const char* data = result->data();
 					sl_size size = result->size();
-					m_enc.encrypt(offset, data, scratch, size);
+					m_enc->decrypt(m_iv + offset, data, scratch, size);
 					if (data != scratch) {
 						*result = leveldb::Slice(scratch, size);
 					}
@@ -186,25 +188,25 @@ namespace slib
 		{
 		public:
 			UniquePtr<leveldb::WritableFile> m_base;
-			ChaCha20_IO m_enc;
+			Ref<FileEncryption> m_enc;
+			sl_uint64 m_iv;
 			sl_uint64 m_offset;
 
 		public:
-			EncryptionWritableFile(leveldb::WritableFile* base, const ChaCha20_IO& enc) : m_base(base), m_enc(enc), m_offset(0) {}
+			EncryptionWritableFile(leveldb::WritableFile* base, const Ref<FileEncryption>& enc) : m_base(base), m_enc(enc), m_offset(0) {}
 
 		public:
 			sl_bool init()
 			{
-				char iv[ChaCha20_IO::IvSize];
+				char iv[8];
 				Math::randomMemory(iv, sizeof(iv));
-				m_enc.setIV(iv);
+				m_iv = MIO::readUint64LE(iv);
 				return m_base->Append(leveldb::Slice(iv, sizeof(iv))).ok();
 			}
 
-			void init(const void* iv, sl_uint64 size)
+			void init(sl_uint64 iv)
 			{
-				m_enc.setIV(iv);
-				m_offset = size - ChaCha20_IO::IvSize;
+				m_iv = iv;
 			}
 
 			leveldb::Status Append(const leveldb::Slice& slice) override
@@ -218,7 +220,7 @@ namespace slib
 					if (n > sizeof(buf)) {
 						n = sizeof(buf);
 					}
-					m_enc.encrypt(m_offset, data + pos, buf, n);
+					m_enc->encrypt(m_iv + m_offset, data + pos, buf, n);
 					leveldb::Status status = m_base->Append(leveldb::Slice(buf, n));
 					if (status.ok()) {
 						pos += n;
@@ -250,10 +252,10 @@ namespace slib
 		class EncryptionEnv : public leveldb::EnvWrapper
 		{
 		private:
-			ChaCha20_FileEncryptor m_enc;
+			Ref<FileEncryption> m_enc;
 
 		public:
-			EncryptionEnv(const ChaCha20_FileEncryptor& enc): EnvWrapper(leveldb::Env::Default()), m_enc(enc) {}
+			EncryptionEnv(const Ref<FileEncryption>& enc): EnvWrapper(leveldb::Env::Default()), m_enc(enc) {}
 
 		public:
 			leveldb::Status NewSequentialFile(const std::string& fname, leveldb::SequentialFile** result) override
@@ -311,7 +313,7 @@ namespace slib
 					return NewWritableFile(fname, result);
 				}
 
-				char iv[ChaCha20_IO::IvSize];
+				char iv[8];
 				{
 					if (size < sizeof(iv)) {
 						return status_FailedToReadIV();
@@ -336,7 +338,7 @@ namespace slib
 				leveldb::Status status = env->NewAppendableFile(fname, result);
 				if (status.ok()) {
 					EncryptionWritableFile* file = new EncryptionWritableFile(*result, m_enc);
-					file->init(iv, size);
+					file->init(MIO::readUint64LE(iv));
 					*result = file;
 				}
 				return status;
@@ -346,8 +348,9 @@ namespace slib
 			{
 				leveldb::Status status = target()->GetFileSize(fname, file_size);
 				if (status.ok()) {
-					if (*file_size >= ChaCha20_FileEncryptor::HeaderSize) {
-						*file_size -= ChaCha20_FileEncryptor::HeaderSize;
+					sl_uint32 headerSize = m_enc->getHeaderSize();
+					if (*file_size >= headerSize) {
+						*file_size -= headerSize;
 					} else {
 						*file_size = 0;
 						return leveldb::Status::Corruption("Too small encryption header");
@@ -416,17 +419,21 @@ namespace slib
 				options.compression = (leveldb::CompressionType)(param.compression);
 
 				EncryptionEnv* encryptionEnv = sl_null;
-				if (param.encryptionKey.isNotNull()) {
-					ChaCha20_FileEncryptor enc;
+				if (param.encryption.isNotNull()) {
+					sl_uint32 headerSize = param.encryption->getHeaderSize();
+					Memory header = Memory::create(headerSize);
+					if (header.isNull()) {
+						SLIB_STATIC_STRING(error, "Failed to allocate enryption header")
+						param.errorText = error;
+						return sl_null;
+					}
 					do {
-						StringCstr encryptionKey(param.encryptionKey);
 						SLIB_STATIC_STRING(filenameENC, "ENC")
 						String pathENC = File::concatPath(path, filenameENC);
 						File file = File::openForRead(pathENC);
 						if (file.isOpened()) {
-							char header[ChaCha20_FileEncryptor::HeaderSize];
-							if (file.readFully(header, sizeof(header)) == sizeof(header)) {
-								if (enc.open(header, encryptionKey.getData(), encryptionKey.getLength())) {
+							if (file.readFully(header.getData(), headerSize) == headerSize) {
+								if (param.encryption->open(header.getData())) {
 									break;
 								} else {
 									SLIB_STATIC_STRING(error, "Invalid encryption key")
@@ -456,15 +463,14 @@ namespace slib
 							return sl_null;
 						} while (0);
 
-						char header[ChaCha20_FileEncryptor::HeaderSize];
-						enc.create(header, encryptionKey.getData(), encryptionKey.getLength());
-						if (!(file.writeFully(header, sizeof(header)) == sizeof(header))) {
+						param.encryption->generateHeader(header.getData());
+						if (!(file.writeFully(header.getData(), headerSize) == headerSize)) {
 							SLIB_STATIC_STRING(error, "Failed to write encryption header")
 							param.errorText = error;
 							return sl_null;
 						}
 					} while (0);
-					encryptionEnv = new EncryptionEnv(enc);
+					encryptionEnv = new EncryptionEnv(param.encryption);
 					if (!encryptionEnv) {
 						SLIB_STATIC_STRING(error, "Failed to allocate encryption environment")
 						param.errorText = error;

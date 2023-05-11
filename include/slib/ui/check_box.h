@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -44,10 +44,10 @@ namespace slib
 
 		sl_bool isCheckedInstance();
 
-		virtual void setChecked(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setChecked(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(CheckBox, Change, sl_bool flagChecked)
+		SLIB_DECLARE_EVENT_HANDLER(CheckBox, Change, sl_bool value, UIEvent* ev /* nullable */)
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
@@ -57,7 +57,10 @@ namespace slib
 		Ref<ButtonCell> createButtonCell() override;
 
 	public:
-		void dispatchClickEvent(UIEvent* ev) override;
+		void onClickEvent(UIEvent* ev) override;
+
+	protected:
+		void handleChangeValue(sl_bool value, UIEvent* ev, UIUpdateMode mode);
 
 	protected:
 		sl_bool m_flagChecked;

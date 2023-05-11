@@ -142,7 +142,7 @@ namespace slib
 		Ref<Drawable> clipSquare();
 
 	public:
-		static Ref<Drawable> createColorDrawable(const Color& color);
+		static Ref<Drawable> fromColor(const Color& color);
 
 		static Ref<Drawable> getEmptyDrawable();
 

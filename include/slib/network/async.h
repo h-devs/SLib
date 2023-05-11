@@ -71,11 +71,11 @@ namespace slib
 
 		sl_bool connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback);
 
-		sl_bool receive(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
+		sl_bool receive(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
 
 		sl_bool receive(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 
-		sl_bool send(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
+		sl_bool send(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
 
 		sl_bool send(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 

@@ -1040,19 +1040,10 @@
     <ClCompile Include="..\..\src\slib\db\mongodb.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\pseudo_tcp.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\network\pcap.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\network\npcap_install_win32.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\pseudo_tcp_message.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\dbip.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\network\ipc.cpp">
@@ -1066,9 +1057,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\storage\storage.cpp">
       <Filter>src\storage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\p2p.cpp">
-      <Filter>src\network</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\gdi_platform.cpp">
       <Filter>src\graphics</Filter>
@@ -1145,9 +1133,6 @@
     <ClCompile Include="..\..\src\slib\db\object_store.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\db\data_store.cpp">
-      <Filter>src\db</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\sha3.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
@@ -1186,9 +1171,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\uix\x_button.cpp">
       <Filter>src\uix</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\db\log_package.cpp">
-      <Filter>src\db</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\svg.cpp">
       <Filter>src\graphics</Filter>
@@ -1356,6 +1338,12 @@
       <Filter>src\develop</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\grid_view.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\media\wav.cpp">
+      <Filter>src\media</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\ui_text.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
   </ItemGroup>

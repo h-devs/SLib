@@ -51,8 +51,8 @@ namespace slib
 
 		setAntiAlias(sl_true, UIUpdateMode::Init);
 
-		m_cell->setView(this);
-		m_cell->onClickLink = SLIB_FUNCTION_WEAKREF(this, dispatchClickLink);
+		m_cell->setView(this, sl_true);
+		m_cell->onClickLink = SLIB_FUNCTION_WEAKREF(this, invokeClickLink);
 	}
 
 	String LabelView::getText()
@@ -178,14 +178,10 @@ namespace slib
 		return m_cell->measureSize();
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(LabelView, ClickLink, const String& href, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(LabelView, ClickLink, (const String& href, UIEvent* ev), href, ev)
 
-	void LabelView::dispatchClickLink(const String& href, UIEvent *ev)
+	void LabelView::onClickLink(const String& href, UIEvent *ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(ClickLink, href, ev)
-		if (ev->isPreventedDefault()) {
-			return;
-		}
 		UI::openUrl(href);
 	}
 
@@ -208,6 +204,7 @@ namespace slib
 
 	void LabelView::onClickEvent(UIEvent* ev)
 	{
+		View::onClickEvent(ev);
 		m_cell->onClickEvent(ev);
 	}
 
@@ -260,6 +257,8 @@ namespace slib
 
 		flagWrapping = sl_false;
 		maxWidth = 0;
+
+		m_textHeight = 0;
 	}
 
 	LabelViewCell::~LabelViewCell()
@@ -296,7 +295,7 @@ namespace slib
 				width = 1;
 			}
 		}
-		SimpleTextBoxParam param;
+		TextBoxParam param;
 		param.font = getFont();
 		param.text = text;
 		param.flagHyperText = flagHyperText;
@@ -308,6 +307,16 @@ namespace slib
 		param.ellipsizeMode = ellipsizeMode;
 		param.flagEnabledHyperlinksInPlainText = flagEnabledHyperlinksInPlainText;
 		m_textBox.update(param);
+
+		if (param.text.isEmpty()) {
+			if (param.font.isNotNull()) {
+				m_textHeight = (sl_ui_len)(param.font->getFontHeight());
+			} else {
+				m_textHeight = 0;
+			}
+		} else {
+			m_textHeight = (sl_ui_len)(m_textBox.getContentHeight());
+		}
 	}
 
 	void LabelViewCell::onDraw(Canvas* canvas)
@@ -317,7 +326,7 @@ namespace slib
 			return;
 		}
 		_updateTextBox(bounds.getWidth());
-		SimpleTextBox::DrawParam param;
+		TextBox::DrawParam param;
 		param.frame = bounds;
 		param.textColor = textColor;
 		if (shadowOpacity > 0) {
@@ -373,7 +382,7 @@ namespace slib
 			size.x = (sl_ui_len)(m_textBox.getContentWidth());
 		}
 		if (flagVerticalWrapping) {
-			size.y = (sl_ui_len)(m_textBox.getContentHeight());
+			size.y = m_textHeight;
 		}
 	}
 

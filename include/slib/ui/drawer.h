@@ -67,11 +67,12 @@ namespace slib
 	protected:
 		void onChangeParent(View* oldParent, View* newParent) override;
 
+	public:
 		void dispatchMouseEvent(UIEvent* ev) override;
 
 		void dispatchTouchEvent(UIEvent* ev) override;
 
-		void onCancel(UIEvent* ev) override;
+		void onCancel() override;
 
 	private:
 		void _onEndOpenAnimation();

@@ -183,9 +183,10 @@ namespace slib
 		setAdapter(param);
 	}
 
-	void ListView::onScroll(sl_scroll_pos _x, sl_scroll_pos _y)
+	void ListView::onScroll(ScrollEvent* ev)
 	{
-		sl_ui_pos y = (sl_ui_pos)(_y);
+		VerticalScrollView::onScroll(ev);
+		sl_ui_pos y = (sl_ui_pos)(ev->y);
 		if (Math::isAlmostZero(y - m_lastScrollY)) {
 			return;
 		}
@@ -316,7 +317,7 @@ namespace slib
 				view->setCreatingInstance(sl_true);
 			}
 #endif
-			ViewLayoutAttributes* attrs = view->m_layoutAttrs.get();
+			LayoutAttributes* attrs = view->m_layoutAttrs.get();
 			if (attrs) {
 				attrs->topMode = PositionMode::Free;
 				attrs->bottomMode = PositionMode::Free;
@@ -956,7 +957,7 @@ namespace slib
 		if (itemView.isNotNull()) {
 			itemView->setPressedState(sl_false, UIUpdateMode::None);
 			itemView->setHoverState(sl_false, UIUpdateMode::None);
-			Ref<ViewLayoutAttributes>& layoutAttrs = itemView->m_layoutAttrs;
+			Ref<LayoutAttributes>& layoutAttrs = itemView->m_layoutAttrs;
 			if (layoutAttrs.isNotNull()) {
 				layoutAttrs->flagInvalidLayoutInParent = sl_true;
 				SizeMode mode = itemView->getHeightMode();

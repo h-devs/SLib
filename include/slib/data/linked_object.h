@@ -43,7 +43,7 @@ namespace slib
 	};
 
 	template <class T>
-	class SLIB_EXPORT LinkedObjectList : public Referable, public Lockable
+	class SLIB_EXPORT LinkedObjectList : public CRef, public Lockable
 	{
 	protected:
 		Ref<T> m_front;
@@ -187,7 +187,7 @@ namespace slib
 			}
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_bool insertBefore(const Ref<T>& objectWhere, const Ref<T>& objectNew) noexcept
 		{
 			if (objectWhere.isNotNull()) {
@@ -198,7 +198,7 @@ namespace slib
 			}
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_bool insertAfter(const Ref<T>& objectWhere, const Ref<T>& objectNew) noexcept
 		{
 			if (objectWhere.isNotNull()) {

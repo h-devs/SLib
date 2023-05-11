@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  */
 
 #include "slib/crypto/block_cipher.h"
+#include "slib/crypto/file_encryption.h"
 
 namespace slib
 {
@@ -63,6 +64,17 @@ namespace slib
 			return 0;
 		}
 		return n;
+	}
+
+
+	SLIB_DEFINE_OBJECT(FileEncryption, Object)
+
+	FileEncryption::FileEncryption()
+	{
+	}
+
+	FileEncryption::~FileEncryption()
+	{
 	}
 
 }

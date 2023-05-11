@@ -655,7 +655,18 @@ namespace slib
 
 			void doPostCreate() override
 			{
-				onResize();
+				UIRect frame;
+				if (getFrame(frame)) {
+					onResize(frame.getWidth(), frame.getHeight());
+				}
+			}
+
+			void onMove()
+			{
+				UIRect frame;
+				if (getFrame(frame)) {
+					onMove(frame.left, frame.top);
+				}
 			}
 
 		};
@@ -846,8 +857,7 @@ using namespace slib;
 	if (window.isNotNull()) {
 		NSRect fr = [self frame];
 		NSRect cr = [self contentRectForFrameRect:fr];
-		NSSize size = cr.size;
-		window->onResize((sl_ui_len)(size.width), (sl_ui_len)(size.height));
+		window->onResize((sl_ui_len)(cr.size.width), (sl_ui_len)(cr.size.height));
 	}
 }
 

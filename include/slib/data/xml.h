@@ -64,7 +64,7 @@ namespace slib
 	};
 
 	// Not thread-safe
-	class SLIB_EXPORT XmlNode : public Referable
+	class SLIB_EXPORT XmlNode : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 

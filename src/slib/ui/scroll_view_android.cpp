@@ -100,7 +100,7 @@ namespace slib
 				}
 			}
 
-			sl_bool getScrollPosition(View* view, ScrollPoint& _out) override
+			sl_bool getScrollPosition(View* view, ScrollPosition& _out) override
 			{
 				jobject handle = m_handle.get();
 				if (handle) {
@@ -111,7 +111,7 @@ namespace slib
 				return sl_false;
 			}
 
-			sl_bool getScrollRange(View* view, ScrollPoint& _out) override
+			sl_bool getScrollRange(View* view, ScrollPosition& _out) override
 			{
 				Ref<View> content = (static_cast<ScrollViewHelper*>(view))->getContentView();
 				if (content.isNotNull()) {

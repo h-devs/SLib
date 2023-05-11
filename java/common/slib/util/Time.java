@@ -263,9 +263,9 @@ public class Time {
 
 	public String toString() {
 
-		String ret = NumberFormator.formatInt(getYear(), 4) + "-" + NumberFormator.formatInt(getMonth(), 2) + "-"
-				+ NumberFormator.formatInt(getDate(), 2) + " " + NumberFormator.formatInt(getHour(), 2) + ":"
-				+ NumberFormator.formatInt(getMinute(), 2) + ":" + NumberFormator.formatInt(getSecond(), 2);
+		String ret = NumberFormatter.formatInt(getYear(), 4) + "-" + NumberFormatter.formatInt(getMonth(), 2) + "-"
+				+ NumberFormatter.formatInt(getDate(), 2) + " " + NumberFormatter.formatInt(getHour(), 2) + ":"
+				+ NumberFormatter.formatInt(getMinute(), 2) + ":" + NumberFormatter.formatInt(getSecond(), 2);
 
 		return ret;
 	}
@@ -273,31 +273,31 @@ public class Time {
 	public String format(String format) {
 		String str = format;
 		str = str.replaceAll("%y", String.valueOf(getYear()));
-		str = str.replaceAll("%Y", NumberFormator.formatInt(getYear(), 4));
+		str = str.replaceAll("%Y", NumberFormatter.formatInt(getYear(), 4));
 		str = str.replaceAll("%m", String.valueOf(getMonth()));
-		str = str.replaceAll("%M", NumberFormator.formatInt(getMonth(), 2));
+		str = str.replaceAll("%M", NumberFormatter.formatInt(getMonth(), 2));
 		str = str.replaceAll("%d", String.valueOf(getDate()));
-		str = str.replaceAll("%D", NumberFormator.formatInt(getDate(), 2));
+		str = str.replaceAll("%D", NumberFormatter.formatInt(getDate(), 2));
 		str = str.replaceAll("%w", getShortWeekday());
 		str = str.replaceAll("%W", getWeekday());
 		str = str.replaceAll("%h", String.valueOf(getHour()));
-		str = str.replaceAll("%H", NumberFormator.formatInt(getHour(), 2));
+		str = str.replaceAll("%H", NumberFormatter.formatInt(getHour(), 2));
 		str = str.replaceAll("%i", String.valueOf(getMinute()));
-		str = str.replaceAll("%I", NumberFormator.formatInt(getMinute(), 2));
+		str = str.replaceAll("%I", NumberFormatter.formatInt(getMinute(), 2));
 		str = str.replaceAll("%s", String.valueOf(getSecond()));
-		str = str.replaceAll("%S", NumberFormator.formatInt(getSecond(), 2));
+		str = str.replaceAll("%S", NumberFormatter.formatInt(getSecond(), 2));
 		str = str.replaceAll("%n", String.valueOf(getMillisecond()));
 		return str;
 	}
 
 	public String getDateString() {
-		String ret = NumberFormator.formatInt(getYear(), 4) + "-" + NumberFormator.formatInt(getMonth(), 2) + "-"
-				+ NumberFormator.formatInt(getDate(), 2);
+		String ret = NumberFormatter.formatInt(getYear(), 4) + "-" + NumberFormatter.formatInt(getMonth(), 2) + "-"
+				+ NumberFormatter.formatInt(getDate(), 2);
 		return ret;
 	}
 
 	public String getDateString1() {
-		String ret = NumberFormator.formatInt(getYear(), 4) + "/" + getMonth() + "/" + getDate();
+		String ret = NumberFormatter.formatInt(getYear(), 4) + "/" + getMonth() + "/" + getDate();
 		return ret;
 	}
 
@@ -309,8 +309,8 @@ public class Time {
 
 
 	public String getTimeString() {
-		String ret = NumberFormator.formatInt(getHour(), 2) + ":" + NumberFormator.formatInt(getMinute(), 2) + ":"
-				+ NumberFormator.formatInt(getSecond(), 2);
+		String ret = NumberFormatter.formatInt(getHour(), 2) + ":" + NumberFormatter.formatInt(getMinute(), 2) + ":"
+				+ NumberFormatter.formatInt(getSecond(), 2);
 		return ret;
 	}
 

@@ -322,13 +322,13 @@ namespace slib
 		onStart();
 	}
 
-	void PushNotificationClient::dispatchRefreshToken(const String& token)
+	void PushNotificationClient::invokeRefreshToken(const String& token)
 	{
 		m_deviceToken = token;
 		m_onRefreshToken(token);
 	}
 
-	void PushNotificationClient::dispatchReceiveMessage(PushNotificationMessage& message)
+	void PushNotificationClient::invokeReceiveMessage(PushNotificationMessage& message)
 	{
 		m_onReceiveMessage(message);
 	}

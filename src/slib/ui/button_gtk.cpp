@@ -96,11 +96,7 @@ namespace slib
 
 		void ButtonInstance::onClicked(GtkButton*, gpointer userinfo)
 		{
-			GtkButton* handle = (GtkButton*)userinfo;
-			Ref<Button> view = CastRef<Button>(UIPlatform::getView((GtkWidget*)handle));
-			if (view.isNotNull()) {
-				view->dispatchClick();
-			}
+			onClick();
 		}
 
 	}

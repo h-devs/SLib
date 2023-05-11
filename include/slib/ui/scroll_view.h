@@ -54,11 +54,11 @@ namespace slib
 		virtual Ptr<IScrollViewInstance> getScrollViewInstance();
 
 	public:
-		void dispatchScroll(sl_scroll_pos x, sl_scroll_pos y) override;
+		void onScroll(ScrollEvent*) override;
 
-	protected:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 
+	protected:
 		void onResizeChild(View* child, sl_ui_len width, sl_ui_len height) override;
 
 	protected:

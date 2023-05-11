@@ -42,7 +42,7 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 		if (m_flagUpdated) {
-			m_updatedRegion.mergeRectangle(Rectanglei(x, y, x + width, y + height));
+			m_updatedRegion.mergeRectangle(RectangleI(x, y, x + width, y + height));
 		} else {
 			m_updatedRegion.left = x;
 			m_updatedRegion.top = y;

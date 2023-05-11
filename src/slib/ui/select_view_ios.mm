@@ -92,7 +92,7 @@ namespace slib
 			void onSelectItem(SLIBSelectViewHandle* handle, sl_uint32 row)
 			{
 				handle.text = getItemTitle(row);
-				dispatchSelectItem(row);
+				_onSelectItem_NW(row);
 			}
 
 			void onStartSelection(SLIBSelectViewHandle* handle)
@@ -136,7 +136,7 @@ namespace slib
 				view->selectItem(handle, view->getSelectedIndex());
 				[handle setTextAlignment:(TranslateAlignment(view->getGravity()))];
 				[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(view->getTextColor()))];
-				SetBorder(handle, view->isBorder());
+				SetBorder(handle, view->hasBorder());
 				Color backColor = view->getBackgroundColor();
 				[handle setBackgroundColor:(backColor.isZero() ? nil : GraphicsPlatform::getUIColorFromColor(backColor))];
 				setHandleFont(handle, view->getFont());

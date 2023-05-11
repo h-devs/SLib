@@ -462,13 +462,13 @@ using namespace slib;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
-	UIApp::dispatchStartToApp();
+	UIApp::Current::invokeStart();
 	g_callbackDidFinishLaunching(aNotification);
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
-	UIApp::dispatchExitToApp();
+	UIApp::Current::invokeExit();
 }
 
 - (void)application:(NSApplication *)application openURLs:(NSArray<NSURL*>*)urls
@@ -478,15 +478,15 @@ using namespace slib;
 		list.add_NoLock(Apple::getStringFromNSString(url.absoluteString));
 	}
 	if (list.getCount() == 1) {
-		UIApp::dispatchOpenUrlToApp(list[0]);
+		UIApp::Current::invokeOpenUrl(list[0]);
 	} else {
-		UIApp::dispatchOpenUrlsToApp(list);
+		UIApp::Current::invokeOpenUrls(list);
 	}
 }
 
 - (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename
 {
-	return UIApp::dispatchOpenFileToApp(Apple::getStringFromNSString(filename));
+	return UIApp::Current::invokeOpenFile(Apple::getStringFromNSString(filename));
 }
 
 - (void)application:(NSApplication *)sender openFiles:(NSArray<NSString*>*)filenames
@@ -495,17 +495,17 @@ using namespace slib;
 	for (NSString* path : filenames) {
 		list.add_NoLock(Apple::getStringFromNSString(path));
 	}
-	UIApp::dispatchOpenUrlsToApp(list);
+	UIApp::Current::invokeOpenUrls(list);
 }
 
 - (BOOL)application:(NSApplication *)sender openTempFile:(NSString *)filename
 {
-	return UIApp::dispatchOpenTempFileToApp(Apple::getStringFromNSString(filename));
+	return UIApp::Current::invokeOpenTempFile(Apple::getStringFromNSString(filename));
 }
 
 - (BOOL)applicationOpenUntitledFile:(NSApplication *)sender
 {
-	return UIApp::dispatchOpenUntitledFileToApp();
+	return UIApp::Current::invokeOpenUntitledFile();
 }
 
 - (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender
@@ -519,7 +519,7 @@ using namespace slib;
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag
 {
-	return UIApp::dispatchReopenToApp(sl_null, flag);
+	return UIApp::Current::invokeReopen(sl_null, flag);
 }
 
 @end

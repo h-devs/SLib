@@ -150,8 +150,6 @@ namespace slib
 	};
 
 	typedef ComplexT<sl_real> Complex;
-	typedef ComplexT<float> Complexf;
-	typedef ComplexT<double> Complexlf;
 
 }
 

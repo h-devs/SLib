@@ -186,7 +186,7 @@ namespace slib
 		};
 		sl_size length;
 		sl_uint8 charSize; // In Bytes (1/2/4)
-		Ref<Referable> ref;
+		Ref<CRef> ref;
 		String string8;
 		String16 string16;
 		String32 string32;

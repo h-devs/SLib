@@ -213,24 +213,24 @@ namespace slib
 	{
 	}
 
-	UIPointf EFL_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen)
+	UIPointF EFL_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
 	{
 		Evas_Object* handle = m_handle;
 		if (handle) {
 			Evas_Coord x = 0, y = 0;
 			evas_object_geometry_get(handle, &x, &y, sl_null, sl_null);
-			return UIPointf((sl_ui_posf)(ptScreen.x - x), (sl_ui_posf)(ptScreen.y - y));
+			return UIPointF((sl_ui_posf)(ptScreen.x - x), (sl_ui_posf)(ptScreen.y - y));
 		}
 		return ptScreen;
 	}
 
-	UIPointf EFL_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView)
+	UIPointF EFL_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
 	{
 		Evas_Object* handle = m_handle;
 		if (handle) {
 			Evas_Coord x = 0, y = 0;
 			evas_object_geometry_get(handle, &x, &y, sl_null, sl_null);
-			return UIPointf((sl_ui_posf)(ptView.x + x), (sl_ui_posf)(ptView.y + y));
+			return UIPointF((sl_ui_posf)(ptView.x + x), (sl_ui_posf)(ptView.y + y));
 		}
 		return ptView;
 	}

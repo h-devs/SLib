@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #include "slib/ui/slider.h"
 
+#include "slib/ui/priv/view_state_map.h"
 #include "slib/ui/cursor.h"
 #include "slib/graphics/canvas.h"
 #include "slib/core/safe_static.h"
@@ -37,9 +38,10 @@ namespace slib
 			Ref<Drawable> defaultTrack;
 			Ref<Drawable> defaultProgress;
 			Ref<Drawable> defaultProgress2;
+
 			Ref<Drawable> defaultThumb;
-			Ref<Drawable> defaultPressedThumb;
 			Ref<Drawable> defaultHoverThumb;
+			Ref<Drawable> defaultPressedThumb;
 
 		public:
 			StaticContext()
@@ -48,9 +50,22 @@ namespace slib
 				defaultProgress = ColorDrawable::create(Color(0, 50, 250));
 				defaultProgress2 = ColorDrawable::create(Color(0, 250, 50));
 				defaultThumb = ColorDrawable::create(Color(50, 50, 50, 255));
-				defaultPressedThumb = ColorDrawable::create(Color(0, 100, 250, 255));
 				defaultHoverThumb = ColorDrawable::create(Color(0, 200, 150, 255));
+				defaultPressedThumb = ColorDrawable::create(Color(0, 100, 250, 255));
 			}
+
+		public:
+			const Ref<Drawable>& getThumb(ViewState state)
+			{
+				if (SLIB_VIEW_STATE_IS_PRESSED(state)) {
+					return defaultPressedThumb;
+				} else if (SLIB_VIEW_STATE_IS_HOVER(state)) {
+					return defaultHoverThumb;
+				} else {
+					return defaultThumb;
+				}
+			}
+
 		};
 
 		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
@@ -66,7 +81,6 @@ namespace slib
 			m_track = s->defaultTrack;
 			m_progress = s->defaultProgress;
 			m_progress2 = s->defaultProgress2;
-			m_thumb = s->defaultThumb;
 		}
 
 		m_thumbSize.x = 0;
@@ -86,52 +100,41 @@ namespace slib
 	{
 	}
 
-	Ref<Drawable> Slider::getThumbDrawable()
+	void Slider::setValue(float value, UIUpdateMode mode)
 	{
-		return m_thumb;
+		_changeValue(value, sl_null, mode);
 	}
 
-	void Slider::setThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	void Slider::setSecondaryValue(float value, UIUpdateMode mode)
 	{
-		m_thumb = drawable;
+		_changeValue2(value, sl_null, mode);
+	}
+
+	Ref<Drawable> Slider::getThumb(ViewState state)
+	{
+		return m_thumbs.get(state);
+	}
+
+	void Slider::setThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		m_thumbs.set(state, drawable);
 		invalidate(mode);
+	}
+
+	void Slider::setThumb(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	{
+		m_thumbs.defaultValue = drawable;
+		invalidate(mode);
+	}
+
+	void Slider::setThumbColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		setThumb(ColorDrawable::create(color), state, mode);
 	}
 
 	void Slider::setThumbColor(const Color& color, UIUpdateMode mode)
 	{
-		setThumbDrawable(ColorDrawable::create(color), mode);
-	}
-
-	Ref<Drawable> Slider::getPressedThumbDrawable()
-	{
-		return m_pressedThumb;
-	}
-
-	void Slider::setPressedThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_pressedThumb = drawable;
-		invalidate(mode);
-	}
-
-	void Slider::setPressedThumbColor(const Color& color, UIUpdateMode mode)
-	{
-		setPressedThumbDrawable(ColorDrawable::create(color), mode);
-	}
-
-	Ref<Drawable> Slider::getHoverThumbDrawable()
-	{
-		return m_hoverThumb;
-	}
-
-	void Slider::setHoverThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_hoverThumb = drawable;
-		invalidate(mode);
-	}
-
-	void Slider::setHoverThumbColor(const Color& color, UIUpdateMode mode)
-	{
-		setHoverThumbDrawable(ColorDrawable::create(color), mode);
+		setThumb(ColorDrawable::create(color), mode);
 	}
 
 	const UISize& Slider::getThumbSize()
@@ -174,53 +177,28 @@ namespace slib
 	{
 		setThumbSize(UISize(m_thumbSize.x, height), mode);
 	}
+	
+	SLIB_DEFINE_EVENT_HANDLER(Slider, Changing, (float& value, UIEvent* ev), value, ev)
 
-	SLIB_DEFINE_EVENT_HANDLER(Slider, Change, float value)
+	SLIB_DEFINE_EVENT_HANDLER(Slider, Change, (float value, UIEvent* ev), value, ev)
 
-	void Slider::dispatchChange(float value)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, value)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(Slider, ChangingSecondary, (float& value, UIEvent* ev), value, ev)
 
-	SLIB_DEFINE_EVENT_HANDLER(Slider, ChangeSecondary, float value)
-
-	void Slider::dispatchChangeSecondary(float value)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(ChangeSecondary, value)
-	}
-
-	namespace {
-		static Ref<Drawable> const& ResolveDrawable(const Ref<Drawable>& drawableOriginal, const Ref<Drawable>& drawableCommon, const Ref<Drawable>& drawableShared)
-		{
-			if (drawableOriginal.isNotNull()) {
-				return drawableOriginal;
-			}
-			if (drawableCommon.isNotNull()) {
-				if (drawableCommon->isColor()) {
-					return drawableShared;
-				}
-				return drawableCommon;
-			}
-			return Ref<Drawable>::null();
-		}
-	}
+	SLIB_DEFINE_EVENT_HANDLER(Slider, ChangeSecondary, (float value, UIEvent* ev), value, ev)
 
 	void Slider::onDraw(Canvas* canvas)
 	{
-		StaticContext* s = GetStaticContext();
-		if (!s) {
+		StaticContext* context = GetStaticContext();
+		if (!context) {
 			return;
 		}
 		Ref<Drawable> progress = m_progress;
 		Ref<Drawable> progress2 = m_progress2;
-		Ref<Drawable> thumb;
-		if (m_indexPressedThumb == 0) {
-			thumb = ResolveDrawable(m_pressedThumb, m_thumb, s->defaultPressedThumb);
-		} else if (m_indexHoverThumb == 0) {
-			thumb = ResolveDrawable(m_hoverThumb, m_thumb, s->defaultHoverThumb);
-		}
-		if (thumb.isNull()) {
-			thumb = m_thumb;
+
+		ViewState state1 = _getThumbState(0);
+		Ref<Drawable> thumb1 = m_thumbs.evaluate(state1);
+		if (thumb1.isNull()) {
+			thumb1 = context->getThumb(state1);
 		}
 
 		UIRect rcTrack, rcProgress, rcProgress2, rcThumb, rcThumb2;
@@ -235,17 +213,13 @@ namespace slib
 			drawTrack(canvas, progress, rcProgress);
 		}
 		if (rcThumb.isValidSize()) {
-			drawThumb(canvas, thumb, rcThumb);
+			drawThumb(canvas, thumb1, rcThumb);
 		}
 		if (isDualValues() && rcThumb2.isValidSize()) {
-			Ref<Drawable> thumb2;
-			if (m_indexPressedThumb == 1) {
-				thumb2 = ResolveDrawable(m_pressedThumb, m_thumb, s->defaultPressedThumb);
-			} else if (m_indexHoverThumb == 1) {
-				thumb2 = ResolveDrawable(m_hoverThumb, m_thumb, s->defaultHoverThumb);
-			}
+			ViewState state2 = _getThumbState(1);
+			Ref<Drawable> thumb2 = m_thumbs.evaluate(state2);
 			if (thumb2.isNull()) {
-				thumb2 = m_thumb;
+				thumb2 = context->getThumb(state2);
 			}
 			drawThumb(canvas, thumb2, rcThumb2);
 		}
@@ -264,24 +238,24 @@ namespace slib
 		switch (action) {
 			case UIAction::MouseMove:
 			case UIAction::MouseEnter:
-			{
-				UIRect rcTrack, rcProgress, rcProgress2, rcThumb, rcThumb2;
-				getRegions(rcTrack, rcProgress, rcProgress2, rcThumb, rcThumb2);
-				if (isDualValues()) {
-					if (rcThumb2.containsPoint(ev->getPoint())) {
-						setHoverThumb(1);
+				{
+					UIRect rcTrack, rcProgress, rcProgress2, rcThumb, rcThumb2;
+					getRegions(rcTrack, rcProgress, rcProgress2, rcThumb, rcThumb2);
+					if (isDualValues()) {
+						if (rcThumb2.containsPoint(ev->getPoint())) {
+							_setHoverThumb(1, action);
+							return;
+						}
+					}
+					if (rcThumb.containsPoint(ev->getPoint())) {
+						_setHoverThumb(0, action);
 						return;
 					}
-				}
-				if (rcThumb.containsPoint(ev->getPoint())) {
-					setHoverThumb(0);
+					_setHoverThumb(-1, action);
 					return;
 				}
-				setHoverThumb(-1);
-				return;
-			}
 			case UIAction::MouseLeave:
-				setHoverThumb(-1);
+				_setHoverThumb(-1, action);
 				return;
 			case UIAction::LeftButtonDown:
 			case UIAction::TouchBegin:
@@ -308,10 +282,10 @@ namespace slib
 			case UIAction::TouchMove:
 				if (m_indexPressedThumb >= 0) {
 					float value = getValueFromPosition(pos);
-					if (m_indexPressedThumb == 0) {
-						changeValue(value, sl_false);
+					if (m_indexPressedThumb) {
+						_changeValue2(value, ev);
 					} else {
-						changeValue(value, sl_true);
+						_changeValue(value, ev);
 					}
 				}
 				break;
@@ -325,23 +299,28 @@ namespace slib
 				return;
 		}
 
+		ProgressBar::onMouseEvent(ev);
 		ev->stopPropagation();
-
 	}
 
 	void Slider::onMouseWheelEvent(UIEvent* ev)
 	{
+		ProgressBar::onMouseWheelEvent(ev);
+
 		float step = refineStep();
-		sl_real delta;
-		if (isVertical()) {
-			delta = ev->getDeltaY();
-		} else {
-			delta = ev->getDeltaX();
-		}
+		sl_real delta = ev->getDelta();
 		if (delta > SLIB_EPSILON) {
-			changeValue(m_value - step, sl_false);
+			if (ev->isShiftKey()) {
+				_changeValue2(m_value2 - step, ev);
+			} else {
+				_changeValue(m_value - step, ev);
+			}
 		} else if (delta < -SLIB_EPSILON) {
-			changeValue(m_value + step, sl_false);
+			if (ev->isShiftKey()) {
+				_changeValue2(m_value2 + step, ev);
+			} else {
+				_changeValue(m_value + step, ev);
+			}
 		}
 
 		ev->stopPropagation();
@@ -349,16 +328,26 @@ namespace slib
 
 	void Slider::onKeyEvent(UIEvent* ev)
 	{
+		ProgressBar::onKeyEvent(ev);
+
 		float step = refineStep();
 		if (ev->getAction() == UIAction::KeyDown) {
 			switch (ev->getKeycode()) {
 				case Keycode::Left:
 				case Keycode::Up:
-					changeValue(m_value - step, sl_false);
+					if (ev->isShiftKey()) {
+						_changeValue2(m_value2 - step, ev);
+					} else {
+						_changeValue(m_value - step, ev);
+					}
 					break;
 				case Keycode::Right:
 				case Keycode::Down:
-					changeValue(m_value + step, sl_false);
+					if (ev->isShiftKey()) {
+						_changeValue2(m_value2 + step, ev);
+					} else {
+						_changeValue(m_value + step, ev);
+					}
 					break;
 				default:
 					return;
@@ -597,35 +586,92 @@ namespace slib
 		}
 	}
 
-	void Slider::setHoverThumb(int index)
+	void Slider::_changeValue(float value, UIEvent* ev, UIUpdateMode mode)
 	{
-		if (m_indexHoverThumb != index) {
-			m_indexHoverThumb = index;
-			invalidate();
+		ObjectLocker locker(this);
+		value = refineValue(value);
+		if (ev && m_flagDualValues) {
+			if (value > m_value2) {
+				value = m_value2;
+			}
+		}
+		if (Math::isAlmostZero(value - m_value)) {
+			m_value = value;
+			return;
+		}
+		invokeChanging(value, ev);
+		value = refineValue(value);
+		if (m_flagDualValues) {
+			if (value > m_value2) {
+				m_value2 = value;
+			}
+		}
+		if (Math::isAlmostZero(value - m_value)) {
+			m_value = value;
+			return;
+		}
+		m_value = value;
+		invalidate(mode);
+		locker.unlock();
+		invokeChange(value, ev);
+	}
+
+	void Slider::_changeValue2(float value, UIEvent* ev, UIUpdateMode mode)
+	{
+		ObjectLocker locker(this);
+		if (!m_flagDualValues) {
+			return;
+		}
+		value = refineValue(value);
+		if (ev) {
+			if (value < m_value) {
+				value = m_value;
+			}
+		}
+		if (Math::isAlmostZero(value - m_value2)) {
+			m_value2 = value;
+			return;
+		}
+		invokeChangingSecondary(value, ev);
+		value = refineValue(value);
+		if (value < m_value) {
+			m_value = value;
+		}
+		if (Math::isAlmostZero(value - m_value2)) {
+			m_value2 = value;
+			return;
+		}
+		m_value2 = value;
+		invalidate(mode);
+		locker.unlock();
+		invokeChangeSecondary(value, ev);
+	}
+
+	ViewState Slider::_getThumbState(int index)
+	{
+		ViewState state;
+		if (m_indexPressedThumb == index) {
+			state = ViewState::Pressed;
+		} else if (m_indexHoverThumb == index) {
+			state = ViewState::Hover;
+		} else {
+			state = ViewState::Normal;
+		}
+		if (isFocused()) {
+			return (ViewState)((int)state + (int)(ViewState::Focused));
+		} else {
+			return state;
 		}
 	}
 
-	void Slider::changeValue(float v, sl_bool flagChange2)
+	void Slider::_setHoverThumb(int index, UIAction action)
 	{
-		float value, value2;
-		if (flagChange2) {
-			value = m_value;
-			value2 = v;
-		} else {
-			value = v;
-			value2 = m_value2;
-		}
-		int n = tryChangeValue(value, value2, flagChange2);
-		m_value = value;
-		if (n & 1) {
-			dispatchChange(value);
-		}
-		if (isDualValues()) {
-			m_value2 = value2;
-			if (n & 2) {
-				dispatchChangeSecondary(value2);
+		if (action == UIAction::MouseMove) {
+			if (m_indexHoverThumb == index) {
+				return;
 			}
 		}
+		m_indexHoverThumb = index;
 		invalidate();
 	}
 

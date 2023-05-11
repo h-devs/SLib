@@ -37,9 +37,9 @@ namespace slib
 		return 96;
 	}
 
-	Sizei Device::getScreenSize()
+	SizeI Device::getScreenSize()
 	{
-		Sizei ret;
+		SizeI ret;
 		ret.x = (int)(GetSystemMetrics(SM_CXSCREEN));
 		ret.y = (int)(GetSystemMetrics(SM_CYSCREEN));
 		return ret;

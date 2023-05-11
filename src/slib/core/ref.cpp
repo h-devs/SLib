@@ -38,24 +38,24 @@ namespace slib
 		}
 	}
 
-	Referable::Referable() noexcept: m_nRefCount(0), m_weak(sl_null)
+	CRef::CRef() noexcept: m_nRefCount(0), m_weak(sl_null)
 	{
 	}
 
-	Referable::Referable(const Referable& other) noexcept: m_nRefCount(0), m_weak(sl_null)
+	CRef::CRef(const CRef& other) noexcept: m_nRefCount(0), m_weak(sl_null)
 	{
 	}
 
-	Referable::Referable(Referable&& other) noexcept: m_nRefCount(0), m_weak(sl_null)
+	CRef::CRef(CRef&& other) noexcept: m_nRefCount(0), m_weak(sl_null)
 	{
 	}
 
-	Referable::~Referable()
+	CRef::~CRef()
 	{
 		_clearWeak();
 	}
 
-	sl_reg Referable::increaseReference() noexcept
+	sl_reg CRef::increaseReference() noexcept
 	{
 		sl_reg nRef = Base::interlockedIncrement(&m_nRefCount);
 		if (nRef == 1) {
@@ -64,7 +64,7 @@ namespace slib
 		return nRef;
 	}
 
-	sl_reg Referable::decreaseReference() noexcept
+	sl_reg CRef::decreaseReference() noexcept
 	{
 		sl_reg nRef = Base::interlockedDecrement(&m_nRefCount);
 		if (!nRef) {
@@ -73,12 +73,12 @@ namespace slib
 		return nRef;
 	}
 
-	sl_reg Referable::getReferenceCount() noexcept
+	sl_reg CRef::getReferenceCount() noexcept
 	{
 		return m_nRefCount;
 	}
 
-	sl_reg Referable::decreaseReferenceNoFree() noexcept
+	sl_reg CRef::decreaseReferenceNoFree() noexcept
 	{
 		if (m_nRefCount > 0) {
 			return Base::interlockedDecrement(&m_nRefCount);
@@ -86,56 +86,56 @@ namespace slib
 		return 1;
 	}
 
-	void Referable::init()
+	void CRef::init()
 	{
 	}
 
-	sl_object_type Referable::ObjectType() noexcept
-	{
-		return 0;
-	}
-
-	sl_bool Referable::isDerivedFrom(sl_object_type type) noexcept
-	{
-		return sl_false;
-	}
-
-	sl_object_type Referable::getObjectType() const noexcept
+	sl_object_type CRef::ObjectType() noexcept
 	{
 		return 0;
 	}
 
-	sl_bool Referable::isInstanceOf(sl_object_type type) const noexcept
+	sl_bool CRef::isDerivedFrom(sl_object_type type) noexcept
 	{
 		return sl_false;
 	}
 
-	String Referable::toString()
+	sl_object_type CRef::getObjectType() const noexcept
+	{
+		return 0;
+	}
+
+	sl_bool CRef::isInstanceOf(sl_object_type type) const noexcept
+	{
+		return sl_false;
+	}
+
+	String CRef::toString()
 	{
 		return String::concat("<ref:0x", String::fromPointerValue(this), ">");
 	}
 
-	sl_bool Referable::toJsonString(StringBuffer& buf)
+	sl_bool CRef::toJsonString(StringBuffer& buf)
 	{
 		return buf.addStatic("{}");
 	}
 
-	sl_bool Referable::toJsonBinary(MemoryBuffer& buf)
+	sl_bool CRef::toJsonBinary(MemoryBuffer& buf)
 	{
 		return buf.addStatic("", 1);
 	}
 
-	sl_bool Referable::runOperator(sl_uint32 op, Variant& result, const Variant& arg, sl_bool flagThisOnLeft)
+	sl_bool CRef::runOperator(sl_uint32 op, Variant& result, const Variant& arg, sl_bool flagThisOnLeft)
 	{
 		return sl_false;
 	}
 
-	sl_bool Referable::_isWeakRef() const noexcept
+	sl_bool CRef::_isWeakRef() const noexcept
 	{
 		return getObjectType() == CWeakRef::ObjectType();
 	}
 
-	CWeakRef* Referable::_getWeakObject() noexcept
+	CWeakRef* CRef::_getWeakObject() noexcept
 	{
 		if (m_weak) {
 			return m_weak;
@@ -149,7 +149,7 @@ namespace slib
 		return m_weak;
 	}
 
-	void Referable::_clearWeak() noexcept
+	void CRef::_clearWeak() noexcept
 	{
 		if (m_weak) {
 			m_weak->release();
@@ -157,18 +157,18 @@ namespace slib
 		}
 	}
 
-	void Referable::_free() noexcept
+	void CRef::_free() noexcept
 	{
 		_clearWeak();
 		delete this;
 	}
 
-	Referable& Referable::operator=(const Referable& other) noexcept
+	CRef& CRef::operator=(const CRef& other) noexcept
 	{
 		return *this;
 	}
 
-	Referable& Referable::operator=(Referable&& other) noexcept
+	CRef& CRef::operator=(CRef&& other) noexcept
 	{
 		return *this;
 	}
@@ -185,24 +185,24 @@ namespace slib
 	{
 	}
 
-	CWeakRef* CWeakRef::create(Referable* object) noexcept
+	CWeakRef* CWeakRef::create(CRef* object) noexcept
 	{
 		CWeakRef* ret = new CWeakRef;
 		if (ret) {
-			ret->m_object = (Referable*)object;
+			ret->m_object = (CRef*)object;
 			ret->increaseReference();
 		}
 		return ret;
 	}
 
-	Ref<Referable> CWeakRef::lock() noexcept
+	Ref<CRef> CWeakRef::lock() noexcept
 	{
-		Ref<Referable> ret;
+		Ref<CRef> ret;
 		if (!m_object) {
 			return sl_null;
 		}
 		m_lock.lock();
-		Referable* obj = m_object;
+		CRef* obj = m_object;
 		if (obj) {
 			sl_reg n = obj->increaseReference();
 			if (n > 1) {

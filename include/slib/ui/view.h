@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,9 @@ namespace slib
 	class Timer;
 	class Dispatcher;
 	class Font;
+	class FontDesc;
 	class Pen;
+	class PenDesc;
 	class GraphicsPath;
 	class Drawable;
 	class Bitmap;
@@ -50,14 +52,20 @@ namespace slib
 	class ViewInstance;
 	class ViewCell;
 
-	class ViewLayoutAttributes;
-	class ViewPaddingAttributes;
-	class ViewTransformAttributes;
-	class ViewDrawAttributes;
-	class ViewScrollAttributes;
-	class ViewChildAttributes;
-	class ViewOtherAttributes;
-	class ViewEventAttributes;
+	class ScrollEvent
+	{
+	public:
+		sl_scroll_pos x;
+		sl_scroll_pos y;
+
+		enum class Source
+		{
+			Internal = 0,
+			ScrollBar = 1,
+			Event = 2
+		};
+		Source source;
+	};
 
 	class SLIB_EXPORT View : public Object
 	{
@@ -312,11 +320,18 @@ namespace slib
 		sl_bool hitTest(const UIPoint& point);
 
 
+		ViewState getState();
+
+		sl_bool isRedrawingOnChangeState();
+
+		void setRedrawingOnChangeState(sl_bool flag = sl_true);
+
+
 		sl_bool isFocusable();
 
 		void setFocusable(sl_bool flagFocusable = sl_true);
 
-		sl_bool isFocused();
+		virtual sl_bool isFocused();
 
 		virtual void setFocus(sl_bool flagFocused = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -441,9 +456,13 @@ namespace slib
 
 		void setWidthWrapping(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
+		void setWidthWrapping(sl_bool flagWrapping, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
 		sl_bool isHeightWrapping();
 
 		void setHeightWrapping(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void setHeightWrapping(sl_bool flagWrapping, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_bool isWidthWeight();
 
@@ -737,47 +756,35 @@ namespace slib
 		void setAnchorOffset(const Vector2& pt, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		// Call in UI Thread
-		UIPointf convertCoordinateFromScreen(const UIPointf& ptScreen);
+		UIPointF convertCoordinateFromScreen(const UIPointF& ptScreen);
 
 		// Call in UI Thread
-		UIPointf convertCoordinateToScreen(const UIPointf& ptView);
+		UIPointF convertCoordinateToScreen(const UIPointF& ptView);
 
 		// Call in UI Thread
-		UIPointf convertCoordinateFromParent(const UIPointf& ptParent);
+		UIPointF convertCoordinateFromParent(const UIPointF& ptParent);
 
 		// Call in UI Thread
-		UIRectf convertCoordinateFromParent(const UIRectf& rectParent);
+		UIRectF convertCoordinateFromParent(const UIRectF& rectParent);
 
 		// Call in UI Thread
-		UIPointf convertCoordinateToParent(const UIPointf& ptView);
+		UIPointF convertCoordinateToParent(const UIPointF& ptView);
 
 		// Call in UI Thread
-		UIRectf convertCoordinateToParent(const UIRectf& rectView);
+		UIRectF convertCoordinateToParent(const UIRectF& rectView);
 
 
-		Ref<Drawable> getBackground();
+		Ref<Drawable> getBackground(ViewState state = ViewState::Default);
+
+		void setBackground(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getBackgroundColor();
+		Color getBackgroundColor(ViewState state = ViewState::Default);
+
+		void setBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getPressedBackground();
-
-		void setPressedBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getPressedBackgroundColor();
-
-		void setPressedBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getHoverBackground();
-
-		void setHoverBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getHoverBackgroundColor();
-
-		void setHoverBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		ScaleMode getBackgroundScaleMode();
 
@@ -787,25 +794,37 @@ namespace slib
 
 		void setBackgroundAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Pen> getBorder();
+		Ref<Pen> getBorder(ViewState state = ViewState::Default);
+
+		void setBorder(const Ref<Pen>& pen, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setBorder(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		PenStyle getBorderStyle();
+		void setBorder(const PenDesc& desc, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBorder(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		PenStyle getBorderStyle(ViewState state = ViewState::Default);
+
+		void setBorderStyle(PenStyle style, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setBorderStyle(PenStyle style, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_real getBorderWidth();
+		sl_real getBorderWidth(ViewState state = ViewState::Default);
+
+		void setBorderWidth(sl_real width, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setBorderWidth(sl_real width, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getBorderColor();
+		Color getBorderColor(ViewState state = ViewState::Default);
+
+		void setBorderColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setBorderColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_bool isBorder();
-
 		void setBorder(sl_bool flagBorder, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool hasBorder();
 
 		BoundShape getBoundShape();
 
@@ -850,7 +869,9 @@ namespace slib
 
 		Ref<Font> getFont();
 
-		virtual void setFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		
+		void setFont(const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_real getFontSize();
 
@@ -898,9 +919,9 @@ namespace slib
 
 		void setShadowRadius(sl_ui_posf radius, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		const UIPointf& getShadowOffset();
+		const UIPointF& getShadowOffset();
 
-		void setShadowOffset(const UIPointf& offset, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setShadowOffset(const UIPointF& offset, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setShadowOffset(sl_ui_posf x, sl_ui_posf y, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -1062,23 +1083,23 @@ namespace slib
 
 		Ref<Animation> getBackgroundColorAnimation();
 
-		void setBackgroundColorAnimation(const Ref<Animation>& animation, const AnimationFrames<Color4f>& frames);
+		void setBackgroundColorAnimation(const Ref<Animation>& animation, const AnimationFrames<Color4F>& frames);
 
-		void setBackgroundColorAnimation(const Ref<Animation>& animation, const Color4f& startValue, const Color4f& endValue);
+		void setBackgroundColorAnimation(const Ref<Animation>& animation, const Color4F& startValue, const Color4F& endValue);
 
-		void setBackgroundColorAnimation(const Ref<Animation>& animation, const Color4f& toValue);
+		void setBackgroundColorAnimation(const Ref<Animation>& animation, const Color4F& toValue);
 
-		Ref<Animation> createBackgroundColorAnimation(const AnimationFrames<Color4f>& frames, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
+		Ref<Animation> createBackgroundColorAnimation(const AnimationFrames<Color4F>& frames, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
-		Ref<Animation> startBackgroundColorAnimation(const AnimationFrames<Color4f>& frames, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
+		Ref<Animation> startBackgroundColorAnimation(const AnimationFrames<Color4F>& frames, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
-		Ref<Animation> createBackgroundColorAnimation(const Color4f& startValue, const Color4f& endValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
+		Ref<Animation> createBackgroundColorAnimation(const Color4F& startValue, const Color4F& endValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
-		Ref<Animation> startBackgroundColorAnimation(const Color4f& startValue, const Color4f& endValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
+		Ref<Animation> startBackgroundColorAnimation(const Color4F& startValue, const Color4F& endValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
-		Ref<Animation> createBackgroundColorAnimationTo(const Color4f& toValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
+		Ref<Animation> createBackgroundColorAnimationTo(const Color4F& toValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
-		Ref<Animation> startBackgroundColorAnimationTo(const Color4f& toValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
+		Ref<Animation> startBackgroundColorAnimationTo(const Color4F& toValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
 
 		sl_bool isHorizontalScrolling();
@@ -1097,11 +1118,19 @@ namespace slib
 
 		Ref<ScrollBar> getHorizontalScrollBar();
 
-		Ref<ScrollBar> getVerticalScrollBar();
-
 		void setHorizontalScrollBar(const Ref<ScrollBar>& bar, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void setHorizontalScrollThumb(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setHorizontalScrollTrack(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<ScrollBar> getVerticalScrollBar();
+
 		void setVerticalScrollBar(const Ref<ScrollBar>& bar, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setVerticalScrollThumb(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setVerticalScrollTrack(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isHorizontalScrollBarVisible();
 
@@ -1121,7 +1150,7 @@ namespace slib
 
 		void setCanvasScrolling(sl_bool flag = sl_true);
 
-		Pointlf getScrollPosition();
+		ScrollPosition getScrollPosition();
 
 		sl_scroll_pos getScrollX();
 
@@ -1129,7 +1158,7 @@ namespace slib
 
 		void scrollTo(sl_scroll_pos x, sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void scrollTo(const ScrollPoint& position, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void scrollTo(const ScrollPosition& position, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void scrollToX(sl_scroll_pos x, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -1137,7 +1166,7 @@ namespace slib
 
 		void smoothScrollTo(sl_scroll_pos x, sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void smoothScrollTo(const ScrollPoint& position, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void smoothScrollTo(const ScrollPosition& position, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void smoothScrollToX(sl_scroll_pos x, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -1159,17 +1188,17 @@ namespace slib
 
 		sl_scroll_pos getContentHeight();
 
-		ScrollPoint getContentSize();
+		ScrollPosition getContentSize();
 
 		virtual void setContentSize(sl_scroll_pos width, sl_scroll_pos height, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
-		void setContentSize(const ScrollPoint& size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setContentSize(const ScrollPosition& size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		void setContentWidth(sl_scroll_pos width, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		void setContentHeight(sl_scroll_pos height, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
-		ScrollPoint getScrollRange();
+		ScrollPosition getScrollRange();
 
 		sl_ui_len getScrollBarWidth();
 
@@ -1312,17 +1341,18 @@ namespace slib
 		sl_bool isCapturingChildInstanceEvents(sl_ui_pos x, sl_ui_pos y);
 
 
-		Ref<UIEvent> getCurrentEvent();
-
-		void setCurrentEvent(UIEvent* ev);
-
-
 		Ref<GestureDetector> createGestureDetector();
 
 		Ref<GestureDetector> getGestureDetector();
 
 
-		Ref<Drawable> getCurrentBackground();
+		Ref<Drawable> getFinalBackground(ViewState state, sl_bool* outFlagReturnDefault = sl_null);
+
+		virtual Ref<Drawable> getCurrentBackground();
+
+		Ref<Pen> getFinalBorder(ViewState state, sl_bool* outFlagReturnDefault = sl_null);
+
+		virtual Ref<Pen> getCurrentBorder();
 
 		void drawBackground(Canvas* canvas, const Ref<Drawable>& background);
 
@@ -1401,7 +1431,7 @@ namespace slib
 
 		virtual void onResizeChild(View* child, sl_ui_len width, sl_ui_len height);
 
-		virtual void onChangeVisibilityOfChild(View* child, Visibility oldVisibility, Visibility newVisibility);
+		virtual void onChangeVisibilityOfChild(View* child, Visibility visibility, Visibility former);
 
 		virtual void onResizeContent(sl_scroll_pos width, sl_scroll_pos height);
 
@@ -1410,34 +1440,41 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Detach)
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Draw, Canvas* canvas)
+		virtual void dispatchDraw(Canvas* canvas);
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(View, PreDraw, Canvas* canvas)
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(View, PostDraw, Canvas* canvas)
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, DrawShadow, Canvas* canvas)
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, MouseEvent, UIEvent* ev)
+		virtual void dispatchMouseEvent(UIEvent* ev);
 		sl_bool dispatchMouseEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchMouseEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, TouchEvent, UIEvent* ev)
+		virtual void dispatchTouchEvent(UIEvent* ev);
 		sl_bool dispatchTouchEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchTouchEventToMultipleChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchTouchEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, MouseWheelEvent, UIEvent* ev)
+		virtual void dispatchMouseWheelEvent(UIEvent* ev);
 		sl_bool dispatchMouseWheelEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchMouseWheelEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, KeyEvent, UIEvent* ev)
+		virtual void dispatchKeyEvent(UIEvent* ev);
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(View, Click)
-		void dispatchClick();
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, ClickEvent, UIEvent* ev)
+		void invokeClickEvent();
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, SetCursor, UIEvent* ev)
+		virtual void dispatchSetCursor(UIEvent* ev);
 		sl_bool dispatchSetCursorToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchSetCursorToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, DragDropEvent, UIEvent* ev)
+		virtual void dispatchDragDropEvent(UIEvent* ev);
 		sl_bool dispatchDragDropEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchDragDropEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
 
@@ -1446,18 +1483,17 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Move, sl_ui_pos x, sl_ui_pos y)
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Resize, sl_ui_len width, sl_ui_len height)
+		void handleResize(sl_ui_len width, sl_ui_len height);
 
-		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, ChangeVisibility, Visibility oldVisibility, Visibility newVisibility)
+		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, ChangeVisibility, Visibility visibility, Visibility former)
 
-		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Scroll, sl_scroll_pos x, sl_scroll_pos y)
+		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Scroll, ScrollEvent* ev)
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Swipe, GestureEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, OK, UIEvent* ev)
-		void dispatchOK();
+		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, OK)
 
-		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Cancel, UIEvent* ev)
-		void dispatchCancel();
+		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Cancel)
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Mnemonic, UIEvent* ev)
 
@@ -1497,6 +1533,8 @@ namespace slib
 
 		void _updateInstanceFrames();
 
+		sl_bool _canRedrawOnChangeState();
+
 		void _setFocus(sl_bool flagFocused, sl_bool flagApplyInstance, UIUpdateMode mode);
 
 		void _setFocusedFlag(sl_bool flagFocused, sl_bool flagApplyInstance);
@@ -1533,8 +1571,6 @@ namespace slib
 
 		void _applyFinalTransform(UIUpdateMode mode);
 
-		void _refreshBorderPen(UIUpdateMode mode);
-
 		void _setFontInvalidateChildren(const Ref<Font>& font);
 
 		void _setInstanceFont(const Ref<Font>& font);
@@ -1551,9 +1587,21 @@ namespace slib
 
 		void _initScrollBars(UIUpdateMode mode);
 
-		void _onScrollBarChangeValue(ScrollBar* scrollBar, sl_scroll_pos value);
+		void _onScrollBarChangeValue(ScrollBar* scrollBar, sl_scroll_pos value, UIEvent* ev);
 
-		sl_bool _scrollTo(sl_scroll_pos x, sl_scroll_pos y, sl_bool flagPreprocess, sl_bool flagFinish, sl_bool flagAnimate);
+		void _scrollTo(sl_scroll_pos x, sl_scroll_pos y, ScrollEvent::Source source, UIUpdateMode mode);
+
+		void _smoothScrollTo(sl_scroll_pos x, sl_scroll_pos y, ScrollEvent::Source source, UIUpdateMode mode);
+
+		enum class ScrollAction
+		{
+			Init = 0,
+			Animate = 1,
+			Finish = 2,
+			Native = 3
+		};
+
+		sl_bool _doScrollTo(sl_scroll_pos x, sl_scroll_pos y, ScrollAction action, ScrollEvent::Source source);
 
 
 		Ref<View> _findViewByMnemonicKey(char ch);
@@ -1565,7 +1613,7 @@ namespace slib
 
 		void _processContentScrollingEvents(UIEvent* ev);
 
-		void _startContentScrollingFlow(sl_bool flagSmoothTarget, const Pointlf& speedOrTarget);
+		void _startContentScrollingFlow(sl_bool flagTarget, const ScrollPosition& speedOrTarget, ScrollEvent::Source source);
 
 		void _stopContentScrollingFlow();
 
@@ -1577,6 +1625,16 @@ namespace slib
 
 	protected:
 		virtual void _onScroll_NW(sl_scroll_pos x, sl_scroll_pos y);
+
+	public:
+		class LayoutAttributes;
+		class PaddingAttributes;
+		class TransformAttributes;
+		class DrawAttributes;
+		class ScrollAttributes;
+		class ChildAttributes;
+		class OtherAttributes;
+		class EventAttributes;
 
 	private:
 		AtomicRef<ViewInstance> m_instance;
@@ -1611,6 +1669,7 @@ namespace slib
 		sl_bool m_flagCurrentCreatingInstance : 1;
 		sl_bool m_flagInvalidLayout : 1;
 		sl_bool m_flagNeedApplyLayout : 1;
+		sl_bool m_flagRedrawingOnChangeState : 1;
 		sl_bool m_flagFocused : 1;
 		sl_bool m_flagPressed : 1;
 		sl_bool m_flagHover : 1;
@@ -1626,31 +1685,24 @@ namespace slib
 		volatile sl_int32 m_idUpdateInvalidateLayout;
 
 		UIAction m_actionMouseDown;
-		AtomicRef<UIEvent> m_currentEvent;
 
 	protected:
-		Ref<ViewLayoutAttributes> m_layoutAttrs;
+		Ref<LayoutAttributes> m_layoutAttrs;
 		void _initializeLayoutAttributes();
-
-		Ref<ViewPaddingAttributes> m_paddingAttrs;
+		Ref<PaddingAttributes> m_paddingAttrs;
 		void _initializePaddingAttributes();
-
-		Ref<ViewTransformAttributes> m_transformAttrs;
+		Ref<TransformAttributes> m_transformAttrs;
 		void _initializeTransformAttributes();
-
-		Ref<ViewDrawAttributes> m_drawAttrs;
+		Ref<DrawAttributes> m_drawAttrs;
 		void _initializeDrawAttributes();
-
-		Ref<ViewScrollAttributes> m_scrollAttrs;
+		Ref<ScrollAttributes> m_scrollAttrs;
 		void _initializeScrollAttributes();
-
-		Ref<ViewChildAttributes> m_childAttrs;
+		void _initializeSmoothScrollAttributes();
+		Ref<ChildAttributes> m_childAttrs;
 		void _initializeChildAttributes();
-
-		Ref<ViewOtherAttributes> m_otherAttrs;
+		Ref<OtherAttributes> m_otherAttrs;
 		void _initializeOtherAttributes();
-
-		Ref<ViewEventAttributes> m_eventAttrs;
+		Ref<EventAttributes> m_eventAttrs;
 		void _initializeEventAttributes();
 
 		friend class ViewInstance;
@@ -1712,9 +1764,9 @@ namespace slib
 
 		virtual void setDrawing(View* view, sl_bool flag) = 0;
 
-		virtual UIPointf convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen) = 0;
+		virtual UIPointF convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen) = 0;
 
-		virtual UIPointf convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView) = 0;
+		virtual UIPointF convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView) = 0;
 
 		virtual void addChildInstance(View* view, const Ref<ViewInstance>& instance) = 0;
 
@@ -1746,9 +1798,9 @@ namespace slib
 
 		virtual void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical);
 
-		virtual sl_bool getScrollPosition(View* view, ScrollPoint& _out);
+		virtual sl_bool getScrollPosition(View* view, ScrollPosition& _out);
 
-		virtual sl_bool getScrollRange(View* view, ScrollPoint& _out);
+		virtual sl_bool getScrollRange(View* view, ScrollPosition& _out);
 
 		virtual void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate);
 
@@ -1798,9 +1850,11 @@ namespace slib
 		~ViewCell();
 
 	public:
+		sl_bool isServingAsView();
+
 		Ref<View> getView();
 
-		void setView(const Ref<View>& view);
+		void setView(const Ref<View>& view, sl_bool flagServingAsView);
 
 
 		UIRect getFrame();
@@ -1812,21 +1866,23 @@ namespace slib
 		sl_ui_len getHeight();
 
 
+		ViewState getState();
+
 		sl_bool isEnabled();
 
-		void setEnabled(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setEnabled(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isFocused();
 
-		void setFocused(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFocused(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isPressedState();
 
-		void setPressedState(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setPressedState(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isHoverState();
 
-		void setHoverState(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHoverState(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 
 		Ref<Font> getFont();
@@ -1849,7 +1905,7 @@ namespace slib
 		Ref<Timer> startTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms);
 
 	protected:
-		void invalidatePressedState(UIEvent* ev);
+		void updateState(UIEvent* ev);
 
 	public:
 		virtual void onDraw(Canvas* canvas);
@@ -1869,13 +1925,8 @@ namespace slib
 		virtual void onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping);
 
 	protected:
-		WeakRef<View> m_view;
-
-		sl_bool m_flagDefinedFrame : 1;
-		sl_bool m_flagDefinedEnabled : 1;
-		sl_bool m_flagDefinedFocused : 1;
-		sl_bool m_flagDefinedPressed : 1;
-		sl_bool m_flagDefinedHover : 1;
+		AtomicWeakRef<View> m_view;
+		sl_bool m_flagServingAsView : 1;
 
 		sl_bool m_flagEnabled : 1;
 		sl_bool m_flagFocused : 1;
@@ -1884,7 +1935,7 @@ namespace slib
 
 		UIRect m_frame;
 
-		Ref<Font> m_font;
+		AtomicRef<Font> m_font;
 
 	};
 

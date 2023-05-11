@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -60,16 +60,6 @@ namespace slib
 		m_value = value;
 	}
 
-	void RadioButton::setChecked(sl_bool flag, UIUpdateMode mode)
-	{
-		Ref<RadioGroup> group = m_group;
-		if (group.isNotNull()) {
-			group->_setChecked(this, flag, mode);
-			return;
-		}
-		CheckBox::setChecked(flag, mode);
-	}
-
 	Ref<ButtonCell> RadioButton::createButtonCell()
 	{
 		if (m_categories.isNotNull()) {
@@ -79,18 +69,22 @@ namespace slib
 		}
 	}
 
-	void RadioButton::dispatchClickEvent(UIEvent* ev)
+	void RadioButton::onClickEvent(UIEvent* ev)
 	{
-		Ref<RadioGroup> group = m_group;
-		if (group.isNotNull()) {
-			group->select(this);
-			group->dispatchSelect(this);
-		} else {
-			CheckBox::setChecked(sl_true);
-		}
-		Button::dispatchClickEvent(ev);
+		Button::onClickEvent(ev);
+		handleChangeValue(sl_true, ev, UIUpdateMode::Redraw);
 	}
 
+	void RadioButton::onChange(sl_bool value, UIEvent* ev)
+	{
+		CheckBox::onChange(value, ev);
+		if (value) {
+			Ref<RadioGroup> group = m_group;
+			if (group.isNotNull()) {
+				group->_select(this, ev, UIUpdateMode::Redraw);
+			}
+		}
+	}
 
 	namespace {
 
@@ -135,8 +129,10 @@ namespace slib
 		class Categories
 		{
 		public:
-			ButtonCategory categories[2];
-			Array<ButtonCategory> arrCategories;
+			Ref<Drawable> iconDefault[2];
+			Ref<Drawable> iconDisabled[2];
+			Ref<Drawable> iconHover[2];
+			Ref<Drawable> iconPressed[2];
 
 		public:
 			Categories()
@@ -154,33 +150,37 @@ namespace slib
 				Color colorCheckDisabled = Color(90, 90, 90);
 				Color colorCheckHover = Color(0, 80, 200);
 				Color colorCheckDown = colorCheckHover;
-				categories[0].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, Color::zero());
-				categories[0].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, Color::zero());
-				categories[0].properties[(int)ButtonState::Focused].icon =
-					categories[0].properties[(int)ButtonState::FocusedHover].icon =
-					categories[0].properties[(int)ButtonState::Hover].icon =
-						new Icon(penHover, colorBackHover, Color::zero());
-				categories[0].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, Color::zero());
+				iconDefault[0] = new Icon(penNormal, colorBackNormal, Color::zero());
+				iconDisabled[0] = new Icon(penDisabled, colorBackDisabled, Color::zero());
+				iconHover[0] = new Icon(penHover, colorBackHover, Color::zero());
+				iconPressed[0] = new Icon(penDown, colorBackDown, Color::zero());
 
-				categories[1] = categories[0];
-				categories[1].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, colorCheckNormal);
-				categories[1].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, colorCheckDisabled);
-				categories[1].properties[(int)ButtonState::Focused].icon =
-					categories[1].properties[(int)ButtonState::FocusedHover].icon =
-					categories[1].properties[(int)ButtonState::Hover].icon =
-						new Icon(penHover, colorBackHover, colorCheckHover);
-				categories[1].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, colorCheckDown);
-
-				arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
+				iconDefault[1] = new Icon(penNormal, colorBackNormal, colorCheckNormal);
+				iconDisabled[1] = new Icon(penDisabled, colorBackDisabled, colorCheckDisabled);
+				iconHover[1] = new Icon(penHover, colorBackHover, colorCheckHover);
+				iconPressed[1] = new Icon(penDown, colorBackDown, colorCheckDown);
 			}
 
-			static Array<ButtonCategory> getInitialCategories()
+			static Array<ButtonCategory> createDefault()
 			{
 				SLIB_SAFE_LOCAL_STATIC(Categories, s)
 				if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
 					return sl_null;
 				}
-				return s.arrCategories;
+				Array<ButtonCategory> ret = Array<ButtonCategory>::create(2);
+				if (ret.isNotNull()) {
+					ButtonCategory* c = ret.getData();
+					for (sl_size i = 0; i < 2; i++) {
+						c[i].icons.defaultValue = s.iconDefault[i];
+						c[i].icons.set(ViewState::Disabled, s.iconDisabled[i]);
+						c[i].icons.set(ViewState::Hover, s.iconHover[i]);
+						c[i].icons.set(ViewState::Focused, s.iconHover[i]);
+						c[i].icons.set(ViewState::Pressed, s.iconPressed[i]);
+						c[i].icons.set(ViewState::FocusedPressed, s.iconPressed[i]);
+					}
+					return ret;
+				}
+				return sl_null;
 			}
 
 		};
@@ -189,7 +189,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(RadioButtonCell, ViewCell)
 
-	RadioButtonCell::RadioButtonCell() : RadioButtonCell(Categories::getInitialCategories().duplicate())
+	RadioButtonCell::RadioButtonCell() : RadioButtonCell(Categories::createDefault())
 	{
 	}
 
@@ -229,7 +229,7 @@ namespace slib
 		if (button->isChecked()) {
 			if (button != m_buttonSelected) {
 				if (m_buttonSelected.isNotNull()) {
-					m_buttonSelected->CheckBox::setChecked(sl_false);
+					m_buttonSelected->setChecked(sl_false);
 				}
 				m_buttonSelected = button;
 			}
@@ -249,27 +249,20 @@ namespace slib
 		}
 	}
 
-	void RadioGroup::select(const Ref<RadioButton>& button)
-	{
-		ObjectLocker lock(this);
-		if (button != m_buttonSelected) {
-			if (m_buttonSelected.isNotNull()) {
-				m_buttonSelected->CheckBox::setChecked(sl_false);
-			}
-			m_buttonSelected = button;
-			if (button.isNotNull()) {
-				button->CheckBox::setChecked(sl_true);
-			}
-		}
-	}
-
 	Ref<RadioButton> RadioGroup::getSelected()
 	{
 		ObjectLocker lock(this);
 		return m_buttonSelected;
 	}
 
-	void RadioGroup::selectValue(const String& value)
+	void RadioGroup::select(const Ref<RadioButton>& button, UIUpdateMode mode)
+	{
+		if (button.isNotNull()) {
+			button->setChecked(sl_true, mode);
+		}
+	}
+
+	void RadioGroup::selectValue(const String& value, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		ListElements< Ref<RadioButton> > buttons(m_buttons);
@@ -281,7 +274,7 @@ namespace slib
 				break;
 			}
 		}
-		select(selected);
+		select(selected, mode);
 	}
 
 	String RadioGroup::getSelectedValue()
@@ -293,32 +286,22 @@ namespace slib
 		return sl_null;
 	}
 
-	void RadioGroup::_setChecked(RadioButton* button, sl_bool flag, UIUpdateMode mode)
+	void RadioGroup::_select(RadioButton* button, UIEvent* ev, UIUpdateMode mode)
 	{
-		ObjectLocker lock(this);
-		if (flag) {
-			if (button != m_buttonSelected) {
-				if (m_buttonSelected.isNotNull()) {
-					m_buttonSelected->CheckBox::setChecked(sl_false);
-				}
-				m_buttonSelected = button;
-				button->CheckBox::setChecked(sl_true, mode);
-			}
-		} else {
-			if (button == m_buttonSelected) {
-				m_buttonSelected.setNull();
-			}
-			button->CheckBox::setChecked(sl_false, mode);
+		ObjectLocker locker(this);
+		Ref<RadioButton> former = m_buttonSelected;
+		if (button == former) {
+			return;
 		}
+		m_buttonSelected = button;
+		if (former.isNotNull()) {
+			former->setChecked(sl_false, mode);
+		}
+		locker.unlock();
+		invokeSelect(button, former.get(), ev);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(RadioGroup, Select, RadioButton*)
-
-	void RadioGroup::dispatchSelect(RadioButton* button)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Select, button)
-	}
-
+	SLIB_DEFINE_EVENT_HANDLER(RadioGroup, Select, (RadioButton* button, RadioButton* former, UIEvent* ev), button, former, ev)
 
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> RadioButton::createNativeWidget(ViewInstance* parent)

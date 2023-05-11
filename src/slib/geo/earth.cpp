@@ -62,57 +62,57 @@ namespace slib
 		return SLIB_GEO_EARTH_RADIUS_POLAR_WGS84;
 	}
 
-	Vector3lf Earth::getSurfaceNormal(double latitude, double longitude)
+	Double3 Earth::getSurfaceNormal(double latitude, double longitude)
 	{
 		return g_globe.getSurfaceNormal(latitude, longitude);
 	}
 
-	Vector3lf Earth::getSurfaceNormal(const LatLon& latlon)
+	Double3 Earth::getSurfaceNormal(const LatLon& latlon)
 	{
 		return g_globe.getSurfaceNormal(latlon.latitude, latlon.longitude);
 	}
 
-	Vector3lf Earth::getSurfaceNormal(const GeoLocation& location)
+	Double3 Earth::getSurfaceNormal(const GeoLocation& location)
 	{
 		return g_globe.getSurfaceNormal(location.latitude, location.longitude);
 	}
 
-	Vector3lf Earth::getNorthPointingTangent(double latitude, double longitude)
+	Double3 Earth::getNorthPointingTangent(double latitude, double longitude)
 	{
 		return g_globe.getNorthPointingTangent(latitude, longitude);
 	}
 
-	Vector3lf Earth::getNorthPointingTangent(const LatLon& latlon)
+	Double3 Earth::getNorthPointingTangent(const LatLon& latlon)
 	{
 		return g_globe.getNorthPointingTangent(latlon.latitude, latlon.longitude);
 	}
 
-	Vector3lf Earth::getNorthPointingTangent(const GeoLocation& location)
+	Double3 Earth::getNorthPointingTangent(const GeoLocation& location)
 	{
 		return g_globe.getNorthPointingTangent(location.latitude, location.longitude);
 	}
 
-	Vector3lf Earth::getSurfaceNormalAtCartesianPosition(double x, double y, double z)
+	Double3 Earth::getSurfaceNormalAtCartesianPosition(double x, double y, double z)
 	{
 		return g_globe.getSurfaceNormalAtCartesianPosition(x, y, z);
 	}
 
-	Vector3lf Earth::getSurfaceNormalAtCartesianPosition(const Vector3lf& position)
+	Double3 Earth::getSurfaceNormalAtCartesianPosition(const Double3& position)
 	{
 		return g_globe.getSurfaceNormalAtCartesianPosition(position.x, position.y, position.z);
 	}
 
-	Vector3lf Earth::getCartesianPosition(double latitude, double longitude, double altitude)
+	Double3 Earth::getCartesianPosition(double latitude, double longitude, double altitude)
 	{
 		return g_globe.getCartesianPosition(latitude, longitude, altitude);
 	}
 
-	Vector3lf Earth::getCartesianPosition(const LatLon& latlon)
+	Double3 Earth::getCartesianPosition(const LatLon& latlon)
 	{
 		return g_globe.getCartesianPosition(latlon.latitude, latlon.longitude, 0);
 	}
 
-	Vector3lf Earth::getCartesianPosition(const GeoLocation& location)
+	Double3 Earth::getCartesianPosition(const GeoLocation& location)
 	{
 		return g_globe.getCartesianPosition(location.latitude, location.longitude, location.altitude);
 	}
@@ -122,7 +122,7 @@ namespace slib
 		return g_globe.getGeoLocation(x, y, z);
 	}
 
-	GeoLocation Earth::getGeoLocation(const Vector3lf& position)
+	GeoLocation Earth::getGeoLocation(const Double3& position)
 	{
 		return g_globe.getGeoLocation(position.x, position.y, position.z);
 	}
@@ -151,47 +151,47 @@ namespace slib
 		return SLIB_GEO_EARTH_RADIUS_EQUATORIAL_WGS84;
 	}
 
-	Vector3lf SphericalEarth::getSurfaceNormal(double latitude, double longitude)
+	Double3 SphericalEarth::getSurfaceNormal(double latitude, double longitude)
 	{
 		return g_sphericalGlobe.getSurfaceNormal(latitude, longitude);
 	}
 
-	Vector3lf SphericalEarth::getSurfaceNormal(const LatLon& latlon)
+	Double3 SphericalEarth::getSurfaceNormal(const LatLon& latlon)
 	{
 		return g_sphericalGlobe.getSurfaceNormal(latlon.latitude, latlon.longitude);
 	}
 
-	Vector3lf SphericalEarth::getSurfaceNormal(const GeoLocation& location)
+	Double3 SphericalEarth::getSurfaceNormal(const GeoLocation& location)
 	{
 		return g_sphericalGlobe.getSurfaceNormal(location.latitude, location.longitude);
 	}
 
-	Vector3lf SphericalEarth::getNorthPointingTangent(double latitude, double longitude)
+	Double3 SphericalEarth::getNorthPointingTangent(double latitude, double longitude)
 	{
 		return g_sphericalGlobe.getNorthPointingTangent(latitude, longitude);
 	}
 
-	Vector3lf SphericalEarth::getNorthPointingTangent(const LatLon& latlon)
+	Double3 SphericalEarth::getNorthPointingTangent(const LatLon& latlon)
 	{
 		return g_sphericalGlobe.getNorthPointingTangent(latlon.latitude, latlon.longitude);
 	}
 
-	Vector3lf SphericalEarth::getNorthPointingTangent(const GeoLocation& location)
+	Double3 SphericalEarth::getNorthPointingTangent(const GeoLocation& location)
 	{
 		return g_sphericalGlobe.getNorthPointingTangent(location.latitude, location.longitude);
 	}
 
-	Vector3lf SphericalEarth::getCartesianPosition(double latitude, double longitude, double altitude)
+	Double3 SphericalEarth::getCartesianPosition(double latitude, double longitude, double altitude)
 	{
 		return g_sphericalGlobe.getCartesianPosition(latitude, longitude, altitude);
 	}
 
-	Vector3lf SphericalEarth::getCartesianPosition(const LatLon& latlon)
+	Double3 SphericalEarth::getCartesianPosition(const LatLon& latlon)
 	{
 		return g_sphericalGlobe.getCartesianPosition(latlon.latitude, latlon.longitude, 0);
 	}
 
-	Vector3lf SphericalEarth::getCartesianPosition(const GeoLocation& location)
+	Double3 SphericalEarth::getCartesianPosition(const GeoLocation& location)
 	{
 		return g_sphericalGlobe.getCartesianPosition(location.latitude, location.longitude, location.altitude);
 	}
@@ -201,7 +201,7 @@ namespace slib
 		return g_sphericalGlobe.getGeoLocation(x, y, z);
 	}
 
-	GeoLocation SphericalEarth::getGeoLocation(const Vector3lf& position)
+	GeoLocation SphericalEarth::getGeoLocation(const Double3& position)
 	{
 		return g_sphericalGlobe.getGeoLocation(position.x, position.y, position.z);
 	}

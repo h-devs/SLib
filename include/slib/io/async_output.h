@@ -32,7 +32,7 @@ namespace slib
 
 	class AsyncCopy;
 
-	class SLIB_EXPORT AsyncOutputBufferElement : public Referable
+	class SLIB_EXPORT AsyncOutputBufferElement : public CRef
 	{
 	public:
 		AsyncOutputBufferElement();

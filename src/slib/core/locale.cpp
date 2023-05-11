@@ -947,7 +947,7 @@ namespace slib
 		}
 	}
 
-	void Locale::dispatchChangeCurrentLocale()
+	void Locale::onChangeCurrentLocale()
 	{
 		Locale locale = _getCurrent();
 		if (g_localeLastCurrent == locale) {
