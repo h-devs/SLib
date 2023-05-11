@@ -206,7 +206,7 @@ namespace slib
 
 								Ref<macOS_ViewInstance> instance = handle->m_viewInstance;
 								if (instance.isNotNull()) {
-									RenderView* view = CastRef<RenderView>(instance->getView());
+									Ref<RenderView> view = CastRef<RenderView>(instance->getView());
 									if (view.isNotNull()) {
 										if (flagFirstFrame) {
 											flagFirstFrame = sl_false;

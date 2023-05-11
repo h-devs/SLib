@@ -389,7 +389,7 @@ namespace slib
 
 	void XEditView::setEnabled(sl_bool flagEnabled, UIUpdateMode mode)
 	{
-		setEnabled(flagEnabled, mode);
+		XControl::setEnabled(flagEnabled, mode);
 		if (m_edit.isNotNull()) {
 			m_edit->setEnabled(flagEnabled, mode);
 		}

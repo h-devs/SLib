@@ -1392,14 +1392,6 @@ namespace slib
 		_invalidateLayout(mode);
 	}
 
-	namespace {
-		SLIB_INLINE static void DissolveSectionValue(unsigned int section, int& v, int& h)
-		{
-			h = (int)(section & 3) - 1;
-			v = (int)((section >> 2) & 3) - 1;
-		}
-	}
-
 #define DEFINE_GET_SET_GRID(SECTION, DEFAULT) \
 	Ref<Pen> GridView::get##SECTION##Grid() \
 	{ \
@@ -2732,7 +2724,6 @@ namespace slib
 				}
 			}
 			if (iStartMidColumn > nLeft) {
-				Column* col = columns[iStartMidColumn].get();
 				sl_uint32 newStart = iStartMidColumn;
 				_fixHeaderStartMidColumn(columns.data, nColumns, nLeft, iStartMidColumn, newStart);
 				_fixFooterStartMidColumn(columns.data, nColumns, nLeft, iStartMidColumn, newStart);

@@ -76,10 +76,6 @@ namespace slib
 
 	namespace {
 
-#if !defined(SLIB_PLATFORM_IS_MOBILE)
-		static volatile double g_signal_fpe_dummy = 0.0f;
-#endif
-
 #if !defined(SLIB_PLATFORM_IS_ANDROID) && !defined(SLIB_PLATFORM_IS_APPLE)
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strSystemName)
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strSystemVersion)
@@ -359,8 +355,13 @@ namespace slib
 	}
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
+	namespace {
+		static volatile double g_signal_fpe_dummy = 0.0f;
+	}
+
 	void System::setCrashHandler(SIGNAL_HANDLER handler)
 	{
+		g_signal_fpe_dummy = 0.0f;
 		struct sigaction sa;
 		sa.sa_flags = SA_NODEFER;
 		sa.sa_handler = handler;

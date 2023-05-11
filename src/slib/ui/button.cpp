@@ -1432,7 +1432,6 @@ namespace slib
 
 	void ButtonCell::onDrawContent(Canvas* canvas)
 	{
-		ButtonCategory& props = categories[category];
 		ViewState state = getState();
 		sl_bool flagText = text.isNotNull();
 

@@ -148,7 +148,6 @@ namespace slib
 		static sl_bool ParseUnquotedStringValue(CHAR*& input, CHAR* end, sl_bool flagUrl, CHAR* _out, sl_size& lenOutput)
 		{
 			lenOutput = 0;
-			CHAR* start = input;
 			while (input < end) {
 				CHAR ch = *input;
 				if (SLIB_CHAR_IS_ALNUM(ch) || (ch & 0x80) || ch == '-' || ch == '_' || ch == '@' || ch == '%') {

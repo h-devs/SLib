@@ -28,9 +28,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "264AF12021B0590C004E58CB"
-               BuildableName = "libsapp.a"
-               BlueprintName = "libsapp"
+               BlueprintIdentifier = "263918D821CBA047008B335B"
+               BuildableName = "sapp.app"
+               BlueprintName = "sapp"
                ReferencedContainer = "container:SLib.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -42,9 +42,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "263918D821CBA047008B335B"
-               BuildableName = "sapp.app"
-               BlueprintName = "sapp"
+               BlueprintIdentifier = "18BE65402A0D304E00BFABA1"
+               BuildableName = "libslib-extra.a"
+               BlueprintName = "slib-extra"
                ReferencedContainer = "container:SLib.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -55,6 +55,8 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
+      <Testables>
+      </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
@@ -64,8 +66,8 @@
             ReferencedContainer = "container:SLib.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <Testables>
-      </Testables>
+      <AdditionalOptions>
+      </AdditionalOptions>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -86,6 +88,8 @@
             ReferencedContainer = "container:SLib.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
+      <AdditionalOptions>
+      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

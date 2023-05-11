@@ -42,7 +42,6 @@ namespace slib
 		static sl_uint32 g_accessId = 0;
 		static String g_accessKey;
 		static SLIBXGPush* g_instance = nil;
-		static sl_bool g_flagStarted = sl_false;
 	}
 
 	void XgPush::initialize(sl_uint32 accessId, const String& key)

@@ -1227,12 +1227,14 @@ namespace slib
 	sl_bool SAppDocument::_processLayoutResourceControl_##NAME(LayoutControlProcessParams* params) \
 	{ \
 		StringView strTab = StringView::literal("\t\t\t"); \
+		SLIB_UNUSED(strTab) \
 		SAppLayoutResource* resource = params->resource; \
 		SLIB_UNUSED(resource) \
 		SAppLayoutResourceItem* resourceItem = params->resourceItem; \
 		const Ref<XmlElement>& element = resourceItem->element; \
 		SAppLayoutOperation op = params->op; \
 		const String& name = params->name; \
+		SLIB_UNUSED(name) \
 		Ref<SAppLayout##NAME##Attributes>& attr = Ref<SAppLayout##NAME##Attributes>::from(resourceItem->attrs); \
 		if (op == SAppLayoutOperation::Parse) { \
 			if (attr.isNull()) { \
@@ -3789,9 +3791,6 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, dividerBackground, setDividerBackground)
 		LAYOUT_CONTROL_UI_ATTR(COLOR, dividerColor, setDividerColor)
 		LAYOUT_CONTROL_ATTR(DIMENSION, cursorMargin, setCursorMargin, checkScalarSize)
-
-		sl_bool flagRelayoutOnInit = sl_false;
-		sl_bool flagRelayoutOnLayout = sl_false;
 
 		if (op == SAppLayoutOperation::Parse) {
 			LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(itemXmls, "item")

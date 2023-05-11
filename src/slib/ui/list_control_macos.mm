@@ -255,7 +255,6 @@ namespace slib
 			{
 				Ref<ListControlHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					NSInteger indexRowBefore = [tv selectedRow];
 					NSPoint ptWindow = [ev locationInWindow];
 					NSPoint ptView = [tv convertPoint:ptWindow fromView:nil];
 					NSInteger indexRow = [tv rowAtPoint:ptView];

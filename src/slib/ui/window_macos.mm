@@ -665,7 +665,7 @@ namespace slib
 			{
 				UIRect frame;
 				if (getFrame(frame)) {
-					onMove(frame.left, frame.top);
+					WindowInstance::onMove(frame.left, frame.top);
 				}
 			}
 
