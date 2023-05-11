@@ -60,7 +60,9 @@ namespace slib
 		void onClickEvent(UIEvent* ev) override;
 
 	protected:
-		void handleChangeValue(sl_bool value, UIEvent* ev, UIUpdateMode mode);
+		void _change(ICheckBoxInstance* instance, sl_bool value, UIEvent* ev, UIUpdateMode mode);
+
+		void _onChange_NW(ICheckBoxInstance* instance, sl_bool value);
 
 	protected:
 		sl_bool m_flagChecked;

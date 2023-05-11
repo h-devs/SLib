@@ -72,7 +72,8 @@ namespace slib
 	void RadioButton::onClickEvent(UIEvent* ev)
 	{
 		Button::onClickEvent(ev);
-		handleChangeValue(sl_true, ev, UIUpdateMode::Redraw);
+		Ptr<ICheckBoxInstance> instance = getCheckBoxInstance();
+		_change(instance.get(), sl_true, ev, UIUpdateMode::Redraw);
 	}
 
 	void RadioButton::onChange(sl_bool value, UIEvent* ev)

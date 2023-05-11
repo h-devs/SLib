@@ -31,6 +31,14 @@
 namespace slib
 {
 
+	namespace {
+		class CheckBoxHelper : public CheckBox
+		{
+		public:
+			using CheckBox::_onChange_NW;
+		};
+	}
+
 	namespace priv
 	{
 
@@ -95,11 +103,12 @@ namespace slib
 		void CheckBoxInstance::onChanged(GtkToggleButton *, gpointer userinfo)
 		{
 			GtkCheckButton* handle = (GtkCheckButton*)userinfo;
-			Ref<CheckBox> view = CastRef<CheckBox>(UIPlatform::getView((GtkWidget*)handle));
-			if (view.isNotNull()) {
-				bool isChecked = gtk_toggle_button_get_active((GtkToggleButton*)handle);
-				if (isChecked != view->isChecked()) {
-					view->dispatchChange(isChecked);
+			Ref<CheckBoxInstance> instance = CastRef<CheckBoxInstance>(UIPlatform::getViewInstance((GtkWidget*)handle));
+			if (instance.isNotNull()) {
+				Ref<CheckBoxHelper> view = CastRef<CheckBoxHelper>(instance->getView());
+				if (view.isNotNull()) {
+					bool isChecked = gtk_toggle_button_get_active((GtkToggleButton*)handle);
+					view->_onChange_NW(instance.get(), isChecked);
 				}
 			}
 		}

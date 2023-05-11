@@ -199,9 +199,12 @@ namespace slib
 
 			static void onSelectTab(GtkNotebook *notebook, GtkWidget   *page, guint page_num, gpointer user_data)
 			{
-				Ref<TabViewHelper> helper = CastRef<TabViewHelper>(UIPlatform::getView((GtkWidget*)notebook));
-				if (helper.isNotNull()) {
-					helper->_onSelectTab_NW(this, (sl_uint32)(page_num));
+				Ref<TabViewInstance> instance = CastRef<TabViewInstance>(UIPlatform::getViewInstance((GtkWidget*)notebook));
+				if (instance.isNotNull()) {
+					Ref<TabViewHelper> helper = CastRef<TabViewHelper>(instance->getView());
+					if (helper.isNotNull()) {
+						helper->_onSelectTab_NW(instance.get(), (sl_uint32)(page_num));
+					}
 				}
 			}
 

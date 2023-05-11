@@ -408,22 +408,24 @@ namespace slib
 
 			static void _callback_selection_changed(GtkTreeSelection* selection, gpointer user_data)
 			{
-				Ref<ListControlHelper> helper = Ref<ListControlHelper>::from(UIPlatform::getView((GtkWidget*)user_data));
-				if (helper.isNull()) {
-					return;
+				Ref<ListControlInstance> instance = CastRef<ListControlInstance>(UIPlatform::getViewInstance((GtkWidget*)user_data));
+				if (instance.isNotNull()) {
+					Ref<ListControlHelper> helper = CastRef<ListControlHelper>(instance->getView());
+					if (helper.isNotNull()) {
+						GtkTreeIter iter;
+						gtk_tree_selection_get_selected(selection, sl_null, &iter);
+						helper->_onSelectRow_NW(instance.get(), iter.stamp);
+					}
 				}
-				GtkTreeIter iter;
-				gtk_tree_selection_get_selected(selection, sl_null, &iter);
-				helper->_onSelectRow_NW(this, iter.stamp);
 			}
 
 			static gboolean _callback_button_press_event(GtkWidget*, GdkEvent* _event, gpointer user_data)
 			{
-				Ref<ListControlInstance> instance = Ref<ListControlInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
-				if (instance.isNull()) {
+				Ref<ListControlInstance> instance = CastRef<ListControlInstance>(UIPlatform::getViewInstance((GtkWidget*)user_data));
+				if (instance.isNotNull()) {
 					return 0;
 				}
-				Ref<ListControlHelper> helper = Ref<ListControlHelper>::from(instance->getView());
+				Ref<ListControlHelper> helper = CastRef<ListControlHelper>(instance->getView());
 				if (helper.isNull()) {
 					return 0;
 				}
@@ -490,7 +492,7 @@ namespace slib
 				sl_int32 iSel = -1;
 				instance->getSelectedRow(helper, iSel);
 				if(iRow != iSel){
-					helper->_onSelectRow_NW(this, iRow);
+					helper->_onSelectRow_NW(instance.get(), iRow);
 				}
 
 				UIPoint pt = helper->convertCoordinateFromScreen(UI::getCursorPos());

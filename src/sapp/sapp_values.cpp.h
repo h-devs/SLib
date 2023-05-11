@@ -1568,7 +1568,7 @@ namespace slib
 #define PRIV_DEFINE_PARSE_SUBITEM(SUBITEM, SUFFIX, ...) \
 		String attr = String::concat(name, SUFFIX, suffix); \
 		String str = item->getXmlAttribute(attr); \
-		if (!(SUBITEM.parse(str, __VA_ARGS__))) { \
+		if (!(SUBITEM.parse(str, ##__VA_ARGS__))) { \
 			doc->logError(xml, g_str_error_resource_layout_attribute_invalid, attr, str); \
 			return sl_false; \
 		} \
@@ -1578,7 +1578,7 @@ namespace slib
 
 #define DEFINE_PARSE_SUBITEM(SUBITEM, SUFFIX, ...) \
 	{ \
-		PRIV_DEFINE_PARSE_SUBITEM(SUBITEM, SUFFIX, __VA_ARGS__) \
+		PRIV_DEFINE_PARSE_SUBITEM(SUBITEM, SUFFIX, ##__VA_ARGS__) \
 	}
 #define DEFINE_PARSE_SUBITEM_DIMENSION(SUBITEM, SUFFIX, CHECK) \
 	{ \

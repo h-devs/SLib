@@ -1653,7 +1653,7 @@ namespace slib
 #define LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, XML, NAME, SUFFIX, VAR, ...) \
 	{ \
 		for (sl_size i = 0; i < CountOfArray(g_stateDefines); i++) { \
-			typename RemoveConstReference<typename decltype(VAR)>::Type::VALUE value; \
+			typename RemoveConstReference<decltype(VAR)>::Type::VALUE value; \
 			LAYOUT_CONTROL_PARSE_##TYPE(XML, NAME, + StringView(g_stateDefines[i].suffix) SUFFIX, value, ##__VA_ARGS__) \
 			if (value.flagDefined) { \
 				VAR.values.put_NoLock(g_stateDefines[i].state, value); \
@@ -4736,7 +4736,7 @@ namespace slib
 				if (op == SAppLayoutOperation::SimulateInit) { \
 					auto creator = _processLayoutResourceControl_Grid_SimulateCellCreator(ATTR); \
 					if (creator.isNotNull()) { \
-						view->set##PREFIX##Creator(##__VA_ARGS__, creator, UIUpdateMode::Init); \
+						view->set##PREFIX##Creator(__VA_ARGS__, creator, UIUpdateMode::Init); \
 					} \
 				} \
 				LAYOUT_CONTROL_SIMULATE_STRING(ATTR.field, set##PREFIX##Field, ITEM, ##__VA_ARGS__, value) \

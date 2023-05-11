@@ -183,9 +183,10 @@ namespace slib
 							view->_onSelectItem_NW(index);
 						} else {
 							String text = getTextFromHanlde(handle);
-							String modified = view->_onChange_NW(text);
-							if (text != modified) {
-								instance->setText(view.get(), modified);
+							String textNew = text;
+							view->_onChange_NW(instance.get(), textNew);
+							if (text != textNew) {
+								instance->setText(view.get(), textNew);
 							}
 						}
 					}

@@ -219,20 +219,23 @@ namespace slib
 			static void onChange(GtkEditable*, gpointer user_data)
 			{
 				GtkEntry* handle = (GtkEntry*)user_data;
-				Ref<EditView> view = CastRef<EditView>(UIPlatform::getView((GtkWidget*)handle));
-				if (view.isNotNull()) {
-					if (view->isChangeEventEnabled()) {
-						String text = gtk_entry_get_text(handle);
-						String textNew = text;
-						((EditViewHelper*)(view.get()))->_onChange_NW(this, textNew);
-						if (text != textNew) {
-							StringCstr _text(textNew);
-							gtk_entry_set_text(handle, _text.getData());
+				Ref<EditViewInstance> instance = CastRef<EditViewInstance>(UIPlatform::getViewInstance((GtkWidget*)handle));
+				if (instance.isNotNull()) {
+					Ref<EditViewHelper> view = CastRef<EditViewHelper>(instance->getView());
+					if (view.isNotNull()) {
+						if (view->isChangeEventEnabled()) {
+							String text = gtk_entry_get_text(handle);
+							String textNew = text;
+							view->_onChange_NW(instance.get(), textNew);
+							if (text != textNew) {
+								StringCstr _text(textNew);
+								gtk_entry_set_text(handle, _text.getData());
+							}
+						} else {
+							view->invalidateText();
 						}
-					} else {
-						view->invalidateText();
+						view->_onPostChange_NW();
 					}
-					((EditViewHelper*)(view.get()))->_onPostChange_NW();
 				}
 			}
 
@@ -481,19 +484,22 @@ namespace slib
 			static void onChange(GtkTextBuffer* buffer, gpointer user_data)
 			{
 				GtkWidget* handle = (GtkWidget*)user_data;
-				Ref<TextArea> view = CastRef<TextArea>(UIPlatform::getView(handle));
-				if (view.isNotNull()) {
-					if (view->isChangeEventEnabled()) {
-						String text = _getText(buffer);
-						String textNew = text;
-						((EditViewHelper*)(view.get()))->_onChange_NW(this, textNew);
-						if (text != textNew) {
-							gtk_text_buffer_set_text(buffer, textNew.getData(), textNew.getLength());
+				Ref<EditViewInstance> instance = CastRef<EditViewInstance>(UIPlatform::getViewInstance((GtkWidget*)handle));
+				if (instance.isNotNull()) {
+					Ref<EditViewHelper> view = CastRef<EditViewHelper>(instance->getView());
+					if (view.isNotNull()) {
+						if (view->isChangeEventEnabled()) {
+							String text = _getText(buffer);
+							String textNew = text;
+							view->_onChange_NW(instance.get(), textNew);
+							if (text != textNew) {
+								gtk_text_buffer_set_text(buffer, textNew.getData(), textNew.getLength());
+							}
+						} else {
+							view->invalidateText();
 						}
-					} else {
-						view->invalidateText();
+						view->_onPostChange_NW();
 					}
-					((EditViewHelper*)(view.get()))->_onPostChange_NW();
 				}
 			}
 

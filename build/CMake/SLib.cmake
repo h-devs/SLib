@@ -2,7 +2,7 @@ set (SLIB_PATH "${CMAKE_CURRENT_LIST_DIR}/../..")
 
 include("${CMAKE_CURRENT_LIST_DIR}/common.cmake")
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -DSLIB_COMPILE_LIB")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # enable asm
 enable_language(ASM)
@@ -513,6 +513,7 @@ add_library (
 set_target_properties (
  slib
  PROPERTIES
+ COMPILE_DEFINITIONS "SLIB_COMPILE_LIB"
  ARCHIVE_OUTPUT_DIRECTORY "${SLIB_LIB_PATH}"
 )
 

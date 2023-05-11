@@ -71,7 +71,7 @@ namespace slib
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(setChecked, flag, mode)
 		}
-		handleChangeValue(flag, sl_null, mode);
+		_change(instance.get(), flag, sl_null, mode);
 	}
 
 	Ref<ButtonCell> CheckBox::createButtonCell()
@@ -88,22 +88,26 @@ namespace slib
 	void CheckBox::onClickEvent(UIEvent* ev)
 	{
 		Button::onClickEvent(ev);
-		if (isNativeWidget()) {
-			handleChangeValue(isCheckedInstance(), ev, UIUpdateMode::None);
+		Ptr<ICheckBoxInstance> instance = getCheckBoxInstance();
+		if (instance.isNotNull()) {
+			sl_bool flag;
+			if (instance->getChecked(this, flag)) {
+				m_flagChecked = flag;
+				_change(instance.get(), flag, ev, UIUpdateMode::None);
+			}
 		} else {
-			handleChangeValue(!m_flagChecked, ev, UIUpdateMode::Redraw);
+			_change(sl_null, !m_flagChecked, ev, UIUpdateMode::Redraw);
 		}
 	}
 
-	void CheckBox::handleChangeValue(sl_bool value, UIEvent* ev, UIUpdateMode mode)
+	void CheckBox::_change(ICheckBoxInstance* instance, sl_bool value, UIEvent* ev, UIUpdateMode mode)
 	{
 		ObjectLocker locker(this);
 		if (m_flagChecked == value) {
 			return;
 		}
 		m_flagChecked = value;
-		Ptr<ICheckBoxInstance> instance = getCheckBoxInstance();
-		if (instance.isNotNull()) {
+		if (instance) {
 			if (!ev) {
 				setCurrentCategory(value ? 1 : 0, UIUpdateMode::None);
 				instance->setChecked(this, value);
@@ -113,6 +117,14 @@ namespace slib
 		}
 		locker.unlock();
 		invokeChange(value, ev);
+	}
+
+	void CheckBox::_onChange_NW(ICheckBoxInstance* instance, sl_bool value)
+	{
+		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+		if (ev.isNotNull()) {
+			_change(instance, value, ev.get(), UIUpdateMode::None);
+		}
 	}
 
 #if !HAS_NATIVE_WIDGET_IMPL
