@@ -85,10 +85,11 @@ namespace slib
 		};
 		typedef sl_int64 RecordIndex;
 
-		class CellParam : public CellAttribute
+		class CellParam
 		{
 		public:
 			GridView* view;
+			CellAttribute* attr;
 			sl_uint32 row;
 			sl_uint32 column;
 			RecordIndex record;
@@ -96,7 +97,6 @@ namespace slib
 
 		public:
 			CellParam();
-			CellParam(const CellAttribute& other);
 			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CellParam)
 		};
 
@@ -188,8 +188,6 @@ namespace slib
 
 			void onClick(UIEvent*) override;
 
-		protected:
-			sl_bool m_flagAsc;
 		};
 
 		class Selection
@@ -343,6 +341,9 @@ namespace slib
 
 		Ref<Drawable> getDescendingIcon();
 		void setDescendingIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getSortIconSize();
+		void setSortIconSize(sl_ui_len size, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void refreshContentWidth(UIUpdateMode mode = UIUpdateMode::Redraw);
 		void refreshContentHeight(UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -722,6 +723,7 @@ namespace slib
 		void _fixSelection(Selection& sel);
 
 		void _select(const Selection& selection, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void _sort(Cell* cell);
 
 		void _fixBodyStartMidColumn(Ref<Column>* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 iStart, sl_uint32& newStart);
 		void _fixHeaderStartMidColumn(Ref<Column>* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 iStart, sl_uint32& newStart);
@@ -815,6 +817,7 @@ namespace slib
 		sl_bool m_flagDefinedSorting;
 		AtomicRef<Drawable> m_iconAsc;
 		AtomicRef<Drawable> m_iconDesc;
+		sl_ui_len m_sortIconSize;
 
 		typedef Function<Variant(sl_uint64 record)> DataFunction;
 		Atomic<DataFunction> m_recordData;
@@ -838,7 +841,8 @@ namespace slib
 			sl_ui_pos formerEventX;
 		} m_resizingColumn;
 
-		Ref<Cell> m_cellSorting;
+		CellAttribute* m_cellSort;
+		sl_bool m_flagSortAsc;
 	};
 
 }

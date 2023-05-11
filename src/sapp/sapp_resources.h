@@ -991,8 +991,10 @@ namespace slib
 		SAppBorderValue leftGrid;
 		SAppBorderValue rightGrid;
 		SAppGridSelectionModeValue selection;
+		SAppBooleanValue sort;
 		SAppDrawableValue ascendingIcon;
 		SAppDrawableValue descendingIcon;
+		SAppDimensionValue sortIconSize;
 
 		SAppMultiLineModeValue multiLine;
 		SAppEllipsizeModeValue ellipsize;

@@ -50,11 +50,7 @@ namespace slib
 
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellParam)
 
-	GridView::CellParam::CellParam(): view(sl_null), record(0), row(0), column(0)
-	{
-	}
-
-	GridView::CellParam::CellParam(const CellAttribute& attr): CellAttribute(attr), view(sl_null), row(0), column(0), record(0)
+	GridView::CellParam::CellParam(): view(sl_null), attr(sl_null), record(0), row(0), column(0)
 	{
 	}
 
@@ -88,6 +84,8 @@ namespace slib
 
 	String GridView::Cell::getText()
 	{
+		String& text = attr->text;
+		String& field = attr->field;
 		if (text.isNotNull()) {
 			if (record >= 0 && recordData.isNotUndefined()) {
 				return String::format(text, recordData);
@@ -104,8 +102,8 @@ namespace slib
 
 	String GridView::Cell::getFormattedText()
 	{
-		if (formatter.isNotNull()) {
-			return formatter(this);
+		if (attr->formatter.isNotNull()) {
+			return attr->formatter(this);
 		} else {
 			return getText();
 		}
@@ -147,15 +145,15 @@ namespace slib
 	void GridView::TextCell::onPrepareTextBox(TextBoxParam& param)
 	{
 		param.text = getFormattedText();
-		if (font.isNotNull()) {
-			param.font = font;
+		if (attr->font.isNotNull()) {
+			param.font = attr->font;
 		} else {
 			param.font = view->getFont();
 		}
-		param.align = align;
-		param.multiLineMode = multiLineMode;
-		param.ellipsizeMode = ellipsizeMode;
-		param.lineCount = lineCount;
+		param.align = attr->align;
+		param.multiLineMode = attr->multiLineMode;
+		param.ellipsizeMode = attr->ellipsizeMode;
+		param.lineCount = attr->lineCount;
 	}
 
 	GridView::HyperTextCell::HyperTextCell()
@@ -211,7 +209,7 @@ namespace slib
 		}
 	}
 
-	GridView::SortCell::SortCell(): m_flagAsc(sl_true)
+	GridView::SortCell::SortCell()
 	{
 	}
 
@@ -229,49 +227,39 @@ namespace slib
 
 	void GridView::SortCell::onDraw(Canvas* canvas, DrawParam& param)
 	{
-		TextCell::onDraw(canvas, param);
-		if (field.isEmpty() || !(view->m_flagSorting)) {
-			return;
-		}
-		if (view->m_cellSorting == this) {
+		if (attr->field.isNotEmpty() && view->m_flagSorting && view->m_cellSort == attr) {
 			Ref<Drawable> icon;
-			if (m_flagAsc) {
+			if (view->m_flagSortAsc) {
 				icon = view->m_iconAsc;
 			} else {
 				icon = view->m_iconDesc;
 			}
 			if (icon.isNotNull()) {
+				Rectangle rc = param.frame;
+				param.frame.right -= (sl_real)(view->getSortIconSize());
+				TextCell::onDraw(canvas, param);
+
+				rc.left = param.frame.right;
 				sl_bool flagAntiAlias = canvas->isAntiAlias();
 				if (!flagAntiAlias) {
 					canvas->setAntiAlias(sl_true);
 				}
-				canvas->draw(param.frame, icon, ScaleMode::Contain, Alignment::MiddleRight);
+				canvas->draw(rc, icon, ScaleMode::Contain, Alignment::MiddleCenter);
 				if (!flagAntiAlias) {
 					canvas->setAntiAlias(sl_false);
 				}
+				return;
 			}
 		}
+		TextCell::onDraw(canvas, param);
 	}
 
 	void GridView::SortCell::onClick(UIEvent* ev)
 	{
-		if (field.isEmpty() || !(view->m_flagSorting)) {
+		if (attr->field.isEmpty() || !(view->m_flagSorting)) {
 			return;
 		}
-		if (view->m_cellSorting == this) {
-			if (m_flagAsc) {
-				m_flagAsc = sl_false;
-				view->invokeSort(field, sl_false);
-			} else {
-				view->m_cellSorting.setNull();
-				view->invokeSort(sl_null, sl_false);
-			}
-		} else {
-			view->m_cellSorting = this;
-			m_flagAsc = sl_true;
-			view->invokeSort(field, m_flagAsc);
-		}
-		view->invalidate();
+		view->_sort(this);
 	}
 
 
@@ -465,13 +453,13 @@ namespace slib
 			{
 				m_brush = Brush::createSolidBrush(color);
 				if (flagAsc) {
-					m_pts[0] = Point(0.3f, 0.65f);
-					m_pts[1] = Point(0.5f, 0.35f);
-					m_pts[2] = Point(0.7f, 0.65f);
+					m_pts[0] = Point(0.2f, 0.7f);
+					m_pts[1] = Point(0.5f, 0.3f);
+					m_pts[2] = Point(0.8f, 0.7f);
 				} else {
-					m_pts[0] = Point(0.3f, 0.35f);
-					m_pts[1] = Point(0.5f, 0.65f);
-					m_pts[2] = Point(0.7f, 0.35f);
+					m_pts[0] = Point(0.2f, 0.3f);
+					m_pts[1] = Point(0.5f, 0.7f);
+					m_pts[2] = Point(0.8f, 0.3f);
 				}
 			}
 
@@ -518,6 +506,7 @@ namespace slib
 		m_flagDefinedSorting = sl_false;
 		m_iconAsc = new DefaultSortIcon(Color::Black, sl_true);
 		m_iconDesc = new DefaultSortIcon(Color::Black, sl_false);
+		m_sortIconSize = -1;
 
 		m_defaultColumnWidth = 80;
 		m_defaultColumnMinWidth = 30;
@@ -1513,6 +1502,26 @@ namespace slib
 		} else {
 			m_iconDesc = icon;
 		}
+		invalidate(mode);
+	}
+
+	sl_ui_len GridView::getSortIconSize()
+	{
+		sl_ui_len size = m_sortIconSize;
+		if (size < 0) {
+			Ref<Font> font = getFont();
+			if (font.isNotNull()) {
+				size = (sl_ui_len)(font->getFontHeight() * 0.6f);
+			} else {
+				size = 0;
+			}
+		}
+		return size;
+	}
+
+	void GridView::setSortIconSize(sl_ui_len size, UIUpdateMode mode)
+	{
+		m_sortIconSize = size;
 		invalidate(mode);
 	}
 
@@ -2596,7 +2605,7 @@ namespace slib
 	void GridView::onClickCell(Cell* cell, UIEvent* ev)
 	{
 		cell->onClick(ev);
-		if (cell->flagSelectable) {
+		if (cell->attr->flagSelectable) {
 			Selection selection;
 			selection.record = cell->record;
 			selection.row = cell->row;
@@ -2622,6 +2631,24 @@ namespace slib
 	SLIB_DEFINE_EVENT_HANDLER(GridView, Select, (const GridView::Selection& selection, const GridView::Selection& former, UIEvent* ev), selection, former, ev)
 
 	SLIB_DEFINE_EVENT_HANDLER(GridView, Sort, (const String& field, sl_bool flagAscending), field, flagAscending)
+
+	void GridView::_sort(Cell* cell)
+	{
+		if (m_cellSort == cell->attr) {
+			if (m_flagSortAsc) {
+				m_flagSortAsc = sl_false;
+				invokeSort(cell->attr->field, sl_false);
+			} else {
+				m_cellSort = sl_null;
+				invokeSort(sl_null, sl_false);
+			}
+		} else {
+			m_cellSort = cell->attr;
+			m_flagSortAsc = sl_true;
+			invokeSort(cell->attr->field, sl_true);
+		}
+		invalidate();
+	}
 
 	void GridView::onDraw(Canvas* canvas)
 	{
@@ -3235,17 +3262,18 @@ namespace slib
 
 	void GridView::_drawCell(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Cell* cell)
 	{
-		Rectangle frame((sl_real)x, (sl_real)y, (sl_real)(x + cell->width), (sl_real)(y + cell->height));
+		CellAttribute* attr = cell->attr;
+		Rectangle frame((sl_real)x, (sl_real)y, (sl_real)(x + attr->width), (sl_real)(y + attr->height));
 		CanvasStateScope scope(canvas);
 		canvas->clipToRectangle(frame);
 		ViewState state = getCellState(cell);
-		Ref<Drawable> background = cell->backgrounds.evaluate(state);
+		Ref<Drawable> background = attr->backgrounds.evaluate(state);
 		if (background.isNotNull()) {
 			canvas->draw(frame, background);
 		}
 		DrawCellParam param;
 		param.frame = frame;
-		param.textColor = cell->textColors.evaluate(state);
+		param.textColor = attr->textColors.evaluate(state);
 		cell->onDraw(canvas, param);
 	}
 
@@ -3341,8 +3369,9 @@ namespace slib
 		if (prop.flagCoveredX || prop.flagCoveredY) {
 			return sl_null;
 		}
-		CellParam param(prop);
+		CellParam param;
 		param.view = this;
+		param.attr = &prop;
 		param.record = iRecord;
 		param.row = iRow;
 		param.column = iCol;
@@ -3365,8 +3394,9 @@ namespace slib
 			return prop.cell.get();
 		}
 		prop.flagMadeCell = sl_true;
-		CellParam param(prop);
+		CellParam param;
 		param.view = this;
+		param.attr = &prop;
 		param.record = iRecord;
 		param.row = iRow;
 		param.column = iCol;
