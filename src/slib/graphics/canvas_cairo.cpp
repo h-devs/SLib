@@ -594,7 +594,7 @@ namespace slib
 		cairo_restore(graphics);
 	}
 
-	void GraphicsPlatform::drawImage(Canvas* _canvas, const Rectangle& rectDst, cairo_surface_t* image, const Rectangle& rectSrc, const DrawParam& param)
+	void GraphicsPlatform::drawImage(Canvas* _canvas, const Rectangle& rectDst, cairo_surface_t* image, const Rectangle& rectSrc, const Drawable::DrawParam& param)
 	{
 		if (!image) {
 			return;

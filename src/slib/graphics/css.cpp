@@ -261,10 +261,10 @@ namespace slib
 				}
 				typename StringTypeFromCharType<CHAR>::Type ret = StringTypeFromCharType<CHAR>::Type::allocate(len);
 				if (ret.isNull()) {
-					return sl_null;
+					return sl_false;
 				}
 				if (!(ParseStringValue(input, end, chOpen, ret.getData(), len))) {
-					return sl_null;
+					return sl_false;
 				}
 				*_out = String::from(ret);
 				return sl_true;
