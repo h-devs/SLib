@@ -3580,6 +3580,8 @@ namespace slib
 					return sl_true;
 				}
 				break;
+			default:
+				break;
 		}
 		return sl_false;
 	}
