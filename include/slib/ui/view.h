@@ -1320,14 +1320,19 @@ namespace slib
 		void setToolTip(const String& text);
 
 
-		sl_bool isPlaySoundOnClick();
+		sl_bool isUsingIME();
 
-		void setPlaySoundOnClick(sl_bool flag = sl_true);
+		void setUsingIME(sl_bool flag = sl_true);
 
 
 		sl_bool isClientEdge();
 
 		void setClientEdge(sl_bool flag = sl_true);
+
+
+		sl_bool isPlaySoundOnClick();
+
+		void setPlaySoundOnClick(sl_bool flag = sl_true);
 
 
 		sl_bool isCapturingEvents();
@@ -1663,8 +1668,9 @@ namespace slib
 		sl_bool m_flagDragSource : 1;
 		sl_bool m_flagDropTarget : 1;
 		sl_bool m_flagDropFiles : 1;
-		sl_bool m_flagPlaySoundOnClick : 1;
+		sl_bool m_flagUsingIME : 1;
 		sl_bool m_flagClientEdge : 1;
+		sl_bool m_flagPlaySoundOnClick : 1;
 
 		sl_bool m_flagCurrentCreatingInstance : 1;
 		sl_bool m_flagInvalidLayout : 1;

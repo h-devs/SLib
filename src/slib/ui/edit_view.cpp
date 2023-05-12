@@ -50,8 +50,9 @@ namespace slib
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 
-		setUsingFont(sl_true);
-		setFocusable(sl_true);
+		setUsingFont();
+		setFocusable();
+		setUsingIME();
 
 		setBorder(sl_true, UIUpdateMode::Init);
 		setPadding((sl_ui_pos)(UI::dpToPixel(2)), UIUpdateMode::Init);
@@ -301,6 +302,7 @@ namespace slib
 			m_flagPassword = flag;
 			invalidate(mode);
 		}
+		setUsingIME(!flag);
 	}
 
 	sl_bool EditView::isNumber()
@@ -558,8 +560,6 @@ namespace slib
 			gravity = m_gravity;
 			if (m_flagPassword) {
 				text = String('*', text.getLength());
-			} else {
-				text = text;
 			}
 		}
 		if (font.isNull()) {
@@ -647,7 +647,7 @@ namespace slib
 				}
 				window->setBackgroundColor(Color::White);
 				Ref<EditView> edit;
-				if (IsInstanceOf<PasswordView>(view)) {
+				if (view->isPassword()) {
 					edit = new PasswordView;
 				} else {
 #if defined(SLIB_UI_IS_IOS)
@@ -940,7 +940,8 @@ namespace slib
 		if (isNativeWidget()) {
 			return;
 		}
-		if (ev->getAction() == UIAction::KeyDown) {
+		UIAction action = ev->getAction();
+		if (action == UIAction::KeyDown) {
 			if (ev->isControlKey() || ev->isWindowsKey()) {
 				return;
 			}
@@ -958,20 +959,13 @@ namespace slib
 					}
 					break;
 				default:
-					{
-						sl_bool flagUpper = ev->isShiftKey();
-						if (key >= Keycode::A && key <= Keycode::Z) {
-							if (UI::isCapsLockOn()) {
-								flagUpper = !flagUpper;
-							}
-						}
-						sl_char8 ch = UIEvent::getCharFromKeycode(key, flagUpper);
-						if (ch) {
-							String text = String(m_text) + StringView(&ch, 1);
-							_change(sl_null, text, ev);
-						}
-					}
 					break;
+			}
+		} else if (action == UIAction::Char) {
+			sl_char32 ch = ev->getChar();
+			if (ch >= ' ') {
+				String text = String(m_text) + String::from(&ch, 1);
+				_change(sl_null, text, ev);
 			}
 		}
 #endif
@@ -981,6 +975,11 @@ namespace slib
 	PasswordView::PasswordView()
 	{
 		m_flagPassword = sl_true;
+		setUsingIME(sl_false);
+	}
+
+	PasswordView::~PasswordView()
+	{
 	}
 
 

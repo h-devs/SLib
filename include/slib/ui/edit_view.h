@@ -214,6 +214,8 @@ namespace slib
 	public:
 		PasswordView();
 
+		~PasswordView();
+
 	};
 
 	class TextArea : public EditView

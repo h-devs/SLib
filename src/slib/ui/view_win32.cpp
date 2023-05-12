@@ -37,6 +37,8 @@
 #include <commctrl.h>
 #include <shellapi.h>
 
+#pragma comment(lib, "imm32.lib")
+
 #ifdef max
 #undef max
 #endif
@@ -191,11 +193,16 @@ namespace slib
 
 		m_flagDestroyOnRelease = sl_false;
 		m_actionMouseCapture = UIAction::MouseMove;
+
+		m_imc = NULL;
 	}
 
 	Win32_ViewInstance::~Win32_ViewInstance()
 	{
 		if (m_handle) {
+			if (m_imc) {
+				ImmAssociateContext(m_handle, m_imc);
+			}
 			UIPlatform::removeViewInstance(m_handle);
 			if (m_flagDestroyOnRelease) {
 				PostMessageW(m_handle, SLIB_UI_MESSAGE_CLOSE, 0, 0);
@@ -325,6 +332,7 @@ namespace slib
 		HWND hWnd = m_handle;
 		if (hWnd) {
 			if (flag) {
+				updateIME();
 				SetFocus(hWnd);
 			} else {
 				if (GetFocus() == hWnd) {
@@ -964,6 +972,42 @@ namespace slib
 		}
 	}
 
+	void Win32_ViewInstance::enableIME()
+	{
+		HWND handle = m_handle;
+		if (handle) {
+			if (m_imc) {
+				ImmAssociateContext(handle, m_imc);
+				m_imc = NULL;
+			}
+		}
+	}
+
+	void Win32_ViewInstance::disableIME()
+	{
+		HWND handle = m_handle;
+		if (handle) {
+			if (!m_imc) {
+				m_imc = ImmAssociateContext(handle, NULL);
+			}
+		}
+	}
+
+	void Win32_ViewInstance::updateIME()
+	{
+		Ref<View> view = getView();
+		if (view.isNotNull()) {
+			Ref<View> focus = view->getFocusedView();
+			if (focus.isNotNull()) {
+				if (focus->isUsingIME()) {
+					enableIME();
+					return;
+				}
+			}
+		}
+		disableIME();
+	}
+
 	void Win32_ViewInstance::setText(const StringParam& _text)
 	{
 		HWND handle = m_handle;
@@ -1208,20 +1252,25 @@ namespace slib
 		HWND hWnd = m_handle;
 		if (hWnd) {
 			sl_uint32 vkey = (sl_uint32)wParam;
-			UINT scancode = (lParam & 0x00ff0000) >> 16;
-			int extended = (lParam & 0x01000000) != 0;
-			switch (vkey) {
-			case VK_SHIFT:
-				vkey = MapVirtualKeyW(scancode, MAPVK_VSC_TO_VK_EX);
-				break;
-			case VK_CONTROL:
-				vkey = extended ? VK_RCONTROL : VK_LCONTROL;
-				break;
-			case VK_MENU:
-				vkey = extended ? VK_RMENU : VK_LMENU;
-				break;
+			Keycode key;
+			if (action != UIAction::Char) {
+				UINT scancode = (lParam & 0x00ff0000) >> 16;
+				int extended = (lParam & 0x01000000) != 0;
+				switch (vkey) {
+				case VK_SHIFT:
+					vkey = MapVirtualKeyW(scancode, MAPVK_VSC_TO_VK_EX);
+					break;
+				case VK_CONTROL:
+					vkey = extended ? VK_RCONTROL : VK_LCONTROL;
+					break;
+				case VK_MENU:
+					vkey = extended ? VK_RMENU : VK_LMENU;
+					break;
+				}
+				key = UIEvent::getKeycodeFromSystemKeycode(vkey);
+			} else {
+				key = Keycode::Unknown;
 			}
-			Keycode key = UIEvent::getKeycodeFromSystemKeycode(vkey);
 			Time t;
 			t.setMillisecondCount(GetMessageTime());
 			Ref<UIEvent> ev = UIEvent::createKeyEvent(action, key, vkey, t);
@@ -1556,6 +1605,21 @@ namespace slib
 					return 0;
 				}
 				break;
+			case WM_CHAR:
+				if (onEventKey(UIAction::Char, wParam, lParam)) {
+					return 0;
+				}
+				break;
+			case WM_IME_CHAR:
+				onEventKey(UIAction::Char, wParam, lParam);
+				return 0;
+			case WM_UNICHAR:
+				if (wParam != UNICODE_NOCHAR) {
+					// application processes this message
+					return 1;
+				}
+				onEventKey(UIAction::Char, wParam, lParam);
+				return 0;
 			case WM_SETFOCUS:
 				onSetFocus();
 				break;
@@ -1567,6 +1631,12 @@ namespace slib
 					return TRUE;
 				}
 				break;
+			case WM_IME_STARTCOMPOSITION:
+				{
+				}
+				return 0;
+			case WM_IME_COMPOSITION:
+
 		}
 		return DefaultViewInstanceProc(hWnd, msg, wParam, lParam);
 	}

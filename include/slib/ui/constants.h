@@ -43,6 +43,7 @@ namespace slib
 		// keyboard
 		KeyDown = SLIB_UI_ACTION_TYPE_KEYBOARD | 0x01,
 		KeyUp = SLIB_UI_ACTION_TYPE_KEYBOARD | 0x02,
+		Char = SLIB_UI_ACTION_TYPE_KEYBOARD | 0x03,
 		// mouse
 		MouseMove = SLIB_UI_ACTION_TYPE_MOUSE | 0x01,
 		MouseEnter = SLIB_UI_ACTION_TYPE_MOUSE | 0x02,

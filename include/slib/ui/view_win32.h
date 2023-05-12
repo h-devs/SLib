@@ -160,6 +160,12 @@ namespace slib
 
 		void setDropTarget(View* view, sl_bool flag) override;
 
+		void enableIME();
+
+		void disableIME();
+
+		void updateIME();
+
 	public:
 		void setText(const StringParam& text);
 
@@ -202,6 +208,7 @@ namespace slib
 		Ref<Win32_LayeredViewContext> m_layered;
 		Ref<Win32_ToolTipViewContext> m_tooltip;
 		IUnknown* m_dropTarget;
+		HIMC m_imc;
 
 	};
 

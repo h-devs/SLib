@@ -214,6 +214,10 @@ namespace slib
 
 		void setSystemKeycode(sl_uint32 keycode);
 
+		sl_char32 getChar() const;
+
+		void setChar(sl_char32 code);
+
 		// mouse, touch
 		const UIPointF& getPoint() const;
 

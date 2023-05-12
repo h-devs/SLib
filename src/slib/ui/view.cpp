@@ -139,8 +139,9 @@ namespace slib
 		m_flagDragSource(sl_false),
 		m_flagDropTarget(sl_false),
 		m_flagDropFiles(sl_false),
-		m_flagPlaySoundOnClick(sl_false),
+		m_flagUsingIME(sl_false),
 		m_flagClientEdge(sl_true),
+		m_flagPlaySoundOnClick(sl_false),
 
 		m_flagCurrentCreatingInstance(sl_false),
 		m_flagInvalidLayout(sl_true),
@@ -8177,16 +8178,15 @@ namespace slib
 		}
 	}
 
-	sl_bool View::isPlaySoundOnClick()
+	sl_bool View::isUsingIME()
 	{
-		return m_flagPlaySoundOnClick;
+		return m_flagUsingIME;
 	}
 
-	void View::setPlaySoundOnClick(sl_bool flag)
+	void View::setUsingIME(sl_bool flag)
 	{
-		m_flagPlaySoundOnClick = flag;
+		m_flagUsingIME = flag;
 	}
-
 
 	sl_bool View::isClientEdge()
 	{
@@ -8198,6 +8198,15 @@ namespace slib
 		m_flagClientEdge = flag;
 	}
 
+	sl_bool View::isPlaySoundOnClick()
+	{
+		return m_flagPlaySoundOnClick;
+	}
+
+	void View::setPlaySoundOnClick(sl_bool flag)
+	{
+		m_flagPlaySoundOnClick = flag;
+	}
 
 	sl_bool View::isCapturingEvents()
 	{

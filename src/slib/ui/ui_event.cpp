@@ -326,17 +326,17 @@ sl_bool UIEvent::is##NAME##Key() const \
 			SLIB_DECLARE_OBJECT
 
 		public:
-			sl_uint32 m_systemKeycode;
+			sl_uint32 m_code;
 
 		public:
-			KeyboardEvent(UIAction action, const Time& time, sl_uint32 systemKeyboard): UIEvent(action, time), m_systemKeycode(systemKeyboard)
+			KeyboardEvent(UIAction action, const Time& time, sl_uint32 code): UIEvent(action, time), m_code(code)
 			{
 			}
 
 		public:
 			Ref<UIEvent> duplicate() const override
 			{
-				KeyboardEvent* ret = new KeyboardEvent(m_action, m_time, m_systemKeycode);
+				KeyboardEvent* ret = new KeyboardEvent(m_action, m_time, m_code);
 				if (ret) {
 					ret->_copyProperties(this);
 					return ret;
@@ -630,7 +630,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 	sl_uint32 UIEvent::getSystemKeycode() const
 	{
 		if (IsInstanceOf<KeyboardEvent>(this)) {
-			return ((KeyboardEvent*)this)->m_systemKeycode;
+			return ((KeyboardEvent*)this)->m_code;
 		}
 		return 0;
 	}
@@ -638,7 +638,22 @@ sl_bool UIEvent::is##NAME##Key() const \
 	void UIEvent::setSystemKeycode(sl_uint32 keycode)
 	{
 		if (IsInstanceOf<KeyboardEvent>(this)) {
-			((KeyboardEvent*)this)->m_systemKeycode = keycode;
+			((KeyboardEvent*)this)->m_code = keycode;
+		}
+	}
+
+	sl_char32 UIEvent::getChar() const
+	{
+		if (IsInstanceOf<KeyboardEvent>(this)) {
+			return ((KeyboardEvent*)this)->m_code;
+		}
+		return 0;
+	}
+
+	void UIEvent::setChar(sl_char32 code)
+	{
+		if (IsInstanceOf<KeyboardEvent>(this)) {
+			((KeyboardEvent*)this)->m_code = code;
 		}
 	}
 
