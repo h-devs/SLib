@@ -493,6 +493,18 @@ namespace slib
 		return 0;
 	}
 
+
+	void macOS_ViewInstance::onEventChar(sl_char32 code)
+	{
+		NSView* handle = m_handle;
+		if (handle != nil) {
+			Ref<UIEvent> ev = UIEvent::createKeyEvent(UIAction::Char, Keycode::Unknown, code, Time::now());
+			if (ev.isNotNull()) {
+				onKeyEvent(ev.get());
+			}
+		}
+	}
+
 	UIEventFlags macOS_ViewInstance::onEventMouse(UIAction action, NSEvent* event)
 	{
 		NSView* handle = m_handle;
@@ -1159,6 +1171,83 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 		}
 	}
 	return NO;
+}
+
+// Adoption of NSTextInputClient protocol
+- (NSAttributedString *)attributedSubstringForProposedRange:(NSRange)range actualRange:(nullable NSRangePointer)actualRange
+{
+	return nil;
+}
+
+- (NSUInteger)characterIndexForPoint:(NSPoint)point
+{
+	return 0;
+}
+
+- (void)doCommandBySelector:(SEL)selector
+{
+	if ([self respondsToSelector: @selector(selector)]) {
+		[self performSelector: @selector(selector) withObject: nil];
+	}
+}
+
+- (NSRect)firstRectForCharacterRange:(NSRange)range actualRange:(nullable NSRangePointer)actualRange
+{
+	return NSMakeRect(0, 0, 0, 0);
+}
+
+- (BOOL)hasMarkedText
+{
+	return NO;
+}
+
+- (void)insertText:(nonnull id)aText replacementRange:(NSRange)replacementRange
+{
+	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	if (instance.isNull()) {
+		return;
+	}
+	NSString* _text;
+	if ([aText isKindOfClass:[NSString class]]) {
+		_text = (NSString*)aText;
+	} else if ([aText isKindOfClass:[NSAttributedString class]]) {
+		_text = [aText string];
+	} else {
+		return;
+	}
+	String32 text = Apple::getString32FromNSString(_text);
+	sl_size nText = text.getLength();
+	if (nText) {
+		sl_char32* s = text.getData();
+		for (sl_size i = 0; i < nText; i++) {
+			instance->onEventChar(s[i]);
+		}
+	} else {
+		return;
+	}
+}
+
+- (NSRange)markedRange
+{
+	return NSMakeRange(0, 0);
+}
+
+- (NSRange)selectedRange
+{
+	return NSMakeRange(0, 0);
+}
+
+- (void)setMarkedText:(nonnull id)string selectedRange:(NSRange)selectedRange replacementRange:(NSRange)replacementRange
+{
+}
+
+- (void)unmarkText
+{
+}
+
+- (NSArray<NSAttributedStringKey> *)validAttributesForMarkedText
+{
+	return nil;
 }
 
 @end

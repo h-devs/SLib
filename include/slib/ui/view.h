@@ -822,7 +822,7 @@ namespace slib
 
 		void setBorderColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setBorder(sl_bool flagBorder, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBorder(sl_bool flagBorder = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool hasBorder();
 

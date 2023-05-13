@@ -54,6 +54,8 @@ namespace slib
 
 		static String16 getString16FromNSString(NSString* str);
 
+		static String32 getString32FromNSString(NSString* str);
+
 		static Time getTimeFromNSDate(NSDate* date);
 
 		static NSDate* getNSDateFromTime(const Time& time);

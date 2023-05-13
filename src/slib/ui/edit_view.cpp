@@ -947,12 +947,9 @@ namespace slib
 			}
 			Keycode key = ev->getKeycode();
 			switch (key) {
-				case Keycode::Tab:
-				case Keycode::Enter:
-				case Keycode::NumpadEnter:
-					return;
 				case Keycode::Backspace:
 					{
+						ev->preventDefault();
 						String text = m_text;
 						text = text.substring(0, text.getLength() - 1);
 						_change(sl_null, text, ev);

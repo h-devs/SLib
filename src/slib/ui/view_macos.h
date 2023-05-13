@@ -37,7 +37,7 @@
 }
 @end
 
-@interface SLIBViewHandle : SLIBViewBaseHandle
+@interface SLIBViewHandle : SLIBViewBaseHandle<NSTextInputClient>
 {
 	@public slib::WeakRef<slib::macOS_ViewInstance> m_viewInstance;
 }

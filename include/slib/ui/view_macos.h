@@ -164,6 +164,8 @@ namespace slib
 
 		UIEventFlags onEventKey(sl_bool flagDown, NSEvent* event);
 
+		void onEventChar(sl_char32 code);
+
 		UIEventFlags onEventMouse(UIAction action, NSEvent* event);
 
 		UIEventFlags onEventMouse(UIAction action, const NSPoint& point);

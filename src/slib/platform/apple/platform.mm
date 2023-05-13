@@ -84,6 +84,15 @@ namespace slib
 		return ret;
 	}
 
+	String32 Apple::getString32FromNSString(NSString* str)
+	{
+		if (str == nil) {
+			return sl_null;
+		}
+		const char* buf = [str UTF8String];
+		return String32::fromUtf8(buf);
+	}
+
 	Time Apple::getTimeFromNSDate(NSDate* date)
 	{
 		if (date == nil) {
