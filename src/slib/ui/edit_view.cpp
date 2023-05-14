@@ -934,7 +934,7 @@ namespace slib
 			View::onKeyEvent(ev);
 		}
 #ifdef HAS_SIMPLE_INPUT
-		if (ev->isPreventedDefault()) {
+		if (ev->isAccepted()) {
 			return;
 		}
 		if (isNativeWidget()) {

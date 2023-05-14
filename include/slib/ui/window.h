@@ -446,8 +446,8 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(Window, Create)
 		SLIB_DECLARE_EVENT_HANDLER(Window, CreateFailed)
-		SLIB_DECLARE_EVENT_HANDLER(Window, Close, UIEvent* ev)
-		SLIB_DECLARE_EVENT_HANDLER(Window, Destroy, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(Window, Close)
+		SLIB_DECLARE_EVENT_HANDLER(Window, Destroy)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Activate)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Deactivate)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Move, sl_ui_pos x, sl_ui_pos y)
@@ -463,8 +463,8 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(Window, Cancel)
 
 	private:
-		void _doClose(UIEvent* ev);
-		void _doDestroy(UIEvent* ev);
+		void _doClose();
+		void _doDestroy();
 		void _doResizing(UISize& clientSize);
 		void _doResize(sl_ui_len clientWidth, sl_ui_len clientHeight);
 
@@ -546,6 +546,7 @@ namespace slib
 
 		sl_bool m_flagStateResizingWidth : 1;
 		sl_bool m_flagStateDoModal : 1;
+		sl_bool m_flagStateClosing : 1;
 		sl_bool m_flagDispatchedDestroy : 1;
 
 		Variant* m_result;

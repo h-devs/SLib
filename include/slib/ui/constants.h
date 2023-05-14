@@ -81,8 +81,7 @@ namespace slib
 	};
 
 	SLIB_DEFINE_FLAGS(UIEventFlags, {
-		PreventDefault = 0x0001,
-		StopPropagation = 0x0002,
+		Accepted = 0x0001,
 		PassToNext = 0x0004,
 		UseDrag = 0x0010,
 		DispatchToParent = 0x1000,

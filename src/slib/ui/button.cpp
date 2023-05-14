@@ -834,7 +834,7 @@ namespace slib
 		if (m_cell.isNotNull()) {
 			m_cell->onKeyEvent(ev);
 		}
-		if (ev->isPreventedDefault()) {
+		if (ev->isAccepted()) {
 			return;
 		}
 		View::onKeyEvent(ev);

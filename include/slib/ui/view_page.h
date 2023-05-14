@@ -98,9 +98,9 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, EndPageAnimation, ViewPageNavigationController* controller, UIPageAction action)
 		void handleEndPageAnimation(ViewPageNavigationController* controller, UIPageAction action);
 		// For mobile platforms
-		SLIB_DECLARE_EVENT_HANDLER(ViewPage, PressBack, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ViewPage, PressBack)
 		// Pressed mobile back button or Closed popup window
-		SLIB_DECLARE_EVENT_HANDLER(ViewPage, Back, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ViewPage, Back)
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, ClickBackground, UIEvent* ev)
 
 	public:

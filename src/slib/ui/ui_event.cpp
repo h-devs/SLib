@@ -988,41 +988,22 @@ sl_bool UIEvent::is##NAME##Key() const \
 		SLIB_RESET_FLAG(m_flags, flags);
 	}
 
-	void UIEvent::preventDefault()
+	void UIEvent::accept()
 	{
-		SLIB_SET_FLAG(m_flags, UIEventFlags::PreventDefault);
+		SLIB_SET_FLAG(m_flags, UIEventFlags::Accepted);
 	}
 
-	sl_bool UIEvent::isPreventedDefault() const
+	sl_bool UIEvent::isAccepted() const
 	{
-		return SLIB_CHECK_FLAG(m_flags, UIEventFlags::PreventDefault);
+		return SLIB_CHECK_FLAG(m_flags, UIEventFlags::Accepted);
 	}
 
-	void UIEvent::setPreventedDefault(sl_bool flag)
+	void UIEvent::setAccepted(sl_bool flag)
 	{
 		if (flag) {
-			SLIB_SET_FLAG(m_flags, UIEventFlags::PreventDefault);
+			SLIB_SET_FLAG(m_flags, UIEventFlags::Accepted);
 		} else {
-			SLIB_RESET_FLAG(m_flags, UIEventFlags::PreventDefault);
-		}
-	}
-
-	void UIEvent::stopPropagation()
-	{
-		SLIB_SET_FLAG(m_flags, UIEventFlags::StopPropagation);
-	}
-
-	sl_bool UIEvent::isStoppedPropagation() const
-	{
-		return SLIB_CHECK_FLAG(m_flags, UIEventFlags::StopPropagation);
-	}
-
-	void UIEvent::setStoppedPropagation(sl_bool flag)
-	{
-		if (flag) {
-			SLIB_SET_FLAG(m_flags, UIEventFlags::StopPropagation);
-		} else {
-			SLIB_RESET_FLAG(m_flags, UIEventFlags::StopPropagation);
+			SLIB_RESET_FLAG(m_flags, UIEventFlags::Accepted);
 		}
 	}
 

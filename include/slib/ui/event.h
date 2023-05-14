@@ -343,17 +343,11 @@ namespace slib
 
 		void removeFlag(const UIEventFlags& flags);
 
-		void preventDefault();
+		void accept();
 
-		sl_bool isPreventedDefault() const;
+		sl_bool isAccepted() const;
 
-		void setPreventedDefault(sl_bool flag);
-
-		void stopPropagation();
-
-		sl_bool isStoppedPropagation() const;
-
-		void setStoppedPropagation(sl_bool flag);
+		void setAccepted(sl_bool flag);
 
 		void passToNext();
 

@@ -701,7 +701,7 @@ namespace slib
 						}
 						_ev->addFlag(UIEventFlags::DispatchToParent | UIEventFlags::NotDispatchToChildren);
 						instance->onKeyEvent(_ev.get());
-						if (_ev->isPreventedDefault()) {
+						if (_ev->isAccepted()) {
 							return true;
 						}
 					}

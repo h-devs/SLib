@@ -231,7 +231,7 @@ namespace slib
 				}
 			});
 			back->setOnTouchEvent([](View* view, UIEvent* ev) {
-				ev->stopPropagation();
+				ev->accept();
 			});
 			back->addChild(this, UIUpdateMode::Init);
 			viewAdd = back;

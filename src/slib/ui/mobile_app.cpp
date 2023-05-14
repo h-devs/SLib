@@ -333,9 +333,9 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(MobileApp, PressBack, (UIEvent* ev), ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(MobileApp, PressBack, ())
 
-	void MobileApp::onPressBack(UIEvent* ev)
+	void MobileApp::onPressBack()
 	{
 		{
 			ListLocker< Ref<ViewPage> > popups(m_popupPages);

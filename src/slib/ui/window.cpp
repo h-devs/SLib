@@ -84,6 +84,7 @@ namespace slib
 
 		m_flagStateResizingWidth = sl_false;
 		m_flagStateDoModal = sl_false;
+		m_flagStateClosing = sl_false;
 		m_flagDispatchedDestroy = sl_false;
 
 		m_viewContent = new WindowContentView;
@@ -122,7 +123,7 @@ namespace slib
 		Ref<Window> window = this;
 		instance->close();
 		detach();
-		_doDestroy(sl_null);
+		_doDestroy();
 	}
 
 	sl_bool Window::isClosed()
@@ -1522,25 +1523,30 @@ namespace slib
 
 	SLIB_DEFINE_EVENT_HANDLER(Window, CreateFailed, ())
 
-	SLIB_DEFINE_EVENT_HANDLER(Window, Close, (UIEvent* ev), ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(Window, Close, ())
 
-	void Window::_doClose(UIEvent* ev)
+	void Window::onClose()
 	{
-		invokeClose(ev);
+		m_flagStateClosing = sl_true;
+	}
+
+	void Window::_doClose()
+	{
+		invokeClose();
 		if (ev->isPreventedDefault()) {
 			return;
 		}
 		detach();
-		_doDestroy(ev);
+		_doDestroy();
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(Window, Destroy, (UIEvent* ev), ev)
+	SLIB_DEFINE_EVENT_HANDLER(Window, Destroy, ())
 
-	void Window::_doDestroy(UIEvent* ev)
+	void Window::_doDestroy()
 	{
 		if (!m_flagDispatchedDestroy) {
 			m_flagDispatchedDestroy = sl_true;
-			invokeDestroy(ev);
+			invokeDestroy();
 		}
 		if (m_flagStateDoModal) {
 			m_flagStateDoModal = sl_false;
