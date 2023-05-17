@@ -43,9 +43,7 @@
 
 #define JNIVERSION JNI_VERSION_1_4
 
-#ifdef SLIB_DEBUG
 //#define INIT_ON_LOAD
-#endif
 
 namespace slib
 {
@@ -62,9 +60,19 @@ namespace slib
 		public:
 			CHashMap< String, JniGlobal<jclass> > classes;
 			CList< Function<void()> > callbacksInit;
+			JniGlobal<jobject> classLoader;
 		};
 
 		SLIB_SAFE_STATIC_GETTER(SharedContext, getSharedContext)
+
+		SLIB_JNI_BEGIN_CLASS(JThread, "java/lang/Thread")
+			SLIB_JNI_STATIC_METHOD(currentThread, "currentThread", "()Ljava/lang/Thread;")
+			SLIB_JNI_METHOD(getContextClassLoader, "getContextClassLoader", "()Ljava/lang/ClassLoader;")
+		SLIB_JNI_END_CLASS
+
+		SLIB_JNI_BEGIN_CLASS(JClassLoader, "java/lang/ClassLoader")
+			SLIB_JNI_METHOD(loadClass, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;")
+		SLIB_JNI_END_CLASS
 
 		static void AddInitCallback(const Function<void()>& callback) noexcept
 		{
@@ -869,6 +877,15 @@ namespace slib
 				return;
 			}
 
+			// Retriving class loader
+			{
+				JClassLoader::get();
+				JniLocal<jobject> thread = JThread::currentThread.callObject(sl_null);
+				if (thread.isNotNull()) {
+					shared->classLoader = JThread::getContextClassLoader.callObject(thread.get());
+				}
+			}
+
 			// invoking initial callbacks
 			{
 				ListLocker< Function<void()> > list(shared->callbacksInit);
@@ -932,7 +949,7 @@ namespace slib
 
 	void Jni::detachThread(JavaVM* jvm) noexcept
 	{
-		if (! jvm) {
+		if (!jvm) {
 			jvm = Jni::getSharedJVM();
 		}
 		if (jvm) {
@@ -942,12 +959,23 @@ namespace slib
 
 	JniLocal<jclass> Jni::findClass(const StringParam& _className) noexcept
 	{
-		StringCstr className(_className);
-		JNIEnv *env = getCurrent();
+		JNIEnv* env = getCurrent();
 		if (env) {
-			JniLocal<jclass> cls = env->FindClass(className.getData());
-			if (!(CheckException(env))) {
-				return cls;
+			SharedContext* shared = getSharedContext();
+			if (shared) {
+				if (shared->classLoader.isNotNull()) {
+					JniLocal<jstring> className(Jni::getJniString(_className));
+					JniLocal<jclass> cls = JClassLoader::loadClass.callObject(shared->classLoader.get(), className.get());
+					if (!(CheckException(env))) {
+						return cls;
+					}
+				} else {
+					StringCstr className(_className);
+					JniLocal<jclass> cls = env->FindClass(className.getData());
+					if (!(CheckException(env))) {
+						return cls;
+					}
+				}
 			}
 		}
 		return sl_null;
