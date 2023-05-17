@@ -679,7 +679,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfColorSpace)
 
 	public:
-		void load(const PdfValue& value, PdfResourceProvider* res = sl_null);
+		sl_bool load(const PdfValue& value, PdfResourceProvider* res = sl_null);
 
 		sl_uint32 getComponentCount();
 
@@ -696,11 +696,11 @@ namespace slib
 		static sl_bool getColorFromLab(Color& _out, const PdfValue* values, sl_size count);
 
 	private:
-		void _load(const PdfValue& value, PdfResourceProvider* res, sl_bool flagICCBasedAlternate);
+		sl_bool _load(const PdfValue& value, PdfResourceProvider* res, sl_bool flagICCBasedAlternate);
 
 		sl_bool _loadName(const String& name);
 
-		void _loadArray(PdfArray* array, sl_bool flagICCBasedAlternate);
+		sl_bool _loadArray(PdfArray* array, sl_bool flagICCBasedAlternate);
 
 		sl_bool _loadIndexed(sl_uint32 maxIndex, const PdfValue& table);
 

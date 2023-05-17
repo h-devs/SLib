@@ -5493,27 +5493,28 @@ namespace slib
 	{
 	}
 
-	void PdfColorSpace::load(const PdfValue& value, PdfResourceProvider* res)
+	sl_bool PdfColorSpace::load(const PdfValue& value, PdfResourceProvider* res)
 	{
-		_load(value, res, sl_false);
+		return _load(value, res, sl_false);
 	}
 
-	void PdfColorSpace::_load(const PdfValue& value, PdfResourceProvider* res, sl_bool flagICCBasedAlternate)
+	sl_bool PdfColorSpace::_load(const PdfValue& value, PdfResourceProvider* res, sl_bool flagICCBasedAlternate)
 	{
 		const String& name = value.getName();
 		if (name.isNotNull()) {
 			if (_loadName(name)) {
-				return;
+				return sl_true;
 			}
 			if (res) {
-				load(res->getResource(name::ColorSpace, name));
+				return load(res->getResource(name::ColorSpace, name));
 			}
-			return;
+			return sl_false;
 		}
 		const Ref<PdfArray>& array = value.getArray();
 		if (array.isNotNull()) {
-			_loadArray(array.get(), flagICCBasedAlternate);
+			return _loadArray(array.get(), flagICCBasedAlternate);
 		}
+		return sl_false;
 	}
 
 	sl_bool PdfColorSpace::_loadName(const String& v)
@@ -5532,50 +5533,69 @@ namespace slib
 		return sl_true;
 	}
 
-	void PdfColorSpace::_loadArray(PdfArray* arr, sl_bool flagICCBasedAlternate)
+	sl_bool PdfColorSpace::_loadArray(PdfArray* arr, sl_bool flagICCBasedAlternate)
 	{
 		sl_uint32 n = arr->getCount();
 		if (!n) {
-			return;
+			return sl_false;
 		}
 		const String& strType = arr->get(0).getName();
 		if (strType == name::CalRGB) {
 			type = PdfColorSpaceType::RGB;
+			return sl_true;
 		} else if (strType == name::CalGray) {
 			type = PdfColorSpaceType::Gray;
+			return sl_true;
 		} else if (strType == name::CalCMYK) {
 			type = PdfColorSpaceType::CMYK;
+			return sl_true;
 		} else if (strType == name::Lab) {
 			type = PdfColorSpaceType::Lab;
+			return sl_true;
 		} else if (strType == name::Indexed || strType == name::I) {
 			if (n >= 4) {
 				if (_loadIndexed(arr->get(2).getUint(), arr->get(3))) {
 					type = PdfColorSpaceType::Indexed;
+					return sl_true;
 				}
 			}
 		} else if (strType == name::ICCBased) {
 			if (flagICCBasedAlternate) {
-				return;
+				return sl_false;
 			}
 			if (n >= 2) {
 				Ref<PdfStream> stream = arr->get(1).getStream();
 				if (stream.isNotNull()) {
-					_load(stream->getProperty(name::Alternate), sl_null, sl_true);
+					if (_load(stream->getProperty(name::Alternate), sl_null, sl_true)) {
+						return sl_true;
+					}
+					sl_uint32 N = stream->getProperty(name::N).getUint();
+					if (N == 1) {
+						type = PdfColorSpaceType::Gray;
+						return sl_true;
+					} else if (N == 3) {
+						type = PdfColorSpaceType::RGB;
+						return sl_true;
+					} else if (N == 4) {
+						type = PdfColorSpaceType::CMYK;
+						return sl_true;
+					}
 				}
 			}
 		} else if (strType == name::Pattern) {
 			if (n >= 2) {
-				_loadName(arr->get(1).getString());
+				return _loadName(arr->get(1).getString());
 			}
 		} else if (strType == name::Separation) {
 			if (n >= 3) {
-				_loadName(arr->get(2).getString());
+				return _loadName(arr->get(2).getString());
 			}
 		} else if (strType == name::DeviceN) {
 			if (n >= 3) {
-				_loadName(arr->get(2).getString());
+				return _loadName(arr->get(2).getString());
 			}
 		}
+		return sl_false;
 	}
 
 	sl_bool PdfColorSpace::_loadIndexed(sl_uint32 maxIndex, const PdfValue& vTable)
