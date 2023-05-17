@@ -407,7 +407,7 @@ namespace slib
 						} else if (action == UIAction::KeyDown) {
 							dispatchKeySelect(ev.get());
 						}
-						if (!(ev->isPreventedDefault())) {
+						if (!(ev->isAccepted())) {
 							Ref<Menu> menu = m_menu;
 							if (menu.isNotNull()) {
 								SetForegroundWindow(shared->hWndMessage);

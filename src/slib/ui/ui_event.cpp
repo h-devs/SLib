@@ -569,22 +569,22 @@ sl_bool UIEvent::is##NAME##Key() const \
 
 	sl_bool UIEvent::isKeyEvent() const
 	{
-		return ((sl_uint32)m_action & SLIB_UI_ACTION_TYPE_KEYBOARD) != 0;
+		return ((sl_uint32)m_action & SLIB_UI_ACTION_TYPE_KEYBOARD) == SLIB_UI_ACTION_TYPE_KEYBOARD;
 	}
 
 	sl_bool UIEvent::isMouseEvent() const
 	{
-		return ((sl_uint32)m_action & SLIB_UI_ACTION_TYPE_MOUSE) != 0;
+		return ((sl_uint32)m_action & SLIB_UI_ACTION_TYPE_MOUSE) == SLIB_UI_ACTION_TYPE_MOUSE;
 	}
 
 	sl_bool UIEvent::isTouchEvent() const
 	{
-		return ((sl_uint32)m_action & SLIB_UI_ACTION_TYPE_TOUCH) != 0;
+		return ((sl_uint32)m_action & SLIB_UI_ACTION_TYPE_TOUCH) == SLIB_UI_ACTION_TYPE_TOUCH;
 	}
 
 	sl_bool UIEvent::isDragEvent() const
 	{
-		return ((sl_uint32)m_action & SLIB_UI_ACTION_TYPE_DRAG) != 0;
+		return ((sl_uint32)m_action & SLIB_UI_ACTION_TYPE_DRAG) == SLIB_UI_ACTION_TYPE_DRAG;
 	}
 
 	Time UIEvent::getTime() const

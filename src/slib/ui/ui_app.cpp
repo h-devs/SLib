@@ -187,88 +187,81 @@ namespace slib
 		Thread::finishAllThreads();
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenUrl, (const String& url, sl_bool& outFlagOpened), url, outFlagOpened)
+	SLIB_DEFINE_EVENT_HANDLER2(UIApp, OpenUrl, sl_false, (const String& url), url)
 
 	sl_bool UIApp::Current::invokeOpenUrl(const String& url)
 	{
-		sl_bool bRet = sl_false;
 		Ref<UIApp> app = getApp();
 		if (app.isNotNull()) {
-			app->invokeOpenUrl(url, bRet);
+			return app->invokeOpenUrl(url);
 		}
-		return bRet;
+		return sl_false;
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenUrls, (const List<String>& urls, sl_bool& outFlagOpened), urls, outFlagOpened)
+	SLIB_DEFINE_EVENT_HANDLER2(UIApp, OpenUrls, sl_false, (const List<String>& urls), urls)
 
 	sl_bool UIApp::Current::invokeOpenUrls(const List<String>& urls)
 	{
-		sl_bool bRet = sl_false;
 		Ref<UIApp> app = getApp();
 		if (app.isNotNull()) {
-			app->invokeOpenUrls(urls, bRet);
+			return app->invokeOpenUrls(urls);
 		}
-		return bRet;
+		return sl_false;
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenFile, (const String& filePath, sl_bool& outFlagOpened), filePath, outFlagOpened)
+	SLIB_DEFINE_EVENT_HANDLER2(UIApp, OpenFile, sl_false, (const String& filePath), filePath)
 
 	sl_bool UIApp::Current::invokeOpenFile(const String& filePath)
 	{
-		sl_bool bRet = sl_false;
 		Ref<UIApp> app = getApp();
 		if (app.isNotNull()) {
-			app->invokeOpenFile(filePath, bRet);
+			return app->invokeOpenFile(filePath);
 		}
-		return bRet;
+		return sl_false;
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenFiles, (const List<String>& files, sl_bool& outFlagOpened), files, outFlagOpened)
+	SLIB_DEFINE_EVENT_HANDLER2(UIApp, OpenFiles, sl_false, (const List<String>& files), files)
 
 	sl_bool UIApp::Current::invokeOpenFiles(const List<String>& files)
 	{
-		sl_bool bRet = sl_false;
 		Ref<UIApp> app = getApp();
 		if (app.isNotNull()) {
-			app->invokeOpenFiles(files, bRet);
+			return app->invokeOpenFiles(files);
 		}
-		return bRet;
+		return sl_false;
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenTempFile, (const String& filePath, sl_bool& outFlagOpened), filePath, outFlagOpened)
+	SLIB_DEFINE_EVENT_HANDLER2(UIApp, OpenTempFile, sl_false, (const String& filePath), filePath)
 
 	sl_bool UIApp::Current::invokeOpenTempFile(const String& filePath)
 	{
-		sl_bool bRet = sl_false;
 		Ref<UIApp> app = getApp();
 		if (app.isNotNull()) {
-			app->invokeOpenTempFile(filePath, bRet);
+			return app->invokeOpenTempFile(filePath);
 		}
-		return bRet;
+		return sl_false;
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenUntitledFile, (sl_bool& outFlagOpened), outFlagOpened)
+	SLIB_DEFINE_EVENT_HANDLER2(UIApp, OpenUntitledFile, sl_false, ())
 
 	sl_bool UIApp::Current::invokeOpenUntitledFile()
 	{
-		sl_bool bRet = sl_false;
 		Ref<UIApp> app = getApp();
 		if (app.isNotNull()) {
-			app->invokeOpenUntitledFile(bRet);
+			return app->invokeOpenUntitledFile();
 		}
-		return bRet;
+		return sl_false;
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(UIApp, Reopen, (const String& commandLine, sl_bool flagHasVisibleWindows, sl_bool& outFlagPerformNormalTasks), commandLine, flagHasVisibleWindows, outFlagPerformNormalTasks)
+	SLIB_DEFINE_EVENT_HANDLER2(UIApp, Reopen, sl_false, (const String& commandLine, sl_bool flagHasVisibleWindows), commandLine, flagHasVisibleWindows)
 
 	sl_bool UIApp::Current::invokeReopen(const String& commandLine, sl_bool flagHasVisibleWindows)
 	{
-		sl_bool bRet = sl_true;
 		Ref<UIApp> app = getApp();
 		if (app.isNotNull()) {
-			app->invokeReopen(commandLine, flagHasVisibleWindows, bRet);
+			return app->invokeReopen(commandLine, flagHasVisibleWindows);
 		}
-		return bRet;
+		return sl_false;
 	}
 
 }

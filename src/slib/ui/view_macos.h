@@ -62,8 +62,8 @@
 	{ \
 		slib::Ref<slib::macOS_ViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
-			sl_bool flagNoDefault = instance->onEventKey(sl_true, theEvent) & slib::UIEventFlags::PreventDefault; \
-			if (flagNoDefault) { \
+			sl_bool flagAccepted = instance->onEventKey(sl_true, theEvent) & slib::UIEventFlags::Accepted; \
+			if (flagAccepted) { \
 				return; \
 			} \
 		} \
@@ -73,8 +73,8 @@
 	{ \
 		slib::Ref<slib::macOS_ViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
-			sl_bool flagNoDefault = instance->onEventKey(sl_false, theEvent) & slib::UIEventFlags::PreventDefault; \
-			if (flagNoDefault) { \
+			sl_bool flagAccepted = instance->onEventKey(sl_false, theEvent) & slib::UIEventFlags::Accepted; \
+			if (flagAccepted) { \
 				return; \
 			} \
 		} \

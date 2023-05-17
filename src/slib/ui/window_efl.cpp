@@ -128,7 +128,7 @@ namespace slib
 
 			static void _ui_win_back_cb(void* data, Evas_Object* win, void* event_info)
 			{
-				if (MobileApp::Current::invokePressBack()) {
+				if (!(MobileApp::Current::invokePressBack()) {
 					elm_win_lower(win);
 				}
 			}

@@ -26,6 +26,7 @@
 
 #include "slib/device/device.h"
 
+#include "slib/data/contact.h"
 #include "slib/core/safe_static.h"
 #include "slib/platform.h"
 
@@ -160,7 +161,7 @@ namespace slib
 	{
 		jobject context = Android::getCurrentContext();
 		if (context) {
-			JniLocal<jobjectArray> arr = (jobjectArray)(JContact::getAllContacts.callObject(sl_null, context));
+			JniLocal<jobjectArray> arr = JContact::getAllContacts.callObject(sl_null, context);
 			if (arr.isNotNull()) {
 				sl_uint32 n = Jni::getArrayLength(arr.get());
 				List<Contact> ret;

@@ -2,6 +2,9 @@
 
 #include "app.h"
 
+#include <slib/media/audio_recorder.h>
+#include <slib/media/audio_player.h>
+
 class MainPage : public ui::MainPage
 {
 	SLIB_DECLARE_SINGLETON(MainPage)

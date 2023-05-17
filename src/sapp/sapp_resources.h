@@ -772,9 +772,10 @@ namespace slib
 	class SAppLayoutSwitchAttributes : public SAppLayoutViewAttributes
 	{
 	public:
-		SAppSwitchValue value;
+		SAppBooleanValue value;
 		SAppBooleanValue textInButton;
 
+		SAppStringValue text;
 		SAppStringValue texts[2];
 		SAppColorValue textColor;
 		SAppColorValue textColors[2];
@@ -1296,7 +1297,7 @@ namespace slib
 
 		void layoutViews(sl_ui_len width, sl_ui_len height) override;
 
-		void onClose(UIEvent* ev) override;
+		void onDestroy() override;
 
 	public:
 		SLIB_BOOLEAN_PROPERTY(SavingPageSize)

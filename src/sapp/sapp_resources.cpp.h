@@ -741,7 +741,7 @@ namespace slib
 		}
 	}
 
-	void SAppLayoutSimulationWindow::onClose(UIEvent* ev)
+	void SAppLayoutSimulationWindow::onDestroy()
 	{
 		Ref<SAppDocument> doc = m_document;
 		if (doc.isNotNull()) {

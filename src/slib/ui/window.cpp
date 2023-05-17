@@ -85,6 +85,7 @@ namespace slib
 		m_flagStateResizingWidth = sl_false;
 		m_flagStateDoModal = sl_false;
 		m_flagStateClosing = sl_false;
+		m_flagRequestClose = sl_false;
 		m_flagDispatchedDestroy = sl_false;
 
 		m_viewContent = new WindowContentView;
@@ -112,6 +113,13 @@ namespace slib
 
 	void Window::close()
 	{
+		ObjectLocker lock(this);
+
+		if (m_flagRequestClose) {
+			m_flagStateClosing = sl_true;
+			return;
+		}
+
 		Ref<WindowInstance> instance = m_instance;
 		if (instance.isNull()) {
 			return;
@@ -121,13 +129,19 @@ namespace slib
 		SLIB_VIEW_RUN_ON_UI_THREAD2(func)
 
 		Ref<Window> window = this;
-		instance->close();
 		detach();
+		lock.unlock();
+
 		_doDestroy();
+
+		instance->close();
 	}
 
 	sl_bool Window::isClosed()
 	{
+		if (m_flagRequestClose && m_flagStateClosing) {
+			return sl_true;
+		}
 		Ref<WindowInstance> instance = m_instance;
 		if (instance.isNotNull()) {
 			return instance->isClosed();
@@ -1259,7 +1273,7 @@ namespace slib
 
 	void Window::setQuitOnDestroy()
 	{
-		setOnDestroy([](Window*, UIEvent*) {
+		setOnDestroy([](Window*) {
 			UI::quitApp();
 		});
 	}
@@ -1527,17 +1541,24 @@ namespace slib
 
 	void Window::onClose()
 	{
-		m_flagStateClosing = sl_true;
+		close(DialogResult::Cancel);
 	}
 
-	void Window::_doClose()
+	// returns true for destroying
+	sl_bool Window::_doClose()
 	{
+		ObjectLocker lock(this);
+		m_flagRequestClose = sl_true;
 		invokeClose();
-		if (ev->isPreventedDefault()) {
-			return;
+		m_flagRequestClose = sl_false;
+		if (m_flagStateClosing) {
+			lock.unlock();
+			detach();
+			_doDestroy();
+			return sl_true;
+		} else {
+			return sl_false;
 		}
-		detach();
-		_doDestroy();
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(Window, Destroy, ())
@@ -1620,14 +1641,7 @@ namespace slib
 
 	void Window::onCancel()
 	{
-		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
-		if (ev.isNotNull()) {
-			invokeClose(ev);
-			if (ev->isPreventedDefault()) {
-				return;
-			}
-		}
-		close(DialogResult::Cancel);
+		invokeClose();
 	}
 
 	void Window::_refreshClientSize(const UISize& size)
@@ -1936,13 +1950,7 @@ namespace slib
 	{
 		Ref<Window> window = getWindow();
 		if (window.isNotNull()) {
-			Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
-			if (ev.isNotNull()) {
-				window->_doClose(ev.get());
-				if (ev->isPreventedDefault()) {
-					return sl_false;
-				}
-			}
+			return window->_doClose();
 		}
 		return sl_true;
 	}

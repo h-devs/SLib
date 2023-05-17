@@ -1,5 +1,7 @@
 #include "MainPage.h"
 
+#include <slib/data/contact.h>
+
 void MainPage::onOpen()
 {
 	UI::dispatchToUiThread([this]{

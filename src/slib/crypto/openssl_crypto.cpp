@@ -42,18 +42,21 @@
 namespace slib
 {
 
-	namespace {
-
 #if defined(SLIB_PLATFORM_IS_WIN32)
+	namespace openssl {
 		void InitThread();
+	}
+	using namespace openssl;
 #else
-		static void InitThread()
-		{
-		}
+	namespace {
+		static void InitThread() {}
+	}
 #endif
 
+	namespace {
+
 #define DEFINE_HANDLE(NAME) \
-		struct SLIB_EXPORT NAME##_Handle \
+		struct NAME##_Handle \
 		{ \
 			SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(NAME##_Handle, ::NAME*, handle, sl_null, NAME##_free) \
 		};
@@ -80,7 +83,6 @@ namespace slib
 		DEFINE_HANDLE(POLICYINFO)
 		DEFINE_HANDLE(AUTHORITY_INFO_ACCESS)
 		DEFINE_HANDLE(ACCESS_DESCRIPTION)
-
 
 		class SLIB_EXPORT Stack_X509_Handle
 		{

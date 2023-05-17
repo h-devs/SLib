@@ -468,7 +468,7 @@ namespace slib
 			{
 				Ref<WebViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->invokeStartLoad(String::from(szURL));
+					UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), helper, invokeStartLoad, String::from(szURL)));
 					*pFlagCancel = 0;
 				}
 			}
@@ -479,21 +479,25 @@ namespace slib
 				runJavaScript(sl_null, "window.slib = {send: slib_send};");
 			}
 
-			void onNavigateError(BSTR szURL)
+			void _onNavigateError(const String& url)
 			{
 				Ref<WebViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					String url = String::from(szURL);
 					helper->invokeStartLoad(url);
 					helper->handleFinishLoad(url, sl_true);
 				}
+			}
+
+			void onNavigateError(BSTR szURL)
+			{
+				UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), this, _onNavigateError, String::from(szURL)));
 			}
 
 			void onDocumentComplete(BSTR szURL)
 			{
 				Ref<WebViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->handleFinishLoad(String::from(szURL), sl_false);
+					UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), helper, handleFinishLoad, String::from(szURL), sl_false));
 				}
 			}
 

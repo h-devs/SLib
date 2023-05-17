@@ -53,9 +53,9 @@ namespace slib
 
 		void openHome(const Ref<ViewPageNavigationController>& controller);
 
-		void close(const Transition& transition);
+		sl_bool close(const Transition& transition);
 
-		void close();
+		sl_bool close();
 
 		void goToPage(const Ref<View>& pageOther, const Transition& transition);
 
@@ -98,9 +98,9 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, EndPageAnimation, ViewPageNavigationController* controller, UIPageAction action)
 		void handleEndPageAnimation(ViewPageNavigationController* controller, UIPageAction action);
 		// For mobile platforms
-		SLIB_DECLARE_EVENT_HANDLER(ViewPage, PressBack)
+		SLIB_DECLARE_EVENT_HANDLER(ViewPage, PressBack, UIEvent* ev)
 		// Pressed mobile back button or Closed popup window
-		SLIB_DECLARE_EVENT_HANDLER(ViewPage, Back)
+		SLIB_DECLARE_EVENT_HANDLER(ViewPage, Back, UIEvent* ev /* nullable */)
 		SLIB_DECLARE_EVENT_HANDLER(ViewPage, ClickBackground, UIEvent* ev)
 
 	public:
@@ -117,16 +117,18 @@ namespace slib
 
 		void _applyDefaultClosingPopupTransition(Transition& transition);
 
-		void _onClosePopupWindow(Window* window, UIEvent* ev);
-
 	protected:
 		AtomicWeakRef<ViewPageNavigationController> m_navigationController;
 
-		enum class PopupState
+		enum class State
 		{
-			None, Popup, ClosingPopup, ShowWindow
+			None = 0,
+			Closing = 1,
+			Open = 10,
+			Popup = 11,
+			Window = 12
 		};
-		PopupState m_popupState;
+		State m_state;
 
 		Transition m_openingTransition;
 		Transition m_closingTransition;

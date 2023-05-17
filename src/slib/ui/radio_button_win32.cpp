@@ -33,10 +33,30 @@ namespace slib
 
 	using namespace priv;
 
+	namespace {
+		class RadioButtonInstance : public CheckBoxInstance
+		{
+		public:
+			sl_bool processCommand(SHORT code, LRESULT& result) override
+			{
+				HWND handle = m_handle;
+				if (handle) {
+					if (code == BN_CLICKED) {
+						SendMessageW(handle, BM_SETCHECK, BST_CHECKED, 0);
+						onClick();
+						return sl_true;
+					}
+				}
+				return sl_false;
+			}
+
+		};
+	}
+
 	Ref<ViewInstance> RadioButton::createNativeWidget(ViewInstance* parent)
 	{
 		UINT style = BS_RADIOBUTTON | WS_TABSTOP;
-		return Win32_ViewInstance::create<CheckBoxInstance>(this, parent, L"BUTTON", getText(), style, 0);
+		return Win32_ViewInstance::create<RadioButtonInstance>(this, parent, L"BUTTON", getText(), style, 0);
 	}
 
 }

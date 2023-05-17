@@ -90,7 +90,7 @@ namespace slib
 						ev->addFlag(UIEventFlags::NotDispatchToChildren);
 					}
 					instance->onKeyEvent(ev.get());
-					if (ev->isPreventedDefault()) {
+					if (ev->isAccepted()) {
 						return 1;
 					}
 				}

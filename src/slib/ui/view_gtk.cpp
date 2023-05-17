@@ -469,7 +469,7 @@ namespace slib
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
 				onMouseEvent(event.get());
-				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
+				if (event->isAccepted()) {
 					return sl_true;
 				}
 			}
@@ -530,7 +530,7 @@ namespace slib
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
 				onMouseEvent(event.get());
-				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
+				if (event->isAccepted()) {
 					return sl_true;
 				}
 			}
@@ -563,7 +563,7 @@ namespace slib
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
 				onMouseEvent(event.get());
-				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
+				if (event->isAccepted()) {
 					return sl_true;
 				}
 			}
@@ -588,7 +588,7 @@ namespace slib
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
 				ViewInstance::onKeyEvent(event.get());
-				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
+				if (event->isAccepted()) {
 					return sl_true;
 				}
 				if (isWindowContent()) {
@@ -651,7 +651,7 @@ namespace slib
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
 				onMouseWheelEvent(event.get());
-				if (event->isStoppedPropagation() || event->isPreventedDefault()) {
+				if (event->isAccepted()) {
 					return sl_true;
 				}
 			}

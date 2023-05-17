@@ -617,11 +617,11 @@ namespace slib
 			return sl_true;
 		}
 		str = str.toLower();
-		if (str == "true") {
+		if (str == "true" || str == "on") {
 			value = sl_true;
 			flagDefined = sl_true;
 			return sl_true;
-		} else if (str == "false") {
+		} else if (str == "false" || str == "off") {
 			value = sl_false;
 			flagDefined = sl_true;
 			return sl_true;
@@ -2502,38 +2502,6 @@ namespace slib
 		} else if (str == "resize-y" || str == "resizey" || str == "resizeupdown") {
 			value = Cursor::getResizeUpDown();
 			type = RESIZE_UP_DOWN;
-			flagDefined = sl_true;
-			return sl_true;
-		}
-		return sl_false;
-	}
-
-
-	String SAppSwitchValue::getAccessString() const
-	{
-		if (!flagDefined) {
-			return "slib::SwitchValue::Off";
-		}
-		if (value == SwitchValue::On) {
-			return "slib::SwitchValue::On";
-		} else {
-			return "slib::SwitchValue::Off";
-		}
-	}
-
-	sl_bool SAppSwitchValue::parse(const String& _str)
-	{
-		String str = _str.trim();
-		if (str.isEmpty()) {
-			return sl_true;
-		}
-		str = str.toLower();
-		if (str == "on") {
-			value = SwitchValue::On;
-			flagDefined = sl_true;
-			return sl_true;
-		} else if (str == "off") {
-			value = SwitchValue::Off;
 			flagDefined = sl_true;
 			return sl_true;
 		}

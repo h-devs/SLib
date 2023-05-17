@@ -67,7 +67,7 @@ namespace slib
 		WNDPROC g_wndProc_CustomMsgBox = NULL;
 		WNDPROC g_wndProc_SystemTrayIcon = NULL;
 
-		void RunUiLoop(HWND hWndModalDialog, sl_bool flagEnableParent)
+		void RunUiLoop(HWND hWndModalDialog)
 		{
 			if (g_bFlagQuit) {
 				return;
@@ -77,54 +77,50 @@ namespace slib
 			while (GetMessageW(&msg, NULL, 0, 0)) {
 				sl_bool flagQuitLoop = sl_false;
 				switch (msg.message) {
-				case WM_QUIT:
-					PostQuitMessage((int)(msg.wParam));
-					flagQuitLoop = sl_true;
-					break;
-				case SLIB_UI_MESSAGE_QUIT_LOOP:
-					flagQuitLoop = sl_true;
-					break;
-				case SLIB_UI_MESSAGE_DISPATCH:
-					UIDispatcher::processCallbacks();
-					break;
-				case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
-					UIDispatcher::processDelayedCallback((sl_reg)(msg.lParam));
-					break;
-				case SLIB_UI_MESSAGE_CLOSE:
-				case WM_DESTROY:
-					if (flagEnableParent) {
-						HWND hWndParent = GetWindow(msg.hwnd, GW_OWNER);
-						EnableWindow(hWndParent, TRUE);
-					}
-					DestroyWindow(msg.hwnd);
-					if (hWndModalDialog) {
-						if (msg.hwnd == hWndModalDialog) {
-							flagQuitLoop = sl_true;
-							break;
-						}
-					}
-					break;
-				case WM_MENUCOMMAND:
-					ProcessMenuCommand(msg.wParam, msg.lParam);
-					break;
-				default:
-					do {
-						if (ProcessMenuShortcutKey(msg)) {
-							break;
-						}
-						Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
-						if (instance.isNotNull()) {
-							Ref<View> view = instance->getView();
-							if (view.isNotNull()) {
-								if (CaptureChildInstanceEvents(view.get(), msg)) {
-									break;
-								}
+					case WM_QUIT:
+						PostQuitMessage((int)(msg.wParam));
+						flagQuitLoop = sl_true;
+						break;
+					case SLIB_UI_MESSAGE_QUIT_LOOP:
+						flagQuitLoop = sl_true;
+						break;
+					case SLIB_UI_MESSAGE_DISPATCH:
+						UIDispatcher::processCallbacks();
+						break;
+					case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
+						UIDispatcher::processDelayedCallback((sl_reg)(msg.lParam));
+						break;
+					case SLIB_UI_MESSAGE_CLOSE:
+					case WM_DESTROY:
+						DestroyWindow(msg.hwnd);
+						if (hWndModalDialog) {
+							if (msg.hwnd == hWndModalDialog) {
+								flagQuitLoop = sl_true;
+								break;
 							}
 						}
-						TranslateMessage(&msg);
-						DispatchMessageW(&msg);
-					} while (0);
-					break;
+						break;
+					case WM_MENUCOMMAND:
+						ProcessMenuCommand(msg.wParam, msg.lParam);
+						break;
+					default:
+						do {
+							if (ProcessMenuShortcutKey(msg)) {
+								break;
+							}
+							Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
+							if (instance.isNotNull()) {
+								Ref<View> view = instance->getView();
+								if (view.isNotNull()) {
+									if (CaptureChildInstanceEvents(view.get(), msg)) {
+										break;
+									}
+								}
+							}
+							TranslateMessage(&msg);
+							DispatchMessageW(&msg);
+						} while (0);
+						break;
 				}
 				if (flagQuitLoop) {
 					break;
@@ -382,7 +378,7 @@ namespace slib
 
 	void UIPlatform::runLoop(sl_uint32 level)
 	{
-		RunUiLoop(NULL, sl_false);
+		RunUiLoop(NULL);
 	}
 
 	void UIPlatform::quitLoop()
@@ -420,7 +416,7 @@ namespace slib
 
 		UIDispatcher::processCallbacks();
 		UIApp::Current::invokeStart();
-		RunUiLoop(NULL, sl_false);
+		RunUiLoop(NULL);
 		UIApp::Current::invokeExit();
 	}
 

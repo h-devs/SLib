@@ -33,7 +33,7 @@ namespace slib
 
 	namespace priv
 	{
-		void RunUiLoop(HWND hWndModalDialog, sl_bool flagEnableParent);
+		void RunUiLoop(HWND hWndModalDialog);
 		sl_bool IsAnyViewPainting();
 	}
 
@@ -102,6 +102,8 @@ namespace slib
 
 			sl_bool m_flagBorderless;
 			sl_bool m_flagFullscreen;
+			sl_bool m_flagModal;
+			HWND m_hWndDisabledParent;
 
 			sl_bool m_flagResizable;
 			sl_bool m_flagLayered;
@@ -123,6 +125,8 @@ namespace slib
 
 				m_flagBorderless = sl_false;
 				m_flagFullscreen = sl_false;
+				m_flagModal = sl_false;
+				m_hWndDisabledParent = NULL;
 
 				m_flagResizable = sl_false;
 				m_flagLayered = sl_false;
@@ -204,6 +208,7 @@ namespace slib
 				if (window) {
 					m_flagBorderless = window->isBorderless();
 					m_flagFullscreen = window->isFullScreen();
+					m_flagModal = window->isModal();
 					if (window->isDefaultBackgroundColor()) {
 						m_backgroundColor = window->getBackgroundColor();
 					}
@@ -223,13 +228,16 @@ namespace slib
 			void close() override
 			{
 				ObjectLocker lock(this);
-				HWND hWnd = m_handle;
-				if (hWnd) {
+				HWND handle = m_handle;
+				if (handle) {
+					if (m_hWndDisabledParent) {
+						EnableWindow(m_hWndDisabledParent, TRUE);
+					}
 					m_handle = NULL;
-					UIPlatform::removeWindowInstance(hWnd);
+					UIPlatform::removeWindowInstance(handle);
 					m_viewContent.setNull();
 					if (m_flagDestroyOnRelease) {
-						PostMessageW(hWnd, SLIB_UI_MESSAGE_CLOSE, 0, 0);
+						PostMessageW(handle, SLIB_UI_MESSAGE_CLOSE, 0, 0);
 					}
 				}
 			}
@@ -534,15 +542,7 @@ namespace slib
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
-					HWND hWndParent = GetWindow(hWnd, GW_OWNER);
-					sl_bool flagEnableParent = sl_false;
-					if (hWndParent) {
-						if (hWndParent != GetDesktopWindow() && IsWindowEnabled(hWndParent)) {
-							EnableWindow(hWndParent, FALSE);
-							flagEnableParent = sl_true;
-						}
-					}
-					RunUiLoop(hWnd, flagEnableParent);
+					RunUiLoop(hWnd);
 				}
 				return sl_true;
 			}
@@ -551,6 +551,15 @@ namespace slib
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
+					if (m_flagModal) {
+						HWND hWndParent = GetWindow(hWnd, GW_OWNER);
+						if (hWndParent) {
+							if (hWndParent != GetDesktopWindow() && IsWindowEnabled(hWndParent)) {
+								EnableWindow(hWndParent, FALSE);
+								m_hWndDisabledParent = hWndParent;
+							}
+						}
+					}
 					if (GetWindowLongW(hWnd, GWL_STYLE) & WS_POPUP) {
 						RECT rc = { 0 };
 						GetWindowRect(hWnd, &rc);
@@ -603,6 +612,195 @@ namespace slib
 						}
 					}
 				}
+			}
+
+			void _onClose()
+			{
+				HWND handle = m_handle;
+				if (!handle) {
+					return;
+				}
+				if (onClose()) {
+					close();
+				}
+			}
+
+			void _onResize(WPARAM wParam, LPARAM lParam)
+			{
+				HWND handle = m_handle;
+				if (!handle) {
+					return;
+				}
+				int width = LOWORD(lParam);
+				int height = HIWORD(lParam);
+				if (width < 0) {
+					width = 0;
+				}
+				if (height < 0) {
+					height = 0;
+				}
+				if (width > 60000) {
+					width = 60000;
+				}
+				if (height > 60000) {
+					height = 60000;
+				}
+				if (wParam == SIZE_MAXIMIZED) {
+					m_flagMaximized = sl_true;
+					onMaximize();
+					onResize(handle, (sl_ui_pos)width, (sl_ui_pos)height);
+				} else if (wParam == SIZE_MINIMIZED) {
+					m_flagMinimized = sl_true;
+					onMinimize();
+				} else if (wParam == SIZE_RESTORED) {
+					if (m_flagMinimized) {
+						m_flagMinimized = sl_false;
+						onDeminimize();
+					} else if (m_flagMaximized) {
+						m_flagMaximized = sl_false;
+						onDemaximize();
+						onResize(handle, (sl_ui_pos)width, (sl_ui_pos)height);
+					} else {
+						onResize(handle, (sl_ui_pos)width, (sl_ui_pos)height);
+					}
+				}
+			}
+
+			void _onResizing(WPARAM wParam, LPARAM lParam)
+			{
+				HWND handle = m_handle;
+				if (!handle) {
+					return;
+				}
+				RECT rcClient = { 0 };
+				RECT rcWindow = { 0 };
+				GetClientRect(handle, &rcClient);
+				GetWindowRect(handle, &rcWindow);
+				sl_ui_len dw = (sl_ui_len)(rcWindow.right - rcWindow.left - (rcClient.right - rcClient.left));
+				sl_ui_len dh = (sl_ui_len)(rcWindow.bottom - rcWindow.top - (rcClient.bottom - rcClient.top));
+
+				RECT& rect = *(RECT*)(lParam);
+				UISize size((sl_ui_pos)(rect.right - rect.left), (sl_ui_pos)(rect.bottom - rect.top));
+				size.x -= dw;
+				size.y -= dh;
+				onResizing(size, wParam != WMSZ_TOP && wParam != WMSZ_BOTTOM);
+				if (size.x < 0) {
+					size.x = 0;
+				}
+				if (size.y < 0) {
+					size.y = 0;
+				}
+				if (size.x > 60000) {
+					size.x = 60000;
+				}
+				if (size.y > 60000) {
+					size.y = 60000;
+				}
+				size.x += dw;
+				size.y += dh;
+				switch (wParam) {
+					case WMSZ_TOPLEFT:
+						rect.left = (int)(rect.right - size.x);
+						rect.top = (int)(rect.bottom - size.y);
+						break;
+					case WMSZ_TOP:
+						rect.right = (int)(rect.left + size.x);
+						rect.top = (int)(rect.bottom - size.y);
+						break;
+					case WMSZ_TOPRIGHT:
+						rect.right = (int)(rect.left + size.x);
+						rect.top = (int)(rect.bottom - size.y);
+						break;
+					case WMSZ_LEFT:
+						rect.left = (int)(rect.right - size.x);
+						rect.bottom = (int)(rect.top + size.y);
+						break;
+					case WMSZ_RIGHT:
+						rect.right = (int)(rect.left + size.x);
+						rect.bottom = (int)(rect.top + size.y);
+						break;
+					case WMSZ_BOTTOMLEFT:
+						rect.left = (int)(rect.right - size.x);
+						rect.bottom = (int)(rect.top + size.y);
+						break;
+					case WMSZ_BOTTOM:
+						rect.right = (int)(rect.left + size.x);
+						rect.bottom = (int)(rect.top + size.y);
+						break;
+					case WMSZ_BOTTOMRIGHT:
+						rect.right = (int)(rect.left + size.x);
+						rect.bottom = (int)(rect.top + size.y);
+						break;
+				}
+			}
+
+			sl_bool _onNcHitTest(WPARAM wParam, LPARAM lParam, LRESULT& result)
+			{
+				HWND handle = m_handle;
+				if (!handle) {
+					return sl_false;
+				}
+				if (m_flagBorderless) {
+					if (m_flagResizable) {
+						short x = (short)(lParam & 0xFFFF);
+						short y = (short)((lParam >> 16) & 0xFFFF);
+						RECT rc = { 0 };
+						GetWindowRect(handle, &rc);
+#define BORDER_SIZE 4
+						rc.left += BORDER_SIZE;
+						rc.top += BORDER_SIZE;
+						rc.right -= BORDER_SIZE;
+						rc.bottom -= BORDER_SIZE;
+						if (x >= rc.right) {
+							if (y >= rc.bottom) {
+								result = HTBOTTOMRIGHT;
+							}
+							if (y <= rc.top) {
+								result = HTTOPRIGHT;
+							} else {
+								result = HTRIGHT;
+							}
+						} else if (x <= rc.left) {
+							if (y >= rc.bottom) {
+								result = HTBOTTOMLEFT;
+							} else if (y <= rc.top) {
+								result = HTTOPLEFT;
+							} else {
+								result = HTLEFT;
+							}
+						} else if (y >= rc.bottom) {
+							result = HTBOTTOM;
+						} else if (y <= rc.top) {
+							result = HTTOP;
+						} else {
+							return sl_false;
+						}
+						return sl_true;
+					}
+				}
+				return sl_false;
+			}
+
+			sl_bool _onGetMinMaxInfo(WPARAM wParam, LPARAM lParam, LRESULT& result)
+			{
+				HWND handle = m_handle;
+				if (!handle) {
+					return sl_false;
+				}
+				if (m_flagBorderless) {
+					MINMAXINFO* mmi = (MINMAXINFO*)lParam;
+					HMONITOR hMonitor = MonitorFromWindow(handle, MONITOR_DEFAULTTONEAREST);
+					if (hMonitor) {
+						MONITORINFO mi;
+						Base::zeroMemory(&mi, sizeof(mi));
+						mi.cbSize = sizeof(mi);
+						GetMonitorInfoW(hMonitor, &mi);
+						mmi->ptMaxSize.y = mi.rcWork.bottom - mi.rcWork.top;
+						result = 0;
+						return sl_true;
+					}
+				}
+				return sl_false;
 			}
 
 		};
@@ -703,189 +901,43 @@ namespace slib
 			Win32_WindowInstance* window = (Win32_WindowInstance*)(_window.get());
 			if (window && window->m_handle) {
 				switch (uMsg) {
-				case WM_CLOSE:
-					{
-						if (window->onClose()) {
-							window->close();
-						}
+					case WM_CLOSE:
+						window->_onClose();
 						return 1;
-					}
-				case WM_ACTIVATE:
-					{
+					case WM_ACTIVATE:
 						if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE) {
 							window->onActivate();
 						} else {
 							window->onDeactivate();
 						}
 						break;
-					}
-				case WM_SIZE:
-					{
-						int width = LOWORD(lParam);
-						int height = HIWORD(lParam);
-						if (width < 0) {
-							width = 0;
-						}
-						if (height < 0) {
-							height = 0;
-						}
-						if (width > 60000) {
-							width = 60000;
-						}
-						if (height > 60000) {
-							height = 60000;
-						}
-						if (wParam == SIZE_MAXIMIZED) {
-							window->m_flagMaximized = sl_true;
-							window->onMaximize();
-							window->onResize(hWnd, (sl_ui_pos)width, (sl_ui_pos)height);
-						} else if (wParam == SIZE_MINIMIZED) {
-							window->m_flagMinimized = sl_true;
-							window->onMinimize();
-						} else if (wParam == SIZE_RESTORED) {
-							if (window->m_flagMinimized) {
-								window->m_flagMinimized = sl_false;
-								window->onDeminimize();
-							} else if (window->m_flagMaximized) {
-								window->m_flagMaximized = sl_false;
-								window->onDemaximize();
-								window->onResize(hWnd, (sl_ui_pos)width, (sl_ui_pos)height);
-							} else {
-								window->onResize(hWnd, (sl_ui_pos)width, (sl_ui_pos)height);
+					case WM_SIZE:
+						window->_onResize(wParam, lParam);
+						break;
+					case WM_SIZING:
+						window->_onResizing(wParam, lParam);
+						break;
+					case WM_MOVE:
+						window->onMove((sl_ui_pos)((short)(lParam & 0xFFFF)), (sl_ui_pos)((short)((lParam >> 16) & 0xFFFF)));
+						break;
+					case WM_NCHITTEST:
+						{
+							LRESULT result;
+							if (window->_onNcHitTest(wParam, lParam, result)) {
+								return result;
 							}
-						}
-						break;
-					}
-				case WM_SIZING:
-					{
-						RECT rcClient = { 0 };
-						RECT rcWindow = { 0 };
-						GetClientRect(hWnd, &rcClient);
-						GetWindowRect(hWnd, &rcWindow);
-						sl_ui_len dw = (sl_ui_len)(rcWindow.right - rcWindow.left - (rcClient.right - rcClient.left));
-						sl_ui_len dh = (sl_ui_len)(rcWindow.bottom - rcWindow.top - (rcClient.bottom - rcClient.top));
-
-						RECT& rect = *(RECT*)(lParam);
-						UISize size((sl_ui_pos)(rect.right - rect.left), (sl_ui_pos)(rect.bottom - rect.top));
-						size.x -= dw;
-						size.y -= dh;
-						window->onResizing(size, wParam != WMSZ_TOP && wParam != WMSZ_BOTTOM);
-						if (size.x < 0) {
-							size.x = 0;
-						}
-						if (size.y < 0) {
-							size.y = 0;
-						}
-						if (size.x > 60000) {
-							size.x = 60000;
-						}
-						if (size.y > 60000) {
-							size.y = 60000;
-						}
-						size.x += dw;
-						size.y += dh;
-						switch (wParam) {
-						case WMSZ_TOPLEFT:
-							rect.left = (int)(rect.right - size.x);
-							rect.top = (int)(rect.bottom - size.y);
-							break;
-						case WMSZ_TOP:
-							rect.right = (int)(rect.left + size.x);
-							rect.top = (int)(rect.bottom - size.y);
-							break;
-						case WMSZ_TOPRIGHT:
-							rect.right = (int)(rect.left + size.x);
-							rect.top = (int)(rect.bottom - size.y);
-							break;
-						case WMSZ_LEFT:
-							rect.left = (int)(rect.right - size.x);
-							rect.bottom = (int)(rect.top + size.y);
-							break;
-						case WMSZ_RIGHT:
-							rect.right = (int)(rect.left + size.x);
-							rect.bottom = (int)(rect.top + size.y);
-							break;
-						case WMSZ_BOTTOMLEFT:
-							rect.left = (int)(rect.right - size.x);
-							rect.bottom = (int)(rect.top + size.y);
-							break;
-						case WMSZ_BOTTOM:
-							rect.right = (int)(rect.left + size.x);
-							rect.bottom = (int)(rect.top + size.y);
-							break;
-						case WMSZ_BOTTOMRIGHT:
-							rect.right = (int)(rect.left + size.x);
-							rect.bottom = (int)(rect.top + size.y);
 							break;
 						}
-						break;
-					}
-				case WM_MOVE:
-					{
-						short x = (short)(lParam & 0xFFFF);
-						short y = (short)((lParam >> 16) & 0xFFFF);
-						window->onMove((sl_ui_pos)x, (sl_ui_pos)y);
-						break;
-					}
-				case WM_NCHITTEST:
-					{
-						if (window->m_flagBorderless) {
-							if (window->m_flagResizable) {
-								short x = (short)(lParam & 0xFFFF);
-								short y = (short)((lParam >> 16) & 0xFFFF);
-								RECT rc = { 0 };
-								GetWindowRect(hWnd, &rc);
-#define BORDER_SIZE 4
-								rc.left += BORDER_SIZE;
-								rc.top += BORDER_SIZE;
-								rc.right -= BORDER_SIZE;
-								rc.bottom -= BORDER_SIZE;
-								if (x >= rc.right) {
-									if (y >= rc.bottom) {
-										return HTBOTTOMRIGHT;
-									}
-									if (y <= rc.top) {
-										return HTTOPRIGHT;
-									}
-									return HTRIGHT;
-								}
-								if (x <= rc.left) {
-									if (y >= rc.bottom) {
-										return HTBOTTOMLEFT;
-									}
-									if (y <= rc.top) {
-										return HTTOPLEFT;
-									}
-									return HTLEFT;
-								}
-								if (y >= rc.bottom) {
-									return HTBOTTOM;
-								}
-								if (y <= rc.top) {
-									return HTTOP;
-								}
+					case WM_GETMINMAXINFO:
+						{
+							LRESULT result;
+							if (window->_onGetMinMaxInfo(wParam, lParam, result)) {
+								return result;
 							}
+							break;
 						}
-						break;
-					}
-				case WM_GETMINMAXINFO:
-					{
-						if (window->m_flagBorderless) {
-							MINMAXINFO* mmi = (MINMAXINFO*)lParam;
-							HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
-							if (hMonitor) {
-								MONITORINFO mi;
-								Base::zeroMemory(&mi, sizeof(mi));
-								mi.cbSize = sizeof(mi);
-								GetMonitorInfoW(hMonitor, &mi);
-								mmi->ptMaxSize.y = mi.rcWork.bottom - mi.rcWork.top;
-								return 0;
-							}
-						}
-						break;
-					}
-				case WM_KILLFOCUS:
-					return 0;
+					case WM_KILLFOCUS:
+						return 0;
 				}
 			}
 			return ViewInstanceProc(hWnd, uMsg, wParam, lParam);

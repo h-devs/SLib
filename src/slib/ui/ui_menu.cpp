@@ -388,7 +388,7 @@ namespace slib
 				Ref<ui::MenuPopup> view = new ui::MenuPopup;
 				if (view.isNotNull()) {
 					view->setOnTouchEvent([](View*, UIEvent* ev) {
-						ev->stopPropagation();
+						ev->accept();
 					});
 					Ref<DrawnMenu> ret = new DrawnMenu();
 					if (ret.isNotNull()) {
@@ -483,7 +483,7 @@ namespace slib
 						back->setWidthFilling(1, UIUpdateMode::Init);
 						back->setHeightFilling(1, UIUpdateMode::Init);
 						back->setOnTouchEvent([](View* view, UIEvent* ev) {
-							ev->stopPropagation();
+							ev->accept();
 							view->removeFromParent();
 						});
 						m_view->forceUpdateLayout();

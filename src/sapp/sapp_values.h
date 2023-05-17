@@ -634,19 +634,6 @@ namespace slib
 
 	};
 
-	class SAppSwitchValue
-	{
-	public:
-		sl_bool flagDefined = sl_false;
-		SwitchValue value = SwitchValue::Off;
-
-	public:
-		String getAccessString() const;
-
-		sl_bool parse(const String& str);
-
-	};
-
 	class SAppGridSelectionModeValue
 	{
 	public:

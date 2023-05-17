@@ -46,6 +46,7 @@ public class Android {
 		nativeOnDestroyActivity(activity);
 	}
 
+	// returns true if the event is handled
 	public static boolean onBack(Activity activity)
 	{
 		return nativeOnBack(activity);

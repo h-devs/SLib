@@ -27,7 +27,7 @@ void SpectrogramApp::onStart()
 	window->setResizable();
 	window->setMaximizeButtonEnabled();
 	window->setMinimizeButtonEnabled();
-	window->setOnClose([this](Window* window, UIEvent* ev) {
+	window->setOnDestroy([this](Window* window) {
 		m_threadProcess->finishAndWait();
 		UIApp::quit();
 	});
@@ -95,7 +95,8 @@ void SpectrogramApp::onProcessAudio(float* a)
 	}
 
 	BitmapData bd;
-	bd.width = bd.pitch = 1;
+	bd.width = 1;
+	bd.pitch = 1;
 	bd.height = BITMAP_HEIGHT;
 	bd.data = colors;
 	bd.format = BitmapFormat::Gray8;

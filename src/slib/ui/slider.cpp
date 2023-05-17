@@ -300,7 +300,8 @@ namespace slib
 		}
 
 		ProgressBar::onMouseEvent(ev);
-		ev->stopPropagation();
+
+		ev->accept();
 	}
 
 	void Slider::onMouseWheelEvent(UIEvent* ev)
@@ -323,7 +324,7 @@ namespace slib
 			}
 		}
 
-		ev->stopPropagation();
+		ev->accept();
 	}
 
 	void Slider::onKeyEvent(UIEvent* ev)
@@ -340,6 +341,7 @@ namespace slib
 					} else {
 						_changeValue(m_value - step, ev);
 					}
+					ev->accept();
 					break;
 				case Keycode::Right:
 				case Keycode::Down:
@@ -348,11 +350,11 @@ namespace slib
 					} else {
 						_changeValue(m_value + step, ev);
 					}
+					ev->accept();
 					break;
 				default:
 					return;
 			}
-			ev->stopPropagation();
 		}
 	}
 

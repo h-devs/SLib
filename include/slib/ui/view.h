@@ -1287,9 +1287,14 @@ namespace slib
 		Ref<View> findViewByMnemonicKey(char ch);
 
 
+		sl_bool isUsingState();
+
+		void setUsingState(sl_bool flag = sl_true);
+
+
 		sl_bool isKeepKeyboard();
 
-		void setKeepKeyboard(sl_bool flag);
+		void setKeepKeyboard(sl_bool flag = sl_true);
 
 
 		sl_bool isDragSource();
@@ -1614,9 +1619,13 @@ namespace slib
 
 		void _processKeyEvents(UIEvent* ev);
 
-		void _processEventForStateAndClick(UIEvent* ev);
+		void _processEnterState(UIEvent* ev);
 
-		void _processContentScrollingEvents(UIEvent* ev);
+		void _processLeaveState(UIEvent* ev);
+
+		void _processClick(UIEvent* ev);
+
+		void _processContentScrolling(UIEvent* ev);
 
 		void _startContentScrollingFlow(sl_bool flagTarget, const ScrollPosition& speedOrTarget, ScrollEvent::Source source);
 
@@ -1664,6 +1673,7 @@ namespace slib
 		sl_bool m_flagSavingCanvasState : 1;
 		sl_bool m_flagOkCancelEnabled : 1;
 		sl_bool m_flagTabStopEnabled : 1;
+		sl_bool m_flagUsingState : 1;
 		sl_bool m_flagKeepKeyboard : 1;
 		sl_bool m_flagDragSource : 1;
 		sl_bool m_flagDropTarget : 1;

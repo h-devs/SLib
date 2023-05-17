@@ -630,10 +630,10 @@ namespace slib
 				}
 			}
 			if (layout->layoutType == SAppLayoutType::Window) {
-				window->setOnClose(Function<void(Window*,UIEvent*)>::from(param.onCloseWindow));
+				window->setOnClose(Function<void(Window*)>::from(param.onCloseWindow));
 			} else {
 				window->setClientSize(param.pageSize);
-				window->setOnClose(Function<void(Window*,UIEvent*)>::from(param.onClosePage));
+				window->setOnClose(Function<void(Window*)>::from(param.onClosePage));
 			}
 			return window->open(this, layout);
 		}
@@ -4015,11 +4015,11 @@ namespace slib
 			LAYOUT_CONTROL_PARSE_##TYPE(*(resourceItem), #NAME "Off", , attr->NAME##s[0], ##__VA_ARGS__) \
 			LAYOUT_CONTROL_PARSE_##TYPE(*(resourceItem), #NAME "On", , attr->NAME##s[1], ##__VA_ARGS__) \
 		} else if (op == SAppLayoutOperation::Generate) { \
-			LAYOUT_CONTROL_GENERATE_##TYPE(attr->NAME##s[0], SETFUNC, CONTROL, "slib::SwitchValue::Off, %s", value) \
-			LAYOUT_CONTROL_GENERATE_##TYPE(attr->NAME##s[1], SETFUNC, CONTROL, "slib::SwitchValue::On, %s", value) \
+			LAYOUT_CONTROL_GENERATE_##TYPE(attr->NAME##s[0], SETFUNC, CONTROL, "sl_false, %s", value) \
+			LAYOUT_CONTROL_GENERATE_##TYPE(attr->NAME##s[1], SETFUNC, CONTROL, "sl_true, %s", value) \
 		} else if (IsSimulateOp(op)) { \
-			LAYOUT_CONTROL_SIMULATE_##TYPE(attr->NAME##s[0], SETFUNC, CONTROL, SwitchValue::Off, value) \
-			LAYOUT_CONTROL_SIMULATE_##TYPE(attr->NAME##s[1], SETFUNC, CONTROL, SwitchValue::On, value) \
+			LAYOUT_CONTROL_SIMULATE_##TYPE(attr->NAME##s[0], SETFUNC, CONTROL, sl_false, value) \
+			LAYOUT_CONTROL_SIMULATE_##TYPE(attr->NAME##s[1], SETFUNC, CONTROL, sl_true, value) \
 		}
 
 #define LAYOUT_CONTROL_SWITCH_STATE_MAP(TYPE, NAME, SETFUNC, ...) \
@@ -4027,13 +4027,14 @@ namespace slib
 			LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, *(resourceItem), #NAME "Off", , attr->NAME##s[0], ##__VA_ARGS__) \
 			LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, *(resourceItem), #NAME "On", , attr->NAME##s[1], ##__VA_ARGS__) \
 		} else if (op == SAppLayoutOperation::Generate) { \
-			LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, attr->NAME##s[0], SETFUNC, CONTROL, "slib::SwitchValue::Off, %s", value) \
-			LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, attr->NAME##s[1], SETFUNC, CONTROL, "slib::SwitchValue::On, %s", value) \
+			LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, attr->NAME##s[0], SETFUNC, CONTROL, "sl_false, %s", value) \
+			LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, attr->NAME##s[1], SETFUNC, CONTROL, "sl_true, %s", value) \
 		} else if (IsSimulateOp(op)) { \
-			LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, attr->NAME##s[0], SETFUNC, CONTROL, SwitchValue::Off, value) \
-			LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, attr->NAME##s[1], SETFUNC, CONTROL, SwitchValue::On, value) \
+			LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, attr->NAME##s[0], SETFUNC, CONTROL, sl_false, value) \
+			LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, attr->NAME##s[1], SETFUNC, CONTROL, sl_true, value) \
 		}
 
+		LAYOUT_CONTROL_UI_ATTR(STRING, text, setText)
 		LAYOUT_CONTROL_SWITCH_ATTR(STRING, text, setText)
 		LAYOUT_CONTROL_UI_ATTR(COLOR, textColor, setTextColor)
 		LAYOUT_CONTROL_SWITCH_ATTR(COLOR, textColor, setTextColor)

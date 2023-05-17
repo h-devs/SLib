@@ -45,7 +45,7 @@ namespace slib
 	{
 		setCreatingInstance(sl_true);
 
-		m_popupState = PopupState::None;
+		m_state = State::None;
 		m_popupBackgroundColor = Color::zero();
 
 		m_countActiveTransitionAnimations = 0;
@@ -101,40 +101,59 @@ namespace slib
 		}
 	}
 
-	void ViewPage::close(const Transition& transition)
+	sl_bool ViewPage::close(const Transition& transition)
 	{
 		ObjectLocker lock(this);
-		if (m_popupState == PopupState::ShowWindow) {
-			m_popupState = PopupState::None;
-			Ref<Window> window = getWindow();
-			lock.unlock();
-			invokePause();
-			invokeClose();
-			if (window.isNotNull()) {
-				window->close();
-			}
-		} else if (m_popupState == PopupState::Popup) {
-			m_popupState = PopupState::ClosingPopup;
-			Ref<MobileApp> mobile = MobileApp::getApp();
-			if (mobile.isNotNull()) {
-				mobile->m_popupPages.remove(this);
-			}
-			if (isDrawingThread()) {
-				_closePopup(transition);
-			} else {
-				dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _closePopup, transition));
-			}
-		} else {
-			Ref<ViewPageNavigationController> controller = getNavigationController();
-			if (controller.isNotNull()) {
-				controller->pop(this, transition);
-			}
+		switch (m_state) {
+			case State::Open:
+				{
+					Ref<ViewPageNavigationController> controller = getNavigationController();
+					if (controller.isNotNull()) {
+						if (controller->getPageCount() > 1) {
+							m_state = State::Closing;
+							lock.unlock();
+							controller->pop(this, transition);
+							return sl_true;
+						}
+					}
+					break;
+				}
+			case State::Popup:
+				{
+					m_state = State::Closing;
+					Ref<MobileApp> mobile = MobileApp::getApp();
+					if (mobile.isNotNull()) {
+						mobile->m_popupPages.remove(this);
+					}
+					if (isDrawingThread()) {
+						lock.unlock();
+						_closePopup(transition);
+					} else {
+						dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _closePopup, transition));
+					}
+					return sl_true;
+				}
+			case State::Window:
+				{
+					m_state = State::None;
+					lock.unlock();
+					invokePause();
+					invokeClose();
+					Ref<Window> window = getWindow();
+					if (window.isNotNull()) {
+						window->close();
+					}
+					return sl_true;
+				}
+			default:
+				break;
 		}
+		return sl_false;
 	}
 
-	void ViewPage::close()
+	sl_bool ViewPage::close()
 	{
-		close(m_closingTransition);
+		return close(m_closingTransition);
 	}
 
 	void ViewPage::goToPage(const Ref<View>& page, const Transition& transition)
@@ -304,7 +323,6 @@ namespace slib
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
 
 		invokePause();
-
 		invokeClose();
 
 		if (animation.isNotNull()) {
@@ -337,7 +355,7 @@ namespace slib
 				}
 			}
 
-			m_popupState = PopupState::None;
+			m_state = State::None;
 
 		} else {
 			setEnabled(sl_true, UIUpdateMode::None);
@@ -352,7 +370,7 @@ namespace slib
 			return;
 		}
 		ObjectLocker lock(this);
-		if (m_popupState != PopupState::None) {
+		if (m_state != State::None) {
 			return;
 		}
 
@@ -366,7 +384,7 @@ namespace slib
 		} else {
 			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _openPopup, parent, transition, flagFillParentBackground));
 		}
-		m_popupState = PopupState::Popup;
+		m_state = State::Popup;
 	}
 
 	void ViewPage::popup(const Ref<View>& parent, sl_bool flagFillParentBackground)
@@ -378,7 +396,7 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 
-		if (m_popupState != PopupState::None) {
+		if (m_state != State::None) {
 			return sl_null;
 		}
 
@@ -415,51 +433,40 @@ namespace slib
 			}
 			window->addView(this, UIUpdateMode::Init);
 			window->setParent(parent);
-			window->setDialog(sl_true);
+			window->setDialog();
+			window->setModal();
 			if (isCenterVertical() && isCenterHorizontal()) {
 				window->setCenterScreen(sl_true);
 			} else {
 				window->setLeft(getLeft());
 				window->setTop(getTop());
 			}
-			window->setModal(sl_true);
-			window->setOnClose(SLIB_FUNCTION_WEAKREF(this, _onClosePopupWindow));
+			window->setOnClose([this](Window* window) {
+				if (m_state == State::Window) {
+					invokeBack(sl_null);
+				}
+			});
+			window->setOnDestroy([](Window* window) {
+				window->removeAllViews(UIUpdateMode::None);
+			});
 
 			window->create();
 
-			m_popupState = PopupState::ShowWindow;
+			m_state = State::Window;
 
 			lock.unlock();
 
 			invokeOpen();
-
 			invokeResume();
 
 			return window;
-
 		}
-
 		return sl_null;
-	}
-
-	void ViewPage::_onClosePopupWindow(Window* window, UIEvent* ev)
-	{
-		ObjectLocker lock(this);
-		if (m_popupState == PopupState::ShowWindow) {
-			invokeBack(ev);
-			if (ev->isPreventedDefault()) {
-				return;
-			}
-			m_popupState = PopupState::None;
-			lock.unlock();
-			invokePause();
-			invokeClose();
-		}
 	}
 
 	sl_bool ViewPage::isPopup()
 	{
-		return m_popupState == PopupState::Popup;
+		return m_state == State::Popup;
 	}
 
 	Color ViewPage::getPopupBackgroundColor()
@@ -476,10 +483,6 @@ namespace slib
 	{
 		setOnClickBackground([](ViewPage* page, UIEvent* ev) {
 			page->invokeBack(ev);
-			if (ev->isPreventedDefault()) {
-				return;
-			}
-			page->close();
 		});
 	}
 
@@ -587,6 +590,16 @@ namespace slib
 	void ViewPage::handlePageAction(ViewPageNavigationController* controller, UIPageAction action)
 	{
 		m_navigationController = controller;
+		switch (action) {
+			case UIPageAction::Push:
+				m_state = State::Open;
+				break;
+			case UIPageAction::Pop:
+				m_state = State::None;
+				break;
+			default:
+				break;
+		}
 		invokePageAction(controller, action);
 	}
 
@@ -611,28 +624,22 @@ namespace slib
 		invokeBack(ev);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Back, (UIEvent* ev), ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ViewPage, Back, (UIEvent* ev), ev)
+
+	void ViewPage::onBack(UIEvent* ev)
+	{
+		if (close()) {
+			if (ev) {
+				ev->accept();
+			}
+		}
+	}
 
 	SLIB_DEFINE_EVENT_HANDLER(ViewPage, ClickBackground, (UIEvent* ev), ev)
 
 	void ViewPage::onCancel()
 	{
-		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
-		if (ev.isNull()) {
-			return;
-		}
-		invokeBack(ev.get());
-		if (ev->isPreventedDefault()) {
-			return;
-		}
-		Ref<ViewPageNavigationController> controller = getNavigationController();
-		if (controller.isNotNull()) {
-			if (controller->getPageCount() > 1) {
-				close();
-				return;
-			}
-		}
-		ViewGroup::onCancel();
+		invokeBack(sl_null);
 	}
 
 }

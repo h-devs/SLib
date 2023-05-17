@@ -103,7 +103,7 @@ void LanTvServerApp::onStart()
 	window->setWidth(500);
 	window->setHeightWrapping();
 	window->setCenterScreen();
-	window->setOnDestroy([this](Window*, UIEvent*) {
+	window->setOnDestroy([this](Window*) {
 		if (m_thread.isNotNull()) {
 			m_thread->finishAndWait();
 			m_thread.setNull();

@@ -10,16 +10,16 @@ int main(int argc, const char * argv[])
 		Println("Failed to open database!");
 		return -1;
 	}
-	if (1) {
+	{
 		sl_uint32 n = 0;
 		for (sl_uint32 i = 0; i < 1000; i++) {
-			//auto batch = db->createWriteBatch();
+			auto batch = db->createWriteBatch();
 			for (sl_uint32 j = 0; j < 1000; j++) {
 				String s = String::fromUint32(n);
-				db->put(s, "I upgraded my MacBook Pro to Lion and one of the problems I've had is that Time Machine keeps running and running, and the fans go on.This usually seems to be in the state where it indexes the backup." + s);
+				batch->put(s, "I upgraded my MacBook Pro to Lion and one of the problems I've had is that Time Machine keeps running and running, and the fans go on.This usually seems to be in the state where it indexes the backup." + s);
 				n++;
 			}
-			//db->commit();
+			batch->commit();
 		}
 	}
 	sl_uint32 a = 10000;
@@ -27,6 +27,5 @@ int main(int argc, const char * argv[])
 		Println("%s", db->get(String::fromUint32(a + k)));
 	}
 	Println("Finished!");
-	while (1);
 	return 0;
 }

@@ -333,9 +333,9 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(MobileApp, PressBack, ())
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(MobileApp, PressBack, (UIEvent* ev), ev)
 
-	void MobileApp::onPressBack()
+	void MobileApp::onPressBack(UIEvent* ev)
 	{
 		{
 			ListLocker< Ref<ViewPage> > popups(m_popupPages);
@@ -343,10 +343,6 @@ namespace slib
 				Ref<ViewPage> page = popups[popups.count-1];
 				if (page.isNotNull()) {
 					page->invokePressBack(ev);
-					if (!(ev->isPreventedDefault())) {
-						page->close();
-						ev->preventDefault();
-					}
 				}
 				return;
 			}
@@ -356,12 +352,6 @@ namespace slib
 			Ref<View> _page = controller->getCurrentPage();
 			if (ViewPage* page = CastInstance<ViewPage>(_page.get())) {
 				page->invokePressBack(ev);
-				if (!(ev->isPreventedDefault())) {
-					if (controller->getPageCount() > 1) {
-						page->close();
-						ev->preventDefault();
-					}
-				}
 			}
 		}
 	}
@@ -373,12 +363,12 @@ namespace slib
 			Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
 			if (ev.isNotNull()) {
 				app->invokePressBack(ev.get());
-				if (ev->isPreventedDefault()) {
-					return sl_false;
+				if (ev->isAccepted()) {
+					return sl_true;
 				}
 			}
 		}
-		return sl_true;
+		return sl_false;
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(MobileApp, CreateActivity, ())

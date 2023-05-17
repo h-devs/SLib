@@ -48,6 +48,10 @@ namespace slib
 			}
 		};
 
+	}
+
+	namespace openssl
+	{
 		void InitThread()
 		{
 			static SLIB_THREAD int check = 0;
@@ -68,6 +72,11 @@ namespace slib
 				}
 			}
 		}
+	}
+
+	using namespace openssl;
+
+	namespace {
 #else
 		static void InitThread()
 		{

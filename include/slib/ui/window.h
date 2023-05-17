@@ -362,7 +362,7 @@ namespace slib
 		sl_bool isModal();
 
 		// Call before creating window
-		void setModal(sl_bool flag);
+		void setModal(sl_bool flag = sl_true);
 
 		sl_bool isSheet();
 
@@ -463,7 +463,7 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(Window, Cancel)
 
 	private:
-		void _doClose();
+		sl_bool _doClose();
 		void _doDestroy();
 		void _doResizing(UISize& clientSize);
 		void _doResize(sl_ui_len clientWidth, sl_ui_len clientHeight);
@@ -547,6 +547,7 @@ namespace slib
 		sl_bool m_flagStateResizingWidth : 1;
 		sl_bool m_flagStateDoModal : 1;
 		sl_bool m_flagStateClosing : 1;
+		sl_bool m_flagRequestClose : 1;
 		sl_bool m_flagDispatchedDestroy : 1;
 
 		Variant* m_result;
@@ -656,6 +657,7 @@ namespace slib
 		virtual void doPostCreate();
 
 	public:
+		// returns true when the window is going to close
 		sl_bool onClose();
 
 		void onActivate();

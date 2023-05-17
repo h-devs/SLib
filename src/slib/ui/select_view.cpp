@@ -470,10 +470,10 @@ namespace slib
 		if (action == UIAction::LeftButtonDown || action == UIAction::TouchBegin) {
 			if (getLeftIconRegion().containsPoint(pt)) {
 				m_clickedIconNo = ICON_LEFT;
-				ev->stopPropagation();
+				ev->accept();
 			} else if (getRightIconRegion().containsPoint(pt)) {
 				m_clickedIconNo = ICON_RIGHT;
-				ev->stopPropagation();
+				ev->accept();
 			}
 		} else if (action == UIAction::MouseLeave || action == UIAction::TouchCancel) {
 			m_clickedIconNo = ICON_NONE;

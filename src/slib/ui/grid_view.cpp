@@ -1503,7 +1503,7 @@ namespace slib
 		if (size < 0) {
 			Ref<Font> font = getFont();
 			if (font.isNotNull()) {
-				size = (sl_ui_len)(font->getFontHeight() * 0.6f);
+				size = (sl_ui_len)(font->getFontHeight());
 			} else {
 				size = 0;
 			}

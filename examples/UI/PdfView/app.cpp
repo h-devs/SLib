@@ -12,9 +12,6 @@ void PdfViewerApp::onStart()
 	window->setResizable();
 	window->setMinimizeButtonEnabled();
 	window->setMaximizeButtonEnabled();
-	window->setOnClose([](Window* window, UIEvent* ev) {
-		UIApp::quit();
-	});
 
 	auto pdf = New<PdfView>();
 	pdf->setWidthFilling(1, UIUpdateMode::Init);

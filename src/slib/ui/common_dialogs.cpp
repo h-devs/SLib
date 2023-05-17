@@ -238,7 +238,7 @@ namespace slib
 			dlg->txtContent->setText(text, UIUpdateMode::Init);
 		}
 
-		auto alert = ToRef(this);
+		Ref<AlertDialog> alert(this);
 		dlg->btnOK->setVisibility(Visibility::Gone, UIUpdateMode::Init);
 		if (titleOK.isNotNull()) {
 			dlg->btnOK->setText(titleOK, UIUpdateMode::Init);
@@ -275,12 +275,12 @@ namespace slib
 			view->getNearestViewPage()->close();
 		});
 
-		dlg->setOnBack([alert](ViewPage*, UIEvent* ev) {
-			if (alert->buttons == AlertButtons::YesNo) {
-				ev->preventDefault();
-			} else {
+		dlg->setOnBack([alert](ViewPage* dlg, UIEvent* ev) {
+			if (alert->buttons != AlertButtons::YesNo) {
 				alert->_onResult(DialogResult::Cancel);
+				dlg->onBack(ev);
 			}
+			ev->accept();
 		});
 
 		if (buttons == AlertButtons::OkCancel) {

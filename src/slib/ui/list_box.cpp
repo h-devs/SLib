@@ -627,6 +627,7 @@ namespace slib
 
 				sl_int64 index = m_indexFocused;
 				if (index >= 0) {
+					ev->accept();
 					invokeClickItem(index, ev);
 				}
 
@@ -675,6 +676,7 @@ namespace slib
 					}
 				}
 
+				ev->accept();
 				if (ev->isShiftKey()) {
 					invokeClickItem(index, ev);
 				} else {
@@ -685,16 +687,8 @@ namespace slib
 					}
 				}
 
-				ev->preventDefault();
-
-			} else if (key == Keycode::Escape) {
-
-				if (getSelectedIndex() < 0) {
-					m_indexFocused = -1;
-				}
-				invalidate();
-
 			}
+
 		}
 	}
 

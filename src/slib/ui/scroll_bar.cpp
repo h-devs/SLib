@@ -442,7 +442,7 @@ namespace slib
 		sl_ui_pos pos_begin, pos_end;
 		if (!(getThumbPositionRange(pos_begin, pos_end))) {
 			View::onMouseEvent(ev);
-			ev->stopPropagation();
+			ev->accept();
 			return;
 		}
 
@@ -519,7 +519,7 @@ namespace slib
 		}
 
 		View::onMouseEvent(ev);
-		ev->stopPropagation();
+		ev->accept();
 	}
 
 	void ScrollBar::onMouseWheelEvent(UIEvent* ev)
@@ -543,14 +543,14 @@ namespace slib
 			_changeValue(value + line, ev, UIUpdateMode::Redraw);
 		}
 
-		ev->stopPropagation();
+		ev->accept();
 	}
 
 	void ScrollBar::onSetCursor(UIEvent* ev)
 	{
 		View::onSetCursor(ev);
 		CHECK_STATUS()
-		ev->stopPropagation();
+		ev->accept();
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Changing, (sl_scroll_pos& value, UIEvent* ev), value, ev)

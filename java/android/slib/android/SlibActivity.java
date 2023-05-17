@@ -194,7 +194,7 @@ public class SlibActivity extends Activity {
 
 	@Override
 	public void onBackPressed() {
-		if (!Android.onBack(this)) {
+		if (Android.onBack(this)) {
 			return;
 		}
 

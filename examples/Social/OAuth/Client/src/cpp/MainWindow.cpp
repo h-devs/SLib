@@ -36,6 +36,7 @@ void MainWindow::onCreate()
 	});
 
 	btnAuth->setOnClick([this](View*) {
+
 		String grantType = radioGrantType->getSelectedValue();
 
 		OAuth2_Param param;
@@ -57,6 +58,7 @@ void MainWindow::onCreate()
 			loginParam.dialogOptions.width = 800;
 			loginParam.dialogOptions.height = 600;
 			loginParam.dialogOptions.title = "Authentication";
+			loginParam.dialogOptions.parentWindow = this;
 			auto ref = ToRef(this);
 			loginParam.onComplete = [ref, this, grantType](OAuth2::LoginResult& result) {
 				if (grantType == "code") {

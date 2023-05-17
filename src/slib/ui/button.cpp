@@ -36,8 +36,6 @@
 #	define HAS_NATIVE_WIDGET_IMPL 0
 #endif
 
-#define BUTTON_TEXT_DEFAULT_COLOR Color(0, 100, 200)
-
 #ifdef SLIB_PLATFORM_IS_MOBILE
 #define BUTTON_DEFAULT_USE_FOCUSED_COLOR_FILTER sl_false
 #else
@@ -844,7 +842,7 @@ namespace slib
 	{
 		setFocus();
 		invokeClickEvent(ev);
-		ev->stopPropagation();
+		ev->accept();
 	}
 
 	void Button::onChangeFocus(sl_bool flagFocused)
@@ -1063,6 +1061,8 @@ namespace slib
 
 		flagUseDefaultColorFilter = sl_true;
 		flagUseFocusedColorFilter = BUTTON_DEFAULT_USE_FOCUSED_COLOR_FILTER;
+
+		textColor = Color(0, 100, 200);
 	}
 
 	ButtonCell::~ButtonCell()
@@ -1110,7 +1110,7 @@ namespace slib
 		Color color = categories[category].textColors.evaluate(state, &flagUseDefaultColor);
 		if (color.isZero()) {
 			flagUseDefaultColor = sl_true;
-			color = BUTTON_TEXT_DEFAULT_COLOR;
+			color = textColor;
 		}
 		ColorMatrix cm;
 		if (getFinalColorFilter(cm, state, flagUseDefaultColor && flagUseDefaultColorFilter)) {
@@ -1503,23 +1503,20 @@ namespace slib
 			case Keycode::NumpadEnter:
 				if (ev->getAction() == UIAction::KeyDown) {
 					onClick(ev);
-					ev->preventDefault();
-					ev->stopPropagation();
+					ev->accept();
 				}
 				break;
 			case Keycode::Space:
 				switch (ev->getAction()) {
 				case UIAction::KeyDown:
 					setPressedState();
-					ev->preventDefault();
-					ev->stopPropagation();
+					ev->accept();
 					break;
 				case UIAction::KeyUp:
 					if (isPressedState()) {
 						setPressedState(sl_false);
 						onClick(ev);
-						ev->preventDefault();
-						ev->stopPropagation();
+						ev->accept();
 					}
 					break;
 				default:

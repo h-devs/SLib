@@ -63,8 +63,8 @@ namespace slib
 	{
 	public:
 		UISize pageSize;
-		Function<void(SAppLayoutSimulationWindow*, UIEvent*)> onClosePage;
-		Function<void(SAppLayoutSimulationWindow*, UIEvent*)> onCloseWindow;
+		Function<void(SAppLayoutSimulationWindow*)> onClosePage;
+		Function<void(SAppLayoutSimulationWindow*)> onCloseWindow;
 
 	public:
 		SAppSimulateLayoutParam();

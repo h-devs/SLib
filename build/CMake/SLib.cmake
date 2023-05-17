@@ -365,6 +365,7 @@ if (ANDROID)
   "${SLIB_PATH}/src/slib/media/media_player_android.cpp"
 
   "${SLIB_PATH}/src/slib/device/device_android.cpp"
+  "${SLIB_PATH}/src/slib/device/device_call_android.cpp"
   "${SLIB_PATH}/src/slib/device/sensor_android.cpp"
 
   "${SLIB_PATH}/src/slib/ui/clipboard_android.cpp"

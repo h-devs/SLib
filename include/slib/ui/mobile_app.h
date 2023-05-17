@@ -130,7 +130,7 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, Pause)
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, Resume)
-		SLIB_DECLARE_EVENT_HANDLER(MobileApp, PressBack)
+		SLIB_DECLARE_EVENT_HANDLER(MobileApp, PressBack, UIEvent* ev)
 
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, CreateActivity)
 		void handleCreateActivity();
@@ -149,6 +149,7 @@ namespace slib
 
 			static void invokeResume();
 
+			// returns true if the event is handled
 			static sl_bool invokePressBack();
 
 			static void invokeCreateActivity();

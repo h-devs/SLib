@@ -238,7 +238,7 @@ namespace slib
 		if (isDrawingThread()) {
 			if (ViewPage* _page = CastInstance<ViewPage>(page.get())) {
 				ObjectLocker lock(_page);
-				if (_page->m_popupState != ViewPage::PopupState::None) {
+				if (_page->m_state != ViewPage::State::None) {
 					return;
 				}
 				_push(page, countPop, &transition);
@@ -256,7 +256,7 @@ namespace slib
 		if (isDrawingThread()) {
 			if (ViewPage* _page = CastInstance<ViewPage>(page.get())) {
 				ObjectLocker lock(_page);
-				if (_page->m_popupState != ViewPage::PopupState::None) {
+				if (_page->m_state != ViewPage::State::None) {
 					return;
 				}
 				_push(page, countPop, sl_null);
@@ -491,7 +491,7 @@ namespace slib
 	{
 		ViewPage* page = CastInstance<ViewPage>(_page);
 		if (page) {
-			page->invokePageAction(this, action);
+			page->handlePageAction(this, action);
 		}
 	}
 
@@ -501,7 +501,7 @@ namespace slib
 	{
 		ViewPage* page = CastInstance<ViewPage>(_page);
 		if (page) {
-			page->invokeEndPageAnimation(this, action);
+			page->handleEndPageAnimation(this, action);
 		}
 	}
 

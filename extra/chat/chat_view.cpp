@@ -302,6 +302,9 @@ namespace slib
 		void onTouchMessage(View* view, UIEvent* ev)
 		{
 			view->onTouchEvent(ev);
+			if (ev->isAccepted()) {
+				return;
+			}
 			UIAction action = ev->getAction();
 			if (action == UIAction::TouchBegin) {
 				if (flagMe) {
@@ -330,7 +333,7 @@ namespace slib
 				m_flagPressed = sl_false;
 				invalidate();
 			}
-			ev->preventDefault();
+			ev->accept();
 		}
 
 		void popupMenu(const UIPoint& pt)

@@ -800,8 +800,9 @@ namespace slib
 #endif
 			}
 
-			void _onClose(Window* window, UIEvent* ev)
+			void _onClose(Window* window)
 			{
+				window->onClose();
 				Ref<EditViewHelper> view = m_view;
 				if (view.isNull()) {
 					return;
@@ -922,7 +923,7 @@ namespace slib
 
 	void EditView::onKeyEvent(UIEvent* ev)
 	{
-		if (m_multiLine == MultiLineMode::Single || ev->getKeycode() == Keycode::Escape) {
+		if (m_multiLine == MultiLineMode::Single || ev->getKeycode() == Keycode::Escape || m_flagReadOnly) {
 			if (ev->getAction() == UIAction::KeyDown) {
 				Keycode keycode = ev->getKeycode();
 				if (keycode == Keycode::Enter || keycode == Keycode::NumpadEnter) {
@@ -932,6 +933,9 @@ namespace slib
 				}
 			}
 			View::onKeyEvent(ev);
+			if (m_flagReadOnly) {
+				return;
+			}
 		}
 #ifdef HAS_SIMPLE_INPUT
 		if (ev->isAccepted()) {
@@ -949,7 +953,7 @@ namespace slib
 			switch (key) {
 				case Keycode::Backspace:
 					{
-						ev->preventDefault();
+						ev->accept();
 						String text = m_text;
 						text = text.substring(0, text.getLength() - 1);
 						_change(sl_null, text, ev);

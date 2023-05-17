@@ -5,7 +5,7 @@ void MainWindow::onCreate()
 	DragItem drag;
 	drag.setText("add-button");
 	drag.setDraggingSize(100, 50);
-	drag.setDraggingImage(drawable::button::getImage());
+	drag.setDraggingImage(drawable::button::get());
 	btnDrag->setDragItem(drag);
 	linearDrop->setDropTarget();
 	linearDrop->setOnDragDropEvent([this](View*, UIEvent* ev) {

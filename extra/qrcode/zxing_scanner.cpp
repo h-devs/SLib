@@ -175,6 +175,7 @@ namespace slib
 
 	void ZXingScanner::onCapture(VideoCaptureFrame& frame)
 	{
+		CameraView::onCapture(frame);
 		m_flagUpdateCameraFrame = sl_true;
 	}
 

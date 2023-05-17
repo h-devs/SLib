@@ -63,7 +63,9 @@ namespace slib
 		{
 		public:
 			Ref<WebView> m_webView;
-			WeakRef<Window> m_window;
+#ifndef SLIB_PLATFORM_IS_MOBILE
+			Ref<Window> m_window;
+#endif
 
 		public:
 			void init() override
@@ -85,16 +87,17 @@ namespace slib
 				addChild(btnCancel, UIUpdateMode::Init);
 #endif
 
-				m_webView = new WebView;
-				m_webView->setAlignParentLeft(UIUpdateMode::Init);
+				Ref<WebView> web = new WebView;
+				web->setAlignParentLeft(UIUpdateMode::Init);
 #ifdef SLIB_PLATFORM_IS_MOBILE
-				m_webView->setBelow(btnCancel, UIUpdateMode::Init);
+				web->setBelow(btnCancel, UIUpdateMode::Init);
 #else
-				m_webView->setAlignParentTop(UIUpdateMode::Init);
+				web->setAlignParentTop(UIUpdateMode::Init);
 #endif
-				m_webView->setWidthFilling(1, UIUpdateMode::Init);
-				m_webView->setHeightFilling(1, UIUpdateMode::Init);
-				addChild(m_webView, UIUpdateMode::Init);
+				web->setWidthFilling(1, UIUpdateMode::Init);
+				web->setHeightFilling(1, UIUpdateMode::Init);
+				addChild(web, UIUpdateMode::Init);
+				m_webView = Move(web);
 
 				setWidthFilling(1, UIUpdateMode::Init);
 				setHeightFilling(1, UIUpdateMode::Init);
@@ -113,8 +116,9 @@ namespace slib
 				m_webView->setOnStartLoad([onRedirect](WebView*, const String& url) {
 					onRedirect(url);
 				});
-				setOnBack([onRedirect](View* view, UIEvent* ev) {
+				setOnBack([onRedirect](ViewPage* page, UIEvent* ev) {
 					onRedirect(sl_null);
+					page->onBack(ev);
 				});
 
 				m_webView->loadURL(param.url);
@@ -136,18 +140,16 @@ namespace slib
 					return;
 				}
 				window->setTitle(param.options.title);
-				window->increaseReference();
-				m_window = window;
+				m_window = Move(window);
 #endif
 			}
 
 			void close() override
 			{
 				ViewPage::close();
-				auto window = ToRef(m_window);
-				if (window.isNotNull()) {
-					window->decreaseReference();
-				}
+#ifndef SLIB_PLATFORM_IS_MOBILE
+				m_window.setNull();
+#endif
 			}
 
 		};

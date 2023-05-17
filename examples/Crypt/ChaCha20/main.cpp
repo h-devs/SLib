@@ -1,5 +1,7 @@
 #include <slib.h>
 
+#include <chacha.h>
+
 using namespace slib;
 
 void PrintUsage()
@@ -17,10 +19,10 @@ sl_bool DoFileOperation(sl_bool flagEncrypt, const String& key, const String& pa
 		Println("Failed to open for read: %s", pathSrc);
 		return sl_false;
 	}
-	char header[ChaCha20_FileEncryptor::HeaderSize];
-	ChaCha20_FileEncryptor enc;
+	char header[ChaChaFileEncryption::HeaderSize];
+	ChaChaFileEncryption enc;
 	if (flagEncrypt) {
-		enc.create(header, key.getData(), key.getLength());
+		enc.generateHeader(header, key.getData(), key.getLength());
 	} else {
 		if (fileSrc.readFully(header, sizeof(header)) != sizeof(header)) {
 			Println("Invalid header size: %s", pathSrc);
@@ -95,12 +97,12 @@ sl_bool CheckPassword(const String& key, const String& path)
 		Println("Failed to open for read: %s", path);
 		return sl_false;
 	}
-	char header[ChaCha20_FileEncryptor::HeaderSize];
+	char header[ChaChaFileEncryption::HeaderSize];
 	if (file.readFully(header, sizeof(header)) != sizeof(header)) {
 		Println("Invalid header size: %s", path);
 		return sl_false;
 	}
-	if (ChaCha20_FileEncryptor::checkPassword(header, key.getData(), key.getLength())) {
+	if (ChaChaFileEncryption::checkPassword(header, key.getData(), key.getLength())) {
 		Println("OK!");
 		return sl_true;
 	} else {
@@ -117,12 +119,12 @@ sl_bool UpdateFilePassword(const String& oldKey, const String& newKey, const Str
 		Println("Failed to open for read: %s", path);
 		return sl_false;
 	}
-	char header[ChaCha20_FileEncryptor::HeaderSize];
+	char header[ChaChaFileEncryption::HeaderSize];
 	if (file.readFully(header, sizeof(header)) != sizeof(header)) {
 		Println("Invalid header size: %s", path);
 		return sl_false;
 	}
-	if (ChaCha20_FileEncryptor::changePassword(header, oldKey.getData(), oldKey.getLength(), newKey.getData(), newKey.getLength())) {
+	if (ChaChaFileEncryption::changePassword(header, oldKey.getData(), oldKey.getLength(), newKey.getData(), newKey.getLength())) {
 		if (!(file.seekToBegin())) {
 			Println("Failed to seek to begin: %s", path);
 			return sl_false;

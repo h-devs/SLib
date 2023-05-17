@@ -92,14 +92,15 @@ namespace slib
 
 		SLIB_DECLARE_EVENT_HANDLER(UIApp, Exit)
 
-		SLIB_DECLARE_EVENT_HANDLER(UIApp, OpenUrl, const String& url, sl_bool& outFlagOpened)
-		SLIB_DECLARE_EVENT_HANDLER(UIApp, OpenUrls, const List<String>& urls, sl_bool& outFlagOpened)
-		SLIB_DECLARE_EVENT_HANDLER(UIApp, OpenFile, const String& filePath, sl_bool& outFlagOpened)
-		SLIB_DECLARE_EVENT_HANDLER(UIApp, OpenFiles, const List<String>& files, sl_bool& outFlagOpened)
-		SLIB_DECLARE_EVENT_HANDLER(UIApp, OpenTempFile, const String& filePath, sl_bool& outFlagOpened)
-		SLIB_DECLARE_EVENT_HANDLER(UIApp, OpenUntitledFile, sl_bool& outFlagOpened)
+		// returns true if the event is handled
+		SLIB_DECLARE_EVENT_HANDLER2(UIApp, OpenUrl, sl_bool, const String& url)
+		SLIB_DECLARE_EVENT_HANDLER2(UIApp, OpenUrls, sl_bool, const List<String>& urls)
+		SLIB_DECLARE_EVENT_HANDLER2(UIApp, OpenFile, sl_bool, const String& filePath)
+		SLIB_DECLARE_EVENT_HANDLER2(UIApp, OpenFiles, sl_bool, const List<String>& files)
+		SLIB_DECLARE_EVENT_HANDLER2(UIApp, OpenTempFile, sl_bool, const String& filePath)
+		SLIB_DECLARE_EVENT_HANDLER2(UIApp, OpenUntitledFile, sl_bool)
 
-		SLIB_DECLARE_EVENT_HANDLER(UIApp, Reopen, const String& commandLine, sl_bool flagHasVisibleWindows, sl_bool& outFlagPerformNormalTasks)
+		SLIB_DECLARE_EVENT_HANDLER2(UIApp, Reopen, sl_bool, const String& commandLine, sl_bool flagHasVisibleWindows)
 
 	public:
 		struct Current

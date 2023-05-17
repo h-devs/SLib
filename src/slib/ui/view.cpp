@@ -135,6 +135,7 @@ namespace slib
 		m_flagSavingCanvasState(sl_true),
 		m_flagOkCancelEnabled(sl_true),
 		m_flagTabStopEnabled(sl_true),
+		m_flagUsingState(sl_true),
 		m_flagKeepKeyboard(sl_false),
 		m_flagDragSource(sl_false),
 		m_flagDropTarget(sl_false),
@@ -8050,6 +8051,16 @@ namespace slib
 		return sl_null;
 	}
 
+	sl_bool View::isUsingState()
+	{
+		return m_flagUsingState;
+	}
+
+	void View::setUsingState(sl_bool flag)
+	{
+		m_flagUsingState = flag;
+	}
+
 	sl_bool View::isKeepKeyboard()
 	{
 		return m_flagKeepKeyboard;
@@ -9074,12 +9085,11 @@ namespace slib
 
 	void View::onMouseEvent(UIEvent* ev)
 	{
-		if (!(isNativeWidget())) {
-			_processEventForStateAndClick(ev);
-			if (isContentScrollingByMouse()) {
-				_processContentScrollingEvents(ev);
-			}
+		_processContentScrolling(ev);
+		if (ev->isAccepted()) {
+			return;
 		}
+		_processClick(ev);
 	}
 
 	void View::dispatchMouseEvent(UIEvent* ev)
@@ -9091,12 +9101,15 @@ namespace slib
 			return;
 		}
 
+		_processEnterState(ev);
+
 		if (isNativeWidget() && !(getChildCount())) {
 			Ref<GestureDetector> gesture = getGestureDetector();
 			if (gesture.isNotNull()) {
 				gesture->processEvent(ev);
 			}
 			invokeMouseEvent(ev);
+			_processLeaveState(ev);
 			if (m_flagCaptureEvents) {
 				ev->addFlag(UIEventFlags::Captured);
 			}
@@ -9131,29 +9144,28 @@ namespace slib
 				}
 				if (action == UIAction::MouseMove || action == UIAction::MouseEnter) {
 					if (oldChildMouseMove.isNotNull()) {
-						sl_bool flagSP = ev->isStoppedPropagation();
+						sl_bool flagAccepted = ev->isAccepted();
 						UIAction action = ev->getAction();
 						ev->setAction(UIAction::MouseLeave);
 						dispatchMouseEventToChild(ev, oldChildMouseMove.get());
 						ev->setAction(action);
-						ev->setStoppedPropagation(flagSP);
+						ev->setAccepted(flagAccepted);
 						childAttrs->childMouseMove.setNull();
 					}
 				}
 			}
 		}
 
-		ev->setPreventedDefault(sl_false);
-
 		Ref<GestureDetector> gesture = getGestureDetector();
 		if (gesture.isNotNull()) {
 			gesture->processEvent(ev);
 		}
 
-		if (ev->isStoppedPropagation()) {
+		if (ev->isAccepted()) {
 			if (m_flagCaptureEvents) {
 				ev->addFlag(UIEventFlags::Captured);
 			}
+			_processLeaveState(ev);
 			return;
 		}
 
@@ -9164,10 +9176,11 @@ namespace slib
 		}
 
 		invokeMouseEvent(ev);
+		_processLeaveState(ev);
 
 		if (m_flagCaptureEvents) {
 			ev->addFlag(UIEventFlags::Captured);
-			ev->stopPropagation();
+			ev->accept();
 		}
 
 		if (m_flagDragSource) {
@@ -9334,12 +9347,15 @@ namespace slib
 			return;
 		}
 
+		_processEnterState(ev);
+
 		if (isNativeWidget() && !(getChildCount())) {
 			Ref<GestureDetector> gesture = getGestureDetector();
 			if (gesture.isNotNull()) {
 				gesture->processEvent(ev);
 			}
 			invokeTouchEvent(ev);
+			_processLeaveState(ev);
 			if (m_flagCaptureEvents) {
 				ev->addFlag(UIEventFlags::Captured);
 			}
@@ -9371,17 +9387,16 @@ namespace slib
 			}
 		}
 
-		ev->setPreventedDefault(sl_false);
-
 		Ref<GestureDetector> gesture = getGestureDetector();
 		if (gesture.isNotNull()) {
 			gesture->processEvent(ev);
 		}
 
-		if (ev->isStoppedPropagation()) {
+		if (ev->isAccepted()) {
 			if (m_flagCaptureEvents) {
 				ev->addFlag(UIEventFlags::Captured);
 			}
+			_processLeaveState(ev);
 			return;
 		}
 
@@ -9396,10 +9411,11 @@ namespace slib
 		}
 
 		invokeTouchEvent(ev);
+		_processLeaveState(ev);
 
 		if (m_flagCaptureEvents) {
 			ev->addFlag(UIEventFlags::Captured);
-			ev->stopPropagation();
+			ev->accept();
 		}
 	}
 
@@ -9592,7 +9608,7 @@ namespace slib
 				}
 			}
 
-			sl_bool flagSP = ev->isStoppedPropagation();
+			sl_bool flagAccepted = ev->isAccepted();
 			UIAction action = ev->getAction();
 
 			ev->setTouchPoint(ptOriginal);
@@ -9607,7 +9623,7 @@ namespace slib
 			}
 
 			ev->setAction(action);
-			ev->setStoppedPropagation(flagSP);
+			ev->setAccepted(flagAccepted);
 
 		}
 
@@ -9666,11 +9682,7 @@ namespace slib
 
 	void View::onMouseWheelEvent(UIEvent* ev)
 	{
-		if (!(isNativeWidget())) {
-			if (isContentScrollingByMouseWheel()) {
-				_processContentScrollingEvents(ev);
-			}
-		}
+		_processContentScrolling(ev);
 	}
 
 	void View::dispatchMouseWheelEvent(UIEvent* ev)
@@ -9706,9 +9718,7 @@ namespace slib
 			}
 		}
 
-		ev->setPreventedDefault(sl_false);
-
-		if (ev->isStoppedPropagation()) {
+		if (ev->isAccepted()) {
 			return;
 		}
 
@@ -9759,10 +9769,9 @@ namespace slib
 
 	void View::onKeyEvent(UIEvent* ev)
 	{
-		if (!(isNativeWidget())) {
-			if (isContentScrollingByKeyboard()) {
-				_processContentScrollingEvents(ev);
-			}
+		_processContentScrolling(ev);
+		if (ev->isAccepted()) {
+			return;
 		}
 		_processKeyEvents(ev);
 	}
@@ -9793,16 +9802,14 @@ namespace slib
 		if (!(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
 			if (childFocal.isNotNull()) {
 				childFocal->dispatchKeyEvent(ev);
-				ev->setPreventedDefault(sl_false);
 			}
 		}
 
-		if (ev->isStoppedPropagation()) {
+		if (ev->isAccepted()) {
 			return;
 		}
 
 		invokeKeyEvent(ev);
-
 	}
 
 	DEFINE_SIMPLE_EVENT_HANDLER(Click)
@@ -9867,9 +9874,7 @@ namespace slib
 			}
 		}
 
-		ev->setPreventedDefault(sl_false);
-
-		if (ev->isStoppedPropagation()) {
+		if (ev->isAccepted()) {
 			return;
 		}
 
@@ -9974,26 +9979,23 @@ namespace slib
 				}
 				if (action == UIAction::DragOver || action == UIAction::DragEnter) {
 					if (oldChildDragOver.isNotNull()) {
-						sl_bool flagSP = ev->isStoppedPropagation();
+						sl_bool flagAccepted = ev->isAccepted();
 						UIAction action = ev->getAction();
 						ev->setAction(UIAction::DragLeave);
 						dispatchDragDropEventToChild(ev, oldChildDragOver.get());
 						ev->setAction(action);
-						ev->setStoppedPropagation(flagSP);
+						ev->setAccepted(flagAccepted);
 						childAttrs->childDragOver.setNull();
 					}
 				}
 			}
 		}
 
-		ev->setPreventedDefault(sl_false);
-
-		if (ev->isStoppedPropagation()) {
+		if (ev->isAccepted()) {
 			return;
 		}
 
 		invokeDragDropEvent(ev);
-
 	}
 
 	sl_bool View::dispatchDragDropEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count)
@@ -10132,12 +10134,12 @@ namespace slib
 	{
 		if (isFocusable()) {
 			setFocus();
-			ev->stopPropagation();
+			ev->accept();
 		} else {
 			Ref<View> v = getNextTabStop();
 			if (v.isNotNull() && v != this) {
 				v->setFocus();
-				ev->stopPropagation();
+				ev->accept();
 			}
 		}
 	}
@@ -10170,15 +10172,13 @@ namespace slib
 							Ref<View> v = getPreviousTabStop();
 							if (v.isNotNull() && v != this) {
 								v->setFocus();
-								ev->stopPropagation();
-								ev->preventDefault();
+								ev->accept();
 							}
 						} else {
 							Ref<View> v = getNextTabStop();
 							if (v.isNotNull() && v != this) {
 								v->setFocus();
-								ev->stopPropagation();
-								ev->preventDefault();
+								ev->accept();
 							}
 						}
 					}
@@ -10187,15 +10187,13 @@ namespace slib
 				case Keycode::NumpadEnter:
 					if (m_flagOkCancelEnabled) {
 						invokeOK();
-						ev->stopPropagation();
-						ev->preventDefault();
+						ev->accept();
 					}
 					break;
 				case Keycode::Escape:
 					if (m_flagOkCancelEnabled) {
 						invokeCancel();
-						ev->stopPropagation();
-						ev->preventDefault();
+						ev->accept();
 					}
 					break;
 				default:
@@ -10205,37 +10203,73 @@ namespace slib
 		}
 	}
 
-	void View::_processEventForStateAndClick(UIEvent* ev)
+	void View::_processEnterState(UIEvent* ev)
 	{
+		if (isNativeWidget()) {
+			return;
+		}
+		if (!m_flagUsingState) {
+			return;
+		}
 		UIAction action = ev->getAction();
 		switch (action) {
 			case UIAction::LeftButtonDown:
 			case UIAction::TouchBegin:
 				setPressedState();
-				m_flagClicking = sl_true;
-				break;
-			case UIAction::LeftButtonUp:
-			case UIAction::TouchEnd:
-				{
-					sl_bool flagEvent = m_flagClicking && m_flagPressed;
-					setPressedState(sl_false);
-					m_flagClicking = sl_false;
-					if (flagEvent) {
-						if (getBounds().containsPoint(ev->getPoint())) {
-							invokeClickEvent(ev);
-						}
-					}
-				}
-				break;
-			case UIAction::TouchCancel:
-				setPressedState(sl_false);
-				m_flagClicking = sl_false;
 				break;
 			case UIAction::MouseEnter:
 				setHoverState();
 				break;
+			default:
+				break;
+		}
+	}
+
+	void View::_processLeaveState(UIEvent* ev)
+	{
+		if (isNativeWidget()) {
+			return;
+		}
+		if (!m_flagUsingState) {
+			return;
+		}
+		UIAction action = ev->getAction();
+		switch (action) {
+			case UIAction::LeftButtonUp:
+			case UIAction::TouchEnd:
+			case UIAction::TouchCancel:
+				setPressedState(sl_false);
+				break;
 			case UIAction::MouseLeave:
 				setHoverState(sl_false);
+				break;
+			default:
+				break;
+		}
+	}
+
+	void View::_processClick(UIEvent* ev)
+	{
+		if (isNativeWidget()) {
+			return;
+		}
+		UIAction action = ev->getAction();
+		switch (action) {
+			case UIAction::LeftButtonDown:
+			case UIAction::TouchBegin:
+				m_flagClicking = sl_true;
+				break;
+			case UIAction::LeftButtonUp:
+			case UIAction::TouchEnd:
+				if (m_flagClicking) {
+					m_flagClicking = sl_false;
+					if (getBounds().containsPoint(ev->getPoint())) {
+						invokeClickEvent(ev);
+					}
+				}
+				break;
+			case UIAction::TouchCancel:
+				m_flagClicking = sl_false;
 				break;
 			default:
 				break;
@@ -10291,15 +10325,38 @@ namespace slib
 		}
 	}
 
-	void View::_processContentScrollingEvents(UIEvent* ev)
+	void View::_processContentScrolling(UIEvent* ev)
 	{
 		if (m_flagLockScroll) {
+			return;
+		}
+		if (isNativeWidget()) {
 			return;
 		}
 
 		Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
 		if (scrollAttrs.isNull()) {
 			return;
+		}
+
+		UIAction action = ev->getAction();
+
+		if (ev->isTouchEvent()) {
+			if (!(scrollAttrs->flagContentScrollingByTouch)) {
+				return;
+			}
+		} else if (action == UIAction::MouseWheel) {
+			if (!(scrollAttrs->flagContentScrollingByMouseWheel)) {
+				return;
+			}
+		} else if (ev->isMouseEvent()) {
+			if (!(scrollAttrs->flagContentScrollingByMouse)) {
+				return;
+			}
+		} else if (ev->isKeyEvent()) {
+			if (!(scrollAttrs->flagContentScrollingByKeyboard)) {
+				return;
+			}
 		}
 
 		sl_ui_len iWidth = getWidth();
@@ -10323,8 +10380,6 @@ namespace slib
 		if (!flagHorz && !flagVert) {
 			return;
 		}
-
-		UIAction action = ev->getAction();
 
 		if (!(flagHorz && flagVert)) {
 			if (action == UIAction::TouchMove) {
@@ -10382,7 +10437,7 @@ namespace slib
 						}
 					}
 				}
-				ev->stopPropagation();
+				ev->accept();
 				break;
 			case UIAction::LeftButtonDrag:
 			case UIAction::TouchMove:
@@ -10428,7 +10483,7 @@ namespace slib
 					}
 					scrollAttrs->mousePointBefore = ev->getPoint();
 					scrollAttrs->touchPointerIdBefore = ev->getTouchPoint().pointerId;
-					ev->stopPropagation();
+					ev->accept();
 				}
 				break;
 			case UIAction::LeftButtonUp:
@@ -10479,7 +10534,7 @@ namespace slib
 							}
 						}
 					}
-					ev->stopPropagation();
+					ev->accept();
 				}
 				break;
 			case UIAction::MouseWheel:
@@ -10517,7 +10572,7 @@ namespace slib
 
 					if (flagChange) {
 						_scrollTo(sx, sy, ScrollEvent::Source::Event, UIUpdateMode::Redraw);
-						ev->stopPropagation();
+						ev->accept();
 					}
 				}
 				break;
@@ -10638,7 +10693,7 @@ namespace slib
 					}
 					if (flagChange) {
 						_scrollTo(sx, sy, ScrollEvent::Source::Event, UIUpdateMode::Redraw);
-						ev->stopPropagation();
+						ev->accept();
 					}
 				}
 				break;
@@ -10937,7 +10992,7 @@ namespace slib
 		if (view.isNotNull()) {
 			if (ev->getFlags() & UIEventFlags::DispatchToParent) {
 				view->dispatchKeyEvent(ev);
-				if (ev->isStoppedPropagation()) {
+				if (ev->isAccepted()) {
 					return;
 				}
 				view = view->getParent();
@@ -10945,7 +11000,7 @@ namespace slib
 					if (!(view->isNativeWidget())) {
 						ev->addFlag(UIEventFlags::NotDispatchToChildren);
 						view->dispatchKeyEvent(ev);
-						if (ev->isStoppedPropagation()) {
+						if (ev->isAccepted()) {
 							return;
 						}
 					}
@@ -10981,7 +11036,7 @@ namespace slib
 
 			if (capture.isNull() || view == capture) {
 				view->dispatchMouseEvent(ev);
-				if (ev->isStoppedPropagation()) {
+				if (ev->isAccepted()) {
 					return;
 				}
 			}
@@ -10997,7 +11052,7 @@ namespace slib
 						ev->setPoint(pt);
 						ev->addFlag(UIEventFlags::NotDispatchToChildren);
 						view->dispatchMouseEvent(ev);
-						if (ev->isStoppedPropagation()) {
+						if (ev->isAccepted()) {
 							return;
 						}
 					}
@@ -11036,7 +11091,7 @@ namespace slib
 
 				if (capture.isNull() || view == capture) {
 					view->dispatchTouchEvent(ev);
-					if (ev->isStoppedPropagation()) {
+					if (ev->isAccepted()) {
 						break;
 					}
 				}
@@ -11070,7 +11125,7 @@ namespace slib
 									ev->setTouchPoints(arrPts);
 									ev->addFlag(UIEventFlags::NotDispatchToChildren);
 									current->dispatchTouchEvent(ev);
-									if (ev->isStoppedPropagation()) {
+									if (ev->isAccepted()) {
 										break;
 									}
 								}
@@ -11120,9 +11175,7 @@ namespace slib
 			const Ref<Cursor>& cursor = ev->getCursor();
 			if (cursor.isNotNull()) {
 				Cursor::setCurrent(cursor);
-				ev->preventDefault();
-			} else {
-				ev->setPreventedDefault(sl_false);
+				ev->accept();
 			}
 		}
 	}

@@ -41,16 +41,24 @@ void MainPage::initPage()
 void MainPage::onOpen()
 {
 
-	switchSetDefault->setOnChange([](SwitchView*, SwitchValue value, UIEvent*) {
-		if (value == SwitchValue::On) {
+	switchSetDefault->setOnChange([](SwitchView*, SwitchValue value, UIEvent* ev) {
+		if (!ev) {
+			return;
+		}
+		if (value) {
 			Application::setDefaultCallingApp([]() {
-				Println("Set Default Calling App Result: %d", Application::isDefaultCallingApp());
+				if (!(Application::isDefaultCallingApp())) {
+					Application::openDefaultAppsSetting();
+				}
 			});
 		} else {
 			Application::openDefaultAppsSetting();
 		}
 	});
-	switchSystemOverlay->setOnChange([](SwitchView*, SwitchValue value, UIEvent*) {
+	switchSystemOverlay->setOnChange([](SwitchView*, SwitchValue value, UIEvent* ev) {
+		if (!ev) {
+			return;
+		}
 		Application::openSystemOverlaySetting();
 	});
 
@@ -67,12 +75,14 @@ void MainPage::onOpen()
 		});
 	});
 
-	MobileApp::getApp()->setOnOpenUrl([this](MobileApp* app, UIEvent* ev) {
-		String phoneNumber = Url::getPhoneNumber(ev->getUrl());
+	MobileApp::getApp()->setOnOpenUrl([this](UIApp* app, const String& url) {
+		String phoneNumber = Url::getPhoneNumber(url);
 		if (phoneNumber.isNotEmpty()) {
 			Toast::show("Open Dial: " + phoneNumber);
 			txtPhoneNumber->setText(phoneNumber);
+			return sl_true;
 		}
+		return sl_false;
 	});
 
 }

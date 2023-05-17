@@ -31,11 +31,7 @@
 
 namespace slib
 {
-	enum class SwitchValue
-	{
-		Off = 0, // Left
-		On = 1 // Right
-	};
+	typedef sl_bool SwitchValue;
 
 	class SLIB_EXPORT SwitchView : public View
 	{
@@ -60,6 +56,8 @@ namespace slib
 		String getText(SwitchValue value);
 
 		void setText(SwitchValue value, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 
 		Color getTextColor(SwitchValue value);

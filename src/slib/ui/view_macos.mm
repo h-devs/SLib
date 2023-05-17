@@ -847,7 +847,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventKey(sl_true, theEvent);
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -859,7 +859,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventKey(sl_false, theEvent);
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -895,7 +895,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 				[self beginDraggingSessionWithItems:@[drag] event:theEvent source:source];
 			}
 		}
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -911,7 +911,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 		if (clicks == 2) {
 			flags |= instance->onEventMouse(UIAction::LeftButtonDoubleClick, theEvent);
 		}
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -923,7 +923,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::LeftButtonDrag, theEvent);
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -935,7 +935,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::RightButtonDown, theEvent);
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -951,7 +951,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 		if (clicks == 2) {
 			flags |= instance->onEventMouse(UIAction::RightButtonDoubleClick, theEvent);
 		}
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -963,7 +963,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::RightButtonDrag, theEvent);
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -975,7 +975,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::MiddleButtonDown, theEvent);
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -991,7 +991,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 		if (clicks == 2) {
 			flags |= instance->onEventMouse(UIAction::MiddleButtonDoubleClick, theEvent);
 		}
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -1003,7 +1003,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::MiddleButtonDrag, theEvent);
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -1016,7 +1016,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::MouseMove, theEvent);
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -1036,7 +1036,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::MouseEnter, theEvent);
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -1056,7 +1056,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::MouseLeave, theEvent);
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -1068,7 +1068,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouseWheel(theEvent);
-		if (flags & UIEventFlags::StopPropagation) {
+		if (flags & UIEventFlags::Accepted) {
 			return;
 		}
 	}
@@ -1088,7 +1088,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventUpdateCursor(theEvent);
-		if (flags & UIEventFlags::PreventDefault) {
+		if (flags & UIEventFlags::Accepted) {
 			[self removeCursor: self];
 			return;
 		}

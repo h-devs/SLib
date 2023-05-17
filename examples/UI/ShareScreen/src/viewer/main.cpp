@@ -26,7 +26,7 @@ int main(int argc, const char * argv[])
 	hlinear->addChild(viewScreen);
 	window->addView(hlinear);
 
-	window->setOnDestroy([](Window*, UIEvent*) {
+	window->setOnDestroy([](Window*) {
 		UI::quitApp();
 	});
 	window->setMaximized(sl_true);

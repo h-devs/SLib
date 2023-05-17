@@ -3,12 +3,12 @@
 using namespace slib;
 using namespace std;
 
-sl_uint32 CalcHashValue(sl_uint8* plain, int len)
+sl_uint32 CalcHashValue(sl_uint8* plain, sl_size len)
 {
 	//plain[i] < 0x7F because plain consists of capital or digital
 	//hash[0..1] is 14bit >> 1 becomes 0 ~ 8192
 	sl_uint8 hash[4] = { 0 };
-	for (int i = 0; i < len; i++)
+	for (sl_size i = 0; i < len; i++)
 	{
 		hash[1] ^= hash[0];
 		hash[0] ^= hash[3];
@@ -41,7 +41,6 @@ int main(int argc, const char * argv[])
 	Println("DiskSN: %s", diskSN);
 	Println("BoardSN: %s", boardSN);
 	Println("MachineSN: %04d-%04d-%04d-%04d-%04d", s1, s2, s3, s4, checksum);
-	
-	while (1);
+
 	return 0;
 }

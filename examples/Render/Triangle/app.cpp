@@ -30,7 +30,7 @@ void TriangleApp::onStart()
 	window->setFrame(100, 100, 400, 300);
 	window->setResizable();
 	window->addView(view, UIUpdateMode::Init);
-	window->setOnClose([](Window* window, UIEvent* ev) {
+	window->setOnDestroy([](Window* window) {
 		UIApp::quit();
 	});
 	window->show();

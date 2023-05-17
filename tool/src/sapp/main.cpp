@@ -151,7 +151,8 @@ int main(int argc, const char * argv[])
 			Json config = Json::parseTextFile(pathConfig);
 			param.pageSize.x = config["simulator_window_width"].getInt32(param.pageSize.x);
 			param.pageSize.y = config["simulator_window_height"].getInt32(param.pageSize.y);
-			param.onClosePage = [pathConfig](SAppLayoutSimulationWindow* window, UIEvent* ev) {
+			param.onClosePage = [pathConfig](SAppLayoutSimulationWindow* window) {
+				window->onClose();
 				if (window->isSavingPageSize()) {
 					Json config = Json::parseTextFile(pathConfig);
 					if (config.isNull()) {
@@ -164,7 +165,8 @@ int main(int argc, const char * argv[])
 				}
 				UI::quitApp();
 			};
-			param.onCloseWindow = [](SAppLayoutSimulationWindow* window, UIEvent* ev) {
+			param.onCloseWindow = [](SAppLayoutSimulationWindow* window) {
+				window->onClose();
 				UI::quitApp();
 			};
 			if (!(doc->simulateLayoutInWindow(layoutName, param))) {

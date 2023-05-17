@@ -61,7 +61,7 @@ namespace slib
 	{
 		View::onKeyEvent(ev);
 		if (m_flagEditable) {
-			ev->stopPropagation();
+			ev->accept();
 		}
 	}
 
