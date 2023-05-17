@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{5CFAE98B-ECB5-48F1-A486-A5759EB269F4}</ProjectGuid>
+    <ProjectGuid>{CACA353B-D3E7-4261-9253-3171CE3DE99A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>FFmpegPlayer</RootNamespace>
   </PropertyGroup>

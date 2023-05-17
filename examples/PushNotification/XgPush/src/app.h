@@ -26,11 +26,11 @@
 
 using namespace slib;
 
-class ExampleXgPushApp : public MobileApp
+class XgPushApp : public MobileApp
 {
-	SLIB_APPLICATION(ExampleXgPushApp)
+	SLIB_APPLICATION(XgPushApp)
 public:
-	ExampleXgPushApp();
+	XgPushApp();
 
 protected:
 	void onStart() override;

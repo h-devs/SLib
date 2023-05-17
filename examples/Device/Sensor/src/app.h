@@ -4,11 +4,11 @@
 
 using namespace slib;
 
-class ExampleSensorApp : public MobileApp
+class SensorApp : public MobileApp
 {
-	SLIB_APPLICATION(ExampleSensorApp)
+	SLIB_APPLICATION(SensorApp)
 public:
-	ExampleSensorApp();
+	SensorApp();
 
 protected:
 	void onStart() override;

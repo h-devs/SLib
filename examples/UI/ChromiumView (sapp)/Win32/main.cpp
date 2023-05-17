@@ -30,7 +30,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 {
 	System::setDebugFlags();
 	Chromium::startup(hInstance);
-	ExampleChromiumViewApp::main();
+	ChromiumViewApp::main();
 	Chromium::shutdown();
 	return 0;
 }

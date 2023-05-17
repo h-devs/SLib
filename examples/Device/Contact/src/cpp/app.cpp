@@ -2,16 +2,16 @@
 
 #include "MainPage.h"
 
-ExampleContactApp::ExampleContactApp()
+ContactApp::ContactApp()
 {
 }
 
-Ref<View> ExampleContactApp::getStartupPage()
+Ref<View> ContactApp::getStartupPage()
 {
 	return new MainPage;
 }
 
-void ExampleContactApp::onStart()
+void ContactApp::onStart()
 {
 	setAvailableScreenOrientationsPortrait();
 }

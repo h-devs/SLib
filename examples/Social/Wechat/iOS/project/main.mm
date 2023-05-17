@@ -1,6 +1,6 @@
 #include "app.h"
 
 int main(int argc, char * argv[]) {
-	ExampleWechatApp::main();
+	WechatApp::main();
 	return 0;
 }

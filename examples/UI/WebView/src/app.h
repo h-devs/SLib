@@ -26,11 +26,11 @@
 
 using namespace slib;
 
-class ExampleWebViewApp : public MobileApp
+class WebViewApp : public MobileApp
 {
-	SLIB_APPLICATION(ExampleWebViewApp)
+	SLIB_APPLICATION(WebViewApp)
 public:
-	ExampleWebViewApp();
+	WebViewApp();
 
 	void onStart() override;
 

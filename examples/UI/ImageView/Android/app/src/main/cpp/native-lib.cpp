@@ -5,6 +5,6 @@
 JNIEXPORT jint JNI_OnLoad(JavaVM* jvm, void* reserved)
 {
 	Android::initialize(jvm);
-	ExampleImageViewApp::main();
+	ImageViewApp::main();
 	return JNI_VERSION_1_4;
 }

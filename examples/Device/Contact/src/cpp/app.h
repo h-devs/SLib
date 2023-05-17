@@ -7,11 +7,11 @@
 using namespace slib;
 using namespace sapp;
 
-class ExampleContactApp : public MobileApp
+class ContactApp : public MobileApp
 {
-	SLIB_APPLICATION(ExampleContactApp)
+	SLIB_APPLICATION(ContactApp)
 public:
-	ExampleContactApp();
+	ContactApp();
 
 protected:
 	Ref<View> getStartupPage() override;

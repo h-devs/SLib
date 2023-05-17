@@ -27,6 +27,6 @@
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
 {
 	System::setDebugFlags();
-	QRCodeExampleApp::main();
+	QRCodeApp::main();
 	return 0;
 }

@@ -24,11 +24,11 @@
 
 #include "main_window.h"
 
-ExampleChromiumViewApp::ExampleChromiumViewApp()
+ChromiumViewApp::ChromiumViewApp()
 {
 }
 
-void ExampleChromiumViewApp::onStart()
+void ChromiumViewApp::onStart()
 {
 	Ref<MainWindow> window = new MainWindow;
 	window->create();

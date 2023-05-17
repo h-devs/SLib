@@ -7,11 +7,11 @@
 using namespace slib;
 using namespace sapp;
 
-class ExampleWechatApp : public MobileApp
+class WechatApp : public MobileApp
 {
-	SLIB_APPLICATION(ExampleWechatApp)
+	SLIB_APPLICATION(WechatApp)
 public:
-	ExampleWechatApp();
+	WechatApp();
 
 protected:
 	Ref<View> getStartupPage() override;

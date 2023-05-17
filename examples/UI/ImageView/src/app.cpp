@@ -22,14 +22,14 @@
 
 #include "app.h"
 
-ExampleImageViewApp::ExampleImageViewApp()
+ImageViewApp::ImageViewApp()
 {
 }
 
-void ExampleImageViewApp::onStart()
+void ImageViewApp::onStart()
 {
 	getMainWindow()->setResizable(sl_true);
-	getMainWindow()->setTitle("Example - ImageView");
+	getMainWindow()->setTitle("ImageView");
 
 	sl_real fontSize;
 #if defined(SLIB_PLATFORM_IS_DESKTOP)

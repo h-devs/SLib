@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(ExampleContainers)
+project(Containers)
 
 include ($ENV{SLIB_PATH}/tool/slib-app.cmake)
 
-add_executable(ExampleContainers main.cpp)
+add_executable(Containers main.cpp)
 target_link_libraries (
-  ExampleContainers
+  Containers
   slib
   pthread
   dl

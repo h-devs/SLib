@@ -3,16 +3,16 @@
 #include "MainPage.h"
 #include "config.h"
 
-ExampleWechatApp::ExampleWechatApp()
+WechatApp::WechatApp()
 {
 }
 
-Ref<View> ExampleWechatApp::getStartupPage()
+Ref<View> WechatApp::getStartupPage()
 {
 	return new MainPage;
 }
 
-void ExampleWechatApp::onStart()
+void WechatApp::onStart()
 {
 	setAvailableScreenOrientationsPortrait();
 

@@ -2,11 +2,11 @@
 
 #include <zxing.h>
 
-QRCodeExampleApp::QRCodeExampleApp()
+QRCodeApp::QRCodeApp()
 {
 }
 
-void QRCodeExampleApp::onStart()
+void QRCodeApp::onStart()
 {
 	setAvailableScreenOrientationsLandscape();
 #ifdef SLIB_PLATFORM_IS_DESKTOP

@@ -1,6 +1,6 @@
 #include "app.h"
 
 int main(int argc, char * argv[]) {
-	ExampleAlipayApp::main();
+	AlipayApp::main();
 	return 0;
 }

@@ -3,17 +3,17 @@
 #include "config.h"
 #include "MainPage.h"
 
-ExampleAlipayApp::ExampleAlipayApp()
+AlipayApp::AlipayApp()
 {
 	AlipaySDK::initialize(ALIPAY_APP_SCHEME);
 }
 
-Ref<View> ExampleAlipayApp::getStartupPage()
+Ref<View> AlipayApp::getStartupPage()
 {
 	return new MainPage;
 }
 
-void ExampleAlipayApp::onStart()
+void AlipayApp::onStart()
 {
 	setAvailableScreenOrientationsPortrait();
 }

@@ -5,6 +5,6 @@
 JNIEXPORT jint JNI_OnLoad(JavaVM* jvm, void* reserved)
 {
 	Android::initialize(jvm);
-	ExampleAlipayApp::main();
+	AlipayApp::main();
 	return JNI_VERSION_1_4;
 }

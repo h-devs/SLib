@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{D1153F23-72DA-4CFF-B753-6FA6C5F95292}</ProjectGuid>
+    <ProjectGuid>{3230C3E4-EA95-4D16-A133-DC0B7E5FAE54}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>DrawEllipse</RootNamespace>
   </PropertyGroup>

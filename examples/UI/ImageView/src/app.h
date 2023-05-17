@@ -26,11 +26,11 @@
 
 using namespace slib;
 
-class ExampleImageViewApp : public MobileApp
+class ImageViewApp : public MobileApp
 {
-	SLIB_APPLICATION(ExampleImageViewApp)
+	SLIB_APPLICATION(ImageViewApp)
 public:
-	ExampleImageViewApp();
+	ImageViewApp();
 
 	void onStart() override;
 

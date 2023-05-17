@@ -5,6 +5,6 @@
 JNIEXPORT jint JNI_OnLoad(JavaVM* jvm, void* reserved)
 {
 	Android::initialize(jvm);
-	ExampleCameraViewApp::main();
+	CameraViewApp::main();
 	return JNI_VERSION_1_4;
 }

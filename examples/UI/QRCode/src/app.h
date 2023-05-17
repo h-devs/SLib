@@ -6,11 +6,11 @@
 
 using namespace slib;
 
-class QRCodeExampleApp : public MobileApp
+class QRCodeApp : public MobileApp
 {
-	SLIB_APPLICATION(QRCodeExampleApp)
+	SLIB_APPLICATION(QRCodeApp)
 public:
-	QRCodeExampleApp();
+	QRCodeApp();
 
 protected:
 	void onStart() override;

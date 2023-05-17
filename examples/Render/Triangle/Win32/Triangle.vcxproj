@@ -27,7 +27,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{5CFAE98B-ECB5-48F1-A486-A5759EB269F4}</ProjectGuid>
+    <ProjectGuid>{97C9683B-8E49-431F-8CF5-E311F9844D25}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Triangle</RootNamespace>
   </PropertyGroup>

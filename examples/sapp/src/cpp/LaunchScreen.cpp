@@ -29,6 +29,6 @@ void LaunchScreen::onOpen()
 	AnimationFrames<float> frames(1, 0);
 	frames.addFrame(0.8f, 1);
 	imgLoading->startAlphaAnimation(frames, 2, [this]() {
-		this->goToHomePage(new MainMenu());
+		goToHomePage(new MainMenu());
 	});
 }

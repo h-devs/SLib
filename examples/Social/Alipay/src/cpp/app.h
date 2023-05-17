@@ -7,11 +7,11 @@
 using namespace slib;
 using namespace sapp;
 
-class ExampleAlipayApp : public MobileApp
+class AlipayApp : public MobileApp
 {
-	SLIB_APPLICATION(ExampleAlipayApp)
+	SLIB_APPLICATION(AlipayApp)
 public:
-	ExampleAlipayApp();
+	AlipayApp();
 
 protected:
 	Ref<View> getStartupPage() override;

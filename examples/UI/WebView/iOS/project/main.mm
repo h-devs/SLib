@@ -1,6 +1,6 @@
 #include "app.h"
 
 int main(int argc, char * argv[]) {
-	ExampleWebViewApp::main();
+	WebViewApp::main();
 	return 0;
 }

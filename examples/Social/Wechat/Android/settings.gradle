@@ -1,3 +1,3 @@
-rootProject.name = 'ExampleWechat'
+rootProject.name = 'Wechat'
 
 include ':app'

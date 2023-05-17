@@ -2,6 +2,6 @@
 
 int main(int argc, const char * argv[])
 {
-	ExampleImageViewApp::main();
+	ImageViewApp::main();
 	return 0;
 }

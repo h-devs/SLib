@@ -2,6 +2,6 @@
 
 int main(int argc, const char * argv[])
 {
-	ExampleCameraViewApp::main(argc, argv);
+	CameraViewApp::main(argc, argv);
 	return 0;
 }

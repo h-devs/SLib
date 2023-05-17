@@ -1,10 +1,10 @@
 #include "app.h"
 
-ExampleSensorApp::ExampleSensorApp()
+SensorApp::SensorApp()
 {
 }
 
-void ExampleSensorApp::onStart()
+void SensorApp::onStart()
 {
 	getContentView()->setBackgroundColor(Color::White);
 

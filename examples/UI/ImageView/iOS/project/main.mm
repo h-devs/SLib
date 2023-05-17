@@ -1,6 +1,6 @@
 #include "app.h"
 
 int main(int argc, char * argv[]) {
-	ExampleImageViewApp::main();
+	ImageViewApp::main();
 	return 0;
 }

@@ -3,7 +3,7 @@
 int main(int argc, const char * argv[])
 {
 	Chromium::startup(argc, argv);
-	ExampleChromiumViewApp::main();
+	ChromiumViewApp::main();
 	Chromium::shutdown();
 	return 0;
 }

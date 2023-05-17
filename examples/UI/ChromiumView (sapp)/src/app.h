@@ -26,11 +26,11 @@
 
 using namespace slib;
 
-class ExampleChromiumViewApp : public UIApp
+class ChromiumViewApp : public UIApp
 {
-	SLIB_APPLICATION(ExampleChromiumViewApp)
+	SLIB_APPLICATION(ChromiumViewApp)
 public:
-	ExampleChromiumViewApp();
+	ChromiumViewApp();
 
 	void onStart() override;
 

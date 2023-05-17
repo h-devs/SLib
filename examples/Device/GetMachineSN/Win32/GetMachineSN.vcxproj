@@ -23,7 +23,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{D1153F23-72DA-4CFF-B753-6FA6C5F95292}</ProjectGuid>
+    <ProjectGuid>{C2B477F9-7E63-44F4-9FE6-BDCE7DDEFCFF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GetMachineSN</RootNamespace>
   </PropertyGroup>

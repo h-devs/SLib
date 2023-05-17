@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{5CFAE98B-ECB5-48F1-A486-A5759EB269F4}</ProjectGuid>
+    <ProjectGuid>{ADA5DE24-3F74-4BE7-9FE6-5AD3ED6E8221}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>OAuthClient</RootNamespace>
   </PropertyGroup>

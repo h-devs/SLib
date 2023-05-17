@@ -22,11 +22,11 @@
 
 #include "app.h"
 
-ExampleChromiumViewApp::ExampleChromiumViewApp()
+ChromiumViewApp::ChromiumViewApp()
 {
 }
 
-void ExampleChromiumViewApp::onStart()
+void ChromiumViewApp::onStart()
 {
 #ifdef SLIB_PLATFORM_IS_DESKTOP
 	sl_real fontSize = 20;
@@ -95,7 +95,7 @@ void ExampleChromiumViewApp::onStart()
 
 }
 
-void ExampleChromiumViewApp::onClickTest1(View* button)
+void ChromiumViewApp::onClickTest1(View* button)
 {
 	String html = SLIB_STRINGIFY
 	(
@@ -130,14 +130,14 @@ void ExampleChromiumViewApp::onClickTest1(View* button)
 	});
 }
 
-void ExampleChromiumViewApp::onClickTest2(View* button)
+void ChromiumViewApp::onClickTest2(View* button)
 {
 	static int n = 0;
 	n++;
 	m_webView->runJavaScript(String::format("test_func(%d, '%s')", n, Time::now()));
 }
 
-void ExampleChromiumViewApp::onClickTest3(View *button)
+void ChromiumViewApp::onClickTest3(View *button)
 {
 	if (m_http.isNull()) {
 		HttpServerParam param;

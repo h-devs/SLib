@@ -22,11 +22,11 @@
 
 #include "app.h"
 
-ExampleXgPushApp::ExampleXgPushApp()
+XgPushApp::XgPushApp()
 {
 }
 
-void ExampleXgPushApp::onStart()
+void XgPushApp::onStart()
 {
 	setAvailableScreenOrientationsLandscape();
 
@@ -63,13 +63,13 @@ void ExampleXgPushApp::onStart()
 	startBroadcast();
 }
 
-void ExampleXgPushApp::onResume()
+void XgPushApp::onResume()
 {
 	MobileApp::onResume();
 	setBadgeNumber(0);
 }
 
-void ExampleXgPushApp::addDevice(const String& device)
+void XgPushApp::addDevice(const String& device)
 {
 	ObjectLocker lock(this);
 	if (selectReceiver->getValues().contains(device)) {
@@ -85,7 +85,7 @@ void ExampleXgPushApp::addDevice(const String& device)
 #define BROADCAST_PORT 38541
 
 // broadcast device token over LAN, so that devices can list the other device tokens in the same LAN
-void ExampleXgPushApp::startBroadcast()
+void XgPushApp::startBroadcast()
 {
 	Shared<Socket> socket = Socket::openUdp();
 	socket->setOption_Broadcast(sl_true);
@@ -113,7 +113,7 @@ void ExampleXgPushApp::startBroadcast()
 	}
 }
 
-void ExampleXgPushApp::onClickSend(View*)
+void XgPushApp::onClickSend(View*)
 {
 	String receiver = selectReceiver->getSelectedValue();
 	if (receiver.isEmpty()) {
@@ -155,7 +155,7 @@ void ExampleXgPushApp::onClickSend(View*)
 	XgPushService::sendNotification(param);
 }
 
-void ExampleXgPushApp::initUI()
+void XgPushApp::initUI()
 {
 	sl_real fontSizeLabel = UIResource::getScreenMinimum() / 25;
 	sl_real fontSizeEdit = UIResource::getScreenMinimum() / 30;

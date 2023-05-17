@@ -72,7 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SLIB_PATH)/include;$(SLIB_PATH)/extra/file_encrypt;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
@@ -80,7 +80,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SLIB_PATH)/include;$(SLIB_PATH)/extra/file_encrypt;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
@@ -88,7 +88,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SLIB_PATH)/include;$(SLIB_PATH)/extra/file_encrypt;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
@@ -96,7 +96,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SLIB_PATH)/include;$(SLIB_PATH)/extra/file_encrypt;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
@@ -167,7 +167,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\extra\file_encrypt\chacha.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\extra\file_encrypt\chacha.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,6 @@
 #include "app.h"
 
 int main(int argc, char * argv[]) {
-	ExampleContactApp::main();
+	ContactApp::main();
 	return 0;
 }

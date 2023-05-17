@@ -1,6 +1,6 @@
 #include "app.h"
 
 int main(int argc, char * argv[]) {
-	ExampleFCMApp::main();
+	FCMApp::main();
 	return 0;
 }

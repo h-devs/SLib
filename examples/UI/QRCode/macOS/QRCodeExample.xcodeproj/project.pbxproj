@@ -27,7 +27,7 @@
 		265BF18E21723BBA0073F7B8 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		265BF19021723BCD0073F7B8 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		265BF19221723BFB0073F7B8 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		26840C252111FA0200A01A29 /* QRCodeExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QRCodeExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		26840C252111FA0200A01A29 /* QRCode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QRCode.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		26840C2B2111FA0300A01A29 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		26840C2E2111FA0300A01A29 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		26840C302111FA0300A01A29 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -79,7 +79,7 @@
 		26840C262111FA0200A01A29 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				26840C252111FA0200A01A29 /* QRCodeExample.app */,
+				26840C252111FA0200A01A29 /* QRCode.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -107,9 +107,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		26840C242111FA0200A01A29 /* QRCodeExample */ = {
+		26840C242111FA0200A01A29 /* QRCode */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 26840C362111FA0300A01A29 /* Build configuration list for PBXNativeTarget "QRCodeExample" */;
+			buildConfigurationList = 26840C362111FA0300A01A29 /* Build configuration list for PBXNativeTarget "QRCode" */;
 			buildPhases = (
 				26840C212111FA0200A01A29 /* Sources */,
 				26840C222111FA0200A01A29 /* Frameworks */,
@@ -119,9 +119,9 @@
 			);
 			dependencies = (
 			);
-			name = QRCodeExample;
-			productName = QRCodeExample;
-			productReference = 26840C252111FA0200A01A29 /* QRCodeExample.app */;
+			name = QRCode;
+			productName = QRCode;
+			productReference = 26840C252111FA0200A01A29 /* QRCode.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -138,7 +138,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 26840C202111FA0200A01A29 /* Build configuration list for PBXProject "QRCodeExample" */;
+			buildConfigurationList = 26840C202111FA0200A01A29 /* Build configuration list for PBXProject "QRCode" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -151,7 +151,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				26840C242111FA0200A01A29 /* QRCodeExample */,
+				26840C242111FA0200A01A29 /* QRCode */,
 			);
 		};
 /* End PBXProject section */
@@ -323,7 +323,7 @@
 					"-lslib",
 					"-lzxing",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "your-bundle-id.QRCodeExample";
+				PRODUCT_BUNDLE_IDENTIFIER = "your-bundle-id.QRCode";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USE_HEADERMAP = YES;
 			};
@@ -349,7 +349,7 @@
 					"-lslib",
 					"-lzxing",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "your-bundle-id.QRCodeExample";
+				PRODUCT_BUNDLE_IDENTIFIER = "your-bundle-id.QRCode";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USE_HEADERMAP = YES;
 			};
@@ -358,7 +358,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		26840C202111FA0200A01A29 /* Build configuration list for PBXProject "QRCodeExample" */ = {
+		26840C202111FA0200A01A29 /* Build configuration list for PBXProject "QRCode" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				26840C342111FA0300A01A29 /* Debug */,
@@ -367,7 +367,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		26840C362111FA0300A01A29 /* Build configuration list for PBXNativeTarget "QRCodeExample" */ = {
+		26840C362111FA0300A01A29 /* Build configuration list for PBXNativeTarget "QRCode" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				26840C372111FA0300A01A29 /* Debug */,

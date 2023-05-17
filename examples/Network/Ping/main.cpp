@@ -31,7 +31,7 @@ using namespace slib;
  
  On Linux, you have run following command in build output directory
  
-		sudo setcap cap_net_raw=eip ExamplePing
+		sudo setcap cap_net_raw=eip Ping
  
  */
 

@@ -24,11 +24,11 @@
 
 #include "config.h"
 
-ExampleFCMApp::ExampleFCMApp()
+FCMApp::FCMApp()
 {
 }
 
-void ExampleFCMApp::onStart()
+void FCMApp::onStart()
 {
 	setAvailableScreenOrientationsLandscape();
 
@@ -61,13 +61,13 @@ void ExampleFCMApp::onStart()
 	startBroadcast();
 }
 
-void ExampleFCMApp::onResume()
+void FCMApp::onResume()
 {
 	MobileApp::onResume();
 	setBadgeNumber(0);
 }
 
-void ExampleFCMApp::addDevice(const String& device)
+void FCMApp::addDevice(const String& device)
 {
 	ObjectLocker lock(this);
 	if (selectReceiver->getValues().contains(device)) {
@@ -79,7 +79,7 @@ void ExampleFCMApp::addDevice(const String& device)
 #define BROADCAST_PORT 45231
 
 // broadcast device token over LAN, so that devices can list the other device tokens in the same LAN
-void ExampleFCMApp::startBroadcast()
+void FCMApp::startBroadcast()
 {
 	Shared<Socket> socket = Socket::openUdp();
 	socket->setOption_Broadcast(sl_true);
@@ -108,7 +108,7 @@ void ExampleFCMApp::startBroadcast()
 	}
 }
 
-void ExampleFCMApp::onClickSend(View*)
+void FCMApp::onClickSend(View*)
 {
 	String receiver = selectReceiver->getSelectedValue();
 	if (receiver.isEmpty()) {
@@ -137,7 +137,7 @@ void ExampleFCMApp::onClickSend(View*)
 	FCM_Service::sendNotification(param);
 }
 
-void ExampleFCMApp::initUI()
+void FCMApp::initUI()
 {
 	sl_real fontSizeLabel = UIResource::getScreenMinimum() / 25;
 	sl_real fontSizeEdit = UIResource::getScreenMinimum() / 30;

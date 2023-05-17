@@ -22,11 +22,11 @@
 
 #include "app.h"
 
-ExampleWebViewApp::ExampleWebViewApp()
+WebViewApp::WebViewApp()
 {
 }
 
-void ExampleWebViewApp::onStart()
+void WebViewApp::onStart()
 {
 #ifdef SLIB_PLATFORM_IS_DESKTOP
 	sl_real fontSize = 20;
@@ -95,7 +95,7 @@ void ExampleWebViewApp::onStart()
 
 }
 
-void ExampleWebViewApp::onClickTest1(View* button)
+void WebViewApp::onClickTest1(View* button)
 {
 	Application::grantPermissions(AppPermissions::Camera | AppPermissions::WriteExternalStorage);
 
@@ -132,14 +132,14 @@ void ExampleWebViewApp::onClickTest1(View* button)
 	});
 }
 
-void ExampleWebViewApp::onClickTest2(View* button)
+void WebViewApp::onClickTest2(View* button)
 {
 	static int n = 0;
 	n++;
 	m_webView->runJavaScript(String::format("test_func(%d, '%s')", n, Time::now()));
 }
 
-void ExampleWebViewApp::onClickTest3(View *button)
+void WebViewApp::onClickTest3(View *button)
 {
 	if (m_http.isNull()) {
 		HttpServerParam param;

@@ -26,12 +26,12 @@
 
 using namespace slib;
 
-class ExampleFCMApp : public MobileApp
+class FCMApp : public MobileApp
 {
-	SLIB_APPLICATION(ExampleFCMApp)
+	SLIB_APPLICATION(FCMApp)
 
 public:
-	ExampleFCMApp();
+	FCMApp();
 
 protected:
 	void onStart() override;

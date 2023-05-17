@@ -22,11 +22,11 @@
 
 #include "app.h"
 
-ExampleCameraViewApp::ExampleCameraViewApp()
+CameraViewApp::CameraViewApp()
 {
 }
 
-void ExampleCameraViewApp::onStart()
+void CameraViewApp::onStart()
 {
 	m_cameraView = new CameraView;
 	m_cameraView->setWidthFilling();

@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(ExampleHttpServer)
+project(HttpServer)
 
 include ($ENV{SLIB_PATH}/tool/slib-app.cmake)
 
-add_executable(ExampleHttpServer main.cpp)
+add_executable(HttpServer main.cpp)
 target_link_libraries (
-  ExampleHttpServer
+  HttpServer
   slib
   pthread
   dl
