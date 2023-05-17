@@ -1,0 +1,31 @@
+rootProject.name = 'SLibExamples'
+
+include ':sapp'
+project(':sapp').projectDir = new File(settingsDir, '../../sapp/Android/app')
+
+include ':JNI'
+project(':JNI').projectDir = new File(settingsDir, '../../android/JNI/app')
+
+include ':PhoneCall'
+project(':PhoneCall').projectDir = new File(settingsDir, '../../android/PhoneCall/project/app')
+
+include ':Contact'
+project(':Contact').projectDir = new File(settingsDir, '../../device/Contact/Android/app')
+
+include ':Sensor'
+project(':Sensor').projectDir = new File(settingsDir, '../../device/Sensor/Android/app')
+
+include ':CameraView'
+project(':CameraView').projectDir = new File(settingsDir, '../../ui/CameraView/Android/app')
+
+include ':FFmpegPlayer'
+project(':FFmpegPlayer').projectDir = new File(settingsDir, '../../ui/FFmpegPlayer/Android/app')
+
+include ':ImageView'
+project(':ImageView').projectDir = new File(settingsDir, '../../ui/ImageView/Android/app')
+
+include ':QRCode'
+project(':QRCode').projectDir = new File(settingsDir, '../../ui/QRCode/Android/app')
+
+include ':WebView'
+project(':WebView').projectDir = new File(settingsDir, '../../ui/WebView/Android/app')
