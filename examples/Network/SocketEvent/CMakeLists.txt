@@ -11,7 +11,7 @@ add_executable(SocketEvent
 set_target_properties(SocketEvent PROPERTIES LINK_FLAGS "${SLIB_LINK_STATIC_FLAGS}")
 
 target_link_libraries (
-  TestSocketEvent
+  SocketEvent
   slib
   pthread
   dl
