@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		18FD6D742A15AD0900ED23A9 /* web in Resources */ = {isa = PBXBuildFile; fileRef = 18FD6D732A15AD0900ED23A9 /* web */; };
 		263916F221C8F86C008B335B /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 263916F121C8F86C008B335B /* CoreMedia.framework */; };
 		263916F421C8F870008B335B /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 263916F321C8F870008B335B /* AVFoundation.framework */; };
 		265BF19121723BCD0073F7B8 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 265BF19021723BCD0073F7B8 /* OpenGL.framework */; };
@@ -75,6 +76,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		18FD6D732A15AD0900ED23A9 /* web */ = {isa = PBXFileReference; lastKnownFileType = folder; name = web; path = ../asset/web; sourceTree = "<group>"; };
 		263916F121C8F86C008B335B /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		263916F321C8F870008B335B /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		265BF18E21723BBA0073F7B8 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
@@ -111,6 +113,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		18FD6D6E2A15AC9700ED23A9 /* asset */ = {
+			isa = PBXGroup;
+			children = (
+				18FD6D732A15AD0900ED23A9 /* web */,
+			);
+			name = asset;
+			sourceTree = "<group>";
+		};
 		265BF18B21723BB30073F7B8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -141,6 +151,7 @@
 			children = (
 				267465F72317266B00DE8715 /* Chromium Embedded Framework.framework */,
 				26746615231791F800DE8715 /* ChromiumViewHelper.xcodeproj */,
+				18FD6D6E2A15AC9700ED23A9 /* asset */,
 				26840C272111FA0200A01A29 /* project */,
 				26840C392111FB2E00A01A29 /* src */,
 				26840C262111FA0200A01A29 /* Products */,
@@ -273,6 +284,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				18FD6D742A15AD0900ED23A9 /* web in Resources */,
 				26840C2C2111FA0300A01A29 /* Assets.xcassets in Resources */,
 				26840C2F2111FA0300A01A29 /* MainMenu.xib in Resources */,
 			);

@@ -21,6 +21,7 @@
  */
 
 #include <slib.h>
+#include <slib/network/stun.h>
 
 using namespace slib;
 

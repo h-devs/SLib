@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		18FD6D8F2A15FC4500ED23A9 /* zxing_scanner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FD6D8C2A15FC4500ED23A9 /* zxing_scanner.cpp */; };
+		18FD6D902A15FC4500ED23A9 /* zxing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FD6D8E2A15FC4500ED23A9 /* zxing.cpp */; settings = {COMPILER_FLAGS = "-w"; }; };
+		18FD6D922A15FC5200ED23A9 /* zxing_unity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FD6D912A15FC5200ED23A9 /* zxing_unity.cpp */; settings = {COMPILER_FLAGS = "-w"; }; };
 		263916FB21C9421A008B335B /* app.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 263916F921C9421A008B335B /* app.cpp */; };
 		2639171421C943D0008B335B /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2639171321C943D0008B335B /* AVFoundation.framework */; };
 		2639171821C944CA008B335B /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2639171721C944C9008B335B /* CoreMedia.framework */; };
@@ -26,6 +29,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		18FD6D8B2A15FC4500ED23A9 /* zxing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zxing.h; path = ../../../../extra/qrcode/zxing.h; sourceTree = "<group>"; };
+		18FD6D8C2A15FC4500ED23A9 /* zxing_scanner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = zxing_scanner.cpp; path = ../../../../extra/qrcode/zxing_scanner.cpp; sourceTree = "<group>"; };
+		18FD6D8D2A15FC4500ED23A9 /* zxing_scanner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zxing_scanner.h; path = ../../../../extra/qrcode/zxing_scanner.h; sourceTree = "<group>"; };
+		18FD6D8E2A15FC4500ED23A9 /* zxing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = zxing.cpp; path = ../../../../extra/qrcode/zxing.cpp; sourceTree = "<group>"; };
+		18FD6D912A15FC5200ED23A9 /* zxing_unity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = zxing_unity.cpp; path = ../../../../extra/qrcode/external/zxing/zxing_unity.cpp; sourceTree = "<group>"; };
 		263916F921C9421A008B335B /* app.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = app.cpp; path = ../src/app.cpp; sourceTree = "<group>"; };
 		263916FA21C9421A008B335B /* app.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = app.h; path = ../src/app.h; sourceTree = "<group>"; };
 		2639171321C943D0008B335B /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
@@ -69,6 +77,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		18FD6D8A2A15FC1400ED23A9 /* extra */ = {
+			isa = PBXGroup;
+			children = (
+				18FD6D8B2A15FC4500ED23A9 /* zxing.h */,
+				18FD6D8E2A15FC4500ED23A9 /* zxing.cpp */,
+				18FD6D8D2A15FC4500ED23A9 /* zxing_scanner.h */,
+				18FD6D8C2A15FC4500ED23A9 /* zxing_scanner.cpp */,
+				18FD6D912A15FC5200ED23A9 /* zxing_unity.cpp */,
+			);
+			name = extra;
+			sourceTree = "<group>";
+		};
 		260D833520C7DAE60013B34E /* src */ = {
 			isa = PBXGroup;
 			children = (
@@ -83,6 +103,7 @@
 			children = (
 				26F5DE212051ACD500BC4998 /* project */,
 				260D833520C7DAE60013B34E /* src */,
+				18FD6D8A2A15FC1400ED23A9 /* extra */,
 				26F5DE202051ACD500BC4998 /* Products */,
 				26F5DE3C2051B60500BC4998 /* Frameworks */,
 			);
@@ -161,7 +182,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 26F5DE1A2051ACD500BC4998 /* Build configuration list for PBXProject "QRCode" */;
+			buildConfigurationList = 26F5DE1A2051ACD500BC4998 /* Build configuration list for PBXProject "QRCodeExample" */;
 			compatibilityVersion = "Xcode 8.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -199,6 +220,9 @@
 			files = (
 				26F5DE322051ACD500BC4998 /* main.mm in Sources */,
 				263916FB21C9421A008B335B /* app.cpp in Sources */,
+				18FD6D902A15FC4500ED23A9 /* zxing.cpp in Sources */,
+				18FD6D922A15FC5200ED23A9 /* zxing_unity.cpp in Sources */,
+				18FD6D8F2A15FC4500ED23A9 /* zxing_scanner.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -341,17 +365,14 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 56WV5U3VJT;
-				HEADER_SEARCH_PATHS = "$(SLIB_PATH)/include";
+				HEADER_SEARCH_PATHS = (
+					"$(SLIB_PATH)/include",
+					"$(SLIB_PATH)/extra/qrcode",
+				);
 				INFOPLIST_FILE = project/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(SLIB_PATH)/lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
-					"$(SLIB_PATH)/external/lib/iOS",
-				);
-				OTHER_LDFLAGS = (
-					"-lslib",
-					"-lzxing",
-				);
+				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				OTHER_LDFLAGS = "-lslib";
 				PRODUCT_BUNDLE_IDENTIFIER = io.slib.QRCode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -365,17 +386,14 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 56WV5U3VJT;
-				HEADER_SEARCH_PATHS = "$(SLIB_PATH)/include";
+				HEADER_SEARCH_PATHS = (
+					"$(SLIB_PATH)/include",
+					"$(SLIB_PATH)/extra/qrcode",
+				);
 				INFOPLIST_FILE = project/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(SLIB_PATH)/lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)",
-					"$(SLIB_PATH)/external/lib/iOS",
-				);
-				OTHER_LDFLAGS = (
-					"-lslib",
-					"-lzxing",
-				);
+				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				OTHER_LDFLAGS = "-lslib";
 				PRODUCT_BUNDLE_IDENTIFIER = io.slib.QRCode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -385,7 +403,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		26F5DE1A2051ACD500BC4998 /* Build configuration list for PBXProject "QRCode" */ = {
+		26F5DE1A2051ACD500BC4998 /* Build configuration list for PBXProject "QRCodeExample" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				26F5DE332051ACD500BC4998 /* Debug */,

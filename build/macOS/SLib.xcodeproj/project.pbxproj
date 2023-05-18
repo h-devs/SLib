@@ -106,6 +106,8 @@
 		18BE6A6E2A0D319000BFABA1 /* captcha.h in Headers */ = {isa = PBXBuildFile; fileRef = 18BE66DD2A0D315F00BFABA1 /* captcha.h */; };
 		18BE6A702A0D367600BFABA1 /* svg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE6A6F2A0D367600BFABA1 /* svg.cpp */; };
 		18F1E61320742FE200A47EE8 /* css.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18F1E61220742FE200A47EE8 /* css.cpp */; };
+		18FD6D6A2A159DA400ED23A9 /* certificate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FD6D692A159DA400ED23A9 /* certificate.cpp */; };
+		18FD6D6C2A159E0C00ED23A9 /* rc2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FD6D6B2A159E0B00ED23A9 /* rc2.cpp */; };
 		18FF0E0D28444F5900FC8F75 /* freetype_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E0C28444F5900FC8F75 /* freetype_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		18FF0E0F28444FAB00FC8F75 /* sfnt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E0E28444FAB00FC8F75 /* sfnt.cpp */; };
 		18FF0E1128444FDD00FC8F75 /* pdf_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E1028444FDC00FC8F75 /* pdf_view.cpp */; };
@@ -596,6 +598,8 @@
 		18BE68A42A0D316100BFABA1 /* log_package.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = log_package.h; sourceTree = "<group>"; };
 		18BE6A6F2A0D367600BFABA1 /* svg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = svg.cpp; sourceTree = "<group>"; };
 		18F1E61220742FE200A47EE8 /* css.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = css.cpp; sourceTree = "<group>"; };
+		18FD6D692A159DA400ED23A9 /* certificate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = certificate.cpp; sourceTree = "<group>"; };
+		18FD6D6B2A159E0B00ED23A9 /* rc2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rc2.cpp; sourceTree = "<group>"; };
 		18FF0E0C28444F5900FC8F75 /* freetype_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = freetype_unity.c; path = ../../external/src/freetype/freetype_unity.c; sourceTree = "<group>"; };
 		18FF0E0E28444FAB00FC8F75 /* sfnt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sfnt.cpp; sourceTree = "<group>"; };
 		18FF0E1028444FDC00FC8F75 /* pdf_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pdf_view.cpp; sourceTree = "<group>"; };
@@ -1719,9 +1723,9 @@
 				D7E978EC268DC6A7000343F8 /* service_manager_macos.mm */,
 				A25F2FB71B03A33700854DAF /* spin_lock.cpp */,
 				A25F2FB81B03A33700854DAF /* string.cpp */,
+				1887E150202CCD4300A81967 /* stringx.cpp */,
 				26805B6823533D6A00D8817C /* string_buffer.cpp */,
 				26805B6623533D4300D8817C /* string_param.cpp */,
-				1887E150202CCD4300A81967 /* stringx.cpp */,
 				A25F2FBA1B03A33700854DAF /* system.cpp */,
 				26CA8D781C23B4C90049A658 /* system_apple.mm */,
 				A2DE1D8A1B383BB000A74698 /* system_unix.cpp */,
@@ -1741,6 +1745,7 @@
 				266DD4591C11930800D47AB0 /* aes.cpp */,
 				266F12B21C97A13F00DE26FF /* block_cipher.cpp */,
 				268A13011E7AE8BD0048F2CE /* blowfish.cpp */,
+				18FD6D692A159DA400ED23A9 /* certificate.cpp */,
 				26A3DA8D228A08D40031CBDA /* chacha.cpp */,
 				26B92D4821D33E6E003F6F82 /* des.cpp */,
 				26A3DA95228B69890031CBDA /* ecc.cpp */,
@@ -1756,6 +1761,7 @@
 				269308652368DE7D00C9C7F9 /* openssl_crypto.cpp */,
 				26DF6FBA2369E1FB009C1339 /* openssl_chacha_poly1305.cpp */,
 				26A3DA91228AFDDE0031CBDA /* poly1305.cpp */,
+				18FD6D6B2A159E0B00ED23A9 /* rc2.cpp */,
 				26A3DA892289ED9B0031CBDA /* rc4.cpp */,
 				266DD45E1C11930800D47AB0 /* rsa.cpp */,
 				266DD45F1C11930800D47AB0 /* sha1.cpp */,
@@ -2279,6 +2285,7 @@
 				D7BF60DB26311F0700E0B3DD /* lz4_unity.c in Sources */,
 				26D9D9E21E96468D005F7BD3 /* ui_core_macos.mm in Sources */,
 				2698A54E226A383500662528 /* refresh_view.cpp in Sources */,
+				18FD6D6C2A159E0C00ED23A9 /* rc2.cpp in Sources */,
 				D7BF60FB26311FB700E0B3DD /* leveldb_unity.cc in Sources */,
 				18FF0E1128444FDD00FC8F75 /* pdf_view.cpp in Sources */,
 				26D9D97C1E964675005F7BD3 /* audio_data.cpp in Sources */,
@@ -2388,6 +2395,7 @@
 				26D9D9351E9645CE005F7BD3 /* rsa.cpp in Sources */,
 				26D9D9361E9645CE005F7BD3 /* content_type.cpp in Sources */,
 				26D9D99C1E96467B005F7BD3 /* pcap.cpp in Sources */,
+				18FD6D6A2A159DA400ED23A9 /* certificate.cpp in Sources */,
 				1887E15F202CCE1800A81967 /* oauth_server_openssl.cpp in Sources */,
 				26F5C77E237EEDFD009F3EEF /* ui_notification_apple.mm in Sources */,
 				26D9D9881E964675005F7BD3 /* camera_apple.mm in Sources */,
@@ -2592,10 +2600,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"-lsapp",
-					"-lslib",
-				);
+				OTHER_LDFLAGS = "-lslib";
 				PRODUCT_BUNDLE_IDENTIFIER = io.slib.sapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2624,10 +2629,7 @@
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../../lib/macOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"-lsapp",
-					"-lslib",
-				);
+				OTHER_LDFLAGS = "-lslib";
 				PRODUCT_BUNDLE_IDENTIFIER = io.slib.sapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

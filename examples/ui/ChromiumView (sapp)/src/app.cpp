@@ -32,8 +32,5 @@ void ChromiumViewApp::onStart()
 {
 	Ref<MainWindow> window = new MainWindow;
 	window->create();
-	window->setOnDestroy([](Window*) {
-		quit();
-	});
 	setMainWindow(window);
 }

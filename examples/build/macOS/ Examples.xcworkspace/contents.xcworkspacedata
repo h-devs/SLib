@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <Group
+      location = "container:"
+      name = "base">
+      <FileRef
+         location = "group:../../base/ARC/ARC.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../base/Containers/Container.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:"
+      name = "crypt">
+      <FileRef
+         location = "group:../../crypt/3DES/TripleDES.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../crypt/AES/AES.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:"
+      name = "database">
+      <FileRef
+         location = "group:../../database/MySQL/macOS/MySQL.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../database/PostgreSQL/macOS/PostgreSQL.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../database/Redis/macOS/RedisClient.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../database/SQLite/macOS/SQLite.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:"
+      name = "network">
+      <FileRef
+         location = "group:../../network/HttpServer/HttpServer.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../network/IPC/IPC.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../network/Ping/Ping.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../network/StunServer/StunServer.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../network/UdpHolepuching/UdpHolepunching.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:"
+      name = "social">
+      <FileRef
+         location = "absolute:/Users/apple/Work/SLIBIO/SLib/examples/social/OAuth/Server/../Client/macOS/OAuthClient.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../social/OAuth/Server/OAuthServer.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:"
+      name = "ui">
+      <FileRef
+         location = "group:../../ui/CameraView/macOS/CameraView.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../ui/ChromiumView/macOS/ChromiumView.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../ui/ChromiumView (sapp)/macOS/ChromiumView (sapp).xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../ui/DragAndDrop/macOS/DragAndDrop.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../ui/FFmpegPlayer/macOS/FFmpegPlayer.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../ui/ImageView/macOS/ImageView.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../ui/QRCode/macOS/QRCodeExample.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:../../ui/WebView/macOS/WebView.xcodeproj">
+      </FileRef>
+   </Group>
+</Workspace>

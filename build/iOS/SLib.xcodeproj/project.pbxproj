@@ -97,6 +97,10 @@
 		18BE6A732A0D373900BFABA1 /* group_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE6A712A0D373900BFABA1 /* group_box.cpp */; };
 		18BE6A742A0D373900BFABA1 /* grid_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE6A722A0D373900BFABA1 /* grid_view.cpp */; };
 		18BE6A762A0D374E00BFABA1 /* svg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE6A752A0D374E00BFABA1 /* svg.cpp */; };
+		18FD6D802A15C49A00ED23A9 /* certificate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FD6D7F2A15C49A00ED23A9 /* certificate.cpp */; };
+		18FD6D822A15C4A500ED23A9 /* rc2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FD6D812A15C4A500ED23A9 /* rc2.cpp */; };
+		18FD6D842A15C83B00ED23A9 /* stringx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FD6D832A15C83B00ED23A9 /* stringx.cpp */; };
+		18FD6D862A15C88900ED23A9 /* css.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FD6D852A15C88900ED23A9 /* css.cpp */; };
 		18FF0E13284452FE00FC8F75 /* sfnt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E12284452FE00FC8F75 /* sfnt.cpp */; };
 		18FF0E152844531600FC8F75 /* pdf_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E142844531600FC8F75 /* pdf_view.cpp */; };
 		18FF0E172844533400FC8F75 /* freetype_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E162844533400FC8F75 /* freetype_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -516,6 +520,10 @@
 		18BE6A792A0D379100BFABA1 /* pseudo_tcp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp.cpp; sourceTree = "<group>"; };
 		18BE6A7A2A0D379100BFABA1 /* pseudo_tcp_message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pseudo_tcp_message.h; sourceTree = "<group>"; };
 		18BE6A7B2A0D379100BFABA1 /* pseudo_tcp_message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp_message.cpp; sourceTree = "<group>"; };
+		18FD6D7F2A15C49A00ED23A9 /* certificate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = certificate.cpp; sourceTree = "<group>"; };
+		18FD6D812A15C4A500ED23A9 /* rc2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rc2.cpp; sourceTree = "<group>"; };
+		18FD6D832A15C83B00ED23A9 /* stringx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stringx.cpp; sourceTree = "<group>"; };
+		18FD6D852A15C88900ED23A9 /* css.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = css.cpp; sourceTree = "<group>"; };
 		18FF0E12284452FE00FC8F75 /* sfnt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sfnt.cpp; sourceTree = "<group>"; };
 		18FF0E142844531600FC8F75 /* pdf_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pdf_view.cpp; sourceTree = "<group>"; };
 		18FF0E162844533400FC8F75 /* freetype_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = freetype_unity.c; path = ../../external/src/freetype/freetype_unity.c; sourceTree = "<group>"; };
@@ -1101,6 +1109,7 @@
 				26C1B64720D51D4300E36539 /* canvas_ext.cpp */,
 				260107891DACE8C400C40723 /* canvas_quartz.mm */,
 				266DD38F1C117AE300D47AB0 /* color.cpp */,
+				18FD6D852A15C88900ED23A9 /* css.cpp */,
 				266DD3901C117AE300D47AB0 /* drawable.cpp */,
 				26C1B64520D51D3D00E36539 /* drawable_ext.cpp */,
 				2601078B1DACE8CF00C40723 /* drawable_quartz.mm */,
@@ -1270,6 +1279,7 @@
 				261782C9251C9EAE00C2AAC0 /* service_manager.cpp */,
 				26FBC2701DF9FB0200D76774 /* spin_lock.cpp */,
 				A25F2EE31B039EF600854DAF /* string.cpp */,
+				18FD6D832A15C83B00ED23A9 /* stringx.cpp */,
 				261E7F402353AA6100ACE4E8 /* string_buffer.cpp */,
 				261E7F412353AA6100ACE4E8 /* string_param.cpp */,
 				A25F2EE51B039EF600854DAF /* system.cpp */,
@@ -1291,6 +1301,7 @@
 				266DD3781C117A3100D47AB0 /* aes.cpp */,
 				26B571501C9D442D0099E69B /* block_cipher.cpp */,
 				268A13031E7B16340048F2CE /* blowfish.cpp */,
+				18FD6D7F2A15C49A00ED23A9 /* certificate.cpp */,
 				26A3DA8F228AAE4D0031CBDA /* chacha.cpp */,
 				26B92D4F21D357AD003F6F82 /* des.cpp */,
 				262ED4E9228DEBEE0029F409 /* ecc.cpp */,
@@ -1306,6 +1317,7 @@
 				26DF6FB6236975C0009C1339 /* openssl_crypto.cpp */,
 				26DF6FBC2369E369009C1339 /* openssl_chacha_poly1305.cpp */,
 				26A3DA93228B43EA0031CBDA /* poly1305.cpp */,
+				18FD6D812A15C4A500ED23A9 /* rc2.cpp */,
 				26A3DA8B228A03430031CBDA /* rc4.cpp */,
 				266DD37C1C117A3100D47AB0 /* rsa.cpp */,
 				266DD37E1C117A3100D47AB0 /* sha1.cpp */,
@@ -1734,6 +1746,7 @@
 				26D9D8E61E962976005F7BD3 /* ui_resource.cpp in Sources */,
 				26B92D5B21D4CF22003F6F82 /* device.cpp in Sources */,
 				26D9D88A1E96295A005F7BD3 /* codec_opus.cpp in Sources */,
+				18FD6D822A15C4A500ED23A9 /* rc2.cpp in Sources */,
 				26D9D86A1E96294F005F7BD3 /* drawable_quartz.mm in Sources */,
 				26D9D8D01E962976005F7BD3 /* scroll_bar.cpp in Sources */,
 				265A934C2303558A00B155A2 /* screen_capture.cpp in Sources */,
@@ -1742,6 +1755,7 @@
 				18A341FF27357C53001F7E4F /* lmdb.cpp in Sources */,
 				26D9D8AB1E962969005F7BD3 /* opengl_gl.cpp in Sources */,
 				26D9D8E81E962976005F7BD3 /* view.cpp in Sources */,
+				18FD6D842A15C83B00ED23A9 /* stringx.cpp in Sources */,
 				26D9D80D1E9628E0005F7BD3 /* charset.cpp in Sources */,
 				269C2FA0235EDDB600775765 /* charset_apple.mm in Sources */,
 				26D9D8A71E962962005F7BD3 /* url.cpp in Sources */,
@@ -1853,6 +1867,7 @@
 				26C795C92215FC7C0053C5A1 /* drawables.cpp in Sources */,
 				1887E190202CD22200A81967 /* file.cpp in Sources */,
 				261E7F432353AA6100ACE4E8 /* string_param.cpp in Sources */,
+				18FD6D802A15C49A00ED23A9 /* certificate.cpp in Sources */,
 				266CF0F725032D1300E694E3 /* tile_layout.cpp in Sources */,
 				26ACB3F6220985EE0093FF3F /* device_audio_ios.mm in Sources */,
 				26D9D8871E96295A005F7BD3 /* camera.cpp in Sources */,
@@ -1924,6 +1939,7 @@
 				26D9D8661E96294F005F7BD3 /* canvas.cpp in Sources */,
 				26D9D8911E96295A005F7BD3 /* video_codec.cpp in Sources */,
 				26D9D8511E96292E005F7BD3 /* database_cursor.cpp in Sources */,
+				18FD6D862A15C88900ED23A9 /* css.cpp in Sources */,
 				26D9D8961E962962005F7BD3 /* http_common.cpp in Sources */,
 				26D9D8411E9628E0005F7BD3 /* block_cipher.cpp in Sources */,
 				265A9360230478E300B155A2 /* time_unix.cpp in Sources */,

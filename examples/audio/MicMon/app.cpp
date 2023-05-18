@@ -67,11 +67,7 @@ void MicMonApp::onStart()
 	Ref<Window> window = new Window;
 	window->setTitle("MicMon");
 	window->setFrame(100, 100, 600, 400);
-	window->setOnDestroy([](Window* window) {
-		UIApp::quit();
-	});
 	window->addView(group);
-
 	window->show();
 	setMainWindow(window);
 }

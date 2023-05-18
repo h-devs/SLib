@@ -61,9 +61,6 @@ void SvgViewerApp::onStart()
 	auto window = New<Window>();
 	window->setTitle("SvgViewer");
 	window->setFrame(100, 100, 600, 400);
-	window->setOnDestroy([](Window* window) {
-		UIApp::quit();
-	});
 	window->setResizable();
 	window->addView(linear1);
 	window->show();

@@ -151,5 +151,7 @@ void ChromiumViewApp::onClickTest3(View *button)
 			}
 		}
 	}
-	m_webView->loadURL(String::format("http://127.0.0.1:%d/index.html", m_http->getParam().port));
+	if (m_http.isNotNull()) {
+		m_webView->loadURL(String::format("http://127.0.0.1:%d/index.html", m_http->getParam().port));
+	}
 }

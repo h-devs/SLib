@@ -11,6 +11,16 @@
 		265BF19B2172481E0073F7B8 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 265BF19A2172481E0073F7B8 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		18FD6D672A159CBF00ED23A9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 18FD6D632A159CBF00ED23A9 /* OAuthClient.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 26840C252111FA0200A01A29;
+			remoteInfo = OAuthClient;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		263BCA531EA6891E005C75F4 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -24,6 +34,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		18FD6D632A159CBF00ED23A9 /* OAuthClient.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OAuthClient.xcodeproj; path = ../Client/macOS/OAuthClient.xcodeproj; sourceTree = "<group>"; };
 		263BCA551EA6891E005C75F4 /* OAuthServer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = OAuthServer; sourceTree = BUILT_PRODUCTS_DIR; };
 		263BCA5F1EA68ABD005C75F4 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		265BF19A2172481E0073F7B8 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -41,9 +52,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		18FD6D642A159CBF00ED23A9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				18FD6D682A159CBF00ED23A9 /* OAuthClient.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		263BCA4C1EA6891E005C75F4 = {
 			isa = PBXGroup;
 			children = (
+				18FD6D632A159CBF00ED23A9 /* OAuthClient.xcodeproj */,
 				263BCA5F1EA68ABD005C75F4 /* main.cpp */,
 				263BCA561EA6891E005C75F4 /* Products */,
 				263BCA611EA68ADD005C75F4 /* Frameworks */,
@@ -112,12 +132,28 @@
 			mainGroup = 263BCA4C1EA6891E005C75F4;
 			productRefGroup = 263BCA561EA6891E005C75F4 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 18FD6D642A159CBF00ED23A9 /* Products */;
+					ProjectRef = 18FD6D632A159CBF00ED23A9 /* OAuthClient.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				263BCA541EA6891E005C75F4 /* OAuthServer */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		18FD6D682A159CBF00ED23A9 /* OAuthClient.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = OAuthClient.app;
+			remoteRef = 18FD6D672A159CBF00ED23A9 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
 		263BCA511EA6891E005C75F4 /* Sources */ = {
