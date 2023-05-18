@@ -121,7 +121,9 @@ namespace slib
 		if (handle != nil) {
 			if (flag) {
 				if (handle.window != nil) {
+					m_flagSettingFocus = sl_true;
 					[handle becomeFirstResponder];
+					m_flagSettingFocus = sl_false;
 				}
 			} else {
 				[handle resignFirstResponder];

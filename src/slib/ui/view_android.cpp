@@ -358,7 +358,9 @@ namespace slib
 	{
 		jobject handle = m_handle;
 		if (handle) {
+			m_flagSettingFocus = sl_true;
 			JView::setFocus.call(sl_null, handle, flag ? sl_true : sl_false);
+			m_flagSettingFocus = sl_false;
 		}
 	}
 

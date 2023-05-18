@@ -283,8 +283,6 @@ namespace slib
 
 		void onMnemonic(UIEvent* ev) override;
 
-		void onChangeFocus(sl_bool flagFocused) override;
-
 	protected:
 		void onUpdateLayout() override;
 

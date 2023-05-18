@@ -146,7 +146,9 @@ namespace slib
 			NSWindow* window = [handle window];
 			if (window != nil) {
 				if (flagFocus) {
+					m_flagSettingFocus = sl_true;
 					[window makeFirstResponder:handle];
+					m_flagSettingFocus = sl_false;
 				} else {
 					if (window.firstResponder == handle) {
 						[window makeFirstResponder:nil];

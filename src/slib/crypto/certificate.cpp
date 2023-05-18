@@ -1323,6 +1323,8 @@ namespace slib
 				lenKey = 5;
 				lenIV = RC2::BlockSize;
 				flagRC2 = sl_true;
+			} else {
+				return sl_null;
 			}
 			PKCS12_PBE_Param param;
 			if (!(alg.parameter.peekObject(param))) {

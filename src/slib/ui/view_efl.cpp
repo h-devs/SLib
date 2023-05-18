@@ -138,7 +138,9 @@ namespace slib
 		Evas_Object* handle = m_handle;
 		if (handle) {
 			if (flag) {
+				m_flagSettingFocus = sl_true;
 				elm_object_focus_set(handle, EINA_TRUE);
+				m_flagSettingFocus = sl_false;
 			}
 		}
 	}

@@ -1545,9 +1545,9 @@ namespace slib
 
 		sl_bool _canRedrawOnChangeState();
 
-		void _setFocus(sl_bool flagFocused, sl_bool flagApplyInstance, UIUpdateMode mode);
+		void _setFocus(sl_bool flagFocused, sl_bool flagApplyInstance, ViewInstance* focusedInstance, UIUpdateMode mode);
 
-		void _setFocusedFlag(sl_bool flagFocused, sl_bool flagApplyInstance);
+		void _setFocusedFlag(sl_bool flagFocused, sl_bool flagApplyInstance, ViewInstance* focusedInstance);
 
 		void _killFocusRecursively();
 
@@ -1853,6 +1853,7 @@ namespace slib
 		AtomicWeakRef<View> m_view;
 		sl_bool m_flagNativeWidget;
 		sl_bool m_flagWindowContent;
+		sl_bool m_flagSettingFocus;
 
 	};
 

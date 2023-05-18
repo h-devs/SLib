@@ -125,7 +125,9 @@ namespace slib
 		GtkWidget* handle = m_handle;
 		if (handle) {
 			if (flag) {
+				m_flagSettingFocus = sl_true;
 				gtk_widget_grab_focus(handle);
+				m_flagSettingFocus = sl_false;
 			} else {
 				GtkWidget* parent = gtk_widget_get_toplevel(handle);
 				if (GTK_IS_WINDOW(parent)) {

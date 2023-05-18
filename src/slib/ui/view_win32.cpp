@@ -333,7 +333,9 @@ namespace slib
 		if (hWnd) {
 			if (flag) {
 				updateIME();
+				m_flagSettingFocus = sl_true;
 				SetFocus(hWnd);
+				m_flagSettingFocus = sl_false;
 			} else {
 				if (GetFocus() == hWnd) {
 					SetFocus(NULL);

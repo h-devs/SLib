@@ -845,14 +845,6 @@ namespace slib
 		ev->accept();
 	}
 
-	void Button::onChangeFocus(sl_bool flagFocused)
-	{
-		if (m_cell.isNotNull()) {
-			m_cell->setFocused(flagFocused);
-			invalidate();
-		}
-	}
-
 	void Button::onUpdateLayout()
 	{
 		sl_bool flagHorizontalWrapping = isWidthWrapping();

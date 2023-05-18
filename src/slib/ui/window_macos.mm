@@ -655,9 +655,11 @@ namespace slib
 
 			void doPostCreate() override
 			{
-				UIRect frame;
-				if (getFrame(frame)) {
-					onResize(frame.getWidth(), frame.getHeight());
+				NSWindow* window = m_window;
+				if (window != nil) {
+					NSRect frame = [window frame];
+					NSRect client = [window contentRectForFrameRect:frame];
+					onResize((sl_ui_len)(client.size.width), (sl_ui_len)(client.size.height));
 				}
 			}
 

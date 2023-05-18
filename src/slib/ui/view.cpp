@@ -1277,7 +1277,7 @@ namespace slib
 		if (child->m_flagFocused || child->hasFocalChild()) {
 			if (hasFocalChild()) {
 				// If this view has a focal child, the child focus is ignored
-				child->_setFocus(sl_false, sl_false, UIUpdateMode::None);
+				child->_setFocus(sl_false, sl_false, sl_null, UIUpdateMode::None);
 			} else {
 				_setFocalChild(child, UIUpdateMode::None);
 			}
@@ -2183,13 +2183,13 @@ namespace slib
 	void View::setFocus(sl_bool flagFocused, UIUpdateMode mode)
 	{
 		if (isUiThread()) {
-			_setFocus(flagFocused, sl_true, mode);
+			_setFocus(flagFocused, sl_true, sl_null, mode);
 		} else {
-			dispatchToUiThread(SLIB_BIND_WEAKREF(void(), this, _setFocus, flagFocused, sl_true, mode));
+			dispatchToUiThread(SLIB_BIND_WEAKREF(void(), this, _setFocus, flagFocused, sl_true, sl_null, mode));
 		}
 	}
 
-	void View::_setFocus(sl_bool flagFocused, sl_bool flagApplyInstance, UIUpdateMode mode)
+	void View::_setFocus(sl_bool flagFocused, sl_bool flagApplyInstance, ViewInstance* focusedInstance, UIUpdateMode mode)
 	{
 		Ref<ChildAttributes>& childAttrs = m_childAttrs;
 		if (childAttrs.isNotNull()) {
@@ -2202,36 +2202,38 @@ namespace slib
 		Ref<View> parent = getParent();
 		if (parent.isNotNull()) {
 			if (flagFocused) {
+				_setFocusedFlag(flagFocused, flagApplyInstance, focusedInstance);
 				parent->_setFocalChild(this, mode);
-				_setFocusedFlag(flagFocused, flagApplyInstance);
 				return;
 			} else {
 				if (flagApplyInstance) {
 					if (parent->getFocalChild() == this) {
+						_setFocusedFlag(flagFocused, flagApplyInstance, focusedInstance);
 						parent->_setFocalChild(sl_null, mode);
-						_setFocusedFlag(flagFocused, flagApplyInstance);
 						return;
 					}
 				}
 			}
 		}
-		_setFocusedFlag(flagFocused, flagApplyInstance);
+		_setFocusedFlag(flagFocused, flagApplyInstance, focusedInstance);
 		invalidate(mode);
 	}
 
-	void View::_setFocusedFlag(sl_bool flagFocused, sl_bool flagApplyInstance)
+	void View::_setFocusedFlag(sl_bool flagFocused, sl_bool flagApplyInstance, ViewInstance* focusedInstance)
 	{
 		if (flagApplyInstance) {
 			Ref<ViewInstance> instance = getNearestViewInstance();
-			if (instance.isNotNull()) {
-				SLIB_VIEW_RUN_ON_UI_THREAD(_setFocusedFlag, flagFocused, flagApplyInstance)
+			if (instance.isNotNull() && instance != focusedInstance) {
+				SLIB_VIEW_RUN_ON_UI_THREAD(_setFocusedFlag, flagFocused, flagApplyInstance, focusedInstance)
 				Ref<View> view = instance->getView();
 				if (view.isNotNull()) {
 					if (m_flagFocused != flagFocused) {
 						m_flagFocused = flagFocused;
+						instance->setFocus(view.get(), flagFocused);
 						invokeChangeFocus(flagFocused);
+					} else {
+						instance->setFocus(view.get(), flagFocused);
 					}
-					instance->setFocus(view.get(), flagFocused);
 					return;
 				}
 			}
@@ -2244,7 +2246,7 @@ namespace slib
 
 	void View::_killFocusRecursively()
 	{
-		_setFocusedFlag(sl_false, sl_false);
+		_setFocusedFlag(sl_false, sl_false, sl_null);
 		Ref<ChildAttributes>& childAttrs = m_childAttrs;
 		if (childAttrs.isNull()) {
 			return;
@@ -2269,7 +2271,7 @@ namespace slib
 			childAttrs->childFocal = child;
 		}
 		if (child) {
-			_setFocusedFlag(sl_false, sl_false);
+			_setFocusedFlag(sl_false, sl_false, sl_null);
 			Ref<View> parent = getParent();
 			if (parent.isNotNull()) {
 				parent->_setFocalChild(this, mode);
@@ -10858,6 +10860,7 @@ namespace slib
 	{
 		m_flagNativeWidget = sl_false;
 		m_flagWindowContent = sl_false;
+		m_flagSettingFocus = sl_false;
 	}
 
 	ViewInstance::~ViewInstance()
@@ -11190,13 +11193,16 @@ namespace slib
 
 	void ViewInstance::onSetFocus()
 	{
+		if (m_flagSettingFocus) {
+			return;
+		}
 		Ref<View> view = getView();
 		if (view.isNotNull()) {
 			Ref<View> focus = view->getFocalDescendant();
 			if (focus.isNotNull()) {
-				focus->_setFocus(sl_true, sl_true, UIUpdateMode::Redraw);
+				focus->_setFocus(sl_true, sl_true, this, UIUpdateMode::Redraw);
 			} else {
-				view->_setFocus(sl_true, sl_false, UIUpdateMode::Redraw);
+				view->_setFocus(sl_true, sl_true, this, UIUpdateMode::Redraw);
 			}
 		}
 	}
@@ -11207,9 +11213,9 @@ namespace slib
 		if (view.isNotNull()) {
 			Ref<View> focus = view->getFocalDescendant();
 			if (focus.isNotNull()) {
-				focus->_setFocus(sl_false, sl_false, UIUpdateMode::Redraw);
+				focus->_setFocus(sl_false, sl_false, sl_null, UIUpdateMode::Redraw);
 			} else {
-				view->_setFocus(sl_false, sl_false, UIUpdateMode::Redraw);
+				view->_setFocus(sl_false, sl_false, sl_null, UIUpdateMode::Redraw);
 			}
 		}
 	}

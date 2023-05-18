@@ -86,7 +86,9 @@ namespace slib
 			m_mainWindow = window;
 #ifdef SLIB_PLATFORM_IS_DESKTOP
 			if (window.isNotNull()) {
-				window->setQuitOnDestroy();
+				if (window->getOnDestroy().isNull()) {
+					window->setQuitOnDestroy();
+				}
 #ifdef SLIB_UI_IS_MACOS
 				Ref<Menu> menu = window->getMenu();
 				if (menu.isNotNull()) {
