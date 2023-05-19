@@ -68,7 +68,7 @@
 		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			slib::UIEventFlags flags = instance->onEventTouch(slib::UIAction::TouchBegin, touches, theEvent); \
-			if (flags & slib::UIEventFlags::Accepted) { \
+			if (flags & slib::UIEventFlags::NotInvokeNative) { \
 				return; \
 			} \
 		} \
@@ -79,7 +79,7 @@
 		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			slib::UIEventFlags flags = instance->onEventTouch(slib::UIAction::TouchMove, touches, theEvent); \
-			if (flags & slib::UIEventFlags::Accepted) { \
+			if (flags & slib::UIEventFlags::NotInvokeNative) { \
 				return; \
 			} \
 		} \
@@ -90,7 +90,7 @@
 		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			slib::UIEventFlags flags = instance->onEventTouch(slib::UIAction::TouchEnd, touches, theEvent); \
-			if (flags & slib::UIEventFlags::Accepted) { \
+			if (flags & slib::UIEventFlags::NotInvokeNative) { \
 				return; \
 			} \
 		} \
@@ -101,7 +101,7 @@
 		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			slib::UIEventFlags flags = instance->onEventTouch(slib::UIAction::TouchCancel, touches, theEvent); \
-			if (flags & slib::UIEventFlags::Accepted) { \
+			if (flags & slib::UIEventFlags::NotInvokeNative) { \
 				return; \
 			} \
 		} \

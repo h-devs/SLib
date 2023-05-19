@@ -62,8 +62,7 @@
 	{ \
 		slib::Ref<slib::macOS_ViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
-			sl_bool flagAccepted = instance->onEventKey(sl_true, theEvent) & slib::UIEventFlags::Accepted; \
-			if (flagAccepted) { \
+			if (instance->onEventKey(sl_true, theEvent) & slib::UIEventFlags::NotInvokeNative) { \
 				return; \
 			} \
 		} \
@@ -73,8 +72,7 @@
 	{ \
 		slib::Ref<slib::macOS_ViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
-			sl_bool flagAccepted = instance->onEventKey(sl_false, theEvent) & slib::UIEventFlags::Accepted; \
-			if (flagAccepted) { \
+			if (instance->onEventKey(sl_false, theEvent) & slib::UIEventFlags::NotInvokeNative) { \
 				return; \
 			} \
 		} \

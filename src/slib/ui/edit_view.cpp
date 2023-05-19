@@ -924,9 +924,9 @@ namespace slib
 
 	void EditView::onKeyEvent(UIEvent* ev)
 	{
-		if (m_multiLine == MultiLineMode::Single || ev->getKeycode() == Keycode::Escape || m_flagReadOnly) {
+		Keycode keycode = ev->getKeycode();
+		if (m_multiLine == MultiLineMode::Single || keycode == Keycode::Escape || m_flagReadOnly) {
 			if (ev->getAction() == UIAction::KeyDown) {
-				Keycode keycode = ev->getKeycode();
 				if (keycode == Keycode::Enter || keycode == Keycode::NumpadEnter) {
 					invokeReturnKey();
 					View::onKeyEvent(ev);
@@ -943,6 +943,7 @@ namespace slib
 			return;
 		}
 		if (isNativeWidget()) {
+			ev->acceptByNative();
 			return;
 		}
 		UIAction action = ev->getAction();

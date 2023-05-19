@@ -83,6 +83,7 @@ namespace slib
 	SLIB_DEFINE_FLAGS(UIEventFlags, {
 		Accepted = 0x0001,
 		PassToNext = 0x0004,
+		NotInvokeNative = 0x0008,
 		UseDrag = 0x0010,
 		DispatchToParent = 0x1000,
 		NotDispatchToChildren = 0x2000,

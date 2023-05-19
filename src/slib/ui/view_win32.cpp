@@ -1280,7 +1280,7 @@ namespace slib
 				UIPlatform::applyEventModifiers(ev.get());
 				ev->addFlag(UIEventFlags::DispatchToParent);
 				onKeyEvent(ev.get());
-				if (ev->isAccepted()) {
+				if (ev->getFlags() & UIEventFlags::NotInvokeNative) {
 					return sl_true;
 				}
 			}
@@ -1311,7 +1311,7 @@ namespace slib
 				if (pFlagUseDrag) {
 					*pFlagUseDrag = ev->getFlags() && UIEventFlags::UseDrag;
 				}
-				if (ev->isAccepted()) {
+				if (ev->getFlags() & UIEventFlags::NotInvokeNative) {
 					return sl_true;
 				}
 			}
@@ -1343,7 +1343,7 @@ namespace slib
 			if (ev.isNotNull()) {
 				UIPlatform::applyEventModifiers(ev.get());
 				onMouseWheelEvent(ev.get());
-				if (ev->isAccepted()) {
+				if (ev->getFlags() & UIEventFlags::NotInvokeNative) {
 					return sl_true;
 				}
 			}
@@ -1366,7 +1366,7 @@ namespace slib
 			if (ev.isNotNull()) {
 				onSetCursor(ev.get());
 				updateToolTip(ev->getToolTipView(), ev->getToolTip());
-				if (ev->isAccepted()) {
+				if (ev->getFlags() & UIEventFlags::NotInvokeNative) {
 					return sl_true;
 				}
 			}

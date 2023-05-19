@@ -529,7 +529,7 @@ namespace slib
 						UIEventFlags flags = ev->getFlags();
 
 						if (flags & UIEventFlags::KeepKeyboard) {
-							flags |= UIEventFlags::Accepted;
+							flags |= UIEventFlags::NotInvokeNative;
 						} else {
 							if (window != nil && touchDown != nil) {
 								if ([window hitTest:[touchDown locationInView:window] withEvent:event] == handle) {

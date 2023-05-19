@@ -345,6 +345,8 @@ namespace slib
 
 		void accept();
 
+		void acceptByNative();
+
 		sl_bool isAccepted() const;
 
 		void setAccepted(sl_bool flag);

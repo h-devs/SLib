@@ -991,6 +991,12 @@ sl_bool UIEvent::is##NAME##Key() const \
 	void UIEvent::accept()
 	{
 		SLIB_SET_FLAG(m_flags, UIEventFlags::Accepted);
+		SLIB_SET_FLAG(m_flags, UIEventFlags::NotInvokeNative);
+	}
+
+	void UIEvent::acceptByNative()
+	{
+		SLIB_SET_FLAG(m_flags, UIEventFlags::Accepted);
 	}
 
 	sl_bool UIEvent::isAccepted() const

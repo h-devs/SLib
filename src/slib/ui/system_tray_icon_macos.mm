@@ -337,7 +337,7 @@ using namespace slib;
 	Ref<SystemTrayIconImpl> object(m_object);
 	if (object.isNotNull()) {
 		UIEventFlags flags = object->_onEvent(UIAction::LeftButtonDown, theEvent);
-		if (flags & UIEventFlags::Accepted) {
+		if (flags & UIEventFlags::NotInvokeNative) {
 			object->tryHighlight();
 			return;
 		}
@@ -354,7 +354,7 @@ using namespace slib;
 		if (clicks == 2) {
 			flags |= object->_onEvent(UIAction::LeftButtonDoubleClick, theEvent);
 		}
-		if (flags & UIEventFlags::Accepted) {
+		if (flags & UIEventFlags::NotInvokeNative) {
 			return;
 		}
 	}
@@ -366,7 +366,7 @@ using namespace slib;
 	Ref<SystemTrayIconImpl> object(m_object);
 	if (object.isNotNull()) {
 		UIEventFlags flags = object->_onEvent(UIAction::LeftButtonDrag, theEvent);
-		if (flags & UIEventFlags::Accepted) {
+		if (flags & UIEventFlags::NotInvokeNative) {
 			return;
 		}
 	}
@@ -378,7 +378,7 @@ using namespace slib;
 	Ref<SystemTrayIconImpl> object(m_object);
 	if (object.isNotNull()) {
 		UIEventFlags flags = object->_onEvent(UIAction::RightButtonDown, theEvent);
-		if (flags & UIEventFlags::Accepted) {
+		if (flags & UIEventFlags::NotInvokeNative) {
 			object->tryHighlight();
 			return;
 		}
@@ -395,7 +395,7 @@ using namespace slib;
 		if (clicks == 2) {
 			flags |= object->_onEvent(UIAction::RightButtonDoubleClick, theEvent);
 		}
-		if (flags & UIEventFlags::Accepted) {
+		if (flags & UIEventFlags::NotInvokeNative) {
 			return;
 		}
 	}
@@ -407,7 +407,7 @@ using namespace slib;
 	Ref<SystemTrayIconImpl> object(m_object);
 	if (object.isNotNull()) {
 		UIEventFlags flags = object->_onEvent(UIAction::RightButtonDrag, theEvent);
-		if (flags & UIEventFlags::Accepted) {
+		if (flags & UIEventFlags::NotInvokeNative) {
 			return;
 		}
 	}
@@ -419,7 +419,7 @@ using namespace slib;
 	Ref<SystemTrayIconImpl> object(m_object);
 	if (object.isNotNull()) {
 		UIEventFlags flags = object->_onEvent(UIAction::MiddleButtonDown, theEvent);
-		if (flags & UIEventFlags::Accepted) {
+		if (flags & UIEventFlags::NotInvokeNative) {
 			object->tryHighlight();
 			return;
 		}
@@ -436,7 +436,7 @@ using namespace slib;
 		if (clicks == 2) {
 			flags |= object->_onEvent(UIAction::MiddleButtonDoubleClick, theEvent);
 		}
-		if (flags & UIEventFlags::Accepted) {
+		if (flags & UIEventFlags::NotInvokeNative) {
 			return;
 		}
 	}
@@ -448,7 +448,7 @@ using namespace slib;
 	Ref<SystemTrayIconImpl> object(m_object);
 	if (object.isNotNull()) {
 		UIEventFlags flags = object->_onEvent(UIAction::MiddleButtonDrag, theEvent);
-		if (flags & UIEventFlags::Accepted) {
+		if (flags & UIEventFlags::NotInvokeNative) {
 			return;
 		}
 	}
