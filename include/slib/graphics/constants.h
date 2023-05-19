@@ -44,14 +44,16 @@ namespace slib
 	{
 		Flat = 0,
 		Round = 1,
-		Square = 2
+		Square = 2,
+		Default = 0x80
 	};
 
 	enum class LineJoin
 	{
 		Miter = 0,
 		Round = 1,
-		Bevel = 2
+		Bevel = 2,
+		Default = 0x80
 	};
 
 	enum class BrushStyle

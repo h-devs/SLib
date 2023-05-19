@@ -93,18 +93,19 @@ namespace slib
 	{
 	}
 
-	Ref<Font> Font::create(const FontDesc &desc)
+	Ref<Font> Font::create(const FontDesc& src)
 	{
 		Ref<Font> ret = new Font;
 		if (ret.isNotNull()) {
-			if (desc.familyName.isNotEmpty()) {
-				ret->m_desc.familyName = desc.familyName;
+			FontDesc& dst = ret->m_desc;
+			if (src.familyName.isNotEmpty()) {
+				dst.familyName = src.familyName;
 			} else {
-				ret->m_desc.familyName = getDefaultFontFamily();
+				dst.familyName = getDefaultFontFamily();
 			}
-			ret->m_desc.size = SLIB_FONT_SIZE_PRECISION_APPLY(desc.size >= 0 ? desc.size : g_defaultSize);
-			if (desc.flags >= 0) {
-				ret->m_desc.flags = desc.flags;
+			dst.size = SLIB_FONT_SIZE_PRECISION_APPLY(src.size >= 0 ? src.size : g_defaultSize);
+			if (src.flags >= 0) {
+				dst.flags = src.flags;
 			}
 			return ret;
 		}
@@ -126,13 +127,13 @@ namespace slib
 		}
 		Ref<Font> ret = new Font;
 		if (ret.isNotNull()) {
-			FontDesc& descNew = ret->m_desc;
-			original->getDesc(descNew);
+			FontDesc& dst = ret->m_desc;
+			original->getDesc(dst);
 			if (familyName.isNotEmpty()) {
-				descNew.familyName = familyName;
+				dst.familyName = familyName;
 			}
 			if (size >= 0.0f) {
-				descNew.size = size;
+				dst.size = size;
 			}
 		}
 		return ret;
@@ -148,9 +149,9 @@ namespace slib
 		}
 		Ref<Font> ret = new Font;
 		if (ret.isNotNull()) {
-			FontDesc& descNew = ret->m_desc;
-			original->getDesc(descNew);
-			descNew.familyName = familyName;
+			FontDesc& dst = ret->m_desc;
+			original->getDesc(dst);
+			dst.familyName = familyName;
 		}
 		return ret;
 	}
@@ -165,9 +166,9 @@ namespace slib
 		}
 		Ref<Font> ret = new Font;
 		if (ret.isNotNull()) {
-			FontDesc& descNew = ret->m_desc;
-			original->getDesc(descNew);
-			descNew.size = size;
+			FontDesc& dst = ret->m_desc;
+			original->getDesc(dst);
+			dst.size = size;
 		}
 		return ret;
 	}
@@ -182,16 +183,16 @@ namespace slib
 		}
 		Ref<Font> ret = new Font;
 		if (ret.isNotNull()) {
-			FontDesc& descNew = ret->m_desc;
-			original->getDesc(descNew);
+			FontDesc& dst = ret->m_desc;
+			original->getDesc(dst);
 			if (desc.familyName.isNotEmpty()) {
-				descNew.familyName = desc.familyName;
+				dst.familyName = desc.familyName;
 			}
 			if (desc.size >= 0.0f) {
-				descNew.size = desc.size;
+				dst.size = desc.size;
 			}
 			if (desc.flags >= 0) {
-				descNew.flags = desc.flags;
+				dst.flags = desc.flags;
 			}
 		}
 		return ret;
@@ -207,9 +208,9 @@ namespace slib
 		}
 		Ref<Font> ret = new Font;
 		if (ret.isNotNull()) {
-			FontDesc& descNew = ret->m_desc;
-			original->getDesc(descNew);
-			descNew.flagBold = sl_true;
+			FontDesc& dst = ret->m_desc;
+			original->getDesc(dst);
+			dst.flagBold = sl_true;
 		}
 		return ret;
 	}
@@ -224,9 +225,9 @@ namespace slib
 		}
 		Ref<Font> ret = new Font;
 		if (ret.isNotNull()) {
-			FontDesc& descNew = ret->m_desc;
-			original->getDesc(descNew);
-			descNew.flagItalic = sl_true;
+			FontDesc& dst = ret->m_desc;
+			original->getDesc(dst);
+			dst.flagItalic = sl_true;
 		}
 		return ret;
 	}
@@ -241,9 +242,9 @@ namespace slib
 		}
 		Ref<Font> ret = new Font;
 		if (ret.isNotNull()) {
-			FontDesc& descNew = ret->m_desc;
-			original->getDesc(descNew);
-			descNew.flagUnderline = sl_true;
+			FontDesc& dst = ret->m_desc;
+			original->getDesc(dst);
+			dst.flagUnderline = sl_true;
 		}
 		return ret;
 	}

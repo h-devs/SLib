@@ -44,7 +44,7 @@
 
 #include "ui_animation.h"
 
-#define DEFAULT_BORDER_PARAMS PenStyle::Solid, 0.0f, Color::Black
+#define DEFAULT_BORDER_PARAMS PenStyle::Solid, 1.0f, Color::Black
 
 #define DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(NAME, DEFINE_ARGS, ...) \
 	View::On##NAME View::getOn##NAME() const { \
@@ -5461,6 +5461,7 @@ namespace slib
 			void (View::*func)(const Ref<Pen>&, UIUpdateMode) = &View::setBorder;
 			SLIB_VIEW_RUN_ON_UI_THREAD2(func, pen, mode)
 		}
+		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
 			attrs->borders.defaultValue = pen;
@@ -5478,12 +5479,11 @@ namespace slib
 
 	void View::setBorder(const PenDesc& desc, ViewState state, UIUpdateMode mode)
 	{
-		SLIB_SAFE_LOCAL_STATIC(Ref<Pen>, defaultBorder, Pen::create(DEFAULT_BORDER_PARAMS))
 		Ref<Pen> border = getBorder(state);
 		if (border.isNotNull()) {
 			setBorder(Pen::create(desc, border), state, mode);
 		} else {
-			setBorder(Pen::create(desc, defaultBorder), state, mode);
+			setBorder(Pen::create(desc, PenDesc(DEFAULT_BORDER_PARAMS)), state, mode);
 		}
 	}
 
@@ -5507,12 +5507,16 @@ namespace slib
 		if (style == PenStyle::Default) {
 			return;
 		}
-		PenDesc desc(DEFAULT_BORDER_PARAMS);
 		Ref<Pen> border = getBorder(state);
 		if (border.isNotNull()) {
+			PenDesc desc;
 			border->getDesc(desc);
-		}
-		if (desc.style != style) {
+			if (desc.style != style) {
+				desc.style = style;
+				setBorder(Pen::create(desc), state, mode);
+			}
+		} else {
+			PenDesc desc(DEFAULT_BORDER_PARAMS);
 			desc.style = style;
 			setBorder(Pen::create(desc), state, mode);
 		}
@@ -5538,12 +5542,16 @@ namespace slib
 		if (width < 0.0f) {
 			return;
 		}
-		PenDesc desc(DEFAULT_BORDER_PARAMS);
 		Ref<Pen> border = getBorder(state);
 		if (border.isNotNull()) {
+			PenDesc desc;
 			border->getDesc(desc);
-		}
-		if (desc.width != width) {
+			if (desc.width != width) {
+				desc.width = width;
+				setBorder(Pen::create(desc), state, mode);
+			}
+		} else {
+			PenDesc desc(DEFAULT_BORDER_PARAMS);
 			desc.width = width;
 			setBorder(Pen::create(desc), state, mode);
 		}
@@ -5569,12 +5577,16 @@ namespace slib
 		if (color.isZero()) {
 			return;
 		}
-		PenDesc desc(DEFAULT_BORDER_PARAMS);
 		Ref<Pen> border = getBorder(state);
 		if (border.isNotNull()) {
+			PenDesc desc;
 			border->getDesc(desc);
-		}
-		if (desc.color != color) {
+			if (desc.color != color) {
+				desc.color = color;
+				setBorder(Pen::create(desc), state, mode);
+			}
+		} else {
+			PenDesc desc(DEFAULT_BORDER_PARAMS);
 			desc.color = color;
 			setBorder(Pen::create(desc), state, mode);
 		}
@@ -5594,9 +5606,7 @@ namespace slib
 					return;
 				}
 			}
-			PenDesc desc(DEFAULT_BORDER_PARAMS);
-			desc.width = 1.0f;
-			setBorder(Pen::create(desc), mode);
+			setBorder(Pen::create(PenDesc(DEFAULT_BORDER_PARAMS)), mode);
 		} else {
 			setBorder(Ref<Pen>::null(), mode);
 		}

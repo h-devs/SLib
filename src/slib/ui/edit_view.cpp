@@ -55,6 +55,7 @@ namespace slib
 		setUsingIME();
 
 		setBorder(sl_true, UIUpdateMode::Init);
+		setBackgroundColor(Color::White, UIUpdateMode::Init);
 		setPadding((sl_ui_pos)(UI::dpToPixel(2)), UIUpdateMode::Init);
 
 		m_flagInvalidateText = sl_false;
