@@ -1634,7 +1634,7 @@ namespace slib
 				}
 				break;
 			case WM_IME_STARTCOMPOSITION:
-				return 0;
+				break;
 			case WM_IME_COMPOSITION:
 				break;
 		}
