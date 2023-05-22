@@ -48,6 +48,7 @@ namespace slib
 	class Cursor;
 	class GestureDetector;
 	class GestureEvent;
+	class TextInput;
 
 	class ViewInstance;
 	class ViewCell;
@@ -695,13 +696,13 @@ namespace slib
 		void setUsingChildLayouts(sl_bool flag = sl_true);
 
 
-		sl_bool getFinalTransform(Matrix3* _out);
+		Matrix3 getTransform();
 
-		sl_bool getFinalInverseTransform(Matrix3* _out);
+		sl_bool getTransform(Matrix3* _out);
 
-		Matrix3 getFinalTransformInInstance();
+		sl_bool getInverseTransform(Matrix3* _out);
 
-		const Matrix3& getTransform();
+		Matrix3 getTransformInInstance();
 
 		void setTransform(const Matrix3& matrix, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -772,6 +773,10 @@ namespace slib
 
 		// Call in UI Thread
 		UIRectF convertCoordinateToParent(const UIRectF& rectView);
+
+		Matrix3 getTransformFromParent();
+
+		Matrix3 getTransformToParent();
 
 
 		Ref<Drawable> getBackground(ViewState state = ViewState::Default);
@@ -1329,6 +1334,8 @@ namespace slib
 
 		void setUsingIME(sl_bool flag = sl_true);
 
+		virtual TextInput* getTextInput(Matrix3* outTransform = sl_null);
+
 
 		sl_bool isClientEdge();
 
@@ -1752,6 +1759,8 @@ namespace slib
 		sl_bool isWindowContent();
 
 		void setWindowContent(sl_bool flag);
+
+		TextInput* getTextInput(Matrix3* outTransform = sl_null);
 
 	public:
 		virtual void initialize(View* view);

@@ -2758,7 +2758,8 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, returnKey, setReturnKeyType) \
 		LAYOUT_CONTROL_ATTR(GENERIC, keyboard, setKeyboardType) \
 		LAYOUT_CONTROL_ATTR(GENERIC, autoCap, setAutoCapitalizationType) \
-		LAYOUT_CONTROL_ATTR(BOOLEAN, focusNextOnReturnKey, setFocusNextOnReturnKey)
+		LAYOUT_CONTROL_ATTR(BOOLEAN, focusNextOnReturnKey, setFocusNextOnReturnKey) \
+		LAYOUT_CONTROL_ATTR(BOOLEAN, popup, setUsingPopup)
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Edit, EditView)
 	{

@@ -38,7 +38,7 @@ namespace slib
 		~TextInput();
 
 	public:
-		virtual String getTextInRange(const TextRange& range) = 0;
+		virtual String32 getTextInRange(const TextRange& range) = 0;
 
 		virtual sl_text_pos getPositionAtPoint(const Point& pt) = 0;
 
@@ -59,12 +59,10 @@ namespace slib
 
 		void setMarkedRange(const TextRange& range);
 
-		void replaceText(const TextRange& range, const String& text);
+		void replaceText(const TextRange& range, const StringView32& text);
 
 	protected:
-		virtual void onReplaceText(const TextRange& range, const String& text) = 0;
-
-		virtual void onRedraw() = 0;
+		virtual void onReplaceText(const TextRange& range, const StringView32& text) = 0;
 
 		virtual void onChangeMarkedRange();
 
@@ -86,7 +84,7 @@ namespace slib
 		~UITextBox();
 
 	public:
-		String getTextInRange(const TextRange& range) override;
+		String32 getTextInRange(const TextRange& range) override;
 
 		sl_text_pos getPositionAtPoint(const Point& pt) override;
 
@@ -99,6 +97,8 @@ namespace slib
 		sl_text_pos getClosestPositionToPoint(const Point& pt, const TextRange& range) override;
 
 	protected:
+		void onReplaceText(const TextRange& range, const StringView32& text) override;
+
 		void onChangeMarkedRange() override;
 
 		void onChangeSelectedRange() override;

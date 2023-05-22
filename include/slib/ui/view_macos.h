@@ -75,7 +75,7 @@ namespace slib
 		{
 			NSView* parent = UIPlatform::getViewHandle(_parent);
 			UIRect frameView = view->getFrameInInstance();
-			Matrix3 transformView = view->getFinalTransformInInstance();
+			Matrix3 transformView = view->getTransformInInstance();
 			sl_real rotation;
 			NSRect frame = getViewFrameAndTransform(frameView, transformView, rotation);
 			HANDLE* handle = [[HANDLE alloc] initWithFrame:frame];

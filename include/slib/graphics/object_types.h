@@ -66,12 +66,6 @@ namespace slib
 			Animation,
 			AnimationTarget,
 			TextItem,
-			TextWordItem,
-			TextJoinedCharItem,
-			TextSpaceItem,
-			TextTabItem,
-			TextLineBreakItem,
-			TextAttachItem,
 			TextParagraph,
 			TextBox,
 			Svg

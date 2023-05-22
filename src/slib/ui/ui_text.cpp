@@ -57,13 +57,11 @@ namespace slib
 		if (m_markedRange != range) {
 			m_markedRange = range;
 			onChangeMarkedRange();
-			onRedraw();
 		}
 	}
 
-	void TextInput::replaceText(const TextRange& range, const String& text)
+	void TextInput::replaceText(const TextRange& range, const StringView32& text)
 	{
-
 	}
 
 	void TextInput::onChangeMarkedRange()
@@ -82,6 +80,48 @@ namespace slib
 	}
 
 	UITextBox::~UITextBox()
+	{
+	}
+
+	String32 UITextBox::getTextInRange(const TextRange& range)
+	{
+		return sl_null;
+	}
+
+	sl_text_pos UITextBox::getPositionAtPoint(const Point& pt)
+	{
+		return 0;
+	}
+
+	UIRect UITextBox::getFirstRectangleForRange(const TextRange& range)
+	{
+		return UIRect::zero();
+	}
+
+	List<UIRect> UITextBox::getRectanglesForRange(const TextRange& range)
+	{
+		return sl_null;
+	}
+
+	UIRect UITextBox::getCaretRectangleForPosition(sl_text_pos pos)
+	{
+		return UIRect::zero();
+	}
+
+	sl_text_pos UITextBox::getClosestPositionToPoint(const Point& pt, const TextRange& range)
+	{
+		return 0;
+	}
+
+	void UITextBox::onReplaceText(const TextRange& range, const StringView32& text)
+	{
+	}
+
+	void UITextBox::onChangeMarkedRange()
+	{
+	}
+
+	void UITextBox::onChangeSelectedRange()
 	{
 	}
 

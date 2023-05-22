@@ -868,6 +868,13 @@ namespace slib
 		return Utf16Helper<NoEndianHelper>::getUnicode(*((sl_uint32*)&outCode), utf16, lenUtf16, posUtf16);
 	}
 
+	sl_bool Charsets::getUnicode(sl_char32& outCode, const sl_char32* utf32, sl_size lenUtf32, sl_size& posUtf32)
+	{
+		outCode = utf32[posUtf32];
+		posUtf32++;
+		return sl_true;
+	}
+
 	sl_char32 Charsets::getUnicodeFromSurrogateCharacters(sl_char16 ch0, sl_char16 ch1)
 	{
 		sl_uint32 ch;

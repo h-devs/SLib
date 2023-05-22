@@ -387,6 +387,21 @@ namespace slib
 		}
 	}
 
+	sl_bool XEditView::isUsingPopup()
+	{
+		if (m_edit.isNotNull()) {
+			return m_edit->isUsingPopup();
+		}
+		return sl_false;
+	}
+
+	void XEditView::setUsingPopup(sl_bool flag)
+	{
+		if (m_edit.isNotNull()) {
+			m_edit->setUsingPopup(flag);
+		}
+	}
+
 	void XEditView::setEnabled(sl_bool flagEnabled, UIUpdateMode mode)
 	{
 		XControl::setEnabled(flagEnabled, mode);

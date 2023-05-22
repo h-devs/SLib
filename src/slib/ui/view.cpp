@@ -4693,7 +4693,17 @@ namespace slib
 		m_flagUsingChildLayouts = flag;
 	}
 
-	sl_bool View::getFinalTransform(Matrix3* _out)
+	Matrix3 View::getTransform()
+	{
+		Matrix3 ret;
+		if (getTransform(&ret)) {
+			return ret;
+		} else {
+			return Matrix3::identity();
+		}
+	}
+
+	sl_bool View::getTransform(Matrix3* _out)
 	{
 		Ref<TransformAttributes>& attrs = m_transformAttrs;
 		if (attrs.isNull()) {
@@ -4783,19 +4793,17 @@ namespace slib
 			}
 			return sl_true;
 		}
-
 		return sl_false;
-
 	}
 
-	sl_bool View::getFinalInverseTransform(Matrix3* _out)
+	sl_bool View::getInverseTransform(Matrix3* _out)
 	{
 		Ref<TransformAttributes>& attrs = m_transformAttrs;
 		if (attrs.isNull()) {
 			return sl_false;
 		}
 		if (attrs->flagTransformFinalInvalid) {
-			getFinalTransform(sl_null);
+			getTransform(sl_null);
 		}
 		if (attrs->flagInverseTransformFinalInvalid) {
 			attrs->flagInverseTransformFinalInvalid = sl_false;
@@ -4815,10 +4823,10 @@ namespace slib
 		return sl_false;
 	}
 
-	Matrix3 View::getFinalTransformInInstance()
+	Matrix3 View::getTransformInInstance()
 	{
 		Matrix3 ret;
-		if (!(getFinalTransform(&ret))) {
+		if (!(getTransform(&ret))) {
 			ret = Matrix3::identity();
 		}
 		Ref<View> parent = m_parent;
@@ -4827,21 +4835,12 @@ namespace slib
 				break;
 			}
 			Matrix3 t;
-			if (parent->getFinalTransform(&t)) {
+			if (parent->getTransform(&t)) {
 				ret = t * ret;
 			}
 			parent = parent->m_parent;
 		}
 		return ret;
-	}
-
-	const Matrix3& View::getTransform()
-	{
-		Ref<TransformAttributes>& attrs = m_transformAttrs;
-		if (attrs.isNotNull() && attrs->flagTransform) {
-			return attrs->transform;
-		}
-		return Matrix3::identity();
 	}
 
 	void View::setTransform(const Matrix3& matrix, UIUpdateMode mode)
@@ -5083,7 +5082,7 @@ namespace slib
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(_updateInstanceTransforms)
-			instance->setTransform(this, getFinalTransformInInstance());
+			instance->setTransform(this, getTransformInInstance());
 		} else {
 			Ref<ChildAttributes>& attrs = m_childAttrs;
 			if (attrs.isNotNull() && attrs->flagHasInstances) {
@@ -5161,20 +5160,20 @@ namespace slib
 			}
 		}
 
-		sl_ui_posf offx = (sl_ui_posf)(m_frame.left);
-		sl_ui_posf offy = (sl_ui_posf)(m_frame.top);
+		sl_real offx = (sl_real)(m_frame.left);
+		sl_real offy = (sl_real)(m_frame.top);
 
-		UIPointF pt = ptParent;
+		Point pt = ptParent;
 		pt.x -= offx;
 		pt.y -= offy;
 
 		Matrix3 mat;
-		if (getFinalInverseTransform(&mat)) {
+		if (getInverseTransform(&mat)) {
 			sl_real ax = (sl_real)(m_frame.getWidth()) / 2;
 			sl_real ay = (sl_real)(m_frame.getHeight()) / 2;
 			pt = mat.transformPosition(pt.x - ax, pt.y - ay);
-			pt.x += (sl_ui_posf)(ax);
-			pt.y += (sl_ui_posf)(ay);
+			pt.x += ax;
+			pt.y += ay;
 		}
 
 		return pt;
@@ -5188,7 +5187,7 @@ namespace slib
 			if (instance.isNotNull() && parent.isNotNull() && parent->m_instance.isNotNull()) {
 				Ref<ViewInstance> instanceParent = parent->m_instance;
 				if (instanceParent.isNotNull()) {
-					if (getFinalTransform(sl_null)) {
+					if (getTransform(sl_null)) {
 						UIPointF pts[4];
 						rcParent.getCornerPoints(pts);
 						for (int i = 0; i < 4; i++) {
@@ -5212,21 +5211,21 @@ namespace slib
 			}
 		}
 
-		sl_ui_posf offx = (sl_ui_posf)(m_frame.left);
-		sl_ui_posf offy = (sl_ui_posf)(m_frame.top);
+		sl_real offx = (sl_real)(m_frame.left);
+		sl_real offy = (sl_real)(m_frame.top);
 
 		Matrix3 mat;
-		if (getFinalInverseTransform(&mat)) {
-			UIPointF pts[4];
+		if (getInverseTransform(&mat)) {
+			Point pts[4];
 			rcParent.getCornerPoints(pts);
 			for (int i = 0; i < 4; i++) {
 				sl_real ax = (sl_real)(m_frame.getWidth()) / 2;
 				sl_real ay = (sl_real)(m_frame.getHeight()) / 2;
-				pts[i] = mat.transformPosition(pts[i].x - (sl_real)offx - ax, pts[i].y - (sl_real)offy - ay);
-				pts[i].x += (sl_ui_posf)(ax);
-				pts[i].y += (sl_ui_posf)(ay);
+				pts[i] = mat.transformPosition(pts[i].x - offx - ax, pts[i].y - offy - ay);
+				pts[i].x += ax;
+				pts[i].y += ay;
 			}
-			UIRectF rc;
+			Rectangle rc;
 			rc.setFromPoints(pts, 4);
 			return rc;
 		} else {
@@ -5248,17 +5247,17 @@ namespace slib
 			}
 		}
 
-		sl_ui_posf offx = (sl_ui_posf)(m_frame.left);
-		sl_ui_posf offy = (sl_ui_posf)(m_frame.top);
+		sl_real offx = (sl_real)(m_frame.left);
+		sl_real offy = (sl_real)(m_frame.top);
 
-		UIPointF pt = ptView;
+		Point pt = ptView;
 		Matrix3 mat;
-		if (getFinalTransform(&mat)) {
+		if (getTransform(&mat)) {
 			sl_real ax = (sl_real)(m_frame.getWidth()) / 2;
 			sl_real ay = (sl_real)(m_frame.getHeight()) / 2;
 			pt = mat.transformPosition(pt.x - ax, pt.y - ay);
-			pt.x += (sl_ui_posf)(ax);
-			pt.y += (sl_ui_posf)(ay);
+			pt.x += ax;
+			pt.y += ay;
 		}
 
 		pt.x += offx;
@@ -5275,7 +5274,7 @@ namespace slib
 			if (instance.isNotNull() && parent.isNotNull() && parent->m_instance.isNotNull()) {
 				Ref<ViewInstance> instanceParent = parent->m_instance;
 				if (instanceParent.isNotNull()) {
-					if (getFinalTransform(sl_null)) {
+					if (getTransform(sl_null)) {
 						UIPointF pts[4];
 						rcView.getCornerPoints(pts);
 						for (int i = 0; i < 4; i++) {
@@ -5299,25 +5298,57 @@ namespace slib
 			}
 		}
 
-		sl_ui_posf offx = (sl_ui_posf)(m_frame.left);
-		sl_ui_posf offy = (sl_ui_posf)(m_frame.top);
+		sl_real offx = (sl_real)(m_frame.left);
+		sl_real offy = (sl_real)(m_frame.top);
 
 		Matrix3 mat;
-		if (getFinalTransform(&mat)) {
-			UIPointF pts[4];
+		if (getTransform(&mat)) {
+			Point pts[4];
 			rcView.getCornerPoints(pts);
 			for (int i = 0; i < 4; i++) {
 				sl_real ax = (sl_real)(m_frame.getWidth()) / 2;
 				sl_real ay = (sl_real)(m_frame.getHeight()) / 2;
 				pts[i] = mat.transformPosition(pts[i].x - ax, pts[i].y - ay);
-				pts[i].x += (sl_ui_posf)(ax) + offx;
-				pts[i].y += (sl_ui_posf)(ay) + offy;
+				pts[i].x += ax + offx;
+				pts[i].y += ay + offy;
 			}
-			UIRectF rc;
+			Rectangle rc;
 			rc.setFromPoints(pts, 4);
 			return rc;
 		} else {
 			return UIRectF(rcView.left + offx, rcView.top + offy, rcView.right + offx, rcView.bottom + offy);
+		}
+	}
+
+	Matrix3 View::getTransformFromParent()
+	{
+		sl_real offx = (sl_real)(m_frame.left);
+		sl_real offy = (sl_real)(m_frame.top);
+		Matrix3 mat;
+		if (getInverseTransform(&mat)) {
+			sl_real ax = (sl_real)(m_frame.getWidth()) / 2;
+			sl_real ay = (sl_real)(m_frame.getHeight()) / 2;
+			Transform2::preTranslate(mat, -offx - ax, -offy - ay);
+			Transform2::translate(mat, ax, ay);
+			return mat;
+		} else {
+			return Transform2::getTranslationMatrix(-offx, -offy);
+		}
+	}
+
+	Matrix3 View::getTransformToParent()
+	{
+		sl_real offx = (sl_real)(m_frame.left);
+		sl_real offy = (sl_real)(m_frame.top);
+		Matrix3 mat;
+		if (getTransform(&mat)) {
+			sl_real ax = (sl_real)(m_frame.getWidth()) / 2;
+			sl_real ay = (sl_real)(m_frame.getHeight()) / 2;
+			Transform2::preTranslate(mat, -ax, -ay);
+			Transform2::translate(mat, ax + offx, ay + offy);
+			return mat;
+		} else {
+			return Transform2::getTranslationMatrix(offx, offy);
 		}
 	}
 
@@ -8211,6 +8242,23 @@ namespace slib
 		m_flagUsingIME = flag;
 	}
 
+	TextInput* View::getTextInput(Matrix3* outTransform)
+	{
+		Ref<View> focus = getFocalChild();
+		if (focus.isNotNull()) {
+			if (outTransform) {
+				TextInput* input = focus->getTextInput(outTransform);
+				if (input) {
+					outTransform->multiply(focus->getTransformToParent());
+					return input;
+				}
+			} else {
+				return focus->getTextInput();
+			}
+		}
+		return sl_null;
+	}
+
 	sl_bool View::isClientEdge()
 	{
 		return m_flagClientEdge;
@@ -8400,7 +8448,7 @@ namespace slib
 				sl_ui_pos offy = child->m_frame.top;
 				Matrix3 mat;
 				sl_bool flagTranslation = sl_true;
-				if (child->getFinalTransform(&mat)) {
+				if (child->getTransform(&mat)) {
 					if (Transform2::isTranslation(mat)) {
 						offx += (sl_ui_pos)(mat.m20);
 						offy += (sl_ui_pos)(mat.m21);
@@ -8470,7 +8518,7 @@ namespace slib
 				sl_ui_pos offy = child->m_frame.top;
 				Matrix3 mat;
 				sl_bool flagTranslation = sl_true;
-				if (child->getFinalTransform(&mat)) {
+				if (child->getTransform(&mat)) {
 					if (Transform2::isTranslation(mat)) {
 						offx += (sl_ui_pos)(mat.m20);
 						offy += (sl_ui_pos)(mat.m21);
@@ -10905,6 +10953,16 @@ namespace slib
 	void ViewInstance::setWindowContent(sl_bool flag)
 	{
 		m_flagWindowContent = flag;
+	}
+
+	TextInput* ViewInstance::getTextInput(Matrix3* outTransform)
+	{
+		Ref<View> view = m_view;
+		if (view.isNotNull()) {
+			return view->getTextInput(outTransform);
+		} else {
+			return sl_null;
+		}
 	}
 
 	void ViewInstance::initialize(View* view)

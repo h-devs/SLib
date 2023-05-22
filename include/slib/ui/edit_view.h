@@ -32,6 +32,8 @@ namespace slib
 
 	class IEditViewInstance;
 
+	class UITextBox;
+
 	class SLIB_EXPORT EditView : public View
 	{
 		SLIB_DECLARE_OBJECT
@@ -143,6 +145,12 @@ namespace slib
 
 		void setAutoVerticalScrolling(sl_bool flag = sl_true);
 
+		sl_bool isUsingPopup();
+
+		void setUsingPopup(sl_bool flag = sl_true);
+
+		TextInput* getTextInput(Matrix3* outTransform = sl_null) override;
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(EditView, Changing, String& value, UIEvent* ev /* nullable */)
 
@@ -162,6 +170,8 @@ namespace slib
 
 		void onChangeFocus(sl_bool flagFocused) override;
 
+		void onSetCursor(UIEvent* ev) override;
+
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 
@@ -171,6 +181,10 @@ namespace slib
 		void onKeyEvent(UIEvent* ev) override;
 
 	protected:
+		void _initTextBox();
+
+		void _updateTextBox();
+
 		void _change(IEditViewInstance* instance, String& text, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		void _onChange_NW(IEditViewInstance* instance, String& text);
@@ -187,6 +201,7 @@ namespace slib
 		sl_bool m_flagAutoDismissKeyboard : 1;
 		sl_bool m_flagAutoHorizontalScrolling : 1;
 		sl_bool m_flagAutoVerticalScrolling : 1;
+		sl_bool m_flagUsingPopup : 1;
 
 		AtomicString m_text;
 		Alignment m_gravity;
@@ -202,7 +217,8 @@ namespace slib
 		sl_reg m_indexSelectionStart; // In character unit
 		sl_reg m_indexSelectionEnd; // In character unit
 
-		Ref<CRef> m_dialog;
+		Ref<CRef> m_popup;
+		Ref<UITextBox> m_textBox;
 
 		AtomicRef<Timer> m_timerDrawCaret;
 		sl_uint32 m_nCountDrawCaret;
