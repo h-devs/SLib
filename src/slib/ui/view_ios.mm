@@ -80,7 +80,7 @@ namespace slib
 				[handle setAlpha: alpha];
 			}
 		}
-		Matrix3 transform = view->getFinalTransformInInstance();
+		Matrix3 transform = view->getTransformInInstance();
 		CGAffineTransform t;
 		GraphicsPlatform::getCGAffineTransform(t, transform, UIPlatform::getGlobalScaleFactor(), 0, 0);
 		[handle setTransform: t];

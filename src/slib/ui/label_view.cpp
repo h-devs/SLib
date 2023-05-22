@@ -348,7 +348,7 @@ namespace slib
 
 	void LabelViewCell::onClickEvent(UIEvent* ev)
 	{
-		Ref<TextItem> item = m_textBox.getTextItemAtPosition(ev->getX(), ev->getY(), getFrame());
+		Ref<TextItem> item = m_textBox.getTextItemAtLocation(ev->getX(), ev->getY(), getFrame());
 		if (item.isNotNull()) {
 			Ref<TextStyle> style = item->getStyle();
 			if (style.isNotNull()) {
@@ -361,7 +361,7 @@ namespace slib
 
 	void LabelViewCell::onSetCursor(UIEvent* ev)
 	{
-		Ref<TextItem> item = m_textBox.getTextItemAtPosition(ev->getX(), ev->getY(), getFrame());
+		Ref<TextItem> item = m_textBox.getTextItemAtLocation(ev->getX(), ev->getY(), getFrame());
 		if (item.isNotNull()) {
 			Ref<TextStyle> style = item->getStyle();
 			if (style.isNotNull()) {

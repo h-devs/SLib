@@ -36,6 +36,7 @@ namespace slib
 	enum class TextItemType
 	{
 		Word = 0,
+		Char = 1,
 		Space = 10,
 		Tab = 11,
 		LineBreak = 20,
@@ -149,11 +150,9 @@ namespace slib
 
 		Ref<TextStyle> getStyle() noexcept;
 
-		void setStyle(const Ref<TextStyle>& style) noexcept;
+		virtual void setStyle(const Ref<TextStyle>& style);
 
 		Ref<Font> getFont() noexcept;
-
-		Ref<Font> getJoinedCharFont() noexcept;
 
 		Point getLayoutPosition() noexcept;
 
@@ -165,21 +164,18 @@ namespace slib
 
 		Rectangle getLayoutFrame() noexcept;
 
+		virtual void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param);
+
 	protected:
 		TextItemType m_type;
 		AtomicRef<TextStyle> m_style;
 		Point m_layoutPosition;
 		Size m_layoutSize;
-		AtomicRef<Font> m_joinedCharFont;
-		AtomicRef<Font> m_joinedCharFontBase;
-
 	};
 
 	class SLIB_EXPORT TextWordItem : public TextItem
 	{
-		SLIB_DECLARE_OBJECT
-
-	private:
+	protected:
 		TextWordItem() noexcept;
 
 		~TextWordItem() noexcept;
@@ -188,29 +184,47 @@ namespace slib
 		static Ref<TextWordItem> create(const String16& text, const Ref<TextStyle>& style, sl_bool flagEnabledHyperlinksInPlainText = sl_false) noexcept;
 
 	public:
-		String16 getText() noexcept;
-
-		void setText(const String16& text) noexcept;
+		const String16& getText() noexcept;
 
 		Size getSize() noexcept;
 
-		void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param);
+		void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param) override;
 
-	private:
+	protected:
 		String16 m_text;
 
 		Ref<Font> m_fontCached;
 		String16 m_textCached;
 		sl_real m_widthCached;
 		sl_real m_heightCached;
+	};
 
+	class SLIB_EXPORT TextCharItem : public TextItem
+	{
+	protected:
+		TextCharItem() noexcept;
+
+		~TextCharItem() noexcept;
+
+	public:
+		static Ref<TextCharItem> create(sl_char32 ch, const Ref<TextStyle>& style) noexcept;
+
+	public:
+		Size getSize() noexcept;
+
+		void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param) override;
+
+	protected:
+		sl_char32 m_char;
+
+		Ref<Font> m_fontCached;
+		sl_real m_widthCached;
+		sl_real m_heightCached;
 	};
 
 	class SLIB_EXPORT TextJoinedCharItem : public TextItem
 	{
-		SLIB_DECLARE_OBJECT
-
-	private:
+	protected:
 		TextJoinedCharItem() noexcept;
 
 		~TextJoinedCharItem() noexcept;
@@ -219,12 +233,19 @@ namespace slib
 		static Ref<TextJoinedCharItem> create(const String16& text, const Ref<TextStyle>& style) noexcept;
 
 	public:
+		void setStyle(const Ref<TextStyle>& style) override;
+
+		Ref<Font> getFont() noexcept;
+
 		Size getSize() noexcept;
 
-		void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param);
+		void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param) override;
 
-	private:
+	protected:
 		String16 m_text;
+
+		AtomicRef<Font> m_joinedCharFont;
+		AtomicRef<Font> m_joinedCharFontBase;
 
 		Ref<Font> m_fontCached;
 		sl_real m_widthCached;
@@ -234,9 +255,7 @@ namespace slib
 
 	class SLIB_EXPORT TextSpaceItem : public TextItem
 	{
-		SLIB_DECLARE_OBJECT
-
-	private:
+	protected:
 		TextSpaceItem() noexcept;
 
 		~TextSpaceItem() noexcept;
@@ -251,9 +270,7 @@ namespace slib
 
 	class SLIB_EXPORT TextTabItem : public TextItem
 	{
-		SLIB_DECLARE_OBJECT
-
-	private:
+	protected:
 		TextTabItem() noexcept;
 
 		~TextTabItem() noexcept;
@@ -268,9 +285,7 @@ namespace slib
 
 	class SLIB_EXPORT TextLineBreakItem : public TextItem
 	{
-		SLIB_DECLARE_OBJECT
-
-	private:
+	protected:
 		TextLineBreakItem() noexcept;
 
 		~TextLineBreakItem() noexcept;
@@ -286,8 +301,6 @@ namespace slib
 
 	class SLIB_EXPORT TextAttachItem : public TextItem
 	{
-		SLIB_DECLARE_OBJECT
-
 	public:
 		TextAttachItem() noexcept;
 
@@ -321,6 +334,8 @@ namespace slib
 
 		void addHyperText(const StringParam& text, const Ref<TextStyle>& style) noexcept;
 
+		sl_size getCharacterCount();
+
 		class LayoutParam
 		{
 		public:
@@ -351,15 +366,15 @@ namespace slib
 
 		void draw(Canvas* canvas, sl_real left, sl_real right, sl_real y, const DrawParam& param) noexcept;
 
-		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y, sl_real left, sl_real right) noexcept;
-
 		sl_real getContentWidth() noexcept;
 
 		sl_real getContentHeight() noexcept;
 
-		Alignment getAlignment() noexcept;
+		Ref<TextItem> getTextItemAtLocation(sl_real x, sl_real y, sl_real left, sl_real right) noexcept;
 
-		sl_real getPositionLength() noexcept;
+		sl_text_pos getEndPosition() noexcept;
+
+		Alignment getAlignment() noexcept;
 
 	public:
 		static const Color& getDefaultLinkColor();
@@ -369,6 +384,10 @@ namespace slib
 		static sl_bool isDefaultLinkUnderline();
 
 		static void setDefaultLinkUnderline(sl_bool flag);
+
+	private:
+		template <class CHAR>
+		void _addText(const CHAR* text, sl_size len, const Ref<TextStyle>& style, sl_bool flagEnabledHyperlinksInPlainText, sl_bool flagMnemonic) noexcept;
 
 	protected:
 		CList< Ref<TextItem> > m_items;
@@ -425,11 +444,13 @@ namespace slib
 
 		void draw(Canvas* canvas, const DrawParam& param) const noexcept;
 
-		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y, const Rectangle& frame) const noexcept;
-
 		sl_real getContentWidth() const noexcept;
 
 		sl_real getContentHeight() const noexcept;
+
+		Ref<TextItem> getTextItemAtLocation(sl_real x, sl_real y, const Rectangle& frame) const noexcept;
+
+		sl_size getEndPosition() const noexcept;
 
 	public:
 		Ref<Font> getFont() const noexcept;

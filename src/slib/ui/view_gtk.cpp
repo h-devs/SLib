@@ -82,7 +82,7 @@ namespace slib
 			parent = ((GTK_ViewInstance*)_parent)->m_handle;
 		}
 		m_frame = view->getFrameInInstance();
-		m_translation = Transform2::getTranslationFromMatrix(view->getFinalTransformInInstance());
+		m_translation = Transform2::getTranslationFromMatrix(view->getTransformInInstance());
 		if (parent) {
 			if (GTK_IS_FIXED(parent)) {
 				sl_ui_pos x = m_frame.left + m_translation.x;

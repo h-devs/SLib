@@ -308,7 +308,7 @@ namespace slib
 				JView::setShadow.call(sl_null, handle, (jfloat)opacity, (jfloat)(view->getShadowRadius()));
 			}
 
-			Matrix3 transform = view->getFinalTransformInInstance();
+			Matrix3 transform = view->getTransformInInstance();
 			Vector2 t = Transform2::getTranslationFromMatrix(transform);
 			sl_real r = Transform2::getRotationAngleFromMatrix(transform);
 			Vector2 s = Transform2::getScaleFromMatrix(transform);

@@ -477,7 +477,8 @@ namespace slib
 		SAppUIReturnKeyTypeValue returnKey; \
 		SAppUIKeyboardTypeValue keyboard; \
 		SAppUIAutoCapitalizationTypeValue autoCap; \
-		SAppBooleanValue focusNextOnReturnKey;
+		SAppBooleanValue focusNextOnReturnKey; \
+		SAppBooleanValue popup;
 
 
 	class SAppLayoutEditAttributes : public SAppLayoutViewAttributes

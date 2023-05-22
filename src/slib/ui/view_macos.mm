@@ -28,6 +28,7 @@
 
 #include "slib/ui/view.h"
 #include "slib/ui/drag.h"
+#include "slib/ui/text.h"
 #include "slib/math/transform2d.h"
 
 @interface SLIBDraggingSource : NSObject<NSDraggingSource>
@@ -489,12 +490,27 @@ namespace slib
 			if (ev.isNotNull()) {
 				UIPlatform::applyEventModifiers(ev.get(), event);
 				onKeyEvent(ev.get());
-				return ev->getFlags();
+				UIEventFlags flags = ev->getFlags();
+				if (flagDown) {
+					if (flags & UIEventFlags::NotInvokeNative) {
+						return flags;
+					}
+					Ref<View> view = m_view;
+					if (view.isNotNull()) {
+						Ref<View> focus = view->getFocusedView();
+						if (focus.isNotNull()) {
+							if (focus->isUsingIME()) {
+								[handle interpretKeyEvents:[NSArray arrayWithObject:event]];
+								flags |= UIEventFlags::NotInvokeNative;
+							}
+						}
+					}
+				}
+				return flags;
 			}
 		}
 		return 0;
 	}
-
 
 	void macOS_ViewInstance::onEventChar(sl_char32 code)
 	{
@@ -1203,7 +1219,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 	return NO;
 }
 
-- (void)insertText:(nonnull id)aText replacementRange:(NSRange)replacementRange
+- (void)insertText:(nonnull id)aText replacementRange:(NSRange)range
 {
 	Ref<macOS_ViewInstance> instance = m_viewInstance;
 	if (instance.isNull()) {
@@ -1226,6 +1242,10 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 		}
 	} else {
 		return;
+	}
+	TextInput* input = instance->getTextInput();
+	if (input) {
+		input->replaceText(slib::TextRange((sl_text_pos)(range.location), (sl_text_pos)(range.length)), text);
 	}
 }
 

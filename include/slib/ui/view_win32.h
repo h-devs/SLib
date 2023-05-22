@@ -72,7 +72,7 @@ namespace slib
 		{
 			String16 text = String16::from(_text);
 			UIRect frame = view->getFrameInInstance();
-			Matrix3 transform = view->getFinalTransformInInstance();
+			Matrix3 transform = view->getTransformInInstance();
 			HWND handle = createHandle(view, parent, wndClass, (LPCWSTR)(text.getData()), frame, transform, style, styleEx, styleRemove);
 			if (handle) {
 				Ref<T> ret = new T;

@@ -134,6 +134,10 @@ namespace slib
 
 		void setAutoVerticalScrolling(sl_bool flag = sl_true);
 
+		sl_bool isUsingPopup();
+
+		void setUsingPopup(sl_bool flag = sl_true);
+
 		void setEnabled(sl_bool flagEnabled = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 
 		sl_bool isFocused() override;

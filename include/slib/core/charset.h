@@ -349,6 +349,9 @@ namespace slib
 		// `posUtf16` < `lenUtf16`
 		static sl_bool getUnicode(sl_char32& outCode, const sl_char16* utf16, sl_size lenUtf16, sl_size& posUtf16);
 
+		// `posUtf32` < `lenUtf32`
+		static sl_bool getUnicode(sl_char32& outCode, const sl_char32* utf32, sl_size lenUtf32, sl_size& posUtf32);
+
 		static sl_char32 getUnicodeFromSurrogateCharacters(sl_char16 ch0, sl_char16 ch1);
 
 

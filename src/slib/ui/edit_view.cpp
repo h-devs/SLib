@@ -22,11 +22,12 @@
 
 #include "slib/ui/edit_view.h"
 
+#include "slib/ui/text.h"
+#include "slib/ui/core.h"
 #include "slib/ui/mobile_app.h"
 #include "slib/ui/resource.h"
-#include "slib/ui/core.h"
 #include "slib/ui/button.h"
-
+#include "slib/ui/cursor.h"
 #include "slib/core/timer.h"
 #include "slib/core/stringx.h"
 
@@ -34,10 +35,6 @@
 #	define HAS_NATIVE_WIDGET_IMPL 1
 #else
 #	define HAS_NATIVE_WIDGET_IMPL 0
-#endif
-
-#ifdef SLIB_PLATFORM_IS_DESKTOP
-#define HAS_SIMPLE_INPUT
 #endif
 
 namespace slib
@@ -75,6 +72,8 @@ namespace slib
 		m_flagAutoDismissKeyboard = sl_true;
 		m_flagAutoHorizontalScrolling = sl_true;
 		m_flagAutoVerticalScrolling = sl_true;
+		m_flagUsingPopup = sl_false;
+
 		m_indexSelectionStart = 0;
 		m_indexSelectionEnd = -1;
 
@@ -496,6 +495,28 @@ namespace slib
 		m_flagAutoVerticalScrolling = flag;
 	}
 
+	sl_bool EditView::isUsingPopup()
+	{
+		return m_flagUsingPopup;
+	}
+
+	void EditView::setUsingPopup(sl_bool flag)
+	{
+		m_flagUsingPopup = flag;
+	}
+
+	TextInput* EditView::getTextInput(Matrix3* outTransform)
+	{
+		if (m_textBox.isNotNull()) {
+			if (outTransform) {
+				*outTransform = Matrix3::identity();
+			}
+			return m_textBox.get();
+		} else {
+			return sl_null;
+		}
+	}
+
 	void EditView::onUpdateLayout()
 	{
 		sl_bool flagHorizontalWrapping = isWidthWrapping();
@@ -546,65 +567,25 @@ namespace slib
 
 	void EditView::onDraw(Canvas* canvas)
 	{
-		Ref<Font> font;
-		Color color;
-		Alignment gravity;
 		String text(m_text);
 		if (text.isEmpty()) {
+			// Draw hint text
 			text = m_hintText;
-			font = getHintFont();
-			color = m_hintTextColor;
-			gravity = m_hintGravity;
-		} else {
-			font = getFont();
-			color = m_textColor;
-			gravity = m_gravity;
-			if (m_flagPassword) {
-				text = String('*', text.getLength());
+			if (text.isEmpty()) {
+				return;
 			}
-		}
-		if (font.isNull()) {
+			canvas->drawText(text, getBoundsInnerPadding(), getHintFont(), m_hintTextColor, m_hintGravity);
 			return;
 		}
-		Rectangle rect = getBoundsInnerPadding();
-		canvas->drawText(text, rect, font, color, gravity);
-#ifdef HAS_SIMPLE_INPUT
-		if (isFocused()) {
-			Ref<View> root = getRootView();
-			if (root.isNotNull()) {
-				if (root->getFocalDescendant() != this) {
-					return;
-				}
-			}
-			Size size;
-			if (text.isNotEmpty()) {
-				size = canvas->measureText(font, text);
-			} else {
-				size.x = 0;
-			}
-			size.y = font->getFontHeight();
-			Alignment hAlign = gravity & Alignment::HorizontalMask;
-			Alignment vAlign = gravity & Alignment::VerticalMask;
-			sl_real xCaret, yCaret;
-			if (hAlign == Alignment::Left) {
-				xCaret = rect.left + size.x;
-			} else if (hAlign == Alignment::Right) {
-				xCaret = rect.right;
-			} else {
-				xCaret = (rect.left + rect.right + size.x) / 2;
-			}
-			if (vAlign == Alignment::Top) {
-				yCaret = rect.top;
-			} else if (vAlign == Alignment::Bottom) {
-				yCaret = rect.bottom - size.y;
-			} else {
-				yCaret = (rect.top + rect.bottom - size.y) / 2;
-			}
-			if (!(m_nCountDrawCaret % 2)) {
-				canvas->fillRectangle(xCaret, yCaret, 1, size.y, Color::Black);
-			}
+
+		Ref<UITextBox>& box = m_textBox;
+		if (box.isNull()) {
+			return;
 		}
-#endif
+		TextBox::DrawParam param;
+		param.frame = getBoundsInnerPadding();
+		param.textColor = m_textColor;
+		box->draw(canvas, param);
 	}
 
 	namespace {
@@ -614,7 +595,7 @@ namespace slib
 		public:
 			void closeDialog()
 			{
-				m_dialog.setNull();
+				m_popup.setNull();
 			}
 
 		};
@@ -824,49 +805,94 @@ namespace slib
 		if (m_flagReadOnly) {
 			return;
 		}
-		Ptr<IEditViewInstance> instance = getEditViewInstance();
-		if (instance.isNotNull()) {
+		if (isNativeWidget()) {
 			return;
 		}
-#if defined(HAS_SIMPLE_INPUT)
-		setFocus();
-#else
-		if (m_dialog.isNull()) {
-			m_dialog = EditDialog::open(this);
+		if (m_flagUsingPopup) {
+			if (m_popup.isNull()) {
+				m_popup = EditDialog::open(this);
+			}
+		} else {
+			_initTextBox();
+			setFocus();
 		}
-#endif
 	}
 
 	void EditView::onChangeFocus(sl_bool flagFocused)
 	{
-		if (flagFocused) {
-			if (!(isNativeWidget())) {
-				if (m_timerDrawCaret.isNull()) {
-					WeakRef<EditView> thiz = ToWeakRef(this);
-					m_timerDrawCaret = startTimer([this, thiz](Timer*) {
-						Ref<EditView> ref = thiz;
-						if (ref.isNull()) {
-							return;
-						}
-						m_nCountDrawCaret++;
-						invalidate();
-					}, 500);
-				}
-				m_nCountDrawCaret = 0;
-				invalidate();
-				return;
-			}
+		if (isNativeWidget()) {
+			return;
 		}
-		m_timerDrawCaret.setNull();
+		if (flagFocused) {
+			if (m_timerDrawCaret.isNull()) {
+				WeakRef<EditView> thiz = ToWeakRef(this);
+				m_timerDrawCaret = startTimer([this, thiz](Timer*) {
+					Ref<EditView> ref = thiz;
+					if (ref.isNull()) {
+						return;
+					}
+					m_nCountDrawCaret++;
+					invalidate();
+				}, 500);
+			}
+			m_nCountDrawCaret = 0;
+			invalidate();
+		} else {
+			m_timerDrawCaret.setNull();
+		}
+	}
+
+	void EditView::onSetCursor(UIEvent* ev)
+	{
+		if (isNativeWidget()) {
+			return;
+		}
+		ev->setCursor(Cursor::getIBeam());
+		ev->accept();
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(EditView, Changing, (String& value, UIEvent* ev /* nullable */), value, ev)
 
 	SLIB_DEFINE_EVENT_HANDLER(EditView, Change, (const String& value, UIEvent* ev /* nullable */), value, ev)
 
+	void EditView::_initTextBox()
+	{
+		ObjectLocker lock(this);
+		if (m_textBox.isNull()) {
+			if (getFont().isNull()) {
+				return;
+			}
+			Ref<UITextBox> box = new UITextBox;
+			if (box.isNull()) {
+				return;
+			}
+			m_textBox = Move(box);
+			_updateTextBox();
+		}
+	}
+
+	void EditView::_updateTextBox()
+	{
+		ObjectLocker lock(this);
+		Ref<UITextBox>& box = m_textBox;
+		if (box.isNull()) {
+			return;
+		}
+		TextBoxParam param;
+		param.font = getFont();
+		if (param.font.isNull()) {
+			return;
+		}
+		param.text = m_text;
+		param.align = m_gravity;
+		param.multiLineMode = m_multiLine;
+		param.width = getBoundsInnerPadding().getWidth();
+		box->update(param);
+	}
+
 	void EditView::_change(IEditViewInstance* instance, String& text, UIEvent* ev, UIUpdateMode mode)
 	{
-		ObjectLocker locker(this);
+		ObjectLocker lock(this);
 		m_flagInvalidateText = sl_false;
 		if (text == m_text) {
 			return;
@@ -890,7 +916,7 @@ namespace slib
 				invalidate(mode);
 			}
 		}
-		locker.unlock();
+		lock.unlock();
 		invokeChange(text, ev);
 		if (ev && !instance) {
 			invokePostChange();
@@ -924,9 +950,10 @@ namespace slib
 
 	void EditView::onKeyEvent(UIEvent* ev)
 	{
+		UIAction action = ev->getAction();
 		Keycode keycode = ev->getKeycode();
 		if (m_multiLine == MultiLineMode::Single || keycode == Keycode::Escape || m_flagReadOnly) {
-			if (ev->getAction() == UIAction::KeyDown) {
+			if (action == UIAction::KeyDown) {
 				if (keycode == Keycode::Enter || keycode == Keycode::NumpadEnter) {
 					invokeReturnKey();
 					View::onKeyEvent(ev);
@@ -938,40 +965,32 @@ namespace slib
 				return;
 			}
 		}
-#ifdef HAS_SIMPLE_INPUT
 		if (ev->isAccepted()) {
 			return;
 		}
 		if (isNativeWidget()) {
-			ev->acceptByNative();
+			if (action == UIAction::KeyDown) {
+				ev->acceptByNative();
+			}
 			return;
 		}
-		UIAction action = ev->getAction();
+		_initTextBox();
+		Ref<UITextBox>& box = m_textBox;
+		if (box.isNull()) {
+			return;
+		}
 		if (action == UIAction::KeyDown) {
-			if (ev->isControlKey() || ev->isWindowsKey()) {
-				return;
-			}
 			Keycode key = ev->getKeycode();
 			switch (key) {
 				case Keycode::Backspace:
-					{
-						ev->accept();
-						String text = m_text;
-						text = text.substring(0, text.getLength() - 1);
-						_change(sl_null, text, ev);
+					if (!(ev->isControlKey()) && !(ev->isWindowsKey())) {
 					}
 					break;
 				default:
+					ev->acceptByNative();
 					break;
 			}
-		} else if (action == UIAction::Char) {
-			sl_char32 ch = ev->getChar();
-			if (ch >= ' ') {
-				String text = String(m_text) + String::from(&ch, 1);
-				_change(sl_null, text, ev);
-			}
 		}
-#endif
 	}
 
 
