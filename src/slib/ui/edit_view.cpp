@@ -886,7 +886,7 @@ namespace slib
 		param.text = m_text;
 		param.align = m_gravity;
 		param.multiLineMode = m_multiLine;
-		param.width = getBoundsInnerPadding().getWidth();
+		param.width = (sl_real)(getBoundsInnerPadding().getWidth());
 		box->update(param);
 	}
 
