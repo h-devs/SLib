@@ -1273,8 +1273,30 @@ namespace slib
 #define LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(NAME, TAG) \
 	ListElements< Ref<XmlElement> > NAME(LAYOUT_CONTROL_GET_ITEM_CHILDREN(TAG));
 
+	namespace {
+		static const Ref<XmlElement>& GetXmlElement(SAppLayoutXmlItem& item)
+		{
+			return item.element;
+		}
+
+		static String GetXmlAttribute(SAppLayoutXmlItem& item, const String& name)
+		{
+			return item.getXmlAttribute(name);
+		}
+
+		static const Ref<XmlElement>& GetXmlElement(const Ref<XmlElement>& element)
+		{
+			return element;
+		}
+
+		static String GetXmlAttribute(const Ref<XmlElement>& element, const String& name)
+		{
+			return element->getAttribute(name);
+		}
+	}
+
 #define LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(XML, NAME) \
-	logError((XML).element, g_str_error_resource_layout_attribute_invalid, NAME, (XML).getXmlAttribute(NAME));
+	logError(GetXmlElement(XML), g_str_error_resource_layout_attribute_invalid, NAME, GetXmlAttribute(XML, NAME));
 #define LOG_ERROR_LAYOUT_CONTROL_ATTR(NAME) LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(*resourceItem, NAME)
 
 #define TEXT_Init "Init"
@@ -1331,7 +1353,7 @@ namespace slib
 #define USE_UPDATE2(CATEGORY, REQUEST, MODE) CATEGORY_USE_UPDATE2_##REQUEST##_##CATEGORY(MODE)
 
 #define PRIV_LAYOUT_CONTROL_PARSE(XML, NAME, VAR, ...) \
-	String _strValue = (XML).getXmlAttribute(NAME); \
+	String _strValue = GetXmlAttribute(XML, NAME); \
 	if (!(VAR.parse(_strValue, ##__VA_ARGS__))) { \
 		LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(XML, NAME) \
 		return sl_false; \
@@ -3174,7 +3196,7 @@ namespace slib
 				for (sl_size i = 0; i < columnXmls.count; i++) {
 					LAYOUT_CONTROL_DEFINE_XML(columnXml, columnXmls[i])
 					SAppLayoutTableColumn column;
-					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., name)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml.element, column., name)
 					if (column.name.flagDefined) {
 						if (!(_checkLayoutResourceItemName(resource, column.name.value, columnXml.element))) {
 							return sl_false;
@@ -3206,7 +3228,7 @@ namespace slib
 				for (sl_uint32 i = 0; i < nRows; i++) {
 					LAYOUT_CONTROL_DEFINE_XML(rowXml, rowXmls[i])
 					SAppLayoutTableRow row;
-					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml, row., name)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml.element, row., name)
 					if (row.name.flagDefined) {
 						if (!(_checkLayoutResourceItemName(resource, row.name.value, rowXml.element))) {
 							return sl_false;
@@ -4445,7 +4467,7 @@ namespace slib
 				for (sl_size i = 0; i < columnXmls.count; i++) {
 					LAYOUT_CONTROL_DEFINE_XML(columnXml, columnXmls[i])
 					SAppLayoutGridColumn column;
-					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., name)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml.element, column., name)
 					if (column.name.flagDefined) {
 						if (!(_checkLayoutResourceItemName(resource, column.name.value, columnXml.element))) {
 							return sl_false;
@@ -4505,7 +4527,7 @@ namespace slib
 				for (sl_size iRow = 0; iRow < rowXmls.count; iRow++) { \
 					LAYOUT_CONTROL_DEFINE_XML(rowXml, rowXmls[iRow]) \
 					SAppLayoutGridRow row; \
-					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml, row., name) \
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml.element, row., name) \
 					if (row.name.flagDefined) { \
 						if (!(_checkLayoutResourceItemName(resource, row.name.value, rowXml.element))) { \
 							return sl_false; \
