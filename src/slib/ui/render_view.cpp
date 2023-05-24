@@ -346,6 +346,11 @@ namespace slib
 		requestRender();
 	}
 
+	void RenderView::onDetach()
+	{
+		disableRendering();
+	}
+
 	void RenderView::onDrawBackground(Canvas* canvas)
 	{
 		Ptr<IRenderViewInstance> instance = getRenderViewInstance();

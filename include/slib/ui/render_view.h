@@ -108,6 +108,8 @@ namespace slib
 	public:
 		void onAttach() override;
 
+		void onDetach() override;
+
 	protected:
 		void onDrawBackground(Canvas* canvas) override;
 
