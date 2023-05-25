@@ -1377,7 +1377,7 @@ namespace slib
 			return sl_false;
 		}
 		TouchPoint* pts = arrPts.getData();
-		TouchPoint ptPrimary;
+		sl_uint32 iPrimary = 0;
 		sl_bool flagBegin = sl_true;
 		sl_bool flagEnd = sl_true;
 		for (sl_uint32 i = 0; i < nTouch; i++) {
@@ -1398,7 +1398,7 @@ namespace slib
 				flagEnd = sl_false;
 			}
 			if (input.dwFlags & TOUCHEVENTF_PRIMARY) {
-				ptPrimary = pt;
+				iPrimary = i;
 			}
 		}
 		UIAction action;
@@ -1411,7 +1411,7 @@ namespace slib
 		}
 		Time t;
 		t.setMillisecondCount(GetMessageTime());
-		Ref<UIEvent> ev = UIEvent::createTouchEvent(action, ptPrimary, t);
+		Ref<UIEvent> ev = UIEvent::createTouchEvent(action, pts[iPrimary], t);
 		if (ev.isNull()) {
 			return sl_false;
 		}
