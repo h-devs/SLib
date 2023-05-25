@@ -1437,7 +1437,7 @@ namespace slib
 					contentViewInstance->setDrawing(view.get(), view->isDrawing());
 					contentViewInstance->setDropTarget(view.get(), view->isDropTarget());
 					view->_attach(contentViewInstance);
-					instance->onAttachedContentView();
+					instance->onAttachedContentView(view.get());
 				}
 			}
 		}
@@ -2054,7 +2054,7 @@ namespace slib
 		}
 	}
 
-	void WindowInstance::onAttachedContentView()
+	void WindowInstance::onAttachedContentView(View* content)
 	{
 	}
 

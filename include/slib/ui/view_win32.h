@@ -188,14 +188,17 @@ namespace slib
 
 		sl_bool onEventMouseWheel(sl_bool flagVertical, WPARAM wParam, LPARAM lParam);
 
+		sl_bool onEventTouch(WPARAM wParam, LPARAM lParam);
+
 		sl_bool onEventSetCursor();
 
 		void setGenericView(sl_bool flag);
 
 	protected:
 		HWND m_handle;
-		sl_bool m_flagGenericView;
-		sl_bool m_flagDestroyOnRelease;
+
+		sl_bool m_flagGenericView : 1;
+		sl_bool m_flagDestroyOnRelease : 1;
 
 		UIAction m_actionMouseCapture;
 

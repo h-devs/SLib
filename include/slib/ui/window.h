@@ -683,7 +683,7 @@ namespace slib
 		void onExitFullScreen();
 
 	public:
-		virtual void onAttachedContentView();
+		virtual void onAttachedContentView(View* content);
 
 	protected:
 		AtomicWeakRef<Window> m_window;

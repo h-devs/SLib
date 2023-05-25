@@ -574,11 +574,14 @@ namespace slib
 				WindowInstance::onResize(width, height);
 			}
 
-			void onAttachedContentView() override
+			void onAttachedContentView(View* content) override
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
 					applyRegion(hWnd);
+					if (content->isUsingTouchEvent()) {
+						Win32::registerTouchWindow(hWnd);
+					}
 				}
 			}
 

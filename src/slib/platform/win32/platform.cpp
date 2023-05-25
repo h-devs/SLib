@@ -28,6 +28,7 @@
 #include "slib/io/file.h"
 #include "slib/platform.h"
 #include "slib/dl/win32/shlwapi.h"
+#include "slib/dl/win32/user32.h"
 
 #include <objbase.h>
 #include <shellapi.h>
@@ -378,6 +379,14 @@ namespace slib
 			return isWindowVisible(hWnd);
 		}
 		return sl_true;
+	}
+
+	void Win32::registerTouchWindow(HWND hWnd)
+	{
+		auto func = user32::getApi_RegisterTouchWindow();
+		if (func) {
+			func(hWnd, TWF_WANTPALM | TWF_FINETOUCH);
+		}
 	}
 
 }

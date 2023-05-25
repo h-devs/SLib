@@ -153,6 +153,9 @@ namespace slib
 
 		static sl_bool isWindowVisible(HWND hWnd);
 
+
+		static void registerTouchWindow(HWND hWnd);
+
 	};
 
 }

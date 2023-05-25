@@ -128,6 +128,7 @@ namespace slib
 		m_flagUsingChildLayouts(sl_true),
 		m_flagEnabled(sl_true),
 		m_flagHitTestable(sl_true),
+		m_flagUsingTouch(sl_false),
 		m_flagFocusable(sl_false),
 		m_flagClipping(sl_false),
 		m_flagDrawing(sl_true),
@@ -2117,6 +2118,32 @@ namespace slib
 	sl_bool View::hitTest(const UIPoint& point)
 	{
 		return hitTest(point.x, point.y);
+	}
+
+	sl_bool View::isUsingTouchEvent()
+	{
+#ifdef SLIB_PLATFORM_IS_MOBILE
+		return sl_true;
+#else
+		if (m_flagUsingTouch) {
+			return sl_true;
+		}
+		ListElements< Ref<View> > children(getChildren());
+		for (sl_size i = 0; i < children.count; i++) {
+			View* child = children[i].get();
+			if (child->isVisible() && !(child->isInstance())) {
+				if (child->isUsingTouchEvent()) {
+					return sl_true;
+				}
+			}
+		}
+		return sl_false;
+#endif
+	}
+
+	void View::setUsingTouchEvent(sl_bool flag)
+	{
+		m_flagUsingTouch = flag;
 	}
 
 	ViewState View::getState()

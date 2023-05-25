@@ -31,6 +31,7 @@
 #include "slib/ui/drag.h"
 #include "slib/math/transform2d.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/platform/win32/com.h"
 #include "slib/dl/win32/user32.h"
 
@@ -162,6 +163,7 @@ namespace slib
 				case WM_MBUTTONDOWN:
 				case WM_MBUTTONDBLCLK:
 				case WM_MOUSEMOVE:
+				case WM_TOUCH:
 					break;
 				case WM_NCLBUTTONDOWN:
 					uMsg = WM_LBUTTONDOWN;
@@ -189,9 +191,10 @@ namespace slib
 	Win32_ViewInstance::Win32_ViewInstance()
 	{
 		m_handle = NULL;
-		m_flagGenericView = sl_false;
 
+		m_flagGenericView = sl_false;
 		m_flagDestroyOnRelease = sl_false;
+
 		m_actionMouseCapture = UIAction::MouseMove;
 
 		m_imc = NULL;
@@ -286,6 +289,9 @@ namespace slib
 					if (wndClass != (LPCWSTR)(shared->wndClassForView)) {
 						SetWindowSubclass(hWnd, ViewInstanceSubclassProc, 0, 0);
 					}
+				}
+				if (view->isUsingTouchEvent()) {
+					Win32::registerTouchWindow(hWnd);
 				}
 				return hWnd;
 			}
@@ -1351,6 +1357,72 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool Win32_ViewInstance::onEventTouch(WPARAM wParam, LPARAM lParam)
+	{
+		auto apiGet = user32::getApi_GetTouchInputInfo();
+		if (!apiGet) {
+			return sl_false;
+		}
+		sl_uint32 nTouch = (sl_uint32)wParam;
+		if (!nTouch) {
+			return sl_false;
+		}
+		HTOUCHINPUT hTouch = (HTOUCHINPUT)lParam;
+		SLIB_SCOPED_BUFFER(TOUCHINPUT, 128, touches, nTouch)
+		if (!(apiGet(hTouch, nTouch, touches, sizeof(TOUCHINPUT)))) {
+			return sl_false;
+		}
+		Array<TouchPoint> arrPts = Array<TouchPoint>::create(nTouch);
+		if (arrPts.isNull()) {
+			return sl_false;
+		}
+		TouchPoint* pts = arrPts.getData();
+		TouchPoint ptPrimary;
+		sl_bool flagBegin = sl_true;
+		sl_bool flagEnd = sl_true;
+		for (sl_uint32 i = 0; i < nTouch; i++) {
+			TouchPoint& pt = pts[i];
+			TOUCHINPUT& input = touches[i];
+			pt.point.x = (sl_real)(TOUCH_COORD_TO_PIXEL(input.x));
+			pt.point.y = (sl_real)(TOUCH_COORD_TO_PIXEL(input.y));
+			pt.pointerId = (sl_uint64)(input.dwID);
+			if (input.dwFlags & TOUCHEVENTF_UP) {
+				pt.phase = TouchPhase::End;
+				flagBegin = sl_false;
+			} else if (input.dwFlags & TOUCHEVENTF_DOWN) {
+				pt.phase = TouchPhase::Begin;
+				flagEnd = sl_false;
+			} else {
+				pt.phase = TouchPhase::Move;
+				flagBegin = sl_false;
+				flagEnd = sl_false;
+			}
+			if (input.dwFlags & TOUCHEVENTF_PRIMARY) {
+				ptPrimary = pt;
+			}
+		}
+		UIAction action;
+		if (flagEnd) {
+			action = UIAction::TouchEnd;
+		} else if (flagBegin) {
+			action = UIAction::TouchBegin;
+		} else {
+			action = UIAction::TouchMove;
+		}
+		Time t;
+		t.setMillisecondCount(GetMessageTime());
+		Ref<UIEvent> ev = UIEvent::createTouchEvent(action, ptPrimary, t);
+		if (ev.isNull()) {
+			return sl_false;
+		}
+		onTouchEvent(ev.get());
+		if (!(ev->getFlags() & UIEventFlags::NotInvokeNative)) {
+			return sl_false;
+		}
+		(user32::getApi_CloseTouchInputHandle())(hTouch);
+		return sl_true;
+	}
+
 	sl_bool Win32_ViewInstance::onEventSetCursor()
 	{
 		HWND hWnd = m_handle;
@@ -1590,8 +1662,13 @@ namespace slib
 					return 0;
 				}
 				break;
-			case 0x020E: // WM_MOUSEHWHEEL
+			case WM_MOUSEHWHEEL:
 				if (onEventMouseWheel(sl_false, wParam, lParam)) {
+					return 0;
+				}
+				break;
+			case WM_TOUCH:
+				if (onEventTouch(wParam, lParam)) {
 					return 0;
 				}
 				break;

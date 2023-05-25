@@ -320,6 +320,11 @@ namespace slib
 		// local coordinate
 		sl_bool hitTest(const UIPoint& point);
 
+		sl_bool isUsingTouchEvent();
+
+		// set before attaching
+		void setUsingTouchEvent(sl_bool flag = sl_true);
+
 
 		ViewState getState();
 
@@ -1673,6 +1678,7 @@ namespace slib
 		sl_bool m_flagUsingChildLayouts : 1;
 		sl_bool m_flagEnabled : 1;
 		sl_bool m_flagHitTestable : 1;
+		sl_bool m_flagUsingTouch : 1;
 		sl_bool m_flagFocusable : 1;
 		sl_bool m_flagClipping : 1;
 		sl_bool m_flagDrawing : 1;

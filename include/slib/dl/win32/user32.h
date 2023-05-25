@@ -42,6 +42,28 @@ namespace slib
 			BOOL bShow
 		)
 
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			RegisterTouchWindow,
+			BOOL, WINAPI,
+			HWND hWnd,
+			ULONG ulFlags
+		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			GetTouchInputInfo,
+			BOOL, WINAPI,
+			HTOUCHINPUT hTouchInput,
+			UINT cInputs,
+			PTOUCHINPUT pInputs,
+			int cbSize
+		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			CloseTouchInputHandle,
+			BOOL, WINAPI,
+			HTOUCHINPUT hTouchInput
+		)
+
 	SLIB_IMPORT_LIBRARY_END
 
 }
