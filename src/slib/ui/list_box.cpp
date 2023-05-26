@@ -35,6 +35,7 @@ namespace slib
 		setCanvasScrolling(sl_false);
 		setVerticalScrolling(sl_true, UIUpdateMode::Init);
 		setFocusable(sl_true);
+		setClipping(sl_true, UIUpdateMode::Init);
 
 		m_nItems = 0;
 		m_heightItem = 100;

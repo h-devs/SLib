@@ -48,6 +48,7 @@ namespace slib
 		m_lineHeightWeight = 1.6f;
 
 		m_gravity = Alignment::Left;
+		m_multiLineMode = MultiLineMode::Single;
 		m_ellipsizeMode = EllipsizeMode::None;
 
 		m_textColors.set(ViewState::Selected, Color::White);
@@ -98,6 +99,17 @@ namespace slib
 	void LabelList::setGravity(const Alignment& align, UIUpdateMode updateMode)
 	{
 		m_gravity = align;
+		invalidate(updateMode);
+	}
+
+	MultiLineMode LabelList::getMultiLine()
+	{
+		return m_multiLineMode;
+	}
+
+	void LabelList::setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode)
+	{
+		m_multiLineMode = multiLineMode;
 		invalidate(updateMode);
 	}
 
@@ -180,6 +192,7 @@ namespace slib
 		param.font = getFont();
 		param.width = drawParam.frame.getWidth();
 		param.ellipsizeMode = m_ellipsizeMode;
+		param.multiLineMode = m_multiLineMode;
 		param.align = m_gravity;
 		box.update(param);
 		box.draw(canvas, drawParam);

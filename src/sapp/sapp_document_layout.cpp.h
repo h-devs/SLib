@@ -4317,6 +4317,7 @@ namespace slib
 		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setTextColor)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, gravity, setGravity)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, ellipsize, setEllipsize)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setMultiLine)
 
 		LAYOUT_CONTROL_PROCESS_SELECT_ITEMS
 
