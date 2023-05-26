@@ -385,7 +385,7 @@ namespace slib
 	{
 		auto func = user32::getApi_RegisterTouchWindow();
 		if (func) {
-			return func(hWnd, TWF_WANTPALM | TWF_FINETOUCH) != 0;
+			return func(hWnd, 0) != 0;
 		}
 		return sl_false;
 	}
