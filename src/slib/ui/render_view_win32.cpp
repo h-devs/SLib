@@ -148,6 +148,9 @@ namespace slib
 		}
 		Ref<RenderViewInstance> ret = Win32_ViewInstance::create<RenderViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
 		if (ret.isNotNull()) {
+			if (isUsingTouchEvent()) {
+				ret->setUsingTouchEvent(this, sl_true);
+			}
 			RenderEngineType engineType = getPreferredEngineType();
 			if (SLIB_RENDER_CHECK_ENGINE_TYPE(engineType, GL)) {
 				if (SLIB_RENDER_CHECK_ENGINE_TYPE(engineType, OpenGL_ES)) {

@@ -1521,6 +1521,7 @@ namespace slib
 		if (ev.isNull()) {
 			return sl_false;
 		}
+		ev->setTouchPoints(arrPts);
 		onTouchEvent(ev.get());
 		if (ev->getFlags() & UIEventFlags::NotInvokeNative) {
 			(user32::getApi_CloseTouchInputHandle())(hTouch);
