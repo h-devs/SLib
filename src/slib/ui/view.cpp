@@ -9173,9 +9173,6 @@ namespace slib
 	void View::onMouseEvent(UIEvent* ev)
 	{
 		_processContentScrolling(ev);
-		if (ev->isAccepted()) {
-			return;
-		}
 		_processClick(ev);
 	}
 

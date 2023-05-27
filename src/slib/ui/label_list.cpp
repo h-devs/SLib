@@ -154,7 +154,7 @@ namespace slib
 	void LabelList::notifyInsertItem(sl_int64 index, const String& title, UIUpdateMode mode)
 	{
 		m_nItems++;
-		invalidate(mode);
+		refreshContentHeight(mode);
 	}
 
 	void LabelList::notifyRemoveItem(sl_int64 index, UIUpdateMode mode)
@@ -163,7 +163,7 @@ namespace slib
 		if (n > 0) {
 			n--;
 			m_nItems = n;
-			invalidate(mode);
+			refreshContentHeight(mode);
 		}
 	}
 
