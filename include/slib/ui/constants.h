@@ -84,11 +84,10 @@ namespace slib
 		Accepted = 0x0001,
 		PassToNext = 0x0004,
 		NotInvokeNative = 0x0008,
-		UseDrag = 0x0010,
+		SetCapture = 0x0010,
 		DispatchToParent = 0x1000,
 		NotDispatchToChildren = 0x2000,
-		KeepKeyboard = 0x4000,
-		Captured = 0x8000
+		KeepKeyboard = 0x4000
 	})
 
 	enum class TouchPhase

@@ -196,8 +196,6 @@ namespace slib
 		m_flagDestroyOnRelease = sl_false;
 		m_flagRegisteredTouch = sl_false;
 
-		m_actionMouseCapture = UIAction::MouseMove;
-
 		m_imc = NULL;
 	}
 
@@ -312,9 +310,6 @@ namespace slib
 		m_translation = Transform2::getTranslationFromMatrix(transform);
 		if (view->isUsingFont()) {
 			setFont(view, view->getFont());
-		}
-		if (m_flagGenericView && view->isUsingTouchEvent()) {
-			m_flagRegisteredTouch = Win32::registerTouchWindow(hWnd);
 		}
 	}
 
@@ -896,11 +891,11 @@ namespace slib
 		private:
 			ULONG m_nRef;
 			DragContext* m_context;
+			UIAction m_actionDown;
 
 		public:
-			ViewDropSource(DragContext* context) : m_context(context)
+			ViewDropSource(DragContext* context, UIAction actionDown): m_context(context), m_actionDown(actionDown), m_nRef(0)
 			{
-				m_nRef = 0;
 			}
 
 		public:
@@ -936,8 +931,18 @@ namespace slib
 				if (fEscapePressed) {
 					return DRAGDROP_S_CANCEL;
 				}
-				if (!(grfKeyState & MK_LBUTTON)) {
-					return DRAGDROP_S_DROP;
+				if (m_actionDown == UIAction::LeftButtonDown) {
+					if (!(grfKeyState & MK_LBUTTON)) {
+						return DRAGDROP_S_DROP;
+					}
+				} else if (m_actionDown == UIAction::RightButtonDown) {
+					if (!(grfKeyState & MK_RBUTTON)) {
+						return DRAGDROP_S_DROP;
+					}
+				} else if (m_actionDown == UIAction::MiddleButtonDown) {
+					if (!(grfKeyState & MK_MBUTTON)) {
+						return DRAGDROP_S_DROP;
+					}
 				}
 				return S_OK;
 			}
@@ -998,42 +1003,6 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::enableIME()
-	{
-		HWND handle = m_handle;
-		if (handle) {
-			if (m_imc) {
-				ImmAssociateContext(handle, m_imc);
-				m_imc = NULL;
-			}
-		}
-	}
-
-	void Win32_ViewInstance::disableIME()
-	{
-		HWND handle = m_handle;
-		if (handle) {
-			if (!m_imc) {
-				m_imc = ImmAssociateContext(handle, NULL);
-			}
-		}
-	}
-
-	void Win32_ViewInstance::updateIME()
-	{
-		Ref<View> view = getView();
-		if (view.isNotNull()) {
-			Ref<View> focus = view->getFocusedView();
-			if (focus.isNotNull()) {
-				if (focus->isUsingIME()) {
-					enableIME();
-					return;
-				}
-			}
-		}
-		disableIME();
-	}
-
 	void Win32_ViewInstance::setText(const StringParam& _text)
 	{
 		HWND handle = m_handle;
@@ -1069,6 +1038,55 @@ namespace slib
 		}
 	}
 
+	void Win32_ViewInstance::releaseDragging()
+	{
+		DragContext& dragContext = UIEvent::getCurrentDragContext();
+		dragContext.release();
+	}
+
+	sl_bool Win32_ViewInstance::doDragging(UIAction action)
+	{
+		sl_bool bRet = sl_false;
+		DragContext& dragContext = UIEvent::getCurrentDragContext();
+		Ref<View>& viewDrag = dragContext.view;
+		if (viewDrag.isNotNull()) {
+			win32::GenericDataObject* data = new win32::GenericDataObject;
+			if (data) {
+				data->AddRef();
+				data->setText(dragContext.item.getText());
+				ViewDropSource* source = new ViewDropSource(&dragContext, action);
+				if (source) {
+					source->AddRef();
+					{
+						POINT pt;
+						GetCursorPos(&pt);
+						Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::DragStart, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), dragContext, Time::now());
+						if (ev.isNotNull()) {
+							viewDrag->dispatchDragDropEvent(ev.get());
+						}
+					}
+					DWORD dwEffect = 0;
+					HRESULT hr = DoDragDrop(data, source, ToDropEffect(dragContext.operationMask), &dwEffect);
+					{
+						viewDrag->cancelPressedState();
+						viewDrag->cancelHoverState();
+						dragContext.operation = FromDropEffect(dwEffect);
+						POINT pt;
+						GetCursorPos(&pt);
+						Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::DragEnd, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), dragContext, Time::now());
+						if (ev.isNotNull()) {
+							viewDrag->dispatchDragDropEvent(ev.get());
+						}
+					}
+					source->Release();
+					bRet = sl_true;
+				}
+				data->Release();
+			}
+		}
+		return bRet;
+	}
+
 	void Win32_ViewInstance::updateToolTip(View* viewToolTip, const String& toolTip)
 	{
 		if (m_tooltip.isNotNull()) {
@@ -1081,6 +1099,42 @@ namespace slib
 				}
 			}
 		}
+	}
+
+	void Win32_ViewInstance::enableIME()
+	{
+		HWND handle = m_handle;
+		if (handle) {
+			if (m_imc) {
+				ImmAssociateContext(handle, m_imc);
+				m_imc = NULL;
+			}
+		}
+	}
+
+	void Win32_ViewInstance::disableIME()
+	{
+		HWND handle = m_handle;
+		if (handle) {
+			if (!m_imc) {
+				m_imc = ImmAssociateContext(handle, NULL);
+			}
+		}
+	}
+
+	void Win32_ViewInstance::updateIME()
+	{
+		Ref<View> view = getView();
+		if (view.isNotNull()) {
+			Ref<View> focus = view->getFocusedView();
+			if (focus.isNotNull()) {
+				if (focus->isUsingIME()) {
+					enableIME();
+					return;
+				}
+			}
+		}
+		disableIME();
 	}
 
 	void Win32_ViewInstance::onPaint(Canvas* canvas)
@@ -1312,33 +1366,62 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam, sl_bool* pFlagUseDrag)
+	sl_bool Win32_ViewInstance::onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam, sl_bool flagSetCapture, sl_bool flagReleaseCapture)
 	{
+		Time t;
+		t.setMillisecondCount(GetMessageTime());
+		sl_ui_posf x = (sl_ui_posf)((short)(lParam & 0xffff));
+		sl_ui_posf y = (sl_ui_posf)((short)((lParam >> 16) & 0xffff));
+
 		if (m_flagRegisteredTouch) {
 			if (Win32::isCurrentMessageFromTouch()) {
+				if (flagSetCapture && action == UIAction::LeftButtonDown) {
+					Ref<UIEvent> ev = UIEvent::createMouseEvent(action, x, y, t);
+					if (ev.isNotNull()) {
+						releaseDragging();
+						UIPlatform::applyEventModifiers(ev.get());
+						onDragDropEvent(ev.get());
+						if (doDragging(action)) {
+							return sl_true;
+						}
+					}
+				}
 				return sl_false;
+			}
+		}
+		if (flagReleaseCapture) {
+			if (GetCapture()) {
+				ReleaseCapture();
 			}
 		}
 		HWND hWnd = m_handle;
 		if (hWnd) {
-			int _x = (short)(lParam & 0xffff);
-			int _y = (short)((lParam >> 16) & 0xffff);
-
-			sl_ui_posf x = (sl_ui_posf)(_x);
-			sl_ui_posf y = (sl_ui_posf)(_y);
-
-			Time t;
-			t.setMillisecondCount(GetMessageTime());
+			if (action == UIAction::MouseMove) {
+				if (wParam & MK_LBUTTON) {
+					action = UIAction::LeftButtonDrag;
+				} else if (wParam & MK_RBUTTON) {
+					action = UIAction::RightButtonDrag;
+				} else if (wParam & MK_MBUTTON) {
+					action = UIAction::MiddleButtonDrag;
+				}
+			}
 			Ref<UIEvent> ev = UIEvent::createMouseEvent(action, x, y, t);
 			if (ev.isNotNull()) {
 				UIPlatform::applyEventModifiers(ev.get());
 				ev->addFlag(UIEventFlags::DispatchToParent);
-				if (action == UIAction::LeftButtonDown) {
-					ev->addFlag(UIEventFlags::UseDrag);
+				if (flagSetCapture) {
+					ev->addFlag(UIEventFlags::SetCapture);
+					releaseDragging();
 				}
 				onMouseEvent(ev.get());
-				if (pFlagUseDrag) {
-					*pFlagUseDrag = ev->getFlags() && UIEventFlags::UseDrag;
+				if (flagSetCapture) {
+					if (doDragging(action)) {
+						return sl_true;
+					}
+					if (ev->getFlags() & UIEventFlags::SetCapture) {
+						SetCapture(hWnd);
+						return sl_true;
+					}
 				}
 				if (ev->getFlags() & UIEventFlags::NotInvokeNative) {
 					return sl_true;
@@ -1380,7 +1463,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::onEventTouch(HWND hWnd, WPARAM wParam, LPARAM lParam)
+	sl_bool Win32_ViewInstance::onEventTouch(HWND hWnd, WPARAM wParam, LPARAM lParam, sl_bool flagCapture)
 	{
 		sl_uint32 nTouch = (sl_uint32)(LOWORD(wParam));
 		if (!nTouch) {
@@ -1439,11 +1522,11 @@ namespace slib
 			return sl_false;
 		}
 		onTouchEvent(ev.get());
-		if (!(ev->getFlags() & UIEventFlags::NotInvokeNative)) {
-			return sl_false;
+		if (ev->getFlags() & UIEventFlags::NotInvokeNative) {
+			(user32::getApi_CloseTouchInputHandle())(hTouch);
+			return sl_true;
 		}
-		(user32::getApi_CloseTouchInputHandle())(hTouch);
-		return sl_true;
+		return sl_false;
 	}
 
 	sl_bool Win32_ViewInstance::onEventSetCursor()
@@ -1483,156 +1566,57 @@ namespace slib
 		switch (msg) {
 			case WM_ERASEBKGND:
 				return TRUE;
-
 			case WM_PAINT:
 				onPaint();
 				return 0;
-
 			case WM_LBUTTONDOWN:
-				{
-					DragContext& dragContext = UIEvent::getCurrentDragContext();
-					dragContext.release();
-
-					sl_bool flagUseDrag = sl_false;
-					sl_bool flagAccepted = onEventMouse(UIAction::LeftButtonDown, wParam, lParam, &flagUseDrag);
-
-					Ref<View>& viewDrag = dragContext.view;
-					if (viewDrag.isNotNull()) {
-						win32::GenericDataObject* data = new win32::GenericDataObject;
-						if (data) {
-							data->AddRef();
-							data->setText(dragContext.item.getText());
-							ViewDropSource* source = new ViewDropSource(&dragContext);
-							if (source) {
-								source->AddRef();
-								{
-									POINT pt;
-									GetCursorPos(&pt);
-									Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::DragStart, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), dragContext, Time::now());
-									if (ev.isNotNull()) {
-										viewDrag->dispatchDragDropEvent(ev.get());
-									}
-								}
-								DWORD dwEffect = 0;
-								HRESULT hr = DoDragDrop(data, source, ToDropEffect(dragContext.operationMask), &dwEffect);
-								{
-									viewDrag->cancelPressedState();
-									viewDrag->cancelHoverState();
-									dragContext.operation = FromDropEffect(dwEffect);
-									POINT pt;
-									GetCursorPos(&pt);
-									Ref<UIEvent> ev = UIEvent::createDragEvent(UIAction::DragEnd, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), dragContext, Time::now());
-									if (ev.isNotNull()) {
-										viewDrag->dispatchDragDropEvent(ev.get());
-									}
-								}
-								source->Release();
-							}
-							data->Release();
-						}
-					} else {
-						if (flagUseDrag) {
-							m_actionMouseCapture = UIAction::LeftButtonDown;
-							SetCapture(hWnd);
-						}
-					}
-					if (flagAccepted) {
-						return 0;
-					}
-					break;
+				if (onEventMouse(UIAction::LeftButtonDown, wParam, lParam, sl_true, sl_false)) {
+					return 0;
 				}
+				break;
 			case WM_LBUTTONDBLCLK:
-				{
-					sl_bool flagUseDrag = sl_false;
-					onEventMouse(UIAction::LeftButtonDown, wParam, lParam, &flagUseDrag);
-					sl_bool flagAccepted = onEventMouse(UIAction::LeftButtonDoubleClick, wParam, lParam);
-					if (flagUseDrag) {
-						m_actionMouseCapture = UIAction::LeftButtonDown;
-						SetCapture(hWnd);
-					}
-					if (flagAccepted) {
-						return 0;
-					}
-					break;
+				onEventMouse(UIAction::LeftButtonDown, wParam, lParam, sl_true, sl_false);
+				if (onEventMouse(UIAction::LeftButtonDoubleClick, wParam, lParam, sl_false, sl_false)) {
+					return 0;
 				}
+				break;
 			case WM_LBUTTONUP:
-				{
-					ReleaseCapture();
-					if (onEventMouse(UIAction::LeftButtonUp, wParam, lParam)) {
-						return 0;
-					}
-					break;
+				if (onEventMouse(UIAction::LeftButtonUp, wParam, lParam, sl_false, sl_true)) {
+					return 0;
 				}
+				break;
 			case WM_RBUTTONDOWN:
-				{
-					sl_bool flagUseDrag = sl_false;
-					sl_bool flagAccepted = onEventMouse(UIAction::RightButtonDown, wParam, lParam, &flagUseDrag);
-					if (flagUseDrag) {
-						m_actionMouseCapture = UIAction::RightButtonDown;
-						SetCapture(hWnd);
-					}
-					if (flagAccepted) {
-						return 0;
-					}
-					break;
+				if (onEventMouse(UIAction::RightButtonDown, wParam, lParam, sl_true, sl_false)) {
+					return 0;
 				}
+				break;
 			case WM_RBUTTONDBLCLK:
-				{
-					sl_bool flagUseDrag = sl_false;
-					onEventMouse(UIAction::RightButtonDown, wParam, lParam, &flagUseDrag);
-					sl_bool flagAccepted = onEventMouse(UIAction::RightButtonDoubleClick, wParam, lParam);
-					if (flagUseDrag) {
-						m_actionMouseCapture = UIAction::RightButtonDown;
-						SetCapture(hWnd);
-					}
-					if (flagAccepted) {
-						return 0;
-					}
-					break;
+				onEventMouse(UIAction::RightButtonDown, wParam, lParam, sl_true, sl_false);
+				if (onEventMouse(UIAction::RightButtonDoubleClick, wParam, lParam, sl_false, sl_false)) {
+					return 0;
 				}
+				break;
 			case WM_RBUTTONUP:
-				{
-					ReleaseCapture();
-					if (onEventMouse(UIAction::RightButtonUp, wParam, lParam)) {
-						return 0;
-					}
-					break;
+				if (onEventMouse(UIAction::RightButtonUp, wParam, lParam, sl_false, sl_true)) {
+					return 0;
 				}
+				break;
 			case WM_MBUTTONDOWN:
-				{
-					sl_bool flagUseDrag = sl_false;
-					sl_bool flagAccepted = onEventMouse(UIAction::MiddleButtonDown, wParam, lParam, &flagUseDrag);
-					if (flagUseDrag) {
-						m_actionMouseCapture = UIAction::MiddleButtonDown;
-						SetCapture(hWnd);
-					}
-					if (flagAccepted) {
-						return 0;
-					}
-					break;
+				if (onEventMouse(UIAction::MiddleButtonDown, wParam, lParam, sl_true, sl_false)) {
+					return 0;
 				}
+				break; 
 			case WM_MBUTTONDBLCLK:
-				{
-					sl_bool flagUseDrag = sl_false;
-					onEventMouse(UIAction::MiddleButtonDown, wParam, lParam, &flagUseDrag);
-					sl_bool flagAccepted = onEventMouse(UIAction::MiddleButtonDoubleClick, wParam, lParam);
-					if (flagUseDrag) {
-						m_actionMouseCapture = UIAction::MiddleButtonDown;
-						SetCapture(hWnd);
-					}
-					if (flagAccepted) {
-						return 0;
-					}
-					break;
+				onEventMouse(UIAction::MiddleButtonDown, wParam, lParam, sl_true, sl_false);
+				if (onEventMouse(UIAction::MiddleButtonDoubleClick, wParam, lParam, sl_false, sl_false)) {
+					return 0;
 				}
+				break;
 			case WM_MBUTTONUP:
-				{
-					ReleaseCapture();
-					if (onEventMouse(UIAction::MiddleButtonUp, wParam, lParam)) {
-						return 0;
-					}
-					break;
+				if (onEventMouse(UIAction::MiddleButtonUp, wParam, lParam, sl_false, sl_true)) {
+					return 0;
 				}
+				break;
 			case WM_MOUSEMOVE:
 				{
 					TRACKMOUSEEVENT track;
@@ -1647,36 +1631,15 @@ namespace slib
 						track.hwndTrack = hWnd;
 						track.dwHoverTime = HOVER_DEFAULT;
 						TrackMouseEvent(&track);
-						onEventMouse(UIAction::MouseEnter, wParam, lParam);
+						onEventMouse(UIAction::MouseEnter, wParam, lParam, sl_false, sl_false);
 					}
-
-					if (GetCapture() == hWnd) {
-						if (m_actionMouseCapture == UIAction::LeftButtonDown) {
-							if (onEventMouse(UIAction::LeftButtonDrag, wParam, lParam)) {
-								return 0;
-							}
-						} else if (m_actionMouseCapture == UIAction::RightButtonDown) {
-							if (onEventMouse(UIAction::RightButtonDrag, wParam, lParam)) {
-								return 0;
-							}
-						} else if (m_actionMouseCapture == UIAction::MiddleButtonDown) {
-							if (onEventMouse(UIAction::MiddleButtonDrag, wParam, lParam)) {
-								return 0;
-							}
-						} else {
-							if (onEventMouse(UIAction::MouseMove, wParam, lParam)) {
-								return 0;
-							}
-						}
-					} else {
-						if (onEventMouse(UIAction::MouseMove, wParam, lParam)) {
-							return 0;
-						}
+					if (onEventMouse(UIAction::MouseMove, wParam, lParam, sl_false, sl_false)) {
+						return 0;
 					}
 					break;
 				}
 			case WM_MOUSELEAVE:
-				if (onEventMouse(UIAction::MouseLeave, wParam, lParam)) {
+				if (onEventMouse(UIAction::MouseLeave, wParam, lParam, sl_false, sl_false)) {
 					return 0;
 				}
 				break;
@@ -1691,7 +1654,7 @@ namespace slib
 				}
 				break;
 			case WM_TOUCH:
-				if (!(onEventTouch(hWnd, wParam, lParam))) {
+				if (!(onEventTouch(hWnd, wParam, lParam, sl_true))) {
 					(user32::getApi_CloseTouchInputHandle())((HTOUCHINPUT)lParam);
 				}
 				return 0;
@@ -1749,52 +1712,52 @@ namespace slib
 		}
 		switch (uMsg) {
 		case WM_LBUTTONDOWN:
-			if (onEventMouse(UIAction::LeftButtonDown, wParam, lParam)) {
+			if (onEventMouse(UIAction::LeftButtonDown, wParam, lParam, sl_false, sl_false)) {
 				return 0;
 			}
 			break;
 		case WM_LBUTTONDBLCLK:
-			if (onEventMouse(UIAction::LeftButtonDoubleClick, wParam, lParam)) {
+			if (onEventMouse(UIAction::LeftButtonDoubleClick, wParam, lParam, sl_false, sl_false)) {
 				return 0;
 			}
 			break;
 		case WM_LBUTTONUP:
-			if (onEventMouse(UIAction::LeftButtonUp, wParam, lParam)) {
+			if (onEventMouse(UIAction::LeftButtonUp, wParam, lParam, sl_false, sl_false)) {
 				return 0;
 			}
 			break;
 		case WM_RBUTTONDOWN:
-			if (onEventMouse(UIAction::RightButtonDown, wParam, lParam)) {
+			if (onEventMouse(UIAction::RightButtonDown, wParam, lParam, sl_false, sl_false)) {
 				return 0;
 			}
 			break;
 		case WM_RBUTTONDBLCLK:
-			if (onEventMouse(UIAction::RightButtonDoubleClick, wParam, lParam)) {
+			if (onEventMouse(UIAction::RightButtonDoubleClick, wParam, lParam, sl_false, sl_false)) {
 				return 0;
 			}
 			break;
 		case WM_RBUTTONUP:
-			if (onEventMouse(UIAction::RightButtonUp, wParam, lParam)) {
+			if (onEventMouse(UIAction::RightButtonUp, wParam, lParam, sl_false, sl_false)) {
 				return 0;
 			}
 			break;
 		case WM_MBUTTONDOWN:
-			if (onEventMouse(UIAction::MiddleButtonDown, wParam, lParam)) {
+			if (onEventMouse(UIAction::MiddleButtonDown, wParam, lParam, sl_false, sl_false)) {
 				return 0;
 			}
 			break;
 		case WM_MBUTTONDBLCLK:
-			if (onEventMouse(UIAction::MiddleButtonDoubleClick, wParam, lParam)) {
+			if (onEventMouse(UIAction::MiddleButtonDoubleClick, wParam, lParam, sl_false, sl_false)) {
 				return 0;
 			}
 			break;
 		case WM_MBUTTONUP:
-			if (onEventMouse(UIAction::MiddleButtonUp, wParam, lParam)) {
+			if (onEventMouse(UIAction::MiddleButtonUp, wParam, lParam, sl_false, sl_false)) {
 				return 0;
 			}
 			break;
 		case WM_MOUSEMOVE:
-			if (onEventMouse(UIAction::MouseMove, wParam, lParam)) {
+			if (onEventMouse(UIAction::MouseMove, wParam, lParam, sl_false, sl_false)) {
 				return 0;
 			}
 			break;
@@ -1809,7 +1772,7 @@ namespace slib
 			}
 			break;
 		case WM_TOUCH:
-			if (onEventTouch(hWnd, wParam, lParam)) {
+			if (onEventTouch(hWnd, wParam, lParam, sl_false)) {
 				return 0;
 			}
 			break;
@@ -2052,6 +2015,9 @@ namespace slib
 		Ref<Win32_ViewInstance> ret = Win32_ViewInstance::create<Win32_ViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, style, styleEx);
 		if (ret.isNotNull()) {
 			ret->setGenericView(sl_true);
+			if (m_flagUsingTouch) {
+				ret->setUsingTouchEvent(this, sl_true);
+			}
 			return ret;
 		}
 		return sl_null;

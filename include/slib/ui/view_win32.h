@@ -162,12 +162,6 @@ namespace slib
 
 		void setUsingTouchEvent(View* view, sl_bool flag) override;
 
-		void enableIME();
-
-		void disableIME();
-
-		void updateIME();
-
 	public:
 		void setText(const StringParam& text);
 
@@ -175,7 +169,17 @@ namespace slib
 
 		void updateLayered();
 
+		void releaseDragging();
+
+		sl_bool doDragging(UIAction action);
+
 		void updateToolTip(View* view, const String& toolTip);
+
+		void enableIME();
+
+		void disableIME();
+
+		void updateIME();
 
 	public:
 		void onPaint(Canvas* canvas);
@@ -186,11 +190,11 @@ namespace slib
 
 		sl_bool onEventKey(UIAction action, WPARAM wParam, LPARAM lParam);
 
-		sl_bool onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam, sl_bool* pFlagUseDrag = sl_null);
+		sl_bool onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam, sl_bool flagSetCapture, sl_bool flagReleaseCapture);
 
 		sl_bool onEventMouseWheel(sl_bool flagVertical, WPARAM wParam, LPARAM lParam);
 
-		sl_bool onEventTouch(HWND hWnd, WPARAM wParam, LPARAM lParam);
+		sl_bool onEventTouch(HWND hWnd, WPARAM wParam, LPARAM lParam, sl_bool flagCapture);
 
 		sl_bool onEventSetCursor();
 
@@ -202,8 +206,6 @@ namespace slib
 		sl_bool m_flagGenericView : 1;
 		sl_bool m_flagDestroyOnRelease : 1;
 		sl_bool m_flagRegisteredTouch : 1;
-
-		UIAction m_actionMouseCapture;
 
 		UIRect m_frame;
 		Vector2 m_translation;

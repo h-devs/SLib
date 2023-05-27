@@ -9155,6 +9155,12 @@ namespace slib
 
 	void View::onMouseEvent(UIEvent* ev)
 	{
+		if (m_flagDragSource) {
+			invokeDragDropEvent(ev);
+			if (ev->isAccepted()) {
+				return;
+			}
+		}
 		_processContentScrolling(ev);
 		_processClick(ev);
 	}
@@ -9234,21 +9240,10 @@ namespace slib
 				}
 
 				invokeMouseEvent(ev);
-
-				if (m_flagDragSource) {
-					DragContext& context = UIEvent::getCurrentDragContext();
-					if (!(context.isAlive())) {
-						DragItem drag;
-						if (getDragItem(drag)) {
-							beginDragging(drag, getDragOperationMask());
-						}
-					}
-				}
 			}
 		}
 
 		if (m_flagCaptureEvents) {
-			ev->addFlag(UIEventFlags::Captured);
 			ev->accept();
 		}
 
@@ -9465,7 +9460,6 @@ namespace slib
 		}
 
 		if (m_flagCaptureEvents) {
-			ev->addFlag(UIEventFlags::Captured);
 			ev->accept();
 		}
 
@@ -9980,9 +9974,21 @@ namespace slib
 	void View::onDragDropEvent(UIEvent* ev)
 	{
 		if (!(isNativeWidget())) {
-			if (m_flagDropTarget && m_flagDropFiles) {
-				UIAction action = ev->getAction();
-				if (action == UIAction::DragOver || action == UIAction::DragEnter) {
+
+			UIAction action = ev->getAction();
+			if (action == UIAction::LeftButtonDown) {
+				if (m_flagDragSource) {
+					DragContext& context = UIEvent::getCurrentDragContext();
+					if (!(context.isAlive())) {
+						DragItem drag;
+						if (getDragItem(drag)) {
+							beginDragging(drag, getDragOperationMask());
+							ev->accept();
+						}
+					}
+				}
+			} else if (action == UIAction::DragOver || action == UIAction::DragEnter) {
+				if (m_flagDropTarget && m_flagDropFiles) {
 					if (ev->getDragItem().getFiles().isNotNull()) {
 						if (ev->getDragOperationMask() & DragOperations::Copy) {
 							ev->setDragOperation(DragOperations::Copy);
@@ -10065,6 +10071,25 @@ namespace slib
 
 		Ref<View> oldChild;
 		switch (action) {
+			case UIAction::LeftButtonDown:
+			case UIAction::RightButtonDown:
+			case UIAction::MiddleButtonDown:
+				for (sl_size i = 0; i < count; i++) {
+					View* child = children[count - 1 - i].get();
+					if (POINT_EVENT_CHECK_CHILD(child)) {
+						UIPointF pt = child->convertCoordinateFromParent(ptMouse);
+						if (child->hitTest(pt)) {
+							ev->setPoint(pt);
+							dispatchDragDropEventToChild(ev, child, sl_false);
+							ev->setPoint(ptMouse);
+							if (!(ev->isPassedToNext())) {
+								return sl_true;
+							}
+							ev->setFlags(flags);
+						}
+					}
+				}
+				break;
 			case UIAction::DragOver:
 			case UIAction::DragEnter:
 				oldChild = childAttrs->childDragOver;
