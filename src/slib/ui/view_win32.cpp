@@ -1672,6 +1672,7 @@ namespace slib
 				}
 				break;
 			case WM_CHAR:
+			case WM_SYSCHAR:
 				if (onEventKey(UIAction::Char, wParam, lParam)) {
 					return 0;
 				}
@@ -1782,10 +1783,24 @@ namespace slib
 			if (onEventKey(UIAction::KeyDown, wParam, lParam)) {
 				return 0;
 			}
+			if (wParam == VK_TAB) {
+				DefSubclassProc(hWnd, WM_CHAR, '\t', lParam);
+			} else if (wParam == VK_RETURN) {
+				DefSubclassProc(hWnd, WM_CHAR, '\r', lParam);
+			}
 			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
 			if (onEventKey(UIAction::KeyUp, wParam, lParam)) {
+				return 0;
+			}
+			break;
+		case WM_CHAR:
+		case WM_SYSCHAR:
+			if (onEventKey(UIAction::Char, wParam, lParam)) {
+				return 0;
+			}
+			if (wParam == '\t' || wParam == '\r' || wParam == '\n') {
 				return 0;
 			}
 			break;
