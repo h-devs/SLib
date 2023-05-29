@@ -1346,5 +1346,8 @@
     <ClCompile Include="..\..\src\slib\ui\ui_text.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\geo\utm.cpp">
+      <Filter>src\geo</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

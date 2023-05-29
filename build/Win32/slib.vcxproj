@@ -223,6 +223,7 @@
     <ClCompile Include="..\..\src\slib\geo\geo_rectangle.cpp" />
     <ClCompile Include="..\..\src\slib\geo\globe.cpp" />
     <ClCompile Include="..\..\src\slib\geo\latlon.cpp" />
+    <ClCompile Include="..\..\src\slib\geo\utm.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\animation.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\bitmap.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\bitmap_data.cpp" />
