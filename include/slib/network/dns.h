@@ -26,8 +26,8 @@
 #include "socket_address.h"
 #include "async.h"
 
-#include "../data/json.h"
-#include "../crypto/aes.h"
+#include "../core/string.h"
+#include "../core/hash_map.h"
 
 /********************************************************************
 	DNS Specification from RFC 1035, RFC 1034, RFC 2535
@@ -512,9 +512,6 @@ namespace slib
 		// in, out
 		SocketAddress forwardAddress;
 
-		// in, out
-		sl_bool flagEncryptForward;
-
 	public:
 		ResolveDnsHostParam();
 
@@ -525,15 +522,11 @@ namespace slib
 	class SLIB_EXPORT DnsServerParam
 	{
 	public:
-		sl_uint16 portDns;
-
-		sl_uint16 portEncryption;
-		String encryptionKey;
+		sl_uint16 port;
 
 		sl_bool flagProxy;
 
 		SocketAddress defaultForwardAddress;
-		sl_bool flagEncryptDefaultForward;
 
 		sl_bool flagAutoStart;
 
@@ -572,19 +565,15 @@ namespace slib
 		sl_bool isRunning();
 
 	protected:
-		void _processReceivedDnsQuestion(const SocketAddress& clientAddress, sl_uint16 id, const String& hostName, sl_bool flagEncryptedRequest);
+		void _processReceivedDnsQuestion(const SocketAddress& clientAddress, sl_uint16 id, const String& hostName);
 
 		void _processReceivedDnsAnswer(const DnsPacket& packet);
 
-		void _processReceivedProxyQuestion(const SocketAddress& clientAddress, void* data, sl_uint32 size, sl_bool flagEncryptedRequest);
+		void _processReceivedProxyQuestion(const SocketAddress& clientAddress, void* data, sl_uint32 size);
 
 		void _processReceivedProxyAnswer(void* data, sl_uint32 size);
 
-		void _sendPacket(sl_bool flagEncrypted, const SocketAddress& targetAddress, const MemoryView& packet);
-
-		Memory _buildQuestionPacket(sl_uint16 id, const String& host, sl_bool flagEncrypt);
-
-		Memory _buildHostAddressAnswerPacket(sl_uint16 id, const String& hostName, const IPv4Address& hostAddress, sl_bool flagEncrypt);
+		void _sendPacket(const SocketAddress& targetAddress, const MemoryView& packet);
 
 	protected:
 		void _onReceiveFrom(AsyncUdpSocket* socket, const SocketAddress& address, void* data, sl_uint32 sizeReceive);
@@ -597,15 +586,10 @@ namespace slib
 		sl_bool m_flagInit;
 		sl_bool m_flagRunning;
 
-		Ref<AsyncUdpSocket> m_udpDns;
-
-		Ref<AsyncUdpSocket> m_udpEncrypt;
-		AES m_encrypt;
-
+		Ref<AsyncUdpSocket> m_socket;
 		sl_bool m_flagProxy;
 
 		SocketAddress m_defaultForwardAddress;
-		sl_bool m_flagEncryptDefaultForward;
 
 		sl_uint16 m_lastForwardId;
 
@@ -614,7 +598,6 @@ namespace slib
 			SocketAddress clientAddress;
 			sl_uint16 requestedId;
 			String requestedHostName;
-			sl_bool flagEncrypted;
 		};
 		CHashMap<sl_uint16, ForwardElement> m_mapForward;
 
