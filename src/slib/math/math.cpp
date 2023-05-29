@@ -151,16 +151,6 @@ namespace slib
 		return 1.0 / tan(f);
 	}
 
-	float Math::arccos(float f) noexcept
-	{
-		return ::acosf(f);
-	}
-
-	double Math::arccos(double f) noexcept
-	{
-		return ::acos(f);
-	}
-
 	float Math::arcsin(float f) noexcept
 	{
 		return ::asinf(f);
@@ -169,6 +159,16 @@ namespace slib
 	double Math::arcsin(double f) noexcept
 	{
 		return ::asin(f);
+	}
+
+	float Math::arccos(float f) noexcept
+	{
+		return ::acosf(f);
+	}
+
+	double Math::arccos(double f) noexcept
+	{
+		return ::acos(f);
 	}
 
 	float Math::arctan(float f) noexcept
@@ -189,6 +189,66 @@ namespace slib
 	double Math::arctan2(double y, double x) noexcept
 	{
 		return ::atan2(y, x);
+	}
+
+	float Math::sinh(float f) noexcept
+	{
+		return ::sinhf(f);
+	}
+
+	double Math::sinh(double f) noexcept
+	{
+		return ::sinh(f);
+	}
+
+	float Math::cosh(float f) noexcept
+	{
+		return ::coshf(f);
+	}
+
+	double Math::cosh(double f) noexcept
+	{
+		return ::cosh(f);
+	}
+
+	float Math::tanh(float f) noexcept
+	{
+		return ::tanhf(f);
+	}
+
+	double Math::tanh(double f) noexcept
+	{
+		return ::tanh(f);
+	}
+
+	float Math::arcsinh(float f) noexcept
+	{
+		return ::asinhf(f);
+	}
+
+	double Math::arcsinh(double f) noexcept
+	{
+		return ::asinh(f);
+	}
+
+	float Math::arccosh(float f) noexcept
+	{
+		return ::acoshf(f);
+	}
+
+	double Math::arccosh(double f) noexcept
+	{
+		return ::acosh(f);
+	}
+
+	float Math::arctanh(float f) noexcept
+	{
+		return ::atanhf(f);
+	}
+
+	double Math::arctanh(double f) noexcept
+	{
+		return ::atanh(f);
 	}
 
 	float Math::log(float f) noexcept

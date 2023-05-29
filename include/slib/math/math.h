@@ -213,6 +213,31 @@ namespace slib
 		static double arctan2(double y, double x) noexcept;
 
 
+		static float sinh(float f) noexcept;
+
+		static double sinh(double f) noexcept;
+
+		static float cosh(float f) noexcept;
+
+		static double cosh(double f) noexcept;
+
+		static float tanh(float f) noexcept;
+
+		static double tanh(double f) noexcept;
+
+		static float arcsinh(float f) noexcept;
+
+		static double arcsinh(double f) noexcept;
+
+		static float arccosh(float f) noexcept;
+
+		static double arccosh(double f) noexcept;
+
+		static float arctanh(float f) noexcept;
+
+		static double arctanh(double f) noexcept;
+
+
 		static float log(float f) noexcept;
 
 		static double log(double f) noexcept;
