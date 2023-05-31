@@ -186,7 +186,7 @@ namespace slib
 							}
 						}
 
-						return encodeWriter.getData();
+						return encodeWriter.merge();
 
 					} else {
 						logError("Failed to encode bitmap data.");

@@ -96,7 +96,7 @@ namespace slib
 					}
 					JInputStream::close.call(stream);
 					Jni::checkExceptionAndPrintClear();
-					return writer.getData();
+					return writer.merge();
 				}
 			}
 			return sl_null;

@@ -45,7 +45,7 @@ namespace slib
 		writer.writeUint16(flags);
 		Serialize(&writer, text);
 		Serialize(&writer, content);
-		return writer.getData();
+		return writer.merge();
 	}
 
 	void ChatMessageBody::unpackBody(const Memory& mem)

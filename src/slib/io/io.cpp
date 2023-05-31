@@ -1250,7 +1250,7 @@ namespace slib
 		return m_queue.getSize() + m_buffer.getCount();
 	}
 
-	Memory MemoryOutput::getData()
+	Memory MemoryOutput::merge()
 	{
 		flush();
 		return m_queue.merge();

@@ -117,7 +117,7 @@ namespace slib
 			}
 		}
 
-		Memory out = writer.getData();
+		Memory out = writer.merge();
 		sl_size out_size = out.getSize();
 		out.write(5, 4, &out_size);
 		return out;

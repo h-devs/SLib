@@ -117,7 +117,7 @@ namespace slib
 
 					png_write_end(png_ptr, NULL);
 
-					ret = writer.getData();
+					ret = writer.merge();
 
 					png_destroy_info_struct(png_ptr, &info_ptr);
 				}

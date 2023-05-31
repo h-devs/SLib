@@ -8838,7 +8838,7 @@ namespace slib
 	{
 		MemoryOutput writer;
 		if (save(&writer)) {
-			return writer.getData();
+			return writer.merge();
 		}
 		return sl_null;
 	}

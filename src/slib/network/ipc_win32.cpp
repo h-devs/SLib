@@ -367,7 +367,7 @@ namespace slib
 				if (mem.isNotNull() && thread->isNotStoppingCurrent()) {
 					MemoryOutput response;
 					m_onReceiveMessage((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()), &response);
-					Memory output = response.getData();
+					Memory output = response.merge();
 					writeMessage(thread, hPipe, output.getData(), (sl_uint32)(output.getSize()));
 				}
 				m_threads.remove(thread);

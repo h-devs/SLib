@@ -197,7 +197,7 @@ namespace slib
 
 		Memory getReceivedData()
 		{
-			Memory mem = m_dataReceive.getData();
+			Memory mem = m_dataReceive.merge();
 			sl_size n = mem.getSize();
 			if (n > 4) {
 				return mem.sub(4, MIO::readUint32LE(m_bufReceiveHeader));
@@ -376,7 +376,7 @@ namespace slib
 							}
 							dispatch([this, address, output, refConnection, flag]() {
 								if (flag) {
-									Memory mem = output->getData();
+									Memory mem = output->merge();
 									if (refConnection->setSendingData(mem.getData(), mem.getSize())) {
 										refConnection->onTcpWriteable(sl_null);
 										return;
@@ -386,7 +386,7 @@ namespace slib
 							});
 						});
 					} else {
-						mem = output->getData();
+						mem = output->merge();
 						if (connection->setSendingData(mem.getData(), mem.getSize())) {
 							connection->onTcpWriteable(sl_null);
 						} else {

@@ -300,7 +300,7 @@ namespace slib
 		if (!(archiver.end(&output))) {
 			return sl_null;
 		}
-		return output.getData();
+		return output.merge();
 	}
 
 }

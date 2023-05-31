@@ -1427,7 +1427,7 @@ namespace slib
 				huffWriter.flush();
 				writer.writeUint8(0xFF);
 				writer.writeUint8((sl_uint8)(JpegMarkerCode::EOI)); //EOI
-				return writer.getData();
+				return writer.merge();
 			}
 		}
 		return sl_null;

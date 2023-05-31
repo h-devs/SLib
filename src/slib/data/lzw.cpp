@@ -521,7 +521,7 @@ namespace slib
 			MemoryReader reader(data, size);
 			MemoryOutput writer;
 			if (Compress(&reader, &writer) > 0) {
-				return writer.getData();
+				return writer.merge();
 			}
 		}
 		return sl_null;
@@ -533,7 +533,7 @@ namespace slib
 			MemoryReader reader(data, size);
 			MemoryOutput writer;
 			if (Decompress(&reader, &writer)) {
-				return writer.getData();
+				return writer.merge();
 			}
 		}
 		return sl_null;

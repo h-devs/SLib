@@ -49,7 +49,7 @@ namespace slib
 
 		sl_size getSize();
 
-		Memory getData();
+		Memory merge();
 
 		void clear();
 

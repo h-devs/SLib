@@ -795,7 +795,7 @@ namespace slib
 					return sl_false;
 				}
 			}
-			Memory mem = memPreauthContext.getData();
+			Memory mem = memPreauthContext.merge();
 			if (!(WriteSmb2NegotiateContext(param, Smb2NegotiateContextType::PREAUTH_INTEGRITY_CAPABILITIES, mem.getData(), mem.getSize()))) {
 				return sl_false;
 			}
@@ -1842,7 +1842,7 @@ namespace slib
 					output.write(RpcWriteString(m_param.targetName));
 					output.write(RpcWriteString(m_param.domainName));
 					output.writeUint32(0); // Windows Error
-					content = output.getData();
+					content = output.merge();
 				}
 				break;
 			case DceRpcRequestOperation::NetSrvGetInfo:
@@ -1870,7 +1870,7 @@ namespace slib
 					output.write(RpcWriteString(m_param.targetName));
 					output.write(RpcWriteString(m_param.targetDescription));
 					output.writeUint32(0); // Windows Error
-					content = output.getData();
+					content = output.merge();
 				}
 				break;
 			case DceRpcRequestOperation::NetShareEnumAll:
@@ -1915,7 +1915,7 @@ namespace slib
 					output.writeUint32(nShares); // Total Entries
 					output.writeUint32(0); // Resume Handle
 					output.writeUint32(0); // Windows Error
-					content = output.getData();
+					content = output.merge();
 				}
 				break;
 			case DceRpcRequestOperation::NetShareGetInfo:
@@ -1951,7 +1951,7 @@ namespace slib
 					output.write(RpcWriteString(shareName));
 					output.write(RpcWriteString(share->getComment()));
 					output.writeUint32(0); // Windows Error
-					content = output.getData();
+					content = output.merge();
 				}
 				break;
 			}
