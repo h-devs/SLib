@@ -372,7 +372,7 @@ namespace slib
 	void PickerViewCell::_animationCallback(Timer* timer)
 	{
 		Time time = Time::now();
-		sl_real ellapsed = (sl_real)((time - m_timeFlowFrameBefore).getSecondCountF());
+		sl_real elapsed = (sl_real)((time - m_timeFlowFrameBefore).getSecondCountF());
 		m_timeFlowFrameBefore = time;
 
 		float T = UIResource::getScreenMinimum() /
@@ -388,7 +388,7 @@ namespace slib
 				} else {
 					m_speedFlow = T;
 				}
-				sl_ui_pos f = (sl_ui_pos)(m_speedFlow * ellapsed);
+				sl_ui_pos f = (sl_ui_pos)(m_speedFlow * elapsed);
 				if (Math::abs(f) > Math::abs(m_yOffset)) {
 					_stopFlow();
 					m_yOffset = 0;
@@ -409,7 +409,7 @@ namespace slib
 		} else {
 			Ref<UIEvent> ev = UIEvent::createUnknown(time);
 			if (ev.isNotNull()) {
-				_flow((sl_ui_pos)(m_speedFlow * ellapsed), ev.get());
+				_flow((sl_ui_pos)(m_speedFlow * elapsed), ev.get());
 			}
 		}
 
