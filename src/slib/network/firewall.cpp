@@ -237,7 +237,7 @@ namespace slib
 	FirewallRule::FirewallRule()
 	{
 		action = FirewallAction::Unknown;
-		protocol = NetworkInternetProtocol::Unknown;
+		protocol = InternetProtocol::Unknown;
 	}
 
 	Json FirewallRule::toJson() const
@@ -254,19 +254,19 @@ namespace slib
 			return sl_null;
 		}
 		switch (protocol) {
-		case NetworkInternetProtocol::TCP:
+		case InternetProtocol::TCP:
 			ret.putItem("protocol", "tcp");
 			break;
-		case NetworkInternetProtocol::UDP:
+		case InternetProtocol::UDP:
 			ret.putItem("protocol", "udp");
 			break;
-		case NetworkInternetProtocol::RDP:
+		case InternetProtocol::RDP:
 			ret.putItem("protocol", "rdp");
 			break;
-		case NetworkInternetProtocol::ICMP:
+		case InternetProtocol::ICMP:
 			ret.putItem("protocol", "icmp");
 			break;
-		case NetworkInternetProtocol::IGMP:
+		case InternetProtocol::IGMP:
 			ret.putItem("protocol", "igmp");
 			break;
 		default:
@@ -297,18 +297,18 @@ namespace slib
 		if (_protocol.isNotUndefined()) {
 			StringData strProtocol(_protocol.getStringParam());
 			if (strProtocol == "tcp") {
-				protocol = NetworkInternetProtocol::TCP;
+				protocol = InternetProtocol::TCP;
 			} else if (strProtocol == "udp") {
-				protocol = NetworkInternetProtocol::UDP;
+				protocol = InternetProtocol::UDP;
 			} else if (strProtocol == "rdp") {
-				protocol = NetworkInternetProtocol::RDP;
+				protocol = InternetProtocol::RDP;
 			} else if (strProtocol == "icmp") {
-				protocol = NetworkInternetProtocol::ICMP;
+				protocol = InternetProtocol::ICMP;
 			} else if (strProtocol == "igmp") {
-				protocol = NetworkInternetProtocol::IGMP;
+				protocol = InternetProtocol::IGMP;
 			} else {
 				action = FirewallAction::Unknown;
-				protocol = NetworkInternetProtocol::Unknown;
+				protocol = InternetProtocol::Unknown;
 			}
 		}
 		source.setJson(json.getItem("source"));
@@ -321,8 +321,8 @@ namespace slib
 			return sl_false;
 		}
 		IPv4Packet* packet = (IPv4Packet*)_packet;
-		NetworkInternetProtocol _protocol = packet->getProtocol();
-		if (protocol != NetworkInternetProtocol::Unknown) {
+		InternetProtocol _protocol = packet->getProtocol();
+		if (protocol != InternetProtocol::Unknown) {
 			if (_protocol != protocol) {
 				return sl_false;
 			}
@@ -353,7 +353,7 @@ namespace slib
 			}
 			if (source.port.isNotNull() || target.port.isNotNull()) {
 				sl_size sizeSegment = sizePacket - packet->getHeaderSize();
-				if (_protocol == NetworkInternetProtocol::TCP) {
+				if (_protocol == InternetProtocol::TCP) {
 					TcpSegment* segment = (TcpSegment*)(packet->getContent());
 					if (sizeSegment < TcpSegment::HeaderSizeBeforeOptions) {
 						return sl_false;
@@ -368,7 +368,7 @@ namespace slib
 							return sl_false;
 						}
 					}
-				} else if (_protocol == NetworkInternetProtocol::UDP) {
+				} else if (_protocol == InternetProtocol::UDP) {
 					UdpDatagram* datagram = (UdpDatagram*)(packet->getContent());
 					if (sizeSegment < UdpDatagram::HeaderSize) {
 						return sl_false;

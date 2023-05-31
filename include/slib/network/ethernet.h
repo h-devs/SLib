@@ -84,12 +84,12 @@ namespace slib
 		}
 
 
-		NetworkLinkProtocol getProtocol() const
+		EtherType getType() const
 		{
-			return (NetworkLinkProtocol)(((sl_uint16)(_etherType[0]) << 8) | ((sl_uint16)(_etherType[1])));
+			return (EtherType)(((sl_uint16)(_etherType[0]) << 8) | ((sl_uint16)(_etherType[1])));
 		}
 
-		void setProtocol(NetworkLinkProtocol _type)
+		void setType(EtherType _type)
 		{
 			sl_uint32 type = (sl_uint32)_type;
 			_etherType[0] = (sl_uint8)(type >> 8);

@@ -73,8 +73,8 @@ namespace slib
 		if (addressTarget.isZero()) {
 			return sl_false;
 		}
-		NetworkInternetProtocol protocol = ipHeader->getProtocol();
-		if (protocol == NetworkInternetProtocol::TCP) {
+		InternetProtocol protocol = ipHeader->getProtocol();
+		if (protocol == InternetProtocol::TCP) {
 			TcpSegment* tcp = (TcpSegment*)(ipContent);
 			if (tcp->check(ipHeader, sizeContent)) {
 				sl_uint16 targetPort;
@@ -86,7 +86,7 @@ namespace slib
 					return sl_true;
 				}
 			}
-		} else if (protocol == NetworkInternetProtocol::UDP) {
+		} else if (protocol == InternetProtocol::UDP) {
 			UdpDatagram* udp = (UdpDatagram*)(ipContent);
 			if (udp->check(ipHeader, sizeContent)) {
 				sl_uint16 targetPort;
@@ -98,7 +98,7 @@ namespace slib
 					return sl_true;
 				}
 			}
-		} else if (protocol == NetworkInternetProtocol::ICMP) {
+		} else if (protocol == InternetProtocol::ICMP) {
 			IcmpHeaderFormat* icmp = (IcmpHeaderFormat*)(ipContent);
 			if (icmp->check(sizeContent)) {
 				if (icmp->getType() == IcmpType::Echo) {
@@ -128,8 +128,8 @@ namespace slib
 		if (ipHeader->getDestinationAddress() != addressTarget) {
 			return sl_false;
 		}
-		NetworkInternetProtocol protocol = ipHeader->getProtocol();
-		if (protocol == NetworkInternetProtocol::TCP) {
+		InternetProtocol protocol = ipHeader->getProtocol();
+		if (protocol == InternetProtocol::TCP) {
 			TcpSegment* tcp = (TcpSegment*)(ipContent);
 			if (tcp->check(ipHeader, sizeContent)) {
 				SocketAddress addressSource;
@@ -141,7 +141,7 @@ namespace slib
 					return sl_true;
 				}
 			}
-		} else if (protocol == NetworkInternetProtocol::UDP) {
+		} else if (protocol == InternetProtocol::UDP) {
 			UdpDatagram* udp = (UdpDatagram*)(ipHeader->getContent());
 			if (udp->check(ipHeader, sizeContent)) {
 				SocketAddress addressSource;
@@ -153,7 +153,7 @@ namespace slib
 					return sl_true;
 				}
 			}
-		} else if (protocol == NetworkInternetProtocol::ICMP) {
+		} else if (protocol == InternetProtocol::ICMP) {
 			IcmpHeaderFormat* icmp = (IcmpHeaderFormat*)(ipContent);
 			if (icmp->check(sizeContent)) {
 				IcmpType type = icmp->getType();
@@ -173,8 +173,8 @@ namespace slib
 					IPv4Packet* ipOrig = (IPv4Packet*)(icmp->getContent());
 					sl_uint32 sizeOrig = sizeContent - sizeof(IcmpHeaderFormat);
 					if (sizeOrig == sizeof(IPv4Packet)+8 && IPv4Packet::checkHeader(ipOrig, sizeOrig) && ipOrig->getDestinationAddress() == addressTarget) {
-						NetworkInternetProtocol protocolOrig = ipOrig->getProtocol();
-						if (protocolOrig == NetworkInternetProtocol::TCP) {
+						InternetProtocol protocolOrig = ipOrig->getProtocol();
+						if (protocolOrig == InternetProtocol::TCP) {
 							TcpSegment* tcp = (TcpSegment*)(ipOrig->getContent());
 							SocketAddress addressSource;
 							if (m_mappingTcp.mapToInternalAddress(tcp->getDestinationPort(), addressSource)) {
@@ -186,7 +186,7 @@ namespace slib
 								ipHeader->updateChecksum();
 								return sl_true;
 							}
-						} else if (protocolOrig == NetworkInternetProtocol::UDP) {
+						} else if (protocolOrig == InternetProtocol::UDP) {
 							UdpDatagram* udp = (UdpDatagram*)(ipOrig->getContent());
 							SocketAddress addressSource;
 							if (m_mappingUdp.mapToInternalAddress(udp->getDestinationPort(), addressSource)) {

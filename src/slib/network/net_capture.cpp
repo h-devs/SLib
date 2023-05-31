@@ -50,7 +50,7 @@ namespace slib
 
 	NetCaptureParam::NetCaptureParam()
 	{
-		preferedLinkDeviceType = NetworkLinkDeviceType::Ethernet;
+		preferedType = NetworkCaptureType::Ethernet;
 		flagPromiscuous = sl_false;
 
 		flagAutoStart = sl_true;
@@ -68,7 +68,7 @@ namespace slib
 	{
 	}
 
-	sl_bool NetCapture::setLinkType(sl_uint32 type)
+	sl_bool NetCapture::setType(NetworkCaptureType type)
 	{
 		return sl_false;
 	}
@@ -130,7 +130,7 @@ namespace slib
 		public:
 			Socket m_socket;
 
-			NetworkLinkDeviceType m_deviceType;
+			NetworkCaptureType m_deviceType;
 			sl_uint32 m_ifaceIndex;
 			Memory m_bufPacket;
 			Ref<Thread> m_thread;
@@ -141,7 +141,7 @@ namespace slib
 		public:
 			RawPacketCapture()
 			{
-				m_deviceType = NetworkLinkDeviceType::Ethernet;
+				m_deviceType = NetworkCaptureType::Ethernet;
 				m_ifaceIndex = 0;
 
 				m_flagInit = sl_false;
@@ -167,12 +167,12 @@ namespace slib
 					}
 				}
 				Socket socket;
-				NetworkLinkDeviceType deviceType = param.preferedLinkDeviceType;
-				if (deviceType == NetworkLinkDeviceType::Raw) {
-					socket = Socket::openPacketDatagram(NetworkLinkProtocol::All);
+				NetworkCaptureType deviceType = param.preferedType;
+				if (deviceType == NetworkCaptureType::Raw) {
+					socket = Socket::openPacketDatagram(EtherType::All);
 				} else {
-					deviceType = NetworkLinkDeviceType::Ethernet;
-					socket = Socket::openPacketRaw(NetworkLinkProtocol::All);
+					deviceType = NetworkCaptureType::Ethernet;
+					socket = Socket::openPacketRaw(EtherType::All);
 				}
 				if (socket.isOpened()) {
 					if (iface > 0) {
@@ -212,7 +212,7 @@ namespace slib
 				return sl_null;
 			}
 
-			void release()
+			void release() override
 			{
 				ObjectLocker lock(this);
 				if (!m_flagInit) {
@@ -228,7 +228,7 @@ namespace slib
 				m_socket.setNone();
 			}
 
-			void start()
+			void start() override
 			{
 				ObjectLocker lock(this);
 				if (!m_flagInit) {
@@ -245,7 +245,7 @@ namespace slib
 				}
 			}
 
-			sl_bool isRunning()
+			sl_bool isRunning() override
 			{
 				return m_flagRunning;
 			}
@@ -286,12 +286,12 @@ namespace slib
 				}
 			}
 
-			NetworkLinkDeviceType getLinkType()
+			NetworkCaptureType getType() override
 			{
 				return m_deviceType;
 			}
 
-			sl_bool sendPacket(const void* buf, sl_uint32 size)
+			sl_bool sendPacket(const void* buf, sl_uint32 size) override
 			{
 				if (m_ifaceIndex == 0) {
 					return sl_false;
@@ -300,15 +300,15 @@ namespace slib
 					L2PacketInfo info;
 					info.type = L2PacketType::OutGoing;
 					info.iface = m_ifaceIndex;
-					if (m_deviceType == NetworkLinkDeviceType::Ethernet) {
+					if (m_deviceType == NetworkCaptureType::Ethernet) {
 						EthernetFrame* frame = (EthernetFrame*)buf;
 						if (size < EthernetFrame::HeaderSize) {
 							return sl_false;
 						}
-						info.protocol = frame->getProtocol();
+						info.protocol = frame->getType();
 						info.setMacAddress(frame->getDestinationAddress());
 					} else {
-						info.protocol = NetworkLinkProtocol::IPv4;
+						info.protocol = EtherType::IPv4;
 						info.clearAddress();
 					}
 					sl_uint32 ret = m_socket.sendPacket(buf, size, info);
@@ -355,9 +355,9 @@ namespace slib
 		public:
 			static Ref<RawIPv4Capture> create(const NetCaptureParam& param)
 			{
-				Socket socketTCP = Socket::openRaw(NetworkInternetProtocol::TCP);
-				Socket socketUDP = Socket::openRaw(NetworkInternetProtocol::UDP);
-				Socket socketICMP = Socket::openRaw(NetworkInternetProtocol::ICMP);
+				Socket socketTCP = Socket::openRaw(InternetProtocol::TCP);
+				Socket socketUDP = Socket::openRaw(InternetProtocol::UDP);
+				Socket socketICMP = Socket::openRaw(InternetProtocol::ICMP);
 				if (socketTCP.isOpened() && socketUDP.isOpened() && socketICMP.isOpened()) {
 					socketTCP.setOption_IncludeIpHeader(sl_true);
 					socketUDP.setOption_IncludeIpHeader(sl_true);
@@ -387,7 +387,7 @@ namespace slib
 				return sl_null;
 			}
 
-			void release()
+			void release() override
 			{
 				ObjectLocker lock(this);
 				if (!m_flagInit) {
@@ -405,7 +405,7 @@ namespace slib
 				m_socketICMP.setNone();
 			}
 
-			void start()
+			void start() override
 			{
 				ObjectLocker lock(this);
 				if (!m_flagInit) {
@@ -423,7 +423,7 @@ namespace slib
 				}
 			}
 
-			sl_bool isRunning()
+			sl_bool isRunning() override
 			{
 				return m_flagRunning;
 			}
@@ -511,12 +511,12 @@ namespace slib
 				}
 			}
 
-			NetworkLinkDeviceType getLinkType()
+			NetworkCaptureType getType() override
 			{
-				return NetworkLinkDeviceType::Raw;
+				return NetworkCaptureType::Raw;
 			}
 
-			sl_bool sendPacket(const void* buf, sl_uint32 size)
+			sl_bool sendPacket(const void* buf, sl_uint32 size) override
 			{
 				if (m_flagInit) {
 					SocketAddress address;
@@ -525,12 +525,12 @@ namespace slib
 						address.ip = ip->getDestinationAddress();
 						address.port = 0;
 						Socket* socket;
-						NetworkInternetProtocol protocol = ip->getProtocol();
-						if (protocol == NetworkInternetProtocol::TCP) {
+						InternetProtocol protocol = ip->getProtocol();
+						if (protocol == InternetProtocol::TCP) {
 							socket = &m_socketTCP;
-						} else if (protocol == NetworkInternetProtocol::UDP) {
+						} else if (protocol == InternetProtocol::UDP) {
 							socket = &m_socketUDP;
-						} else if (protocol == NetworkInternetProtocol::ICMP) {
+						} else if (protocol == InternetProtocol::ICMP) {
 							socket = &m_socketICMP;
 						} else {
 							return sl_false;
@@ -562,12 +562,12 @@ namespace slib
 		MIO::writeUint16BE(m_packetType, (sl_uint32)type);
 	}
 
-	NetworkLinkDeviceType LinuxCookedFrame::getDeviceType() const
+	NetworkCaptureType LinuxCookedFrame::getDeviceType() const
 	{
-		return (NetworkLinkDeviceType)(MIO::readUint16BE(m_deviceType));
+		return (NetworkCaptureType)(MIO::readUint16BE(m_deviceType));
 	}
 
-	void LinuxCookedFrame::setDeviceType(NetworkLinkDeviceType type)
+	void LinuxCookedFrame::setDeviceType(NetworkCaptureType type)
 	{
 		MIO::writeUint16BE(m_deviceType, (sl_uint32)type);
 	}
@@ -592,12 +592,12 @@ namespace slib
 		return m_address;
 	}
 
-	NetworkLinkProtocol LinuxCookedFrame::getProtocolType() const
+	EtherType LinuxCookedFrame::getProtocolType() const
 	{
-		return (NetworkLinkProtocol)(MIO::readUint16BE(m_protocol));
+		return (EtherType)(MIO::readUint16BE(m_protocol));
 	}
 
-	void LinuxCookedFrame::setProtocolType(NetworkLinkProtocol type)
+	void LinuxCookedFrame::setProtocolType(EtherType type)
 	{
 		MIO::writeUint16BE(m_protocol, (sl_uint32)type);
 	}

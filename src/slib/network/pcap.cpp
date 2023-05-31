@@ -362,19 +362,23 @@ namespace slib
 				}
 			}
 
-			NetworkLinkDeviceType getLinkType() override
+			NetworkCaptureType getType() override
 			{
 				sl_uint32 dt = pcap_datalink(m_handle);
 				switch (dt) {
 					case DLT_RAW:
-						return NetworkLinkDeviceType::Raw;
+						return NetworkCaptureType::Raw;
 					default:
-						return (NetworkLinkDeviceType)dt;
+						return (NetworkCaptureType)dt;
 				}
 			}
 
-			sl_bool setLinkType(sl_uint32 type) override
+			sl_bool setType(NetworkCaptureType _type) override
 			{
+				sl_uint32 type = (sl_uint32)_type;
+				if (_type == NetworkCaptureType::Raw) {
+					type = DLT_RAW;
+				}
 				int ret = pcap_set_datalink(m_handle, type);
 				return !ret;
 			}
@@ -594,9 +598,9 @@ namespace slib
 				return m_devices.getCount() > 0;
 			}
 
-			NetworkLinkDeviceType getLinkType() override
+			NetworkCaptureType getType() override
 			{
-				return NetworkLinkDeviceType::Raw;
+				return NetworkCaptureType::Raw;
 			}
 
 			sl_bool sendPacket(const void*, sl_uint32) override

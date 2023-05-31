@@ -28,29 +28,29 @@
 namespace slib
 {
 
-	// EtherType
-	enum class NetworkLinkProtocol
+	enum class EtherType
 	{
 		All = 0x0003,
 		IPv4 = 0x0800,
 		ARP = 0x0806,
+		WakeOnLan = 0x0842,
 		RARP = 0x8035,
-		IPv6 = 0x86DD
+		AppleTalk = 0x809B,
+		IPX = 0x8137,
+		IPv6 = 0x86DD,
+		EthernetFlowControl = 0x8808,
+		EthernetSlowProtocol = 0x8809,
+		CobraNet = 0x8819,
+		JumboFrames = 0x8870,
+		ATA = 0x88A2,
+		EtherCAT = 0x88A4,
+		EthernetPowerlink = 0x88AB,
+		GOOSE = 0x88B8,
+		LLDP = 0x88CC,
+		VlanTaggedFrame = 0x9100
 	};
 
-	enum class NetworkLinkDeviceType
-	{
-		Null = 0, //  BSD loopback encapsulation; the link layer header is a 4-byte field, in host byte order, containing a PF_ value from socket.h for the network-layer protocol of the packet.
-		Ethernet = 1, // 6 bytes destination mac, 6 bytes source mac, 2 bytes Ethertype
-		PPP = 9, // Point-to-Point Protocol Datalink layer
-		IEEE802_11 = 105, // IEEE 802.11 wireless LAN
-		Linux = 113, //  Linux "cooked" capture encapsulation. (for "any" or PPP devices)
-
-		Raw = 0x8001 // Raw IP; the packet begins with an IPv4 or IPv6 header, with the "version" field of the header indicating whether it's an IPv4 or IPv6 header.
-
-	};
-
-	enum class NetworkInternetProtocol
+	enum class InternetProtocol
 	{
 		Unknown = -1,
 		IPv6_HopOption = 0, // IPv6 Hop-by-Hop Option, RFC 8200
@@ -70,6 +70,32 @@ namespace slib
 		IPv6_NoNext = 59, // No Next Header for IPv6, RFC 8200
 		IPv6_Options = 60, // Destination Options for IPv6, RFC 8200
 		Raw = 0xFF // Reserved for Socket api, for sendind the raw ip packets of any kind of protocols (sending only, not receiving)
+	};
+
+	// RFC 1700
+	enum class NetworkHardwareType
+	{
+		Ethernet = 1,
+		ExperimentalEthernet = 2,
+		AmateurRadio = 3,
+		ProteonProNetTokenRing = 4,
+		Chaos = 5,
+		IEEE802 = 6,
+		ARCNET = 7,
+		Hyperchannel = 8,
+		Lanstar = 9,
+		AutonetShortAddress = 10,
+		LocalTalk = 11,
+		LocalNet = 12,
+		UltraLink = 13,
+		SMDS = 14,
+		FrameRelay = 15,
+		AsynchronousTransmissionMode16 = 16,
+		HDLC = 17,
+		FibreChannel = 18,
+		AsnchronousTransmissionMode19 = 19,
+		SerialLine = 20,
+		AsnchronousTransmissionMode21 = 21
 	};
 
 }

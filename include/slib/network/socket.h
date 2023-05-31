@@ -54,7 +54,7 @@ namespace slib
 	class SLIB_EXPORT L2PacketInfo
 	{
 	public:
-		NetworkLinkProtocol protocol; // physical layer protocol
+		EtherType protocol; // physical layer protocol
 		sl_uint32 iface; // interface number
 
 		L2PacketType type;
@@ -145,33 +145,33 @@ namespace slib
 	public:
 		static Socket open(SocketType type, sl_uint32 protocol = 0) noexcept;
 
-		static Socket openStream(NetworkInternetProtocol internetProtocol) noexcept;
+		static Socket openStream(InternetProtocol internetProtocol) noexcept;
 
 		static Socket openTcp() noexcept;
 
-		static Socket openDatagram(NetworkInternetProtocol internetProtocol) noexcept;
+		static Socket openDatagram(InternetProtocol internetProtocol) noexcept;
 
 		static Socket openUdp() noexcept;
 
-		static Socket openRaw(NetworkInternetProtocol internetProtocol) noexcept;
+		static Socket openRaw(InternetProtocol internetProtocol) noexcept;
 
-		static Socket openStream_IPv6(NetworkInternetProtocol internetProtocol) noexcept;
+		static Socket openStream_IPv6(InternetProtocol internetProtocol) noexcept;
 
 		static Socket openTcp_IPv6() noexcept;
 
-		static Socket openDatagram_IPv6(NetworkInternetProtocol internetProtocol) noexcept;
+		static Socket openDatagram_IPv6(InternetProtocol internetProtocol) noexcept;
 
 		static Socket openUdp_IPv6() noexcept;
 
-		static Socket openRaw_IPv6(NetworkInternetProtocol internetProtocol) noexcept;
+		static Socket openRaw_IPv6(InternetProtocol internetProtocol) noexcept;
 
 		static Socket openDomainStream() noexcept;
 
 		static Socket openDomainDatagram() noexcept;
 
-		static Socket openPacketRaw(NetworkLinkProtocol linkProtocol = NetworkLinkProtocol::All) noexcept;
+		static Socket openPacketRaw(EtherType type = EtherType::All) noexcept;
 
-		static Socket openPacketDatagram(NetworkLinkProtocol linkProtocol = NetworkLinkProtocol::All) noexcept;
+		static Socket openPacketDatagram(EtherType type = EtherType::All) noexcept;
 
 		static Socket openTcp(const SocketAddress& bindAddress) noexcept;
 

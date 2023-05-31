@@ -34,6 +34,18 @@
 namespace slib
 {
 
+	enum class NetworkCaptureType
+	{
+		Null = 0, //  BSD loopback encapsulation; the link layer header is a 4-byte field, in host byte order, containing a PF_ value from socket.h for the network-layer protocol of the packet.
+		Ethernet = 1, // 6 bytes destination mac, 6 bytes source mac, 2 bytes Ethertype
+		PPP = 9, // Point-to-Point Protocol Datalink layer
+		IEEE802_11 = 105, // IEEE 802.11 wireless LAN
+		Linux = 113, //  Linux "cooked" capture encapsulation. (for "any" or PPP devices)
+
+		Raw = 0x8001 // Raw IP; the packet begins with an IPv4 or IPv6 header, with the "version" field of the header indicating whether it's an IPv4 or IPv6 header.
+
+	};
+
 	class SLIB_EXPORT NetCapturePacket
 	{
 	public:
@@ -56,7 +68,7 @@ namespace slib
 		StringParam deviceName; // <null> or <empty string> for any devices
 
 		sl_bool flagPromiscuous; // ignored for "any devices" mode
-		NetworkLinkDeviceType preferedLinkDeviceType; // NetworkLinkDeviceType, used in Packet Socket mode. now supported Ethernet and Raw
+		NetworkCaptureType preferedType; // used in Packet Socket mode. now supported Ethernet and Raw
 
 		sl_bool flagAutoStart; // default: true
 
@@ -93,9 +105,9 @@ namespace slib
 
 		virtual sl_bool isRunning() = 0;
 
-		virtual NetworkLinkDeviceType getLinkType() = 0;
+		virtual NetworkCaptureType getType() = 0;
 
-		virtual sl_bool setLinkType(sl_uint32 type);
+		virtual sl_bool setType(NetworkCaptureType type);
 
 		// send a L2-packet
 		virtual sl_bool sendPacket(const void* buf, sl_uint32 size) = 0;
@@ -147,9 +159,9 @@ namespace slib
 
 		void setPacketType(LinuxCookedPacketType type);
 
-		NetworkLinkDeviceType getDeviceType() const;
+		NetworkCaptureType getDeviceType() const;
 
-		void setDeviceType(NetworkLinkDeviceType type);
+		void setDeviceType(NetworkCaptureType type);
 
 		sl_uint16 getAddressLength() const;
 
@@ -159,9 +171,9 @@ namespace slib
 
 		sl_uint8* getAddress();
 
-		NetworkLinkProtocol getProtocolType() const;
+		EtherType getProtocolType() const;
 
-		void setProtocolType(NetworkLinkProtocol type);
+		void setProtocolType(EtherType type);
 
 		const sl_uint8* getContent() const;
 

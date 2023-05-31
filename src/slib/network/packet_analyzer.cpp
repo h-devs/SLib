@@ -22,12 +22,13 @@
 
 #include "slib/network/packet_analyzer.h"
 
-#include "slib/core/rw_lock.h"
 #include "slib/core/thread.h"
 #include "slib/core/system.h"
+#include "slib/core/mio.h"
+#include "slib/core/string_buffer.h"
+#include "slib/core/shared.h"
 #include "slib/core/log.h"
 #include "slib/crypto/tls.h"
-#include "slib/network/capture.h"
 
 #define CONTENT_LOOKUP_SIZE 1024
 #define CONNECTION_TABLE_LENGTH 4096
@@ -75,9 +76,9 @@ namespace slib
 	{
 	}
 
-	void PacketAnalyzer::putCapturedPacket(NetCapture* capture, NetworkLinkDeviceType type, const void* frame, sl_size size, void* userData)
+	void PacketAnalyzer::putCapturedPacket(NetCapture* capture, NetworkCaptureType type, const void* frame, sl_size size, void* userData)
 	{
-		if (type == NetworkLinkDeviceType::Ethernet) {
+		if (type == NetworkCaptureType::Ethernet) {
 			putEthernet(capture, frame, size, userData);
 		} else {
 			PacketParam param;
@@ -86,11 +87,11 @@ namespace slib
 			param.frame = (sl_uint8*)frame;
 			param.sizeFrame = (sl_uint32)size;
 			param.userData = userData;
-			if (type == NetworkLinkDeviceType::Raw) {
+			if (type == NetworkCaptureType::Raw) {
 				param.packet = (sl_uint8*)frame;
 				param.sizePacket = (sl_uint32)size;
 				analyzeIP(param);
-			} else if (type == NetworkLinkDeviceType::Null) {
+			} else if (type == NetworkCaptureType::Null) {
 				if (size > 4) {
 					if (MIO::readUint32LE(frame) == 2 /*AF_INET*/) {
 						param.packet = (sl_uint8*)frame + 4;
@@ -104,7 +105,7 @@ namespace slib
 
 	void PacketAnalyzer::putCapturedPacket(NetCapture* capture, const void* packet, sl_size size, void* userData)
 	{
-		putCapturedPacket(capture, capture->getLinkType(), packet, size, userData);
+		putCapturedPacket(capture, capture->getType(), packet, size, userData);
 	}
 
 	void PacketAnalyzer::putEthernet(NetCapture* capture, const void* frame, sl_size size, void* userData)
@@ -113,18 +114,18 @@ namespace slib
 			return;
 		}
 		EthernetFrame* eth = (EthernetFrame*)frame;
-		NetworkLinkProtocol protocol = eth->getProtocol();
-		if (protocol == NetworkLinkProtocol::IPv4) {
+		EtherType protocol = eth->getType();
+		if (protocol == EtherType::IPv4) {
 			PacketParam param;
 			param.capture = capture;
-			param.type = NetworkLinkDeviceType::Ethernet;
+			param.type = NetworkCaptureType::Ethernet;
 			param.frame = (sl_uint8*)frame;
 			param.sizeFrame = (sl_uint32)size;
 			param.userData = userData;
 			param.packet = (sl_uint8*)frame + EthernetFrame::HeaderSize;
 			param.sizePacket = (sl_uint32)size - EthernetFrame::HeaderSize;
 			analyzeIP(param);
-		} else if (protocol == NetworkLinkProtocol::ARP) {
+		} else if (protocol == EtherType::ARP) {
 			if (m_flagAnalyzeArp) {
 				if (size >= EthernetFrame::HeaderSize + ArpPacket::SizeForIPv4) {
 					ArpPacket* arp = (ArpPacket*)((sl_uint8*)frame + EthernetFrame::HeaderSize);
@@ -154,7 +155,7 @@ namespace slib
 	{
 		PacketParam param;
 		param.capture = capture;
-		param.type = NetworkLinkDeviceType::Raw;
+		param.type = NetworkCaptureType::Raw;
 		param.frame = (sl_uint8*)packet;
 		param.sizeFrame = (sl_uint32)size;
 		param.packet = (sl_uint8*)packet;
@@ -192,8 +193,8 @@ namespace slib
 			}
 			sl_uint8* content = ip->getContent();
 			sl_uint16 sizeContent = sizeTotal - sizeHeader;
-			NetworkInternetProtocol protocol = ip->getProtocol();
-			if (protocol == NetworkInternetProtocol::TCP) {
+			InternetProtocol protocol = ip->getProtocol();
+			if (protocol == InternetProtocol::TCP) {
 				if (flagAnalyzeTcp) {
 					if (sizeContent < TcpSegment::HeaderSizeBeforeOptions) {
 						return;
@@ -213,7 +214,7 @@ namespace slib
 						sendBlockingIPv4TcpPacket(param, tcp);
 					}
 				}
-			} else if (protocol == NetworkInternetProtocol::UDP) {
+			} else if (protocol == InternetProtocol::UDP) {
 				if (flagAnalyzeUdp) {
 					if (sizeContent < UdpDatagram::HeaderSize) {
 						return;
@@ -241,7 +242,7 @@ namespace slib
 						}
 					}
 				}
-			} else if (protocol == NetworkInternetProtocol::ICMP) {
+			} else if (protocol == InternetProtocol::ICMP) {
 				if (m_flagAnalyzeIcmp) {
 					if (sizeContent < sizeof(IcmpHeaderFormat)) {
 						return;

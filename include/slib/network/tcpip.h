@@ -289,12 +289,12 @@ namespace slib
 			_timeToLive = TTL;
 		}
 
-		NetworkInternetProtocol getProtocol() const
+		InternetProtocol getProtocol() const
 		{
-			return (NetworkInternetProtocol)_protocol;
+			return (InternetProtocol)_protocol;
 		}
 
-		void setProtocol(NetworkInternetProtocol protocol)
+		void setProtocol(InternetProtocol protocol)
 		{
 			_protocol = (sl_uint8)(protocol);
 		}
@@ -453,12 +453,12 @@ namespace slib
 			_payloadLength[1] = (sl_uint8)(length);
 		}
 
-		NetworkInternetProtocol getNextHeader() const
+		InternetProtocol getNextHeader() const
 		{
-			return (NetworkInternetProtocol)(_nextHeader);
+			return (InternetProtocol)(_nextHeader);
 		}
 
-		void setNextHeader(NetworkInternetProtocol protocol)
+		void setNextHeader(InternetProtocol protocol)
 		{
 			_nextHeader = (sl_uint8)(protocol);
 		}
@@ -875,7 +875,7 @@ namespace slib
 		IPv4Address source;
 		IPv4Address destination;
 		sl_uint16 identification;
-		NetworkInternetProtocol protocol;
+		InternetProtocol protocol;
 
 	public:
 		SLIB_DECLARE_CLASS_COMPARE_HASH_MEMBERS(IPv4PacketIdentifier)

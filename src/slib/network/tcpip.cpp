@@ -148,8 +148,8 @@ namespace slib
 
 	sl_bool IPv4Packet::getPortsForTcpUdp(sl_uint16& src, sl_uint16& dst) const
 	{
-		NetworkInternetProtocol protocol = getProtocol();
-		if (protocol == NetworkInternetProtocol::TCP || protocol == NetworkInternetProtocol::UDP) {
+		InternetProtocol protocol = getProtocol();
+		if (protocol == InternetProtocol::TCP || protocol == InternetProtocol::UDP) {
 			if (getContentSize() > 4) {
 				const sl_uint8* p = getContent();
 				src = MIO::readUint16BE(p);

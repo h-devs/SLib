@@ -28,6 +28,7 @@
 #include "tcpip.h"
 #include "icmp.h"
 #include "dns.h"
+#include "capture.h"
 
 #include "../core/rw_lock.h"
 
@@ -57,7 +58,7 @@ namespace slib
 		~PacketAnalyzer();
 
 	public:
-		void putCapturedPacket(NetCapture* capture, NetworkLinkDeviceType type, const void* frame, sl_size size, void* userData);
+		void putCapturedPacket(NetCapture* capture, NetworkCaptureType type, const void* frame, sl_size size, void* userData);
 
 		void putCapturedPacket(NetCapture* capture, const void* frame, sl_size size, void* userData);
 
@@ -129,7 +130,7 @@ namespace slib
 		struct PacketParam
 		{
 			NetCapture* capture;
-			NetworkLinkDeviceType type;
+			NetworkCaptureType type;
 			sl_uint8* frame;
 			sl_uint32 sizeFrame;
 			sl_uint8* packet;

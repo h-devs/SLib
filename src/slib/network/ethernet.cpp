@@ -61,7 +61,7 @@ namespace slib
 	{
 		if (sizeFrame > EthernetFrame::HeaderSize) {
 			EthernetFrame* frame = (EthernetFrame*)_frame;
-			if (frame->getProtocol() == NetworkLinkProtocol::IPv4) {
+			if (frame->getType() == EtherType::IPv4) {
 				IPv4Packet* ip = (IPv4Packet*)(frame->getContent());
 				sl_uint32 sizeIP = sizeFrame - EthernetFrame::HeaderSize;
 				if (IPv4Packet::check(ip, sizeIP)) {

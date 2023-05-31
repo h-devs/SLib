@@ -210,7 +210,7 @@ namespace slib
 	public:
 		sl_socket getSocket();
 
-		void setBroadcast(sl_bool flag);
+		void setBroadcast(sl_bool flag = sl_true);
 
 		void setSendBufferSize(sl_uint32 size);
 

@@ -23,26 +23,27 @@
 #include "slib/network/arp.h"
 
 #include "slib/core/mio.h"
+#include "slib/core/base.h"
 
 namespace slib
 {
 
-	sl_uint16 ArpPacket::getHardwareType() const
+	NetworkHardwareType ArpPacket::getHardwareType() const
 	{
-		return MIO::readUint16BE(_hardwareType);
+		return (NetworkHardwareType)(MIO::readUint16BE(_hardwareType));
 	}
 
-	void ArpPacket::setHardwareType(sl_uint16 hardwareType)
+	void ArpPacket::setHardwareType(NetworkHardwareType hardwareType)
 	{
-		MIO::writeUint16BE(_hardwareType, hardwareType);
+		MIO::writeUint16BE(_hardwareType, (sl_uint16)hardwareType);
 	}
 
-	NetworkLinkProtocol ArpPacket::getProtocolType() const
+	EtherType ArpPacket::getProtocolType() const
 	{
-		return (NetworkLinkProtocol)(MIO::readUint16BE(_protocolType));
+		return (EtherType)(MIO::readUint16BE(_protocolType));
 	}
 
-	void ArpPacket::setProtocolType(NetworkLinkProtocol protocolType)
+	void ArpPacket::setProtocolType(EtherType protocolType)
 	{
 		MIO::writeUint16BE(_protocolType, (sl_uint32)protocolType);
 	}
@@ -159,8 +160,23 @@ namespace slib
 
 	sl_bool ArpPacket::isValidEthernetIPv4() const
 	{
-		return getHardwareType() == 1 && getProtocolType() == NetworkLinkProtocol::IPv4 &&
-				getHardwareAddressLength() == 6 && getProtocolAddressLength() == 4;
+		return getHardwareType() == NetworkHardwareType::Ethernet && getProtocolType() == EtherType::IPv4 && getHardwareAddressLength() == 6 && getProtocolAddressLength() == 4;
+	}
+
+	void ArpPacket::setEthernetAddresses(const MacAddress& sender, const MacAddress& target)
+	{
+		setHardwareType(NetworkHardwareType::Ethernet);
+		setHardwareAddressLength(6);
+		setSenderMacAddress(sender);
+		setTargetMacAddress(target);
+	}
+
+	void ArpPacket::setIPv4Addresses(const IPv4Address& sender, const IPv4Address& target)
+	{
+		setProtocolType(EtherType::IPv4);
+		setProtocolAddressLength(4);
+		setSenderIPv4Address(sender);
+		setTargetIPv4Address(target);
 	}
 
 }

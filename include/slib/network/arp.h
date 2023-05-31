@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_ARP
 #define CHECKHEADER_SLIB_NETWORK_ARP
 
-#include "ethernet.h"
+#include "constants.h"
 #include "mac_address.h"
 #include "ip_address.h"
 
@@ -68,13 +68,13 @@ namespace slib
 		};
 
 	public:
-		sl_uint16 getHardwareType() const;
+		NetworkHardwareType getHardwareType() const;
 
-		void setHardwareType(sl_uint16 hardwareType);
+		void setHardwareType(NetworkHardwareType hardwareType);
 
-		NetworkLinkProtocol getProtocolType() const;
+		EtherType getProtocolType() const;
 
-		void setProtocolType(NetworkLinkProtocol protocolType);
+		void setProtocolType(EtherType protocolType);
 
 		sl_uint8 getHardwareAddressLength() const;
 
@@ -121,6 +121,10 @@ namespace slib
 		void setTargetIPv4Address(const IPv4Address& address);
 
 		sl_bool isValidEthernetIPv4() const;
+
+		void setEthernetAddresses(const MacAddress& sender, const MacAddress& target);
+
+		void setIPv4Addresses(const IPv4Address& sender, const IPv4Address& target);
 
 	private:
 		sl_uint8 _hardwareType[2];

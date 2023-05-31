@@ -47,9 +47,9 @@ int main(int argc, const char * argv[])
 	}
 
 #ifdef SLIB_PLATFORM_IS_MACOS
-	Shared<Socket> socket = Socket::openDatagram(NetworkInternetProtocol::ICMP);
+	Shared<Socket> socket = Socket::openDatagram(InternetProtocol::ICMP);
 #else
-	Shared<Socket> socket = Socket::openRaw(NetworkInternetProtocol::ICMP);
+	Shared<Socket> socket = Socket::openRaw(InternetProtocol::ICMP);
 #endif
 	if (socket.isNull()) {
 		Println("Can't open socket.");
@@ -69,7 +69,7 @@ int main(int argc, const char * argv[])
 			if (n > 0) {
 				if (IPv4Packet::checkHeaderSize(buf, n)) {
 					IPv4Packet* packet = (IPv4Packet*)buf;
-					if (packet->getProtocol() == NetworkInternetProtocol::ICMP) {
+					if (packet->getProtocol() == InternetProtocol::ICMP) {
 						IcmpHeaderFormat* icmp = (IcmpHeaderFormat*)(packet->getContent());
 						if (icmp->check(n - packet->getHeaderSize())) {
 							if (icmp->getType() == IcmpType::EchoReply) {

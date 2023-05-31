@@ -89,11 +89,11 @@ int main(int argc, const char * argv[])
 			sl_int32 n = tap->read(buf, sizeof(buf));
 			if (n > EthernetFrame::HeaderSize) {
 				EthernetFrame* frame = (EthernetFrame*)buf;
-				if (frame->getProtocol() == NetworkLinkProtocol::IPv4) {
+				if (frame->getType() == EtherType::IPv4) {
 					IPv4Packet* packet = (IPv4Packet*)(frame->getContent());
 					sl_uint32 size = n - EthernetFrame::HeaderSize;
 					if (IPv4Packet::check(packet, size)) {
-						if (packet->getProtocol() == NetworkInternetProtocol::UDP) {
+						if (packet->getProtocol() == InternetProtocol::UDP) {
 							UdpDatagram* udp = (UdpDatagram*)(packet->getContent());
 							sl_uint32 sizeUdp = packet->getContentSize();
 							if (udp->check(packet, sizeUdp) && udp->getDestinationPort() == UDP_PORT) {
@@ -103,7 +103,7 @@ int main(int argc, const char * argv[])
 									StringView((char*)(udp->getContent()), udp->getContentSize())
 								);
 							}
-						} else if (packet->getProtocol() == NetworkInternetProtocol::ICMP) {
+						} else if (packet->getProtocol() == InternetProtocol::ICMP) {
 							IcmpHeaderFormat* icmp = (IcmpHeaderFormat*)(packet->getContent());
 							sl_uint32 sizeIcmp = packet->getContentSize();
 							if (icmp->check(sizeIcmp)) {
@@ -126,7 +126,7 @@ int main(int argc, const char * argv[])
 							}
 						}
 					}
-				} else if (frame->getProtocol() == NetworkLinkProtocol::ARP) {
+				} else if (frame->getType() == EtherType::ARP) {
 					ArpPacket* arp = (ArpPacket*)(frame->getContent());
 					sl_uint32 size = n - EthernetFrame::HeaderSize;
 					if (size >= ArpPacket::SizeForIPv4) {

@@ -191,7 +191,7 @@ namespace slib
 		return SLIB_SOCKET_INVALID_HANDLE;
 	}
 
-	Socket Socket::openStream(NetworkInternetProtocol internetProtocol) noexcept
+	Socket Socket::openStream(InternetProtocol internetProtocol) noexcept
 	{
 		return open(SocketType::Stream, (sl_uint32)internetProtocol);
 	}
@@ -201,7 +201,7 @@ namespace slib
 		return open(SocketType::Stream);
 	}
 
-	Socket Socket::openDatagram(NetworkInternetProtocol internetProtocol) noexcept
+	Socket Socket::openDatagram(InternetProtocol internetProtocol) noexcept
 	{
 		return open(SocketType::Datagram, (sl_uint32)internetProtocol);
 	}
@@ -211,12 +211,12 @@ namespace slib
 		return open(SocketType::Datagram);
 	}
 
-	Socket Socket::openRaw(NetworkInternetProtocol internetProtocol) noexcept
+	Socket Socket::openRaw(InternetProtocol internetProtocol) noexcept
 	{
 		return open(SocketType::Raw, (sl_uint32)internetProtocol);
 	}
 
-	Socket Socket::openStream_IPv6(NetworkInternetProtocol internetProtocol) noexcept
+	Socket Socket::openStream_IPv6(InternetProtocol internetProtocol) noexcept
 	{
 		return open(SocketType::StreamIPv6, (sl_uint32)internetProtocol);
 	}
@@ -226,7 +226,7 @@ namespace slib
 		return open(SocketType::StreamIPv6);
 	}
 
-	Socket Socket::openDatagram_IPv6(NetworkInternetProtocol internetProtocol) noexcept
+	Socket Socket::openDatagram_IPv6(InternetProtocol internetProtocol) noexcept
 	{
 		return open(SocketType::DatagramIPv6, (sl_uint32)internetProtocol);
 	}
@@ -236,7 +236,7 @@ namespace slib
 		return open(SocketType::DatagramIPv6);
 	}
 
-	Socket Socket::openRaw_IPv6(NetworkInternetProtocol internetProtocol) noexcept
+	Socket Socket::openRaw_IPv6(InternetProtocol internetProtocol) noexcept
 	{
 		return open(SocketType::RawIPv6, (sl_uint32)internetProtocol);
 	}
@@ -251,14 +251,14 @@ namespace slib
 		return open(SocketType::DomainDatagram);
 	}
 
-	Socket Socket::openPacketRaw(NetworkLinkProtocol linkProtocol) noexcept
+	Socket Socket::openPacketRaw(EtherType type) noexcept
 	{
-		return open(SocketType::PacketRaw, (sl_uint32)linkProtocol);
+		return open(SocketType::PacketRaw, (sl_uint32)type);
 	}
 
-	Socket Socket::openPacketDatagram(NetworkLinkProtocol linkProtocol) noexcept
+	Socket Socket::openPacketDatagram(EtherType type) noexcept
 	{
-		return open(SocketType::PacketDatagram, (sl_uint32)linkProtocol);
+		return open(SocketType::PacketDatagram, (sl_uint32)type);
 	}
 
 	Socket Socket::openTcp(const SocketAddress& bindAddress) noexcept
@@ -1089,7 +1089,7 @@ namespace slib
 			if (ret >= 0) {
 				if (addr.sll_family == AF_PACKET) {
 					info.iface = addr.sll_ifindex;
-					info.protocol = (NetworkLinkProtocol)(ntohs(addr.sll_protocol));
+					info.protocol = (EtherType)(ntohs(addr.sll_protocol));
 					info.type = (L2PacketType)(addr.sll_pkttype);
 					sl_uint32 na = addr.sll_halen;
 					if (na > 8) {

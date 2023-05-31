@@ -20,10 +20,10 @@ int main(int argc, const char * argv[])
 
 	PcapParam param;
 	param.onCapturePacket = [](NetCapture* capture, NetCapturePacket& input) {
-		auto link = capture->getLinkType();
-		if (capture->getLinkType() == NetworkLinkDeviceType::Ethernet) {
+		auto type = capture->getType();
+		if (type == NetworkCaptureType::Ethernet) {
 			analyzer.putEthernet(input.data, input.length, sl_null);
-		} else if (link == NetworkLinkDeviceType::Raw) {
+		} else if (type == NetworkCaptureType::Raw) {
 			analyzer.putIP(input.data, input.length, sl_null);
 		}
 	};

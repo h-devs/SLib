@@ -843,24 +843,19 @@ namespace slib
 				return sl_null;
 			}
 
-			if (socket.isNotNull()) {
+			ret->m_socket = Move(socket);
+			ret->m_flagProxy = param.flagProxy;
 
-				ret->m_socket = Move(socket);
-				ret->m_flagProxy = param.flagProxy;
+			ret->m_defaultForwardAddress = param.defaultForwardAddress;
 
-				ret->m_defaultForwardAddress = param.defaultForwardAddress;
+			ret->m_onResolve = param.onResolve;
+			ret->m_onCache = param.onCache;
 
-				ret->m_onResolve = param.onResolve;
-				ret->m_onCache = param.onCache;
-
-				ret->m_flagInit = sl_true;
-				if (param.flagAutoStart) {
-					ret->start();
-				}
-				return ret;
-
+			ret->m_flagInit = sl_true;
+			if (param.flagAutoStart) {
+				ret->start();
 			}
-
+			return ret;
 		}
 		return sl_null;
 	}

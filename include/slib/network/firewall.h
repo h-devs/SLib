@@ -94,7 +94,7 @@ namespace slib
 	{
 	public:
 		FirewallAction action;
-		NetworkInternetProtocol protocol;
+		InternetProtocol protocol;
 		FirewallAddressRule source;
 		FirewallAddressRule target;
 
