@@ -1349,5 +1349,8 @@
     <ClCompile Include="..\..\src\slib\geo\utm.cpp">
       <Filter>src\geo</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\dhcp.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

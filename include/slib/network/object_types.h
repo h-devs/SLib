@@ -49,6 +49,7 @@ namespace slib
 			WebService,
 			DnsClient,
 			DnsServer,
+			DhcpServer,
 			StunServer,
 			NetCapture,
 			NatTable,

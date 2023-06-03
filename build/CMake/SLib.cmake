@@ -137,6 +137,7 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/crypto/tls.cpp"
 
  "${SLIB_PATH}/src/slib/network/arp.cpp"
+ "${SLIB_PATH}/src/slib/network/dhcp.cpp"
  "${SLIB_PATH}/src/slib/network/dns.cpp"
  "${SLIB_PATH}/src/slib/network/ethernet.cpp"
  "${SLIB_PATH}/src/slib/network/firewall.cpp"
