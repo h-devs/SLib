@@ -1068,7 +1068,6 @@ namespace slib
 
 	void DnsServer::_onReceiveFrom(AsyncUdpSocket* socket, const SocketAddress& addressFrom, void* data, sl_uint32 size)
 	{
-		sl_bool flagEncrypted = sl_false;
 		if (m_flagProxy) {
 			if (size < sizeof(DnsHeader)) {
 				return;

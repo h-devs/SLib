@@ -33,9 +33,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "263BCA541EA6891E005C75F4"
-            BuildableName = "ARC"
-            BlueprintName = "ARC"
-            ReferencedContainer = "container:../../base/ARC/ARC.xcodeproj">
+            BuildableName = "AES"
+            BlueprintName = "AES"
+            ReferencedContainer = "container:../../crypt/AES/AES.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -51,16 +51,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "263BCA541EA6891E005C75F4"
-            BuildableName = "ARC"
-            BlueprintName = "ARC"
-            ReferencedContainer = "container:../../base/ARC/ARC.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -70,16 +60,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "263BCA541EA6891E005C75F4"
-            BuildableName = "ARC"
-            BlueprintName = "ARC"
-            ReferencedContainer = "container:../../base/ARC/ARC.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

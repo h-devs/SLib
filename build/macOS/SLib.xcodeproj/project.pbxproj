@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1847A9702A2B050C00E11B67 /* dhcp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1847A96F2A2B050C00E11B67 /* dhcp.cpp */; };
+		1847A9722A2B051500E11B67 /* utm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1847A9712A2B051500E11B67 /* utm.cpp */; };
 		1852CC46279FEC4C00BA677C /* common_dialogs_prompt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1852CC45279FEC4C00BA677C /* common_dialogs_prompt.cpp */; };
 		1887E114202CCBCC00A81967 /* animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E113202CCBCB00A81967 /* animation.cpp */; };
 		1887E125202CCC3B00A81967 /* pipe.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E119202CCC3A00A81967 /* pipe.cpp */; };
@@ -489,6 +491,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1847A96F2A2B050C00E11B67 /* dhcp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dhcp.cpp; sourceTree = "<group>"; };
+		1847A9712A2B051500E11B67 /* utm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = utm.cpp; sourceTree = "<group>"; };
 		1852CC45279FEC4C00BA677C /* common_dialogs_prompt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = common_dialogs_prompt.cpp; sourceTree = "<group>"; };
 		1887E113202CCBCB00A81967 /* animation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = animation.cpp; sourceTree = "<group>"; };
 		1887E119202CCC3A00A81967 /* pipe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pipe.cpp; path = ../io/pipe.cpp; sourceTree = "<group>"; };
@@ -1380,6 +1384,7 @@
 			isa = PBXGroup;
 			children = (
 				26694BF81C9B2CBC0047E67C /* arp.cpp */,
+				1847A96F2A2B050C00E11B67 /* dhcp.cpp */,
 				266DD4BE1C11940A00D47AB0 /* dns.cpp */,
 				266DD4BF1C11940A00D47AB0 /* ethernet.cpp */,
 				266DD4C11C11940A00D47AB0 /* http_common.cpp */,
@@ -1605,6 +1610,7 @@
 				26F5B3161E9010D100F9FB7F /* geo_rectangle.cpp */,
 				26F5B3171E9010D100F9FB7F /* globe.cpp */,
 				26F5B3181E9010D100F9FB7F /* latlon.cpp */,
+				1847A9712A2B051500E11B67 /* utm.cpp */,
 			);
 			path = geo;
 			sourceTree = "<group>";
@@ -2126,6 +2132,7 @@
 			files = (
 				1887E144202CCD1100A81967 /* zstd.cpp in Sources */,
 				18F1E61320742FE200A47EE8 /* css.cpp in Sources */,
+				1847A9702A2B050C00E11B67 /* dhcp.cpp in Sources */,
 				26D9D98F1E964675005F7BD3 /* video_capture.cpp in Sources */,
 				26D9D9551E964659005F7BD3 /* database_statement.cpp in Sources */,
 				26D9D9AE1E964683005F7BD3 /* render_drawable.cpp in Sources */,
@@ -2201,6 +2208,7 @@
 				26D9D95D1E964662005F7BD3 /* geo_location.cpp in Sources */,
 				D72A0881263B504600BCD333 /* mysql_data.cpp in Sources */,
 				26D9D90A1E9645CE005F7BD3 /* time.cpp in Sources */,
+				1847A9722A2B051500E11B67 /* utm.cpp in Sources */,
 				26D9D9C71E96468D005F7BD3 /* mobile_app.cpp in Sources */,
 				26F53F7F22DB4F6D0031D485 /* date_picker_macos.mm in Sources */,
 				1887E155202CCD7A00A81967 /* performance.cpp in Sources */,

@@ -14,6 +14,8 @@
 		1808BC9A2A0D3825005B5AC6 /* chacha.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1808BC992A0D3825005B5AC6 /* chacha.cpp */; };
 		1808BCA22A0D3832005B5AC6 /* data_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1808BC9C2A0D3831005B5AC6 /* data_store.cpp */; };
 		1808BCA32A0D3832005B5AC6 /* dbip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1808BCA12A0D3832005B5AC6 /* dbip.cpp */; };
+		1847A9772A2B09E900E11B67 /* dhcp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1847A9762A2B09E900E11B67 /* dhcp.cpp */; };
+		1847A9792A2B09FA00E11B67 /* utm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1847A9782A2B09FA00E11B67 /* utm.cpp */; };
 		1852CC57279FF12A00BA677C /* common_dialogs_prompt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1852CC56279FF12A00BA677C /* common_dialogs_prompt.cpp */; };
 		1887E172202CD20F00A81967 /* zlib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E166202CD20F00A81967 /* zlib.cpp */; };
 		1887E173202CD20F00A81967 /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E167202CD20F00A81967 /* base64.cpp */; };
@@ -412,6 +414,8 @@
 		1808BC9E2A0D3831005B5AC6 /* data_store.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = data_store.h; sourceTree = "<group>"; };
 		1808BCA02A0D3832005B5AC6 /* dbip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dbip.h; sourceTree = "<group>"; };
 		1808BCA12A0D3832005B5AC6 /* dbip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dbip.cpp; sourceTree = "<group>"; };
+		1847A9762A2B09E900E11B67 /* dhcp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dhcp.cpp; sourceTree = "<group>"; };
+		1847A9782A2B09FA00E11B67 /* utm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = utm.cpp; sourceTree = "<group>"; };
 		1852CC56279FF12A00BA677C /* common_dialogs_prompt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = common_dialogs_prompt.cpp; sourceTree = "<group>"; };
 		1887E166202CD20F00A81967 /* zlib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zlib.cpp; sourceTree = "<group>"; };
 		1887E167202CD20F00A81967 /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = base64.cpp; sourceTree = "<group>"; };
@@ -1213,6 +1217,7 @@
 				26F5B3231E90125200F9FB7F /* geo_rectangle.cpp */,
 				26F5B3241E90125200F9FB7F /* globe.cpp */,
 				26F5B3251E90125200F9FB7F /* latlon.cpp */,
+				1847A9782A2B09FA00E11B67 /* utm.cpp */,
 			);
 			path = geo;
 			sourceTree = "<group>";
@@ -1367,6 +1372,7 @@
 			isa = PBXGroup;
 			children = (
 				26B5717C1C9D44930099E69B /* arp.cpp */,
+				1847A9762A2B09E900E11B67 /* dhcp.cpp */,
 				266DD3BB1C1181B500D47AB0 /* dns.cpp */,
 				266DD3BC1C1181B500D47AB0 /* ethernet.cpp */,
 				266DD3BE1C1181B500D47AB0 /* http_common.cpp */,
@@ -1742,6 +1748,7 @@
 				26D9D8BF1E962976005F7BD3 /* image_view.cpp in Sources */,
 				1887E195202CD22200A81967 /* async_unix.cpp in Sources */,
 				26D9D87B1E96295A005F7BD3 /* audio_codec.cpp in Sources */,
+				1847A9772A2B09E900E11B67 /* dhcp.cpp in Sources */,
 				D7ECA23726317CF700D366A8 /* leveldb_unity.cc in Sources */,
 				26D9D8E61E962976005F7BD3 /* ui_resource.cpp in Sources */,
 				26B92D5B21D4CF22003F6F82 /* device.cpp in Sources */,
@@ -1884,6 +1891,7 @@
 				26D9D8CB1E962976005F7BD3 /* picker_view_ios.mm in Sources */,
 				1887E18E202CD22200A81967 /* async.cpp in Sources */,
 				266CF0FE25032F8C00E694E3 /* ui_core_common.cpp in Sources */,
+				1847A9792A2B09FA00E11B67 /* utm.cpp in Sources */,
 				18A341F627357C1A001F7E4F /* sha3.cpp in Sources */,
 				2628EAD121C184D400D8CD00 /* regular_expression.cpp in Sources */,
 				26D9D8A41E962962005F7BD3 /* socket_event.cpp in Sources */,
