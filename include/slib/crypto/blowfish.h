@@ -52,8 +52,6 @@ namespace slib
 	public:
 		sl_bool setKey(const void* key, sl_size lenKey /* 4 to 56 bytes */);
 
-		void setKey_SHA256(const StringView& key);
-
 		void encrypt(sl_uint32& d0, sl_uint32& d1) const;
 
 		void decrypt(sl_uint32& d0, sl_uint32& d1) const;

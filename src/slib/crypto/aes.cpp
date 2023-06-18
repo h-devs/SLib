@@ -554,13 +554,6 @@ Roundn (Last):
 		MIO::writeUint32BE(OUT + 12, d3);
 	}
 
-	void AES::setKey_SHA256(const StringView& key)
-	{
-		char sig[32];
-		SHA256::hash(key, sig);
-		setKey(sig, 32);
-	}
-
 
 	AES_GCM::AES_GCM()
 	{
@@ -573,12 +566,6 @@ Roundn (Last):
 	void AES_GCM::setKey(const void* key, sl_size lenKey)
 	{
 		m_cipher.setKey(key, lenKey);
-		setCipher(&m_cipher);
-	}
-
-	void AES_GCM::setKey_SHA256(const StringView& key)
-	{
-		m_cipher.setKey_SHA256(key);
 		setCipher(&m_cipher);
 	}
 
