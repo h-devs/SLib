@@ -241,12 +241,16 @@ namespace slib
 	protected:
 		void _update(Timer* timer)
 		{
-			ObjectLocker lock(this);
-			m_mapBackup = Move(m_mapCurrent);
-			if (m_mapBackup.isEmpty()) {
-				if (m_timer.isNotNull()) {
-					m_timer->stop();
-					m_timer.setNull();
+			HashMap<KT, VT> old;
+			{
+				ObjectLocker lock(this);
+				old = Move(m_mapBackup);
+				m_mapBackup = Move(m_mapCurrent);
+				if (m_mapBackup.isEmpty()) {
+					if (m_timer.isNotNull()) {
+						m_timer->stop();
+						m_timer.setNull();
+					}
 				}
 			}
 		}
