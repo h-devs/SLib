@@ -177,8 +177,8 @@ namespace slib
 		{
 			FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 			FileSystemProvider* provider = host->getProvider();
-			SLIB_UNUSED(mode);
-			SLIB_UNUSED(dev);
+			SLIB_UNUSED(mode)
+			SLIB_UNUSED(dev)
 
 			if (provider->existsFile(path)) {
 				return -EEXIST;
@@ -199,7 +199,7 @@ namespace slib
 		{
 			FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 			FileSystemProvider* provider = host->getProvider();
-			SLIB_UNUSED(mode);
+			SLIB_UNUSED(mode)
 
 			FileSystem::setLastError(FileSystemError::GeneralError);
 			if (provider->createDirectory(path)) {
@@ -381,7 +381,7 @@ namespace slib
 		{
 			FileSystemHost* host = (FileSystemHost*)(getApi_fuse_get_context()()->private_data);
 			FileSystemProvider* provider = host->getProvider();
-			SLIB_UNUSED(isdatasync);
+			SLIB_UNUSED(isdatasync)
 
 			Ref<FileContext> context = (FileContext*)((sl_size)(fi->fh));
 			if (context.isNull()) {

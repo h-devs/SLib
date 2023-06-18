@@ -988,7 +988,7 @@ namespace slib
 
 	sl_int32 Base::interlockedIncrement32(volatile sl_int32* pValue) noexcept
 	{
-		SLIB_ASSERT(SLIB_IS_ALIGNED_4(pValue));
+		SLIB_ASSERT(SLIB_IS_ALIGNED_4(pValue))
 #ifdef SLIB_PLATFORM_IS_WINDOWS
 		return (sl_int32)InterlockedIncrement((volatile LONG*)pValue);
 #else
@@ -998,7 +998,7 @@ namespace slib
 
 	sl_int32 Base::interlockedDecrement32(volatile sl_int32* pValue) noexcept
 	{
-		SLIB_ASSERT(SLIB_IS_ALIGNED_4(pValue));
+		SLIB_ASSERT(SLIB_IS_ALIGNED_4(pValue))
 #ifdef SLIB_PLATFORM_IS_WINDOWS
 		return (sl_int32)InterlockedDecrement((volatile LONG*)pValue);
 #else
@@ -1008,7 +1008,7 @@ namespace slib
 
 	sl_int32 Base::interlockedAdd32(volatile sl_int32* pDst, sl_int32 value) noexcept
 	{
-		SLIB_ASSERT(SLIB_IS_ALIGNED_4(pDst));
+		SLIB_ASSERT(SLIB_IS_ALIGNED_4(pDst))
 #ifdef SLIB_PLATFORM_IS_WINDOWS
 		return ((sl_int32)InterlockedExchangeAdd((volatile LONG*)pDst, (LONG)value)) + value;
 #else
@@ -1018,7 +1018,7 @@ namespace slib
 
 	sl_bool Base::interlockedCompareExchange32(volatile sl_int32* pDst, sl_int32 value, sl_int32 comparand) noexcept
 	{
-		SLIB_ASSERT(SLIB_IS_ALIGNED_4(pDst));
+		SLIB_ASSERT(SLIB_IS_ALIGNED_4(pDst))
 #ifdef SLIB_PLATFORM_IS_WINDOWS
 		sl_int32 old;
 #	if (SLIB_COMPILER >= SLIB_COMPILER_VC7)
@@ -1034,7 +1034,7 @@ namespace slib
 
 	sl_int64 Base::interlockedIncrement64(volatile sl_int64* pValue) noexcept
 	{
-		SLIB_ASSERT(SLIB_IS_ALIGNED_8(pValue));
+		SLIB_ASSERT(SLIB_IS_ALIGNED_8(pValue))
 #ifdef NOT_SUPPORT_ATOMIC_64BIT
 		SpinLocker lock(SpinLockPoolForBase::get((sl_int64*)pValue));
 		sl_int64 r = *pValue = *pValue + 1;
@@ -1050,7 +1050,7 @@ namespace slib
 
 	sl_int64 Base::interlockedDecrement64(volatile sl_int64* pValue) noexcept
 	{
-		SLIB_ASSERT(SLIB_IS_ALIGNED_8(pValue));
+		SLIB_ASSERT(SLIB_IS_ALIGNED_8(pValue))
 #ifdef NOT_SUPPORT_ATOMIC_64BIT
 		SpinLocker lock(SpinLockPoolForBase::get((sl_int64*)pValue));
 		sl_int64 r = *pValue = *pValue - 1;
@@ -1066,7 +1066,7 @@ namespace slib
 
 	sl_int64 Base::interlockedAdd64(volatile sl_int64* pDst, sl_int64 value) noexcept
 	{
-		SLIB_ASSERT(SLIB_IS_ALIGNED_8(pDst));
+		SLIB_ASSERT(SLIB_IS_ALIGNED_8(pDst))
 #ifdef NOT_SUPPORT_ATOMIC_64BIT
 		SpinLocker lock(SpinLockPoolForBase::get((sl_int64*)pDst));
 		sl_int64 r = *pDst = *pDst + value;
@@ -1082,7 +1082,7 @@ namespace slib
 
 	sl_bool Base::interlockedCompareExchange64(volatile sl_int64* pDst, sl_int64 value, sl_int64 comparand) noexcept
 	{
-		SLIB_ASSERT(SLIB_IS_ALIGNED_8(pDst));
+		SLIB_ASSERT(SLIB_IS_ALIGNED_8(pDst))
 #ifdef NOT_SUPPORT_ATOMIC_64BIT
 		SpinLocker lock(SpinLockPoolForBase::get((sl_int64*)pDst));
 		sl_int64 o = *pDst;

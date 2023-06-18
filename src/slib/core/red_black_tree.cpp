@@ -243,7 +243,7 @@ namespace slib
 
 							} else {
 								// The root is always black. This is the error situation.
-								SLIB_ASSERT(true);
+								SLIB_ASSERT(true)
 								parent->flagRed = sl_false;
 								break;
 							}
@@ -275,7 +275,7 @@ namespace slib
 						Node* successor = getFirst(right);
 						Node* successor_parent = successor->parent;
 						// successor's left is always null. and also successor's right is NIL or RED
-						SLIB_ASSERT(!(successor->left));
+						SLIB_ASSERT(!(successor->left))
 						Node* successor_right = successor->right;
 						sl_bool successor_flagRed = successor->flagRed;
 
@@ -300,13 +300,13 @@ namespace slib
 
 						if (successor_right) {
 							// In this case, successor_right is 'RED', because successor's left is always NIL
-							SLIB_ASSERT(successor_right->flagRed);
+							SLIB_ASSERT(successor_right->flagRed)
 							successor_right->flagRed = sl_false;
 							return;
 						}
 					} else {
 						// In this case, `node` is BLACK and `right` is RED, because the other child `left` is NIL.
-						SLIB_ASSERT(right->flagRed);
+						SLIB_ASSERT(right->flagRed)
 						ReplaceChild(parent, node, right, pRoot);
 						right->flagRed = sl_false;
 						return;
@@ -314,7 +314,7 @@ namespace slib
 				} else {
 					if (left) {
 						// In this case, `node` is BLACK and `left` is RED, because the other child `right` is NIL.
-						SLIB_ASSERT(left->flagRed);
+						SLIB_ASSERT(left->flagRed)
 						ReplaceChild(parent, node, left, pRoot);
 						left->flagRed = sl_false;
 						return;
@@ -354,7 +354,7 @@ namespace slib
 					}
 
 					// `sibling` is not null, because `node` was BLACK
-					SLIB_ASSERT(sibling);
+					SLIB_ASSERT(sibling)
 					if (sibling->flagRed) {
 						// In this case, `sibling' has two non-NIL black children, because `node` was BLACK
 						parent->flagRed = sl_true;
@@ -366,9 +366,9 @@ namespace slib
 							RotateRight(parent, sibling, parent->parent, pRoot);
 							sibling = parent->left; // sibling's right child
 						}
-						SLIB_ASSERT(sibling);
+						SLIB_ASSERT(sibling)
 						// Here, sibling is always BLACK
-						SLIB_ASSERT(!(sibling->flagRed));
+						SLIB_ASSERT(!(sibling->flagRed))
 					}
 					Node* sibling_left = sibling->left;
 					Node* sibling_right = sibling->right;
@@ -400,7 +400,7 @@ namespace slib
 								sibling_right->flagRed = sl_false;
 							}
 							// Parent has always two non-leaf children
-							SLIB_ASSERT(parent->right);
+							SLIB_ASSERT(parent->right)
 							RotateLeft(parent, parent->right, parent->parent, pRoot);
 						} else {
 							if(!sibling_left_flagRed){
@@ -415,7 +415,7 @@ namespace slib
 								sibling_left->flagRed = sl_false;
 							}
 							// Parent has always two non-leaf children
-							SLIB_ASSERT(parent->left);
+							SLIB_ASSERT(parent->left)
 							RotateRight(parent, parent->left, parent->parent, pRoot);
 						}
 						sibling->flagRed = parent->flagRed;
