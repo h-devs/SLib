@@ -26,16 +26,12 @@
 #include <slib/network/socket_address.h>
 #include <slib/data/json.h>
 #include <slib/io/async.h>
-#include <slib/crypto/ecc.h>
 
 #define SLIB_P2P_DEFAULT_PORT 39000
 #define SLIB_P2P_NODE_ID_SIZE 16
 
 namespace slib
 {
-
-	typedef ECPrivateKey P2PPrivateKey;
-	typedef ECPublicKey P2PPublicKey;
 
 	enum class P2PConnectionType
 	{
@@ -160,19 +156,27 @@ namespace slib
 	class SLIB_EXPORT P2PSocketParam
 	{
 	public:
-		EllipticCurve curve;
-		P2PPrivateKey key; // [In, Out] If not initialized, socket will generate new key
+		Memory key; // [In, Out] If not initialized, socket will generate new key
+		sl_bool flagGeneratedKey; // [Out]
 
 		sl_uint16 port; // [In] Lobby port. We recommend you don't change `port` or `portCount`
 		sl_uint16 portCount; // [In] Socket will search unbound port from [port + 1, port+portCount]
 		sl_uint16 boundPort; // [Out] Bound port (UDP/TCP)
 
-		sl_uint32 tcpConnectionTimeout; // In milliseconds
-		sl_uint32 maximumMessageSize; // In bytes
+		P2PMessage helloMessage; // [In] Hello Message
+		P2PMessage localNodeDescription; // [In] Local Node Description
 
+		sl_uint32 helloInterval; // [In, Out] In milliseconds
+		sl_uint32 connectionTimeout; // [In, Out] In milliseconds
+		sl_uint32 findTimeout; // [In, Out] In milliseconds
+		sl_uint32 maximumMessageSize; // [In, Out] In bytes
+		sl_uint32 messageBufferSize; // [In, Out] In bytes
+		sl_uint32 ephemeralKeyDuration; // [In, Out] In milliseconds
+
+		Function<void(P2PSocket*, P2PRequest&)> onReceiveHello;
 		Function<void(P2PSocket*, P2PRequest&, P2PResponse&)> onReceiveMessage;
-		Function<void(P2PSocket*, P2PRequest&)> onReceiveBroadcast;
 		Function<void(P2PSocket*, P2PRequest&)> onReceiveDatagram;
+		Function<void(P2PSocket*, P2PRequest&)> onReceiveBroadcast;
 
 		sl_bool flagAutoStart; // [In] Automatically start the socket
 
@@ -182,9 +186,6 @@ namespace slib
 		P2PSocketParam();
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(P2PSocketParam)
-
-	public:
-		sl_bool generateKey();
 
 	};
 
@@ -204,6 +205,10 @@ namespace slib
 		virtual void close() = 0;
 
 		virtual sl_bool start() = 0;
+
+		virtual void setHelloMessage(const P2PMessage& msg) = 0;
+
+		virtual void setLocalNodeDescription(const P2PMessage& msg) = 0;
 
 		virtual void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis = 0) = 0;
 
