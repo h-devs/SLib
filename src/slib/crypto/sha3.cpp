@@ -22,198 +22,417 @@
 
 #include "slib/crypto/sha3.h"
 
-#include "slib/core/mio.h"
 #include "slib/math/math.h"
+#include "slib/core/mio.h"
+#include "slib/core/assert.h"
+
+// Referenced to OpenSSL implementation
+
+#if defined(__i386) || defined(__i386__) || defined(_M_IX86)
+#define KECCAK_COMPLEMENTING_TRANSFORM
+#endif
+
+#if defined(_M_AMD64) || defined(__x86_64__) || defined(__aarch64__) || defined(__mips64) || defined(__ia64) || (defined(__VMS) && !defined(__vax))
+# define BIT_INTERLEAVE (0)
+#else
+# define BIT_INTERLEAVE (sizeof(void*) < 8)
+#endif
+
+#define ROL32(a, offset) (((a) << (offset)) | ((a) >> ((32 - (offset)) & 31)))
 
 namespace slib
 {
 
-	typedef priv::SHA3Base::BitInterleaved64 BitInterleaved64;
-
 	namespace {
 
-		// The round constants, pre-interleaved
-		static const BitInterleaved64 g_roundConstants[24] = {
-			{ 0x00000001, 0x00000000 },{ 0x00000000, 0x00000089 },
-			{ 0x00000000, 0x8000008b },{ 0x00000000, 0x80008080 },
-			{ 0x00000001, 0x0000008b },{ 0x00000001, 0x00008000 },
-			{ 0x00000001, 0x80008088 },{ 0x00000001, 0x80000082 },
-			{ 0x00000000, 0x0000000b },{ 0x00000000, 0x0000000a },
-			{ 0x00000001, 0x00008082 },{ 0x00000000, 0x00008003 },
-			{ 0x00000001, 0x0000808b },{ 0x00000001, 0x8000000b },
-			{ 0x00000001, 0x8000008a },{ 0x00000001, 0x80000081 },
-			{ 0x00000000, 0x80000081 },{ 0x00000000, 0x80000008 },
-			{ 0x00000000, 0x00000083 },{ 0x00000000, 0x80008003 },
-			{ 0x00000001, 0x80008088 },{ 0x00000000, 0x80000088 },
-			{ 0x00000001, 0x00008000 },{ 0x00000000, 0x80008082 }
-		};
-
-		static const sl_uint8 g_rotationConstants[5][5] = {
-			{ 0,  1, 62, 28, 27, },
-			{ 36, 44,  6, 55, 20, },
-			{ 3, 10, 43, 25, 39, },
-			{ 41, 45, 15, 21,  8, },
-			{ 18,  2, 61, 56, 14, }
-		};
-
-		// Integers [-1,20] mod 5. To avoid a divmod. Indices are constants; not data-dependant.
-		static const sl_uint8 g_tableMod5[] = {
-			4,
-			0,
-			1, 2, 3, 4, 0, 1, 2, 3, 4, 0,
-			1, 2, 3, 4, 0, 1, 2, 3, 4, 0
-		};
-#define MOD5(x) (g_tableMod5[(x) + 1])
-
-		// Convert AaBbCcDd -> ABCDabcd
-		SLIB_INLINE static sl_uint32 ShuffleOut(sl_uint32 x)
+		static sl_uint64 ROL64(sl_uint64 val, int offset)
 		{
-			sl_uint32 t;
-			t = (x ^ (x >> 1)) & 0x22222222; x = x ^ t ^ (t << 1);
-			t = (x ^ (x >> 2)) & 0x0c0c0c0c; x = x ^ t ^ (t << 2);
-			t = (x ^ (x >> 4)) & 0x00f000f0; x = x ^ t ^ (t << 4);
-			t = (x ^ (x >> 8)) & 0x0000ff00; x = x ^ t ^ (t << 8);
-			return x;
-		}
-
-		// Convert ABCDabcd -> AaBbCcDd
-		SLIB_INLINE static sl_uint32 ShuffleIn(sl_uint32 x)
-		{
-			sl_uint32 t;
-			t = (x ^ (x >> 8)) & 0x0000ff00; x = x ^ t ^ (t << 8);
-			t = (x ^ (x >> 4)) & 0x00f000f0; x = x ^ t ^ (t << 4);
-			t = (x ^ (x >> 2)) & 0x0c0c0c0c; x = x ^ t ^ (t << 2);
-			t = (x ^ (x >> 1)) & 0x22222222; x = x ^ t ^ (t << 1);
-			return x;
-		}
-
-		SLIB_INLINE static void ReadBi(BitInterleaved64* _out, const void* _data)
-		{
-			sl_uint8* data = (sl_uint8*)_data;
-			sl_uint32 lo = MIO::readUint32LE(data);
-			sl_uint32 hi = MIO::readUint32LE(data + 4);
-			lo = ShuffleOut(lo);
-			hi = ShuffleOut(hi);
-			_out->odd = (lo & 0x0000ffff) | (hi << 16);
-			_out->even = (lo >> 16) | (hi & 0xffff0000);
-		}
-
-		SLIB_INLINE static void WriteBi(const BitInterleaved64* _in, void* _data)
-		{
-			sl_uint8* data = (sl_uint8*)_data;
-			sl_uint32 lo = (_in->odd & 0x0000ffff) | (_in->even << 16);
-			sl_uint32 hi = (_in->odd >> 16) | (_in->even & 0xffff0000);
-			lo = ShuffleIn(lo);
-			hi = ShuffleIn(hi);
-			MIO::writeUint32LE(data, lo);
-			MIO::writeUint32LE(data + 4, hi);
-		}
-
-		SLIB_INLINE static void RotateBi1(BitInterleaved64* _out, const BitInterleaved64* _in)
-		{
-			// in bit-interleaved representation, a rotation of 1 is a swap plus a single rotation of the odd word
-			_out->odd = (_in->even << 1) | (_in->even >> 31);
-			_out->even = _in->odd;
-		}
-
-		SLIB_INLINE static void RotateBiN(BitInterleaved64* _out, const BitInterleaved64* _in, sl_uint8 rotation)
-		{
-			sl_uint32 half = rotation >> 1;
-			if (rotation & 1) {
-				_out->odd = Math::rotateLeft(_in->even, half + 1);
-				_out->even = Math::rotateLeft(_in->odd, half);
+			if (!offset) {
+				return val;
+			} else if (!BIT_INTERLEAVE) {
+				return (val << offset) | (val >> (64 - offset));
 			} else {
-				_out->even = Math::rotateLeft(_in->even, half);
-				_out->odd = Math::rotateLeft(_in->odd, half);
+				sl_uint32 hi = (sl_uint32)(val >> 32), lo = (sl_uint32)val;
+				if (offset & 1) {
+					sl_uint32 tmp = hi;
+					offset >>= 1;
+					hi = ROL32(lo, offset);
+					lo = ROL32(tmp, offset + 1);
+				} else {
+					offset >>= 1;
+					lo = ROL32(lo, offset);
+					hi = ROL32(hi, offset);
+				}
+				return ((sl_uint64)hi << 32) | lo;
 			}
 		}
+
+		static sl_uint64 BitInterleave(sl_uint64 Ai)
+		{
+			if (BIT_INTERLEAVE) {
+				sl_uint32 hi = (sl_uint32)(Ai >> 32), lo = (sl_uint32)Ai;
+				sl_uint32 t0, t1;
+
+				t0 = lo & 0x55555555;
+				t0 |= t0 >> 1;  t0 &= 0x33333333;
+				t0 |= t0 >> 2;  t0 &= 0x0f0f0f0f;
+				t0 |= t0 >> 4;  t0 &= 0x00ff00ff;
+				t0 |= t0 >> 8;  t0 &= 0x0000ffff;
+
+				t1 = hi & 0x55555555;
+				t1 |= t1 >> 1;  t1 &= 0x33333333;
+				t1 |= t1 >> 2;  t1 &= 0x0f0f0f0f;
+				t1 |= t1 >> 4;  t1 &= 0x00ff00ff;
+				t1 |= t1 >> 8;  t1 <<= 16;
+
+				lo &= 0xaaaaaaaa;
+				lo |= lo << 1;  lo &= 0xcccccccc;
+				lo |= lo << 2;  lo &= 0xf0f0f0f0;
+				lo |= lo << 4;  lo &= 0xff00ff00;
+				lo |= lo << 8;  lo >>= 16;
+
+				hi &= 0xaaaaaaaa;
+				hi |= hi << 1;  hi &= 0xcccccccc;
+				hi |= hi << 2;  hi &= 0xf0f0f0f0;
+				hi |= hi << 4;  hi &= 0xff00ff00;
+				hi |= hi << 8;  hi &= 0xffff0000;
+
+				Ai = ((sl_uint64)(hi | lo) << 32) | (t1 | t0);
+			}
+
+			return Ai;
+		}
+
+		static sl_uint64 BitDeinterleave(sl_uint64 Ai)
+		{
+			if (BIT_INTERLEAVE) {
+				sl_uint32 hi = (sl_uint32)(Ai >> 32), lo = (sl_uint32)Ai;
+				sl_uint32 t0, t1;
+
+				t0 = lo & 0x0000ffff;
+				t0 |= t0 << 8;  t0 &= 0x00ff00ff;
+				t0 |= t0 << 4;  t0 &= 0x0f0f0f0f;
+				t0 |= t0 << 2;  t0 &= 0x33333333;
+				t0 |= t0 << 1;  t0 &= 0x55555555;
+
+				t1 = hi << 16;
+				t1 |= t1 >> 8;  t1 &= 0xff00ff00;
+				t1 |= t1 >> 4;  t1 &= 0xf0f0f0f0;
+				t1 |= t1 >> 2;  t1 &= 0xcccccccc;
+				t1 |= t1 >> 1;  t1 &= 0xaaaaaaaa;
+
+				lo >>= 16;
+				lo |= lo << 8;  lo &= 0x00ff00ff;
+				lo |= lo << 4;  lo &= 0x0f0f0f0f;
+				lo |= lo << 2;  lo &= 0x33333333;
+				lo |= lo << 1;  lo &= 0x55555555;
+
+				hi &= 0xffff0000;
+				hi |= hi >> 8;  hi &= 0xff00ff00;
+				hi |= hi >> 4;  hi &= 0xf0f0f0f0;
+				hi |= hi >> 2;  hi &= 0xcccccccc;
+				hi |= hi >> 1;  hi &= 0xaaaaaaaa;
+
+				Ai = ((sl_uint64)(hi | lo) << 32) | (t1 | t0);
+			}
+
+			return Ai;
+		}
+
+		static const sl_uint8 g_rhotates[5][5] = {
+			{ 0,  1, 62, 28, 27 },
+			{ 36, 44,  6, 55, 20 },
+			{ 3, 10, 43, 25, 39 },
+			{ 41, 45, 15, 21,  8 },
+			{ 18,  2, 61, 56, 14 }
+		};
+
+		static const sl_uint64 g_iotas[] = {
+			BIT_INTERLEAVE ? SLIB_UINT64(0x0000000000000001) : SLIB_UINT64(0x0000000000000001),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x0000008900000000) : SLIB_UINT64(0x0000000000008082),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000008b00000000) : SLIB_UINT64(0x800000000000808a),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000808000000000) : SLIB_UINT64(0x8000000080008000),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x0000008b00000001) : SLIB_UINT64(0x000000000000808b),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x0000800000000001) : SLIB_UINT64(0x0000000080000001),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000808800000001) : SLIB_UINT64(0x8000000080008081),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000008200000001) : SLIB_UINT64(0x8000000000008009),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x0000000b00000000) : SLIB_UINT64(0x000000000000008a),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x0000000a00000000) : SLIB_UINT64(0x0000000000000088),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x0000808200000001) : SLIB_UINT64(0x0000000080008009),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x0000800300000000) : SLIB_UINT64(0x000000008000000a),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x0000808b00000001) : SLIB_UINT64(0x000000008000808b),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000000b00000001) : SLIB_UINT64(0x800000000000008b),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000008a00000001) : SLIB_UINT64(0x8000000000008089),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000008100000001) : SLIB_UINT64(0x8000000000008003),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000008100000000) : SLIB_UINT64(0x8000000000008002),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000000800000000) : SLIB_UINT64(0x8000000000000080),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x0000008300000000) : SLIB_UINT64(0x000000000000800a),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000800300000000) : SLIB_UINT64(0x800000008000000a),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000808800000001) : SLIB_UINT64(0x8000000080008081),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000008800000000) : SLIB_UINT64(0x8000000000008080),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x0000800000000001) : SLIB_UINT64(0x0000000080000001),
+			BIT_INTERLEAVE ? SLIB_UINT64(0x8000808200000000) : SLIB_UINT64(0x8000000080008008)
+		};
+
+		static void Round(sl_uint64 R[5][5], sl_uint64 A[5][5], sl_uint32 i)
+		{
+			sl_uint64 C[5], D[5];
+
+			SLIB_ASSERT(i < (sizeof(g_iotas) / sizeof(g_iotas[0])));
+
+			C[0] = A[0][0] ^ A[1][0] ^ A[2][0] ^ A[3][0] ^ A[4][0];
+			C[1] = A[0][1] ^ A[1][1] ^ A[2][1] ^ A[3][1] ^ A[4][1];
+			C[2] = A[0][2] ^ A[1][2] ^ A[2][2] ^ A[3][2] ^ A[4][2];
+			C[3] = A[0][3] ^ A[1][3] ^ A[2][3] ^ A[3][3] ^ A[4][3];
+			C[4] = A[0][4] ^ A[1][4] ^ A[2][4] ^ A[3][4] ^ A[4][4];
+
+			D[0] = ROL64(C[1], 1) ^ C[4];
+			D[1] = ROL64(C[2], 1) ^ C[0];
+			D[2] = ROL64(C[3], 1) ^ C[1];
+			D[3] = ROL64(C[4], 1) ^ C[2];
+			D[4] = ROL64(C[0], 1) ^ C[3];
+
+			C[0] = A[0][0] ^ D[0]; /* rotate by 0 */
+			C[1] = ROL64(A[1][1] ^ D[1], g_rhotates[1][1]);
+			C[2] = ROL64(A[2][2] ^ D[2], g_rhotates[2][2]);
+			C[3] = ROL64(A[3][3] ^ D[3], g_rhotates[3][3]);
+			C[4] = ROL64(A[4][4] ^ D[4], g_rhotates[4][4]);
+
+#ifdef KECCAK_COMPLEMENTING_TRANSFORM
+			R[0][0] = C[0] ^ (C[1] | C[2]) ^ g_iotas[i];
+			R[0][1] = C[1] ^ (~C[2] | C[3]);
+			R[0][2] = C[2] ^ (C[3] & C[4]);
+			R[0][3] = C[3] ^ (C[4] | C[0]);
+			R[0][4] = C[4] ^ (C[0] & C[1]);
+#else
+			R[0][0] = C[0] ^ (~C[1] & C[2]) ^ g_iotas[i];
+			R[0][1] = C[1] ^ (~C[2] & C[3]);
+			R[0][2] = C[2] ^ (~C[3] & C[4]);
+			R[0][3] = C[3] ^ (~C[4] & C[0]);
+			R[0][4] = C[4] ^ (~C[0] & C[1]);
+#endif
+
+			C[0] = ROL64(A[0][3] ^ D[3], g_rhotates[0][3]);
+			C[1] = ROL64(A[1][4] ^ D[4], g_rhotates[1][4]);
+			C[2] = ROL64(A[2][0] ^ D[0], g_rhotates[2][0]);
+			C[3] = ROL64(A[3][1] ^ D[1], g_rhotates[3][1]);
+			C[4] = ROL64(A[4][2] ^ D[2], g_rhotates[4][2]);
+
+#ifdef KECCAK_COMPLEMENTING_TRANSFORM
+			R[1][0] = C[0] ^ (C[1] | C[2]);
+			R[1][1] = C[1] ^ (C[2] & C[3]);
+			R[1][2] = C[2] ^ (C[3] | ~C[4]);
+			R[1][3] = C[3] ^ (C[4] | C[0]);
+			R[1][4] = C[4] ^ (C[0] & C[1]);
+#else
+			R[1][0] = C[0] ^ (~C[1] & C[2]);
+			R[1][1] = C[1] ^ (~C[2] & C[3]);
+			R[1][2] = C[2] ^ (~C[3] & C[4]);
+			R[1][3] = C[3] ^ (~C[4] & C[0]);
+			R[1][4] = C[4] ^ (~C[0] & C[1]);
+#endif
+
+			C[0] = ROL64(A[0][1] ^ D[1], g_rhotates[0][1]);
+			C[1] = ROL64(A[1][2] ^ D[2], g_rhotates[1][2]);
+			C[2] = ROL64(A[2][3] ^ D[3], g_rhotates[2][3]);
+			C[3] = ROL64(A[3][4] ^ D[4], g_rhotates[3][4]);
+			C[4] = ROL64(A[4][0] ^ D[0], g_rhotates[4][0]);
+
+#ifdef KECCAK_COMPLEMENTING_TRANSFORM
+			R[2][0] = C[0] ^ (C[1] | C[2]);
+			R[2][1] = C[1] ^ (C[2] & C[3]);
+			R[2][2] = C[2] ^ (~C[3] & C[4]);
+			R[2][3] = ~C[3] ^ (C[4] | C[0]);
+			R[2][4] = C[4] ^ (C[0] & C[1]);
+#else
+			R[2][0] = C[0] ^ (~C[1] & C[2]);
+			R[2][1] = C[1] ^ (~C[2] & C[3]);
+			R[2][2] = C[2] ^ (~C[3] & C[4]);
+			R[2][3] = C[3] ^ (~C[4] & C[0]);
+			R[2][4] = C[4] ^ (~C[0] & C[1]);
+#endif
+
+			C[0] = ROL64(A[0][4] ^ D[4], g_rhotates[0][4]);
+			C[1] = ROL64(A[1][0] ^ D[0], g_rhotates[1][0]);
+			C[2] = ROL64(A[2][1] ^ D[1], g_rhotates[2][1]);
+			C[3] = ROL64(A[3][2] ^ D[2], g_rhotates[3][2]);
+			C[4] = ROL64(A[4][3] ^ D[3], g_rhotates[4][3]);
+
+#ifdef KECCAK_COMPLEMENTING_TRANSFORM
+			R[3][0] = C[0] ^ (C[1] & C[2]);
+			R[3][1] = C[1] ^ (C[2] | C[3]);
+			R[3][2] = C[2] ^ (~C[3] | C[4]);
+			R[3][3] = ~C[3] ^ (C[4] & C[0]);
+			R[3][4] = C[4] ^ (C[0] | C[1]);
+#else
+			R[3][0] = C[0] ^ (~C[1] & C[2]);
+			R[3][1] = C[1] ^ (~C[2] & C[3]);
+			R[3][2] = C[2] ^ (~C[3] & C[4]);
+			R[3][3] = C[3] ^ (~C[4] & C[0]);
+			R[3][4] = C[4] ^ (~C[0] & C[1]);
+#endif
+
+			C[0] = ROL64(A[0][2] ^ D[2], g_rhotates[0][2]);
+			C[1] = ROL64(A[1][3] ^ D[3], g_rhotates[1][3]);
+			C[2] = ROL64(A[2][4] ^ D[4], g_rhotates[2][4]);
+			C[3] = ROL64(A[3][0] ^ D[0], g_rhotates[3][0]);
+			C[4] = ROL64(A[4][1] ^ D[1], g_rhotates[4][1]);
+
+#ifdef KECCAK_COMPLEMENTING_TRANSFORM
+			R[4][0] = C[0] ^ (~C[1] & C[2]);
+			R[4][1] = ~C[1] ^ (C[2] | C[3]);
+			R[4][2] = C[2] ^ (C[3] & C[4]);
+			R[4][3] = C[3] ^ (C[4] | C[0]);
+			R[4][4] = C[4] ^ (C[0] & C[1]);
+#else
+			R[4][0] = C[0] ^ (~C[1] & C[2]);
+			R[4][1] = C[1] ^ (~C[2] & C[3]);
+			R[4][2] = C[2] ^ (~C[3] & C[4]);
+			R[4][3] = C[3] ^ (~C[4] & C[0]);
+			R[4][4] = C[4] ^ (~C[0] & C[1]);
+#endif
+		}
+
 	}
 
-	namespace priv
+	SHA3::SHA3(sl_size hashSize, sl_uint32 blockSize, sl_bool flagSHAKE) noexcept
 	{
+		SLIB_ASSERT(blockSize <= 200)
+		m_hashSize = hashSize;
+		m_rate = blockSize;
+		m_suffix = flagSHAKE ? 31 : 6;
+		m_rlen = 0;
+	}
 
-		SHA3Base::SHA3Base() noexcept
-		{
-			rdata_len = 0;
+	SHA3::~SHA3()
+	{
+	}
+
+	void SHA3::start() noexcept
+	{
+		Base::zeroMemory(m_state, sizeof(m_state));
+		m_rlen = 0;
+	}
+
+	void SHA3::_update(const sl_uint8* data) noexcept
+	{
+		sl_uint64* A = &(m_state[0][0]);
+		sl_uint32 w = m_rate >> 3;
+		for (sl_uint32 i = 0; i < w; i++) {
+			A[i] ^= BitInterleave(MIO::readUint64LE(data));
+			data += 8;
 		}
+		_keccak();
+	}
 
-		SHA3Base::~SHA3Base()
-		{
+	void SHA3::_keccak()
+	{
+		sl_uint64(*A)[5] = m_state;
+#ifdef KECCAK_COMPLEMENTING_TRANSFORM
+		A[0][1] = ~A[0][1];
+		A[0][2] = ~A[0][2];
+		A[1][3] = ~A[1][3];
+		A[2][2] = ~A[2][2];
+		A[3][2] = ~A[3][2];
+		A[4][0] = ~A[4][0];
+#endif
+		sl_uint64 T[5][5];
+		for (sl_uint32 i = 0; i < 24; i += 2) {
+			Round(T, A, i);
+			Round(A, T, i + 1);
 		}
+#ifdef KECCAK_COMPLEMENTING_TRANSFORM
+		A[0][1] = ~A[0][1];
+		A[0][2] = ~A[0][2];
+		A[1][3] = ~A[1][3];
+		A[2][2] = ~A[2][2];
+		A[3][2] = ~A[3][2];
+		A[4][0] = ~A[4][0];
+#endif
+	}
 
-		void SHA3Base::start() noexcept
-		{
-			Base::zeroMemory(A, sizeof(A));
-			rdata_len = 0;
+	void SHA3::update(const void* _input, sl_size sizeInput) noexcept
+	{
+		const sl_uint8* input = (const sl_uint8*)_input;
+		if (!sizeInput) {
+			return;
 		}
-
-		void SHA3Base::update(const void* _input, sl_size sizeInput) noexcept
-		{
-			const sl_uint8* input = (const sl_uint8*)_input;
-			if (!sizeInput) {
+		if (m_rlen > 0) {
+			sl_uint32 n = m_rate - m_rlen;
+			if (sizeInput < n) {
+				Base::copyMemory(m_rdata + m_rlen, input, sizeInput);
+				m_rlen += (sl_uint32)sizeInput;
 				return;
-			}
-			if (rdata_len > 0) {
-				sl_uint32 n = rate - rdata_len;
-				if (sizeInput < n) {
-					Base::copyMemory(rdata + rdata_len, input, sizeInput);
-					rdata_len += (sl_uint32)sizeInput;
+			} else {
+				Base::copyMemory(m_rdata + m_rlen, input, n);
+				_update(m_rdata);
+				m_rlen = 0;
+				sizeInput -= n;
+				input += n;
+				if (!sizeInput) {
 					return;
-				} else {
-					Base::copyMemory(rdata + rdata_len, input, n);
-					_updateBlock(rdata);
-					rdata_len = 0;
-					sizeInput -= n;
-					input += n;
-					if (!sizeInput) {
-						return;
-					}
 				}
-			}
-			while (sizeInput >= rate) {
-				_updateBlock(input);
-				sizeInput -= rate;
-				input += rate;
-			}
-			if (sizeInput) {
-				Base::copyMemory(rdata, input, sizeInput);
-				rdata_len = (sl_uint32)sizeInput;
 			}
 		}
+		while (sizeInput >= m_rate) {
+			_update(input);
+			sizeInput -= m_rate;
+			input += m_rate;
+		}
+		if (sizeInput) {
+			Base::copyMemory(m_rdata, input, sizeInput);
+			m_rlen = (sl_uint32)sizeInput;
+		}
+	}
 
-		void SHA3Base::finish(void* _output) noexcept
+	void SHA3::_finish(void* _output, sl_size n) noexcept
+	{
+		sl_uint64* A = &(m_state[0][0]);
+		sl_uint32 r = m_rate;
+		// Append SHA-3 Domain Suffix (01 or 1111) and padding (10*1)
 		{
-			// Append SHA-3 Domain Suffix (01) and padding (10*1)
-			{
-				sl_uint32 rate_1 = rate - 1;
-				if (rdata_len < rate_1) {
-					rdata[rdata_len] = (sl_uint8)0x06;
-					for (sl_uint32 i = rdata_len + 1; i < rate_1; i++) {
-						rdata[i] = 0;
-					}
-					rdata[rate_1] = (sl_uint8)0x80;
-				} else {
-					rdata[rdata_len] = (sl_uint8)0x86;
+			sl_uint32 r1 = r - 1;
+			if (m_rlen < r1) {
+				m_rdata[m_rlen] = m_suffix;
+				for (sl_uint32 i = m_rlen + 1; i < r1; i++) {
+					m_rdata[i] = 0;
 				}
-				_updateBlock(rdata);
-				rdata_len = 0;
+				m_rdata[r1] = (sl_uint8)0x80;
+			} else {
+				m_rdata[m_rlen] = (sl_uint8)(0x80 | m_suffix);
 			}
-			// Extract
-			{
-				sl_uint8* output = (sl_uint8*)_output;
-				sl_uint32 n = nhash;
-				sl_uint32 lanes = (n + 7) >> 3;
-				for (sl_uint32 x = 0, y = 0, i = 0; i < lanes; i++) {
-					if (n >= 8) {
-						WriteBi(&A[x][y], output);
-						output += 8;
-						n -= 8;
-					} else {
-						sl_uint8 buf[8];
-						WriteBi(&A[x][y], buf);
-						Base::copyMemory(output, buf, n);
+			_update(m_rdata);
+			m_rlen = 0;
+		}
+		// Extract
+		if (n) {
+			sl_uint8* output = (sl_uint8*)_output;
+			sl_uint32 w = r >> 3;
+			sl_uint32 x = 0;
+			sl_uint32 y = 0;
+			sl_uint32 i = 0;
+			for (;;) {
+				sl_uint64 Ai = BitDeinterleave(A[i]);
+				if (n >= 8) {
+					MIO::writeUint64LE(output, Ai);
+					output += 8;
+					n -= 8;
+					if (!n) {
 						return;
 					}
+				} else {
+					sl_uint8 buf[8];
+					MIO::writeUint64LE(buf, Ai);
+					Base::copyMemory(output, buf, n);
+					return;
+				}
+				i++;
+				if (i == w) {
+					i = 0;
+					x = 0;
+					y = 0;
+					_keccak();
+				} else {
 					x++;
 					if (x == 5) {
 						y++;
@@ -222,114 +441,67 @@ namespace slib
 				}
 			}
 		}
-
-		void SHA3Base::_updateBlock(const sl_uint8* data) noexcept
-		{
-			// absorb
-			{
-				sl_uint32 lanes = rate >> 3;
-				for (sl_uint32 x = 0, y = 0, i = 0; i < lanes; i++) {
-					BitInterleaved64 bi;
-					ReadBi(&bi, data);
-					A[x][y].odd ^= bi.odd;
-					A[x][y].even ^= bi.even;
-					data += 8;
-					x++;
-					if (x == 5) {
-						y++;
-						x = 0;
-					}
-				}
-			}
-			// permute
-			for (sl_uint32 r = 0; r < 24; r++)
-			{
-				// theta
-				{
-					sl_uint32 x;
-					BitInterleaved64 C[5], D[5];
-					for (x = 0; x < 5; x++) {
-						C[x].odd = A[x][0].odd ^ A[x][1].odd ^ A[x][2].odd ^ A[x][3].odd ^ A[x][4].odd;
-						C[x].even = A[x][0].even ^ A[x][1].even ^ A[x][2].even ^ A[x][3].even ^ A[x][4].even;
-					}
-					for (x = 0; x < 5; x++) {
-						BitInterleaved64 r;
-						RotateBi1(&r, &C[MOD5(x + 1)]);
-						D[x].odd = C[MOD5(x - 1)].odd ^ r.odd;
-						D[x].even = C[MOD5(x - 1)].even ^ r.even;
-						for (int y = 0; y < 5; y++) {
-							A[x][y].odd ^= D[x].odd;
-							A[x][y].even ^= D[x].even;
-						}
-					}
-				}
-				// rho pi chi
-				{
-					sl_uint32 x, y;
-					BitInterleaved64 B[5][5] = { { { 0 } } };
-					for (x = 0; x < 5; x++) {
-						for (y = 0; y < 5; y++) {
-							RotateBiN(&B[y][MOD5(2 * x + 3 * y)], &A[x][y], g_rotationConstants[y][x]);
-						}
-					}
-					for (x = 0; x < 5; x++) {
-						sl_uint32 x1 = MOD5(x + 1);
-						sl_uint32 x2 = MOD5(x + 2);
-						for (y = 0; y < 5; y++) {
-							A[x][y].odd = B[x][y].odd ^ ((~B[x1][y].odd) & B[x2][y].odd);
-							A[x][y].even = B[x][y].even ^ ((~B[x1][y].even) & B[x2][y].even);
-						}
-					}
-				}
-				// iota
-				A[0][0].odd ^= g_roundConstants[r].odd;
-				A[0][0].even ^= g_roundConstants[r].even;
-			}
-		}
-
 	}
 
-	SHA3_224::SHA3_224() noexcept
+	void SHA3::finish(void* _output) noexcept
 	{
-		rate = BlockSize;
-		nhash = HashSize;
-	}
-
-	SHA3_224::~SHA3_224()
-	{
+		_finish(_output, m_hashSize);
 	}
 
 
-	SHA3_256::SHA3_256() noexcept
+	SHA3_224::SHA3_224() noexcept: SHA3(HashSize, BlockSize) {}
+
+	SHA3_224::~SHA3_224() {}
+
+
+	SHA3_256::SHA3_256() noexcept : SHA3(HashSize, BlockSize) {}
+
+	SHA3_256::~SHA3_256() {}
+
+
+	SHA3_384::SHA3_384() noexcept : SHA3(HashSize, BlockSize) {}
+
+	SHA3_384::~SHA3_384() {}
+
+
+	SHA3_512::SHA3_512() noexcept: SHA3(HashSize, BlockSize) {}
+	
+	SHA3_512::~SHA3_512() {}
+
+
+	SHAKE128::SHAKE128() noexcept: SHA3(32, 168, sl_true) {}
+
+	SHAKE128::~SHAKE128() {}
+
+	void SHAKE128::finish(void* output, sl_size size) noexcept
 	{
-		rate = BlockSize;
-		nhash = HashSize;
+		_finish(output, size);
 	}
 
-	SHA3_256::~SHA3_256()
+	void SHAKE128::hash(const void* input, sl_size sizeInput, void* output, sl_size sizeOutput) noexcept
 	{
+		SHAKE128 h;
+		h.start();
+		h.update(input, sizeInput);
+		h.finish(output, sizeOutput);
 	}
 
 
-	SHA3_384::SHA3_384() noexcept
+	SHAKE256::SHAKE256() noexcept: SHA3(64, 136, sl_true) {}
+
+	SHAKE256::~SHAKE256() {}
+
+	void SHAKE256::finish(void* output, sl_size size) noexcept
 	{
-		rate = BlockSize;
-		nhash = HashSize;
+		_finish(output, size);
 	}
 
-	SHA3_384::~SHA3_384()
+	void SHAKE256::hash(const void* input, sl_size sizeInput, void* output, sl_size sizeOutput) noexcept
 	{
-	}
-
-
-	SHA3_512::SHA3_512() noexcept
-	{
-		rate = BlockSize;
-		nhash = HashSize;
-	}
-
-	SHA3_512::~SHA3_512()
-	{
+		SHAKE256 h;
+		h.start();
+		h.update(input, sizeInput);
+		h.finish(output, sizeOutput);
 	}
 
 }

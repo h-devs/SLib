@@ -33,50 +33,44 @@
 		SHA3_256 - 256bits (32 bytes)
 		SHA3_384 - 384bits (48 bytes)
 		SHA3_512 - 512bits (64 bytes)
+		SHAKE128<d> - d bytes
+		SHAKE256<d> - d bytes
 */
 
 namespace slib
 {
 
-	namespace priv
+	class SLIB_EXPORT SHA3
 	{
+	public:
+		SHA3(sl_size hashSize, sl_uint32 blockSize, sl_bool flagSHAKE = sl_false) noexcept;
 
-		class SLIB_EXPORT SHA3Base
-		{
-		public:
-			SHA3Base() noexcept;
+		~SHA3();
 
-			~SHA3Base();
+	public:
+		void start() noexcept;
 
-		public:
-			void start() noexcept;
+		void update(const void* input, sl_size n) noexcept;
 
-			void update(const void* input, sl_size n) noexcept;
+		void finish(void* output) noexcept;
 
-			void finish(void* output) noexcept;
+	protected:
+		void _update(const sl_uint8* input) noexcept;
 
-		protected:
+		void _keccak();
 
-			void _updateBlock(const sl_uint8* input) noexcept;
+		void _finish(void* output, sl_size size) noexcept;
 
-		public:
-			// bit-interleaved internal representation.
-			// This stores a 64 bit quantity in two 32 bit words: one word contains odd bits, the other even. This means 64-bit rotations are cheaper to compute.
-			struct BitInterleaved64
-			{
-				sl_uint32 odd, even;
-			};
+	protected:
+		sl_uint32 m_rate;
+		sl_size m_hashSize; // in bytes
+		sl_uint8 m_suffix;
+		sl_uint64 m_state[5][5];
+		sl_uint8 m_rdata[200];
+		sl_uint32 m_rlen;
+	};
 
-		protected:
-			BitInterleaved64 A[5][5]; // State Blocks for Keccak-f[1600]
-			sl_uint8 rdata[144];
-			sl_uint32 rdata_len;
-			sl_uint32 rate, nhash; // in bytes
-		};
-
-	}
-
-	class SLIB_EXPORT SHA3_224 : public priv::SHA3Base, public CryptoHash<SHA3_224>
+	class SLIB_EXPORT SHA3_224 : public SHA3, public CryptoHash<SHA3_224>
 	{
 	public:
 		enum {
@@ -91,7 +85,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT SHA3_256 : public priv::SHA3Base, public CryptoHash<SHA3_256>
+	class SLIB_EXPORT SHA3_256 : public SHA3, public CryptoHash<SHA3_256>
 	{
 	public:
 		enum {
@@ -106,7 +100,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT SHA3_384 : public priv::SHA3Base, public CryptoHash<SHA3_384>
+	class SLIB_EXPORT SHA3_384 : public SHA3, public CryptoHash<SHA3_384>
 	{
 	public:
 		enum {
@@ -121,7 +115,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT SHA3_512 : public priv::SHA3Base, public CryptoHash<SHA3_512>
+	class SLIB_EXPORT SHA3_512 : public SHA3, public CryptoHash<SHA3_512>
 	{
 	public:
 		enum {
@@ -133,6 +127,62 @@ namespace slib
 		SHA3_512() noexcept;
 
 		~SHA3_512();
+
+	};
+
+	class SLIB_EXPORT SHAKE128 : public SHA3
+	{
+	public:
+		SHAKE128() noexcept;
+
+		~SHAKE128();
+
+	public:
+		void finish(void* output, sl_size size) noexcept;
+
+		static void hash(const void* input, sl_size sizeInput, void* output, sl_size sizeOutput) noexcept;
+
+	};
+
+	template <sl_uint32 HASH_BITS>
+	class SLIB_EXPORT SHAKE128H : public SHA3, public CryptoHash< SHAKE128H<HASH_BITS> >
+	{
+	public:
+		enum {
+			HashSize = HASH_BITS >> 3,
+			BlockSize = 168
+		};
+
+	public:
+		SHAKE128H() noexcept: SHA3(HashSize, BlockSize, sl_true) {}
+
+	};
+
+	class SLIB_EXPORT SHAKE256 : public SHA3
+	{
+	public:
+		SHAKE256() noexcept;
+
+		~SHAKE256();
+
+	public:
+		void finish(void* output, sl_size size) noexcept;
+
+		static void hash(const void* input, sl_size sizeInput, void* output, sl_size sizeOutput) noexcept;
+
+	};
+
+	template <sl_uint32 HASH_BITS>
+	class SLIB_EXPORT SHAKE256H : public SHA3, public CryptoHash< SHAKE256H<HASH_BITS> >
+	{
+	public:
+		enum {
+			HashSize = HASH_BITS >> 3,
+			BlockSize = 136
+		};
+
+	public:
+		SHAKE256H() noexcept: SHA3(HashSize, BlockSize, sl_true) {}
 
 	};
 
