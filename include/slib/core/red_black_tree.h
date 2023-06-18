@@ -677,7 +677,7 @@ namespace slib
 				if (left) {
 					if (right) {
 						node = left;
-						SLIB_ASSERT(nStack < PRIV_SLIB_RED_BLACK_TREE_MAX_DISTANCE);
+						SLIB_ASSERT(nStack < PRIV_SLIB_RED_BLACK_TREE_MAX_DISTANCE)
 						stack[nStack] = right;
 						nStack++;
 					} else {
@@ -750,7 +750,7 @@ namespace slib
 					if (rightSource) {
 						nodeSource = leftSource;
 						nodeTarget = leftTarget;
-						SLIB_ASSERT(nStack < PRIV_SLIB_RED_BLACK_TREE_MAX_DISTANCE);
+						SLIB_ASSERT(nStack < PRIV_SLIB_RED_BLACK_TREE_MAX_DISTANCE)
 						stackSource[nStack] = rightSource;
 						stackTarget[nStack] = rightTarget;
 						nStack++;

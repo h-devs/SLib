@@ -58,7 +58,8 @@ namespace slib
 
 		SLIB_CONSTEXPR IPv4Address(sl_null_t): a(0), b(0), c(0), d(0) {}
 
-		SLIB_CONSTEXPR IPv4Address(sl_uint8 const addr[4]): a(addr[0]), b(addr[1]), c(addr[2]), d(addr[3]) {}
+		// 4 elements
+		SLIB_CONSTEXPR IPv4Address(const sl_uint8* addr): a(addr[0]), b(addr[1]), c(addr[2]), d(addr[3]) {}
 
 		SLIB_CONSTEXPR IPv4Address(sl_uint8 _a, sl_uint8 _b, sl_uint8 _c, sl_uint8 _d): a(_a), b(_b), c(_c), d(_d) {}
 
@@ -82,8 +83,10 @@ namespace slib
 			d = (sl_uint8)(addr);
 		}
 
+		// 4 Bytes
 		void getBytes(void* bytes) const noexcept;
 
+		// 4 Bytes
 		void setBytes(const void* bytes) noexcept;
 
 		static const IPv4Address& zero() noexcept
