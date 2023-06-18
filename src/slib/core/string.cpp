@@ -3234,7 +3234,7 @@ namespace slib
 		template <class CHAR>
 		static sl_reg ParseHexString(const CHAR* str, sl_size i, sl_size n, void* _out) noexcept
 		{
-			if (i >= n || (n & 1)) {
+			if (i >= n) {
 				return SLIB_PARSE_ERROR;
 			}
 			sl_uint8* buf = (sl_uint8*)(_out);
@@ -3262,7 +3262,7 @@ namespace slib
 					} else if (ch >= 'a' && ch <= 'f') {
 						v2 = ch - 'a' + 10;
 					} else {
-						break;
+						return SLIB_PARSE_ERROR;
 					}
 				}
 				buf[k++] = (sl_uint8)((v1 << 4) | v2);
