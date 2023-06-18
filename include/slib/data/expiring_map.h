@@ -141,10 +141,14 @@ namespace slib
 			auto node = m_mapBackup.find_NoLock(key);
 			if (node) {
 				if (flagUpdateLifetime) {
-					m_mapCurrent.add_NoLock(key, Move(node->value));
+					auto newNode = m_mapCurrent.add_NoLock(key, Move(node->value));
 					m_mapBackup.removeAt(node);
+					if (newNode) {
+						return newNode->value;
+					}
+				} else {
+					return node->value;
 				}
-				return node->value;
 			}
 			return def;
 		}
