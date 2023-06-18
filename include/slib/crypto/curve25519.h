@@ -27,25 +27,40 @@
 
 #include "../core/bytes.h"
 
+#define SLIB_X25519_KEY_SIZE 32
+#define SLIB_ED25519_KEY_SIZE 32
+#define SLIB_ED25519_SIGNATURE_SIZE 64
+
 namespace slib
 {
 
 	class SLIB_EXPORT X25519
 	{
 	public:
+		enum {
+			KeySize = SLIB_X25519_KEY_SIZE
+		};
+
+	public:
 		// `privateKey`: 32 Bytes
-		static Bytes<32> getPublicKey(const void* privateKey);
+		static Bytes<KeySize> getPublicKey(const void* privateKey);
 
 		// `privateKey`, `publicKey`: 32 bytes
-		static Bytes<32> getSharedKey(const void* privateKey, const void* publicKey);
+		static Bytes<KeySize> getSharedKey(const void* privateKey, const void* publicKey);
 
 	};
 
 	class SLIB_EXPORT Ed25519
 	{
 	public:
+		enum {
+			KeySize = SLIB_ED25519_KEY_SIZE,
+			SignatureSize = SLIB_ED25519_SIGNATURE_SIZE
+		};
+
+	public:
 		// `privateKey`: 32 Bytes
-		static Bytes<32> getPublicKey(const void* privateKey);
+		static Bytes<KeySize> getPublicKey(const void* privateKey);
 
 		// `privateKey`, `publicKey`: 32 Bytes, `outSignature`: 64 Bytes
 		static void sign(const void* privateKey, const void* publicKey, const void* message, sl_size messageSize, void* outSignature);

@@ -22,7 +22,7 @@
 
 #include "p2p.h"
 
-//#define USE_CURVE448
+#define USE_CURVE448
 
 #include <slib/network/socket.h>
 #include <slib/network/event.h>
@@ -50,6 +50,7 @@ TickCount = Uint32 (Little Endian)
 SharedKey = HKDF(ECDH(LocalNode's Ephemeral Private Key, RemoteNode's Ephemeral Public Key), 32)
 DH_KL = 32 (for X25519), or 56 (for X448)
 DSA_KL = 32 (for Ed25519), or 57 (for Ed448)
+DSA_SL = 64 (for Ed25519), or 114 (for Ed448)
 Encryption = IV(12 Bytes) | Tag(16 Bytes) | Content (AES-GCM, key=SharedKey)
 
 - Hello
@@ -97,7 +98,7 @@ DSA_KL		Bytes			LocalNode's Public Key
 DH_KL		Bytes			LocalNode's Ephemeral Public Key
 *			Bytes			Encryption
 -----	Encrypted Content ---------------------
-2*DSA_KL	Bytes			EdDSA(LocalNode's Private Key, LocalNode's Ephemeral Public Key | RemoteNode's Ephemeral Public Key)
+DSA_SL		Bytes			EdDSA(LocalNode's Private Key, LocalNode's Ephemeral Public Key | RemoteNode's Ephemeral Public Key)
 4			TickCount		RemoteNode
 4			TickCount		LocalNode (0: Completed, 1: Need Complete, Otherwise: Need Verify)
 *			Bytes			LocalNode's Description
@@ -171,14 +172,10 @@ CVLI		Uint32			Total Length (From next field)
 
 #ifdef USE_CURVE448
 #define EdDSA Ed448
-#define EdDSA_KEY_LEN 57
 #define EdDH X448
-#define EdDH_KEY_LEN 56
 #else
 #define EdDSA Ed25519
-#define EdDSA_KEY_LEN 32
 #define EdDH X25519
-#define EdDH_KEY_LEN 32
 #endif
 
 namespace slib
@@ -298,9 +295,9 @@ namespace slib
 		{
 		public:
 			P2PNodeId m_id;
-			Bytes<EdDSA_KEY_LEN> m_publicKey;
-			Bytes<EdDH_KEY_LEN> m_remoteEphemeralKey;
-			Bytes<EdDH_KEY_LEN> m_localEphemeralKey;
+			Bytes<EdDSA::KeySize> m_publicKey;
+			Bytes<EdDH::KeySize> m_remoteEphemeralPublicKey;
+			Bytes<EdDH::KeySize> m_localEphemeralPublicKey;
 			sl_uint8 m_encryptionKey[32];
 			sl_bool m_flagInvalidEncryptionKey = sl_true;
 			AtomicMemory m_description;
@@ -309,32 +306,32 @@ namespace slib
 			CHashMap< IPv4Address, Ref<DirectConnection> > m_connectionsDirect;
 
 		public:
-			Node(const sl_uint8 publicKey[EdDSA_KEY_LEN]): m_publicKey(publicKey), m_id(publicKey) {}
+			Node(const sl_uint8 publicKey[EdDSA::KeySize]): m_publicKey(publicKey), m_id(publicKey) {}
 
 		public:
-			void updateEphemeralKey(const sl_uint8 key[EdDH_KEY_LEN], const Memory& description)
+			void updateRemoteEphemeralKey(const sl_uint8 key[EdDH::KeySize], const Memory& description)
 			{
-				if (Base::equalsMemory(m_remoteEphemeralKey.data, key, EdDH_KEY_LEN)) {
+				if (Base::equalsMemory(m_remoteEphemeralPublicKey.data, key, EdDH::KeySize)) {
 					return;
 				}
-				m_remoteEphemeralKey.setData(key);
+				m_remoteEphemeralPublicKey.setData(key);
 				m_description = description;
 				m_flagInvalidEncryptionKey = sl_true;
 			}
 
-			void updateEncryptionKey(const sl_uint8 localEphemeralPrivateKey[EdDH_KEY_LEN], const sl_uint8 localEphemeralPublicKey[EdDH_KEY_LEN])
+			void updateEncryptionKey(const sl_uint8 localEphemeralPrivateKey[EdDH::KeySize], const sl_uint8 localEphemeralPublicKey[EdDH::KeySize])
 			{
 				sl_bool flagUpdate = sl_false;
 				if (m_flagInvalidEncryptionKey) {
 					m_flagInvalidEncryptionKey = sl_false;
 					flagUpdate = sl_true;
 				}
-				if (!(Base::equalsMemory(m_localEphemeralKey.data, localEphemeralPublicKey, EdDH_KEY_LEN))) {
-					m_localEphemeralKey.setData(localEphemeralPublicKey);
+				if (!(Base::equalsMemory(m_localEphemeralPublicKey.data, localEphemeralPublicKey, EdDH::KeySize))) {
+					m_localEphemeralPublicKey.setData(localEphemeralPublicKey);
 					flagUpdate = sl_true;
 				}
 				if (flagUpdate) {
-					DeriveKey(localEphemeralPrivateKey, m_remoteEphemeralKey.data, m_encryptionKey);
+					DeriveKey(localEphemeralPrivateKey, m_remoteEphemeralPublicKey.data, m_encryptionKey);
 				}
 			}
 
@@ -602,10 +599,10 @@ namespace slib
 			P2PSocketParam m_param;
 
 			P2PNodeId m_localNodeId;
-			Bytes<EdDSA_KEY_LEN> m_localKey;
-			Bytes<EdDSA_KEY_LEN> m_localPublicKey;
-			Bytes<EdDH_KEY_LEN> m_ephemeralKey;
-			Bytes<EdDH_KEY_LEN> m_ephemeralPublicKey;
+			Bytes<EdDSA::KeySize> m_localKey;
+			Bytes<EdDSA::KeySize> m_localPublicKey;
+			Bytes<EdDH::KeySize> m_ephemeralKey;
+			Bytes<EdDH::KeySize> m_ephemeralPublicKey;
 
 			sl_uint8 m_helloMessage[1024];
 			sl_uint32 m_sizeHelloMessage;
@@ -656,14 +653,14 @@ namespace slib
 					return sl_null;
 				}
 
-				if (param.key.isNull() || param.key.getSize() != EdDSA_KEY_LEN) {
-					param.key = Memory::create(EdDSA_KEY_LEN);
+				if (param.key.isNull() || param.key.getSize() != EdDSA::KeySize) {
+					param.key = Memory::create(EdDSA::KeySize);
 					if (param.key.isNull()) {
 						SLIB_STATIC_STRING(err, "Lack of memory")
 						param.errorText = err;
 						return sl_null;
 					}
-					Math::randomMemory(param.key.getData(), EdDSA_KEY_LEN);
+					Math::randomMemory(param.key.getData(), EdDSA::KeySize);
 					param.flagGeneratedKey = sl_true;
 				}
 
@@ -1076,32 +1073,32 @@ namespace slib
 
 			void _sendVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId)
 			{
-				sl_uint8 packet[37 + EdDH_KEY_LEN];
+				sl_uint8 packet[37 + EdDH::KeySize];
 				*packet = (sl_uint8)(Command::VerifyNode);
 				Base::copyMemory(packet + 1, remoteId.data, sizeof(P2PNodeId));
 				Base::copyMemory(packet + 17, m_localNodeId.data, sizeof(P2PNodeId));
-				Base::copyMemory(packet + 33, m_ephemeralPublicKey.data, EdDH_KEY_LEN);
-				MIO::writeUint32LE(packet + (33 + EdDH_KEY_LEN), GetCurrentTick());
+				Base::copyMemory(packet + 33, m_ephemeralPublicKey.data, EdDH::KeySize);
+				MIO::writeUint32LE(packet + (33 + EdDH::KeySize), GetCurrentTick());
 				_sendUdp(address, packet, sizeof(packet));
 			}
 
 			void _onReceiveVerifyNode(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 			{
-				if (sizePacket != 37 + EdDH_KEY_LEN) {
+				if (sizePacket != 37 + EdDH::KeySize) {
 					return;
 				}
 				if (!(Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId)))) {
 					return;
 				}
 				P2PNodeId remoteId(packet + 17);
-				Bytes<EdDH_KEY_LEN> remoteEphemeralKey(packet + 33);
-				sl_uint32 remoteTick = MIO::readUint32LE(packet + (33 + EdDH_KEY_LEN));
+				Bytes<EdDH::KeySize> remoteEphemeralKey(packet + 33);
+				sl_uint32 remoteTick = MIO::readUint32LE(packet + (33 + EdDH::KeySize));
 				m_threadPool->addTask([this, address, remoteId, remoteEphemeralKey, remoteTick]() {
 					_onReceiveVerifyNode(address, remoteId, remoteEphemeralKey.data, remoteTick);
 				});
 			}
 
-			void _onReceiveVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId, const sl_uint8 remoteEphemeralKey[EdDH_KEY_LEN], sl_uint32 remoteTick)
+			void _onReceiveVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId, const sl_uint8 remoteEphemeralKey[EdDH::KeySize], sl_uint32 remoteTick)
 			{
 				sl_uint32 localTick = GetCurrentTick();
 				if (localTick < 2) {
@@ -1109,30 +1106,30 @@ namespace slib
 				}
 				Ref<Node> node = _getNode(remoteId);
 				if (node.isNotNull()) {
-					if (Base::equalsMemory(node->m_remoteEphemeralKey.data, remoteEphemeralKey, EdDH_KEY_LEN)) {
+					if (Base::equalsMemory(node->m_remoteEphemeralPublicKey.data, remoteEphemeralKey, EdDH::KeySize)) {
 						localTick = 0; // Completed
 					}
 				}
 				_sendReplyVerifyNode(address, remoteId, remoteEphemeralKey, remoteTick, localTick);
 			}
 
-			void _sendReplyVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId, const sl_uint8 remoteEphemeralKey[EdDH_KEY_LEN], sl_uint32 remoteTick, sl_uint32 localTick)
+			void _sendReplyVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId, const sl_uint8 remoteEphemeralKey[EdDH::KeySize], sl_uint32 remoteTick, sl_uint32 localTick)
 			{
-				const sl_uint32 sizeHeader = 17 + EdDSA_KEY_LEN + EdDH_KEY_LEN;
-				const sl_uint32 sizeContentHeader = EdDSA_KEY_LEN * 2 + 8;
+				const sl_uint32 sizeHeader = 17 + EdDSA::KeySize + EdDH::KeySize;
+				const sl_uint32 sizeContentHeader = EdDSA::SignatureSize + 8;
 				sl_uint8 packet[sizeHeader + 28 + sizeContentHeader + sizeof(m_localNodeDescription)];
 				*packet = (sl_uint8)(Command::ReplyVerifyNode);
 				Base::copyMemory(packet + 1, remoteId.data, sizeof(P2PNodeId));
-				Base::copyMemory(packet + 17, m_localPublicKey.data, EdDSA_KEY_LEN);
-				Base::copyMemory(packet + (17 + EdDSA_KEY_LEN), m_ephemeralPublicKey.data, EdDH_KEY_LEN);
+				Base::copyMemory(packet + 17, m_localPublicKey.data, EdDSA::KeySize);
+				Base::copyMemory(packet + (17 + EdDSA::KeySize), m_ephemeralPublicKey.data, EdDH::KeySize);
 				Math::randomMemory(packet + sizeHeader, 12);
 				const sl_uint32 posContent = sizeHeader + 28;
-				sl_uint8 sts[EdDH_KEY_LEN * 2];
-				Base::copyMemory(sts, m_ephemeralPublicKey.data, EdDH_KEY_LEN);
-				Base::copyMemory(sts + EdDH_KEY_LEN, remoteEphemeralKey, EdDH_KEY_LEN);
+				sl_uint8 sts[EdDH::KeySize * 2];
+				Base::copyMemory(sts, m_ephemeralPublicKey.data, EdDH::KeySize);
+				Base::copyMemory(sts + EdDH::KeySize, remoteEphemeralKey, EdDH::KeySize);
 				EdDSA::sign(m_localKey.data, m_localPublicKey.data, sts, sizeof(sts), packet + posContent);
-				MIO::writeUint32LE(packet + (posContent + EdDSA_KEY_LEN * 2), remoteTick);
-				MIO::writeUint32LE(packet + (posContent + EdDSA_KEY_LEN * 2 + 4), localTick);
+				MIO::writeUint32LE(packet + (posContent + EdDSA::SignatureSize), remoteTick);
+				MIO::writeUint32LE(packet + (posContent + EdDSA::SignatureSize + 4), localTick);
 				sl_uint32 sizeDesc = m_sizeLocalNodeDescription;
 				if (sizeDesc > sizeof(m_localNodeDescription)) {
 					sizeDesc = sizeof(m_localNodeDescription);
@@ -1150,16 +1147,16 @@ namespace slib
 
 			void _onReceiveReplyVerifyNode(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 			{
-				const sl_uint32 sizeHeader = 17 + EdDSA_KEY_LEN + EdDH_KEY_LEN;
-				const sl_uint32 sizeContentHeader = EdDSA_KEY_LEN * 2 + 8;
+				const sl_uint32 sizeHeader = 17 + EdDSA::KeySize + EdDH::KeySize;
+				const sl_uint32 sizeContentHeader = EdDSA::SignatureSize + 8;
 				if (sizePacket < sizeHeader + 28 + sizeContentHeader) {
 					return;
 				}
 				if (!(Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId)))) {
 					return;
 				}
-				Bytes<EdDSA_KEY_LEN> remoteKey(packet + 17);
-				Bytes<EdDH_KEY_LEN> remoteEphemeralKey(packet + (17 + EdDSA_KEY_LEN));
+				Bytes<EdDSA::KeySize> remoteKey(packet + 17);
+				Bytes<EdDH::KeySize> remoteEphemeralKey(packet + (17 + EdDSA::KeySize));
 				sl_uint8 key[32];
 				_deriveEncryptionKey(remoteEphemeralKey.data, key);
 				AES_GCM decryptor;
@@ -1170,30 +1167,30 @@ namespace slib
 				if (!(decryptor.finishAndCheckTag(packet + (sizeHeader + 12)))) {
 					return;
 				}
-				Bytes<EdDSA_KEY_LEN * 2> signature(packet + posContent);
-				sl_uint32 timeOld = MIO::readUint32LE(packet + (posContent + EdDSA_KEY_LEN * 2));
+				Bytes<EdDSA::SignatureSize> signature(packet + posContent);
+				sl_uint32 timeOld = MIO::readUint32LE(packet + (posContent + EdDSA::SignatureSize));
 				sl_uint32 timeNew = GetCurrentTick();
 				if (!(CheckDelay(timeOld, timeNew, m_param.findTimeout))) {
 					return;
 				}
-				sl_uint32 localTick = MIO::readUint32LE(packet + (posContent + EdDSA_KEY_LEN * 2 + 4));
+				sl_uint32 localTick = MIO::readUint32LE(packet + (posContent + EdDSA::SignatureSize + 4));
 				Memory desc = Memory::create(packet + (posContent + sizeContentHeader), sizePacket - (posContent + sizeContentHeader));
 				m_threadPool->addTask([this, address, remoteKey, remoteEphemeralKey, signature, desc, timeOld, timeNew, localTick]() {
 					_onReceiveReplyVerifyDirectConnection(address, remoteKey.data, remoteEphemeralKey.data, signature.data, desc, timeNew, timeNew - timeOld, localTick);
 				});
 			}
 
-			void _onReceiveReplyVerifyDirectConnection(const SocketAddress& address, const sl_uint8 remoteKey[EdDSA_KEY_LEN], const sl_uint8 remoteEphemeralKey[EdDH_KEY_LEN], const sl_uint8 signature[EdDSA_KEY_LEN * 2], const Memory& desc, sl_uint32 tick, sl_uint32 delay, sl_uint32 localTick)
+			void _onReceiveReplyVerifyDirectConnection(const SocketAddress& address, const sl_uint8 remoteKey[EdDSA::KeySize], const sl_uint8 remoteEphemeralKey[EdDH::KeySize], const sl_uint8 signature[EdDSA::SignatureSize], const Memory& desc, sl_uint32 tick, sl_uint32 delay, sl_uint32 localTick)
 			{
-				sl_uint8 sts[EdDH_KEY_LEN * 2];
-				Base::copyMemory(sts, remoteEphemeralKey, EdDH_KEY_LEN);
-				Base::copyMemory(sts + EdDH_KEY_LEN, m_ephemeralPublicKey.data, EdDH_KEY_LEN);
+				sl_uint8 sts[EdDH::KeySize * 2];
+				Base::copyMemory(sts, remoteEphemeralKey, EdDH::KeySize);
+				Base::copyMemory(sts + EdDH::KeySize, m_ephemeralPublicKey.data, EdDH::KeySize);
 				if (!(EdDSA::verify(remoteKey, sts, sizeof(sts), signature))) {
 					return;
 				}
 				Ref<Node> node = _createNode(remoteKey);
 				if (node.isNotNull()) {
-					node->updateEphemeralKey(remoteEphemeralKey, desc);
+					node->updateRemoteEphemeralKey(remoteEphemeralKey, desc);
 					Ref<DirectConnection> connection = _createDirectConnection(node.get(), address);
 					if (connection.isNotNull()) {
 						connection->m_timeLastPing = tick;
@@ -1293,7 +1290,7 @@ namespace slib
 				if (node.isNull()) {
 					return;
 				}
-				if (!(Base::equalsMemory(node->m_remoteEphemeralKey.data, ephemeralKeyPrefix, 8))) {
+				if (!(Base::equalsMemory(node->m_remoteEphemeralPublicKey.data, ephemeralKeyPrefix, 8))) {
 					_sendVerifyNode(address, nodeId);
 					return;
 				}
@@ -1739,7 +1736,7 @@ namespace slib
 				return sl_true;
 			}
 
-			void _deriveEncryptionKey(const sl_uint8 remoteEphemeralKey[EdDH_KEY_LEN], sl_uint8 key[32])
+			void _deriveEncryptionKey(const sl_uint8 remoteEphemeralKey[EdDH::KeySize], sl_uint8 key[32])
 			{
 				DeriveKey(m_ephemeralKey.data, remoteEphemeralKey, key);
 			}
@@ -1749,12 +1746,12 @@ namespace slib
 				return m_mapNodes.getValue(nodeId, sl_null, sl_false);
 			}
 
-			Ref<Node> _createNode(const sl_uint8 remoteKey[EdDSA_KEY_LEN])
+			Ref<Node> _createNode(const sl_uint8 remoteKey[EdDSA::KeySize])
 			{
 				P2PNodeId nodeId(remoteKey);
 				Ref<Node> node = m_mapNodes.getValue(nodeId, sl_null, sl_true);
 				if (node.isNotNull()) {
-					if (Base::equalsMemory(node->m_publicKey.data, remoteKey, EdDSA_KEY_LEN)) {
+					if (Base::equalsMemory(node->m_publicKey.data, remoteKey, EdDSA::KeySize)) {
 						return node;
 					}
 				}
@@ -2009,7 +2006,7 @@ namespace slib
 
 			void _updateEphemeralKey()
 			{
-				Math::randomMemory(m_ephemeralKey.data, EdDH_KEY_LEN);
+				Math::randomMemory(m_ephemeralKey.data, EdDH::KeySize);
 				m_ephemeralPublicKey = EdDH::getPublicKey(m_ephemeralKey.data);
 			}
 

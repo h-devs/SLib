@@ -2335,7 +2335,7 @@ namespace slib
 
 	}
 
-	Bytes<32> X25519::getPublicKey(const void* privateKey)
+	Bytes<SLIB_X25519_KEY_SIZE> X25519::getPublicKey(const void* privateKey)
 	{
 		sl_uint8 e[32];
 		Base::copyMemory(e, privateKey, 32);
@@ -2361,14 +2361,14 @@ namespace slib
 		return ret;
 	}
 
-	Bytes<32> X25519::getSharedKey(const void* privateKey, const void* publicKey)
+	Bytes<SLIB_X25519_KEY_SIZE> X25519::getSharedKey(const void* privateKey, const void* publicKey)
 	{
 		Bytes<32> ret;
 		DoX25519(ret.data, publicKey, privateKey);
 		return ret;
 	}
 
-	Bytes<32> Ed25519::getPublicKey(const void* privateKey)
+	Bytes<SLIB_ED25519_KEY_SIZE> Ed25519::getPublicKey(const void* privateKey)
 	{
 		sl_uint8 az[64];
 		SHA512::hash(privateKey, 32, az);

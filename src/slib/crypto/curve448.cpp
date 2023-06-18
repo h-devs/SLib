@@ -1542,7 +1542,7 @@ namespace slib
 
 	}
 
-	Bytes<56> X448::getPublicKey(const void* privateKey)
+	Bytes<SLIB_X448_KEY_SIZE> X448::getPublicKey(const void* privateKey)
 	{
 		sl_uint8 s[56];
 		Base::copyMemory(s, privateKey, 56);
@@ -1569,14 +1569,14 @@ namespace slib
 		return ret;
 	}
 
-	Bytes<56> X448::getSharedKey(const void* privateKey, const void* publicKey)
+	Bytes<SLIB_X448_KEY_SIZE> X448::getSharedKey(const void* privateKey, const void* publicKey)
 	{
 		Bytes<56> ret;
 		MultiplyPoint(ret.data, publicKey, privateKey);
 		return ret;
 	}
 
-	Bytes<57> Ed448::getPublicKey(const void* privateKey)
+	Bytes<SLIB_ED448_KEY_SIZE> Ed448::getPublicKey(const void* privateKey)
 	{
 		sl_uint8 h[57];
 		SHAKE256::hash(privateKey, 57, h, sizeof(h));

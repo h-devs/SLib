@@ -27,25 +27,40 @@
 
 #include "../core/bytes.h"
 
+#define SLIB_X448_KEY_SIZE 56
+#define SLIB_ED448_KEY_SIZE 57
+#define SLIB_ED448_SIGNATURE_SIZE 114
+
 namespace slib
 {
 
 	class SLIB_EXPORT X448
 	{
 	public:
+		enum {
+			KeySize = SLIB_X448_KEY_SIZE
+		};
+
+	public:
 		// `privateKey`: 56 Bytes
-		static Bytes<56> getPublicKey(const void* privateKey);
+		static Bytes<KeySize> getPublicKey(const void* privateKey);
 
 		// `privateKey`, `publicKey`: 56 bytes
-		static Bytes<56> getSharedKey(const void* privateKey, const void* publicKey);
+		static Bytes<KeySize> getSharedKey(const void* privateKey, const void* publicKey);
 
 	};
 
 	class SLIB_EXPORT Ed448
 	{
 	public:
+		enum {
+			KeySize = SLIB_ED448_KEY_SIZE,
+			SignatureSize = SLIB_ED448_SIGNATURE_SIZE
+		};
+
+	public:
 		// `privateKey`: 57 Bytes
-		static Bytes<57> getPublicKey(const void* privateKey);
+		static Bytes<KeySize> getPublicKey(const void* privateKey);
 
 		// `privateKey`, `publicKey`: 57 Bytes, `outSignature`: 114 Bytes
 		static void sign(const void* privateKey, const void* publicKey, const void* message, sl_size messageSize, void* outSignature);
