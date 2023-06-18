@@ -182,7 +182,7 @@ namespace slib
  "An analytical method to transform geocentric into geodetic coordinates"
  http://www.springerlink.com/content/3t6837t27t351227/fulltext.pdf
  
-	Codes are referenced from NASA WorldWind Java version
+	Referenced to NASA WorldWind Java version
  */
 	GeoLocation Globe::getGeoLocation(double x, double y, double z) const
 	{

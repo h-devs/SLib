@@ -24,7 +24,7 @@
 
 #include "slib/core/base.h"
 
-// Referenced from fft4g.c in WebRTC (the original source is from http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html [Copyright Takuya OOURA, 1996-2001, Public Domain])
+// Referenced to fft4g.c in WebRTC (the original source is from http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html [Copyright Takuya OOURA, 1996-2001, Public Domain])
 
 namespace slib
 {

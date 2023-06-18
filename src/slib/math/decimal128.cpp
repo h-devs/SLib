@@ -269,7 +269,7 @@ namespace slib
 			return (sl_uint32)(src - begin);
 		}
 
-		// Referenced from Mongodb's BSON implementation
+		// Referenced to Mongodb's BSON implementation
 		template <class CHAR>
 		static sl_uint32 ToString(const Decimal128* dec, CHAR* out)
 		{

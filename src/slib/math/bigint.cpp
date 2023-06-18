@@ -3369,7 +3369,7 @@ namespace slib
 #undef RETURN_ERROR
 		}
 
-		// referenced from OpenSSL - https://github.com/openssl/openssl/blob/master/include/openssl/bn.h
+		// Referenced to OpenSSL - https://github.com/openssl/openssl/blob/master/include/openssl/bn.h
 		static sl_uint32 GetDefaultCheckPrimeCounts(sl_size nBits) noexcept
 		{
 			if (nBits >= 3747) {

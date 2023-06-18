@@ -51,7 +51,7 @@ namespace slib
 		return sum;
 	}
 
-	// Referenced from RFC 1071
+	// Referenced to RFC 1071
 	sl_uint16 TCP_IP::calculateChecksum(const void* data, sl_size size)
 	{
 		sl_uint16 sum = TCP_IP::calculateOneComplementSum(data, size);
