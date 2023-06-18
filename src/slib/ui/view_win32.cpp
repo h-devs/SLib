@@ -163,7 +163,7 @@ namespace slib
 				case WM_MBUTTONDOWN:
 				case WM_MBUTTONDBLCLK:
 				case WM_MOUSEMOVE:
-				case WM_TOUCH:
+				case 0x0240: // WM_TOUCH
 					break;
 				case WM_NCLBUTTONDOWN:
 					uMsg = WM_LBUTTONDOWN;
@@ -1469,9 +1469,9 @@ namespace slib
 		if (!nTouch) {
 			return sl_false;
 		}
-		HTOUCHINPUT hTouch = (HTOUCHINPUT)lParam;
-		SLIB_SCOPED_BUFFER(TOUCHINPUT, 128, touches, nTouch)
-		if (!((user32::getApi_GetTouchInputInfo())(hTouch, nTouch, touches, sizeof(TOUCHINPUT)))) {
+		void* hTouch = (void*)lParam;
+		SLIB_SCOPED_BUFFER(user32::TOUCHINPUT, 128, touches, nTouch)
+		if (!((user32::getApi_GetTouchInputInfo())(hTouch, nTouch, touches, sizeof(user32::TOUCHINPUT)))) {
 			return sl_false;
 		}
 		Array<TouchPoint> arrPts = Array<TouchPoint>::create(nTouch);
@@ -1484,18 +1484,18 @@ namespace slib
 		sl_bool flagEnd = sl_true;
 		for (sl_uint32 i = 0; i < nTouch; i++) {
 			TouchPoint& pt = pts[i];
-			TOUCHINPUT& input = touches[i];
+			user32::TOUCHINPUT& input = touches[i];
 			POINT point;
-			point.x = TOUCH_COORD_TO_PIXEL(input.x);
-			point.y = TOUCH_COORD_TO_PIXEL(input.y);
+			point.x = input.x / 100; // TOUCH_COORD_TO_PIXEL
+			point.y = input.y / 100; // TOUCH_COORD_TO_PIXEL
 			ScreenToClient(hWnd, &point);
 			pt.point.x = (sl_real)(point.x);
 			pt.point.y = (sl_real)(point.y);
 			pt.pointerId = (sl_uint64)(input.dwID);
-			if (input.dwFlags & TOUCHEVENTF_UP) {
+			if (input.dwFlags & 4) { // TOUCHEVENTF_UP
 				pt.phase = TouchPhase::End;
 				flagBegin = sl_false;
-			} else if (input.dwFlags & TOUCHEVENTF_DOWN) {
+			} else if (input.dwFlags & 2) { // TOUCHEVENTF_DOWN
 				pt.phase = TouchPhase::Begin;
 				flagEnd = sl_false;
 			} else {
@@ -1503,7 +1503,7 @@ namespace slib
 				flagBegin = sl_false;
 				flagEnd = sl_false;
 			}
-			if (input.dwFlags & TOUCHEVENTF_PRIMARY) {
+			if (input.dwFlags & 0x10) { // TOUCHEVENTF_PRIMARY
 				iPrimary = i;
 			}
 		}
@@ -1649,14 +1649,14 @@ namespace slib
 					return 0;
 				}
 				break;
-			case WM_MOUSEHWHEEL:
+			case 0x020E: // WM_MOUSEHWHEEL
 				if (onEventMouseWheel(sl_false, wParam, lParam)) {
 					return 0;
 				}
 				break;
-			case WM_TOUCH:
+			case 0x0240: // WM_TOUCH
 				if (!(onEventTouch(hWnd, wParam, lParam, sl_true))) {
-					(user32::getApi_CloseTouchInputHandle())((HTOUCHINPUT)lParam);
+					(user32::getApi_CloseTouchInputHandle())((void*)lParam);
 				}
 				return 0;
 			case WM_KEYDOWN:
@@ -1768,12 +1768,12 @@ namespace slib
 				return 0;
 			}
 			break;
-		case WM_MOUSEHWHEEL:
+		case 0x020E: // WM_MOUSEHWHEEL
 			if (onEventMouseWheel(sl_false, wParam, lParam)) {
 				return 0;
 			}
 			break;
-		case WM_TOUCH:
+		case 0x0240: // WM_TOUCH
 			if (onEventTouch(hWnd, wParam, lParam, sl_false)) {
 				return 0;
 			}
