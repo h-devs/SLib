@@ -114,6 +114,8 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/crypto/blowfish.cpp"
  "${SLIB_PATH}/src/slib/crypto/certificate.cpp"
  "${SLIB_PATH}/src/slib/crypto/chacha.cpp"
+ "${SLIB_PATH}/src/slib/crypto/curve25519.cpp"
+ "${SLIB_PATH}/src/slib/crypto/curve448.cpp"
  "${SLIB_PATH}/src/slib/crypto/des.cpp"
  "${SLIB_PATH}/src/slib/crypto/ecc.cpp"
  "${SLIB_PATH}/src/slib/crypto/gcm.cpp"
