@@ -2426,7 +2426,7 @@ namespace slib
 		Base::zeroMemory(az, sizeof(az));
 	}
 
-	sl_bool Ed25519::verify(const void* publicKey, void* message, sl_size messageSize, const void* signature)
+	sl_bool Ed25519::verify(const void* publicKey, const void* message, sl_size messageSize, const void* signature)
 	{
 		sl_uint8* sig = (sl_uint8*)signature;
 		if (sig[63] & 224) {

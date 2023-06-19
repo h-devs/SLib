@@ -67,8 +67,8 @@ namespace slib
 		static void sign(const void* privateKey, const void* publicKey, const void* message, sl_size messageSize, const void* context, sl_size contextSize, void* outSignature);
 
 		// `publicKey`: 57 Bytes, `signature`: 114 Bytes
-		static sl_bool verify(const void* publicKey, void* message, sl_size messageSize, const void* signature);
-		static sl_bool verify(const void* publicKey, void* message, sl_size messageSize, const void* context, sl_size contextSize, const void* signature);
+		static sl_bool verify(const void* publicKey, const void* message, sl_size messageSize, const void* signature);
+		static sl_bool verify(const void* publicKey, const void* message, sl_size messageSize, const void* context, sl_size contextSize, const void* signature);
 
 	};
 

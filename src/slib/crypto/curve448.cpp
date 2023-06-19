@@ -1670,7 +1670,7 @@ namespace slib
 		sign(privateKey, publicKey, message, messageSize, sl_null, 0, outSignature);
 	}
 
-	sl_bool Ed448::verify(const void* publicKey, void* message, sl_size messageSize, const void* context, sl_size contextSize, const void* signature)
+	sl_bool Ed448::verify(const void* publicKey, const void* message, sl_size messageSize, const void* context, sl_size contextSize, const void* signature)
 	{
 		Point p;
 		if (!(p.fromBytes((const sl_uint8*)publicKey))) {
@@ -1705,7 +1705,7 @@ namespace slib
 		return p.equals(r);
 	}
 
-	sl_bool Ed448::verify(const void* publicKey, void* message, sl_size messageSize, const void* signature)
+	sl_bool Ed448::verify(const void* publicKey, const void* message, sl_size messageSize, const void* signature)
 	{
 		return verify(publicKey, message, messageSize, sl_null, 0, signature);
 	}
