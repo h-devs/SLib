@@ -81,7 +81,7 @@ Length(B)	Type			Value
 16			NodeId			LocalNode
 
 - VerifyNode
-Offset	Length(B)	Type			Value
+Length(B)	Type			Value
 -----------------------------------------------
 1			Command			4 (VerifyNode)
 16			NodeId			RemoteNode
@@ -100,27 +100,19 @@ DH_KL		Bytes			LocalNode's Ephemeral Public Key
 -----	Encrypted Content ---------------------
 DSA_SL		Bytes			EdDSA(LocalNode's Private Key, LocalNode's Ephemeral Public Key | RemoteNode's Ephemeral Public Key)
 4			TickCount		RemoteNode
-4			TickCount		LocalNode (0: Completed, 1: Need Complete, Otherwise: Need Verify)
 *			Bytes			LocalNode's Description
-
-- CompleteVerifyNode
-Offset	Length(B)	Type			Value
------------------------------------------------
-1			Command			6 (CompleteVerifyNode)
-16			NodeId			RemoteNode
-16			NodeId			LocalNode
 
 - Ping
 Length(B)	Type			Value
 -----------------------------------------------
-1			Command			7 (Ping)
+1			Command			6 (Ping)
 4			ShortNodeId		RemoteNode
 4			TickCount		LocalNode
 
 - ReplyPing
 Length(B)	Type			Value
 -----------------------------------------------
-1			Command			8 (ReplyPing)
+1			Command			7 (ReplyPing)
 16			NodeId			LocalNode
 8			Bytes			LocalNode's Ephemeral Public Key (Prefix)
 4			TickCount		RemoteNode
@@ -128,14 +120,14 @@ Length(B)	Type			Value
 - Broadcast
 Length(B)	Type			Value
 -----------------------------------------------
-1			Command			9 (Broadcast)
+1			Command			8 (Broadcast)
 16			NodeId			LocalNode
 *			Content
 
 - Datagram
 Length(B)	Type			Value
 -----------------------------------------------
-1			Command			10 (Datagram)
+1			Command			9 (Datagram)
 16			NodeId			LocalNode
 *			Content
 
@@ -192,11 +184,10 @@ namespace slib
 			ReplyFindNode = 3,
 			VerifyNode = 4,
 			ReplyVerifyNode = 5,
-			CompleteVerifyNode = 6,
-			Ping = 7,
-			ReplyPing = 8,
-			Broadcast = 9,
-			Datagram = 10
+			Ping = 6,
+			ReplyPing = 7,
+			Broadcast = 8,
+			Datagram = 9
 		};
 
 		enum class TcpCommand
@@ -935,9 +926,6 @@ namespace slib
 					case Command::ReplyVerifyNode:
 						_onReceiveReplyVerifyNode(address, packet, sizePacket);
 						break;
-					case Command::CompleteVerifyNode:
-						_onReceiveCompleteVerifyNode(address, packet, sizePacket);
-						break;
 					case Command::Ping:
 						_onReceivePing(address, packet, sizePacket);
 						break;
@@ -1094,29 +1082,14 @@ namespace slib
 				Bytes<EdDH::KeySize> remoteEphemeralKey(packet + 33);
 				sl_uint32 remoteTick = MIO::readUint32LE(packet + (33 + EdDH::KeySize));
 				m_threadPool->addTask([this, address, remoteId, remoteEphemeralKey, remoteTick]() {
-					_onReceiveVerifyNode(address, remoteId, remoteEphemeralKey.data, remoteTick);
+					_sendReplyVerifyNode(address, remoteId, remoteEphemeralKey.data, remoteTick);
 				});
 			}
 
-			void _onReceiveVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId, const sl_uint8 remoteEphemeralKey[EdDH::KeySize], sl_uint32 remoteTick)
-			{
-				sl_uint32 localTick = GetCurrentTick();
-				if (localTick < 2) {
-					localTick = 2;
-				}
-				Ref<Node> node = _getNode(remoteId);
-				if (node.isNotNull()) {
-					if (Base::equalsMemory(node->m_remoteEphemeralPublicKey.data, remoteEphemeralKey, EdDH::KeySize)) {
-						localTick = 0; // Completed
-					}
-				}
-				_sendReplyVerifyNode(address, remoteId, remoteEphemeralKey, remoteTick, localTick);
-			}
-
-			void _sendReplyVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId, const sl_uint8 remoteEphemeralKey[EdDH::KeySize], sl_uint32 remoteTick, sl_uint32 localTick)
+			void _sendReplyVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId, const sl_uint8 remoteEphemeralKey[EdDH::KeySize], sl_uint32 remoteTick)
 			{
 				const sl_uint32 sizeHeader = 17 + EdDSA::KeySize + EdDH::KeySize;
-				const sl_uint32 sizeContentHeader = EdDSA::SignatureSize + 8;
+				const sl_uint32 sizeContentHeader = EdDSA::SignatureSize + 4;
 				sl_uint8 packet[sizeHeader + 28 + sizeContentHeader + sizeof(m_localNodeDescription)];
 				*packet = (sl_uint8)(Command::ReplyVerifyNode);
 				Base::copyMemory(packet + 1, remoteId.data, sizeof(P2PNodeId));
@@ -1129,7 +1102,6 @@ namespace slib
 				Base::copyMemory(sts + EdDH::KeySize, remoteEphemeralKey, EdDH::KeySize);
 				EdDSA::sign(m_localKey.data, m_localPublicKey.data, sts, sizeof(sts), packet + posContent);
 				MIO::writeUint32LE(packet + (posContent + EdDSA::SignatureSize), remoteTick);
-				MIO::writeUint32LE(packet + (posContent + EdDSA::SignatureSize + 4), localTick);
 				sl_uint32 sizeDesc = m_sizeLocalNodeDescription;
 				if (sizeDesc > sizeof(m_localNodeDescription)) {
 					sizeDesc = sizeof(m_localNodeDescription);
@@ -1148,7 +1120,7 @@ namespace slib
 			void _onReceiveReplyVerifyNode(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 			{
 				const sl_uint32 sizeHeader = 17 + EdDSA::KeySize + EdDH::KeySize;
-				const sl_uint32 sizeContentHeader = EdDSA::SignatureSize + 8;
+				const sl_uint32 sizeContentHeader = EdDSA::SignatureSize + 4;
 				if (sizePacket < sizeHeader + 28 + sizeContentHeader) {
 					return;
 				}
@@ -1173,14 +1145,13 @@ namespace slib
 				if (!(CheckDelay(timeOld, timeNew, m_param.findTimeout))) {
 					return;
 				}
-				sl_uint32 localTick = MIO::readUint32LE(packet + (posContent + EdDSA::SignatureSize + 4));
 				Memory desc = Memory::create(packet + (posContent + sizeContentHeader), sizePacket - (posContent + sizeContentHeader));
-				m_threadPool->addTask([this, address, remoteKey, remoteEphemeralKey, signature, desc, timeOld, timeNew, localTick]() {
-					_onReceiveReplyVerifyDirectConnection(address, remoteKey.data, remoteEphemeralKey.data, signature.data, desc, timeNew, timeNew - timeOld, localTick);
+				m_threadPool->addTask([this, address, remoteKey, remoteEphemeralKey, signature, desc, timeOld, timeNew]() {
+					_onReceiveReplyVerifyDirectConnection(address, remoteKey.data, remoteEphemeralKey.data, signature.data, desc, timeNew, timeNew - timeOld);
 				});
 			}
 
-			void _onReceiveReplyVerifyDirectConnection(const SocketAddress& address, const sl_uint8 remoteKey[EdDSA::KeySize], const sl_uint8 remoteEphemeralKey[EdDH::KeySize], const sl_uint8 signature[EdDSA::SignatureSize], const Memory& desc, sl_uint32 tick, sl_uint32 delay, sl_uint32 localTick)
+			void _onReceiveReplyVerifyDirectConnection(const SocketAddress& address, const sl_uint8 remoteKey[EdDSA::KeySize], const sl_uint8 remoteEphemeralKey[EdDH::KeySize], const sl_uint8 signature[EdDSA::SignatureSize], const Memory& desc, sl_uint32 tick, sl_uint32 delay)
 			{
 				sl_uint8 sts[EdDH::KeySize * 2];
 				Base::copyMemory(sts, remoteEphemeralKey, EdDH::KeySize);
@@ -1200,43 +1171,7 @@ namespace slib
 						node.setNull();
 					}
 				}
-				if (node.isNull()) {
-					if (localTick != 1) {
-						_completeFindNodeCallbacks(P2PNodeId(remoteKey), sl_null);
-					}
-					return;
-				}
-				if (localTick == 0) { // Completed
-					_completeFindNodeCallbacks(node->m_id, node.get());
-				} else if (localTick == 1) { // Need Complete
-					_sendCompleteVerifyNode(address, node->m_id);
-				} else { // Need Verify
-					_sendReplyVerifyNode(address, node->m_id, remoteEphemeralKey, localTick, 1); // Need Complete
-				}
-			}
-
-			void _sendCompleteVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId)
-			{
-				sl_uint8 packet[33];
-				*packet = (sl_uint8)(Command::CompleteVerifyNode);
-				Base::copyMemory(packet + 1, remoteId.data, sizeof(P2PNodeId));
-				Base::copyMemory(packet + 17, m_localNodeId.data, sizeof(P2PNodeId));
-				_sendUdp(address, packet, sizeof(packet));
-			}
-
-			void _onReceiveCompleteVerifyNode(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
-			{
-				if (sizePacket != 33) {
-					return;
-				}
-				if (!(Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId)))) {
-					return;
-				}
-				P2PNodeId nodeId(packet + 17);
-				Ref<Node> node = _getNode(nodeId);
-				if (node.isNotNull()) {
-					_completeFindNodeCallbacks(node->m_id, node.get());
-				}
+				_completeFindNodeCallbacks(node->m_id, node.get());
 			}
 
 			void _sendPing(const SocketAddress& address, const P2PNodeId& nodeId)
