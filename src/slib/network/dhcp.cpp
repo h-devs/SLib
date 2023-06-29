@@ -121,12 +121,12 @@ namespace slib
 		ip.getBytes(_yiaddr);
 	}
 
-	IPv4Address DhcpHeader::getNextServer()
+	IPv4Address DhcpHeader::getServerIP()
 	{
 		return IPv4Address(_siaddr);
 	}
 
-	void DhcpHeader::setNextServer(const IPv4Address& ip)
+	void DhcpHeader::setServerIP(const IPv4Address& ip)
 	{
 		ip.getBytes(_siaddr);
 	}
@@ -482,7 +482,7 @@ namespace slib
 			header.setClientMacAddress(request.getClientMacAddress());
 			header.setXid(request.getXid());
 			header.setYourIP(param.ip);
-			header.setNextServer(param.server);
+			header.setServerIP(param.server);
 			header.setMagicCookie();
 			if (!(output.writeFully(&header, sizeof(header)))) {
 				return sl_null;
@@ -571,31 +571,44 @@ namespace slib
 		DhcpMessageType type = DhcpMessageType::None;
 		sl_bool flagClientId = sl_false;
 
-		IPv4Address preferredIp = header.getClientIP();
+		IPv4Address serverIP = header.getServerIP();
+		IPv4Address preferredIP = header.getClientIP();
 
 		Option option;
 		while (options.read(option)) {
-			if (option.code == DhcpOptionCode::DhcpMessageType) {
-				if (option.len != 1) {
-					return;
-				}
-				type = (DhcpMessageType)(*(option.content));
-			} else if (option.code == DhcpOptionCode::ClientIdentifier) {
-				if (option.len < 2) {
-					return;
-				}
-				if (*(option.content) == 1) { // Ethernet
-					if (option.len != 7) {
+			switch (option.code) {
+				case DhcpOptionCode::DhcpMessageType:
+					if (option.len != 1) {
 						return;
 					}
-					flagClientId = sl_true;
-					clientMac.setBytes(option.content + 1);
-				}
-			} else if (option.code == DhcpOptionCode::RequestedIpAddress) {
-				if (option.len != 4) {
-					return;
-				}
-				preferredIp.setBytes(option.content);
+					type = (DhcpMessageType)(*(option.content));
+					break;
+				case DhcpOptionCode::ServerIdentifier:
+					if (option.len != 4) {
+						return;
+					}
+					serverIP.setBytes(option.content);
+					break;
+				case DhcpOptionCode::ClientIdentifier:
+					if (option.len < 2) {
+						return;
+					}
+					if (*(option.content) == 1) { // Ethernet
+						if (option.len != 7) {
+							return;
+						}
+						flagClientId = sl_true;
+						clientMac.setBytes(option.content + 1);
+					}
+					break;
+				case DhcpOptionCode::RequestedIpAddress:
+					if (option.len != 4) {
+						return;
+					}
+					preferredIP.setBytes(option.content);
+					break;
+				default:
+					break;
 			}
 		}
 		if (options.flagError) {
@@ -610,14 +623,19 @@ namespace slib
 				if (type == DhcpMessageType::Discover) {
 					type = DhcpMessageType::Offer;
 				} else {
+					if (serverIP.isNotZero()) {
+						if (param.server != serverIP) {
+							return;
+						}
+					}
 					type = DhcpMessageType::Ack;
-					if (preferredIp.isNotZero()) {
-						if (preferredIp != param.ip) {
+					if (preferredIP.isNotZero()) {
+						if (preferredIP != param.ip) {
 							type = DhcpMessageType::Nak;
 						}
 					}
 				}
-				Memory packet = BuildBindPacket(param, type, header, preferredIp, flagClientId);
+				Memory packet = BuildBindPacket(param, type, header, preferredIP, flagClientId);
 				if (packet.isNotNull()) {
 					if (addressFrom.ip.getIPv4().isNotZero()) {
 						m_socket->sendTo(addressFrom, packet);

@@ -173,9 +173,9 @@ namespace slib
 
 		void setYourIP(const IPv4Address& ip);
 
-		IPv4Address getNextServer();
+		IPv4Address getServerIP();
 
-		void setNextServer(const IPv4Address& ip);
+		void setServerIP(const IPv4Address& ip);
 
 		IPv4Address getRelayAgent();
 
@@ -222,7 +222,7 @@ namespace slib
 		// Output
 		IPv4Address ip; // Required
 		IPv4Address subnetMask; // Required
-		IPv4Address server; // Required
+		IPv4Address server;
 		IPv4Address broadcastAddress;
 		IPv4Address router; // Ignored when `routers` is used
 		List<IPv4Address> routers;
