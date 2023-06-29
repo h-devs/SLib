@@ -207,19 +207,19 @@ namespace slib
 		if (ret.isNotNull()) {
 
 			AsyncUdpSocketParam up;
+			up.ioLoop = param.ioLoop;
+			up.bindDevice = param.bindDevice;
+			up.bindAddress.port = param.port;
 			up.onReceiveFrom = SLIB_FUNCTION_WEAKREF(ret, _onReceiveFrom);
 			up.packetSize = 4096;
-			up.ioLoop = param.ioLoop;
+			up.flagBroadcast = sl_true;
 			up.flagAutoStart = sl_false;
 
-			up.bindAddress.port = param.port;
 			Ref<AsyncUdpSocket> socket = AsyncUdpSocket::create(up);
 			if (socket.isNull()) {
 				LogError(TAG_SERVER, "Failed to bind to port %d", param.port);
 				return sl_null;
 			}
-
-			socket->setBroadcast();
 
 			ret->m_socket = Move(socket);
 			ret->m_onBind = param.onBind;
@@ -470,7 +470,7 @@ namespace slib
 			return output.merge();
 		}
 
-		static Memory BuildBindPacket(DhcpBindParam& param, DhcpMessageType type, DhcpHeader& request, sl_bool flagUseClientId)
+		static Memory BuildBindPacket(DhcpBindParam& param, DhcpMessageType type, DhcpHeader& request, const IPv4Address& clientIp, sl_bool flagUseClientId)
 		{
 			MemoryOutput output;
 			DhcpHeader header;
@@ -478,7 +478,7 @@ namespace slib
 			header.setOpcode(DhcpOpcode::Reply);
 			header.setHardwareType(NetworkHardwareType::Ethernet);
 			header.setHardwareAddressLength(6);
-			header.setClientIP(request.getClientIP());
+			header.setClientIP(clientIp);
 			header.setClientMacAddress(request.getClientMacAddress());
 			header.setXid(request.getXid());
 			header.setYourIP(param.ip);
@@ -571,6 +571,8 @@ namespace slib
 		DhcpMessageType type = DhcpMessageType::None;
 		sl_bool flagClientId = sl_false;
 
+		IPv4Address preferredIp = header.getClientIP();
+
 		Option option;
 		while (options.read(option)) {
 			if (option.code == DhcpOptionCode::DhcpMessageType) {
@@ -589,6 +591,11 @@ namespace slib
 					flagClientId = sl_true;
 					clientMac.setBytes(option.content + 1);
 				}
+			} else if (option.code == DhcpOptionCode::RequestedIpAddress) {
+				if (option.len != 4) {
+					return;
+				}
+				preferredIp.setBytes(option.content);
 			}
 		}
 		if (options.flagError) {
@@ -604,8 +611,13 @@ namespace slib
 					type = DhcpMessageType::Offer;
 				} else {
 					type = DhcpMessageType::Ack;
+					if (preferredIp.isNotZero()) {
+						if (preferredIp != param.ip) {
+							type = DhcpMessageType::Nak;
+						}
+					}
 				}
-				Memory packet = BuildBindPacket(param, type, header, flagClientId);
+				Memory packet = BuildBindPacket(param, type, header, preferredIp, flagClientId);
 				if (packet.isNotNull()) {
 					if (addressFrom.ip.getIPv4().isNotZero()) {
 						m_socket->sendTo(addressFrom, packet);

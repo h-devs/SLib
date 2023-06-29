@@ -26,6 +26,7 @@
 #include "socket.h"
 
 #include "../io/async_stream.h"
+#include "../core/string.h"
 #include "../core/default_members.h"
 
 namespace slib
@@ -168,6 +169,7 @@ namespace slib
 	{
 	public:
 		Socket socket; // optional
+		StringParam bindDevice; // optional
 		SocketAddress bindAddress;
 		sl_bool flagIPv6; // default: false
 		sl_bool flagBroadcast; // default: false

@@ -220,10 +220,10 @@ namespace slib
 		MacAddress mac;
 
 		// Output
-		IPv4Address ip;
-		IPv4Address subnetMask;
+		IPv4Address ip; // Required
+		IPv4Address subnetMask; // Required
+		IPv4Address server; // Required
 		IPv4Address broadcastAddress;
-		IPv4Address server;
 		IPv4Address router; // Ignored when `routers` is used
 		List<IPv4Address> routers;
 		String domainName;
@@ -241,6 +241,7 @@ namespace slib
 	class SLIB_EXPORT DhcpServerParam
 	{
 	public:
+		String bindDevice;
 		sl_uint16 port;
 
 		Ref<AsyncIoLoop> ioLoop;
