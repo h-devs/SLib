@@ -193,7 +193,7 @@ namespace slib
 		}
 
 		if (ret == -1) {
-			SLIB_UNUSED(ret);
+			SLIB_UNUSED(ret)
 		}
 	}
 

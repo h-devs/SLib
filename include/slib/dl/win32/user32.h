@@ -55,19 +55,32 @@ namespace slib
 			HWND hWnd
 		)
 
+		struct TOUCHINPUT {
+			LONG x;
+			LONG y;
+			HANDLE hSource;
+			DWORD dwID;
+			DWORD dwFlags;
+			DWORD dwMask;
+			DWORD dwTime;
+			ULONG_PTR dwExtraInfo;
+			DWORD cxContact;
+			DWORD cyContact;
+		};
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			GetTouchInputInfo,
 			BOOL, WINAPI,
-			HTOUCHINPUT hTouchInput,
+			void* hTouchInput, // HTOUCHINPUT
 			UINT cInputs,
-			PTOUCHINPUT pInputs,
+			TOUCHINPUT* pInputs,
 			int cbSize
 		)
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			CloseTouchInputHandle,
 			BOOL, WINAPI,
-			HTOUCHINPUT hTouchInput
+			void* hTouchInput // HTOUCHINPUT
 		)
 
 	SLIB_IMPORT_LIBRARY_END

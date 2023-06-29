@@ -44,6 +44,8 @@
 #include "crypto/poly1305.h"
 
 // Public-key cryptosystems
+#include "crypto/curve25519.h"
+#include "crypto/curve448.h"
 #include "crypto/rsa.h"
 #include "crypto/ecc.h"
 #include "crypto/dh.h"

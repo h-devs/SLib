@@ -22,133 +22,161 @@
 
 #include "p2p.h"
 
+#define USE_CURVE448
+
 #include <slib/network/socket.h>
 #include <slib/network/event.h>
 #include <slib/network/async.h>
 #include <slib/network/os.h>
-#include <slib/core/thread.h>
+#include <slib/core/thread_pool.h>
 #include <slib/core/dispatch_loop.h>
 #include <slib/core/system.h>
 #include <slib/core/scoped_buffer.h>
-#include <slib/crypto/chacha.h>
-#include <slib/crypto/serialize/ecc.h>
+#include <slib/crypto/aes.h>
+#include <slib/crypto/hkdf.h>
+#ifdef USE_CURVE448
+#include <slib/crypto/curve448.h>
+#else
+#include <slib/crypto/curve25519.h>
+#endif
 #include <slib/data/expiring_map.h>
-#include <slib/data/serialize.h>
-
-#define NODE_ID_SIZE SLIB_P2P_NODE_ID_SIZE
+#include <slib/device/cpu.h>
 
 /*
-			P2P Socket Protocol
+	P2P Socket Protocol
+
+Port = Uint16 (Little Endian)
+TickCount = Uint32 (Little Endian)
+SharedKey = HKDF(ECDH(LocalNode's Ephemeral Private Key, RemoteNode's Ephemeral Public Key), 32)
+DH_KL = 32 (for X25519), or 56 (for X448)
+DSA_KL = 32 (for Ed25519), or 57 (for Ed448)
+DSA_SL = 64 (for Ed25519), or 114 (for Ed448)
+Encryption = IV(12 Bytes) | Tag(16 Bytes) | Content (AES-GCM, key=SharedKey)
 
 - Hello
-Offset	Length(B)	Type			Value
--------------------------------------------------------
-0		1			Command			0 (Hello)
-1		16			NodeId			LocalNode
-17		1			Boolean			Need Reply
+Length(B)	Type			Value
+-----------------------------------------------
+1			Command			0 (Hello)
+16			NodeId			LocalNode
+1			Boolean			Need Reply
+*			Message Content
 
 - ReplyHello
-Offset	Length(B)	Type			Value
--------------------------------------------------------
-0		1			Command			1 (ReplyHello)
-1		16			NodeId			LocalNode
+Length(B)	Type			Value
+-----------------------------------------------
+1			Command			1 (ReplyHello)
+16			NodeId			LocalNode
+*			Message Content
 
 - FindNode
-Offset	Length(B)	Type			Value
--------------------------------------------------------
-0		1			Command			2 (FindNode) 
-1		16			NodeId			RemoteNode
+Length(B)	Type			Value
+-----------------------------------------------
+1			Command			2 (FindNode)
+16			NodeId			RemoteNode
 
 - ReplyFindNode
-Offset	Length(B)	Type			Value
--------------------------------------------------------
-0		1			Command			3 (ReplyFindNode)
-1		Serialize	PublicKey		LocalNode
+Length(B)	Type			Value
+-----------------------------------------------
+1			Command			1 (ReplyFindNode)
+16			NodeId			LocalNode
 
 - VerifyNode
 Offset	Length(B)	Type			Value
--------------------------------------------------------
-0		1			Command			4 (VerifyNode)
-1		16			NodeId			RemoteNode
-17		4			Uint32			LocalNode's Current Tick Count (Little Endian)
-21		4			IPv4Address		RemoteNode
-25		2			Port			RemoteNode's Port (Little Endian)
-27		Serialize	PublicKey		LocalNode
+-----------------------------------------------
+1			Command			4 (VerifyNode)
+16			NodeId			RemoteNode
+16			NodeId			LocalNode
+DH_KL		Bytes			LocalNode's Ephemeral Public Key
+4			TickCount		LocalNode
 
 - ReplyVerifyNode
+Length(B)	Type			Value
+-----------------------------------------------
+1			Command			5 (ReplyVerifyNode)
+16			NodeId			RemoteNode
+DSA_KL		Bytes			LocalNode's Public Key
+DH_KL		Bytes			LocalNode's Ephemeral Public Key
+*			Bytes			Encryption
+-----	Encrypted Content ---------------------
+DSA_SL		Bytes			EdDSA(LocalNode's Private Key, LocalNode's Ephemeral Public Key | RemoteNode's Ephemeral Public Key)
+4			TickCount		RemoteNode
+4			TickCount		LocalNode (0: Completed, 1: Need Complete, Otherwise: Need Verify)
+*			Bytes			LocalNode's Description
+
+- CompleteVerifyNode
 Offset	Length(B)	Type			Value
--------------------------------------------------------
-0		1			Command			5 (ReplyVerifyNode)
-1		16			NodeId			RemoteNode
-17		12			Encryption IV	Random
-29		10			Encryption Content: By ChaCha20-Poly1305: key=ECDH(PrivKey(LocalNode), PubKey(RemoteNode))
-39		16			Encryption Tag
-55		Serialize	PublicKey		LocalNode
--------------	Encrypted Content ---------------------
-0		4			Uint32			RemoteNode's Current Tick Count (Little Endian))
-4		4			IPv4Address		LocalNode
-8		2			Port			LocalNode's Port (Little Endian)
+-----------------------------------------------
+1			Command			6 (CompleteVerifyNode)
+16			NodeId			RemoteNode
+16			NodeId			LocalNode
 
 - Ping
-Offset	Length(B)	Type			Value
--------------------------------------------------------
-0		1			Command			6 (Ping)
-1		4			ShortNodeId		RemoteNode
-5		4			Uint32			LocalNode's Current Milliseconds (Little Endian))
+Length(B)	Type			Value
+-----------------------------------------------
+1			Command			7 (Ping)
+4			ShortNodeId		RemoteNode
+4			TickCount		LocalNode
 
 - ReplyPing
-Offset	Length(B)	Type			Value
--------------------------------------------------------
-0		1			Command			7 (ReplyPing)
-1		16			NodeId			LocalNode
-17		4			Uint32			RemoteNode's Current Milliseconds (Little Endian))
+Length(B)	Type			Value
+-----------------------------------------------
+1			Command			8 (ReplyPing)
+16			NodeId			LocalNode
+8			Bytes			LocalNode's Ephemeral Public Key (Prefix)
+4			TickCount		RemoteNode
 
 - Broadcast
-Offset	Length(B)	Type			Value
--------------------------------------------------------
-0		1			Command			8 (Broadcast)
-1		16			NodeId			LocalNode
-17		*			Content
-
-- InitTcp
 Length(B)	Type			Value
 -----------------------------------------------
-1			Command			100 (InitTcp)
-CVLI		Uint32			Total Length (From next field)
+1			Command			9 (Broadcast)
+16			NodeId			LocalNode
+*			Content
+
+- Datagram
+Length(B)	Type			Value
+-----------------------------------------------
+1			Command			10 (Datagram)
+16			NodeId			LocalNode
+*			Content
+
+
+---------------- TCP Commands -----------------
+
+- Init
+Length(B)	Type			Value
+-----------------------------------------------
+1			Command			0 (Init)
 4			ShortNodeId		RemoteNode
-Serialize	PublicKey		LocalNode
+16			NodeId			LocalNode
 
-- ReplyInitTcp
+- ReplyInit
 Length(B)	Type			Value
 -----------------------------------------------
-1			Command			101 (ReplyInitTcp)
+1			Command			1 (ReplyInit)
 
 - Message
 Length(B)	Type			Value
 -----------------------------------------------
-1			Command			102 (Message)
+1			Command			2 (Message)
 CVLI		Uint32			Total Length (From next field)
-12			Encryption IV	Random
-16			Encryption Tag
-*			Encryption Content: By ChaCha20-Poly1305: key=ECDH(PrivKey(LocalNode), PubKey(RemoteNode))
+*			Bytes			Encryption
 
 - ReplyMessage
 Length(B)	Type			Value
 -----------------------------------------------
-1			Command			103 (ReplyMessage)
+1			Command			3 (ReplyMessage)
 CVLI		Uint32			Total Length (From next field)
-12			Encryption IV	Random
-16			Encryption Tag
-*			Encryption Content: By ChaCha20-Poly1305: key=ECDH(PrivKey(LocalNode), PubKey(RemoteNode))
+*			Bytes			Encryption
 
 */
 
-#define TIMEOUT_PING_DIRECT_CONNECTION 10000
-#define TIMEOUT_VALID_DIRECT_CONNECTION 30000
-#define INTERVAL_HELLO_DIRECT_CONNECTION 10000
-#define EXPIRE_DURATION_FIND_DIRECT_CONNECTION 3000
-#define EXPIRE_DURATION_IDLE_TCP_SOCKET 30000
-#define BUFFER_SIZE_TCP_STREAM 0x10000
+#ifdef USE_CURVE448
+#define EdDSA Ed448
+#define EdDH X448
+#else
+#define EdDSA Ed25519
+#define EdDH X25519
+#endif
 
 namespace slib
 {
@@ -158,34 +186,32 @@ namespace slib
 		enum class Command
 		{
 			Unknown = -1,
-
 			Hello = 0,
 			ReplyHello = 1,
 			FindNode = 2,
 			ReplyFindNode = 3,
 			VerifyNode = 4,
 			ReplyVerifyNode = 5,
-			Ping = 6,
-			ReplyPing = 7,
-			Broadcast = 8,
-			Datagram = 9,
-
-			InitTcp = 100,
-			ReplyInitTcp = 101,
-			Message = 102,
-			ReplyMessage = 103
+			CompleteVerifyNode = 6,
+			Ping = 7,
+			ReplyPing = 8,
+			Broadcast = 9,
+			Datagram = 10
 		};
 
-		// `out`: 16 bytes
-		static void GetNodeId(const ECPublicKey& key, sl_uint8* out)
+		enum class TcpCommand
 		{
-			key.Q.x.getBytesBE(out, NODE_ID_SIZE);
-		}
+			Unknown = -1,
+			Init = 0,
+			ReplyInit = 1,
+			Message = 2,
+			ReplyMessage = 3
+		};
 
-		// `out`: 32 bytes
-		static void DeriveKey(const EllipticCurve& curve, const ECPrivateKey& local, const ECPublicKey& remote, sl_uint8* out)
+		static void DeriveKey(const void* localPrivateKey, const void* remotePublicKey, sl_uint8 out[32])
 		{
-			ECDH::getSharedKey(curve, local, remote).getBytesBE(out, 32);
+			auto key = EdDH::getSharedKey(localPrivateKey, remotePublicKey);
+			HKDF_SHA256::generateKey(key.data, sizeof(key), out, 32);
 		}
 
 		SLIB_INLINE static sl_uint32 GetCurrentTick()
@@ -268,19 +294,45 @@ namespace slib
 		class Node : public CRef
 		{
 		public:
-			P2PPublicKey m_key;
 			P2PNodeId m_id;
+			Bytes<EdDSA::KeySize> m_publicKey;
+			Bytes<EdDH::KeySize> m_remoteEphemeralPublicKey;
+			Bytes<EdDH::KeySize> m_localEphemeralPublicKey;
 			sl_uint8 m_encryptionKey[32];
-
-			sl_uint16 m_portBound = 0;
+			sl_bool m_flagInvalidEncryptionKey = sl_true;
+			AtomicMemory m_description;
 
 			AtomicRef<Connection> m_connectionDefault;
 			CHashMap< IPv4Address, Ref<DirectConnection> > m_connectionsDirect;
 
 		public:
-			Node(const P2PPublicKey& key): m_key(key)
+			Node(const sl_uint8 publicKey[EdDSA::KeySize]): m_publicKey(publicKey), m_id(publicKey) {}
+
+		public:
+			void updateRemoteEphemeralKey(const sl_uint8 key[EdDH::KeySize], const Memory& description)
 			{
-				GetNodeId(key, m_id.data);
+				if (Base::equalsMemory(m_remoteEphemeralPublicKey.data, key, EdDH::KeySize)) {
+					return;
+				}
+				m_remoteEphemeralPublicKey.setData(key);
+				m_description = description;
+				m_flagInvalidEncryptionKey = sl_true;
+			}
+
+			void updateEncryptionKey(const sl_uint8 localEphemeralPrivateKey[EdDH::KeySize], const sl_uint8 localEphemeralPublicKey[EdDH::KeySize])
+			{
+				sl_bool flagUpdate = sl_false;
+				if (m_flagInvalidEncryptionKey) {
+					m_flagInvalidEncryptionKey = sl_false;
+					flagUpdate = sl_true;
+				}
+				if (!(Base::equalsMemory(m_localEphemeralPublicKey.data, localEphemeralPublicKey, EdDH::KeySize))) {
+					m_localEphemeralPublicKey.setData(localEphemeralPublicKey);
+					flagUpdate = sl_true;
+				}
+				if (flagUpdate) {
+					DeriveKey(localEphemeralPrivateKey, m_remoteEphemeralPublicKey.data, m_encryptionKey);
+				}
 			}
 
 		};
@@ -288,10 +340,10 @@ namespace slib
 		class DirectConnection : public Connection
 		{
 		public:
-			IPv4Address m_ip;
+			SocketAddress m_address;
 
 		public:
-			DirectConnection(const IPv4Address& ip): Connection(P2PConnectionType::Direct), m_ip(ip) {}
+			DirectConnection(const SocketAddress& address): Connection(P2PConnectionType::Direct), m_address(address) {}
 
 		};
 
@@ -299,10 +351,10 @@ namespace slib
 		{
 		public:
 			sl_uint8* content = sl_null;
-			sl_size sizeContent = 0;
+			sl_size contentSize;
 
 		public:
-			TcpCommandContentReceiver(sl_size maxSize): m_maxContentSize(maxSize) {}
+			TcpCommandContentReceiver(sl_uint32 _contentSize, sl_size maxSize): contentSize(_contentSize), m_flagParsingHeader(!_contentSize), m_maxContentSize(maxSize) {}
 
 		public:
 			// returns -1 on error, 1 on success, 0 on incomplete
@@ -317,9 +369,9 @@ namespace slib
 						Base::copyMemory(m_bufHeader, data, n);
 						m_sizeHeader += n;
 					}
-					sl_uint32 m = CVLI::deserialize(m_bufHeader, m_sizeHeader, sizeContent);
+					sl_uint32 m = CVLI::deserialize(m_bufHeader, m_sizeHeader, contentSize);
 					if (m) {
-						if (sizeContent > m_maxContentSize) {
+						if (contentSize > m_maxContentSize) {
 							return -1;
 						}
 						if (m >= 8) {
@@ -333,10 +385,10 @@ namespace slib
 						size -= l;
 						m_flagParsingHeader = sl_false;
 						m_sizeHeader = m;
-						if (size > sizeContent) {
+						if (size > contentSize) {
 							return -1;
 						}
-						if (size == sizeContent) {
+						if (size == contentSize) {
 							content = data;
 							return 1;
 						}
@@ -353,10 +405,10 @@ namespace slib
 				} else {
 					sl_size sizeOld = m_bufContent.getSize();
 					sl_size sizeNew = sizeOld + size;
-					if (sizeNew > sizeContent) {
+					if (sizeNew > contentSize) {
 						return -1;
 					}
-					if (sizeNew == sizeContent) {
+					if (sizeNew == contentSize) {
 						if (sizeOld) {
 							if (m_bufContent.addNew(data, size)) {
 								m_memContent = m_bufContent.merge();
@@ -381,7 +433,7 @@ namespace slib
 
 		private:
 			sl_size m_maxContentSize;
-			sl_bool m_flagParsingHeader = sl_true;
+			sl_bool m_flagParsingHeader;
 			sl_uint8 m_bufHeader[10];
 			sl_uint32 m_sizeHeader = 0;
 			MemoryBuffer m_bufContent;
@@ -392,7 +444,7 @@ namespace slib
 		{
 		public:
 			Ref<AsyncTcpSocket> m_socket;
-			Command m_currentCommand = Command::Unknown;
+			TcpCommand m_currentCommand = TcpCommand::Unknown;
 
 		public:
 			TcpStream(Ref<AsyncTcpSocket>&& _socket, sl_size maximumMessageSize) : m_socket(Move(_socket)), m_maximumMessageSize(maximumMessageSize) {}
@@ -401,18 +453,26 @@ namespace slib
 			sl_int32 processReceivedData(sl_uint8* data, sl_size size)
 			{
 				if (!size) {
-					return sl_false;
+					return 0;
 				}
 				if (m_receiver.isNull()) {
-					m_currentCommand = (Command)(data[0]);
+					m_currentCommand = (TcpCommand)(*data);
+					sl_uint32 contentSize = 0;
+					switch (m_currentCommand) {
+						case TcpCommand::Init:
+							contentSize = 20;
+							break;
+						default:
+							break;
+					}
+					m_receiver = Shared<TcpCommandContentReceiver>::create(contentSize, m_maximumMessageSize + 1024);
+					if (m_receiver.isNull()) {
+						return -1;
+					}
 					data++;
 					size--;
 					if (!size) {
-						return sl_true;
-					}
-					m_receiver = Shared<TcpCommandContentReceiver>::create(m_maximumMessageSize + 1024);
-					if (m_receiver.isNull()) {
-						return sl_false;
+						return 0;
 					}
 				}
 				return m_receiver->put(data, size);
@@ -429,7 +489,7 @@ namespace slib
 			sl_size getContentSize()
 			{
 				if (m_receiver.isNotNull()) {
-					return m_receiver->sizeContent;
+					return m_receiver->contentSize;
 				}
 				return 0;
 			}
@@ -448,9 +508,8 @@ namespace slib
 		class TcpServerStream : public TcpStream
 		{
 		public:
+			P2PNodeId m_remoteId;
 			sl_bool m_flagWriting = sl_false;
-			P2PPublicKey m_remoteNodeKey;
-			sl_uint8 m_encryptionKey[32];
 
 		public:
 			TcpServerStream(Ref<AsyncTcpSocket>&& _socket, sl_size maximumMessageSize): TcpStream(Move(_socket), maximumMessageSize) {}
@@ -539,8 +598,17 @@ namespace slib
 
 			P2PSocketParam m_param;
 
-			P2PPrivateKey m_key;
 			P2PNodeId m_localNodeId;
+			Bytes<EdDSA::KeySize> m_localKey;
+			Bytes<EdDSA::KeySize> m_localPublicKey;
+			Bytes<EdDH::KeySize> m_ephemeralKey;
+			Bytes<EdDH::KeySize> m_ephemeralPublicKey;
+
+			sl_uint8 m_helloMessage[1024];
+			sl_uint32 m_sizeHelloMessage;
+			sl_uint8 m_localNodeDescription[2048];
+			sl_uint32 m_sizeLocalNodeDescription;
+
 			sl_bool m_flagClosed = sl_false;
 
 			sl_uint16 m_portLobby = 0;
@@ -554,12 +622,13 @@ namespace slib
 			ExpiringMap< TcpStream*, Ref<TcpStream> > m_mapTcpStreams;
 			ExpiringMap< DirectConnection*, Ref<AsyncTcpSocket> > m_mapIdleTcpSockets;
 
+			Ref<ThreadPool> m_threadPool;
 			Ref<AsyncIoLoop> m_ioLoop;
 			Ref<DispatchLoop> m_dispatchLoop;
 			Ref<Timer> m_timerHello;
+			Ref<Timer> m_timerUpdateEphemeralKey;
 
-			CHashMap< P2PNodeId, Ref<Node> > m_mapNodes;
-			CHashMap< P2PNodeId, Bytes<32> > m_mapEncryptionKey;
+			ExpiringMap< P2PNodeId, Ref<Node> > m_mapNodes;
 			ExpiringMap<P2PNodeId, NodeCallbackContainer> m_mapFindCallbacks;
 
 			AtomicList<IPv4Address> m_listLocalIPAddresses;
@@ -584,18 +653,15 @@ namespace slib
 					return sl_null;
 				}
 
-				if (!(param.key.isDefined())) {
-					if (!(param.key.generate(param.curve))) {
-						SLIB_STATIC_STRING(err, "Failed to generate private key")
+				if (param.key.isNull() || param.key.getSize() != EdDSA::KeySize) {
+					param.key = Memory::create(EdDSA::KeySize);
+					if (param.key.isNull()) {
+						SLIB_STATIC_STRING(err, "Lack of memory")
 						param.errorText = err;
 						return sl_null;
 					}
-				} else {
-					if (!(param.key.checkValid(param.curve))) {
-						SLIB_STATIC_STRING(err, "key is invalid")
-						param.errorText = err;
-						return sl_null;
-					}
+					Math::randomMemory(param.key.getData(), EdDSA::KeySize);
+					param.flagGeneratedKey = sl_true;
 				}
 
 				Socket socketLobby = _openLobby(param.port);
@@ -620,6 +686,7 @@ namespace slib
 					}
 				}
 
+				Ref<ThreadPool> threadPool = ThreadPool::create(0, Cpu::getCoreCount());
 				Ref<AsyncIoLoop> ioLoop = AsyncIoLoop::create(sl_false);
 				if (ioLoop.isNull()) {
 					SLIB_STATIC_STRING(err, "Failed to create I/O` loop")
@@ -635,6 +702,7 @@ namespace slib
 
 				Ref<This> ret = new This;
 				if (ret.isNotNull()) {
+					ret->m_threadPool = Move(threadPool);
 					ret->m_ioLoop = Move(ioLoop);
 					ret->m_dispatchLoop = Move(dispatchLoop);
 					ret->m_param = param;
@@ -661,12 +729,40 @@ namespace slib
 		public:
 			sl_bool _initialize(P2PSocketParam& param, Socket& socketLobby, Socket& socketUdp, Socket& socketTcp)
 			{
-				m_key = param.key;
-				GetNodeId(param.key, m_localNodeId.data);
+				if (param.helloInterval) {
+					if (param.helloInterval < 100) {
+						param.helloInterval = 100;
+					}
+				}
+				if (param.ephemeralKeyDuration) {
+					if (param.ephemeralKeyDuration < 60000) {
+						param.ephemeralKeyDuration = 60000;
+					}
+				}
+				if (param.findTimeout < 1000) {
+					param.findTimeout = 1000;
+				}
+				if (param.connectionTimeout < 10000) {
+					param.connectionTimeout = 10000;
+				}
+				if (param.messageBufferSize < 64) {
+					param.messageBufferSize = 64;
+				}
+				if (param.maximumMessageSize < 1) {
+					param.maximumMessageSize = 1;
+				}
+
+				m_localKey.setData(param.key.getData());
+				m_localPublicKey = EdDSA::getPublicKey(m_localKey.data);
+				m_localNodeId.setData(m_localPublicKey.data);
+
+				setHelloMessage(param.helloMessage);
+				setLocalNodeDescription(param.localNodeDescription);
 
 				m_listLocalIPAddresses = Network::findAllIPv4Addresses();
 
-				m_mapFindCallbacks.setupTimer(EXPIRE_DURATION_FIND_DIRECT_CONNECTION, m_dispatchLoop);
+				m_mapNodes.setupTimer(param.connectionTimeout, m_dispatchLoop);
+				m_mapFindCallbacks.setupTimer(param.findTimeout, m_dispatchLoop);
 
 				// Initialize UDP Socket
 				{
@@ -699,50 +795,12 @@ namespace slib
 
 				// Initialize TCP Server
 				{
-					m_mapTcpStreams.setupTimer(param.tcpConnectionTimeout, m_dispatchLoop);
-					m_mapIdleTcpSockets.setupTimer(EXPIRE_DURATION_IDLE_TCP_SOCKET, m_dispatchLoop);
-
+					m_mapTcpStreams.setupTimer(param.connectionTimeout, m_dispatchLoop);
+					m_mapIdleTcpSockets.setupTimer(param.connectionTimeout, m_dispatchLoop);
 					AsyncTcpServerParam serverParam;
 					serverParam.ioLoop = m_ioLoop;
 					serverParam.onAccept = [this](AsyncTcpServer*, Socket& socket, const SocketAddress& address) {
-						AsyncTcpSocketParam param;
-						param.socket = Move(socket);
-						param.ioLoop = m_ioLoop;
-						Ref<AsyncTcpSocket> client = AsyncTcpSocket::create(param);
-						if (client.isNotNull()) {
-							Ref<TcpServerStream> stream = new TcpServerStream(Move(client), m_param.maximumMessageSize);
-							if (stream.isNotNull()) {
-								WeakRef<TcpServerStream> weakStream = stream;
-								if (stream->m_socket->receive(Memory::create(BUFFER_SIZE_TCP_STREAM), [this, weakStream](AsyncStreamResult& result) {
-									Ref<TcpServerStream> stream = weakStream;
-									if (stream.isNull()) {
-										return;
-									}
-									if (result.isSuccess() && !(stream->m_flagWriting)) {
-										sl_int32 iRet = stream->processReceivedData((sl_uint8*)(result.data), result.size);
-										if (iRet >= 0) {
-											sl_bool flagSuccess = sl_true;
-											if (iRet > 0) {
-												if (_onReceivedTcpServerStream(stream.get(), stream->m_currentCommand, stream->getContent(), stream->getContentSize())) {
-													stream->clear();
-													m_mapTcpStreams.get(stream.get());
-												} else {
-													flagSuccess = sl_false;
-												}
-											}
-											if (flagSuccess) {
-												if (stream->m_socket->receive(result.data, result.requestSize, result.callback, result.userObject)) {
-													return;
-												}
-											}
-										}
-									}
-									m_mapTcpStreams.remove(stream.get());
-								})) {
-									m_mapTcpStreams.put(stream.get(), stream);
-								}
-							}
-						}
+						_onAcceptTcpServerConnection(socket);
 					};
 					serverParam.socket = Move(socketTcp);
 					m_serverTcp = AsyncTcpServer::create(serverParam);
@@ -752,14 +810,26 @@ namespace slib
 				}
 
 				// Initialize Hello Timer
-				{
-					m_timerHello = Timer::createWithDispatcher(m_dispatchLoop, SLIB_FUNCTION_WEAKREF(this, _onTimerHello), INTERVAL_HELLO_DIRECT_CONNECTION);
+				if (param.helloInterval) {
+					m_timerHello = Timer::createWithDispatcher(m_dispatchLoop, [this](Timer*) {
+						_sendHello(sl_false);
+					}, param.helloInterval);
 					if (m_timerHello.isNull()) {
 						return sl_false;
 					}
 					m_dispatchLoop->dispatch([this]() {
 						_sendHello(sl_true);
 					});
+				}
+
+				// Initialize Update Ephemeral Key Timer
+				if (param.ephemeralKeyDuration) {
+					m_timerUpdateEphemeralKey = Timer::createWithDispatcher(m_dispatchLoop, [this](Timer*) {
+						_updateEphemeralKey();
+					}, param.ephemeralKeyDuration);
+					if (m_timerUpdateEphemeralKey.isNull()) {
+						return sl_false;
+					}
 				}
 
 				return sl_true;
@@ -789,299 +859,6 @@ namespace slib
 					return sl_false;
 				}
 				return sl_true;
-			}
-
-		public:
-			void _processReceivedUdp(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
-			{
-				if (!(_isValidSenderAddress(address))) {
-					return;
-				}
-				Command cmd = (Command)(packet[0]);
-				switch (cmd) {
-				case Command::Hello:
-					if (sizePacket == 18) {
-						_onReceivedHelloDirectConnection(P2PNodeId(packet + 1), address, packet[17] != 0);
-					}
-					break;
-				case Command::ReplyHello:
-					if (sizePacket == 17) {
-						_processHelloNode(P2PNodeId(packet + 1), address);
-					}
-					break;
-				case Command::FindNode:
-					if (sizePacket == 17) {
-						_onReceivedFindNodeDirectConnection(address, P2PNodeId(packet + 1));
-					}
-					break; 
-				case Command::ReplyFindNode:
-					if (sizePacket > 1) {
-						SerializeBuffer bufRead(packet + 1, sizePacket - 1);
-						P2PPublicKey remoteKey;
-						if (remoteKey.deserialize(&bufRead)) {
-							_sendVerifyDirectConnection(address, remoteKey);
-						}
-					}
-					break;
-				case Command::VerifyNode:
-					if (sizePacket > 27) {
-						if (Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId))) {
-							sl_uint8 contentToEncrypt[10];
-							Base::copyMemory(contentToEncrypt, packet + 17, 10);
-							SerializeBuffer bufRead(packet + 27, sizePacket - 27);
-							P2PPublicKey remoteKey;
-							if (remoteKey.deserialize(&bufRead)) {
-								ChaCha20_Poly1305 encryption;
-								sl_uint8 key[32];
-								_deriveEncryptionKey(remoteKey, key);
-								encryption.setKey(key);
-								packet[0] = (sl_uint8)(Command::ReplyVerifyNode);
-								GetNodeId(remoteKey, packet + 1);
-								sl_uint8* iv = packet + 17;
-								Math::randomMemory(iv, 12);
-								encryption.start(iv);
-								encryption.encrypt(contentToEncrypt, packet + 29, sizeof(contentToEncrypt));
-								encryption.finish(packet + 39);
-								SerializeBuffer bufWrite(packet + 55, 1024);
-								if (P2PPublicKey(m_key).serialize(&bufWrite)) {
-									_sendUdp(address, packet, bufWrite.current - packet);
-								}
-							}
-						}
-					}
-					break;
-				case Command::ReplyVerifyNode:
-					if (sizePacket > 55) {
-						if (Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId))) {
-							SerializeBuffer bufRead(packet + 55, sizePacket - 55);
-							P2PPublicKey remoteKey;
-							if (remoteKey.deserialize(&bufRead)) {
-								ChaCha20_Poly1305 decryptor;
-								sl_uint8 key[32];
-								_deriveEncryptionKey(remoteKey, key);
-								decryptor.setKey(key);
-								decryptor.start(packet + 17); // iv
-								sl_uint8 content[10];
-								decryptor.decrypt(packet + 29, content, sizeof(content));
-								if (decryptor.finishAndCheckTag(packet + 39)) {
-									IPv4Address remoteIP = address.ip.getIPv4();
-									if (IPv4Address(content[4], content[5], content[6], content[7]) == remoteIP) {
-										if (MIO::readUint16LE(content + 8) == address.port) {
-											sl_uint32 timeOld = MIO::readUint32LE(content);
-											sl_uint32 timeNew = GetCurrentTick();
-											if (CheckDelay(timeOld, timeNew, TIMEOUT_PING_DIRECT_CONNECTION)) {
-												_onVerifyDirectConnection(remoteKey, remoteIP, address.port, timeNew, timeNew - timeOld);
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-					break;
-				case Command::Ping:
-					if (sizePacket == 9) {
-						if (Base::equalsMemory(m_localNodeId.data, packet + 1, 4)) {
-							sl_uint32 time = MIO::readUint32LE(packet + 5);
-							packet[0] = (sl_uint8)(Command::ReplyPing);
-							Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
-							MIO::writeUint32LE(packet + 17, time);
-							_sendUdp(address, packet, 21);
-						}
-					}
-					break;
-				case Command::ReplyPing:
-					if (sizePacket == 21) {
-						sl_uint32 timeOld = MIO::readUint32LE(packet + 17);
-						sl_uint32 timeNew = (sl_uint32)(GetCurrentTick());
-						if (CheckDelay(timeOld, timeNew, TIMEOUT_PING_DIRECT_CONNECTION)) {
-							_onPingDirectConnection(P2PNodeId(packet + 1), address, timeNew, timeNew - timeOld);
-						}
-					}
-					break;
-				case Command::Broadcast:
-					if (sizePacket > 17) {
-						P2PRequest request(packet + 17, sizePacket - 17);
-						request.senderId = P2PNodeId(packet + 1);
-						request.connectionType = P2PConnectionType::Direct;
-						request.remoteAddress = address;
-						m_param.onReceiveBroadcast(this, request);
-					}
-					break;
-				case Command::Datagram:
-					if (sizePacket > 17) {
-						P2PRequest request(packet + 17, sizePacket - 17);
-						request.senderId = P2PNodeId(packet + 1);
-						request.connectionType = P2PConnectionType::Direct;
-						request.remoteAddress = address;
-						m_param.onReceiveDatagram(this, request);
-					}
-					break;
-				default:
-					break;
-				}
-			}
-
-			void _onTimerHello(Timer*)
-			{
-				_sendHello(sl_false);
-			}
-
-			void _onReceivedHelloDirectConnection(const P2PNodeId& nodeId, const SocketAddress& address, sl_bool flagNeedReply)
-			{
-				_processHelloNode(nodeId, address);
-				if (flagNeedReply) {
-					sl_uint8 packet[17];
-					packet[0] = (sl_uint8)(Command::ReplyHello);
-					Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
-					_sendUdp(address, packet, sizeof(packet));
-				}
-				Ref<Node> node = m_mapNodes.getValue(nodeId);
-				if (node.isNotNull()) {
-					if (node->m_portBound == address.port) {
-						if (node->m_connectionsDirect.find(address.ip.getIPv4())) {
-							sl_uint8 packet[9];
-							packet[0] = (sl_uint8)(Command::Ping);
-							Base::copyMemory(packet + 1, node->m_id.data, 4);
-							MIO::writeUint32(packet + 5, GetCurrentTick());
-							_sendUdp(address, packet, sizeof(packet));
-							return;
-						}
-					}
-					_sendVerifyDirectConnection(address, node->m_key);
-				}
-			}
-
-			void _processHelloNode(const P2PNodeId& nodeId, const SocketAddress& address)
-			{
-				if (address.ip.getIPv4().isLoopback()) {
-					if (address.port > m_portLocalhostMax && address.port <= m_portActorMax) {
-						m_portLocalhostMax = address.port;
-					}
-				}
-			}
-
-			void _onReceivedFindNodeDirectConnection(const SocketAddress& senderAddress, const P2PNodeId& targetId)
-			{
-				if (m_localNodeId == targetId) {
-					sl_uint8 packet[1024];
-					packet[0] = (sl_uint8)(Command::ReplyFindNode);
-					SerializeBuffer bufWrite(packet + 1, 1024);
-					if (P2PPublicKey(m_key).serialize(&bufWrite)) {
-						_sendUdp(senderAddress, packet, bufWrite.current - packet);
-					}
-				}
-			}
-
-			void _onVerifyDirectConnection(const P2PPublicKey& key, const IPv4Address& ip, sl_uint16 port, sl_uint32 time, sl_uint32 delay)
-			{
-				P2PNodeId nodeId;
-				GetNodeId(key, nodeId.data);
-				Ref<Node> node = _createNode(key, port);
-				if (node.isNotNull()) {
-					Ref<DirectConnection> connection = _createDirectConnection(node.get(), ip);
-					if (connection.isNotNull()) {
-						connection->m_timeLastPing = time;
-						connection->m_delayLastPing = delay;
-						_selectDefaultConnectionIfBetter(node.get(), connection.get());
-					} else {
-						node.setNull();
-					}
-				}
-				NodeCallbackContainer container;
-				while (m_mapFindCallbacks.remove(nodeId, &container)) {
-					container.success(node.get(), sl_null);
-				}
-			}
-
-			void _onPingDirectConnection(const P2PNodeId& nodeId, const SocketAddress& address, sl_uint32 time, sl_uint32 delay)
-			{
-				Ref<Node> node = m_mapNodes.getValue(nodeId);
-				if (node.isNotNull()) {
-					if (node->m_portBound == address.port) {
-						Ref<DirectConnection> connection = node->m_connectionsDirect.getValue(address.ip.getIPv4());
-						if (connection.isNotNull()) {
-							connection->m_timeLastPing = time;
-							connection->m_delayLastPing = delay;
-							_selectDefaultConnectionIfBetter(node.get(), connection.get());
-						}
-					}
-				}
-			}
-
-			sl_bool _onReceivedTcpServerStream(TcpServerStream* stream, Command command, sl_uint8* packet, sl_size sizePacket)
-			{
-				switch (command) {
-				case Command::InitTcp:
-					if (sizePacket > 4) {
-						if (Base::equalsMemory(m_localNodeId.data, packet, 4)) {
-							SerializeBuffer bufRead(packet + 4, sizePacket - 4);
-							if (stream->m_remoteNodeKey.deserialize(&bufRead)) {
-								_deriveEncryptionKey(stream->m_remoteNodeKey, stream->m_encryptionKey);
-								sl_uint8 c = (sl_uint8)(Command::ReplyInitTcp);
-								_sendTcpServerStream(stream, Memory::create(&c, 1));
-								return sl_true;
-							}
-						}
-					}
-					break;
-				case Command::Message:
-					{
-						P2PResponse response;
-						P2PNodeId nodeId;
-						GetNodeId(stream->m_remoteNodeKey, nodeId.data);
-						if (sizePacket > 28) {
-							ChaCha20_Poly1305 decryptor;
-							decryptor.setKey(stream->m_encryptionKey);
-							sl_uint8* header = packet;
-							packet += 28;
-							sizePacket -= 28;
-							decryptor.start(header); // iv
-							decryptor.decrypt(packet, packet, sizePacket);
-							if (decryptor.finishAndCheckTag(header + 12)) {
-								P2PRequest request(packet, (sl_uint32)sizePacket);
-								request.senderId = nodeId;
-								request.connectionType = P2PConnectionType::Direct;
-								m_param.onReceiveMessage(this, request, response);
-							} else {
-								return sl_false;
-							}
-						} else {
-							P2PRequest request;
-							request.senderId = nodeId;
-							m_param.onReceiveMessage(this, request, response);
-						}
-						if (response.size) {
-							sl_uint8 bufSize[16];
-							sl_uint32 nSize = CVLI::serialize(bufSize, response.size + 28);
-							Memory memPacket = Memory::create(29 + nSize + response.size);
-							if (memPacket.isNull()) {
-								return sl_false;
-							}
-							ChaCha20_Poly1305 encryption;
-							encryption.setKey(stream->m_encryptionKey);
-							packet = (sl_uint8*)(memPacket.getData());
-							*(packet++) = (sl_uint8)(Command::ReplyMessage);
-							Base::copyMemory(packet, bufSize, nSize);
-							packet += nSize;
-							Math::randomMemory(packet, 12); // iv
-							encryption.start(packet);
-							packet += 12;
-							encryption.encrypt(response.data, packet + 16, response.size);
-							encryption.finish(packet);
-							return _sendTcpServerStream(stream, memPacket);
-						} else {
-							sl_uint8 buf[2];
-							buf[0] = (sl_uint8)(Command::ReplyMessage);
-							buf[1] = 0;
-							return _sendTcpServerStream(stream, Memory::create(buf, 2));
-						}
-					}
-					break;
-				default:
-					break;
-				}
-				return sl_false;
 			}
 
 		public:
@@ -1130,31 +907,571 @@ namespace slib
 				}
 			}
 
+			void _processReceivedUdp(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
+			{
+				if (!sizePacket) {
+					return;
+				}
+				if (!(_isValidSenderAddress(address))) {
+					return;
+				}
+				Command cmd = (Command)(*packet);
+				switch (cmd) {
+					case Command::Hello:
+						_onReceiveHello(address, packet, sizePacket);
+						break;
+					case Command::ReplyHello:
+						_onReceiveReplyHello(address, packet, sizePacket);
+						break;
+					case Command::FindNode:
+						_onReceiveFindNode(address, packet, sizePacket);
+						break; 
+					case Command::ReplyFindNode:
+						_onReceiveReplyFindNode(address, packet, sizePacket);
+						break;
+					case Command::VerifyNode:
+						_onReceiveVerifyNode(address, packet, sizePacket);
+						break;
+					case Command::ReplyVerifyNode:
+						_onReceiveReplyVerifyNode(address, packet, sizePacket);
+						break;
+					case Command::CompleteVerifyNode:
+						_onReceiveCompleteVerifyNode(address, packet, sizePacket);
+						break;
+					case Command::Ping:
+						_onReceivePing(address, packet, sizePacket);
+						break;
+					case Command::ReplyPing:
+						_onReceiveReplyPing(address, packet, sizePacket);
+						break;
+					case Command::Broadcast:
+						_onReceiveBroadcast(address, packet, sizePacket);
+						break;
+					case Command::Datagram:
+						_onReceiveDatagram(address, packet, sizePacket);
+						break;
+					default:
+						break;
+				}
+			}
+
 			void _sendHello(sl_bool flagNeedReply)
 			{
-				sl_uint8 packet[18];
-				packet[0] = (sl_uint8)(Command::Hello);
+				sl_uint8 packet[18 + sizeof(m_helloMessage)];
+				*packet = (sl_uint8)(Command::Hello);
 				Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
 				packet[17] = flagNeedReply ? 1 : 0;
+				sl_uint32 sizeMessage = m_sizeHelloMessage;
+				if (sizeMessage > sizeof(m_helloMessage)) {
+					sizeMessage = sizeof(m_helloMessage);
+				}
+				Base::copyMemory(packet + 18, m_helloMessage, sizeMessage);
+				_sendBroadcast(packet, 18 + sizeMessage);
+			}
+
+			void _onReceiveHello(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
+			{
+				if (sizePacket < 18) {
+					return;
+				}
+				P2PRequest message(packet + 18, sizePacket - 18);
+				message.senderId = P2PNodeId(packet + 1);
+				message.connectionType = P2PConnectionType::Direct;
+				message.remoteAddress = address;
+				_onReceiveHello(message, packet[17] != 0);
+			}
+
+			void _onReceiveHello(P2PRequest& message, sl_bool flagNeedReply)
+			{
+				_onReceiveHelloMessage(message);
+				if (flagNeedReply) {
+					_sendReplyHello(message.remoteAddress);
+				}
+				Ref<Node> node = _getNode(message.senderId);
+				if (node.isNotNull()) {
+					IPv4Address ip = message.remoteAddress.ip.getIPv4();
+					if (ip.isNotZero()) {
+						if (node->m_connectionsDirect.find(ip)) {
+							_sendPing(message.remoteAddress, message.senderId);
+							return;
+						}
+					}
+					_sendVerifyNode(message.remoteAddress, message.senderId);
+				}
+			}
+
+			void _sendReplyHello(const SocketAddress& address)
+			{
+				sl_uint8 packet[17 + sizeof(m_helloMessage)];
+				*packet = (sl_uint8)(Command::ReplyHello);
+				Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
+				sl_uint32 sizeMessage = m_sizeHelloMessage;
+				if (sizeMessage > sizeof(m_helloMessage)) {
+					sizeMessage = sizeof(m_helloMessage);
+				}
+				Base::copyMemory(packet + 17, m_helloMessage, sizeMessage);
+				_sendUdp(address, packet, 17 + sizeMessage);
+			}
+
+			void _onReceiveReplyHello(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
+			{
+				if (sizePacket < 17) {
+					return;
+				}
+				P2PRequest message(packet + 17, sizePacket - 17);
+				message.senderId = P2PNodeId(packet + 1);
+				message.connectionType = P2PConnectionType::Direct;
+				message.remoteAddress = address;
+				_onReceiveHelloMessage(message);
+			}
+
+			void _onReceiveHelloMessage(P2PRequest& message)
+			{
+				if (message.remoteAddress.ip.getIPv4().isLoopback()) {
+					if (message.remoteAddress.port > m_portLocalhostMax && message.remoteAddress.port <= m_portActorMax) {
+						m_portLocalhostMax = message.remoteAddress.port;
+					}
+				}
+				m_param.onReceiveHello(this, message);
+			}
+
+			void _sendFindNode(const P2PNodeId& nodeId)
+			{
+				sl_uint8 packet[17];
+				*packet = (sl_uint8)(Command::FindNode);
+				Base::copyMemory(packet + 1, nodeId.data, sizeof(P2PNodeId));
 				_sendBroadcast(packet, sizeof(packet));
 			}
 
-			void _sendVerifyDirectConnection(const SocketAddress& address, const P2PPublicKey& key)
+			void _onReceiveFindNode(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 			{
-				sl_uint8 packet[1024];
-				packet[0] = (sl_uint8)(Command::VerifyNode);
-				GetNodeId(key, packet + 1);
-				MIO::writeUint32LE(packet + 17, GetCurrentTick());
-				IPv4Address remoteIP = address.ip.getIPv4();
-				packet[21] = remoteIP.a;
-				packet[22] = remoteIP.b;
-				packet[23] = remoteIP.c;
-				packet[24] = remoteIP.d;
-				MIO::writeUint16LE(packet + 25, address.port);
-				SerializeBuffer bufWrite(packet + 27, 1024);
-				if (P2PPublicKey(m_key).serialize(&bufWrite)) {
-					_sendUdp(address, packet, bufWrite.current - packet);
+				if (sizePacket != 17) {
+					return;
 				}
+				if (!(Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId)))) {
+					return;
+				}
+				_sendReplyFindNode(address);
+			}
+
+			void _sendReplyFindNode(const SocketAddress& address)
+			{
+				sl_uint8 packet[17];
+				*packet = (sl_uint8)(Command::ReplyFindNode);
+				Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
+				_sendUdp(address, packet, sizeof(packet));
+			}
+
+			void _onReceiveReplyFindNode(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
+			{
+				if (sizePacket != 17) {
+					return;
+				}
+				P2PNodeId targetId(packet + 1);
+				_sendVerifyNode(address, targetId);
+			}
+
+			void _sendVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId)
+			{
+				sl_uint8 packet[37 + EdDH::KeySize];
+				*packet = (sl_uint8)(Command::VerifyNode);
+				Base::copyMemory(packet + 1, remoteId.data, sizeof(P2PNodeId));
+				Base::copyMemory(packet + 17, m_localNodeId.data, sizeof(P2PNodeId));
+				Base::copyMemory(packet + 33, m_ephemeralPublicKey.data, EdDH::KeySize);
+				MIO::writeUint32LE(packet + (33 + EdDH::KeySize), GetCurrentTick());
+				_sendUdp(address, packet, sizeof(packet));
+			}
+
+			void _onReceiveVerifyNode(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
+			{
+				if (sizePacket != 37 + EdDH::KeySize) {
+					return;
+				}
+				if (!(Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId)))) {
+					return;
+				}
+				P2PNodeId remoteId(packet + 17);
+				Bytes<EdDH::KeySize> remoteEphemeralKey(packet + 33);
+				sl_uint32 remoteTick = MIO::readUint32LE(packet + (33 + EdDH::KeySize));
+				m_threadPool->addTask([this, address, remoteId, remoteEphemeralKey, remoteTick]() {
+					_onReceiveVerifyNode(address, remoteId, remoteEphemeralKey.data, remoteTick);
+				});
+			}
+
+			void _onReceiveVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId, const sl_uint8 remoteEphemeralKey[EdDH::KeySize], sl_uint32 remoteTick)
+			{
+				sl_uint32 localTick = GetCurrentTick();
+				if (localTick < 2) {
+					localTick = 2;
+				}
+				Ref<Node> node = _getNode(remoteId);
+				if (node.isNotNull()) {
+					if (Base::equalsMemory(node->m_remoteEphemeralPublicKey.data, remoteEphemeralKey, EdDH::KeySize)) {
+						localTick = 0; // Completed
+					}
+				}
+				_sendReplyVerifyNode(address, remoteId, remoteEphemeralKey, remoteTick, localTick);
+			}
+
+			void _sendReplyVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId, const sl_uint8 remoteEphemeralKey[EdDH::KeySize], sl_uint32 remoteTick, sl_uint32 localTick)
+			{
+				const sl_uint32 sizeHeader = 17 + EdDSA::KeySize + EdDH::KeySize;
+				const sl_uint32 sizeContentHeader = EdDSA::SignatureSize + 8;
+				sl_uint8 packet[sizeHeader + 28 + sizeContentHeader + sizeof(m_localNodeDescription)];
+				*packet = (sl_uint8)(Command::ReplyVerifyNode);
+				Base::copyMemory(packet + 1, remoteId.data, sizeof(P2PNodeId));
+				Base::copyMemory(packet + 17, m_localPublicKey.data, EdDSA::KeySize);
+				Base::copyMemory(packet + (17 + EdDSA::KeySize), m_ephemeralPublicKey.data, EdDH::KeySize);
+				Math::randomMemory(packet + sizeHeader, 12);
+				const sl_uint32 posContent = sizeHeader + 28;
+				sl_uint8 sts[EdDH::KeySize * 2];
+				Base::copyMemory(sts, m_ephemeralPublicKey.data, EdDH::KeySize);
+				Base::copyMemory(sts + EdDH::KeySize, remoteEphemeralKey, EdDH::KeySize);
+				EdDSA::sign(m_localKey.data, m_localPublicKey.data, sts, sizeof(sts), packet + posContent);
+				MIO::writeUint32LE(packet + (posContent + EdDSA::SignatureSize), remoteTick);
+				MIO::writeUint32LE(packet + (posContent + EdDSA::SignatureSize + 4), localTick);
+				sl_uint32 sizeDesc = m_sizeLocalNodeDescription;
+				if (sizeDesc > sizeof(m_localNodeDescription)) {
+					sizeDesc = sizeof(m_localNodeDescription);
+				}
+				Base::copyMemory(packet + (posContent + sizeContentHeader), m_localNodeDescription, sizeDesc);
+				AES_GCM cryptor;
+				sl_uint8 key[32];
+				_deriveEncryptionKey(remoteEphemeralKey, key);
+				cryptor.setKey(key, sizeof(key));
+				cryptor.start(packet + sizeHeader, 12);
+				cryptor.encrypt(packet + posContent, packet + posContent, sizeContentHeader + sizeDesc);
+				cryptor.finish(packet + (sizeHeader + 12));
+				_sendUdp(address, packet, sizeHeader + 28 + sizeContentHeader + sizeDesc);
+			}
+
+			void _onReceiveReplyVerifyNode(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
+			{
+				const sl_uint32 sizeHeader = 17 + EdDSA::KeySize + EdDH::KeySize;
+				const sl_uint32 sizeContentHeader = EdDSA::SignatureSize + 8;
+				if (sizePacket < sizeHeader + 28 + sizeContentHeader) {
+					return;
+				}
+				if (!(Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId)))) {
+					return;
+				}
+				Bytes<EdDSA::KeySize> remoteKey(packet + 17);
+				Bytes<EdDH::KeySize> remoteEphemeralKey(packet + (17 + EdDSA::KeySize));
+				sl_uint8 key[32];
+				_deriveEncryptionKey(remoteEphemeralKey.data, key);
+				AES_GCM decryptor;
+				decryptor.setKey(key, sizeof(key));
+				const sl_uint32 posContent = sizeHeader + 28;
+				decryptor.start(packet + sizeHeader, 12); // iv
+				decryptor.decrypt(packet + posContent, packet + posContent, sizePacket - posContent);
+				if (!(decryptor.finishAndCheckTag(packet + (sizeHeader + 12)))) {
+					return;
+				}
+				Bytes<EdDSA::SignatureSize> signature(packet + posContent);
+				sl_uint32 timeOld = MIO::readUint32LE(packet + (posContent + EdDSA::SignatureSize));
+				sl_uint32 timeNew = GetCurrentTick();
+				if (!(CheckDelay(timeOld, timeNew, m_param.findTimeout))) {
+					return;
+				}
+				sl_uint32 localTick = MIO::readUint32LE(packet + (posContent + EdDSA::SignatureSize + 4));
+				Memory desc = Memory::create(packet + (posContent + sizeContentHeader), sizePacket - (posContent + sizeContentHeader));
+				m_threadPool->addTask([this, address, remoteKey, remoteEphemeralKey, signature, desc, timeOld, timeNew, localTick]() {
+					_onReceiveReplyVerifyDirectConnection(address, remoteKey.data, remoteEphemeralKey.data, signature.data, desc, timeNew, timeNew - timeOld, localTick);
+				});
+			}
+
+			void _onReceiveReplyVerifyDirectConnection(const SocketAddress& address, const sl_uint8 remoteKey[EdDSA::KeySize], const sl_uint8 remoteEphemeralKey[EdDH::KeySize], const sl_uint8 signature[EdDSA::SignatureSize], const Memory& desc, sl_uint32 tick, sl_uint32 delay, sl_uint32 localTick)
+			{
+				sl_uint8 sts[EdDH::KeySize * 2];
+				Base::copyMemory(sts, remoteEphemeralKey, EdDH::KeySize);
+				Base::copyMemory(sts + EdDH::KeySize, m_ephemeralPublicKey.data, EdDH::KeySize);
+				if (!(EdDSA::verify(remoteKey, sts, sizeof(sts), signature))) {
+					return;
+				}
+				Ref<Node> node = _createNode(remoteKey);
+				if (node.isNotNull()) {
+					node->updateRemoteEphemeralKey(remoteEphemeralKey, desc);
+					Ref<DirectConnection> connection = _createDirectConnection(node.get(), address);
+					if (connection.isNotNull()) {
+						connection->m_timeLastPing = tick;
+						connection->m_delayLastPing = delay;
+						_selectDefaultConnectionIfBetter(node.get(), connection.get());
+					} else {
+						node.setNull();
+					}
+				}
+				if (node.isNull()) {
+					if (localTick != 1) {
+						_completeFindNodeCallbacks(P2PNodeId(remoteKey), sl_null);
+					}
+					return;
+				}
+				if (localTick == 0) { // Completed
+					_completeFindNodeCallbacks(node->m_id, node.get());
+				} else if (localTick == 1) { // Need Complete
+					_sendCompleteVerifyNode(address, node->m_id);
+				} else { // Need Verify
+					_sendReplyVerifyNode(address, node->m_id, remoteEphemeralKey, localTick, 1); // Need Complete
+				}
+			}
+
+			void _sendCompleteVerifyNode(const SocketAddress& address, const P2PNodeId& remoteId)
+			{
+				sl_uint8 packet[33];
+				*packet = (sl_uint8)(Command::CompleteVerifyNode);
+				Base::copyMemory(packet + 1, remoteId.data, sizeof(P2PNodeId));
+				Base::copyMemory(packet + 17, m_localNodeId.data, sizeof(P2PNodeId));
+				_sendUdp(address, packet, sizeof(packet));
+			}
+
+			void _onReceiveCompleteVerifyNode(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
+			{
+				if (sizePacket != 33) {
+					return;
+				}
+				if (!(Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId)))) {
+					return;
+				}
+				P2PNodeId nodeId(packet + 17);
+				Ref<Node> node = _getNode(nodeId);
+				if (node.isNotNull()) {
+					_completeFindNodeCallbacks(node->m_id, node.get());
+				}
+			}
+
+			void _sendPing(const SocketAddress& address, const P2PNodeId& nodeId)
+			{
+				sl_uint8 packet[9];
+				*packet = (sl_uint8)(Command::Ping);
+				Base::copyMemory(packet + 1, nodeId.data, 4);
+				MIO::writeUint32LE(packet + 5, GetCurrentTick());
+				_sendUdp(address, packet, sizeof(packet));
+			}
+
+			void _onReceivePing(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
+			{
+				if (sizePacket != 9) {
+					return;
+				}
+				if (!(Base::equalsMemory(m_localNodeId.data, packet + 1, 4))) {
+					return;
+				}
+				sl_uint32 remoteTick = MIO::readUint32LE(packet + 5);
+				_sendReplyPing(address, remoteTick);
+			}
+
+			void _sendReplyPing(const SocketAddress& address, sl_uint32 remoteTick)
+			{
+				sl_uint8 packet[29];
+				*packet = (sl_uint8)(Command::ReplyPing);
+				Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
+				Base::copyMemory(packet + 17, m_ephemeralPublicKey.data, 8);
+				MIO::writeUint32LE(packet + 25, remoteTick);
+				_sendUdp(address, packet, sizeof(packet));
+			}
+
+			void _onReceiveReplyPing(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
+			{
+				if (sizePacket != 29) {
+					return;
+				}
+				P2PNodeId remoteId(packet + 1);
+				sl_uint32 timeOld = MIO::readUint32LE(packet + 25);
+				sl_uint32 timeNew = (sl_uint32)(GetCurrentTick());
+				if (!CheckDelay(timeOld, timeNew, m_param.connectionTimeout)) {
+					return;
+				}
+				_onReceiveReplyPing(address, remoteId, packet + 17, timeNew, timeNew - timeOld);
+			}
+
+			void _onReceiveReplyPing(const SocketAddress& address, const P2PNodeId& nodeId, sl_uint8 ephemeralKeyPrefix[8], sl_uint32 time, sl_uint32 delay)
+			{
+				Ref<Node> node = _getNode(nodeId);
+				if (node.isNull()) {
+					return;
+				}
+				if (!(Base::equalsMemory(node->m_remoteEphemeralPublicKey.data, ephemeralKeyPrefix, 8))) {
+					_sendVerifyNode(address, nodeId);
+					return;
+				}
+				IPv4Address ip = address.ip.getIPv4();
+				if (ip.isZero()) {
+					return;
+				}
+				Ref<DirectConnection> connection = node->m_connectionsDirect.getValue(ip);
+				if (connection.isNull()) {
+					return;
+				}
+				connection->m_timeLastPing = time;
+				connection->m_delayLastPing = delay;
+				_selectDefaultConnectionIfBetter(node.get(), connection.get());
+			}
+
+			void _onReceiveBroadcast(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
+			{
+				if (sizePacket <= 17) {
+					return;
+				}
+				P2PRequest request(packet + 17, sizePacket - 17);
+				request.senderId = P2PNodeId(packet + 1);
+				request.connectionType = P2PConnectionType::Direct;
+				request.remoteAddress = address;
+				m_param.onReceiveBroadcast(this, request);
+			}
+
+			void _onReceiveDatagram(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
+			{
+				if (sizePacket <= 17) {
+					return;
+				}
+				P2PRequest request(packet + 17, sizePacket - 17);
+				request.senderId = P2PNodeId(packet + 1);
+				request.connectionType = P2PConnectionType::Direct;
+				request.remoteAddress = address;
+				m_param.onReceiveDatagram(this, request);
+			}
+
+		public:
+			void _onAcceptTcpServerConnection(Socket& socket)
+			{
+				AsyncTcpSocketParam param;
+				param.socket = Move(socket);
+				param.ioLoop = m_ioLoop;
+				Ref<AsyncTcpSocket> client = AsyncTcpSocket::create(param);
+				if (client.isNotNull()) {
+					Ref<TcpServerStream> stream = new TcpServerStream(Move(client), m_param.maximumMessageSize);
+					if (stream.isNotNull()) {
+						if (_receiveTcpServerConnection(stream)) {
+							m_mapTcpStreams.put(stream.get(), stream);
+						}
+					}
+				}
+			}
+
+			sl_bool _receiveTcpServerConnection(const Ref<TcpServerStream>& stream)
+			{
+				WeakRef<TcpServerStream> weakStream = stream;
+				return stream->m_socket->receive(Memory::create(m_param.messageBufferSize), [this, weakStream](AsyncStreamResult& result) {
+					Ref<TcpServerStream> stream = weakStream;
+					if (stream.isNull()) {
+						return;
+					}
+					if (result.isSuccess() && !(stream->m_flagWriting)) {
+						sl_int32 iRet = stream->processReceivedData((sl_uint8*)(result.data), result.size);
+						if (iRet >= 0) {
+							if (iRet > 0) {
+								if (_onReceiveTcpServerStream(stream, result)) {
+									return;
+								}
+							} else {
+								if (stream->m_socket->receive(result.data, result.requestSize, result.callback, result.userObject)) {
+									return;
+								}
+							}
+						}
+					}
+					m_mapTcpStreams.remove(stream.get());
+				});
+			}
+
+			sl_bool _onReceiveTcpServerStream(const Ref<TcpServerStream>& stream, AsyncStreamResult& result)
+			{
+				if (stream->m_currentCommand == TcpCommand::Init) {
+					if (stream->getContentSize() != 20) {
+						return sl_false;
+					}
+					sl_uint8* packet = stream->getContent();
+					if (!(Base::equalsMemory(m_localNodeId.data, packet, 4))) {
+						return sl_false;
+					}
+					stream->m_remoteId = P2PNodeId(packet + 4);
+				}
+				Memory buf = (CMemory*)(result.userObject);
+				Function<void(AsyncStreamResult&)> callback = result.callback;
+				_findNode(stream->m_remoteId, [this, stream, buf, callback](Node* node, void*) {
+					if (node) {
+						Memory response = _onReceiveTcpServerStream(node, stream->m_currentCommand, stream->getContent(), stream->getContentSize());
+						if (response.isNotNull()) {
+							stream->clear();
+							m_mapTcpStreams.get(stream.get());
+							if (_sendTcpServerStream(stream, response)) {
+								if (stream->m_socket->receive(buf, callback)) {
+									return;
+								}
+							}
+						}
+					}
+					m_mapTcpStreams.remove(stream.get());
+				}, 0);
+				return sl_true;
+			}
+
+			Memory _onReceiveTcpServerStream(Node* node, TcpCommand command, sl_uint8* packet, sl_size sizePacket)
+			{
+				switch (command) {
+					case TcpCommand::Init:
+						{
+							sl_uint8 c = (sl_uint8)(TcpCommand::ReplyInit);
+							return Memory::create(&c, 1);
+						}
+						break;
+					case TcpCommand::Message:
+						{
+							node->updateEncryptionKey(m_ephemeralKey.data, m_ephemeralPublicKey.data);
+							P2PResponse response;
+							if (sizePacket > 28) {
+								AES_GCM decryptor;
+								decryptor.setKey(node->m_encryptionKey, 32);
+								decryptor.start(packet, 12);
+								packet += 28;
+								sizePacket -= 28;
+								decryptor.decrypt(packet, packet, sizePacket);
+								if (decryptor.finishAndCheckTag(packet - 16)) {
+									P2PRequest request(packet, (sl_uint32)sizePacket);
+									request.senderId = node->m_id;
+									request.connectionType = P2PConnectionType::Direct;
+									m_param.onReceiveMessage(this, request, response);
+								} else {
+									return sl_null;
+								}
+							} else if (!sizePacket) {
+								P2PRequest request;
+								request.senderId = node->m_id;
+								m_param.onReceiveMessage(this, request, response);
+							} else {
+								return sl_null;
+							}
+							if (response.size) {
+								sl_uint8 bufSize[16];
+								sl_uint32 nSize = CVLI::serialize(bufSize, response.size + 28);
+								Memory memPacket = Memory::create(29 + nSize + response.size);
+								if (memPacket.isNull()) {
+									return sl_null;
+								}
+								AES_GCM encryption;
+								encryption.setKey(node->m_encryptionKey, 32);
+								packet = (sl_uint8*)(memPacket.getData());
+								*(packet++) = (sl_uint8)(TcpCommand::ReplyMessage);
+								Base::copyMemory(packet, bufSize, nSize);
+								packet += nSize;
+								Math::randomMemory(packet, 12); // iv
+								encryption.start(packet, 12);
+								packet += 12;
+								encryption.encrypt(response.data, packet + 16, response.size);
+								encryption.finish(packet);
+								return memPacket;
+							} else {
+								sl_uint8 buf[2];
+								buf[0] = (sl_uint8)(TcpCommand::ReplyMessage);
+								buf[1] = 0;
+								return Memory::create(buf, 2);
+							}
+						}
+						break;
+					default:
+						break;
+				}
+				return sl_null;
 			}
 
 			sl_bool _sendTcpServerStream(TcpServerStream* stream, const Memory& content)
@@ -1169,6 +1486,234 @@ namespace slib
 					stream->m_flagWriting = sl_false;
 					if (!(result.isSuccess())) {
 						m_mapTcpStreams.remove(stream.get());
+					}
+				});
+			}
+
+		public:
+			struct TcpClientStream_InitContext
+			{
+				Ref<Node> node;
+				Ref<DirectConnection> connection;
+				WeakRef<TcpClientStream> stream;
+				Shared<TimeoutMonitor> timeoutMonitor;
+				Function<void(This*, Node*, DirectConnection*, TcpClientStream*)> callback;
+			};
+
+			void _getTcpClientStream(Node* node, DirectConnection* connection, const Function<void(This*, Node*, DirectConnection*, TcpClientStream*)>& callback, sl_uint64 tickEnd)
+			{
+				Ref<AsyncTcpSocket> socket;
+				if (m_mapIdleTcpSockets.remove(connection, &socket)) {
+					Ref<TcpClientStream> stream = new TcpClientStream(Move(socket), m_param.maximumMessageSize);
+					if (stream.isNotNull()) {
+						m_mapTcpStreams.put(stream.get(), stream);
+					}
+					callback(this, node, connection, stream.get());
+				} else {
+					AsyncTcpSocketParam param;
+					param.ioLoop = m_ioLoop;
+					Ref<AsyncTcpSocket> socket = AsyncTcpSocket::create(param);
+					if (socket.isNotNull()) {
+						TcpClientStream_InitContext context;
+						context.callback = callback;
+						context.node = node;
+						context.connection = connection;
+						Ref<TcpClientStream> stream = new TcpClientStream(Move(socket), m_param.maximumMessageSize);
+						if (stream.isNotNull() && TimeoutMonitor::create(context.timeoutMonitor, tickEnd)) {
+							context.stream = stream;
+							if (stream->m_socket->connect(connection->m_address, [this, context](AsyncTcpSocket* socket, sl_bool flagError) {
+								if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
+									return;
+								}
+								Ref<TcpClientStream> stream = context.stream;
+								if (stream.isNotNull()) {
+									if (!flagError) {
+										if (_sendTcpClientStream_Init(socket, context)) {
+											return;
+										}
+									}
+									m_mapTcpStreams.remove(stream.get());
+								}
+								if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
+									context.callback(this, context.node.get(), context.connection.get(), sl_null);
+								}
+							})) {
+								m_mapTcpStreams.put(stream.get(), stream);
+								if (context.timeoutMonitor.isNotNull()) {
+									TimeoutMonitor::dispatchTimeout(context.timeoutMonitor, m_dispatchLoop, [this, context]() {
+										Ref<TcpStream> stream = context.stream;
+										if (stream.isNotNull()) {
+											m_mapTcpStreams.remove(stream.get());
+										}
+										context.callback(this, context.node.get(), context.connection.get(), sl_null);
+									}, tickEnd);
+								}
+								return;
+							}
+						}
+					}
+					callback(this, node, connection, sl_null);
+				}
+			}
+
+			sl_bool _sendTcpClientStream_Init(AsyncTcpSocket* socket, const TcpClientStream_InitContext& context)
+			{
+				sl_uint8 packet[21];
+				*packet = (sl_uint8)(TcpCommand::Init);
+				Base::copyMemory(packet + 1, context.node->m_id.data, 4);
+				Base::copyMemory(packet + 5, m_localNodeId.data, sizeof(P2PNodeId));
+				return socket->send(Memory::create(packet, sizeof(packet)), [this, context](AsyncStreamResult& result) {
+					if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
+						return;
+					}
+					Ref<TcpClientStream> stream = context.stream;
+					if (stream.isNotNull()) {
+						if (result.isSuccess()) {
+							if (_receiveTcpClientStream_ReplyInit(result.stream, context)) {
+								return;
+							}
+						}
+						m_mapTcpStreams.remove(stream.get());
+					}
+					if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
+						context.callback(this, context.node.get(), context.connection.get(), sl_null);
+					}
+				});
+			}
+
+			sl_bool _receiveTcpClientStream_ReplyInit(AsyncStream* stream, const TcpClientStream_InitContext& context)
+			{
+				return stream->read(Memory::create(16), [this, context](AsyncStreamResult& result) {
+					if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
+						return;
+					}
+					Ref<TcpClientStream> stream = context.stream;
+					if (stream.isNotNull()) {
+						if (result.isSuccess()) {
+							if (result.size == 1 && *((sl_uint8*)(result.data)) == (sl_uint8)(TcpCommand::ReplyInit)) {
+								if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
+									context.callback(this, context.node.get(), context.connection.get(), stream.get());
+								}
+								return;
+							}
+						}
+						m_mapTcpStreams.remove(stream.get());
+					}
+					if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
+						context.callback(this, context.node.get(), context.connection.get(), sl_null);
+					}
+				});
+			}
+
+			struct TcpClientStream_MessageContext
+			{
+				Ref<Node> node;
+				Ref<DirectConnection> connection;
+				WeakRef<TcpClientStream> stream;
+				Shared<TimeoutMonitor> timeoutMonitor;
+				Function<void(P2PResponse&)> callback;
+			};
+
+			sl_bool _sendTcpClientStream_Message(TcpClientStream* stream, const TcpClientStream_MessageContext& context, const MessageBody& body)
+			{
+				Memory memPacket;
+				sl_uint8* packet;
+				if (body.lengthOfSize) {
+					memPacket = body.packet;
+					packet = (sl_uint8*)(memPacket.getData());
+					Math::randomMemory(packet + 1 + body.lengthOfSize, 12);
+					context.node->updateEncryptionKey(m_ephemeralKey.data, m_ephemeralPublicKey.data);
+					AES_GCM enc;
+					enc.setKey(context.node->m_encryptionKey, 32);
+					enc.start(packet + 1 + body.lengthOfSize, 12);
+					sl_uint8* content = packet + 29 + body.lengthOfSize;
+					enc.encrypt(content, content, memPacket.getSize() - 29 - body.lengthOfSize);
+					enc.finish(packet + 13 + body.lengthOfSize);
+				} else {
+					memPacket = Memory::create(2);
+					if (memPacket.isNull()) {
+						return sl_false;
+					}
+					packet = (sl_uint8*)(memPacket.getData());
+					packet[1] = 0;
+				}
+				packet[0] = (sl_uint8)(TcpCommand::Message);
+				return stream->m_socket->send(memPacket, [this, context](AsyncStreamResult& result) {
+					if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
+						return;
+					}
+					Ref<TcpClientStream> stream = context.stream;
+					if (stream.isNotNull()) {
+						if (result.isSuccess()) {
+							if (_receiveTcpClientStream_ReplyMessage(stream.get(), context)) {
+								return;
+							}
+						}
+						m_mapTcpStreams.remove(stream.get());
+					}
+					if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
+						ReplyErrorResponse(context.callback);
+					}
+				});
+			}
+
+			sl_bool _receiveTcpClientStream_ReplyMessage(TcpClientStream* stream, const TcpClientStream_MessageContext& context)
+			{
+				return stream->m_socket->receive(Memory::create(m_param.messageBufferSize), [this, context](AsyncStreamResult& result) {
+					if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
+						return;
+					}
+					Ref<TcpClientStream> stream = context.stream;
+					if (stream.isNotNull()) {
+						if (result.isSuccess()) {
+							sl_int32 iRet = stream->processReceivedData((sl_uint8*)(result.data), result.size);
+							if (iRet >= 0) {
+								if (iRet > 0) {
+									if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
+										if (stream->m_currentCommand == TcpCommand::ReplyMessage) {
+											sl_uint8* packet = stream->getContent();
+											sl_uint32 size = (sl_uint32)(stream->getContentSize());
+											sl_bool flagSuccess = sl_true;
+											if (size > 28) {
+												AES_GCM enc;
+												enc.setKey(context.node->m_encryptionKey, 32);
+												enc.start(packet, 12);
+												sl_uint8* content = packet + 28;
+												size -= 28;
+												enc.decrypt(content, content, size);
+												if (enc.finishAndCheckTag(packet + 12)) {
+													P2PResponse response(content, size);
+													response.connectionType = P2PConnectionType::Direct;
+													context.callback(response);
+												} else {
+													flagSuccess = sl_false;
+												}
+											} else if (!size) {
+												P2PResponse response;
+												response.connectionType = P2PConnectionType::Direct;
+												context.callback(response);
+											} else {
+												flagSuccess = sl_false;
+											}
+											stream->clear();
+											if (flagSuccess) {
+												m_mapTcpStreams.get(stream.get());
+												m_mapIdleTcpSockets.add(context.connection.get(), stream->m_socket);
+												return;
+											}
+										}
+									}
+								} else {
+									if (stream->m_socket->receive(result.data, result.requestSize, result.callback, result.userObject)) {
+										return;
+									}
+								}
+							}
+						}
+						m_mapTcpStreams.remove(stream.get());
+					}
+					if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
+						ReplyErrorResponse(context.callback);
 					}
 				});
 			}
@@ -1191,51 +1736,42 @@ namespace slib
 				return sl_true;
 			}
 
-			void _deriveEncryptionKey(const ECPublicKey& remoteKey, sl_uint8* key)
+			void _deriveEncryptionKey(const sl_uint8 remoteEphemeralKey[EdDH::KeySize], sl_uint8 key[32])
 			{
-				P2PNodeId remoteId;
-				GetNodeId(remoteKey, remoteId.data);
-				// Check saved key
-				{
-					MutexLocker lock(m_mapEncryptionKey.getLocker());
-					Bytes<32>* savedKey = m_mapEncryptionKey.getItemPointer(remoteId);
-					if (savedKey) {
-						Base::copyMemory(key, savedKey->data, 32);
-						return;
-					}
-				}
-				DeriveKey(m_param.curve, m_key, remoteKey, key);
-				if (m_mapEncryptionKey.getCount() > 10000) {
-					m_mapEncryptionKey.removeAll();
-				}
-				m_mapEncryptionKey.put(remoteId, key);
+				DeriveKey(m_ephemeralKey.data, remoteEphemeralKey, key);
 			}
 
-			Ref<Node> _createNode(const P2PPublicKey& key, sl_uint16 port)
+			Ref<Node> _getNode(const P2PNodeId& nodeId)
 			{
-				P2PNodeId nodeId;
-				GetNodeId(key, nodeId.data);
-				Ref<Node> node = m_mapNodes.getValue(nodeId);
+				return m_mapNodes.getValue(nodeId, sl_null, sl_false);
+			}
+
+			Ref<Node> _createNode(const sl_uint8 remoteKey[EdDSA::KeySize])
+			{
+				P2PNodeId nodeId(remoteKey);
+				Ref<Node> node = m_mapNodes.getValue(nodeId, sl_null, sl_true);
 				if (node.isNotNull()) {
-					if (node->m_key == key && node->m_portBound == port) {
+					if (Base::equalsMemory(node->m_publicKey.data, remoteKey, EdDSA::KeySize)) {
 						return node;
 					}
 				}
-				node = new Node(key);
+				node = new Node(remoteKey);
 				if (node.isNotNull()) {
-					_deriveEncryptionKey(key, node->m_encryptionKey);
-					node->m_portBound = port;
 					m_mapNodes.put(nodeId, node);
 					return node;
 				}
 				return sl_null;
 			}
 
-			Ref<DirectConnection> _createDirectConnection(Node* node, const IPv4Address& ip)
+			Ref<DirectConnection> _createDirectConnection(Node* node, const SocketAddress& remoteAddress)
 			{
+				IPv4Address ip = remoteAddress.ip.getIPv4();
+				if (ip.isZero()) {
+					return sl_null;
+				}
 				Ref<DirectConnection> connection = node->m_connectionsDirect.getValue(ip);
 				if (connection.isNull()) {
-					connection = new DirectConnection(ip);
+					connection = new DirectConnection(remoteAddress);
 					if (connection.isNull()) {
 						return sl_null;
 					}
@@ -1266,117 +1802,12 @@ namespace slib
 
 			sl_bool _isValidConnection(Connection* connection)
 			{
-				return CheckDelay(connection->m_timeLastPing, GetCurrentTick(), TIMEOUT_VALID_DIRECT_CONNECTION);
-			}
-
-			void _getTcpClientStream(Node* node, DirectConnection* connection, const Function<void(This*, Node*, DirectConnection*, TcpClientStream*)>& callback, sl_uint64 tickEnd)
-			{
-				Ref<AsyncTcpSocket> socket;
-				if (m_mapIdleTcpSockets.remove(connection, &socket)) {
-					Ref<TcpClientStream> stream = new TcpClientStream(Move(socket), m_param.maximumMessageSize);
-					if (stream.isNotNull()) {
-						m_mapTcpStreams.put(stream.get(), stream);
-					}
-					callback(this, node, connection, stream.get());
-				} else {
-					AsyncTcpSocketParam param;
-					param.ioLoop = m_ioLoop;
-					Ref<Node> refNode = node;
-					Ref<DirectConnection> refConnection = connection;
-					Ref<AsyncTcpSocket> socket = AsyncTcpSocket::create(param);
-					if (socket.isNotNull()) {
-						Ref<TcpClientStream> stream = new TcpClientStream(Move(socket), m_param.maximumMessageSize);
-						Shared<TimeoutMonitor> timeoutMonitor;
-						if (stream.isNotNull() && TimeoutMonitor::create(timeoutMonitor, tickEnd)) {
-							WeakRef<TcpClientStream> weakStream = stream;
-							if (stream->m_socket->connect(SocketAddress(connection->m_ip, node->m_portBound), [this, refNode, refConnection, weakStream, timeoutMonitor, callback](AsyncTcpSocket* socket, sl_bool flagError) {
-								if (TimeoutMonitor::isFinished(timeoutMonitor)) {
-									return;
-								}
-								Node* node = refNode.get();
-								Ref<TcpClientStream> stream = weakStream;
-								if (stream.isNotNull()) {
-									if (!flagError) {
-										sl_uint8 bufKey[1024];
-										SerializeBuffer sbKey(bufKey, sizeof(bufKey));
-										if (P2PPublicKey(m_key).serialize(&sbKey)) {
-											sl_uint32 nKey = (sl_uint32)(sbKey.current - sbKey.begin);
-											sl_uint8 bufPacket[1024];
-											sl_uint8* packet = bufPacket;
-											*(packet++) = (sl_uint8)(Command::InitTcp);
-											sl_uint32 n = CVLI::serialize(packet, 4 + nKey);
-											packet += n;
-											Base::copyMemory(packet, node->m_id.data, 4);
-											packet += 4;
-											Base::copyMemory(packet, bufKey, nKey);
-											packet += nKey;
-											if (socket->send(Memory::create(bufPacket, packet - bufPacket), [this, refNode, refConnection, weakStream, timeoutMonitor, callback](AsyncStreamResult& result) {
-												if (TimeoutMonitor::isFinished(timeoutMonitor)) {
-													return;
-												}
-												Ref<TcpClientStream> stream = weakStream;
-												if (stream.isNotNull()) {
-													if (result.isSuccess()) {
-														if (result.stream->read(Memory::create(16), [this, refNode, refConnection, weakStream, timeoutMonitor, callback](AsyncStreamResult& result) {
-															if (TimeoutMonitor::isFinished(timeoutMonitor)) {
-																return;
-															}
-															Ref<TcpClientStream> stream = weakStream;
-															if (stream.isNotNull()) {
-																if (result.isSuccess()) {
-																	if (result.size == 1 && *((sl_uint8*)(result.data)) == (sl_uint8)(Command::ReplyInitTcp)) {
-																		if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
-																			callback(this, refNode.get(), refConnection.get(), stream.get());
-																		}
-																		return;
-																	}
-																}
-																m_mapTcpStreams.remove(stream.get());
-															}
-															if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
-																callback(this, refNode.get(), refConnection.get(), sl_null);
-															}
-														})) {
-															return;
-														}
-													}
-													m_mapTcpStreams.remove(stream.get());
-												}
-												if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
-													callback(this, refNode.get(), refConnection.get(), sl_null);
-												}
-											})) {
-												return;
-											}
-										}
-									}
-									m_mapTcpStreams.remove(stream.get());
-								}
-								if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
-									callback(this, refNode.get(), refConnection.get(), sl_null);
-								}
-							})) {
-								m_mapTcpStreams.put(stream.get(), stream);
-								if (timeoutMonitor.isNotNull()) {
-									TimeoutMonitor::dispatchTimeout(timeoutMonitor, m_dispatchLoop, [this, refNode, refConnection, weakStream, callback]() {
-										Ref<TcpStream> stream = weakStream;
-										if (stream.isNotNull()) {
-											m_mapTcpStreams.remove(stream.get());
-										}
-										callback(this, refNode.get(), refConnection.get(), sl_null);
-									}, tickEnd);
-								}
-								return;
-							}
-						}
-					}
-					callback(this, node, connection, sl_null);
-				}
+				return CheckDelay(connection->m_timeLastPing, GetCurrentTick(), m_param.connectionTimeout);
 			}
 
 			void _findNode(const P2PNodeId& nodeId, const NodeCallback& callback, sl_uint64 tickEnd)
 			{
-				Ref<Node> node = m_mapNodes.getValue(nodeId);
+				Ref<Node> node = m_mapNodes.getValue(nodeId, sl_null, sl_true);
 				if (node.isNotNull()) {
 					callback(node.get(), sl_null);
 					return;
@@ -1389,12 +1820,12 @@ namespace slib
 						callback(sl_null, sl_null);
 						return;
 					}
-					if (tickEnd < cur + EXPIRE_DURATION_FIND_DIRECT_CONNECTION) {
+					if (tickEnd < cur + m_param.findTimeout) {
 						flagShortTimeout = sl_true;
 						timeout = (sl_uint32)(tickEnd - cur);
 					}
 				} else {
-					tickEnd = GetCurrentTick() + 5 * EXPIRE_DURATION_FIND_DIRECT_CONNECTION;
+					tickEnd = GetCurrentTick() + 5 * m_param.findTimeout;
 				}
 				WeakRef<This> weakThis = this;
 				if (flagShortTimeout) {
@@ -1428,10 +1859,15 @@ namespace slib
 						}
 					});
 				}
-				sl_uint8 buf[1024];
-				buf[0] = (sl_uint8)(Command::FindNode);
-				Base::copyMemory(buf + 1, nodeId.data, sizeof(nodeId));
-				_sendBroadcast(buf, 17);
+				_sendFindNode(nodeId);
+			}
+
+			void _completeFindNodeCallbacks(const P2PNodeId& nodeId, Node* node)
+			{
+				NodeCallbackContainer container;
+				while (m_mapFindCallbacks.remove(nodeId, &container)) {
+					container.success(node, sl_null);
+				}
 			}
 
 			void _sendMessage(Node* node, const MessageBody& body, const Function<void(P2PResponse&)>& callback, sl_uint64 tickEnd)
@@ -1451,116 +1887,25 @@ namespace slib
 			void _sendMessageDirectConnection(Node* node, DirectConnection* connection, const MessageBody& body, const Function<void(P2PResponse&)>& callback, sl_uint64 tickEnd)
 			{
 				_getTcpClientStream(node, connection, [this, body, callback, tickEnd](This* thiz, Node* node, DirectConnection* connection, TcpClientStream* stream) {
-					Shared<TimeoutMonitor> timeoutMonitor;
-					if (stream && TimeoutMonitor::create(timeoutMonitor, tickEnd)) {
-						Memory memPacket;
-						sl_uint8* packet;
-						if (body.lengthOfSize) {
-							memPacket = body.packet;
-							packet = (sl_uint8*)(memPacket.getData());
-							Math::randomMemory(packet + 1 + body.lengthOfSize, 28);
-							ChaCha20_Poly1305 enc;
-							enc.setKey(node->m_encryptionKey);
-							enc.start(packet + 1 + body.lengthOfSize);
-							sl_uint8* content = packet + 29 + body.lengthOfSize;
-							enc.encrypt(content, content, memPacket.getSize() - 29 - body.lengthOfSize);
-							enc.finish(packet + 13 + body.lengthOfSize);
-						} else {
-							memPacket = Memory::create(2);
-							if (memPacket.isNull()) {
-								ReplyErrorResponse(callback);
-								m_mapTcpStreams.remove(stream);
-								return;
-							}
-							packet = (sl_uint8*)(memPacket.getData());
-							packet[1] = 0;
-						}
-						packet[0] = (sl_uint8)(Command::Message);
-						WeakRef<TcpClientStream> weakStream = stream;
-						Ref<DirectConnection> refConnection = connection;
-						Ref<Node> refNode = node;
-						if (stream->m_socket->send(memPacket, [this, refNode, refConnection, weakStream, timeoutMonitor, callback](AsyncStreamResult& result) {
-							if (TimeoutMonitor::isFinished(timeoutMonitor)) {
-								return;
-							}
-							Ref<TcpClientStream> stream = weakStream;
-							if (stream.isNotNull()) {
-								if (result.isSuccess()) {
-									if (stream->m_socket->receive(Memory::create(BUFFER_SIZE_TCP_STREAM), [this, refNode, refConnection, weakStream, timeoutMonitor, callback](AsyncStreamResult& result) {
-										if (TimeoutMonitor::isFinished(timeoutMonitor)) {
-											return;
-										}
-										Ref<TcpClientStream> stream = weakStream;
-										DirectConnection* connection = refConnection.get();
+					TcpClientStream_MessageContext context;
+					context.node = node;
+					context.connection = connection;
+					context.stream = stream;
+					context.callback = callback;
+					if (stream) {
+						if (TimeoutMonitor::create(context.timeoutMonitor, tickEnd)) {
+							if (_sendTcpClientStream_Message(stream, context, body)) {
+								if (context.timeoutMonitor.isNotNull()) {
+									TimeoutMonitor::dispatchTimeout(context.timeoutMonitor, m_dispatchLoop, [this, context]() {
+										Ref<TcpStream> stream = context.stream;
 										if (stream.isNotNull()) {
-											if (result.isSuccess()) {
-												sl_int32 iRet = stream->processReceivedData((sl_uint8*)(result.data), result.size);
-												if (iRet >= 0) {
-													if (iRet > 0) {
-														if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
-															if (stream->m_currentCommand == Command::ReplyMessage) {
-																sl_uint8* buf = stream->getContent();
-																sl_uint32 size = (sl_uint32)(stream->getContentSize());
-																sl_bool flagSuccess = sl_true;
-																if (size) {
-																	ChaCha20_Poly1305 enc;
-																	enc.setKey(refNode->m_encryptionKey);
-																	enc.start(buf);
-																	sl_uint8* content = buf + 28;
-																	size -= 28;
-																	enc.decrypt(content, content, size);
-																	if (enc.finishAndCheckTag(buf + 12)) {
-																		P2PResponse response(content, size);
-																		response.connectionType = P2PConnectionType::Direct;
-																		callback(response);
-																	} else {
-																		flagSuccess = sl_false;
-																	}
-																} else {
-																	P2PResponse response;
-																	response.connectionType = P2PConnectionType::Direct;
-																	callback(response);
-																}
-																stream->clear();
-																if (flagSuccess) {
-																	m_mapTcpStreams.get(stream.get());
-																	m_mapIdleTcpSockets.add(connection, stream->m_socket);
-																	return;
-																}
-															}
-														}
-													} else {
-														if (stream->m_socket->receive(result.data, result.requestSize, result.callback, result.userObject)) {
-															return;
-														}
-													}
-												}
-											}
 											m_mapTcpStreams.remove(stream.get());
 										}
-										if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
-											ReplyErrorResponse(callback);
-										}
-									})) {
-										return;
-									}
+										ReplyErrorResponse(context.callback);
+									}, tickEnd);
 								}
-								m_mapTcpStreams.remove(stream.get());
+								return;
 							}
-							if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
-								ReplyErrorResponse(callback);
-							}
-						})) {
-							if (timeoutMonitor.isNotNull()) {
-								TimeoutMonitor::dispatchTimeout(timeoutMonitor, m_dispatchLoop, [this, weakStream, callback]() {
-									Ref<TcpStream> stream = weakStream;
-									if (stream.isNotNull()) {
-										m_mapTcpStreams.remove(stream.get());
-									}
-									ReplyErrorResponse(callback);
-								}, tickEnd);
-							}
-							return;
 						}
 						m_mapTcpStreams.remove(stream);
 					}
@@ -1582,32 +1927,41 @@ namespace slib
 				}
 				m_flagClosed = sl_true;
 
-				if (m_serverTcp.isNotNull()) {
-					m_serverTcp->close();
-					m_serverTcp.setNull();
-				}
 				if (m_timerHello.isNotNull()) {
 					m_timerHello->stopAndWait();
 					m_timerHello.setNull();
 				}
-				if (m_dispatchLoop.isNotNull()) {
-					m_dispatchLoop->release();
-					m_dispatchLoop.setNull();
+				if (m_timerUpdateEphemeralKey.isNotNull()) {
+					m_timerUpdateEphemeralKey->stopAndWait();
+					m_timerUpdateEphemeralKey.setNull();
 				}
 
-				m_mapTcpStreams.removeAll();
-				m_mapIdleTcpSockets.removeAll();
-				m_mapNodes.removeAll();
-
+				if (m_serverTcp.isNotNull()) {
+					m_serverTcp->close();
+					m_serverTcp.setNull();
+				}
 				if (m_socketUdpActor.isNotNull()) {
 					m_socketUdpActor->close();
 				}
 				if (m_socketUdpLobby.isNotNull()) {
 					m_socketUdpLobby->close();
 				}
-				if (m_serverTcp.isNotNull()) {
-					m_serverTcp->close();
+
+				if (m_dispatchLoop.isNotNull()) {
+					m_dispatchLoop->release();
 				}
+				if (m_ioLoop.isNotNull()) {
+					m_ioLoop->release();
+					m_ioLoop.setNull();
+				}
+				if (m_threadPool.isNotNull()) {
+					m_threadPool->release();
+				}
+
+				m_mapTcpStreams.removeAll();
+				m_mapIdleTcpSockets.removeAll();
+				m_mapNodes.removeAll();
+
 			}
 
 			sl_bool start() override
@@ -1627,6 +1981,33 @@ namespace slib
 				m_timerHello->start();
 
 				return sl_true;
+			}
+
+			void setHelloMessage(const P2PMessage& msg) override
+			{
+				sl_uint32 size = msg.size;
+				if (size > sizeof(m_helloMessage)) {
+					size = sizeof(m_helloMessage);
+				}
+				Base::copyMemory(m_helloMessage, msg.data, size);
+				m_sizeHelloMessage = size;
+			}
+
+			void setLocalNodeDescription(const P2PMessage& msg) override
+			{
+				sl_uint32 size = msg.size;
+				if (size > sizeof(m_localNodeDescription)) {
+					size = sizeof(m_localNodeDescription);
+				}
+				Base::copyMemory(m_localNodeDescription, msg.data, size);
+				m_sizeLocalNodeDescription = size;
+				_updateEphemeralKey();
+			}
+
+			void _updateEphemeralKey()
+			{
+				Math::randomMemory(m_ephemeralKey.data, EdDH::KeySize);
+				m_ephemeralPublicKey = EdDH::getPublicKey(m_ephemeralKey.data);
 			}
 
 			void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis) override
@@ -1911,21 +2292,20 @@ namespace slib
 
 	P2PSocketParam::P2PSocketParam()
 	{
-		curve = EllipticCurve::secp256k1();
+		flagGeneratedKey = sl_false;
 
 		port = SLIB_P2P_DEFAULT_PORT;
 		portCount = 1000;
 		boundPort = 0;
 
-		tcpConnectionTimeout = 300000; // 5 minutes
-		maximumMessageSize = 100 * 1024 * 1024;
+		helloInterval = 10000; // 10 seconds
+		connectionTimeout = 60000; // 1 minutes
+		findTimeout = 10000; // 10 seconds
+		maximumMessageSize = 104857600; // 100MB
+		messageBufferSize = 0x10000;
+		ephemeralKeyDuration = 86400000; // 24 hours
 
 		flagAutoStart = sl_true;
-	}
-
-	sl_bool P2PSocketParam::generateKey()
-	{
-		return key.generate(curve);
 	}
 
 

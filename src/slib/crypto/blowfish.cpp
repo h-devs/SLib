@@ -463,11 +463,4 @@ namespace slib
 
 	}
 
-	void Blowfish::setKey_SHA256(const StringView& key)
-	{
-		char sig[32];
-		SHA256::hash(key, sig);
-		setKey(sig, 32);
-	}
-
 }

@@ -188,7 +188,7 @@ namespace slib
 		int hObject = (int)(instance->getHandle());
 		epoll_event ev;
 		int ret = epoll_ctl(handle->fdEpoll, EPOLL_CTL_DEL, hObject, &ev);
-		SLIB_UNUSED(ret);
+		SLIB_UNUSED(ret)
 	}
 
 }

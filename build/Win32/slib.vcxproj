@@ -137,6 +137,8 @@
     <ClCompile Include="..\..\src\slib\crypto\block_cipher.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\blowfish.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\chacha.cpp" />
+    <ClCompile Include="..\..\src\slib\crypto\curve25519.cpp" />
+    <ClCompile Include="..\..\src\slib\crypto\curve448.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\oauth.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\oauth_server.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\oauth_server_openssl.cpp" />

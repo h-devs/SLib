@@ -34,7 +34,7 @@ namespace slib
 }
 
 #if defined(SLIB_DEBUG)
-#	define SLIB_ASSERT(EXPRESSION) ( (!!(EXPRESSION)) || (slib::priv::Assert(#EXPRESSION, __FILE__, __LINE__), 0) )
+#	define SLIB_ASSERT(EXPRESSION) ( (!!(EXPRESSION)) || (slib::priv::Assert(#EXPRESSION, __FILE__, __LINE__), 0) );
 #else
 #	define SLIB_ASSERT(EXPRESSION)
 #endif

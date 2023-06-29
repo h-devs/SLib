@@ -27,12 +27,10 @@
 namespace slib
 {
 
-	void GCM_Table::generateTable(const void* inH)
+	void GCM_Table::generateTable(const void* _h)
 	{
-		sl_uint32 i, j;
 		Uint128 H;
-
-		H.setBytesBE(inH);
+		H.setBytesBE(_h);
 
 /*
 	  In 4-bit table
@@ -45,7 +43,7 @@ namespace slib
 		M[0].setZero();
 		M[8] = H;
 
-		i = 4;
+		sl_uint32 i = 4;
 		while (i > 0) {
 			sl_uint64 K = ((sl_uint64)((-((sl_int32)(H.low & 1))) & 0xe1000000)) << 32;
 			H.shiftRight();
@@ -57,39 +55,38 @@ namespace slib
 		// n = a + b => M[n] = M[a] + M[b]
 		i = 2;
 		while (i < 16) {
-			for (j = 1; j < i; j++) {
+			for (sl_uint32 j = 1; j < i; j++) {
 				M[i + j] = M[i] ^ M[j];
 			}
 			i <<= 1;
 		}
 	}
 
-	void GCM_Table::multiplyH(const void* inX, void* inO) const
+	void GCM_Table::multiplyH(const void* _x, void* _o) const
 	{
-		const sl_uint8* X = (const sl_uint8*)inX;
-		sl_uint8* O = (sl_uint8*)inO;
-		Uint128 Z;
+		const sl_uint8* X = (const sl_uint8*)_x;
+		sl_uint8* O = (sl_uint8*)_o;
 
-		static const sl_uint64 R[16] =
-		{
-			SLIB_UINT64(0x0000000000000000)
-			, SLIB_UINT64(0x1c20000000000000)
-			, SLIB_UINT64(0x3840000000000000)
-			, SLIB_UINT64(0x2460000000000000)
-			, SLIB_UINT64(0x7080000000000000)
-			, SLIB_UINT64(0x6ca0000000000000)
-			, SLIB_UINT64(0x48c0000000000000)
-			, SLIB_UINT64(0x54e0000000000000)
-			, SLIB_UINT64(0xe100000000000000)
-			, SLIB_UINT64(0xfd20000000000000)
-			, SLIB_UINT64(0xd940000000000000)
-			, SLIB_UINT64(0xc560000000000000)
-			, SLIB_UINT64(0x9180000000000000)
-			, SLIB_UINT64(0x8da0000000000000)
-			, SLIB_UINT64(0xa9c0000000000000)
-			, SLIB_UINT64(0xb5e0000000000000)
+		static const sl_uint64 R[16] = {
+			SLIB_UINT64(0x0000000000000000),
+			SLIB_UINT64(0x1c20000000000000),
+			SLIB_UINT64(0x3840000000000000),
+			SLIB_UINT64(0x2460000000000000),
+			SLIB_UINT64(0x7080000000000000),
+			SLIB_UINT64(0x6ca0000000000000),
+			SLIB_UINT64(0x48c0000000000000),
+			SLIB_UINT64(0x54e0000000000000),
+			SLIB_UINT64(0xe100000000000000),
+			SLIB_UINT64(0xfd20000000000000),
+			SLIB_UINT64(0xd940000000000000),
+			SLIB_UINT64(0xc560000000000000),
+			SLIB_UINT64(0x9180000000000000),
+			SLIB_UINT64(0x8da0000000000000),
+			SLIB_UINT64(0xa9c0000000000000),
+			SLIB_UINT64(0xb5e0000000000000)
 		};
 
+		Uint128 Z;
 		Z.setZero();
 		for (sl_uint32 i = 15; i >= 1; i--) {
 			// process low 4-bit
@@ -125,15 +122,14 @@ namespace slib
 		Z.getBytesBE(O);
 	}
 
-	void GCM_Table::multiplyData(void* inX, const void* inD, sl_size lenD) const
+	void GCM_Table::multiplyData(void* _x, const void* _d, sl_size lenD) const
 	{
-		sl_uint8* X = (sl_uint8*)inX;
-		const sl_uint8* D = (const sl_uint8*)inD;
-		sl_size i, k, n;
+		sl_uint8* X = (sl_uint8*)_x;
+		const sl_uint8* D = (const sl_uint8*)_d;
 
-		n = lenD >> 4;
-		for (i = 0; i < n; i++) {
-			for (k = 0; k < 16; k++) {
+		sl_size n = lenD >> 4;
+		for (sl_size i = 0; i < n; i++) {
+			for (sl_size k = 0; k < 16; k++) {
 				X[k] ^= *D;
 				D++;
 			}
@@ -141,7 +137,7 @@ namespace slib
 		}
 		n = lenD & 15;
 		if (n) {
-			for (k = 0; k < n; k++) {
+			for (sl_size k = 0; k < n; k++) {
 				X[k] ^= *D;
 				D++;
 			}
@@ -149,11 +145,10 @@ namespace slib
 		}
 	}
 
-	void GCM_Table::multiplyLength(void* inX, sl_size len1, sl_size len2) const
+	void GCM_Table::multiplyLength(void* _x, sl_size len1, sl_size len2) const
 	{
-		sl_uint8* X = (sl_uint8*)inX;
-		sl_uint64 v;
-		v = len1 << 3;
+		sl_uint8* X = (sl_uint8*)_x;
+		sl_uint64 v = len1 << 3;
 		X[0] ^= (sl_uint8)(v >> 56);
 		X[1] ^= (sl_uint8)(v >> 48);
 		X[2] ^= (sl_uint8)(v >> 40);
@@ -174,26 +169,21 @@ namespace slib
 		multiplyH(X, X);
 	}
 
-	void GCM_Table::calculateGHash(const void* A, sl_size lenA, const void* C, sl_size lenC, void* inO) const
+	void GCM_Table::calculateGHash(const void* A, sl_size lenA, const void* C, sl_size lenC, void* _out) const
 	{
-		sl_uint8* O = (sl_uint8*)inO;
-
+		sl_uint8* O = (sl_uint8*)_out;
 		Base::zeroMemory(O, 16);
-
 		multiplyData(O, A, lenA);
-
 		multiplyData(O, C, lenC);
-
 		multiplyLength(O, lenA, lenC);
 	}
 
-	void GCM_Table::calculateCIV(const void* inIV, sl_size lenIV, void* inCIV) const
+	void GCM_Table::calculateCIV(const void* _iv, sl_size lenIV, void* _civ) const
 	{
-		const sl_uint8* IV = (const sl_uint8*)inIV;
-		sl_uint8* CIV = (sl_uint8*)inCIV;
-		sl_size i;
+		const sl_uint8* IV = (const sl_uint8*)_iv;
+		sl_uint8* CIV = (sl_uint8*)_civ;
 		if (lenIV == 12) {
-			for (i = 0; i < 12; i++) {
+			for (sl_uint32 i = 0; i < 12; i++) {
 				CIV[i] = IV[i];
 			}
 			CIV[12] = 0;
@@ -206,8 +196,15 @@ namespace slib
 	}
 
 
+	GCM_Base::GCM_Base()
+	{
+		m_posAad = 0;
+		m_posEnc = 0;
+	}
+
 	void GCM_Base::increaseCIV()
 	{
+		sl_uint8* CIV = m_civ;
 		for (sl_uint32 i = 15; i >= 12; i--) {
 			if (++(CIV[i]) != 0) {
 				break;
@@ -215,43 +212,173 @@ namespace slib
 		}
 	}
 
-	void GCM_Base::putBlock(const void* src, sl_uint32 n)
+	void GCM_Base::_start()
 	{
-		const sl_uint8* A = (const sl_uint8*)src;
-		for (sl_uint32 k = 0; k < n; k++) {
-			GHASH_X[k] ^= *A;
-			A++;
+		for (sl_uint32 i = 0; i < 16; i++) {
+			m_ghashx[i] = 0;
 		}
-		multiplyH(GHASH_X, GHASH_X);
+		m_posAad = 0;
+		m_sizeAad = 0;
+		m_posEnc = 0;
+		m_sizeEnc = 0;
 	}
 
 	void GCM_Base::put(const void* src, sl_size len)
 	{
-		multiplyData(GHASH_X, src, len);
+		sl_uint8* GHASH_X = m_ghashx;
+		const sl_uint8* A = (const sl_uint8*)src;
+		if (!len) {
+			return;
+		}
+		m_sizeAad += len;
+		if (m_posAad) {
+			sl_uint32 k = m_posAad;
+			for (;;) {
+				GHASH_X[k++] ^= *(A++);
+				len--;
+				if (k == 16) {
+					m_table.multiplyH(m_ghashx, m_ghashx);
+					m_posAad = 0;
+					if (!len) {
+						return;
+					}
+					break;
+				}
+				if (!len) {
+					m_posAad = k;
+					return;
+				}
+			}
+		}
+		for (;;) {
+			if (len < 16) {
+				for (sl_size k = 0; k < len; k++) {
+					GHASH_X[k] ^= *(A++);
+				}
+				m_posAad = (sl_uint32)len;
+				return;
+			} else {
+				for (sl_uint32 k = 0; k < 16; k++) {
+					GHASH_X[k] ^= *(A++);
+				}
+				m_table.multiplyH(GHASH_X, GHASH_X);
+				len -= 16;
+				if (!len) {
+					return;
+				}
+			}
+		}
 	}
 
-	sl_bool GCM_Base::finish(sl_size lenA, sl_size lenC, void* _tag, sl_size lenTag)
+	sl_bool GCM_Base::_encrypt(const sl_uint8*& P, sl_uint8*& C, sl_size& len)
+	{
+		if (!len) {
+			return sl_true;
+		}
+		m_sizeEnc += len;
+		if (m_posAad) {
+			m_table.multiplyH(m_ghashx, m_ghashx);
+			m_posAad = 0;
+		}
+		if (!m_posEnc) {
+			return sl_false;
+		}
+		sl_uint32 k = m_posEnc;
+		for (;;) {
+			sl_uint8 c = *(P++) ^ m_gctr[k];
+			m_ghashx[k] ^= c;
+			*(C++) = c;
+			k++;
+			len--;
+			if (k == 16) {
+				m_table.multiplyH(m_ghashx, m_ghashx);
+				m_posEnc = 0;
+				if (!len) {
+					return sl_true;
+				}
+				break;
+			}
+			if (!len) {
+				m_posEnc = k;
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool GCM_Base::_decrypt(const sl_uint8*& C, sl_uint8*& P, sl_size& len)
+	{
+		if (!len) {
+			return sl_true;
+		}
+		m_sizeEnc += len;
+		if (m_posAad) {
+			m_table.multiplyH(m_ghashx, m_ghashx);
+			m_posAad = 0;
+		}
+		if (!m_posEnc) {
+			return sl_false;
+		}
+		sl_uint32 k = m_posEnc;
+		for (;;) {
+			sl_uint8 c = *(C++);
+			m_ghashx[k] ^= c;
+			*(P++) = c ^ m_gctr[k];
+			k++;
+			len--;
+			if (k == 16) {
+				m_table.multiplyH(m_ghashx, m_ghashx);
+				m_posEnc = 0;
+				if (!len) {
+					return sl_true;
+				}
+				break;
+			}
+			if (!len) {
+				m_posEnc = k;
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool GCM_Base::_finish(sl_size lenTag)
 	{
 		if (lenTag < 4 || lenTag > 16) {
 			return sl_false;
 		}
+		if (m_posAad) {
+			m_table.multiplyH(m_ghashx, m_ghashx);
+			m_posAad = 0;
+		}
+		if (m_posEnc) {
+			m_table.multiplyH(m_ghashx, m_ghashx);
+			m_posEnc = 0;
+		}
+		m_table.multiplyLength(m_ghashx, m_sizeAad, m_sizeEnc);
+		return sl_true;
+	}
+
+	sl_bool GCM_Base::finish(void* _tag, sl_size lenTag)
+	{
+		if (!(_finish(lenTag))) {
+			return sl_false;
+		}
 		sl_uint8* tag = (sl_uint8*)_tag;
-		multiplyLength(GHASH_X, lenA, lenC);
 		for (sl_size i = 0; i < lenTag; i++) {
-			tag[i] = GHASH_X[i] ^ GCTR0[i];
+			tag[i] = m_ghashx[i] ^ m_gctr0[i];
 		}
 		return sl_true;
 	}
 
-	sl_bool GCM_Base::finishAndCheckTag(sl_size lenA, sl_size lenC, const void* _tag, sl_size lenTag)
+	sl_bool GCM_Base::finishAndCheckTag(const void* _tag, sl_size lenTag)
 	{
-		if (lenTag < 4 || lenTag > 16) {
+		if (!(_finish(lenTag))) {
 			return sl_false;
 		}
 		const sl_uint8* tag = (const sl_uint8*)_tag;
-		multiplyLength(GHASH_X, lenA, lenC);
 		for (sl_size i = 0; i < lenTag; i++) {
-			if (tag[i] != (GHASH_X[i] ^ GCTR0[i])) {
+			if (tag[i] != (m_ghashx[i] ^ m_gctr0[i])) {
 				return sl_false;
 			}
 		}

@@ -299,7 +299,7 @@ namespace slib
 		void consumeReadData(sl_size size)
 		{
 			MutexLocker locker(&m_lock);
-			SLIB_ASSERT(size <= m_lenData);
+			SLIB_ASSERT(size <= m_lenData)
 			m_posRead = (m_posRead + size) % m_lenBuf;
 			m_lenData -= size;
 		}
@@ -307,7 +307,7 @@ namespace slib
 		void consumeWriteBuffer(sl_size size)
 		{
 			MutexLocker locker(&m_lock);
-			SLIB_ASSERT(size <= m_lenBuf - m_lenData);
+			SLIB_ASSERT(size <= m_lenBuf - m_lenData)
 			m_lenData += size;
 		}
 
@@ -390,7 +390,7 @@ namespace slib
 		m_sbuf_len(DEFAULT_SND_BUF_SIZE),
 		m_sbuf(new LockedFifoBuffer(m_sbuf_len))
 	{
-		SLIB_ASSERT(m_rbuf_len + MIN_PACKET < m_sbuf_len);
+		SLIB_ASSERT(m_rbuf_len + MIN_PACKET < m_sbuf_len)
 
 		sl_uint32 now = PseudoTcp::now();
 
@@ -408,7 +408,7 @@ namespace slib
 		m_msslevel = 0;
 		m_largest = 0;
 
-		SLIB_ASSERT(MIN_PACKET > PACKET_OVERHEAD);
+		SLIB_ASSERT(MIN_PACKET > PACKET_OVERHEAD)
 		m_mss = MIN_PACKET - PACKET_OVERHEAD;
 		m_mtu_advise = MAX_PACKET;
 
@@ -573,7 +573,7 @@ namespace slib
 
 	void PseudoTcp::setReceiveBufferSize(sl_uint32 size)
 	{
-		SLIB_ASSERT(m_state == PseudoTcpState::Listen);
+		SLIB_ASSERT(m_state == PseudoTcpState::Listen)
 		resizeReceiveBuffer(size);
 	}
 
@@ -584,7 +584,7 @@ namespace slib
 
 	void PseudoTcp::setSendBufferSize(sl_uint32 size)
 	{
-		SLIB_ASSERT(m_state == PseudoTcpState::Listen);
+		SLIB_ASSERT(m_state == PseudoTcpState::Listen)
 		resizeSendBuffer(size);
 	}
 
@@ -683,7 +683,7 @@ namespace slib
 		m_sbuf->getWriteRemaining(&available_space);
 
 		if (len > static_cast<sl_uint32>(available_space)) {
-			SLIB_ASSERT(!bCtrl);
+			SLIB_ASSERT(!bCtrl)
 			len = static_cast<sl_uint32>(available_space);
 		}
 
@@ -716,7 +716,7 @@ namespace slib
 		sl_uint32 offset,
 		sl_uint32 len)
 	{
-		SLIB_ASSERT(HEADER_SIZE + len <= MAX_PACKET);
+		SLIB_ASSERT(HEADER_SIZE + len <= MAX_PACKET)
 		SLIB_SCOPED_BUFFER(sl_uint8, 4096, buffer, len + HEADER_SIZE)
 		if (!buffer) {
 			return PseudoTcpWriteResult::Fail;
@@ -739,9 +739,9 @@ namespace slib
 		if (len) {
 			sl_size bytes_read = 0;
 			sl_bool result = m_sbuf->readOffset(buffer + HEADER_SIZE, len, offset, &bytes_read);
-			SLIB_UNUSED(result);
-			SLIB_ASSERT(result);
-			SLIB_ASSERT(static_cast<sl_uint32>(bytes_read) == len);
+			SLIB_UNUSED(result)
+			SLIB_ASSERT(result)
+			SLIB_ASSERT(static_cast<sl_uint32>(bytes_read) == len)
 		}
 
 		LOG_VERBOSE("buildPacket: conv=%s, flg=%s, seq=%s:%s, ack=%s, wnd=%s, ts=%s, tsr=%s, len=%s", m_conv, flags, seq, seq + len, m_rcv_nxt, m_rcv_wnd, (now % 10000), (m_ts_recent % 10000), len);
@@ -917,7 +917,7 @@ namespace slib
 			m_sbuf->consumeReadData(nAcked);
 
 			for (sl_uint32 nFree = nAcked; nFree > 0;) {
-				SLIB_ASSERT(!m_slist->isEmpty());
+				SLIB_ASSERT(!m_slist->isEmpty())
 				if (nFree < m_slist->getFront()->value.len) {
 					m_slist->getFront()->value.len -= nFree;
 					nFree = 0;
@@ -1152,7 +1152,7 @@ namespace slib
 				return sl_false;
 			}
 
-			SLIB_ASSERT(wres == PseudoTcpWriteResult::TooLarge);
+			SLIB_ASSERT(wres == PseudoTcpWriteResult::TooLarge)
 
 			while (sl_true) {
 				if (PACKET_MAXIMUMS[m_msslevel + 1] == 0) {
@@ -1260,7 +1260,7 @@ namespace slib
 			auto it = m_slist->getFront();
 			while (it->value.xmit > 0) {
 				it = it->next;
-				SLIB_ASSERT(it != sl_null);
+				SLIB_ASSERT(it != sl_null)
 			}
 			auto seg = &(it->value);
 			// If the segment is too large, break it into two
@@ -1357,7 +1357,7 @@ namespace slib
 			}
 
 			// Length of this option.
-			SLIB_ASSERT(len != 0);
+			SLIB_ASSERT(len != 0)
 			sl_uint8 opt_len = 0;
 			buf.readUint8(&opt_len);
 
@@ -1426,10 +1426,10 @@ namespace slib
 		// Determine the proper size of the buffer.
 		new_size <<= scale_factor;
 		sl_bool result = m_rbuf->setCapacity(new_size);
-		SLIB_UNUSED(result);
+		SLIB_UNUSED(result)
 
 		// Make sure the new buffer is large enough to contain data in the old buffer. This should always be sl_true because this method is called either before connection is established or when peers are exchanging connect messages.
-		SLIB_ASSERT(result);
+		SLIB_ASSERT(result)
 		m_rbuf_len = new_size;
 		m_rwnd_scale = scale_factor;
 		m_ssthresh = new_size;

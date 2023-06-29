@@ -72,6 +72,11 @@ namespace slib
 			Base::zeroMemory(data, N);
 		}
 
+		void setData(const void* bytes) noexcept
+		{
+			Base::copyMemory(data, bytes, N);
+		}
+
 	public:
 		sl_bool equals(const Bytes& other) const noexcept
 		{

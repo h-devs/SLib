@@ -2,32 +2,36 @@
 
 using namespace slib;
 
-String Encrypt(const String& plain, const String& key, const String& iv)
+String Encrypt(const StringView& plain, const StringView& password, const StringView& iv)
 {
+	sl_uint8 key[32];
+	PBKDF2_HMAC_SHA256::generateKey(password.getData(), password.getLength(), sl_null, 0, 1, key, sizeof(key));
 	AES aes;
-	aes.setKey_SHA256(key);
+	aes.setKey(key, sizeof(key));
 	char hashIV[16];
 	MD5::hash(iv, hashIV);
 	return String::makeHexString(aes.encrypt_CBC_PKCS7Padding(hashIV, plain.getData(), plain.getLength()));
 }
 
-String Decrypt(const String& strCipher, const String& key, const String& iv)
+String Decrypt(const StringView& strCipher, const StringView& password, const StringView& iv)
 {
-	Memory cipher = strCipher.parseHexString();
+	sl_uint8 key[32];
+	PBKDF2_HMAC_SHA256::generateKey(password.getData(), password.getLength(), sl_null, 0, 1, key, sizeof(key));
 	AES aes;
-	aes.setKey_SHA256(key);
+	aes.setKey(key, sizeof(key));
 	char hashIV[16];
 	MD5::hash(iv, hashIV);
+	Memory cipher = strCipher.parseHexString();
 	return String::fromUtf8(aes.decrypt_CBC_PKCS7Padding(hashIV, cipher.getData(), cipher.getSize()));
 }
 
 int main(int argc, const char * argv[])
 {
-	String iv = "abc";
-	String key = "aaaa";
+	StringView iv = "abc";
+	StringView key = "aaaa";
 	String encrypt = Encrypt("This string is used to check AES.", key, iv);
 	String decrypt = Decrypt(encrypt, key, iv);
-	Println("Encrypt=%s", encrypt);
-	Println("Decrypt=%s", decrypt);
+	Println("Encrypt: %s", encrypt);
+	Println("Decrypt: %s", decrypt);
 	return 0;
 }
