@@ -237,6 +237,16 @@ namespace slib
 							HINTERNET hRequest = WinHttpOpenRequest(connection->hConnect, (LPCWSTR)(verb.getData()), (LPCWSTR)(path.getData()), NULL, NULL, NULL, flags);
 							if (hRequest) {
 								WinHttpSetTimeouts(hRequest, param.timeout, param.timeout, param.timeout, param.timeout);
+								{
+									DWORD dwFlags = WINHTTP_DISABLE_AUTHENTICATION;
+									if (!(param.flagAutoCookie)) {
+										dwFlags |= WINHTTP_DISABLE_COOKIES;
+									}
+									if (!(param.flagRedirect)) {
+										dwFlags |= WINHTTP_DISABLE_REDIRECTS;
+									}
+									WinHttpSetOption(hRequest, WINHTTP_OPTION_DISABLE_FEATURE, &dwFlags, sizeof(dwFlags));
+								}
 								if (connection->flagHttps && param.flagAllowInsecureConnection) {
 									DWORD dwFlags =
 										SECURITY_FLAG_IGNORE_UNKNOWN_CA |

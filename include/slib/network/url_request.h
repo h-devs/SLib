@@ -53,13 +53,15 @@ namespace slib
 		Function<void(UrlRequest*, sl_uint64 len)> onUploadBody;
 		Ref<Dispatcher> dispatcher;
 
+		sl_uint32 timeout; // In milliseconds
+
 		sl_bool flagUseBackgroundSession;
 		sl_bool flagSelfAlive;
 		sl_bool flagStoreResponseContent;
 		sl_bool flagSynchronous;
-
-		sl_uint32 timeout; // In milliseconds
 		sl_bool flagAllowInsecureConnection;
+		sl_bool flagAutoCookie; // Automatic addition of cookie headers to requests. Returned cookies are not automatically added to the cookie database. (Supported in Win32)
+		sl_bool flagRedirect; // Automatic redirection. (Supported in Win32)
 
 	public:
 		UrlRequestParam();

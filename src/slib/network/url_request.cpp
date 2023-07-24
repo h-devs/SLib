@@ -32,6 +32,27 @@
 namespace slib
 {
 
+	namespace {
+
+		typedef HashMap< UrlRequest*, Ref<UrlRequest> > UrlRequestMap;
+		SLIB_SAFE_STATIC_GETTER(UrlRequestMap, GetUrlRequestMap)
+
+		class AsyncPool
+		{
+		public:
+			Ref<ThreadPool> threadPool;
+
+		public:
+			AsyncPool()
+			{
+				threadPool = ThreadPool::create(0, 1024);
+			}
+		};
+
+		SLIB_SAFE_STATIC_GETTER(AsyncPool, GetAsyncPool)
+
+	}
+
 	SLIB_DEFINE_OBJECT(UrlRequest, Object)
 
 	UrlRequest::UrlRequest()
@@ -48,7 +69,6 @@ namespace slib
 		m_flagSelfAlive = sl_false;
 		m_flagStoreResponseContent = sl_true;
 		m_flagUseBackgroundSession = sl_false;
-
 	}
 
 	UrlRequest::~UrlRequest()
@@ -273,35 +293,15 @@ namespace slib
 		_sendSync();
 	}
 
-	class UrlRequest_AsyncPool
-	{
-	public:
-		Ref<ThreadPool> threadPool;
-
-	public:
-		UrlRequest_AsyncPool()
-		{
-			threadPool = ThreadPool::create();
-		}
-
-	};
-
-	SLIB_SAFE_STATIC_GETTER(UrlRequest_AsyncPool, Get_UrlRequestAsyncPool)
-
 	void UrlRequest::_sendAsync()
 	{
-		UrlRequest_AsyncPool* pool = Get_UrlRequestAsyncPool();
+		AsyncPool* pool = GetAsyncPool();
 		if (pool) {
 			if (pool->threadPool->addTask(SLIB_FUNCTION_WEAKREF(this, _sendSync_call))) {
 				return;
 			}
 		}
 		onError();
-	}
-
-	namespace {
-		typedef HashMap< UrlRequest*, Ref<UrlRequest> > UrlRequestMap;
-		SLIB_SAFE_STATIC_GETTER(UrlRequestMap, GetUrlRequestMap)
 	}
 
 	void UrlRequest::_init(const UrlRequestParam& param, const String& url)

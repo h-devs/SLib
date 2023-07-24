@@ -33,13 +33,17 @@ namespace slib
 	UrlRequestParam::UrlRequestParam()
 	{
 		method = HttpMethod::GET;
+		timeout = UrlRequest::getDefaultTimeout();
+
+		dispatcher = UrlRequest::getDefaultDispatcher();
+
 		flagUseBackgroundSession = sl_false;
 		flagSelfAlive = sl_true;
 		flagStoreResponseContent = sl_true;
 		flagSynchronous = sl_false;
-		timeout = UrlRequest::getDefaultTimeout();
 		flagAllowInsecureConnection = UrlRequest::isDefaultAllowInsecureConnection();
-		dispatcher = UrlRequest::getDefaultDispatcher();
+		flagAutoCookie = sl_false;
+		flagRedirect = sl_false;
 	}
 
 	void UrlRequestParam::setContentType(const String& contentType)
