@@ -27,7 +27,6 @@
 #include "tcpip.h"
 #include "icmp.h"
 
-#include "../core/time.h"
 #include "../core/hash_map.h"
 
 /*
@@ -45,7 +44,7 @@ namespace slib
 	public:
 		sl_bool flagActive;
 		SocketAddress addressSource;
-		Time timeLastAccess;
+		sl_uint64 timeLastAccess;
 
 	public:
 		NatTablePort();
@@ -69,7 +68,7 @@ namespace slib
 		sl_bool mapToInternalAddress(sl_uint16 port, SocketAddress& address);
 
 	protected:
-		CHashMap< SocketAddress, sl_uint16 > m_mapPorts;
+		CHashMap<SocketAddress, sl_uint16> m_mapPorts;
 
 		NatTablePort* m_ports;
 		sl_uint16 m_nPorts;

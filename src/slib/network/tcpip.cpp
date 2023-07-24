@@ -253,7 +253,7 @@ namespace slib
 		_checksum[0] = 0;
 		_checksum[1] = 0;
 		sl_uint16 checksum = ipv4->getChecksumForContent(this, getTotalSize());
-		if (checksum == 0) {
+		if (!checksum) {
 			checksum = 0xFFFF;
 		}
 		setChecksum(checksum);
@@ -261,11 +261,11 @@ namespace slib
 
 	sl_bool UdpDatagram::checkChecksum(const IPv4Packet* ipv4) const
 	{
-		if ((_checksum[0] | _checksum[1]) == 0) {
+		if (!(_checksum[0] | _checksum[1])) {
 			return sl_true;
 		}
 		sl_uint16 checksum = ipv4->getChecksumForContent(this, getTotalSize());
-		return checksum == 0 || checksum == 0xFFFF;
+		return !checksum || checksum == 0xFFFF;
 	}
 
 	sl_bool UdpDatagram::check(IPv4Packet* ip, sl_size sizeUdp) const
@@ -341,7 +341,10 @@ namespace slib
 
 	sl_bool IPv4Fragmentation::isNeededReassembly(const IPv4Packet* ip)
 	{
-		if (ip->getFragmentOffset() == 0 && !(ip->isMF())) {
+		if (ip->isDF()) {
+			return sl_false;
+		}
+		if (!(ip->getFragmentOffset()) && !(ip->isMF())) {
 			return sl_false;
 		}
 		return sl_true;
@@ -349,7 +352,7 @@ namespace slib
 
 	Memory IPv4Fragmentation::reassemble(const IPv4Packet* ip)
 	{
-		if (ip->getFragmentOffset() == 0 && !(ip->isMF())) {
+		if (isNeededReassembly(ip)) {
 			return Memory::create(ip, ip->getTotalSize());
 		}
 
@@ -369,7 +372,12 @@ namespace slib
 		ObjectLocker lock(&m_packets);
 
 		Ref<IPv4FragmentedPacket> packet;
-		if (offset == 0) {
+		if (offset) {
+			m_packets.get(id, &packet);
+			if (packet.isNull()) {
+				return sl_null;
+			}
+		} else {
 			packet = new IPv4FragmentedPacket;
 			if (packet.isNull()) {
 				return sl_null;
@@ -379,11 +387,6 @@ namespace slib
 				return sl_null;
 			}
 			if (!(m_packets.put(id, packet))) {
-				return sl_null;
-			}
-		} else {
-			m_packets.get(id, &packet);
-			if (packet.isNull()) {
 				return sl_null;
 			}
 		}
