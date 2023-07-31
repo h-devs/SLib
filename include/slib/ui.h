@@ -101,6 +101,4 @@
 #include "ui/pdf_view.h"
 #include "ui/chromium.h"
 
-#include "uix.h"
-
 #endif

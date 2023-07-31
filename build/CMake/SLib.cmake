@@ -333,10 +333,6 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/ui/web_view.cpp"
  "${SLIB_PATH}/src/slib/ui/window.cpp"
 
- "${SLIB_PATH}/src/slib/uix/x_button.cpp"
- "${SLIB_PATH}/src/slib/uix/x_control.cpp"
- "${SLIB_PATH}/src/slib/uix/x_edit_view.cpp"
-
  "${SLIB_PATH}/src/res/gen/colors.cpp"
  "${SLIB_PATH}/src/res/gen/drawables.cpp"
  "${SLIB_PATH}/src/res/gen/layouts.cpp"

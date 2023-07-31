@@ -52,9 +52,6 @@
     <Filter Include="inc">
       <UniqueIdentifier>{ee59f2d4-03fa-45eb-9fd2-80029c13eb53}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\uix">
-      <UniqueIdentifier>{72aba02e-46df-4579-9d83-af88c7933bb3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\io">
       <UniqueIdentifier>{b9a7e5c0-c117-4f04-9b44-7da634672363}</UniqueIdentifier>
     </Filter>
@@ -1162,15 +1159,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\group_box.cpp">
       <Filter>src\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\uix\x_edit_view.cpp">
-      <Filter>src\uix</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\uix\x_control.cpp">
-      <Filter>src\uix</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\uix\x_button.cpp">
-      <Filter>src\uix</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\svg.cpp">
       <Filter>src\graphics</Filter>

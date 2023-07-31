@@ -356,11 +356,6 @@ namespace slib
 	class GridView;
 	class PdfView;
 
-	class XControl;
-	class XButton;
-	class XEditView;
-	class XPasswordView;
-
 }
 
 #endif

@@ -939,16 +939,6 @@
 			path = apple;
 			sourceTree = "<group>";
 		};
-		1887E201202CD34000A81967 /* uix */ = {
-			isa = PBXGroup;
-			children = (
-				1887E202202CD34000A81967 /* x_button.cpp */,
-				1887E203202CD34000A81967 /* x_edit_view.cpp */,
-				1887E204202CD34000A81967 /* x_control.cpp */,
-			);
-			path = uix;
-			sourceTree = "<group>";
-		};
 		1887E46D202CF82400A81967 /* extra */ = {
 			isa = PBXGroup;
 			children = (
@@ -1240,7 +1230,6 @@
 				A25F2F131B039EF600854DAF /* render */,
 				1887E198202CD23D00A81967 /* script */,
 				A25F2F231B039EF600854DAF /* ui */,
-				1887E201202CD34000A81967 /* uix */,
 			);
 			path = slib;
 			sourceTree = "<group>";

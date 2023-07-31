@@ -48,7 +48,6 @@ namespace slib
 				Storage = 0xff0f0000,
 				Script = 0xff100000,
 				Dev = 0xff110000,
-				Uix = 0xff120000
 			};
 		}
 

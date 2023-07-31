@@ -396,9 +396,6 @@
     <ClCompile Include="..\..\src\slib\storage\fuse.cpp" />
     <ClCompile Include="..\..\src\slib\storage\storage.cpp" />
     <ClCompile Include="..\..\src\slib\storage\storage_volume_win32.cpp" />
-    <ClCompile Include="..\..\src\slib\uix\x_button.cpp" />
-    <ClCompile Include="..\..\src\slib\uix\x_control.cpp" />
-    <ClCompile Include="..\..\src\slib\uix\x_edit_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\audio_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button_win32.cpp" />

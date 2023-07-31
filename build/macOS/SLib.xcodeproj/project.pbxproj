@@ -1681,7 +1681,6 @@
 				1887E162202CCE4900A81967 /* script */,
 				2647C96725023EE1005560C7 /* storage */,
 				266DD4E91C11940A00D47AB0 /* ui */,
-				D738403C28F1A77E005F5ED8 /* uix */,
 			);
 			path = slib;
 			sourceTree = "<group>";
@@ -1815,16 +1814,6 @@
 				26FE7D8B25A2F1B800B787F0 /* plot_ui.cpp */,
 			);
 			path = math;
-			sourceTree = "<group>";
-		};
-		D738403C28F1A77E005F5ED8 /* uix */ = {
-			isa = PBXGroup;
-			children = (
-				D738403D28F1A77E005F5ED8 /* x_button.cpp */,
-				D738403E28F1A77E005F5ED8 /* x_control.cpp */,
-				D738403F28F1A77E005F5ED8 /* x_edit_view.cpp */,
-			);
-			path = uix;
 			sourceTree = "<group>";
 		};
 		D7C3BAFC26AEEEC400FD529D /* doc */ = {
