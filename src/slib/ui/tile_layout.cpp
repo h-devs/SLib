@@ -184,21 +184,24 @@ namespace slib
 
 		sl_ui_len x = getPaddingLeft();
 		sl_ui_len y = getPaddingTop();
-		sl_size i = 0;
-		for (; i < children.count; i++) {
-			View* view = children[i].get();
-			if (view) {
-				updateLayoutParam.parentContentFrame.left = x;
-				updateLayoutParam.parentContentFrame.top = y;
-				updateLayoutParam.parentContentFrame.right = x + widthCol;
-				updateLayoutParam.parentContentFrame.bottom = y + heightRow;
-				view->setInvalidateLayoutFrameInParent();
-				view->updateLayoutFrameInParent(updateLayoutParam);
-				if ((i + 1) % nCols == 0) {
-					x = 0;
-					y += heightRow;
-				} else {
-					x += widthCol;
+		sl_size n = 0;
+		{
+			for (sl_size i = 0; i < children.count; i++) {
+				View* view = children[i].get();
+				if (view && view->getVisibility() != Visibility::Gone) {
+					updateLayoutParam.parentContentFrame.left = x;
+					updateLayoutParam.parentContentFrame.top = y;
+					updateLayoutParam.parentContentFrame.right = x + widthCol;
+					updateLayoutParam.parentContentFrame.bottom = y + heightRow;
+					view->setInvalidateLayoutFrameInParent();
+					view->updateLayoutFrameInParent(updateLayoutParam);
+					n++;
+					if (n % nCols) {
+						x += widthCol;
+					} else {
+						x = 0;
+						y += heightRow;
+					}
 				}
 			}
 		}
@@ -206,10 +209,10 @@ namespace slib
 			setLayoutWidth((sl_ui_len)nCols * widthCol + getPaddingLeft() + getPaddingRight());
 		}
 		if (flagWrapY) {
-			if (i % nCols == 0) {
-				setLayoutHeight(y + getPaddingBottom());
-			} else {
+			if (n % nCols) {
 				setLayoutHeight(y + heightRow + getPaddingBottom());
+			} else {
+				setLayoutHeight(y + getPaddingBottom());
 			}
 		}
 	}
