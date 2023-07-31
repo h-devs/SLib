@@ -64,7 +64,7 @@ namespace slib
 	};
 
 	// Not thread-safe
-	class SLIB_EXPORT XmlNode : public CRef
+	class SLIB_EXPORT XmlNode : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -313,6 +313,8 @@ namespace slib
 
 		void setEndContentPositionInSource(sl_size pos);
 
+		Ref<XmlElement> duplicate();
+
 	protected:
 		String m_name;
 		String m_uri;
@@ -320,7 +322,6 @@ namespace slib
 		String m_localName;
 		List<XmlAttribute> m_attributes;
 		HashMap<String, String> m_mapAttributes;
-		Mutex m_lockAttributes;
 		sl_size m_positionStartContentInSource;
 		sl_size m_positionEndContentInSource;
 

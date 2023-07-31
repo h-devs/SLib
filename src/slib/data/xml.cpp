@@ -160,7 +160,10 @@ namespace slib
 	Ref<XmlElement> XmlNode::getParentElement() const
 	{
 		Ref<XmlNodeGroup> parent = m_parent;
-		return parent->toElementNode();
+		if (parent.isNotNull()) {
+			return parent->toElementNode();
+		}
+		return sl_null;
 	}
 
 	const String& XmlNode::getSourceFilePath() const
@@ -937,6 +940,31 @@ namespace slib
 	void XmlElement::setEndContentPositionInSource(sl_size pos)
 	{
 		m_positionEndContentInSource = pos;
+	}
+
+	Ref<XmlElement> XmlElement::duplicate()
+	{
+		Ref<XmlElement> ret = new XmlElement;
+		if (ret.isNotNull()) {
+			ret->m_parent = m_parent;
+			ret->m_document = m_document;
+			ret->m_sourceFilePath = m_sourceFilePath;
+			ret->m_positionStartInSource = m_positionStartInSource;
+			ret->m_positionEndInSource = m_positionEndInSource;
+			ret->m_lineInSource = m_lineInSource;
+			ret->m_columnInSource = m_columnInSource;
+			ret->m_children.addAll_NoLock(&m_children);
+			ret->m_name = m_name;
+			ret->m_uri = m_uri;
+			ret->m_namespace = m_namespace;
+			ret->m_localName = m_localName;
+			ret->m_attributes = m_attributes.duplicate_NoLock();
+			ret->m_mapAttributes = m_mapAttributes.duplicate_NoLock();
+			ret->m_positionStartContentInSource = m_positionStartContentInSource;
+			ret->m_positionEndContentInSource = m_positionEndContentInSource;
+			return ret;
+		}
+		return sl_null;
 	}
 
 	SLIB_DEFINE_OBJECT(XmlDocument, XmlNodeGroup)
@@ -1724,7 +1752,7 @@ return;
 						i++;
 					}
 				} else if (ch == '\n') {
-					if (i == 0 || buf[i - 1] != '\r') {
+					if (!i || buf[i - 1] != '\r') {
 						lineNumber++;
 						columnNumber = 1;
 					}
@@ -1857,7 +1885,7 @@ return;
 			pos++;
 			while (pos < len) {
 				ch = (sl_uint32)(buf[pos]);
-				if (ch < 128 && g_patternCheckName[ch] == 0) {
+				if (ch < 128 && !(g_patternCheckName[ch])) {
 					break;
 				}
 				pos++;
@@ -2287,10 +2315,10 @@ return;
 						escapeWhiteSpaces();
 						endWhiteSpace = pos;
 					} else {
-						if (indexAttr == 0) {
-							REPORT_ERROR(g_strError_name_invalid_char)
-						} else {
+						if (indexAttr) {
 							REPORT_ERROR(g_strError_element_attr_end_with_invalid_char)
+						} else {
+							REPORT_ERROR(g_strError_name_invalid_char)
 						}
 					}
 				}
@@ -2887,7 +2915,7 @@ return;
 			}
 			for (sl_size i = 1; i < len; i++) {
 				ch = (sl_uint32)(str[i]);
-				if (ch < 128 && g_patternCheckName[ch] == 0) {
+				if (ch < 128 && !(g_patternCheckName[ch])) {
 					return sl_false;
 				}
 			}
