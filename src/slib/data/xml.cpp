@@ -157,6 +157,11 @@ namespace slib
 		return m_parent;
 	}
 
+	void XmlNode::setParent(const Ref<XmlNodeGroup>& parent)
+	{
+		m_parent = parent;
+	}
+
 	Ref<XmlElement> XmlNode::getParentElement() const
 	{
 		Ref<XmlNodeGroup> parent = m_parent;

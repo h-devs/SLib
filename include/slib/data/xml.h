@@ -110,6 +110,8 @@ namespace slib
 
 		Ref<XmlNodeGroup> getParent() const;
 
+		void setParent(const Ref<XmlNodeGroup>& parent);
+
 		Ref<XmlElement> getParentElement() const;
 
 		const String& getSourceFilePath() const;
