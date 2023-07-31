@@ -77,7 +77,7 @@ namespace slib
 	public:
 		sl_bool flagDefined = sl_false;
 		enum {
-			FILL, WRAP, WEIGHT, // Special Units
+			FILL, MATCH_PARENT, WRAP, WEIGHT, // Special Units
 			PX,
 			SW, SH, SMIN, SMAX,
 			VW, VH, VMIN, VMAX,

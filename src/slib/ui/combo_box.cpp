@@ -160,8 +160,8 @@ namespace slib
 
 	void ComboBox::onUpdateLayout()
 	{
-		sl_bool flagHorizontalWrapping = isWidthWrapping();
-		sl_bool flagVerticalWrapping = isHeightWrapping();
+		sl_bool flagHorizontalWrapping = isLastWidthWrapping();
+		sl_bool flagVerticalWrapping = isLastHeightWrapping();
 
 		if (!flagVerticalWrapping && !flagHorizontalWrapping) {
 			return;

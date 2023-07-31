@@ -306,8 +306,8 @@ namespace slib
 				view->setCreatingInstance(sl_true);
 			}
 #endif
-			LayoutAttributes* attrs = view->m_layoutAttrs.get();
-			if (attrs) {
+			Ref<LayoutAttributes>& attrs = view->m_layoutAttrs;
+			if (attrs.isNotNull()) {
 				attrs->topMode = PositionMode::Free;
 				attrs->bottomMode = PositionMode::Free;
 			}

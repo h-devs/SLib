@@ -44,9 +44,13 @@ namespace slib
 		sl_bool flagMarginRightWeight : 1;
 		sl_bool flagMarginBottomWeight : 1;
 		sl_bool flagCustomLayout : 1;
+		sl_bool flagMatchParentWidth : 1;
+		sl_bool flagMatchParentHeight : 1;
 
 		sl_bool flagInvalidLayoutInParent : 1;
 		sl_bool flagRequestedFrame : 1;
+		sl_bool flagLastWidthWrapping : 1;
+		sl_bool flagLastHeightWrapping : 1;
 
 		UIRect layoutFrame;
 		UIRect requestedFrame;

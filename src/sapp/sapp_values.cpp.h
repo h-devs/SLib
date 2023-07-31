@@ -338,9 +338,14 @@ namespace slib
 				return sl_true;
 			}
 			str = str.toLower();
-			if (str == "fill" || str == "*") {
+			if (str == "fill") {
 				amount = 1;
 				unit = FILL;
+				break;
+			}
+			if (str == "*" || str == "match-parent") {
+				amount = 1;
+				unit = MATCH_PARENT;
 				break;
 			}
 			if (str == "wrap") {
@@ -415,7 +420,8 @@ namespace slib
 			typedef HashMap<String, int> UnitMap;
 			SLIB_SAFE_LOCAL_STATIC(UnitMap, units);
 			if (units.isNull()) {
-				units.put("*", FILL);
+				units.put("fill", FILL);
+				units.put("*", MATCH_PARENT);
 				units.put("p", WEIGHT);
 				units.put("px", PX);
 				units.put("sw", SW);
@@ -499,7 +505,7 @@ namespace slib
 			return sl_false;
 		}
 		if (flagRoot) {
-			return unit == WEIGHT || unit == FILL || isGlobalUnit(unit);
+			return unit == WEIGHT || unit == FILL || unit == MATCH_PARENT || isGlobalUnit(unit);
 		}
 		return sl_true;
 	}
@@ -563,7 +569,7 @@ namespace slib
 		if (!flagDefined) {
 			return sl_true;
 		}
-		if (unit == WRAP || unit == FILL) {
+		if (unit == WRAP || unit == FILL || unit == MATCH_PARENT) {
 			return sl_true;
 		}
 		return amount >= 0 && isGlobalUnit(unit);
@@ -579,7 +585,7 @@ namespace slib
 
 	sl_bool SAppDimensionBaseValue::isSpecialUnit(int unit)
 	{
-		return unit == FILL || unit == WRAP || unit == WEIGHT;
+		return unit == FILL || unit == MATCH_PARENT || unit == WRAP || unit == WEIGHT;
 	}
 
 	sl_bool SAppDimensionBaseValue::isAbsoluteUnit(int unit)

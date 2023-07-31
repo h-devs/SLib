@@ -149,6 +149,7 @@ namespace slib
 		m_flagInvalidLayout(sl_true),
 		m_flagNeedApplyLayout(sl_false),
 		m_flagRedrawingOnChangeState(sl_false),
+		m_flagUsingChildFocusedState(sl_false),
 		m_flagFocused(sl_false),
 		m_flagPressed(sl_false),
 		m_flagHover(sl_false),
@@ -179,9 +180,13 @@ namespace slib
 		flagMarginRightWeight(sl_false),
 		flagMarginBottomWeight(sl_false),
 		flagCustomLayout(sl_false),
+		flagMatchParentWidth(sl_false),
+		flagMatchParentHeight(sl_false),
 
 		flagInvalidLayoutInParent(sl_false),
 		flagRequestedFrame(sl_false),
+		flagLastWidthWrapping(sl_false),
+		flagLastHeightWrapping(sl_false),
 
 		widthMode(SizeMode::Fixed),
 		heightMode(SizeMode::Fixed),
@@ -859,7 +864,7 @@ namespace slib
 				}
 			}
 		}
-		if (isNativeWidget() && (isWidthWrapping() || isHeightWrapping())) {
+		if (isNativeWidget() && isWrapping()) {
 			invalidateLayout();
 		}
 	}
@@ -2134,7 +2139,13 @@ namespace slib
 		if (!m_flagEnabled) {
 			return ViewState::Disabled;
 		}
-		if (isFocused()) {
+		sl_bool flagFocused = isFocused();
+		if (!flagFocused) {
+			if (m_flagUsingChildFocusedState) {
+				flagFocused = getFocusedView().isNotNull();
+			}
+		}
+		if (flagFocused) {
 			if (m_flagPressed) {
 				return ViewState::FocusedPressed;
 			} else if (m_flagHover) {
@@ -2161,6 +2172,16 @@ namespace slib
 	void View::setRedrawingOnChangeState(sl_bool flag)
 	{
 		m_flagRedrawingOnChangeState = flag;
+	}
+
+	sl_bool View::isUsingChildFocusedState()
+	{
+		return m_flagUsingChildFocusedState;
+	}
+
+	void View::setUsingChildFocusedState(sl_bool flag)
+	{
+		m_flagUsingChildFocusedState = flag;
 	}
 
 	sl_bool View::_canRedrawOnChangeState()
@@ -2600,7 +2621,13 @@ namespace slib
 		}
 
 		SizeMode widthMode = layoutAttrs->widthMode;
+		if (_isWidthWrapping()) {
+			widthMode = SizeMode::Wrapping;
+		}
 		SizeMode heightMode = layoutAttrs->heightMode;
+		if (_isHeightWrapping()) {
+			heightMode = SizeMode::Wrapping;
+		}
 
 		PositionMode leftMode = layoutAttrs->leftMode;
 		PositionMode topMode = layoutAttrs->topMode;
@@ -2862,6 +2889,10 @@ namespace slib
 			for (int step = 0; step < 2; step++) {
 				sl_ui_len width = frame.getWidth();
 				sl_ui_len height = frame.getHeight();
+				if (layoutAttrs.isNotNull()) {
+					layoutAttrs->flagLastWidthWrapping = _isWidthWrapping();
+					layoutAttrs->flagLastHeightWrapping = _isHeightWrapping();
+				}
 				Ref<PaddingAttributes>& paddingAttrs = m_paddingAttrs;
 				if (paddingAttrs.isNotNull()) {
 					paddingAttrs->applyPaddingWeights(width, height);
@@ -2898,7 +2929,7 @@ namespace slib
 				if (layoutAttrs.isNull()) {
 					break;
 				}
-				if (layoutAttrs->flagCustomLayout || layoutAttrs->widthMode == SizeMode::Wrapping || layoutAttrs->heightMode == SizeMode::Wrapping) {
+				if (layoutAttrs->flagCustomLayout || layoutAttrs->flagLastWidthWrapping || layoutAttrs->flagLastHeightWrapping) {
 					onUpdateLayout();
 					if (!m_flagNeedApplyLayout) {
 						for (i = 0; i < children.count; i++) {
@@ -2921,7 +2952,7 @@ namespace slib
 						break;
 					}
 				}
-				if (children.count == 0) {
+				if (!(children.count)) {
 					break;
 				}
 			}
@@ -3020,13 +3051,16 @@ namespace slib
 
 	sl_ui_len View::_measureLayoutWrappingSize_Horz(View* view, Pair<sl_ui_len, sl_ui_len>& insets, HashMap< View*, Pair<sl_ui_len, sl_ui_len> >& map, sl_ui_pos paddingLeft, sl_ui_pos paddingRight)
 	{
-		LayoutAttributes* layoutAttrs = view->m_layoutAttrs.get();
-		if (!layoutAttrs) {
+		Ref<LayoutAttributes>& layoutAttrs = view->m_layoutAttrs;
+		if (layoutAttrs.isNull()) {
 			insets.first = view->m_frame.left;
 			insets.second = 0;
 			return view->m_frame.getWidth();
 		}
 		SizeMode widthMode = layoutAttrs->widthMode;
+		if (layoutAttrs->flagLastWidthWrapping) {
+			widthMode = SizeMode::Wrapping;
+		}
 		PositionMode leftMode = layoutAttrs->leftMode;
 		PositionMode rightMode = layoutAttrs->rightMode;
 		if (widthMode == SizeMode::Filling) {
@@ -3110,13 +3144,16 @@ namespace slib
 
 	sl_ui_len View::_measureLayoutWrappingSize_Vert(View* view, Pair<sl_ui_len, sl_ui_len>& insets, HashMap< View*, Pair<sl_ui_len, sl_ui_len> >& map, sl_ui_pos paddingTop, sl_ui_pos paddingBottom)
 	{
-		LayoutAttributes* layoutAttrs = view->m_layoutAttrs.get();
-		if (!layoutAttrs) {
+		Ref<LayoutAttributes>& layoutAttrs = view->m_layoutAttrs;
+		if (layoutAttrs.isNull()) {
 			insets.first = view->m_frame.top;
 			insets.second = 0;
 			return view->m_frame.getHeight();
 		}
 		SizeMode heightMode = layoutAttrs->heightMode;
+		if (layoutAttrs->flagLastHeightWrapping) {
+			heightMode = SizeMode::Wrapping;
+		}
 		PositionMode topMode = layoutAttrs->topMode;
 		PositionMode bottomMode = layoutAttrs->bottomMode;
 		if (heightMode == SizeMode::Filling) {
@@ -3200,8 +3237,13 @@ namespace slib
 
 	void View::updateLayoutByViewCell(ViewCell* cell)
 	{
-		sl_bool flagHorizontalWrapping = isWidthWrapping();
-		sl_bool flagVerticalWrapping = isHeightWrapping();
+		Ref<LayoutAttributes>& layoutAttrs = m_layoutAttrs;
+		if (layoutAttrs.isNull()) {
+			return;
+		}
+
+		sl_bool flagHorizontalWrapping = layoutAttrs->flagLastWidthWrapping;
+		sl_bool flagVerticalWrapping = layoutAttrs->flagLastHeightWrapping;
 
 		if (!flagVerticalWrapping && !flagHorizontalWrapping) {
 			return;
@@ -3251,7 +3293,6 @@ namespace slib
 
 	UISize View::measureLayoutWrappingSize(sl_bool flagHorizontal, sl_bool flagVertical)
 	{
-
 		UISize ret = {0, 0};
 		if (!flagVertical && !flagHorizontal) {
 			return ret;
@@ -3542,11 +3583,7 @@ namespace slib
 		Ref<View> view = this;
 		for (;;) {
 			view->_setInvalidateLayout();
-			Ref<LayoutAttributes>& layoutAttrs = view->m_layoutAttrs;
-			if (layoutAttrs.isNull()) {
-				break;
-			}
-			if (!(layoutAttrs->widthMode == SizeMode::Wrapping || layoutAttrs->heightMode == SizeMode::Wrapping)) {
+			if (!(view->isWrapping())) {
 				break;
 			}
 			Ref<View> parent = view->m_parent;
@@ -3589,11 +3626,7 @@ namespace slib
 		while (parent.isNotNull()) {
 			view = parent;
 			view->_setInvalidateLayout();
-			Ref<LayoutAttributes>& layoutAttrs = view->m_layoutAttrs;
-			if (layoutAttrs.isNull()) {
-				break;
-			}
-			if (!(layoutAttrs->widthMode == SizeMode::Wrapping || layoutAttrs->heightMode == SizeMode::Wrapping)) {
+			if (!(view->isWrapping())) {
 				break;
 			}
 			parent = view->m_parent;
@@ -3603,14 +3636,11 @@ namespace slib
 
 	void View::invalidateLayoutOfWrappingControl(UIUpdateMode mode)
 	{
-		Ref<LayoutAttributes>& layoutAttrs = m_layoutAttrs;
-		if (layoutAttrs.isNotNull()) {
-			if (layoutAttrs->widthMode == SizeMode::Wrapping || layoutAttrs->heightMode == SizeMode::Wrapping) {
-				invalidateLayout(mode);
-				return;
-			}
+		if (isWrapping()) {
+			invalidateLayout(mode);
+		} else {
+			invalidate(mode);
 		}
-		invalidate(mode);
 	}
 
 	void View::forceUpdateLayout()
@@ -3658,6 +3688,7 @@ namespace slib
 		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
 		if (attrs.isNotNull()) {
 			attrs->widthMode = SizeMode::Fixed;
+			attrs->flagMatchParentWidth = sl_false;
 			invalidateParentLayout(mode);
 			onChangeSizeMode(mode);
 		}
@@ -3677,6 +3708,7 @@ namespace slib
 		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
 		if (attrs.isNotNull()) {
 			attrs->heightMode = SizeMode::Fixed;
+			attrs->flagMatchParentHeight = sl_false;
 			invalidateParentLayout(mode);
 			onChangeSizeMode(mode);
 		}
@@ -3715,10 +3747,8 @@ namespace slib
 		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
 		if (attrs.isNotNull()) {
 			attrs->widthMode = SizeMode::Filling;
-			if (weight < 0) {
-				weight = 0;
-			}
-			attrs->widthWeight = weight;
+			attrs->widthWeight = Math::abs(weight);
+			attrs->flagMatchParentWidth = weight < 0;
 			if (attrs->leftMode == PositionMode::Free) {
 				attrs->leftMode = PositionMode::ParentEdge;
 			}
@@ -3728,6 +3758,20 @@ namespace slib
 			onChangeSizeMode(mode);
 			invalidateParentLayout(mode);
 		}
+	}
+
+	sl_bool View::isMatchingParentWidth()
+	{
+		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->flagMatchParentWidth;
+		}
+		return sl_false;
+	}
+
+	void View::setMatchingParentWidth(UIUpdateMode mode)
+	{
+		setWidthFilling(-1, mode);
 	}
 
 	sl_bool View::isHeightFilling()
@@ -3745,10 +3789,8 @@ namespace slib
 		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
 		if (attrs.isNotNull()) {
 			attrs->heightMode = SizeMode::Filling;
-			if (weight < 0) {
-				weight = 0;
-			}
-			attrs->heightWeight = weight;
+			attrs->heightWeight = Math::abs(weight);
+			attrs->flagMatchParentHeight = weight < 0;
 			if (attrs->topMode == PositionMode::Free) {
 				attrs->topMode = PositionMode::ParentEdge;
 			}
@@ -3760,11 +3802,33 @@ namespace slib
 		}
 	}
 
+	sl_bool View::isMatchingParentHeight()
+	{
+		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->flagMatchParentHeight;
+		}
+		return sl_false;
+	}
+
+	void View::setMatchingParentHeight(UIUpdateMode mode)
+	{
+		setHeightFilling(-1, mode);
+	}
+
 	sl_bool View::isWidthWrapping()
 	{
 		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->widthMode == SizeMode::Wrapping;
+			if (attrs->widthMode == SizeMode::Wrapping) {
+				return sl_true;
+			}
+			if (attrs->flagMatchParentWidth) {
+				Ref<View> parent = m_parent;
+				if (parent.isNotNull()) {
+					return parent->isWidthWrapping();
+				}
+			}
 		}
 		return sl_false;
 	}
@@ -3775,6 +3839,7 @@ namespace slib
 		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
 		if (attrs.isNotNull()) {
 			attrs->widthMode = SizeMode::Wrapping;
+			attrs->flagMatchParentWidth = sl_false;
 			onChangeSizeMode(mode);
 			invalidateSelfAndParentLayout(mode);
 		}
@@ -3785,7 +3850,7 @@ namespace slib
 		if (flag) {
 			setWidthWrapping(mode);
 		} else {
-			if (isWidthWrapping()) {
+			if (getWidthMode() == SizeMode::Wrapping) {
 				setWidthFixed(mode);
 			}
 		}
@@ -3795,7 +3860,15 @@ namespace slib
 	{
 		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->heightMode == SizeMode::Wrapping;
+			if (attrs->heightMode == SizeMode::Wrapping) {
+				return sl_true;
+			}
+			if (attrs->flagMatchParentHeight) {
+				Ref<View> parent = m_parent;
+				if (parent.isNotNull()) {
+					return parent->isHeightWrapping();
+				}
+			}
 		}
 		return sl_false;
 	}
@@ -3806,6 +3879,7 @@ namespace slib
 		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
 		if (attrs.isNotNull()) {
 			attrs->heightMode = SizeMode::Wrapping;
+			attrs->flagMatchParentHeight = sl_false;
 			onChangeSizeMode(mode);
 			invalidateSelfAndParentLayout(mode);
 		}
@@ -3816,10 +3890,85 @@ namespace slib
 		if (flag) {
 			setHeightWrapping(mode);
 		} else {
-			if (isHeightWrapping()) {
+			if (getHeightMode() == SizeMode::Wrapping) {
 				setHeightFixed(mode);
 			}
 		}
+	}
+
+	sl_bool View::isWrapping(sl_bool flagCheckWidth, sl_bool flagCheckHeight)
+	{
+		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
+		if (attrs.isNotNull()) {
+			if ((flagCheckWidth && attrs->widthMode == SizeMode::Wrapping) || (flagCheckHeight && attrs->heightMode == SizeMode::Wrapping)) {
+				return sl_true;
+			}
+			if (!(attrs->flagMatchParentWidth)) {
+				flagCheckWidth = sl_false;
+			}
+			if (!(attrs->flagMatchParentHeight)) {
+				flagCheckHeight = sl_false;
+			}
+			if (flagCheckWidth || flagCheckHeight) {
+				Ref<View> parent = m_parent;
+				if (parent.isNotNull()) {
+					return parent->isWrapping(flagCheckWidth, flagCheckHeight);
+				}
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool View::isLastWidthWrapping()
+	{
+		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->flagLastWidthWrapping;
+		}
+		return sl_false;
+	}
+
+	sl_bool View::isLastHeightWrapping()
+	{
+		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->flagLastHeightWrapping;
+		}
+		return sl_false;
+	}
+
+	sl_bool View::_isWidthWrapping()
+	{
+		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
+		if (attrs.isNotNull()) {
+			if (attrs->widthMode == SizeMode::Wrapping) {
+				return sl_true;
+			}
+			if (attrs->flagMatchParentWidth) {
+				Ref<View> parent = m_parent;
+				if (parent.isNotNull()) {
+					return parent->isLastWidthWrapping();
+				}
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool View::_isHeightWrapping()
+	{
+		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
+		if (attrs.isNotNull()) {
+			if (attrs->heightMode == SizeMode::Wrapping) {
+				return sl_true;
+			}
+			if (attrs->flagMatchParentHeight) {
+				Ref<View> parent = m_parent;
+				if (parent.isNotNull()) {
+					return parent->isLastHeightWrapping();
+				}
+			}
+		}
+		return sl_false;
 	}
 
 	sl_bool View::isWidthWeight()
@@ -3841,6 +3990,7 @@ namespace slib
 				weight = 0;
 			}
 			attrs->widthWeight = weight;
+			attrs->flagMatchParentWidth = sl_false;
 			onChangeSizeMode(mode);
 			invalidateParentLayout(mode);
 		}
@@ -3865,6 +4015,7 @@ namespace slib
 				weight = 0;
 			}
 			attrs->heightWeight = weight;
+			attrs->flagMatchParentHeight = sl_false;
 			onChangeSizeMode(mode);
 			invalidateParentLayout(mode);
 		}
@@ -7857,6 +8008,17 @@ namespace slib
 		});
 	}
 
+	void View::sendFocusOnClick(const Ref<View>& view)
+	{
+		WeakRef<View> weakView(view);
+		setOnClick([weakView](View*) {
+			Ref<View> view(weakView);
+			if (view.isNotNull()) {
+				view->setFocus();
+			}
+		});
+	}
+
 	Ref<View> View::getNextFocusableView()
 	{
 		{
@@ -8622,7 +8784,7 @@ namespace slib
 		sl_uint32 width = getWidth();
 		sl_uint32 height = getHeight();
 
-		if (width == 0 || height == 0 || width > MAX_LAYER_SIZE || height > MAX_LAYER_SIZE) {
+		if (!width || !height || width > MAX_LAYER_SIZE || height > MAX_LAYER_SIZE) {
 			return sl_null;
 		}
 
@@ -8966,21 +9128,28 @@ namespace slib
 
 	void View::onUpdateLayout()
 	{
+		Ref<LayoutAttributes>& layoutAttrs = m_layoutAttrs;
+		if (layoutAttrs.isNull()) {
+			return;
+		}
+		sl_bool flagWidthWrapping = layoutAttrs->flagLastWidthWrapping;
+		sl_bool flagHeightWrapping = layoutAttrs->flagLastHeightWrapping;
+
 		if (getChildCount() > 0) {
-			measureAndSetLayoutWrappingSize(isWidthWrapping(), isHeightWrapping());
+			measureAndSetLayoutWrappingSize(flagWidthWrapping, flagHeightWrapping);
 		} else {
 #if defined(SLIB_PLATFORM_IS_MOBILE)
-			if (isWidthWrapping()) {
+			if (flagWidthWrapping) {
 				setLayoutWidth(UI::getScreenWidth() / 4);
 			}
-			if (isHeightWrapping()) {
+			if (flagHeightWrapping) {
 				setLayoutHeight(UI::getScreenWidth() / 6);
 			}
 #else
-			if (isWidthWrapping()) {
+			if (flagWidthWrapping) {
 				setLayoutWidth(80);
 			}
-			if (isHeightWrapping()) {
+			if (flagHeightWrapping) {
 				setLayoutHeight(60);
 			}
 #endif

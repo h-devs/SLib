@@ -289,6 +289,16 @@ namespace slib
 
 	String SAppLayoutXmlItem::getXmlAttribute(const String& name)
 	{
+		return _resolveVariables(name, _getXmlAttribute(name));
+	}
+
+	String SAppLayoutXmlItem::getXmlAttributeWithoutStyle(const String& name)
+	{
+		return _resolveVariables(name, element->getAttribute(name));
+	}
+
+	String SAppLayoutXmlItem::_getXmlAttribute(const String& name)
+	{
 		String value = element->getAttribute(name);
 		if (value.isNotNull()) {
 			return value;
@@ -305,6 +315,109 @@ namespace slib
 		}
 		return sl_null;
 	}
+
+	String SAppLayoutXmlItem::_getVariableValue(const String& name)
+	{
+		String vName = ":" + name;
+		Ref<XmlElement> e = element;
+		do {
+			String value = e->getAttribute(vName);
+			if (value.isNotNull()) {
+				return value;
+			}
+			RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::from(e->getProperty("caller").getRef());
+			if (caller.isNotNull()) {
+				return caller->getXmlAttribute(name);
+			}
+			e = e->getParentElement();
+		} while (e.isNotNull());
+		return sl_null;
+	}
+
+	String SAppLayoutXmlItem::_resolveVariables(const String& name, const String& value)
+	{
+		sl_size len = value.getLength();
+		if (!len) {
+			if (value.isNull()) {
+				if (element->getProperty("inherit").getBoolean()) {
+					return _getVariableValue(name);
+				}
+			}
+			return value;
+		}
+		sl_char8* data = value.getData();
+		sl_char8* s = data;
+		sl_char8* e = s + len;
+		sl_char8* p = s;
+		StringBuffer buf;
+		while (p < e) {
+			if (*p == ':') {
+				sl_char8* t = p;
+				p++;
+				if (p >= e) {
+					break;
+				}
+				sl_char8 ch = *p;
+				if (ch == '\\') {
+					// Ignore this char
+					buf.addStatic(s, p - s);
+					p++;
+					s = p;
+				} else if (ch == '{') {
+					p++;
+					sl_char8* n = p;
+					while (n < e) {
+						if (*n == '}') {
+							break;
+						} else {
+							n++;
+						}
+					}
+					if (n >= e) {
+						break;
+					}
+					String var = _getVariableValue(String(p, n - p));
+					if (var.isNotNull()) {
+						if (t > s) {
+							buf.addStatic(s, t - s);
+						}
+						buf.add(var);
+					}
+					p = n + 1;
+					s = p;
+				} else if (SLIB_CHAR_IS_ALPHA(ch) || ch == '_') {
+					sl_char8* n = p + 1;
+					while (n < e) {
+						ch = *n;
+						if (SLIB_CHAR_IS_ALNUM(ch) || ch == '_') {
+							n++;
+						} else {
+							break;
+						}
+					}
+					String var = _getVariableValue(String(p, n - p));
+					if (var.isNotNull()) {
+						if (t > s) {
+							buf.addStatic(s, t - s);
+						}
+						buf.add(var);
+					}
+					p = n;
+					s = p;
+				}
+			} else {
+				p++;
+			}
+		}
+		if (s == data) {
+			return value;
+		}
+		if (e > s) {
+			buf.addStatic(s, e - s);
+		}
+		return buf.merge();
+	}
+
 
 	SAppLayoutResourceItem::SAppLayoutResourceItem()
 	{
@@ -330,7 +443,6 @@ namespace slib
 			case SAppLayoutItemType::Unknown:
 				return String::null();
 			case SAppLayoutItemType::View:
-			case SAppLayoutItemType::XControl:
 				prefix = "view";
 				pN = &nAutoIncreaseNameView;
 				break;
@@ -343,7 +455,6 @@ namespace slib
 				pN = &nAutoIncreaseNameImport;
 				break;
 			case SAppLayoutItemType::Button:
-			case SAppLayoutItemType::XButton:
 				prefix = "button";
 				pN = &nAutoIncreaseNameButton;
 				break;
@@ -364,12 +475,10 @@ namespace slib
 				pN = &nAutoIncreaseNameRadio;
 				break;
 			case SAppLayoutItemType::Edit:
-			case SAppLayoutItemType::XEdit:
 				prefix = "edit";
 				pN = &nAutoIncreaseNameEdit;
 				break;
 			case SAppLayoutItemType::Password:
-			case SAppLayoutItemType::XPassword:
 				prefix = "password";
 				pN = &nAutoIncreaseNamePassword;
 				break;
@@ -534,8 +643,6 @@ namespace slib
 			type = SAppLayoutItemType::Import;
 		} else if (strType == "button") {
 			type = SAppLayoutItemType::Button;
-		} else if (strType == "xbutton" || strType == "x-button") {
-			type = SAppLayoutItemType::XButton;
 		} else if (strType == "label") {
 			type = SAppLayoutItemType::Label;
 		} else if (strType == "line" || strType == "hline" || strType == "vline") {
@@ -546,12 +653,8 @@ namespace slib
 			type = SAppLayoutItemType::Radio;
 		} else if (strType == "edit") {
 			type = SAppLayoutItemType::Edit;
-		} else if (strType == "xedit" || strType == "x-edit") {
-			type = SAppLayoutItemType::XEdit;
 		} else if (strType == "password") {
 			type = SAppLayoutItemType::Password;
-		} else if (strType == "xpassword" || strType == "x-password") {
-			type = SAppLayoutItemType::XPassword;
 		} else if (strType == "textarea" || strType == "text-area") {
 			type = SAppLayoutItemType::TextArea;
 		} else if (strType == "image") {

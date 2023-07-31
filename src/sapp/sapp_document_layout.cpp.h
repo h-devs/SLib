@@ -263,7 +263,8 @@ namespace slib
 		}
 
 		if (parent) {
-			String name = element->getAttribute("name");
+			SAppLayoutXmlItem xml(element);
+			String name = xml.getXmlAttributeWithoutStyle("name");
 			String arrayName;
 			sl_int32 arrayIndex = -1;
 			if (name.isNotEmpty()) {
@@ -900,7 +901,7 @@ namespace slib
 		if (item->element.isNull()) {
 			return sl_true;
 		}
-		String strStyles = item->element->getAttribute("style").trim();
+		String strStyles = item->getXmlAttributeWithoutStyle("style").trim();
 		if (strStyles.isNotEmpty()) {
 			ListElements<String> arr(strStyles.split(","));
 			for (sl_size i = 0; i < arr.count; i++) {
@@ -924,7 +925,7 @@ namespace slib
 	List< Ref<XmlElement> > SAppDocument::_getXmlChildElements(const String& localNamespace, SAppLayoutXmlItem* item, const String& tagName)
 	{
 		List< Ref<XmlElement> > ret;
-		if (!_addXmlChildElements(ret, item->element, localNamespace, tagName)) {
+		if (!_addXmlChildElements(ret, item->element, sl_null, localNamespace, tagName)) {
 			return sl_null;
 		}
 		{
@@ -954,16 +955,35 @@ namespace slib
 				}
 			}
 		}
-		return _addXmlChildElements(list, style->element, localNamespace, tagName);
+		return _addXmlChildElements(list, style->element, sl_null, localNamespace, tagName);
 	}
 
-	sl_bool SAppDocument::_addXmlChildElements(List< Ref<XmlElement> >& list, const Ref<XmlElement>& parent, const String& localNamespace, const String& tagName)
+	sl_bool SAppDocument::_addXmlChildElements(List< Ref<XmlElement> >& list, const Ref<XmlElement>& parent, const RefT<SAppLayoutXmlItem>& caller, const String& localNamespace, const String& tagName)
 	{
 		{
 			ListElements< Ref<XmlElement> > children(parent->getChildElements());
 			for (sl_size i = 0; i < children.count; i++) {
-				Ref<XmlElement>& child = children[i];
+				Ref<XmlElement> child = children[i];
 				if (child.isNotNull()) {
+					if (caller.isNotNull()) {
+						child = child->duplicate();
+						if (child.isNull()) {
+							logError(child, g_str_error_out_of_memory);
+							return sl_false;
+						}
+						child->setProperty("caller", caller);
+						if (children.count == 1) {
+							child->setProperty("inherit", sl_true);
+						}
+						sl_size n = child->getChildCount();
+						for (sl_size i = 0; i < n; i++) {
+							Ref<XmlElement> e = child->getChildElement(i);
+							if (e.isNotNull()) {
+								e->setParent(Ref<XmlNodeGroup>::from(child));
+							}
+						}
+					}
+					Ref<SAppLayoutInclude> include;
 					String name = child->getName();
 					if (name == "include") {
 						String src = child->getAttribute("src");
@@ -971,20 +991,32 @@ namespace slib
 							logError(child, g_str_error_resource_layout_attribute_invalid, "src", name);
 							return sl_false;
 						}
-						Ref<SAppLayoutInclude> include;
 						getItemFromMap(m_layoutIncludes, localNamespace, src, sl_null, &include);
-						if (include.isNotNull()) {
-							if (!_addXmlChildElements(list, include->element, localNamespace, tagName)) {
-								return sl_false;
-							}
-						} else {
+						if (include.isNull()) {
 							logError(child, g_str_error_layout_include_not_found, name);
 							return sl_false;
 						}
-					} else if (tagName.isEmpty() || name == tagName) {
-						if (!(list.add_NoLock(Move(child)))) {
+					} else {
+						getItemFromMap(m_layoutIncludes, localNamespace, name, sl_null, &include);
+					}
+					if (include.isNotNull()) {
+						RefT<SAppLayoutXmlItem> xml = new CRefT<SAppLayoutXmlItem>(child);
+						if (xml.isNull()) {
 							logError(child, g_str_error_out_of_memory);
 							return sl_false;
+						}
+						if (!(_parseStyleAttribute(localNamespace, xml.get()))) {
+							return sl_false;
+						}
+						if (!_addXmlChildElements(list, include->element, xml, localNamespace, tagName)) {
+							return sl_false;
+						}
+					} else {
+						if (tagName.isEmpty() || name == tagName) {
+							if (!(list.add_NoLock(Move(child)))) {
+								logError(child, g_str_error_out_of_memory);
+								return sl_false;
+							}
 						}
 					}
 				}
@@ -1085,10 +1117,6 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(Pdf)
 			PROCESS_CONTROL_SWITCH(GroupBox)
 			PROCESS_CONTROL_SWITCH(Grid)
-			PROCESS_CONTROL_SWITCH(XControl)
-			PROCESS_CONTROL_SWITCH(XButton)
-			PROCESS_CONTROL_SWITCH(XEdit)
-			PROCESS_CONTROL_SWITCH(XPassword)
 			default:
 				return sl_false;
 		}
@@ -1160,10 +1188,10 @@ namespace slib
 					SAppLayoutViewAttributes* childAttrs = (SAppLayoutViewAttributes*)(childItem->attrs.get());
 					childAttrs->width.flagDefined = sl_true;
 					childAttrs->width.amount = 1;
-					childAttrs->width.unit = SAppDimensionValue::FILL;
+					childAttrs->width.unit = SAppDimensionValue::MATCH_PARENT;
 					childAttrs->height.flagDefined = sl_true;
 					childAttrs->height.amount = 1;
-					childAttrs->height.unit = SAppDimensionValue::FILL;
+					childAttrs->height.unit = SAppDimensionValue::MATCH_PARENT;
 				}
 				if (!(resourceItem->children.add_NoLock(Move(childItem)))) {
 					logError(resourceItem->element, g_str_error_out_of_memory);
@@ -1591,8 +1619,8 @@ namespace slib
 #define LAYOUT_CONTROL_PARSE_SIZE(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, SUFFIX, VAR, checkSize)
 #define LAYOUT_CONTROL_GENERATE_SIZE(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
-		if (VAR.unit == SAppDimensionValue::FILL) { \
-			String value = String::format("%ff", VAR.amount); \
+		if (VAR.unit == SAppDimensionValue::FILL || VAR.unit == SAppDimensionValue::MATCH_PARENT) { \
+			String value = String::format("%ff", VAR.unit == SAppDimensionValue::FILL ? VAR.amount : -(VAR.amount)); \
 			LAYOUT_CONTROL_GENERATE(SETFUNC##Filling, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 		} else if (VAR.unit == SAppDimensionValue::WRAP) { \
 			StringView value = StringView::literal("sl_true"); \
@@ -1606,9 +1634,9 @@ namespace slib
 	}
 #define LAYOUT_CONTROL_SIMULATE_SIZE(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined) { \
-		if (VAR.unit == SAppDimensionValue::FILL) { \
+		if (VAR.unit == SAppDimensionValue::FILL || VAR.unit == SAppDimensionValue::MATCH_PARENT) { \
 			if (op == SAppLayoutOperation::SimulateInit) { \
-				auto value = VAR.amount; \
+				auto value = VAR.unit == SAppDimensionValue::FILL ? VAR.amount : -(VAR.amount); \
 				view->SETFUNC##Filling(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 			} \
 		} else if (VAR.unit == SAppDimensionValue::WRAP) { \
@@ -2050,12 +2078,12 @@ namespace slib
 					if (!(attr->width.flagDefined) && attr->leftMode != PositionMode::Free && attr->rightMode != PositionMode::Free) {
 						attr->width.flagDefined = sl_true;
 						attr->width.amount = 1;
-						attr->width.unit = SAppDimensionValue::FILL;
+						attr->width.unit = SAppDimensionValue::MATCH_PARENT;
 					}
 					if (!(attr->height.flagDefined) && attr->topMode != PositionMode::Free && attr->bottomMode != PositionMode::Free) {
 						attr->height.flagDefined = sl_true;
 						attr->height.amount = 1;
-						attr->height.unit = SAppDimensionValue::FILL;
+						attr->height.unit = SAppDimensionValue::MATCH_PARENT;
 					}
 					if (resourceItem->itemType != SAppLayoutItemType::Import && resourceItem->itemType != SAppLayoutItemType::Drawer && resourceItem->itemType != SAppLayoutItemType::Image) {
 						if (attr->aspectRatio.flagDefined) {
@@ -2269,14 +2297,16 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, autoHideScrollBar, setAutoHideScrollBar)
 		LAYOUT_CONTROL_ATTR(GENERIC, smoothScrolling, setSmoothContentScrolling)
 
+		LAYOUT_CONTROL_ATTR(GENERIC, childFocusedState, setUsingChildFocusedState)
 		LAYOUT_CONTROL_ATTR(GENERIC, focusable, setFocusable)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, focus, setFocus)
 		LAYOUT_CONTROL_ATTR(GENERIC, hitTest, setHitTestable)
 		LAYOUT_CONTROL_ATTR(GENERIC, touchMultipleChildren, setTouchMultipleChildren)
+		LAYOUT_CONTROL_ATTR(GENERIC, cursor, setCursor)
+		LAYOUT_CONTROL_ATTR(STRING, toolTip, setToolTip)
+		LAYOUT_CONTROL_ATTR(GENERIC, ime, setUsingIME)
 		if (flagView) {
 			LAYOUT_CONTROL_ATTR(GENERIC, tabStop, setTabStopEnabled)
-			LAYOUT_CONTROL_ATTR(GENERIC, cursor, setCursor)
-			LAYOUT_CONTROL_ATTR(STRING, toolTip, setToolTip)
 		}
 
 #define LAYOUT_CONTROL_VIEW_TAB_STOP(NAME, SETTER) \
@@ -2326,13 +2356,14 @@ namespace slib
 		}
 		LAYOUT_CONTROL_ATTR(GENERIC, childInstances, setCreatingChildInstances)
 
+		LAYOUT_CONTROL_ATTR(GENERIC, okCancelEnabled, setOkCancelEnabled)
+		LAYOUT_CONTROL_ATTR(BOOLEAN, ok, setOkOnClick)
+		LAYOUT_CONTROL_ATTR(BOOLEAN, cancel, setCancelOnClick)
+		LAYOUT_CONTROL_VIEW_TAB_STOP(sendFocus, sendFocusOnClick)
+		LAYOUT_CONTROL_ATTR(GENERIC, mnemonicKey, setMnemonicKey)
+		LAYOUT_CONTROL_ATTR(GENERIC, keepKeyboard, setKeepKeyboard)
+		LAYOUT_CONTROL_ATTR(GENERIC, playSoundOnClick, setPlaySoundOnClick)
 		if (flagView) {
-			LAYOUT_CONTROL_ATTR(GENERIC, okCancelEnabled, setOkCancelEnabled)
-			LAYOUT_CONTROL_ATTR(BOOLEAN, ok, setOkOnClick)
-			LAYOUT_CONTROL_ATTR(BOOLEAN, cancel, setCancelOnClick)
-			LAYOUT_CONTROL_ATTR(GENERIC, mnemonicKey, setMnemonicKey)
-			LAYOUT_CONTROL_ATTR(GENERIC, keepKeyboard, setKeepKeyboard)
-			LAYOUT_CONTROL_ATTR(GENERIC, playSoundOnClick, setPlaySoundOnClick)
 			LAYOUT_CONTROL_ATTR(GENERIC, clientEdge, setClientEdge)
 		}
 
@@ -2408,7 +2439,7 @@ namespace slib
 			if (attr->width.flagDefined) {
 				if (attr->width.unit == SAppDimensionValue::WRAP) {
 					LAYOUT_CONTROL_GENERATE(setWidthWrapping, "sl_true, slib::UIUpdateMode::Init")
-				} else if (attr->width.unit == SAppDimensionValue::FILL) {
+				} else if (attr->width.unit == SAppDimensionValue::FILL || attr->width.unit == SAppDimensionValue::MATCH_PARENT) {
 					LAYOUT_CONTROL_GENERATE(setWidthFilling, "sl_true, slib::UIUpdateMode::Init")
 				} else {
 					LAYOUT_CONTROL_GENERATE_ATTR(DIMENSION, attr->width, setClientWidth)
@@ -2417,7 +2448,7 @@ namespace slib
 			if (attr->height.flagDefined) {
 				if (attr->height.unit == SAppDimensionValue::WRAP) {
 					LAYOUT_CONTROL_GENERATE(setHeightWrapping, "sl_true, slib::UIUpdateMode::Init")
-				} else if (attr->height.unit == SAppDimensionValue::FILL) {
+				} else if (attr->height.unit == SAppDimensionValue::FILL || attr->height.unit == SAppDimensionValue::MATCH_PARENT) {
 					LAYOUT_CONTROL_GENERATE(setHeightFilling, "sl_true, slib::UIUpdateMode::Init")
 				} else {
 					LAYOUT_CONTROL_GENERATE_ATTR(DIMENSION, attr->height, setClientHeight)
@@ -2427,7 +2458,7 @@ namespace slib
 			if (attr->width.flagDefined) {
 				if (attr->width.unit == SAppDimensionValue::WRAP) {
 					view->setWidthWrapping(sl_true, UIUpdateMode::Init);
-				} else if (attr->width.unit == SAppDimensionValue::FILL) {
+				} else if (attr->width.unit == SAppDimensionValue::FILL || attr->width.unit == SAppDimensionValue::MATCH_PARENT) {
 					view->setWidthFilling(sl_true, UIUpdateMode::Init);
 				} else {
 					LAYOUT_CONTROL_SIMULATE_ATTR(DIMENSION, attr->width, setClientWidth)
@@ -2436,7 +2467,7 @@ namespace slib
 			if (attr->height.flagDefined) {
 				if (attr->height.unit == SAppDimensionValue::WRAP) {
 					view->setHeightWrapping(sl_true, UIUpdateMode::Init);
-				} else if (attr->height.unit == SAppDimensionValue::FILL) {
+				} else if (attr->height.unit == SAppDimensionValue::FILL || attr->height.unit == SAppDimensionValue::MATCH_PARENT) {
 					view->setHeightFilling(sl_true, UIUpdateMode::Init);
 				} else {
 					LAYOUT_CONTROL_SIMULATE_ATTR(DIMENSION, attr->height, setClientHeight)
@@ -2779,36 +2810,33 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-#define PROCESS_EDIT_ATTRS \
-		LAYOUT_CONTROL_UI_ATTR(STRING, text, setText) \
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, gravity, setGravity) \
-		LAYOUT_CONTROL_UI_ATTR(COLOR, textColor, setTextColor) \
-		LAYOUT_CONTROL_UI_ATTR(STRING, hintText, setHintText) \
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, hintGravity, setHintGravity) \
-		LAYOUT_CONTROL_UI_ATTR(COLOR, hintTextColor, setHintTextColor) \
-		LAYOUT_CONTROL_UI_ATTR(FONT, hintFont, setHintFont) \
-		if (op == SAppLayoutOperation::Parse) { \
-			if (attr->hintFont.flagDefined) { \
-				attr->hintFont.inheritFrom(attr->font); \
-			} \
-		} \
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, readOnly, setReadOnly) \
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, password, setPassword) \
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, number, setNumber) \
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, lowercase, setLowercase) \
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, uppercase, setUppercase) \
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setMultiLine) \
-		LAYOUT_CONTROL_ATTR(GENERIC, returnKey, setReturnKeyType) \
-		LAYOUT_CONTROL_ATTR(GENERIC, keyboard, setKeyboardType) \
-		LAYOUT_CONTROL_ATTR(GENERIC, autoCap, setAutoCapitalizationType) \
-		LAYOUT_CONTROL_ATTR(BOOLEAN, focusNextOnReturnKey, setFocusNextOnReturnKey) \
-		LAYOUT_CONTROL_ATTR(BOOLEAN, popup, setUsingPopup)
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(Edit, EditView)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		PROCESS_EDIT_ATTRS
+		LAYOUT_CONTROL_UI_ATTR(STRING, text, setText)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, gravity, setGravity)
+		LAYOUT_CONTROL_UI_ATTR(COLOR, textColor, setTextColor)
+		LAYOUT_CONTROL_UI_ATTR(STRING, hintText, setHintText)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, hintGravity, setHintGravity)
+		LAYOUT_CONTROL_UI_ATTR(COLOR, hintTextColor, setHintTextColor)
+		LAYOUT_CONTROL_UI_ATTR(FONT, hintFont, setHintFont)
+		if (op == SAppLayoutOperation::Parse) {
+			if (attr->hintFont.flagDefined) {
+				attr->hintFont.inheritFrom(attr->font);
+			}
+		}
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, readOnly, setReadOnly)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, password, setPassword)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, number, setNumber)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, lowercase, setLowercase)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, uppercase, setUppercase)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setMultiLine)
+		LAYOUT_CONTROL_ATTR(GENERIC, returnKey, setReturnKeyType)
+		LAYOUT_CONTROL_ATTR(GENERIC, keyboard, setKeyboardType)
+		LAYOUT_CONTROL_ATTR(GENERIC, autoCap, setAutoCapitalizationType)
+		LAYOUT_CONTROL_ATTR(BOOLEAN, focusNextOnReturnKey, setFocusNextOnReturnKey)
+		LAYOUT_CONTROL_ATTR(BOOLEAN, popup, setUsingPopup)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
@@ -4860,40 +4888,6 @@ namespace slib
 
 	}
 
-	END_PROCESS_LAYOUT_CONTROL
-
-	BEGIN_PROCESS_LAYOUT_CONTROL(XControl, XControl)
-	{
-		LAYOUT_CONTROL_PROCESS_SUPER(View)
-
-		LAYOUT_CONTROL_ADD_STATEMENT
-	}
-	END_PROCESS_LAYOUT_CONTROL
-
-	BEGIN_PROCESS_LAYOUT_CONTROL(XButton, XButton)
-	{
-		LAYOUT_CONTROL_PROCESS_SUPER(Button)
-
-		LAYOUT_CONTROL_ADD_STATEMENT
-	}
-	END_PROCESS_LAYOUT_CONTROL
-
-	BEGIN_PROCESS_LAYOUT_CONTROL(XEdit, XEditView)
-	{
-		LAYOUT_CONTROL_PROCESS_SUPER(XControl)
-
-		PROCESS_EDIT_ATTRS
-
-		LAYOUT_CONTROL_ADD_STATEMENT
-	}
-	END_PROCESS_LAYOUT_CONTROL
-
-	BEGIN_PROCESS_LAYOUT_CONTROL(XPassword, XPasswordView)
-	{
-		if (!(_processLayoutResourceControl_XEdit(params))) {
-			return sl_false;
-		}
-	}
 	END_PROCESS_LAYOUT_CONTROL
 
 }

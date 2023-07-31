@@ -282,8 +282,8 @@ namespace slib
 
 	void ProgressBar::onUpdateLayout()
 	{
-		sl_bool flagHorizontal = isWidthWrapping();
-		sl_bool flagVertical = isHeightWrapping();
+		sl_bool flagHorizontal = isLastWidthWrapping();
+		sl_bool flagVertical = isLastHeightWrapping();
 
 		if (!flagVertical && !flagHorizontal) {
 			return;

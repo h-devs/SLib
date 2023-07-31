@@ -221,7 +221,7 @@ namespace slib
 
 	void LabelView::prepareLabelViewCellLayout(LabelViewCell* cell)
 	{
-		cell->flagWrapping = isWidthWrapping();
+		cell->flagWrapping = isLastWidthWrapping();
 		if (isMaximumWidthDefined()) {
 			sl_ui_len width = getMaximumWidth() - getPaddingLeft() - getPaddingRight();
 			if (width < 1) {

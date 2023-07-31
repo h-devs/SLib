@@ -281,6 +281,7 @@ namespace slib
 		SAppBooleanValue autoHideScrollBar;
 		SAppBooleanValue smoothScrolling;
 
+		SAppBooleanValue childFocusedState;
 		SAppBooleanValue focusable;
 		SAppBooleanValue focus;
 		SAppBooleanValue hitTest;
@@ -290,6 +291,7 @@ namespace slib
 		String previousTabStop;
 		SAppCursorValue cursor;
 		SAppStringValue toolTip;
+		SAppBooleanValue ime;
 
 		SAppBooleanValue instance;
 		SAppBooleanValue childInstances;
@@ -301,6 +303,7 @@ namespace slib
 		SAppBooleanValue okCancelEnabled;
 		SAppBooleanValue ok;
 		SAppBooleanValue cancel;
+		String sendFocus;
 		SAppChar8Value mnemonicKey;
 		SAppBooleanValue keepKeyboard;
 		SAppBooleanValue playSoundOnClick;
@@ -460,31 +463,27 @@ namespace slib
 		SAppStringValue value;
 	};
 
-#define PRIV_SLIB_DECLARE_SAPP_LAYOUT_EDIT_ATTRIBUTES \
-		SAppStringValue text; \
-		SAppAlignmentValue gravity; \
-		SAppColorValue textColor; \
-		SAppStringValue hintText; \
-		SAppAlignmentValue hintGravity; \
-		SAppColorValue hintTextColor; \
-		SAppFontValue hintFont; \
-		SAppBooleanValue readOnly; \
-		SAppBooleanValue password; \
-		SAppBooleanValue number; \
-		SAppBooleanValue lowercase; \
-		SAppBooleanValue uppercase; \
-		SAppMultiLineModeValue multiLine; \
-		SAppUIReturnKeyTypeValue returnKey; \
-		SAppUIKeyboardTypeValue keyboard; \
-		SAppUIAutoCapitalizationTypeValue autoCap; \
-		SAppBooleanValue focusNextOnReturnKey; \
-		SAppBooleanValue popup;
-
-
 	class SAppLayoutEditAttributes : public SAppLayoutViewAttributes
 	{
 	public:
-		PRIV_SLIB_DECLARE_SAPP_LAYOUT_EDIT_ATTRIBUTES
+		SAppStringValue text;
+		SAppAlignmentValue gravity;
+		SAppColorValue textColor;
+		SAppStringValue hintText;
+		SAppAlignmentValue hintGravity;
+		SAppColorValue hintTextColor;
+		SAppFontValue hintFont;
+		SAppBooleanValue readOnly;
+		SAppBooleanValue password;
+		SAppBooleanValue number;
+		SAppBooleanValue lowercase;
+		SAppBooleanValue uppercase;
+		SAppMultiLineModeValue multiLine;
+		SAppUIReturnKeyTypeValue returnKey;
+		SAppUIKeyboardTypeValue keyboard;
+		SAppUIAutoCapitalizationTypeValue autoCap;
+		SAppBooleanValue focusNextOnReturnKey;
+		SAppBooleanValue popup;
 	};
 
 	typedef SAppLayoutEditAttributes SAppLayoutPasswordAttributes;
@@ -1013,21 +1012,6 @@ namespace slib
 		SAppLayoutGridSection footer;
 	};
 
-	class SAppLayoutXControlAttributes : public SAppLayoutViewAttributes
-	{
-	public:
-	};
-
-	typedef SAppLayoutButtonAttributes SAppLayoutXButtonAttributes;
-
-	class SAppLayoutXEditAttributes : public SAppLayoutXControlAttributes
-	{
-	public:
-		PRIV_SLIB_DECLARE_SAPP_LAYOUT_EDIT_ATTRIBUTES
-	};
-
-	typedef SAppLayoutXEditAttributes SAppLayoutXPasswordAttributes;
-
 	class SAppLayoutStyle : public CRef
 	{
 	public:
@@ -1104,11 +1088,6 @@ namespace slib
 		Pdf = 0x0271,
 		Grid = 0x0272,
 
-		XControl = 0x02a0,
-		XEdit = 0x02a1,
-		XPassword = 0x02a2,
-		XButton = 0x02a3,
-
 		NoView = 0xF000,
 		TreeItem = 0xF001
 
@@ -1119,6 +1098,7 @@ namespace slib
 	public:
 		Ref<XmlElement> element;
 		List< Ref<SAppLayoutStyle> > styles;
+		sl_bool flagCaller = sl_false;
 
 	public:
 		SAppLayoutXmlItem();
@@ -1137,6 +1117,14 @@ namespace slib
 
 		String getXmlAttribute(const String& name);
 
+		String getXmlAttributeWithoutStyle(const String& name);
+
+	private:
+		String _getXmlAttribute(const String& name);
+
+		String _getVariableValue(const String& name);
+
+		String _resolveVariables(const String& name, const String& value);
 	};
 
 	class SAppLayoutResourceItem : public CRef, public SAppLayoutXmlItem

@@ -369,8 +369,8 @@ namespace slib
 
 	void SwitchView::onUpdateLayout()
 	{
-		sl_bool flagHorizontal = isWidthWrapping();
-		sl_bool flagVertical = isHeightWrapping();
+		sl_bool flagHorizontal = isLastWidthWrapping();
+		sl_bool flagVertical = isLastHeightWrapping();
 
 		sl_ui_len paddingWidth = getPaddingLeft() + getPaddingRight();
 		sl_ui_len paddingHeight = getPaddingTop() + getPaddingBottom();

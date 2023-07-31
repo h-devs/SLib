@@ -485,10 +485,7 @@ namespace slib
 
 	void TableLayout::Column::setWidthFilling(sl_real weight, UIUpdateMode mode)
 	{
-		if (weight < 0) {
-			weight = 0;
-		}
-		m_widthWeight = weight;
+		m_widthWeight = Math::abs(weight);
 		m_widthMode = SizeMode::Filling;
 		_invalidateLayout(mode);
 	}
@@ -569,10 +566,7 @@ namespace slib
 
 	void TableLayout::Column::setWidthWeight(sl_real weight, UIUpdateMode mode)
 	{
-		if (weight < 0) {
-			weight = 0;
-		}
-		m_widthWeight = weight;
+		m_widthWeight = Math::abs(weight);
 		m_widthMode = SizeMode::Weight;
 		_invalidateLayout(mode);
 	}
@@ -1928,8 +1922,8 @@ namespace slib
 
 		sl_uint32 nRows = (sl_uint32)(m_rows.getCount());
 		sl_uint32 nCols = (sl_uint32)(m_columns.getCount());
-		sl_bool flagWidthWrapping = isWidthWrapping();
-		sl_bool flagHeightWrapping = isHeightWrapping();
+		sl_bool flagWidthWrapping = isLastWidthWrapping();
+		sl_bool flagHeightWrapping = isLastHeightWrapping();
 		if (!nRows && !nCols) {
 			if (flagWidthWrapping) {
 				setLayoutWidth(getPaddingLeft() + getPaddingRight());
@@ -2247,7 +2241,7 @@ namespace slib
 			}
 			y += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
 		}
-		if (isWidthWrapping()) {
+		if (flagWidthWrapping) {
 			sl_ui_len x = paddingContainer.left;
 			for (iCol = 0; iCol < nCols; iCol++) {
 				Column& col = *(cols[iCol].get());
@@ -2258,7 +2252,7 @@ namespace slib
 			}
 			setLayoutWidth(x + paddingContainer.right);
 		}
-		if (isHeightWrapping()) {
+		if (flagHeightWrapping) {
 			setLayoutHeight(y + paddingContainer.bottom);
 		}
 	}

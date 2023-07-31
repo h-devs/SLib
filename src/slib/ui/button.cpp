@@ -770,7 +770,7 @@ namespace slib
 
 	void Button::prepareButtonCellLayout(ButtonCell* cell)
 	{
-		cell->flagWrapping = isWidthWrapping();
+		cell->flagWrapping = isLastWidthWrapping();
 		if (isMaximumWidthDefined()) {
 			sl_ui_len width = getMaximumWidth() - getPaddingLeft() - getPaddingRight();
 			if (width < 1) {
@@ -847,8 +847,8 @@ namespace slib
 
 	void Button::onUpdateLayout()
 	{
-		sl_bool flagHorizontalWrapping = isWidthWrapping();
-		sl_bool flagVerticalWrapping = isHeightWrapping();
+		sl_bool flagHorizontalWrapping = isLastWidthWrapping();
+		sl_bool flagVerticalWrapping = isLastHeightWrapping();
 
 		if (!flagHorizontalWrapping && !flagVerticalWrapping) {
 			return;

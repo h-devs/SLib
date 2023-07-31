@@ -92,10 +92,10 @@ namespace slib
 		ListElements< Ref<View> > children(getChildren());
 
 		if (!(children.count)) {
-			if (isWidthWrapping()) {
+			if (isLastWidthWrapping()) {
 				setLayoutWidth(getPaddingLeft() + getPaddingRight());
 			}
-			if (isHeightWrapping()) {
+			if (isLastHeightWrapping()) {
 				setLayoutHeight(getPaddingTop() + getPaddingBottom());
 			}
 			return;
@@ -260,14 +260,14 @@ namespace slib
 		}
 
 		if (flagHorizontalLayout) {
-			measureAndSetLayoutWrappingSize(sl_false, isHeightWrapping());
-			if (isWidthWrapping()) {
+			measureAndSetLayoutWrappingSize(sl_false, isLastHeightWrapping());
+			if (isLastWidthWrapping()) {
 				pos += getPaddingRight();
 				setLayoutWidth(pos);
 			}
 		} else {
-			measureAndSetLayoutWrappingSize(isWidthWrapping(), sl_false);
-			if (isHeightWrapping()) {
+			measureAndSetLayoutWrappingSize(isLastWidthWrapping(), sl_false);
+			if (isLastHeightWrapping()) {
 				pos += getPaddingBottom();
 				setLayoutHeight(pos);
 			}

@@ -331,6 +331,10 @@ namespace slib
 
 		void setRedrawingOnChangeState(sl_bool flag = sl_true);
 
+		sl_bool isUsingChildFocusedState();
+
+		void setUsingChildFocusedState(sl_bool flag = sl_true);
+
 
 		sl_bool isFocusable();
 
@@ -453,9 +457,17 @@ namespace slib
 
 		void setWidthFilling(sl_real weight = 1, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
+		sl_bool isMatchingParentWidth();
+
+		void setMatchingParentWidth(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
 		sl_bool isHeightFilling();
 
 		void setHeightFilling(sl_real weight = 1, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_bool isMatchingParentHeight();
+
+		void setMatchingParentHeight(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_bool isWidthWrapping();
 
@@ -468,6 +480,8 @@ namespace slib
 		void setHeightWrapping(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		void setHeightWrapping(sl_bool flagWrapping, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_bool isWrapping(sl_bool flagCheckWidth = sl_true, sl_bool flagCheckHeight = sl_true);
 
 		sl_bool isWidthWeight();
 
@@ -1266,6 +1280,8 @@ namespace slib
 
 		void setCancelOnClick();
 
+		void sendFocusOnClick(const Ref<View>& view);
+
 
 		Ref<View> getNextFocusableView();
 
@@ -1519,6 +1535,10 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Mnemonic, UIEvent* ev)
 
 	protected:
+		sl_bool isLastWidthWrapping();
+
+		sl_bool isLastHeightWrapping();
+
 		void updateLayoutByViewCell(ViewCell* cell);
 
 	private:
@@ -1569,6 +1589,10 @@ namespace slib
 		void _restrictSize(UIRect& rect);
 
 		UIRect _updateLayoutFrameInParent_getReferFrame(const UpdateLayoutFrameParam& param, View* refer);
+
+		sl_bool _isWidthWrapping();
+
+		sl_bool _isHeightWrapping();
 
 		void _updateLayout();
 
@@ -1698,6 +1722,7 @@ namespace slib
 		sl_bool m_flagInvalidLayout : 1;
 		sl_bool m_flagNeedApplyLayout : 1;
 		sl_bool m_flagRedrawingOnChangeState : 1;
+		sl_bool m_flagUsingChildFocusedState : 1;
 		sl_bool m_flagFocused : 1;
 		sl_bool m_flagPressed : 1;
 		sl_bool m_flagHover : 1;

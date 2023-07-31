@@ -111,27 +111,28 @@ namespace slib
 		static String getNameInLocalNamespace(const String& localNamespace, const String& name);
 
 	public:
-		void log(const StringView& text);
+		static void log(const StringView& text);
 
 		template <class... ARGS>
-		void log(const StringView& fmt, ARGS&&... args)
+		static void log(const StringView& fmt, ARGS&&... args)
 		{
 			log(String::format(fmt, Forward<ARGS>(args)...));
 		}
-		void logError(const StringView& text);
+
+		static void logError(const StringView& text);
 
 		template <class... ARGS>
-		void logError(const StringView& fmt, ARGS&&... args)
+		static void logError(const StringView& fmt, ARGS&&... args)
 		{
 			logError(String::format(fmt, Forward<ARGS>(args)...));
 		}
 
-		void logErrorSource(const StringView& filePath, sl_size line, sl_size col, const StringView& text);
+		static void logErrorSource(const StringView& filePath, sl_size line, sl_size col, const StringView& text);
 
-		void logError(const Ref<XmlElement>& element, const StringView& text);
+		static void logError(const Ref<XmlElement>& element, const StringView& text);
 
 		template <class... ARGS>
-		void logError(const Ref<XmlElement>& element, const StringView& fmt, ARGS&&... args)
+		static void logError(const Ref<XmlElement>& element, const StringView& fmt, ARGS&&... args)
 		{
 			logError(element, String::format(fmt, Forward<ARGS>(args)...));
 		}
@@ -237,7 +238,7 @@ namespace slib
 		sl_bool _parseStyleAttribute(const String& localNamespace, SAppLayoutXmlItem* item);
 		List< Ref<XmlElement> > _getXmlChildElements(const String& localNamespace, SAppLayoutXmlItem* item, const String& tagName);
 		sl_bool _addXmlChildElements(List< Ref<XmlElement> >& list, SAppLayoutStyle* style, const String& localNamespace, const String& tagName);
-		sl_bool _addXmlChildElements(List< Ref<XmlElement> >& list, const Ref<XmlElement>& parent, const String& localNamespace, const String& tagName);
+		sl_bool _addXmlChildElements(List< Ref<XmlElement> >& list, const Ref<XmlElement>& parent, const RefT<SAppLayoutXmlItem>& caller, const String& localNamespace, const String& tagName);
 
 		struct LayoutControlProcessParams : LayoutControlGenerateParams
 		{
@@ -304,10 +305,6 @@ namespace slib
 		sl_bool _processLayoutResourceControl_Grid_ParseCellCreator(SAppLayoutGridCellAttributes& attr, const String& tagName, SAppLayoutXmlItem& xml);
 		String _processLayoutResourceControl_Grid_GenerateCellCreator(SAppLayoutGridCellAttributes& attr);
 		GridView::CellCreator _processLayoutResourceControl_Grid_SimulateCellCreator(SAppLayoutGridCellAttributes& attr);
-		sl_bool _processLayoutResourceControl_XControl(LayoutControlProcessParams* params);
-		sl_bool _processLayoutResourceControl_XButton(LayoutControlProcessParams* params);
-		sl_bool _processLayoutResourceControl_XEdit(LayoutControlProcessParams* params);
-		sl_bool _processLayoutResourceControl_XPassword(LayoutControlProcessParams* params);
 
 	private:
 		sl_bool m_flagOpened;

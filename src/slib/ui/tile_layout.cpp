@@ -105,10 +105,10 @@ namespace slib
 		ListElements< Ref<View> > children(getChildren());
 
 		if (!(children.count)) {
-			if (isWidthWrapping()) {
+			if (isLastWidthWrapping()) {
 				setLayoutWidth(getPaddingLeft() + getPaddingRight());
 			}
-			if (isHeightWrapping()) {
+			if (isLastHeightWrapping()) {
 				setLayoutHeight(getPaddingTop() + getPaddingBottom());
 			}
 			return;
@@ -125,8 +125,8 @@ namespace slib
 		sl_uint32 nCols = m_countColumns;
 		sl_uint32 nRows = m_countRows;
 
-		sl_bool flagWrapX = isWidthWrapping();
-		sl_bool flagWrapY = isHeightWrapping();
+		sl_bool flagWrapX = isLastWidthWrapping();
+		sl_bool flagWrapY = isLastHeightWrapping();
 		sl_bool flagWrapCellX = sl_false;
 		sl_bool flagWrapCellY = sl_false;
 
@@ -202,10 +202,10 @@ namespace slib
 				}
 			}
 		}
-		if (isWidthWrapping()) {
+		if (flagWrapX) {
 			setLayoutWidth((sl_ui_len)nCols * widthCol + getPaddingLeft() + getPaddingRight());
 		}
-		if (isHeightWrapping()) {
+		if (flagWrapY) {
 			if (i % nCols == 0) {
 				setLayoutHeight(y + getPaddingBottom());
 			} else {
