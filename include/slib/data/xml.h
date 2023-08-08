@@ -110,8 +110,6 @@ namespace slib
 
 		Ref<XmlNodeGroup> getParent() const;
 
-		void setParent(const Ref<XmlNodeGroup>& parent);
-
 		Ref<XmlElement> getParentElement() const;
 
 		const String& getSourceFilePath() const;
@@ -148,7 +146,7 @@ namespace slib
 		void _setDocument(const Ref<XmlDocument>& documentNew);
 
 		friend class XmlNodeGroup;
-
+		friend class XmlElement;
 	};
 
 	class SLIB_EXPORT XmlNodeGroup : public XmlNode

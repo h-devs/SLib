@@ -157,11 +157,6 @@ namespace slib
 		return m_parent;
 	}
 
-	void XmlNode::setParent(const Ref<XmlNodeGroup>& parent)
-	{
-		m_parent = parent;
-	}
-
 	Ref<XmlElement> XmlNode::getParentElement() const
 	{
 		Ref<XmlNodeGroup> parent = m_parent;
@@ -967,6 +962,19 @@ namespace slib
 			ret->m_mapAttributes = m_mapAttributes.duplicate_NoLock();
 			ret->m_positionStartContentInSource = m_positionStartContentInSource;
 			ret->m_positionEndContentInSource = m_positionEndContentInSource;
+			ListElements< Ref<XmlNode> > children(ret->m_children);
+			for (sl_size i = 0; i < children.count; i++) {
+				Ref<XmlNode>& child = children[i];
+				if (child.isNotNull()) {
+					if (child->isElementNode()) {
+						child = ((XmlElement*)(child.get()))->duplicate();
+						if (child.isNull()) {
+							return sl_null;
+						}
+						child->m_parent = ret.get();
+					}
+				}
+			}
 			return ret;
 		}
 		return sl_null;
