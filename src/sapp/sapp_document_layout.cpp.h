@@ -51,11 +51,6 @@ namespace slib
 		}
 		style->name = name;
 
-		if (!(m_layoutStyles.put(name, style))) {
-			logError(element, g_str_error_out_of_memory);
-			return sl_false;
-		}
-
 		String strInherit = element->getAttribute("inherit").trim();
 		if (strInherit.isNotEmpty()) {
 			ListElements<String> arr(strInherit.split(","));
@@ -73,6 +68,11 @@ namespace slib
 					return sl_false;
 				}
 			}
+		}
+
+		if (!(m_layoutStyles.put(name, style))) {
+			logError(element, g_str_error_out_of_memory);
+			return sl_false;
 		}
 
 		return sl_true;
@@ -903,6 +903,7 @@ namespace slib
 		}
 		String strStyles = item->getXmlAttributeWithoutStyle("style").trim();
 		if (strStyles.isNotEmpty()) {
+			item->init();
 			ListElements<String> arr(strStyles.split(","));
 			for (sl_size i = 0; i < arr.count; i++) {
 				String s = arr[i].trim();
@@ -963,46 +964,39 @@ namespace slib
 		{
 			ListElements< Ref<XmlElement> > children(parent->getChildElements());
 			for (sl_size i = 0; i < children.count; i++) {
-				Ref<XmlElement> child = children[i];
-				if (child.isNotNull()) {
+				Ref<XmlElement> element = children[i];
+				if (element.isNotNull()) {
 					if (caller.isNotNull()) {
-						child = child->duplicate();
-						if (child.isNull()) {
-							logError(child, g_str_error_out_of_memory);
+						element = element->duplicate();
+						if (element.isNull()) {
+							logError(element, g_str_error_out_of_memory);
 							return sl_false;
 						}
-						child->setProperty("caller", caller);
+						element->setProperty("caller", caller);
 						if (children.count == 1) {
-							child->setProperty("inherit", sl_true);
-						}
-						sl_size n = child->getChildCount();
-						for (sl_size i = 0; i < n; i++) {
-							Ref<XmlElement> e = child->getChildElement(i);
-							if (e.isNotNull()) {
-								e->setParent(Ref<XmlNodeGroup>::from(child));
-							}
+							element->setProperty("inherit", sl_true);
 						}
 					}
 					Ref<SAppLayoutInclude> include;
-					String name = child->getName();
-					if (name == "include") {
-						String src = child->getAttribute("src");
+					String name = element->getName();
+					if (name == StringView::literal("include")) {
+						String src = element->getAttribute("src");
 						if (src.isEmpty()) {
-							logError(child, g_str_error_resource_layout_attribute_invalid, "src", name);
+							logError(element, g_str_error_resource_layout_attribute_invalid, "src", name);
 							return sl_false;
 						}
 						getItemFromMap(m_layoutIncludes, localNamespace, src, sl_null, &include);
 						if (include.isNull()) {
-							logError(child, g_str_error_layout_include_not_found, name);
+							logError(element, g_str_error_layout_include_not_found, name);
 							return sl_false;
 						}
 					} else {
 						getItemFromMap(m_layoutIncludes, localNamespace, name, sl_null, &include);
 					}
 					if (include.isNotNull()) {
-						RefT<SAppLayoutXmlItem> xml = new CRefT<SAppLayoutXmlItem>(child);
+						RefT<SAppLayoutXmlItem> xml = new CRefT<SAppLayoutXmlItem>(element);
 						if (xml.isNull()) {
-							logError(child, g_str_error_out_of_memory);
+							logError(element, g_str_error_out_of_memory);
 							return sl_false;
 						}
 						if (!(_parseStyleAttribute(localNamespace, xml.get()))) {
@@ -1012,9 +1006,22 @@ namespace slib
 							return sl_false;
 						}
 					} else {
-						if (tagName.isEmpty() || name == tagName) {
-							if (!(list.add_NoLock(Move(child)))) {
-								logError(child, g_str_error_out_of_memory);
+						sl_bool flagIfDef = name == StringView::literal("ifdef");
+						if (flagIfDef || name == StringView::literal("ifndef")) {
+							sl_bool flagDef = sl_false;
+							String var = element->getAttribute("name");
+							if (var.startsWith(':')) {
+								SAppLayoutXmlItem item(element);
+								flagDef = item.getVariableValue(var.substring(1)).isNotEmpty();
+							}
+							if ((flagIfDef && flagDef) || (!flagIfDef && !flagDef)) {
+								if (!_addXmlChildElements(list, element, sl_null, localNamespace, tagName)) {
+									return sl_false;
+								}
+							}
+						} else if (tagName.isEmpty() || name == tagName) {
+							if (!(list.add_NoLock(Move(element)))) {
+								logError(element, g_str_error_out_of_memory);
 								return sl_false;
 							}
 						}

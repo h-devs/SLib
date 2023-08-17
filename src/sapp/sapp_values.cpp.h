@@ -49,7 +49,7 @@ namespace slib
 	sl_bool SAppStringValue::parse(const String& _str, const Ref<XmlElement>& element)
 	{
 		String str = _str;
-		if (str.isNull()) {
+		if (str.isEmpty()) {
 			return sl_true;
 		}
 		if (str.startsWith('@')) {

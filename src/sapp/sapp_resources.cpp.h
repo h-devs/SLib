@@ -283,8 +283,23 @@ namespace slib
 	{
 	}
 
+	SAppLayoutXmlItem::~SAppLayoutXmlItem()
+	{
+		if (element.isNotNull()) {
+			element->clearProperty("xml-item");
+		}
+	}
+
 	SAppLayoutXmlItem::SAppLayoutXmlItem(const Ref<XmlElement>& _element): element(_element)
 	{
+		init();
+	}
+
+	void SAppLayoutXmlItem::init()
+	{
+		if (element.isNotNull()) {
+			element->setProperty("xml-item", (void*)this);
+		}
 	}
 
 	String SAppLayoutXmlItem::getXmlAttribute(const String& name)
@@ -316,14 +331,22 @@ namespace slib
 		return sl_null;
 	}
 
-	String SAppLayoutXmlItem::_getVariableValue(const String& name)
+	String SAppLayoutXmlItem::getVariableValue(const String& name)
 	{
 		String vName = ":" + name;
 		Ref<XmlElement> e = element;
 		do {
-			String value = e->getAttribute(vName);
-			if (value.isNotNull()) {
-				return value;
+			SAppLayoutXmlItem* item = (SAppLayoutXmlItem*)(e->getProperty("xml-item").getPointer());
+			if (item) {
+				String value = item->getXmlAttribute(vName);
+				if (value.isNotNull()) {
+					return value;
+				}
+			} else {
+				String value = e->getAttribute(vName);
+				if (value.isNotNull()) {
+					return value;
+				}
 			}
 			RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::from(e->getProperty("caller").getRef());
 			if (caller.isNotNull()) {
@@ -340,7 +363,7 @@ namespace slib
 		if (!len) {
 			if (value.isNull()) {
 				if (element->getProperty("inherit").getBoolean()) {
-					return _getVariableValue(name);
+					return getVariableValue(name);
 				}
 			}
 			return value;
@@ -376,7 +399,7 @@ namespace slib
 					if (n >= e) {
 						break;
 					}
-					String var = _getVariableValue(String(p, n - p));
+					String var = getVariableValue(String(p, n - p));
 					if (var.isNotNull()) {
 						if (t > s) {
 							buf.addStatic(s, t - s);
@@ -395,7 +418,7 @@ namespace slib
 							break;
 						}
 					}
-					String var = _getVariableValue(String(p, n - p));
+					String var = getVariableValue(String(p, n - p));
 					if (var.isNotNull()) {
 						if (t > s) {
 							buf.addStatic(s, t - s);

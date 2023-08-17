@@ -1098,13 +1098,15 @@ namespace slib
 	public:
 		Ref<XmlElement> element;
 		List< Ref<SAppLayoutStyle> > styles;
-		sl_bool flagCaller = sl_false;
 
 	public:
 		SAppLayoutXmlItem();
+		~SAppLayoutXmlItem();
 		SAppLayoutXmlItem(const Ref<XmlElement>& _element);
 
 	public:
+		void init();
+
 		String getTagName()
 		{
 			return element->getName();
@@ -1119,10 +1121,10 @@ namespace slib
 
 		String getXmlAttributeWithoutStyle(const String& name);
 
+		String getVariableValue(const String& name);
+
 	private:
 		String _getXmlAttribute(const String& name);
-
-		String _getVariableValue(const String& name);
 
 		String _resolveVariables(const String& name, const String& value);
 	};
