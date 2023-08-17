@@ -142,10 +142,14 @@ namespace slib
 
 		static sl_bool createShortcut(const StringParam& pathTarget, const StringParam& pathLink);
 
+		static sl_bool registerFileExtension(const StringParam& ext, const StringParam& progId, const StringParam& appPath);
 
-		static sl_bool getSYSTEMTIME(const Time& time, sl_bool flagUTC, SYSTEMTIME* _out);
+		static sl_bool registerFileExtensions(const ListParam<StringParam>& extensions, const StringParam& progId, const StringParam& appPath);
 
-		static Time getTime(const SYSTEMTIME* st, sl_bool flagUTC);
+
+		static sl_bool getSYSTEMTIME(SYSTEMTIME& _out, const Time& time, sl_bool flagUTC);
+
+		static sl_bool getTime(Time& _out, const SYSTEMTIME& st, sl_bool flagUTC);
 
 
 		static HANDLE createDeviceHandle(const StringParam& path, DWORD dwDesiredAccess, DWORD dwShareMode);

@@ -24,9 +24,11 @@
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
-#include "slib/core/scoped_buffer.h"
 #include "slib/io/file.h"
+#include "slib/core/variant.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/platform.h"
+#include "slib/platform/win32/registry.h"
 #include "slib/dl/win32/shlwapi.h"
 #include "slib/dl/win32/user32.h"
 
@@ -306,9 +308,48 @@ namespace slib
 		return SUCCEEDED(hr);
 	}
 
-	sl_bool Win32::getSYSTEMTIME(const Time& time, sl_bool flagUTC, SYSTEMTIME* _out)
+	namespace {
+
+		static sl_bool RegisterFileExtensionToProgId(const StringParam& ext, const StringParam& progId)
+		{
+			return win32::Registry::setValue(HKEY_CURRENT_USER, String16::concat(StringView16::literal(u"Software\\Classes\\."), ext), sl_null, progId);
+		}
+
+		static sl_bool RegisterProgId(const StringParam& progId, const StringParam& appPath)
+		{
+			if (win32::Registry::setValue(HKEY_CURRENT_USER, String16::concat(StringView16::literal(u"Software\\Classes\\"), progId, StringView16::literal(u"\\shell\\open\\command")), sl_null, String16::concat(appPath, StringView16::literal(u" \"%1\"")))) {
+				SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
+				return sl_true;
+			}
+			return sl_false;
+		}
+
+	}
+
+	sl_bool Win32::registerFileExtension(const StringParam& ext, const StringParam& progId, const StringParam& appPath)
 	{
-		SYSTEMTIME& st = *_out;
+		if (!(RegisterFileExtensionToProgId(ext, progId))) {
+			return sl_false;
+		}
+		return RegisterProgId(progId, appPath);
+	}
+
+	sl_bool Win32::registerFileExtensions(const ListParam<StringParam>& extensions, const StringParam& progId, const StringParam& appPath)
+	{
+		ListElements<StringParam> list(extensions);
+		if (!(list.count)) {
+			return sl_false;
+		}
+		for (sl_size i = 0; i < list.count; i++) {
+			if (!(RegisterFileExtensionToProgId(list[i], progId))) {
+				return sl_false;
+			}
+		}
+		return RegisterProgId(progId, appPath);
+	}
+
+	sl_bool Win32::getSYSTEMTIME(SYSTEMTIME& st, const Time& time, sl_bool flagUTC)
+	{
 		sl_int64 n = (time.toInt() + SLIB_INT64(11644473600000000)) * 10;  // Convert 1970 Based (time_t mode) to 1601 Based (FILETIME mode)
 		if (flagUTC) {
 			if (!(FileTimeToSystemTime((PFILETIME)&n, &st))) {
@@ -326,16 +367,22 @@ namespace slib
 		return sl_true;
 	}
 
-	Time Win32::getTime(const SYSTEMTIME* _in, sl_bool flagUTC)
+	sl_bool Win32::getTime(Time& _out, const SYSTEMTIME& st, sl_bool flagUTC)
 	{
-		const SYSTEMTIME& st = *_in;
 		sl_int64 n = 0;
 		if (flagUTC) {
-			SystemTimeToFileTime(&st, (PFILETIME)&n);
+			if (!(SystemTimeToFileTime(&st, (PFILETIME)&n))) {
+				return sl_false;
+			}
 		} else {
 			SYSTEMTIME utc;
-			TzSpecificLocalTimeToSystemTime(NULL, &st, &utc);
-			SystemTimeToFileTime(&utc, (PFILETIME)&n);
+			Base::zeroMemory(&utc, sizeof(utc));
+			if (!(TzSpecificLocalTimeToSystemTime(NULL, &st, &utc))) {
+				return sl_false;
+			}
+			if (!(SystemTimeToFileTime(&utc, (PFILETIME)&n))) {
+				return sl_false;
+			}
 		}
 		return n / 10 - SLIB_INT64(11644473600000000);  // Convert 1601 Based (FILETIME mode) to 1970 Based (time_t mode)
 	}
