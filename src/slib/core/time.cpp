@@ -272,29 +272,122 @@ namespace slib
 		return time._setToSystem();
 	}
 
-	void Time::get(TimeComponents& output, const TimeZone& zone) const noexcept
-	{
-		if (zone.isNull()) {
-			if (!(_get(output, sl_false))) {
-				Base::zeroMemory(&output, sizeof(output));
-				return;
-			}
-		} else if (zone.isUTC()) {
-			if (!(_get(output, sl_true))) {
-				Base::zeroMemory(&output, sizeof(output));
-				return;
-			}
-		} else {
-			sl_int64 offset = zone.getOffset(*this);
-			Time t(m_time + offset * TIME_SECOND);
-			if (!(t._get(output, sl_true))) {
-				Base::zeroMemory(&output, sizeof(output));
-				return;
+	namespace {
+
+		static const sl_int32 g_normalYearDaysPerMonth[] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
+		static const sl_int32 g_leapYearDaysPerMonth[] = { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335 };
+
+		template <typename T1, typename T2>
+		SLIB_INLINE static T1 DivSigned(T1 n, T2 m)
+		{
+			if (n % m < 0) {
+				return n / m - 1;
+			} else {
+				return n / m;
 			}
 		}
-		sl_int64 t = m_time % TIME_SECOND;
-		output.milliseconds = (sl_uint16)(t / TIME_MILLIS);
-		output.microseconds = (sl_uint16)(t % TIME_MILLIS);
+
+		SLIB_INLINE static sl_int32 GetLeapsTo(sl_int32 year)
+		{
+			return DivSigned(year, 4) - DivSigned(year, 100) + DivSigned(year, 400) + 1;
+		}
+
+		static void GetDateFromDays(sl_int32& year, sl_int32& month, sl_int32& day, sl_int32& weekday, sl_int32 days)
+		{
+			// January 1, 1970 was a Thursday
+			weekday = (sl_int32)((4 + days) % 7);
+			if (weekday < 0) {
+				weekday += 7;
+			}
+			year = 1970;
+			while (days < 0 || days >= (Time::isLeapYear(year) ? 366 : 365)) {
+				sl_int32 yg = year + (sl_int32)(DivSigned(days, 365));
+				days -= (sl_int64)(yg - year) * 365 + GetLeapsTo(yg - 1) - GetLeapsTo(year - 1);
+				year = yg;
+			}
+			day = (sl_int32)days;
+			const sl_int32* md = Time::isLeapYear(year) ? g_leapYearDaysPerMonth : g_normalYearDaysPerMonth;
+			for (month = 11; ; month--) {
+				if (day >= md[month]) {
+					day -= md[month];
+					month++;
+					break;
+				}
+			}
+			day++;
+		}
+
+		static sl_int32 GetDaysFromEpoch(sl_int32 year, sl_int32 month, sl_int32 day)
+		{
+			month -= 1;
+			sl_int32 d = month / 12;
+			month %= 12;
+			if (month < 0) {
+				month += 12;
+				d -= 1;
+			}
+			year += d;
+			const sl_int32* md = Time::isLeapYear(year) ? g_leapYearDaysPerMonth : g_normalYearDaysPerMonth;
+			return year * 365 + GetLeapsTo(year - 1) - 719528 + md[month] + day - 1;
+		}
+
+	}
+
+	void Time::_toComponents(TimeComponents& output, sl_int64 t, sl_bool flagUTC) noexcept
+	{
+		if (_toPlatformComponents(output, t, flagUTC)) {
+			return;
+		}
+
+		sl_int32 days = (sl_int32)(t / 86400);
+		sl_int32 rem = (sl_int32)(t % 86400);
+		if (rem < 0) {
+			rem += 86400;
+			days--;
+		}
+
+		sl_int32 year, month, day, weekday;
+		GetDateFromDays(year, month, day, weekday, days);
+
+		if (!flagUTC) {
+			t += Time::getLocalTimeOffset(year, month, day);
+			days = (sl_int32)(t / 86400);
+			rem = (sl_int32)(t % 86400);
+			if (rem < 0) {
+				rem += 86400;
+				days--;
+			}
+			GetDateFromDays(year, month, day, weekday, days);
+		}
+
+		output.year = year;
+		output.month = (sl_uint8)month;
+		output.day = (sl_uint8)day;
+		output.dayOfWeek = (sl_uint8)weekday;
+		output.hour = (sl_uint8)(rem / 3600);
+		rem %= 3600;
+		output.minute = (sl_uint8)(rem / 60);
+		output.second = (sl_uint8)(rem % 60);
+	}
+
+	void Time::get(TimeComponents& output, const TimeZone& zone) const noexcept
+	{
+		sl_int64 t = m_time / TIME_SECOND;
+		sl_int64 r = m_time % TIME_SECOND;
+		if (r < 0) {
+			t -= 1;
+			r += TIME_SECOND;
+		}
+		if (zone.isNull()) {
+			_toComponents(output, t, sl_false);
+		} else if (zone.isUTC()) {
+			_toComponents(output, t, sl_true);
+		} else {
+			sl_int64 offset = zone.getOffset(*this);
+			_toComponents(output, t + offset, sl_true);
+		}
+		output.milliseconds = (sl_uint16)(r / TIME_MILLIS);
+		output.microseconds = (sl_uint16)(r % TIME_MILLIS);
 	}
 
 	void Time::getUTC(TimeComponents& output) const noexcept
@@ -314,28 +407,42 @@ namespace slib
 		return *this;
 	}
 
+	sl_int64 Time::_toSeconds(sl_int32 year, sl_int32 month, sl_int32 day, sl_bool flagUTC) noexcept
+	{
+		sl_int64 t = 0;
+		if (_toPlatformSeconds(t, year, month, day, flagUTC)) {
+			//return t;
+		}
+		if (flagUTC) {
+			return (sl_int64)(GetDaysFromEpoch(year, month, day)) * 86400;
+		} else {
+			sl_int32 days = GetDaysFromEpoch(year, month, day);
+			sl_int32 weekday;
+			GetDateFromDays(year, month, day, weekday, days);
+			return (sl_int64)days * 86400 - Time::getLocalTimeOffset(year, month, day);
+		}
+	}
+
 	Time& Time::set(sl_int32 year, sl_int32 month, sl_int32 day, sl_int32 hour, sl_int32 minute, sl_int32 second, sl_int32 milliseconds, sl_int32 microseconds, const TimeZone& zone) noexcept
 	{
-		if (year == 0 && month == 0 && day == 0) {
-			m_time = hour * TIME_HOUR + minute * TIME_MINUTE + second * TIME_SECOND;
-			return *this;
+		sl_int64 s = hour * TIME_HOUR + minute * TIME_MINUTE + second * TIME_SECOND + milliseconds * TIME_MILLIS + microseconds;
+		sl_int32 d = (sl_int32)(s / TIME_DAY);
+		s %= TIME_DAY;
+		if (s < 0) {
+			s += TIME_DAY;
+			d--;
 		}
-		if (month <= 0) {
-			month = 1;
-		}
-		if (day <= 0) {
-			day = 1;
-		}
+		day += d;
 		sl_int64 t;
 		if (zone.isNull()) {
-			t = _set(year, month, day, hour, minute, second, sl_false);
+			t = _toSeconds(year, month, day, sl_false);
 		} else if (zone.isUTC()) {
-			t = _set(year, month, day, hour, minute, second, sl_true);
+			t = _toSeconds(year, month, day, sl_true);
 		} else {
-			t = _set(year, month, day, hour, minute, second, sl_true);
-			t -= zone.getOffset(t) * TIME_SECOND;
+			t = _toSeconds(year, month, day, sl_true);
+			t -= zone.getOffset(t);
 		}
-		m_time = t + milliseconds * 1000 + microseconds;
+		m_time = t * TIME_SECOND + s;
 		return *this;
 	}
 
@@ -379,6 +486,22 @@ namespace slib
 		comps.year += years;
 		set(comps, zone);
 		return *this;
+	}
+
+	sl_bool Time::isLeapYear(const TimeZone& zone) const noexcept
+	{
+		return isLeapYear(getYear(zone));
+	}
+
+	sl_bool Time::isLeapYear(sl_int32 year) noexcept
+	{
+		if (year & 3) {
+			return sl_false;
+		}
+		if (year % 100) {
+			return sl_true;
+		}
+		return !(year % 400);
 	}
 
 	sl_int32 Time::getMonth(const TimeZone& zone) const noexcept
@@ -859,11 +982,7 @@ namespace slib
 
 	sl_int64 Time::getLocalTimeOffset() const noexcept
 	{
-		Time o = m_time / TIME_SECOND * TIME_SECOND;
-		TimeComponents comps;
-		o._get(comps, sl_false);
-		Time t = Time::_set(comps.year, comps.month, comps.day, comps.hour, comps.minute, comps.second, sl_true);
-		return (t - o).getSecondCount();
+		return getLocalTimeOffset(getYear(), 1, 1);
 	}
 
 	sl_int32 Time::getDayCountInMonth(const TimeZone& zone) const noexcept
@@ -2050,7 +2169,7 @@ namespace slib
 	namespace {
 
 		template <class CT>
-		static sl_reg DoParseComponents(TimeComponents* comps, const CT* sz, sl_size i, sl_size n) noexcept
+		static sl_reg DoParseComponents(TimeComponents* comps, const CT* data, sl_size i, sl_size n) noexcept
 		{
 			if (i >= n) {
 				return SLIB_PARSE_ERROR;
@@ -2059,11 +2178,11 @@ namespace slib
 			sl_size index = 0;
 			sl_size posParsed = i;
 			while (i < n && index < 8) {
-				if (sz[i] == 0) {
+				if (!(data[i])) {
 					break;
 				}
 				do {
-					CT ch = sz[i];
+					CT ch = data[i];
 					if (SLIB_CHAR_IS_SPACE_TAB(ch)) {
 						i++;
 					} else {
@@ -2076,7 +2195,7 @@ namespace slib
 				sl_int32 value = 0;
 				sl_bool flagNumber = sl_false;
 				do {
-					CT ch = sz[i];
+					CT ch = data[i];
 					if (SLIB_CHAR_IS_DIGIT(ch)) {
 						value = value * 10 + (ch - '0');
 						flagNumber = sl_true;
@@ -2097,7 +2216,7 @@ namespace slib
 					break;
 				}
 				do {
-					CT ch = sz[i];
+					CT ch = data[i];
 					if (SLIB_CHAR_IS_SPACE_TAB(ch)) {
 						i++;
 					} else {
@@ -2112,23 +2231,23 @@ namespace slib
 				}
 
 				if (i < n) {
-					CT ch = sz[i];
+					CT ch = data[i];
 					if (!SLIB_CHAR_IS_DIGIT(ch)) {
 						if (ch == '/' || ch == '-') {
 							if (index >= 3) {
 								break;
 							}
 						} else if (ch == 'T') {
-							if (index > 3) {
+							if (index != 3) {
 								break;
-							} else {
-								index = 3;
 							}
 						} else if (ch == ':') {
 							if (index == 1) {
 								index = 4;
 								YMDHMS[3] = YMDHMS[0];
-								YMDHMS[0] = 0;
+								YMDHMS[0] = 1970;
+								YMDHMS[1] = 1;
+								YMDHMS[2] = 1;
 							} else if (index < 4) {
 								break;
 							} else if (index >= 6) {
@@ -2148,7 +2267,7 @@ namespace slib
 					break;
 				}
 			}
-			if (index > 0) {
+			if (index >= 3) {
 				if (comps) {
 					Base::zeroMemory(comps, sizeof(TimeComponents));
 					comps->year = YMDHMS[0];
@@ -2166,10 +2285,10 @@ namespace slib
 		}
 
 		template <class CT>
-		SLIB_INLINE static sl_reg DoParse(Time* _out, const TimeZone& zone, const CT* sz, sl_size i, sl_size n) noexcept
+		SLIB_INLINE static sl_reg DoParse(Time* _out, const TimeZone& zone, const CT* data, sl_size i, sl_size n) noexcept
 		{
 			TimeComponents comps;
-			sl_reg ret = DoParseComponents(&comps, sz, i, n);
+			sl_reg ret = DoParseComponents(&comps, data, i, n);
 			if (ret != SLIB_PARSE_ERROR) {
 				if (_out) {
 					_out->set(comps, zone);
@@ -2179,12 +2298,12 @@ namespace slib
 		}
 
 		template <class CT>
-		SLIB_INLINE static sl_reg DoParse(Time* _out, const CT* sz, sl_size i, sl_size n) noexcept
+		SLIB_INLINE static sl_reg DoParse(Time* _out, const CT* data, sl_size i, sl_size n) noexcept
 		{
 			TimeComponents comps;
-			sl_reg ret = DoParseComponents(&comps, sz, i, n);
+			sl_reg ret = DoParseComponents(&comps, data, i, n);
 			if (ret != SLIB_PARSE_ERROR) {
-				if (ret > 0 && (sl_size)ret < n && sz[ret] == 'Z') {
+				if (ret > 0 && (sl_size)ret < n && data[ret] == 'Z') {
 					ret++;
 					if (_out) {
 						_out->set(comps, TimeZone::UTC());
@@ -2478,7 +2597,7 @@ namespace slib
 		return getOffset(Time::now());
 	}
 
-	sl_int64 TimeZone::getOffset(const Time &time) const
+	sl_int64 TimeZone::getOffset(const Time& time) const
 	{
 		Ref<CTimeZone> obj = ref;
 		if (obj.isNotNull()) {

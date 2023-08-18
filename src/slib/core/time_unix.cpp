@@ -26,22 +26,18 @@
 
 #include "slib/core/time.h"
 
-#include "slib/core/base.h"
-
 #include <time.h>
 #include <sys/time.h>
+#include <errno.h>
 
 #define TIME_SECOND SLIB_INT64(1000000)
 
 namespace slib
 {
 
-	sl_bool Time::_get(TimeComponents& output, sl_bool flagUTC) const noexcept
+	sl_bool Time::_toPlatformComponents(TimeComponents& output, sl_int64 _t, sl_bool flagUTC) noexcept
 	{
-		time_t t = (time_t)(m_time / TIME_SECOND);
-		if ((m_time % TIME_SECOND) < 0) {
-			t -= 1;
-		}
+		time_t t = (time_t)_t;
 		tm v;
 		if (flagUTC) {
 			if (!(gmtime_r(&t, &v))) {
@@ -62,16 +58,12 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_int64 Time::_set(sl_int32 year, sl_int32 month, sl_int32 day, sl_int32 hour, sl_int32 minute, sl_int32 second, sl_bool flagUTC) noexcept
+	sl_bool Time::_toPlatformSeconds(sl_int64& output, sl_int32 year, sl_int32 month, sl_int32 day, sl_bool flagUTC) noexcept
 	{
-		tm v;
-		Base::zeroMemory(&v, sizeof(tm));
+		tm v = {0};
 		v.tm_year = year - 1900;
 		v.tm_mon = month - 1;
 		v.tm_mday = day;
-		v.tm_hour = hour;
-		v.tm_min = minute;
-		v.tm_sec = second;
 		v.tm_isdst = -1;
 		time_t t;
 		if (flagUTC) {
@@ -79,7 +71,11 @@ namespace slib
 		} else {
 			t = mktime(&v);
 		}
-		return (sl_int64)(t) * 1000000;
+		if (t == (time_t)-1 && errno == EOVERFLOW) {
+			return sl_false;
+		}
+		output = (sl_int64)t;
+		return sl_true;
 	}
 
 	void Time::_setNow() noexcept
@@ -108,7 +104,23 @@ namespace slib
 			tv.tv_sec -= 1;
 		}
 		tv.tv_usec = m;
-		return 0 == settimeofday(&tv, sl_null);
+		return !(settimeofday(&tv, sl_null));
+	}
+
+	sl_int64 Time::getLocalTimeOffset(sl_int32 year, sl_int32 month, sl_int32 day) noexcept
+	{
+		tm v = {0};
+		v.tm_year = year - 1900;
+		v.tm_mon = month - 1;
+		v.tm_mday = day;
+		v.tm_isdst = -1;
+		if (mktime(&v) == (time_t)-1 && errno == EOVERFLOW) {
+			time_t t = time(sl_null);
+			if (!(localtime_r(&t, &v))) {
+				return 0;
+			}
+		}
+		return (sl_int64)(v.tm_gmtoff);
 	}
 
 }

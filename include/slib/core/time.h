@@ -350,6 +350,10 @@ namespace slib
 
 		Time& addYears(sl_int32 years, const TimeZone& zone = Time::LocalZone) noexcept;
 
+		sl_bool isLeapYear(const TimeZone& zone = Time::LocalZone) const noexcept;
+
+		static sl_bool isLeapYear(sl_int32 year) noexcept;
+
 		sl_int32 getMonth(const TimeZone& zone = Time::LocalZone) const noexcept;
 
 		Time& setMonth(sl_int32 month, const TimeZone& zone = Time::LocalZone) noexcept;
@@ -501,6 +505,8 @@ namespace slib
 		// In Seconds
 		sl_int64 getLocalTimeOffset() const noexcept;
 
+		static sl_int64 getLocalTimeOffset(sl_int32 year, sl_int32 month, sl_int32 day) noexcept;
+
 		sl_int32 getDayCountInMonth(const TimeZone& zone = Time::LocalZone) const noexcept;
 
 		sl_int32 getDayCountInYear(const TimeZone& zone = Time::LocalZone) const noexcept;
@@ -607,15 +613,20 @@ namespace slib
 		sl_bool equals(sl_int64 other) const noexcept;
 		sl_compare_result compare(sl_int64 other) const noexcept;
 
-		/* platform functions */
 	protected:
-		sl_bool _get(TimeComponents& output, sl_bool flagUTC) const noexcept;
+		// platform functions
+		static sl_bool _toPlatformComponents(TimeComponents& output, sl_int64 seconds, sl_bool flagUTC) noexcept;
 
-		static sl_int64 _set(sl_int32 year, sl_int32 month, sl_int32 date, sl_int32 hour, sl_int32 minute, sl_int32 second, sl_bool flagUTC) noexcept;
+		static sl_bool _toPlatformSeconds(sl_int64& seconds, sl_int32 year, sl_int32 month, sl_int32 day, sl_bool flagUTC) noexcept;
 
 		void _setNow() noexcept;
 
 		sl_bool _setToSystem() const noexcept;
+
+		// helper functions
+		static void _toComponents(TimeComponents& output, sl_int64 seconds, sl_bool flagUTC) noexcept;
+
+		static sl_int64 _toSeconds(sl_int32 year, sl_int32 month, sl_int32 day, sl_bool flagUTC) noexcept;
 
 	};
 

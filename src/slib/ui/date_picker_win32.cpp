@@ -59,8 +59,9 @@ namespace slib
 				if (handle) {
 					SYSTEMTIME st;
 					if (GDT_VALID == SendMessageW(handle, DTM_GETSYSTEMTIME, 0, (LPARAM)&st)) {
-						_out = Win32::getTime(&st, sl_false);
-						return sl_true;
+						if (Win32::getTime(_out, st, sl_false)) {
+							return sl_true;
+						}
 					}
 				}
 				return sl_false;
@@ -71,8 +72,9 @@ namespace slib
 				HWND handle = m_handle;
 				if (handle) {
 					SYSTEMTIME st;
-					Win32::getSYSTEMTIME(time, sl_false, &st);
-					SendMessageW(handle, DTM_SETSYSTEMTIME, GDT_VALID, (LPARAM)&st);
+					if (Win32::getSYSTEMTIME(st, time, sl_false)) {
+						SendMessageW(handle, DTM_SETSYSTEMTIME, GDT_VALID, (LPARAM)&st);
+					}
 				}
 			}
 
@@ -107,7 +109,9 @@ namespace slib
 						NMDATETIMECHANGE* change = (NMDATETIMECHANGE*)nmhdr;
 						Time time;
 						if (change->dwFlags == GDT_VALID) {
-							time = Win32::getTime(&(change->st), sl_false);
+							if (!(Win32::getTime(time, change->st, sl_false))) {
+								return sl_false;
+							}
 						}
 						Time old = time;
 						((DatePickerHelper*)(view.get()))->_onChange_NW(this, time);

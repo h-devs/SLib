@@ -31,42 +31,40 @@
 namespace slib
 {
 
-	sl_bool Time::_get(TimeComponents& output, sl_bool flagUTC) const noexcept
+	sl_bool Time::_toPlatformComponents(TimeComponents& output, sl_int64 t, sl_bool flagUTC) noexcept
 	{
 		SYSTEMTIME st;
-		if (!(Win32::getSYSTEMTIME(*this, flagUTC, &st))) {
-			return sl_false;
+		if (Win32::getSYSTEMTIME(st, Time::withSeconds(t), flagUTC)) {
+			output.year = st.wYear;
+			output.month = (sl_uint8)(st.wMonth);
+			output.day = (sl_uint8)(st.wDay);
+			output.dayOfWeek = (sl_uint8)(st.wDayOfWeek);
+			output.hour = (sl_uint8)(st.wHour);
+			output.minute = (sl_uint8)(st.wMinute);
+			output.second = (sl_uint8)(st.wSecond);
+			return sl_true;
 		}
-		output.year = st.wYear;
-		output.month = (sl_uint8)(st.wMonth);
-		output.day = (sl_uint8)(st.wDay);
-		output.dayOfWeek = (sl_uint8)(st.wDayOfWeek);
-		output.hour = (sl_uint8)(st.wHour);
-		output.minute = (sl_uint8)(st.wMinute);
-		output.second = (sl_uint8)(st.wSecond);
-		return sl_true;
+		return sl_false;
 	}
 
-	sl_int64 Time::_set(sl_int32 year, sl_int32 month, sl_int32 day, sl_int32 hour, sl_int32 minute, sl_int32 second, sl_bool flagUTC) noexcept
+	sl_bool Time::_toPlatformSeconds(sl_int64& output, sl_int32 year, sl_int32 month, sl_int32 day, sl_bool flagUTC) noexcept
 	{
-		SYSTEMTIME st;
+		SYSTEMTIME st = {0};
 		st.wYear = (WORD)year;
 		st.wMonth = (WORD)month;
 		st.wDay = (WORD)day;
-		st.wDayOfWeek = 0;
-		st.wHour = (WORD)hour;
-		st.wMinute = (WORD)minute;
-		st.wSecond = (WORD)second;
-		st.wMilliseconds = 0;
-		return Win32::getTime(&st, flagUTC).toInt();
+		Time t;
+		if (Win32::getTime(t, st, flagUTC)) {
+			output = t.getSecondCount();
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 	void Time::_setNow() noexcept
 	{
-		SYSTEMTIME st;
-		GetSystemTime(&st);
-		sl_int64 n;
-		SystemTimeToFileTime(&st, (PFILETIME)&n);
+		sl_int64 n = 0;
+		GetSystemTimeAsFileTime((PFILETIME)&n);
 		setWindowsFileTime(n);
 	}
 
@@ -75,13 +73,37 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		SYSTEMTIME st;
 		sl_int64 n = toWindowsFileTime();
-		if (!(FileTimeToSystemTime((PFILETIME)&n, &st))) {
-			return sl_false;
+		if (FileTimeToSystemTime((PFILETIME)&n, &st)) {
+			if (SetSystemTime(&st)) {
+				return sl_true;
+			}
 		}
-		return 0 != SetSystemTime(&st);
-#else
-		return sl_false;
 #endif
+		return sl_false;
+	}
+
+	sl_int64 Time::getLocalTimeOffset(sl_int32 year, sl_int32 month, sl_int32 day) noexcept
+	{
+		SYSTEMTIME st = { 0 };
+		st.wYear = (WORD)year;
+		st.wMonth = (WORD)month;
+		st.wDay = (WORD)day;
+
+		SYSTEMTIME lt;
+		if (SystemTimeToTzSpecificLocalTime(NULL, &st, &lt)) {
+			FILETIME t1;
+			if (SystemTimeToFileTime(&st, &t1)) {
+				FILETIME t2;
+				if (SystemTimeToFileTime(&lt, &t2)) {
+					return (*((sl_int64*)&t2) - *((sl_int64*)&t1)) / 10000000;
+				}
+			}
+		}
+		TIME_ZONE_INFORMATION tz;
+		if (GetTimeZoneInformation(&tz) != TIME_ZONE_ID_INVALID) {
+			return (sl_int64)(tz.Bias * -60);
+		}
+		return 0;
 	}
 
 }
