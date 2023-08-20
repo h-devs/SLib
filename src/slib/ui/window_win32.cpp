@@ -562,7 +562,7 @@ namespace slib
 					}
 					if (GetWindowLongW(hWnd, GWL_STYLE) & WS_POPUP) {
 						RECT rc = { 0 };
-						GetWindowRect(hWnd, &rc);
+						GetClientRect(hWnd, &rc);
 						WindowInstance::onResize((sl_ui_len)(rc.right - rc.left), (sl_ui_len)(rc.bottom - rc.top));
 					}
 				}
