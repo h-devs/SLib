@@ -163,8 +163,9 @@ namespace slib
 		sl_uint16 portCount; // [In] Socket will search unbound port from [port + 1, port+portCount]
 		sl_uint16 boundPort; // [Out] Bound port (UDP/TCP)
 
+		MemoryView helloPrefix; // [In] Hello Prefix
 		P2PMessage helloMessage; // [In] Hello Message
-		P2PMessage localNodeDescription; // [In] Local Node Description
+		P2PMessage connectMessage; // [In] Connect Message
 
 		sl_uint32 helloInterval; // [In, Out] In milliseconds
 		sl_uint32 connectionTimeout; // [In, Out] In milliseconds
@@ -174,6 +175,7 @@ namespace slib
 		sl_uint32 ephemeralKeyDuration; // [In, Out] In milliseconds
 
 		Function<void(P2PSocket*, P2PRequest&)> onReceiveHello;
+		Function<void(P2PSocket*, P2PRequest&)> onConnectNode;
 		Function<void(P2PSocket*, P2PRequest&, P2PResponse&)> onReceiveMessage;
 		Function<void(P2PSocket*, P2PRequest&)> onReceiveDatagram;
 		Function<void(P2PSocket*, P2PRequest&)> onReceiveBroadcast;
@@ -206,9 +208,13 @@ namespace slib
 
 		virtual sl_bool start() = 0;
 
+		virtual P2PNodeId getLocalNodeId() = 0;
+
 		virtual void setHelloMessage(const P2PMessage& msg) = 0;
 
-		virtual void setLocalNodeDescription(const P2PMessage& msg) = 0;
+		virtual void setConnectMessage(const P2PMessage& msg) = 0;
+
+		virtual void connectNode(const P2PNodeId& nodeId) = 0;
 
 		virtual void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis = 0) = 0;
 
