@@ -250,7 +250,7 @@ namespace slib
 			}
 			put(A, lenA);
 			put(C, lenC);
-			return finishAndCheckTag(lenA, lenC, tag, lenTag);
+			return finishAndCheckTag(tag, lenTag);
 		}
 
 	protected:
