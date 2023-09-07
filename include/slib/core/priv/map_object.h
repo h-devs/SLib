@@ -222,14 +222,14 @@ namespace slib
 	template <class KT, class VT, class KEY_COMPARE>
 	Variant::Variant(const Map<KT, VT, KEY_COMPARE>& map)
 	{
-		Ref<Object> object(map.toObject_NoLocking());
+		Ref<Object> object(map.toObject());
 		_constructorMoveRef(&object, VariantType::Object);
 	}
 
 	template <class KT, class VT, class HASH, class KEY_COMPARE>
 	Variant::Variant(const HashMap<KT, VT, HASH, KEY_COMPARE>& map)
 	{
-		Ref<Object> object(map.toObject_NoLocking());
+		Ref<Object> object(map.toObject());
 		_constructorMoveRef(&object, VariantType::Object);
 	}
 

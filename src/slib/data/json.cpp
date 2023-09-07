@@ -330,7 +330,17 @@ namespace slib
 	{
 		return Variant::toString();
 	}
-	
+
+
+	Json::Json(const VariantWrapper& t) noexcept: Json(t.value)
+	{
+	}
+
+	Json::Json(VariantWrapper&& t) noexcept: Json(Move(t.value))
+	{
+	}
+
+
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Json, ParseParam)
 
 	Json::ParseParam::ParseParam()

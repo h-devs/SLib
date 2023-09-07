@@ -592,35 +592,19 @@ namespace slib
 	{
 	}
 
-	ObjectStore::ObjectStore(sl_null_t) noexcept: value(sl_null)
+	ObjectStore::ObjectStore(sl_null_t) noexcept: VariantWrapper{sl_null}
 	{
 	}
 
-	ObjectStore::ObjectStore(ObjectStoreDictionary* object) noexcept: value(Variant::fromObject(object))
+	ObjectStore::ObjectStore(ObjectStoreDictionary* object) noexcept: VariantWrapper{Variant::fromObject(object)}
 	{
 	}
 
-	ObjectStore::ObjectStore(const Ref<ObjectStoreDictionary>& object) noexcept: value(Variant::fromObject(object))
+	ObjectStore::ObjectStore(const Ref<ObjectStoreDictionary>& object) noexcept: VariantWrapper{Variant::fromObject(object)}
 	{
 	}
 
-	ObjectStore::ObjectStore(Ref<ObjectStoreDictionary>&& object) noexcept: value(Variant::fromObject(Move(object)))
-	{
-	}
-
-	Variant::Variant(const ObjectStore& t) noexcept: Variant(t.value)
-	{
-	}
-
-	Variant::Variant(ObjectStore&& t) noexcept: Variant(Move(t.value))
-	{
-	}
-
-	Json::Json(const ObjectStore& t) noexcept: Json(t.value)
-	{
-	}
-
-	Json::Json(ObjectStore&& t) noexcept: Json(Move(t.value))
+	ObjectStore::ObjectStore(Ref<ObjectStoreDictionary>&& object) noexcept: VariantWrapper{Variant::fromObject(Move(object))}
 	{
 	}
 

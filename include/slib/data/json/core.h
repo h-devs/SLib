@@ -158,8 +158,8 @@ namespace slib
 			ToJson(*this, value);
 		}
 
-		Json(const ObjectStore& t) noexcept;
-		Json(ObjectStore&& t) noexcept;
+		Json(const VariantWrapper& t) noexcept;
+		Json(VariantWrapper&& t) noexcept;
 
 		template <class T>
 		Json(T&& arg, sl_uint8 tag): Json(Forward<T>(arg))

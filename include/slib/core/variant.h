@@ -98,7 +98,7 @@ namespace slib
 		}
 	}
 
-	class ObjectStore;
+	class VariantWrapper;
 	class BigInt;
 	class CBigInt;
 
@@ -334,8 +334,8 @@ namespace slib
 		template <class T>
 		Variant(const Atomic<T>& t) noexcept: Variant(T(t)) {}
 
-		Variant(const ObjectStore& t) noexcept;
-		Variant(ObjectStore&& t) noexcept;
+		Variant(const VariantWrapper& t) noexcept;
+		Variant(VariantWrapper&& t) noexcept;
 
 		template <class T>
 		Variant(T&& arg, sl_uint8 tag): Variant(Forward<T>(arg))
@@ -1119,6 +1119,12 @@ namespace slib
 		template <class T>
 		VariantEx(T&& t): Variant(priv::variant::VariantExHelper<T>::forward(t)) {}
 
+	};
+
+	class VariantWrapper
+	{
+	public:
+		Variant value;
 	};
 
 	template <class... ARGS>

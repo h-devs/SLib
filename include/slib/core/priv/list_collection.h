@@ -130,7 +130,7 @@ namespace slib
 	public:
 		Variant getElement(sl_uint64 index) override
 		{
-			return m_list->getAt((sl_size)index);
+			return m_list->getValueAt((sl_size)index);
 		}
 
 		sl_bool setElement(sl_uint64 index, const Variant& item) override
@@ -184,7 +184,7 @@ namespace slib
 	template <class T>
 	Variant::Variant(const List<T>& list)
 	{
-		Ref<Collection> collection(list.toCollection_NoLocking());
+		Ref<Collection> collection(list.toCollection());
 		_constructorMoveRef(&collection, VariantType::Collection);
 	}
 

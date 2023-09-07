@@ -47,7 +47,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT ObjectStore
+	class SLIB_EXPORT ObjectStore : public VariantWrapper
 	{
 	public:
 		ObjectStore() noexcept;
@@ -61,7 +61,7 @@ namespace slib
 		ObjectStore(T* dictionary) noexcept: ObjectStore((ObjectStoreDictionary*)dictionary) {}
 
 		template <class T>
-		ObjectStore(T&& _value) noexcept: value(_value) {}
+		ObjectStore(T&& v) noexcept: VariantWrapper{Forward<T>(v)} {}
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ObjectStore)
 
@@ -226,9 +226,6 @@ namespace slib
 		static ObjectStore open(const ObjectStoreParam& param);
 
 		static ObjectStore open(const StringParam& path);
-
-	public:
-		Variant value;
 
 	};
 

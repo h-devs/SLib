@@ -2709,7 +2709,7 @@ namespace slib
 	Ref<Collection> Variant::getCollection() const noexcept
 	{
 		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).toCollection_NoLocking();
+			return REF_VAR(VariantList, _value).toCollection();
 		}
 		return GET_COLLECTION(*this);
 	}
@@ -2899,7 +2899,7 @@ namespace slib
 	Ref<Object> Variant::getObject() const noexcept
 	{
 		if (_type == VariantType::Map) {
-			return REF_VAR(VariantMap, _value).toObject_NoLocking();
+			return REF_VAR(VariantMap, _value).toObject();
 		} else {
 			return GET_OBJECT(*this);
 		}
@@ -4223,6 +4223,15 @@ namespace slib
 	String32 Cast<Variant, String32>::operator()(const Variant& var) const noexcept
 	{
 		return String32::from(var);
+	}
+
+
+	Variant::Variant(const VariantWrapper& t) noexcept: Variant(t.value)
+	{
+	}
+
+	Variant::Variant(VariantWrapper&& t) noexcept: Variant(Move(t.value))
+	{
 	}
 
 
