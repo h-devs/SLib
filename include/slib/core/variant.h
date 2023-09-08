@@ -1106,13 +1106,13 @@ namespace slib
 	template <class T>
 	static void FromVariant(const Variant& var, T& _out)
 	{
-		_out.setVariant(var);
+		_out.setJson(*(reinterpret_cast<const Json*>(&var)));
 	}
 
 	template <class T>
 	static Variant ToVariant(const T& _in)
 	{
-		return _in.toVariant();
+		return _in.toJson();
 	}
 
 	namespace priv
