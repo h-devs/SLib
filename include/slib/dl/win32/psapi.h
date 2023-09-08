@@ -27,6 +27,8 @@
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
+#define PSAPI_VERSION 1
+
 #include "../../platform/win32/windows.h"
 
 #include <psapi.h>

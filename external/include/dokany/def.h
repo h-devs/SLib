@@ -9,6 +9,7 @@
 #define FILE_FLAG_SESSION_AWARE 0x00800000
 #endif
 
+#ifndef FILE_INVALID_FILE_ID
 typedef struct _FILE_ID_128 {
 	BYTE Identifier[16];
 } FILE_ID_128, *PFILE_ID_128;
@@ -29,5 +30,6 @@ typedef struct _FILE_ID_EXTD_DIR_INFO {
 	FILE_ID_128   FileId;
 	WCHAR         FileName[1];
 } FILE_ID_EXTD_DIR_INFO, *PFILE_ID_EXTD_DIR_INFO;
+#endif
 
 #endif
