@@ -45,12 +45,12 @@ namespace slib
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const Shared<T>& _in)
+	static Json ToJson(const Shared<T>& _in)
 	{
 		if (_in.isNull()) {
-			json.setNull();
+			return sl_null;
 		} else {
-			ToJson(json, *(_in.get()));
+			return ToJson(*(_in.get()));
 		}
 	}
 

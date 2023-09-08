@@ -51,9 +51,8 @@ namespace slib
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const Atomic<T>& _in)
+	Json::Json(const Atomic<T>& _in): Json(T(_in))
 	{
-		ToJson(json, T(_in));
 	}
 
 }

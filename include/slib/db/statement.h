@@ -63,7 +63,7 @@ namespace slib
 		template <class... ARGS>
 		sl_int64 execute(ARGS&&... args)
 		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
+			Variant params[] = {Forward<ARGS>(args)...};
 			return executeBy(params, sizeof...(args));
 		}
 
@@ -84,7 +84,7 @@ namespace slib
 		template <class... ARGS>
 		Ref<DatabaseCursor> query(ARGS&&... args)
 		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
+			Variant params[] = {Forward<ARGS>(args)...};
 			return queryBy(params, sizeof...(args));
 		}
 
@@ -105,7 +105,7 @@ namespace slib
 		template <class... ARGS>
 		List<VariantMap> getRecords(ARGS&&... args)
 		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
+			Variant params[] = {Forward<ARGS>(args)...};
 			return getRecordsBy(params, sizeof...(args));
 		}
 
@@ -126,7 +126,7 @@ namespace slib
 		template <class... ARGS>
 		VariantMap getRecord(ARGS&&... args)
 		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
+			Variant params[] = {Forward<ARGS>(args)...};
 			return getRecordBy(params, sizeof...(args));
 		}
 
@@ -147,7 +147,7 @@ namespace slib
 		template <class... ARGS>
 		Variant getValue(ARGS&&... args)
 		{
-			VariantEx params[] = {Forward<ARGS>(args)...};
+			Variant params[] = {Forward<ARGS>(args)...};
 			return getValueBy(params, sizeof...(args));
 		}
 

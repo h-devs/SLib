@@ -48,7 +48,7 @@ namespace slib
 		sl_bool setProperty(const String& name, const Variant& value) override
 		{
 			typename CMAP::VALUE_TYPE v;
-			value.get(v);
+			FromVariant(value, v);
 			return m_map->put_NoLock(Cast<String, typename CMAP::KEY_TYPE>()(name), Move(v));
 		}
 
@@ -152,7 +152,7 @@ namespace slib
 		sl_bool setProperty(const String& name, const Variant& value) override
 		{
 			typename CMAP::VALUE_TYPE v;
-			value.get(v);
+			FromVariant(value, v);
 			return m_map->put(Cast<String, typename CMAP::KEY_TYPE>()(name), Move(v));
 		}
 

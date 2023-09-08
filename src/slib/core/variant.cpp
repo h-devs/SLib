@@ -248,6 +248,12 @@ namespace slib
 		REF_VAR(sl_uint32, _value) = value;
 	}
 
+	Variant::Variant(char value) noexcept
+	{
+		Init(*this, VariantType::Int32);
+		REF_VAR(sl_int32, _value) = (sl_int32)value;
+	}
+
 	Variant::Variant(short value) noexcept
 	{
 		Init(*this, VariantType::Int32);
@@ -304,6 +310,18 @@ namespace slib
 	{
 		Init(*this, VariantType::Uint64);
 		REF_VAR(sl_uint64, _value) = value;
+	}
+
+	Variant::Variant(sl_char16 value) noexcept
+	{
+		Init(*this, VariantType::Uint32);
+		REF_VAR(sl_uint32, _value) = (sl_uint32)value;
+	}
+
+	Variant::Variant(sl_char32 value) noexcept
+	{
+		Init(*this, VariantType::Uint32);
+		REF_VAR(sl_uint32, _value) = (sl_uint32)value;
 	}
 
 	Variant::Variant(float value) noexcept
@@ -442,6 +460,30 @@ namespace slib
 			Init(*this, VariantType::Null);
 			_value = 1;
 		}
+	}
+
+	Variant::Variant(const StringData& value) noexcept: Variant((const StringView&)value)
+	{
+	}
+
+	Variant::Variant(const StringData16& value) noexcept: Variant((const StringView16&)value)
+	{
+	}
+
+	Variant::Variant(const StringData32& value) noexcept: Variant((const StringView32&)value)
+	{
+	}
+
+	Variant::Variant(const StringCstr& value) noexcept : Variant((const StringView&)value)
+	{
+	}
+
+	Variant::Variant(const StringCstr16& value) noexcept : Variant((const StringView16&)value)
+	{
+	}
+
+	Variant::Variant(const StringCstr32& value) noexcept : Variant((const StringView32&)value)
+	{
 	}
 
 	Variant::Variant(const sl_char8* sz8) noexcept
@@ -3944,264 +3986,294 @@ namespace slib
 		return 0;
 	}
 
-	void Variant::get(Variant& _out) const noexcept
+	void FromVariant(const Variant& var, Variant& _out) noexcept
 	{
-		_out._assign(*this);
+		_out = var;
 	}
 
-	void Variant::get(Atomic<Variant>& _out) const noexcept
+	void FromVariant(const Variant& var, Atomic<Variant>& _out) noexcept
 	{
-		_out._assign_copy(this);
+		_out = var;
 	}
 
-	void Variant::get(Json& _out) const noexcept
+	void FromVariant(const Variant& var, Json& _out) noexcept
 	{
-		_out._assign(*this);
+		_out = var;
 	}
 
-	void Variant::get(signed char& _out) const noexcept
+	void FromVariant(const Variant& var, signed char& _out) noexcept
 	{
-		_out = (signed char)(getInt32());
+		_out = (signed char)(var.getInt32());
 	}
 
-	void Variant::get(signed char& _out, signed char def) const noexcept
+	void FromVariant(const Variant& var, signed char& _out, signed char def) noexcept
 	{
-		_out = (signed char)(getInt32((sl_int32)def));
+		_out = (signed char)(var.getInt32((sl_int32)def));
 	}
 
-	void Variant::get(unsigned char& _out) const noexcept
+	void FromVariant(const Variant& var, unsigned char& _out) noexcept
 	{
-		_out = (unsigned char)(getUint32());
+		_out = (unsigned char)(var.getUint32());
 	}
 
-	void Variant::get(unsigned char& _out, unsigned char def) const noexcept
+	void FromVariant(const Variant& var, unsigned char& _out, unsigned char def) noexcept
 	{
-		_out = (unsigned char)(getUint32((sl_uint32)def));
+		_out = (unsigned char)(var.getUint32((sl_uint32)def));
 	}
 
-	void Variant::get(short& _out) const noexcept
+	void FromVariant(const Variant& var, char& _out) noexcept
 	{
-		_out = (short)(getInt32());
+		_out = (char)(var.getInt32());
 	}
 
-	void Variant::get(short& _out, short def) const noexcept
+	void FromVariant(const Variant& var, char& _out, char def) noexcept
 	{
-		_out = (short)(getInt32((sl_int32)def));
+		_out = (char)(var.getInt32((sl_int32)def));
 	}
 
-	void Variant::get(unsigned short& _out) const noexcept
+	void FromVariant(const Variant& var, short& _out) noexcept
 	{
-		_out = (unsigned short)(getUint32());
+		_out = (short)(var.getInt32());
 	}
 
-	void Variant::get(unsigned short& _out, unsigned short def) const noexcept
+	void FromVariant(const Variant& var, short& _out, short def) noexcept
 	{
-		_out = (unsigned short)(getUint32((sl_uint32)def));
+		_out = (short)(var.getInt32((sl_int32)def));
 	}
 
-	void Variant::get(int& _out) const noexcept
+	void FromVariant(const Variant& var, unsigned short& _out) noexcept
 	{
-		_out = (int)(getInt32());
+		_out = (unsigned short)(var.getUint32());
 	}
 
-	void Variant::get(int& _out, int def) const noexcept
+	void FromVariant(const Variant& var, unsigned short& _out, unsigned short def) noexcept
 	{
-		_out = (int)(getInt32((sl_int32)def));
+		_out = (unsigned short)(var.getUint32((sl_uint32)def));
 	}
 
-	void Variant::get(unsigned int& _out) const noexcept
+	void FromVariant(const Variant& var, int& _out) noexcept
 	{
-		_out = (unsigned int)(getUint32());
+		_out = (int)(var.getInt32());
 	}
 
-	void Variant::get(unsigned int& _out, unsigned int def) const noexcept
+	void FromVariant(const Variant& var, int& _out, int def) noexcept
 	{
-		_out = (unsigned int)(getUint32((sl_uint32)def));
+		_out = (int)(var.getInt32((sl_int32)def));
 	}
 
-	void Variant::get(long& _out) const noexcept
+	void FromVariant(const Variant& var, unsigned int& _out) noexcept
 	{
-		_out = (long)(getInt32());
+		_out = (unsigned int)(var.getUint32());
 	}
 
-	void Variant::get(long& _out, long def) const noexcept
+	void FromVariant(const Variant& var, unsigned int& _out, unsigned int def) noexcept
 	{
-		_out = (long)(getInt32((sl_int32)def));
+		_out = (unsigned int)(var.getUint32((sl_uint32)def));
 	}
 
-	void Variant::get(unsigned long& _out) const noexcept
+	void FromVariant(const Variant& var, long& _out) noexcept
 	{
-		_out = (unsigned long)(getUint32());
+		_out = (long)(var.getInt32());
 	}
 
-	void Variant::get(unsigned long& _out, unsigned long def) const noexcept
+	void FromVariant(const Variant& var, long& _out, long def) noexcept
 	{
-		_out = (unsigned long)(getUint32((sl_uint32)def));
+		_out = (long)(var.getInt32((sl_int32)def));
 	}
 
-	void Variant::get(sl_int64& _out) const noexcept
+	void FromVariant(const Variant& var, unsigned long& _out) noexcept
 	{
-		_out = getInt64();
+		_out = (unsigned long)(var.getUint32());
 	}
 
-	void Variant::get(sl_int64& _out, sl_int64 def) const noexcept
+	void FromVariant(const Variant& var, unsigned long& _out, unsigned long def) noexcept
 	{
-		_out = getInt64(def);
+		_out = (unsigned long)(var.getUint32((sl_uint32)def));
 	}
 
-	void Variant::get(sl_uint64& _out) const noexcept
+	void FromVariant(const Variant& var, sl_int64& _out) noexcept
 	{
-		_out = getUint64();
+		_out = var.getInt64();
 	}
 
-	void Variant::get(sl_uint64& _out, sl_uint64 def) const noexcept
+	void FromVariant(const Variant& var, sl_int64& _out, sl_int64 def) noexcept
 	{
-		_out = getUint64(def);
+		_out = var.getInt64(def);
 	}
 
-	void Variant::get(float& _out) const noexcept
+	void FromVariant(const Variant& var, sl_uint64& _out) noexcept
 	{
-		_out = getFloat();
+		_out = var.getUint64();
 	}
 
-	void Variant::get(float& _out, float def) const noexcept
+	void FromVariant(const Variant& var, sl_uint64& _out, sl_uint64 def) noexcept
 	{
-		_out = getFloat(def);
+		_out = var.getUint64(def);
 	}
 
-	void Variant::get(double& _out) const noexcept
+	void FromVariant(const Variant& var, sl_char16& _out) noexcept
 	{
-		_out = getDouble();
+		_out = (sl_char16)(var.getUint32());
 	}
 
-	void Variant::get(double& _out, double def) const noexcept
+	void FromVariant(const Variant& var, sl_char16& _out, sl_char16 def) noexcept
 	{
-		_out = getDouble(def);
+		_out = (sl_char16)(var.getUint32((sl_uint32)def));
 	}
 
-	void Variant::get(bool& _out) const noexcept
+	void FromVariant(const Variant& var, sl_char32& _out) noexcept
 	{
-		_out = getBoolean();
+		_out = (sl_char32)(var.getUint32());
 	}
 
-	void Variant::get(bool& _out, bool def) const noexcept
+	void FromVariant(const Variant& var, sl_char32& _out, sl_char32 def) noexcept
 	{
-		_out = getBoolean(def);
+		_out = (sl_char32)(var.getUint32((sl_uint32)def));
 	}
 
-	void Variant::get(String& _out) const noexcept
+	void FromVariant(const Variant& var, float& _out) noexcept
 	{
-		_out = getString();
+		_out = var.getFloat();
 	}
 
-	void Variant::get(String& _out, const String& def) const noexcept
+	void FromVariant(const Variant& var, float& _out, float def) noexcept
 	{
-		_out = getString(def);
+		_out = var.getFloat(def);
 	}
 
-	void Variant::get(AtomicString& _out) const noexcept
+	void FromVariant(const Variant& var, double& _out) noexcept
 	{
-		_out = getString();
+		_out = var.getDouble();
 	}
 
-	void Variant::get(AtomicString& _out, const String& def) const noexcept
+	void FromVariant(const Variant& var, double& _out, double def) noexcept
 	{
-		_out = getString(def);
+		_out = var.getDouble(def);
 	}
 
-	void Variant::get(String16& _out) const noexcept
+	void FromVariant(const Variant& var, bool& _out) noexcept
 	{
-		_out = getString16();
+		_out = var.getBoolean();
 	}
 
-	void Variant::get(String16& _out, const String16& def) const noexcept
+	void FromVariant(const Variant& var, bool& _out, bool def) noexcept
 	{
-		_out = getString16(def);
+		_out = var.getBoolean(def);
 	}
 
-	void Variant::get(AtomicString16& _out) const noexcept
+	void FromVariant(const Variant& var, String& _out) noexcept
 	{
-		_out = getString16();
+		_out = var.getString();
 	}
 
-	void Variant::get(AtomicString16& _out, const String16& def) const noexcept
+	void FromVariant(const Variant& var, String& _out, const String& def) noexcept
 	{
-		_out = getString16(def);
+		_out = var.getString(def);
 	}
 
-	void Variant::get(String32& _out) const noexcept
+	void FromVariant(const Variant& var, AtomicString& _out) noexcept
 	{
-		_out = getString32();
+		_out = var.getString();
 	}
 
-	void Variant::get(String32& _out, const String32& def) const noexcept
+	void FromVariant(const Variant& var, AtomicString& _out, const String& def) noexcept
 	{
-		_out = getString32(def);
+		_out = var.getString(def);
 	}
 
-	void Variant::get(AtomicString32& _out) const noexcept
+	void FromVariant(const Variant& var, String16& _out) noexcept
 	{
-		_out = getString32();
+		_out = var.getString16();
 	}
 
-	void Variant::get(AtomicString32& _out, const String32& def) const noexcept
+	void FromVariant(const Variant& var, String16& _out, const String16& def) noexcept
 	{
-		_out = getString32(def);
+		_out = var.getString16(def);
 	}
 
-	void Variant::get(std::string& _out) const noexcept
+	void FromVariant(const Variant& var, AtomicString16& _out) noexcept
 	{
-		_out = getString().toStd();
+		_out = var.getString16();
 	}
 
-	void Variant::get(std::u16string& _out) const noexcept
+	void FromVariant(const Variant& var, AtomicString16& _out, const String16& def) noexcept
 	{
-		_out = getString16().toStd();
+		_out = var.getString16(def);
 	}
 
-	void Variant::get(std::u32string& _out) const noexcept
+	void FromVariant(const Variant& var, String32& _out) noexcept
 	{
-		_out = getString32().toStd();
+		_out = var.getString32();
 	}
 
-	void Variant::get(Time& _out) const noexcept
+	void FromVariant(const Variant& var, String32& _out, const String32& def) noexcept
 	{
-		_out = getTime();
+		_out = var.getString32(def);
 	}
 
-	void Variant::get(Time& _out, const Time& def) const noexcept
+	void FromVariant(const Variant& var, AtomicString32& _out) noexcept
 	{
-		_out = getTime(def);
+		_out = var.getString32();
 	}
 
-	void Variant::get(VariantList& _out) const noexcept
+	void FromVariant(const Variant& var, AtomicString32& _out, const String32& def) noexcept
 	{
-		_out = getVariantList();
+		_out = var.getString32(def);
 	}
 
-	void Variant::get(VariantMap& _out) const noexcept
+	void FromVariant(const Variant& var, std::string& _out) noexcept
 	{
-		_out = getVariantMap();
+		_out = var.getString().toStd();
 	}
 
-	void Variant::get(JsonList& _out) const noexcept
+	void FromVariant(const Variant& var, std::u16string& _out) noexcept
 	{
-		_out = getJsonList();
+		_out = var.getString16().toStd();
 	}
 
-	void Variant::get(JsonMap& _out) const noexcept
+	void FromVariant(const Variant& var, std::u32string& _out) noexcept
 	{
-		_out = getJsonMap();
+		_out = var.getString32().toStd();
 	}
 
-	void Variant::get(Memory& _out) const noexcept
+	void FromVariant(const Variant& var, Time& _out) noexcept
 	{
-		_out = getMemory();
+		_out = var.getTime();
 	}
 
-	void Variant::get(Promise<Variant>& _out) const noexcept
+	void FromVariant(const Variant& var, Time& _out, const Time& def) noexcept
 	{
-		_out = getVariantPromise();
+		_out = var.getTime(def);
+	}
+
+	void FromVariant(const Variant& var, VariantList& _out) noexcept
+	{
+		_out = var.getVariantList();
+	}
+
+	void FromVariant(const Variant& var, VariantMap& _out) noexcept
+	{
+		_out = var.getVariantMap();
+	}
+
+	void FromVariant(const Variant& var, JsonList& _out) noexcept
+	{
+		_out = var.getJsonList();
+	}
+
+	void FromVariant(const Variant& var, JsonMap& _out) noexcept
+	{
+		_out = var.getJsonMap();
+	}
+
+	void FromVariant(const Variant& var, Memory& _out) noexcept
+	{
+		_out = var.getMemory();
+	}
+
+	void FromVariant(const Variant& var, Promise<Variant>& _out) noexcept
+	{
+		_out = var.getVariantPromise();
 	}
 
 

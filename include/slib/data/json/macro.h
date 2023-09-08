@@ -33,6 +33,7 @@ public: \
 		slib::RemoveConstPointerVariable(this)->doJson(json, sl_false); \
 		return json; \
 	} \
+	slib::Json toVariant() const { return toJson(); } \
 	void setJson(const slib::Json& json) \
 	{ \
 		if (json.isUndefined()) { \
@@ -40,6 +41,7 @@ public: \
 		} \
 		doJson(*((slib::Json*)&json), sl_true); \
 	} \
+	void setVariant(const slib::Json& json) { setJson(json); } \
 	void doJson(slib::Json& json, sl_bool isFromJson)
 
 #define SLIB_JSON_CALL_BASE(BASE_CLASS) \

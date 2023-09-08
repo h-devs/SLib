@@ -43,12 +43,10 @@ namespace slib
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const Nullable<T>& _in)
+	Json::Json(const Nullable<T>& _in)
 	{
-		if (_in.isNull()) {
-			json.setUndefined();
-		} else {
-			ToJson(json, _in.value);
+		if (_in.isNotNull()) {
+			new (this) Json(_in.value);
 		}
 	}
 

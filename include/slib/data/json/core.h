@@ -65,6 +65,8 @@ namespace slib
 
 		Json(unsigned char value);
 
+		Json(char value);
+
 		Json(short value);
 
 		Json(unsigned short value);
@@ -80,6 +82,10 @@ namespace slib
 		Json(sl_int64 value);
 
 		Json(sl_uint64 value);
+
+		Json(sl_char16 value);
+
+		Json(sl_char32 value);
 
 		Json(float value);
 
@@ -104,6 +110,18 @@ namespace slib
 		Json(const StringView16& value);
 
 		Json(const StringView32& value);
+
+		Json(const StringData& value);
+
+		Json(const StringData16& value);
+
+		Json(const StringData32& value);
+
+		Json(const StringCstr& value);
+
+		Json(const StringCstr16& value);
+
+		Json(const StringCstr32& value);
 
 		Json(const sl_char8* sz8);
 
@@ -137,6 +155,8 @@ namespace slib
 
 		Json(JsonMap&& map);
 
+		Json(const List<JsonMap>& list);
+
 		Json(const VariantList& list);
 
 		Json(VariantList&& list);
@@ -145,21 +165,58 @@ namespace slib
 
 		Json(VariantMap&& map);
 
+		Json(const List<VariantMap>& list);
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Json(const std::initializer_list<JsonItem>& pairs);
 #endif
 
 		template <class T>
-		Json(const Atomic<T>& t): Json(T(t)) {}
+		Json(const Array<T>& t);
 
 		template <class T>
-		Json(const T& value)
-		{
-			ToJson(*this, value);
-		}
+		Json(const List<T>& t);
+
+		template <class T>
+		Json(const ListParam<T>& t);
+
+#ifdef SLIB_SUPPORT_STD_TYPES
+		template <class T, class ALLOC>
+		Json(const std::vector<T, ALLOC>& t);
+#endif
+
+		template <class KT, class VT, class KEY_COMPARE>
+		Json(const Map<KT, VT, KEY_COMPARE>& t);
+
+		template <class KT, class VT, class HASH, class KEY_COMPARE>
+		Json(const HashMap<KT, VT, HASH, KEY_COMPARE>& t);
+
+#ifdef SLIB_SUPPORT_STD_TYPES
+		template <class KT, class... TYPES>
+		Json(const std::map<KT, TYPES...>& t);
+
+		template <class KT, class... TYPES>
+		Json(const std::unordered_map<KT, TYPES...>& t);
+#endif
+
+		template <class T>
+		Json(const Ref<T>& t);
+
+		template <class T>
+		Json(const WeakRef<T>& t);
+
+		template <class T>
+		Json(const Nullable<T>& t);
+
+		template <class T>
+		Json(const Atomic<T>& t);
 
 		Json(const VariantWrapper& t) noexcept;
+
 		Json(VariantWrapper&& t) noexcept;
+
+		template <class T>
+		Json(const T& value);
 
 		template <class T>
 		Json(T&& arg, sl_uint8 tag): Json(Forward<T>(arg))
@@ -213,18 +270,6 @@ namespace slib
 		Json operator[](const String& key) const;
 
 	public:
-		template <class T>
-		void get(T& value) const
-		{
-			FromJson(*this, value);
-		}
-
-		template <class T>
-		void get(T& value, const T& defaultValue) const
-		{
-			FromJson(*this, value, defaultValue);
-		}
-
 		template <class T>
 		void set(T&& t)
 		{

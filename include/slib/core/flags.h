@@ -35,6 +35,7 @@
 		CLASS& operator&=(int _value) { value &= _value; return *this; } \
 	public: \
 		enum __VA_ARGS__; \
+		int toVariant() const noexcept { return value; }; \
 	};
 
 #endif

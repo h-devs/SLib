@@ -1115,14 +1115,14 @@ namespace slib
 		}
 		{
 			List<String> s;
-			conf["allowed_file_extensions"].get(s);
+			FromJson(conf["allowed_file_extensions"], s);
 			if (s.isNotNull()) {
 				allowedFileExtensions = s;
 			}
 		}
 		{
 			List<String> s;
-			conf["blocked_file_extensions"].get(s);
+			FromJson(conf["blocked_file_extensions"], s);
 			if (s.isNotNull()) {
 				blockedFileExtensions = s;
 			}

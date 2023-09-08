@@ -72,7 +72,7 @@ namespace slib
 		}
 
 		template <class SET>
-		static void GetJsonFromSet(Json& _out, const SET& _in)
+		static Json GetJsonFromSet(const SET& _in)
 		{
 			if (_in.isNotNull()) {
 				MutexLocker locker(_in.getLocker());
@@ -82,18 +82,18 @@ namespace slib
 					list.add_NoLock(node->key);
 					node = node->getNext();
 				}
-				_out = Move(list);
+				return list;
 			} else {
-				_out.setNull();
+				return sl_null;
 			}
 		}
 
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const Set<T>& _in)
+	static Json ToJson(const Set<T>& _in)
 	{
-		priv::GetJsonFromSet(json, _in);
+		return priv::GetJsonFromSet(_in);
 	}
 
 	template <class T>
@@ -103,9 +103,9 @@ namespace slib
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const HashSet<T>& _in)
+	static Json ToJson(const HashSet<T>& _in)
 	{
-		priv::GetJsonFromSet(json, _in);
+		return priv::GetJsonFromSet(_in);
 	}
 
 	template <class T>

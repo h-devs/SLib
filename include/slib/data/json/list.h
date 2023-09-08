@@ -74,10 +74,10 @@ namespace slib
 
 	}
 
+	
 	template <class T>
-	static void ToJson(Json& json, const Array<T>& _in)
+	Json::Json(const Array<T>& _in): Variant(JsonList::create(_in))
 	{
-		json = JsonList::create(_in);
 	}
 
 	template <class T>
@@ -87,9 +87,8 @@ namespace slib
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const List<T>& _in)
+	Json::Json(const List<T>& _in): Variant(JsonList::createCopy(_in))
 	{
-		json = JsonList::createCopy(_in);
 	}
 
 	template <class T>
@@ -99,13 +98,13 @@ namespace slib
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const ListParam<T>& _in)
+	Json::Json(const ListParam<T>& _in)
 	{
 		if (_in.isNotNull()) {
 			ListLocker<T> src(_in);
-			json = JsonList::create(src.data, src.count);
+			new (this) Json(JsonList::create(src.data, src.count));
 		} else {
-			json.setNull();
+			new (this) Json(sl_null);
 		}
 	}
 
@@ -117,9 +116,8 @@ namespace slib
 	}
 
 	template <class T, class ALLOC>
-	static void ToJson(Json& json, const std::vector<T, ALLOC>& _in)
+	Json::Json(const std::vector<T, ALLOC>& _in): Variant(JsonList::create(_in.data(), _in.size()))
 	{
-		json = JsonList::create(_in.data(), _in.size());
 	}
 #endif
 

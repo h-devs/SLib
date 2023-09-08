@@ -354,7 +354,6 @@ namespace slib
 		void setData(const VariantList& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setData(const JsonList& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setData(const Variant& data, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setData(const Json& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		CellCreator getBodyCreator(sl_uint32 row, sl_uint32 column);
 		CellCreator getHeaderCreator(sl_uint32 row, sl_uint32 column);

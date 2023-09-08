@@ -58,7 +58,7 @@ namespace slib
 		{
 			T* p = m_array->getPointerAt((sl_size)index);
 			if (p) {
-				item.get(*p);
+				FromVariant(item, *p);
 				return sl_true;
 			}
 			return sl_false;

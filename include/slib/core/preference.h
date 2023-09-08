@@ -42,13 +42,13 @@ namespace slib
 		template <class T>
 		static void getValue(const StringParam& key, T& _out)
 		{
-			getValue(key).get(_out);
+			FromJson(getValue(key), _out);
 		}
 
 		template <class T>
 		static void getValue(const StringParam& key, T& _out, const T& _def)
 		{
-			getValue(key).get(_out, _def);
+			FromJson(getValue(key), _out, _def);
 		}
 
 

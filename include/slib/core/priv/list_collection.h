@@ -56,7 +56,7 @@ namespace slib
 			if (item.isNotUndefined()) {
 				T* p = list->getPointerAt((sl_size)index);
 				if (p) {
-					item.get(*p);
+					FromVariant(item, *p);
 					return sl_true;
 				}
 				return sl_false;
@@ -68,7 +68,7 @@ namespace slib
 		sl_bool addElement(const Variant& item) override
 		{
 			T v;
-			item.get(v);
+			FromVariant(item, v);
 			return m_list->add_NoLock(Move(v));
 		}
 
@@ -142,7 +142,7 @@ namespace slib
 		sl_bool addElement(const Variant& item) override
 		{
 			T v;
-			item.get(v);
+			FromVariant(item, v);
 			return m_list->add(Move(v));
 		}
 

@@ -42,19 +42,18 @@ namespace slib
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const Ref<T>& _in)
+	Json::Json(const Ref<T>& _in)
 	{
 		if (_in.isNotNull()) {
-			json = _in->toJson();
+			new (this) Json(*(_in.get()));
 		} else {
-			json.setNull();
+			new (this) Json(sl_null);
 		}
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const WeakRef<T>& _in)
+	Json::Json(const WeakRef<T>& _in): Json(Ref<T>(_in))
 	{
-		ToJson(json, Ref<T>(_in));
 	}
 
 }

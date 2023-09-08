@@ -55,34 +55,6 @@ namespace slib
 			extern const ConstContainer g_undefined;
 			extern const ConstContainer g_null;
 
-			template <class T, sl_bool isEnum=__is_enum(typename RemoveReference<T>::Type)>
-			class VariantExHelper
-			{
-			public:
-				constexpr static T&& forward(typename RemoveReference<T>::Type& v)
-				{
-					return static_cast<T&&>(v);
-				}
-
-				constexpr static T&& forward(typename RemoveReference<T>::Type&& v)
-				{
-					static_assert(!(IsLValue<T>()), "Can't forward an rvalue as an lvalue.");
-					return static_cast<T&&>(v);
-				}
-
-			};
-
-			template <class T>
-			class VariantExHelper<T, sl_true>
-			{
-			public:
-				constexpr static sl_uint64 forward(T v) noexcept
-				{
-					return (sl_uint64)v;
-				}
-
-			};
-
 			template <class LIST>
 			LIST CreateListFromCollection(Collection* collection);
 
@@ -162,6 +134,8 @@ namespace slib
 
 		Variant(unsigned char value) noexcept;
 
+		Variant(char value) noexcept;
+
 		Variant(short value) noexcept;
 
 		Variant(unsigned short value) noexcept;
@@ -177,6 +151,10 @@ namespace slib
 		Variant(sl_int64 value) noexcept;
 
 		Variant(sl_uint64 value) noexcept;
+
+		Variant(sl_char16 value) noexcept;
+
+		Variant(sl_char32 value) noexcept;
 
 		Variant(float value) noexcept;
 
@@ -201,6 +179,18 @@ namespace slib
 		Variant(const StringView16& value) noexcept;
 
 		Variant(const StringView32& value) noexcept;
+
+		Variant(const StringData& value) noexcept;
+
+		Variant(const StringData16& value) noexcept;
+
+		Variant(const StringData32& value) noexcept;
+
+		Variant(const StringCstr& value) noexcept;
+
+		Variant(const StringCstr16& value) noexcept;
+
+		Variant(const StringCstr32& value) noexcept;
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Variant(const std::string& value) noexcept;
@@ -335,7 +325,11 @@ namespace slib
 		Variant(const Atomic<T>& t) noexcept: Variant(T(t)) {}
 
 		Variant(const VariantWrapper& t) noexcept;
+	
 		Variant(VariantWrapper&& t) noexcept;
+
+		template <class T>
+		Variant(const T& value);
 
 		template <class T>
 		Variant(T&& arg, sl_uint8 tag): Variant(Forward<T>(arg))
@@ -894,130 +888,12 @@ namespace slib
 
 		sl_size getHashCode() const noexcept;
 
-	public:
+
 		template <class T>
 		void set(T&& t)
 		{
 			_free(_type, _value);
 			new (this) Variant(Forward<T>(t));
-		}
-
-		void get(Variant& _out) const noexcept;
-		void get(Atomic<Variant>& _out) const noexcept;
-		void get(Json& _out) const noexcept;
-
-		void get(signed char& _out) const noexcept;
-		void get(signed char& _out, signed char def) const noexcept;
-		void get(unsigned char& _out) const noexcept;
-		void get(unsigned char& _out, unsigned char def) const noexcept;
-		void get(short& _out) const noexcept;
-		void get(short& _out, short def) const noexcept;
-		void get(unsigned short& _out) const noexcept;
-		void get(unsigned short& _out, unsigned short def) const noexcept;
-		void get(int& _out) const noexcept;
-		void get(int& _out, int def) const noexcept;
-		void get(unsigned int& _out) const noexcept;
-		void get(unsigned int& _out, unsigned int def) const noexcept;
-		void get(long& _out) const noexcept;
-		void get(long& _out, long def) const noexcept;
-		void get(unsigned long& _out) const noexcept;
-		void get(unsigned long& _out, unsigned long def) const noexcept;
-		void get(sl_int64& _out) const noexcept;
-		void get(sl_int64& _out, sl_int64 def) const noexcept;
-		void get(sl_uint64& _out) const noexcept;
-		void get(sl_uint64& _out, sl_uint64 def) const noexcept;
-		void get(float& _out) const noexcept;
-		void get(float& _out, float def) const noexcept;
-		void get(double& _out) const noexcept;
-		void get(double& _out, double def) const noexcept;
-		void get(bool& _out) const noexcept;
-		void get(bool& _out, bool def) const noexcept;
-
-		void get(String& _out) const noexcept;
-		void get(String& _out, const String& def) const noexcept;
-		void get(AtomicString& _out) const noexcept;
-		void get(AtomicString& _out, const String& def) const noexcept;
-		void get(String16& _out) const noexcept;
-		void get(String16& _out, const String16& def) const noexcept;
-		void get(AtomicString16& _out) const noexcept;
-		void get(AtomicString16& _out, const String16& def) const noexcept;
-		void get(String32& _out) const noexcept;
-		void get(String32& _out, const String32& def) const noexcept;
-		void get(AtomicString32& _out) const noexcept;
-		void get(AtomicString32& _out, const String32& def) const noexcept;
-#ifdef SLIB_SUPPORT_STD_TYPES
-		void get(std::string& _out) const noexcept;
-		void get(std::u16string& _out) const noexcept;
-		void get(std::u32string& _out) const noexcept;
-#endif
-
-		void get(Time& _out) const noexcept;
-		void get(Time& _out, const Time& def) const noexcept;
-
-		template <class T>
-		void get(Ref<T>& _out) const noexcept
-		{
-			_out = CastRef<T>(getRef());
-		}
-
-		template <class T>
-		void get(WeakRef<T>& _out) const noexcept
-		{
-			_out = CastRef<T>(getRef());
-		}
-
-		void get(VariantList& _out) const noexcept;
-		void get(VariantMap& _out) const noexcept;
-		void get(JsonList& _out) const noexcept;
-		void get(JsonMap& _out) const noexcept;
-
-		template <class T>
-		void get(Array<T>& _out) const noexcept
-		{
-			_out = priv::variant::CreateListFromVariant< Array<T> >(*this);
-		}
-
-		template <class T>
-		void get(List<T>& _out) const noexcept
-		{
-			_out = priv::variant::CreateListFromVariant< List<T> >(*this);
-		}
-
-		template <class KT, class VT, class KEY_COMPARE>
-		void get(Map<KT, VT, KEY_COMPARE>& _out) const noexcept
-		{
-			_out.setNull();
-			priv::variant::BuildMapFromVariant(_out, *this);
-		}
-
-		template <class KT, class VT, class HASH, class KEY_COMPARE>
-		void get(HashMap<KT, VT, HASH, KEY_COMPARE>& _out)
-		{
-			_out.setNull();
-			priv::variant::BuildMapFromVariant(_out, *this);
-		}
-
-		void get(Memory& _out) const noexcept;
-
-		void get(Promise<Variant>& _out) const noexcept;
-
-		template <class T>
-		void get(Nullable<T>& _out) const noexcept
-		{
-			if (isUndefined()) {
-				_out->setNull();
-			} else {
-				_out.flagNull = sl_false;
-				get(_out.value);
-			}
-		}
-
-		template <class T>
-		void get(Atomic<T>& _out) const noexcept
-		{
-			T t;
-			get(t);
-			_out = Move(t);
 		}
 
 	protected:
@@ -1109,17 +985,171 @@ namespace slib
 
 	};
 
-	class VariantEx : public Variant
+	void FromVariant(const Variant& var, Variant& _out) noexcept;
+	void FromVariant(const Variant& var, Atomic<Variant>& _out) noexcept;
+	void FromVariant(const Variant& var, Json& _out) noexcept;
+
+	void FromVariant(const Variant& var, signed char& _out) noexcept;
+	void FromVariant(const Variant& var, signed char& _out, signed char def) noexcept;
+	void FromVariant(const Variant& var, unsigned char& _out) noexcept;
+	void FromVariant(const Variant& var, unsigned char& _out, unsigned char def) noexcept;
+	void FromVariant(const Variant& var, short& _out) noexcept;
+	void FromVariant(const Variant& var, short& _out, short def) noexcept;
+	void FromVariant(const Variant& var, unsigned short& _out) noexcept;
+	void FromVariant(const Variant& var, unsigned short& _out, unsigned short def) noexcept;
+	void FromVariant(const Variant& var, int& _out) noexcept;
+	void FromVariant(const Variant& var, int& _out, int def) noexcept;
+	void FromVariant(const Variant& var, unsigned int& _out) noexcept;
+	void FromVariant(const Variant& var, unsigned int& _out, unsigned int def) noexcept;
+	void FromVariant(const Variant& var, long& _out) noexcept;
+	void FromVariant(const Variant& var, long& _out, long def) noexcept;
+	void FromVariant(const Variant& var, unsigned long& _out) noexcept;
+	void FromVariant(const Variant& var, unsigned long& _out, unsigned long def) noexcept;
+	void FromVariant(const Variant& var, sl_int64& _out) noexcept;
+	void FromVariant(const Variant& var, sl_int64& _out, sl_int64 def) noexcept;
+	void FromVariant(const Variant& var, sl_uint64& _out) noexcept;
+	void FromVariant(const Variant& var, sl_uint64& _out, sl_uint64 def) noexcept;
+	void FromVariant(const Variant& var, float& _out) noexcept;
+	void FromVariant(const Variant& var, float& _out, float def) noexcept;
+	void FromVariant(const Variant& var, double& _out) noexcept;
+	void FromVariant(const Variant& var, double& _out, double def) noexcept;
+	void FromVariant(const Variant& var, bool& _out) noexcept;
+	void FromVariant(const Variant& var, bool& _out, bool def) noexcept;
+
+	void FromVariant(const Variant& var, String& _out) noexcept;
+	void FromVariant(const Variant& var, String& _out, const String& def) noexcept;
+	void FromVariant(const Variant& var, AtomicString& _out) noexcept;
+	void FromVariant(const Variant& var, AtomicString& _out, const String& def) noexcept;
+	void FromVariant(const Variant& var, String16& _out) noexcept;
+	void FromVariant(const Variant& var, String16& _out, const String16& def) noexcept;
+	void FromVariant(const Variant& var, AtomicString16& _out) noexcept;
+	void FromVariant(const Variant& var, AtomicString16& _out, const String16& def) noexcept;
+	void FromVariant(const Variant& var, String32& _out) noexcept;
+	void FromVariant(const Variant& var, String32& _out, const String32& def) noexcept;
+	void FromVariant(const Variant& var, AtomicString32& _out) noexcept;
+	void FromVariant(const Variant& var, AtomicString32& _out, const String32& def) noexcept;
+#ifdef SLIB_SUPPORT_STD_TYPES
+	void FromVariant(const Variant& var, std::string& _out) noexcept;
+	void FromVariant(const Variant& var, std::u16string& _out) noexcept;
+	void FromVariant(const Variant& var, std::u32string& _out) noexcept;
+#endif
+
+	void FromVariant(const Variant& var, Time& _out) noexcept;
+	void FromVariant(const Variant& var, Time& _out, const Time& def) noexcept;
+
+	template <class T>
+	static void FromVariant(const Variant& var, Ref<T>& _out) noexcept
 	{
-	public:
-		VariantEx() noexcept {}
+		_out = CastRef<T>(var.getRef());
+	}
 
-		~VariantEx() noexcept {}
+	template <class T>
+	static void FromVariant(const Variant& var, WeakRef<T>& _out) noexcept
+	{
+		_out = CastRef<T>(var.getRef());
+	}
 
-		template <class T>
-		VariantEx(T&& t): Variant(priv::variant::VariantExHelper<T>::forward(t)) {}
+	void FromVariant(const Variant& var, VariantList& _out) noexcept;
+	void FromVariant(const Variant& var, VariantMap& _out) noexcept;
+	void FromVariant(const Variant& var, JsonList& _out) noexcept;
+	void FromVariant(const Variant& var, JsonMap& _out) noexcept;
 
-	};
+	template <class T>
+	static void FromVariant(const Variant& var, Array<T>& _out) noexcept
+	{
+		_out = priv::variant::CreateListFromVariant< Array<T> >(var);
+	}
+
+	template <class T>
+	static void FromVariant(const Variant& var, List<T>& _out) noexcept
+	{
+		_out = priv::variant::CreateListFromVariant< List<T> >(var);
+	}
+
+	template <class KT, class VT, class KEY_COMPARE>
+	static void FromVariant(const Variant& var, Map<KT, VT, KEY_COMPARE>& _out) noexcept
+	{
+		_out.setNull();
+		priv::variant::BuildMapFromVariant(_out, var);
+	}
+
+	template <class KT, class VT, class HASH, class KEY_COMPARE>
+	static void FromVariant(const Variant& var, HashMap<KT, VT, HASH, KEY_COMPARE>& _out)
+	{
+		_out.setNull();
+		priv::variant::BuildMapFromVariant(_out, var);
+	}
+
+	void FromVariant(const Variant& var, Memory& _out) noexcept;
+
+	void FromVariant(const Variant& var, Promise<Variant>& _out) noexcept;
+
+	template <class T>
+	static void FromVariant(const Variant& var, Nullable<T>& _out) noexcept
+	{
+		if (var.isUndefined()) {
+			_out->setNull();
+		} else {
+			_out.flagNull = sl_false;
+			FromVariant(var, _out.value);
+		}
+	}
+
+	template <class T>
+	static void FromVariant(const Variant& var, Atomic<T>& _out) noexcept
+	{
+		T t;
+		FromVariant(var, t);
+		_out = Move(t);
+	}
+
+	template <class T>
+	static void FromVariant(const Variant& var, T& _out)
+	{
+		_out.setVariant(var);
+	}
+
+	template <class T>
+	static Variant ToVariant(const T& _in)
+	{
+		return _in.toVariant();
+	}
+
+	namespace priv
+	{
+		namespace variant
+		{
+
+			template <class T, sl_bool isEnum=__is_enum(typename RemoveReference<T>::Type)>
+			class InitHelper
+			{
+			public:
+				template <class V>
+				static Variant from(V&& v)
+				{
+					return ToVariant(Forward<V>(v));
+				}
+
+			};
+
+			template <class T>
+			class InitHelper<T, sl_true>
+			{
+			public:
+				constexpr static sl_uint64 from(T v) noexcept
+				{
+					return (sl_uint64)v;
+				}
+
+			};
+
+		}
+	}
+
+	template <class T>
+	Variant::Variant(const T& value): Variant(priv::variant::InitHelper<T>::from(value))
+	{
+	}
 
 	class VariantWrapper
 	{
@@ -1130,42 +1160,42 @@ namespace slib
 	template <class... ARGS>
 	SLIB_INLINE String String::format(const StringView& strFormat, ARGS&&... args) noexcept
 	{
-		VariantEx params[] = {Forward<ARGS>(args)...};
+		Variant params[] = {Forward<ARGS>(args)...};
 		return formatBy(strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
 	SLIB_INLINE String16 String16::format(const StringView16& strFormat, ARGS&&... args) noexcept
 	{
-		VariantEx params[] = {Forward<ARGS>(args)...};
+		Variant params[] = {Forward<ARGS>(args)...};
 		return formatBy(strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
 	SLIB_INLINE String32 String32::format(const StringView32& strFormat, ARGS&&... args) noexcept
 	{
-		VariantEx params[] = { Forward<ARGS>(args)... };
+		Variant params[] = { Forward<ARGS>(args)... };
 		return formatBy(strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
 	SLIB_INLINE String String::format(const Locale& locale, const StringView& strFormat, ARGS&&... args) noexcept
 	{
-		VariantEx params[] = {Forward<ARGS>(args)...};
+		Variant params[] = {Forward<ARGS>(args)...};
 		return formatBy(locale, strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
 	SLIB_INLINE String16 String16::format(const Locale& locale, const StringView16& strFormat, ARGS&&... args) noexcept
 	{
-		VariantEx params[] = {Forward<ARGS>(args)...};
+		Variant params[] = {Forward<ARGS>(args)...};
 		return formatBy(locale, strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
 	SLIB_INLINE String32 String32::format(const Locale& locale, const StringView32& strFormat, ARGS&&... args) noexcept
 	{
-		VariantEx params[] = { Forward<ARGS>(args)... };
+		Variant params[] = { Forward<ARGS>(args)... };
 		return formatBy(locale, strFormat, params, sizeof...(args));
 	}
 
@@ -1222,7 +1252,7 @@ namespace slib
 						if (ret.isNotNull()) {
 							auto data = ret.getData();
 							for (sl_size i = 0; i < n; i++) {
-								collection->getElement(i).get(data[i]);
+								FromVariant(collection->getElement(i), data[i]);
 							}
 							return ret;
 						}
@@ -1243,7 +1273,7 @@ namespace slib
 							if (ret.isNotNull()) {
 								auto dst = ret.getData();
 								for (sl_size i = 0; i < src.count; i++) {
-									src[i].get(dst[i]);
+									FromVariant(src[i], dst[i]);
 								}
 								return ret;
 							}
@@ -1265,7 +1295,7 @@ namespace slib
 					PropertyIterator iterator = object->getPropertyIterator();
 					while (iterator.moveNext()) {
 						typename MAP::VALUE_TYPE v;
-						iterator.getValue().get(v);
+						FromVariant(iterator.getValue(), v);
 						map.add_NoLock(Cast<String, typename MAP::KEY_TYPE>()(iterator.getKey()), Move(v));
 					}
 				}
@@ -1281,7 +1311,7 @@ namespace slib
 						auto node = src.getFirstNode();
 						while (node) {
 							typename MAP::VALUE_TYPE v;
-							node->value.get(v);
+							FromVariant(node->value, v);
 							_out.add_NoLock(Cast<String, typename MAP::KEY_TYPE>()(node->key), Move(v));
 							node = node->getNext();
 						}

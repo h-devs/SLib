@@ -1655,11 +1655,6 @@ namespace slib
 		setRecordCount(data.getElementCount(), UIUpdateMode::None);
 	}
 
-	void GridView::setData(const Json& data, UIUpdateMode mode)
-	{
-		setData(*(reinterpret_cast<const Variant*>(&data)), mode);
-	}
-
 	GridView::CellProp* GridView::_getCellProp(RecordIndex section, sl_uint32 iRow, sl_uint32 iCol)
 	{
 		Ref<Column> col = m_columns.getValueAt_NoLock(iCol);

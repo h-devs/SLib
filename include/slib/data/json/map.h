@@ -67,7 +67,7 @@ namespace slib
 		}
 
 		template <class MAP>
-		static void ToJsonMap(Json& _out, const MAP& _in)
+		static Json ToJsonMap(const MAP& _in)
 		{
 			if (_in.isNotNull()) {
 				MutexLocker locker(_in.getLocker());
@@ -77,9 +77,9 @@ namespace slib
 					map.put_NoLock(Cast<typename MAP::KEY_TYPE, String>()(node->key), node->value);
 					node = node->getNext();
 				}
-				_out = Move(map);
+				return map;
 			} else {
-				_out.setNull();
+				return sl_null;
 			}
 		}
 
@@ -92,9 +92,8 @@ namespace slib
 	}
 
 	template <class KT, class VT, class KEY_COMPARE>
-	static void ToJson(Json& json, const Map<KT, VT, KEY_COMPARE>& _in)
+	Json::Json(const Map<KT, VT, KEY_COMPARE>& _in): Variant(priv::ToJsonMap(_in))
 	{
-		priv::ToJsonMap(json, _in);
 	}
 
 	template <class KT, class VT, class HASH, class KEY_COMPARE>
@@ -104,9 +103,8 @@ namespace slib
 	}
 
 	template <class KT, class VT, class HASH, class KEY_COMPARE>
-	static void ToJson(Json& json, const HashMap<KT, VT, HASH, KEY_COMPARE>& _in)
+	Json::Json(const HashMap<KT, VT, HASH, KEY_COMPARE>& _in): Variant(priv::ToJsonMap(_in))
 	{
-		priv::ToJsonMap(json, _in);
 	}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
@@ -117,13 +115,11 @@ namespace slib
 	}
 
 	template <class KT, class... TYPES>
-	static void ToJson(Json& json, const std::map<KT, TYPES...>& _in)
+	Json::Json(const std::map<KT, TYPES...>& _in)
 	{
-		JsonMap map;
 		for (auto& item : _in) {
-			map.put_NoLock(Cast<KT, String>()(item.first), Json(item.second));
+			put_NoLock(Cast<KT, String>()(item.first), Json(item.second));
 		}
-		json = Move(map);
 	}
 
 	template <class KT, class... TYPES>
@@ -133,13 +129,11 @@ namespace slib
 	}
 
 	template <class KT, class... TYPES>
-	static void ToJson(Json& json, const std::unordered_map<KT, TYPES...>& _in)
+	Json::Json(const std::unordered_map<KT, TYPES...>& _in)
 	{
-		JsonMap map;
 		for (auto& item : _in) {
-			map.put_NoLock(Cast<KT, String>()(item.first), Json(item.second));
+			put_NoLock(Cast<KT, String>()(item.first), Json(item.second));
 		}
-		json = Move(map);
 	}
 #endif
 

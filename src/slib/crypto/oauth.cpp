@@ -408,7 +408,7 @@ namespace slib
 		Json value;
 		Shared<AccessToken> accessToken = m_accessToken;
 		if (accessToken.isNotNull()) {
-			ToJson(value, *accessToken);
+			value.set(*accessToken);
 		}
 		Preference::setValue(key, value);
 	}
@@ -957,7 +957,7 @@ namespace slib
 		Json value;
 		Shared<AccessToken> accessToken = m_accessToken;
 		if (accessToken.isNotNull()) {
-			ToJson(value, *accessToken);
+			value.set(*accessToken);
 		}
 		Preference::setValue(key, value);
 	}
