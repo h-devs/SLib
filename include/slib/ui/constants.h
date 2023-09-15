@@ -467,11 +467,23 @@ namespace slib
 		sl_ui_len bottom;
 
 	public:
-		UIEdgeInsets(): left(0), top(0), right(0), bottom(0) {}
+		UIEdgeInsets() noexcept: left(0), top(0), right(0), bottom(0) {}
 
-		UIEdgeInsets(sl_ui_len _left, sl_ui_len _top, sl_ui_len _right, sl_ui_len _bottom): left(_left), top(_top), right(_right), bottom(_bottom) {}
+		UIEdgeInsets(sl_ui_len _left, sl_ui_len _top, sl_ui_len _right, sl_ui_len _bottom) noexcept: left(_left), top(_top), right(_right), bottom(_bottom) {}
+
+		UIEdgeInsets(sl_ui_len inset): left(inset), top(inset), right(inset), bottom(inset) {}
 
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(UIEdgeInsets)
+
+	public:
+		UIEdgeInsets& operator=(sl_ui_len inset) noexcept
+		{
+			left = inset;
+			top = inset;
+			right = inset;
+			bottom = inset;
+			return *this;
+		}
 
 	};
 
