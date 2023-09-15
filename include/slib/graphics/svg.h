@@ -58,7 +58,7 @@ namespace slib
 	public:
 		Size getSize(sl_svg_scalar containerWidth = 100, sl_svg_scalar containerHeight = 100);
 
-		void render(Canvas* canvas, const Rectangle& rectDraw);
+		void render(Canvas* canvas, const Rectangle& rectDraw, const DrawParam& param);
 
 	public:
 		static sl_svg_scalar getGlobalFontSize();

@@ -780,6 +780,7 @@ namespace slib
 
 		struct RenderParam
 		{
+			const Drawable::DrawParam* drawParam;
 			Scalar containerWidth;
 			Scalar containerHeight;
 		};
@@ -1117,37 +1118,29 @@ namespace slib
 
 			Ref<Pen>& getPen(RenderParam& param)
 			{
-				sl_bool flagCreate = sl_false;
-				Scalar width = (Scalar)1;
-				if (pen.flagDefined) {
-					if (pen.isNotNull()) {
-						width = getStrokeWidth().getValue(param.containerWidth);
-						if (!(Math::isAlmostZero(pen->getWidth() - width))) {
-							flagCreate = sl_true;
-							pen.setNull();
+				const Ref<Paint>& paint = getStroke();
+				if (paint.isNotNull()) {
+					if (paint->type == PaintType::Color) {
+						Color color = param.drawParam->transformColor(((ColorPaint*)(paint.get()))->color);
+						ApplyOpacity(color, getFinalOpacity() * getStrokeOpacity());
+						Scalar width = getStrokeWidth().getValue(param.containerWidth);
+						Color oldColor;
+						if (pen.flagDefined && pen.isNotNull()) {
+							if (pen->getColor() == color && Math::isAlmostZero(pen->getWidth() - width)) {
+								return *pen;
+							}
 						}
-					}
-				} else {
-					pen.flagDefined = sl_true;
-					flagCreate = sl_true;
-					width = getStrokeWidth().getValue(param.containerWidth);
-				}
-				if (flagCreate) {
-					const Ref<Paint>& paint = getStroke();
-					if (paint.isNotNull()) {
-						if (paint->type == PaintType::Color) {
-							PenDesc desc;
-							desc.color = ((ColorPaint*)(paint.get()))->color;
-							ApplyOpacity(desc.color, getFinalOpacity() * getStrokeOpacity());
-							desc.width = width;
-							desc.style = getStrokeDashArray().isNotNull() ? PenStyle::Dash : PenStyle::Solid;
-							desc.cap = getStrokeLineCap();
-							desc.join = getStrokeLineJoin();
-							desc.miterLimit = getStrokeMiterLimit();
-							*pen = Pen::create(desc);
-						}
+						PenDesc desc;
+						desc.color = color;
+						desc.width = width;
+						desc.style = getStrokeDashArray().isNotNull() ? PenStyle::Dash : PenStyle::Solid;
+						desc.cap = getStrokeLineCap();
+						desc.join = getStrokeLineJoin();
+						desc.miterLimit = getStrokeMiterLimit();
+						*pen = Pen::create(desc);
 					}
 				}
+				pen.flagDefined = sl_true;
 				return *pen;
 			}
 
@@ -1168,10 +1161,7 @@ namespace slib
 				const Ref<Paint>& paint = getFill();
 				if (paint.isNotNull()) {
 					if (paint->type == PaintType::Color) {
-						if (brush.flagDefined) {
-							return *brush;
-						}
-						createColorBrush(*((ColorPaint*)(paint.get())));
+						createColorBrush(*((ColorPaint*)(paint.get())), param);
 					} else if (paint->type == PaintType::LinearGradient) {
 						createLinearGradientBrush(*((UrlPaint*)(paint.get())), param);
 					} else if (paint->type == PaintType::RadialGradient) {
@@ -1182,10 +1172,16 @@ namespace slib
 				return *brush;
 			}
 
-			void createColorBrush(ColorPaint& paint)
+			void createColorBrush(ColorPaint& paint, RenderParam& param)
 			{
 				Color color = paint.color;
+				color = param.drawParam->transformColor(color);
 				ApplyOpacity(color, getFinalOpacity() * getFillOpacity());
+				if (brush.flagDefined && brush.isNotNull()) {
+					if (brush->getColor() == color) {
+						return;
+					}
+				}
 				*brush = Brush::createSolidBrush(color);
 			}
 
@@ -1208,16 +1204,37 @@ namespace slib
 					pt1 = paint.transform.transformPosition(pt1);
 					pt2 = paint.transform.transformPosition(pt2);
 				}
+				ListElements<Color> stopColors(paint.stopColors.duplicate());
+				if (stopColors.count) {
+					Scalar opacity = getFinalOpacity() * getFillOpacity();
+					for (sl_size i = 0; i < stopColors.count; i++) {
+						stopColors[i] = param.drawParam->transformColor(stopColors[i]);
+						ApplyOpacity(stopColors[i], opacity);
+					}
+				} else {
+					return;
+				}
 				if (brush.flagDefined && brush.isNotNull()) {
 					BrushDesc& desc = brush->getDesc();
 					if (desc.style == BrushStyle::LinearGradient) {
 						GradientBrushDetail* detail = (GradientBrushDetail*)(desc.detail.get());
 						if (pt1.isAlmostEqual(detail->point1) && pt2.isAlmostEqual(detail->point2)) {
-							return;
+							do {
+								ListElements<Color> oldColors(detail->colors);
+								if (oldColors.count != stopColors.count) {
+									break;
+								}
+								for (sl_size i = 0; i < stopColors.count; i++) {
+									if (stopColors[i] != oldColors[i]) {
+										break;
+									}
+								}
+								return;
+							} while (0);
 						}
 					}
 				}
-				*brush = Brush::createLinearGradientBrush(pt1, pt2, (sl_uint32)(paint.stopColors.getCount()), paint.stopColors.getData(), paint.stopOffsets.getData());
+				*brush = Brush::createLinearGradientBrush(pt1, pt2, (sl_uint32)(stopColors.count), stopColors.data, paint.stopOffsets.getData());
 			}
 
 			void createRadialGradientBrush(UrlPaint& paint, RenderParam& param)
@@ -1238,16 +1255,37 @@ namespace slib
 					center = paint.transform.transformPosition(center);
 					r = paint.transform.transformDirection(Point(r, 0)).getLength();
 				}
+				ListElements<Color> stopColors(paint.stopColors.duplicate());
+				if (stopColors.count) {
+					Scalar opacity = getFinalOpacity() * getFillOpacity();
+					for (sl_size i = 0; i < stopColors.count; i++) {
+						stopColors[i] = param.drawParam->transformColor(stopColors[i]);
+						ApplyOpacity(stopColors[i], opacity);
+					}
+				} else {
+					return;
+				}
 				if (brush.flagDefined && brush.isNotNull()) {
 					BrushDesc& desc = brush->getDesc();
 					if (desc.style == BrushStyle::RadialGradient) {
 						GradientBrushDetail* detail = (GradientBrushDetail*)(desc.detail.get());
 						if (center.isAlmostEqual(detail->point1) && Math::isAlmostZero(detail->radius - r)) {
-							return;
+							do {
+								ListElements<Color> oldColors(detail->colors);
+								if (oldColors.count != stopColors.count) {
+									break;
+								}
+								for (sl_size i = 0; i < stopColors.count; i++) {
+									if (stopColors[i] != oldColors[i]) {
+										break;
+									}
+								}
+								return;
+							} while (0);
 						}
 					}
 				}
-				*brush = Brush::createRadialGradientBrush(center, r, (sl_uint32)(paint.stopColors.getCount()), paint.stopColors.getData(), paint.stopOffsets.getData());
+				*brush = Brush::createRadialGradientBrush(center, r, (sl_uint32)(stopColors.count), stopColors.data, paint.stopOffsets.getData());
 			}
 
 		};
@@ -1702,7 +1740,7 @@ namespace slib
 				}
 			}
 
-			void render(Canvas* canvas, const Rectangle& rectDraw)
+			void render(Canvas* canvas, const Rectangle& rectDraw, const Drawable::DrawParam& dp)
 			{
 				if (children.isEmpty()) {
 					return;
@@ -1711,6 +1749,7 @@ namespace slib
 					return;
 				}
 				RenderParam param;
+				param.drawParam = &dp;
 				param.containerWidth = viewBox.width;
 				param.containerHeight = viewBox.height;
 				Rectangle rectViewBox(viewBox.x, viewBox.y, viewBox.x + viewBox.width, viewBox.y + viewBox.height);
@@ -1977,14 +2016,14 @@ namespace slib
 		return ((Document*)(m_document.get()))->getSize(containerWidth, containerHeight);
 	}
 
-	void Svg::render(Canvas* canvas, const Rectangle& rectDraw)
+	void Svg::render(Canvas* canvas, const Rectangle& rectDraw, const DrawParam& param)
 	{
 		sl_bool flagAnitiAlias = canvas->isAntiAlias();
 		if (!flagAnitiAlias) {
 			canvas->setAntiAlias();
 		}
 		ObjectLocker locker(this);
-		((Document*)(m_document.get()))->render(canvas, rectDraw);
+		((Document*)(m_document.get()))->render(canvas, rectDraw, param);
 		if (!flagAnitiAlias) {
 			canvas->setAntiAlias(sl_false);
 		}
@@ -2023,7 +2062,7 @@ namespace slib
 
 	void Svg::onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param)
 	{
-		render(canvas, rectDst);
+		render(canvas, rectDst, param);
 	}
 
 }
