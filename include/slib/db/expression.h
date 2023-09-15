@@ -152,7 +152,7 @@ namespace slib
 	DatabaseExpression Count(const DatabaseExpression& e);
 	DatabaseExpression Sum(const DatabaseExpression& e);
 	DatabaseExpression Avg(const DatabaseExpression& e);
-	DatabaseExpression GroupConcat(const DatabaseExpression& e, const String& seperator = sl_null);
+	DatabaseExpression GroupConcat(const DatabaseExpression& e, const String& separator = sl_null);
 
 }
 
