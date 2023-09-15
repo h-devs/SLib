@@ -585,6 +585,7 @@ namespace slib
 			sl_int32 index = _getDividerIndexAtPoint(pt);
 			if (index >= 0) {
 				ev->setCursor(m_cursor);
+				ev->accept();
 				return;
 			}
 		}

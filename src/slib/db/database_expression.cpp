@@ -1002,9 +1002,9 @@ namespace slib
 		return new UnaryOpExpression(UnaryOp::AVG, e);
 	}
 
-	DatabaseExpression GroupConcat(const DatabaseExpression& e, const String& seperator)
+	DatabaseExpression GroupConcat(const DatabaseExpression& e, const String& separator)
 	{
-		return new BinaryOpExpression(BinaryOp::GROUP_CONCAT, e, DatabaseExpression::valueOf(seperator));
+		return new BinaryOpExpression(BinaryOp::GROUP_CONCAT, e, DatabaseExpression::valueOf(separator));
 	}
 
 }

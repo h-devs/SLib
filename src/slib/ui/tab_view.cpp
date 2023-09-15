@@ -715,6 +715,7 @@ namespace slib
 		sl_int32 index = _getTabIndexAt(ev->getPoint());
 		if (index >= 0) {
 			ev->setCursor(Cursor::getHand());
+			ev->accept();
 			return;
 		}
 		ViewGroup::onSetCursor(ev);

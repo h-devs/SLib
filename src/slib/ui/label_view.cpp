@@ -354,6 +354,7 @@ namespace slib
 			if (style.isNotNull()) {
 				if (style->flagLink) {
 					onClickLink(style->href, ev);
+					ev->accept();
 				}
 			}
 		}
@@ -367,6 +368,7 @@ namespace slib
 			if (style.isNotNull()) {
 				if (style->flagLink) {
 					ev->setCursor(Cursor::getHand());
+					ev->accept();
 				}
 			}
 		}
