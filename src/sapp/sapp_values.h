@@ -402,6 +402,7 @@ namespace slib
 	{
 	public:
 		sl_bool flagDefined = sl_false;
+		sl_bool flagNull = sl_false;
 		SAppPenStyleValue style;
 		SAppDimensionFloatValue width;
 		SAppColorValue color;
@@ -618,6 +619,7 @@ namespace slib
 
 		enum Type
 		{
+			NONE,
 			ARROW,
 			IBEAM,
 			CROSS,
@@ -625,7 +627,7 @@ namespace slib
 			RESIZE_LEFT_RIGHT,
 			RESIZE_UP_DOWN
 		};
-		int type = ARROW;
+		int type = NONE;
 
 	public:
 		String getAccessString() const;

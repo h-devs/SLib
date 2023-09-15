@@ -912,7 +912,9 @@ namespace slib
 			Text,
 			HyperText,
 			Numero,
-			Sort
+			Sort,
+			Icon,
+			Button
 		};
 		Creator creator = Creator::None;
 
@@ -920,13 +922,30 @@ namespace slib
 		SAppStringValue text;
 		SAppAlignmentValue align;
 		SAppFontValue font;
+		SAppCursorValue cursor;
+		SAppStringValue toolTip;
+		SAppDimensionValue padding;
+		SAppDimensionValue paddingLeft;
+		SAppDimensionValue paddingTop;
+		SAppDimensionValue paddingRight;
+		SAppDimensionValue paddingBottom;
 		SAppMultiLineModeValue multiLine;
 		SAppEllipsizeModeValue ellipsize;
 		SAppUint32Value lineCount;
 		SAppBooleanValue selectable;
 		SAppBooleanValue editable;
+		SAppBooleanValue defaultColorFilter;
+		SAppDimensionValue iconWidth;
+		SAppDimensionValue iconMargin;
+		SAppDimensionValue iconMarginLeft;
+		SAppDimensionValue iconMarginTop;
+		SAppDimensionValue iconMarginRight;
+		SAppDimensionValue iconMarginBottom;
+		SAppScaleModeValue iconScale;
+		SAppAlignmentValue iconAlign;
 		SAppStateMap<SAppDrawableValue> background;
 		SAppStateMap<SAppColorValue> textColor;
+		SAppStateMap<SAppDrawableValue> icon;
 
 		struct NumeroParam
 		{
@@ -951,6 +970,7 @@ namespace slib
 		SAppBooleanValue fixed;
 		SAppBooleanValue visible;
 		SAppBooleanValue resizable;
+		SAppBooleanValue grid;
 
 		SAppLayoutGridCellAttributes bodyAttrs;
 		SAppLayoutGridCellAttributes headerAttrs;
@@ -993,17 +1013,33 @@ namespace slib
 		SAppBorderValue leftGrid;
 		SAppBorderValue rightGrid;
 		SAppGridSelectionModeValue selection;
+		SAppBorderValue selectionBorder;
 		SAppBooleanValue sort;
 		SAppDrawableValue ascendingIcon;
 		SAppDrawableValue descendingIcon;
 		SAppDimensionValue sortIconSize;
 
+		SAppCursorValue cellCursor;
+		SAppDimensionValue cellPadding;
+		SAppDimensionValue cellPaddingLeft;
+		SAppDimensionValue cellPaddingTop;
+		SAppDimensionValue cellPaddingRight;
+		SAppDimensionValue cellPaddingBottom;
 		SAppMultiLineModeValue multiLine;
 		SAppEllipsizeModeValue ellipsize;
 		SAppUint32Value lineCount;
 		SAppAlignmentValue cellAlign;
 		SAppBooleanValue selectable;
 		SAppBooleanValue editable;
+		SAppBooleanValue defaultColorFilter;
+		SAppDimensionValue iconWidth;
+		SAppDimensionValue iconMargin;
+		SAppDimensionValue iconMarginLeft;
+		SAppDimensionValue iconMarginTop;
+		SAppDimensionValue iconMarginRight;
+		SAppDimensionValue iconMarginBottom;
+		SAppScaleModeValue iconScale;
+		SAppAlignmentValue iconAlign;
 		SAppStateMap<SAppDrawableValue> cellBackground;
 		SAppStateMap<SAppColorValue> textColor;
 

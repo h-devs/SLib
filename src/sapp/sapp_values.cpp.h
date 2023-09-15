@@ -1687,6 +1687,22 @@ namespace slib
 
 	sl_bool SAppBorderValue::parse(SAppLayoutXmlItem* item, const StringView& name, const StringView& suffix, SAppDocument* doc, sl_bool flagRoot)
 	{
+		{
+			String attr = String::concat(name, suffix);
+			String str = item->getXmlAttribute(attr);
+			if (str.isNotEmpty()) {
+				if (str.startsWith('@')) {
+					String v = str.substring(1).trim();
+					if (v == "null") {
+						flagDefined = sl_true;
+						flagNull = sl_true;
+						return sl_true;
+					}
+				}
+				doc->logError(item->element, g_str_error_resource_layout_attribute_invalid, attr, str);
+				return sl_false;
+			}
+		}
 		const Ref<XmlElement>& xml = item->element;
 		DEFINE_PARSE_SUBITEM(style, "Style")
 		DEFINE_PARSE_SUBITEM_DIMENSION(width, "Width", checkScalarSize)
@@ -2480,7 +2496,12 @@ namespace slib
 			return sl_true;
 		}
 		str = str.toLower();
-		if (str == "arrow") {
+		if (str == "@null") {
+			value.setNull();
+			type = NONE;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "arrow") {
 			value = Cursor::getArrow();
 			type = ARROW;
 			flagDefined = sl_true;

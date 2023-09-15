@@ -850,6 +850,10 @@ namespace slib
 
 	sl_bool SAppDocument::_getBorderAccessString(const String& localNamespace, const SAppBorderValue& value, String& result)
 	{
+		if (value.flagNull) {
+			result = "sl_null";
+			return sl_true;
+		}
 		String strStyle;
 		if (value.style.flagDefined) {
 			strStyle = value.style.getAccessString();
@@ -1594,14 +1598,23 @@ namespace slib
 	}
 #define LAYOUT_CONTROL_SIMULATE_BORDER(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined && LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR.width)) { \
-		PenDesc value; \
-		if (!(_getBorderValue(resource->name, VAR, value))) { \
-			return sl_false; \
-		} \
-		if (op == SAppLayoutOperation::SimulateLayout) { \
-			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, ITEM, None)); \
+		if (VAR.flagNull) { \
+			Ref<Pen> value; \
+			if (op == SAppLayoutOperation::SimulateLayout) { \
+				view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, ITEM, None)); \
+			} else { \
+				view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
+			} \
 		} else { \
-			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
+			PenDesc value; \
+			if (!(_getBorderValue(resource->name, VAR, value))) { \
+				return sl_false; \
+			} \
+			if (op == SAppLayoutOperation::SimulateLayout) { \
+				view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, ITEM, None)); \
+			} else { \
+				view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
+			} \
 		} \
 	}
 
@@ -2194,7 +2207,10 @@ namespace slib
 		if (flagView) {
 			SAppBooleanValue& border = attr->nativeBorder;
 			if (op == SAppLayoutOperation::Parse) {
-				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , border)
+				String value = GetXmlAttribute(*resourceItem, "border");
+				if (border.parse(value)) {
+					resourceItem->element->removeAttribute("border");
+				}
 			} else if (op == SAppLayoutOperation::Generate) {
 				LAYOUT_CONTROL_GENERATE_UI_ATTR(GENERIC, border, setBorder)
 			} else if (IsSimulateOp(op)) {
@@ -4413,6 +4429,8 @@ namespace slib
 			DEFINE_CHECK_GRID_CELL_CREATOR(HyperText, "hyper")
 			DEFINE_CHECK_GRID_CELL_CREATOR(Numero, "no")
 			DEFINE_CHECK_GRID_CELL_CREATOR(Sort, "sort")
+			DEFINE_CHECK_GRID_CELL_CREATOR(Icon, "icon")
+			DEFINE_CHECK_GRID_CELL_CREATOR(Button, "button")
 			return sl_false;
 		} while(0);
 		attr.creator = creator;
@@ -4441,6 +4459,10 @@ namespace slib
 				}
 			case SAppLayoutGridCell::Creator::Sort:
 				return "slib::GridView::SortCell::creator()";
+			case SAppLayoutGridCell::Creator::Icon:
+				return "slib::GridView::IconCell::creator()";
+			case SAppLayoutGridCell::Creator::Button:
+				return "slib::GridView::ButtonCell::creator()";
 			default:
 				return sl_null;
 		}
@@ -4461,6 +4483,10 @@ namespace slib
 				}
 			case SAppLayoutGridCell::Creator::Sort:
 				return GridView::SortCell::creator();
+			case SAppLayoutGridCell::Creator::Icon:
+				return GridView::IconCell::creator();
+			case SAppLayoutGridCell::Creator::Button:
+				return GridView::ButtonCell::creator();
 			default:
 				return sl_null;
 		}
@@ -4482,12 +4508,28 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, descendingIcon, setDescendingIcon)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, sortIconSize, setSortIconSize, checkScalarSize)
 		LAYOUT_CONTROL_ATTR(GENERIC, selection, setSelectionMode)
+		LAYOUT_CONTROL_UI_ATTR(BORDER, selectionBorder, setSelectionBorder)
+		LAYOUT_CONTROL_ATTR(GENERIC, cellCursor, setCellCursor)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, cellPadding, setCellPadding, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, cellPaddingLeft, setCellPaddingLeft, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, cellPaddingTop, setCellPaddingTop, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, cellPaddingRight, setCellPaddingRight, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, cellPaddingBottom, setCellPaddingBottom, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setCellMultiLine)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, ellipsize, setCellEllipsize)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, lineCount, setCellLineCount)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellAlign, setCellAlignment)
 		LAYOUT_CONTROL_ATTR(GENERIC, selectable, setCellSelectable)
 		LAYOUT_CONTROL_ATTR(GENERIC, editable, setCellEditable)
+		LAYOUT_CONTROL_ATTR(GENERIC, defaultColorFilter, setCellUsingDefaultColorFilter)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconWidth, setCellIconWidth, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMargin, setCellIconMargin, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMarginLeft, setCellIconMarginLeft, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMarginTop, setCellIconMarginTop, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMarginRight, setCellIconMarginRight, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMarginBottom, setCellIconMarginBottom, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, iconScale, setCellIconScaleMode)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, iconAlign, setCellIconAlignment)
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, cellBackground, setCellBackground)
 		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setCellTextColor)
 
@@ -4498,26 +4540,60 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(STRING, XML, ATTR., field) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., align) \
 				LAYOUT_CONTROL_PARSE_XML(FONT, XML, ATTR., font) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., cursor) \
+				LAYOUT_CONTROL_PARSE_XML(STRING, XML, ATTR., toolTip) \
+				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., padding, checkPosition) \
+				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., paddingLeft, checkPosition) \
+				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., paddingTop, checkPosition) \
+				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., paddingRight, checkPosition) \
+				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., paddingBottom, checkPosition) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., multiLine) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., ellipsize) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., lineCount) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., selectable) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., editable) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., defaultColorFilter) \
+				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., iconWidth, checkScalarSize) \
+				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., iconMargin, checkPosition) \
+				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., iconMarginLeft, checkPosition) \
+				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., iconMarginTop, checkPosition) \
+				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., iconMarginRight, checkPosition) \
+				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., iconMarginBottom, checkPosition) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., iconScale) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., iconAlign) \
 				LAYOUT_CONTROL_PARSE_STATE_MAP_XML(DRAWABLE, XML, ATTR., background) \
 				LAYOUT_CONTROL_PARSE_STATE_MAP_XML(COLOR, XML, ATTR., textColor) \
+				LAYOUT_CONTROL_PARSE_STATE_MAP_XML(DRAWABLE, XML, ATTR., icon) \
 			}
 #define LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(ATTR, XML, SECTION) \
 			{ \
 				LAYOUT_CONTROL_PARSE_STRING(XML, #SECTION "Field", , ATTR.field) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Align", , ATTR.align) \
 				LAYOUT_CONTROL_PARSE_FONT(XML, #SECTION "Font", , ATTR.font) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Cursor", , ATTR.cursor) \
+				LAYOUT_CONTROL_PARSE_STRING(XML, #SECTION "ToolTip", , ATTR.toolTip) \
+				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "Padding", , ATTR.padding, checkPosition) \
+				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "PaddingLeft", , ATTR.paddingLeft, checkPosition) \
+				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "PaddingTop", , ATTR.paddingTop, checkPosition) \
+				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "PaddingRight", , ATTR.paddingRight, checkPosition) \
+				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "PaddingBottom", , ATTR.paddingBottom, checkPosition) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "MultiLine", , ATTR.multiLine) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Ellipsize", , ATTR.ellipsize) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "LineCount", , ATTR.lineCount) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Selectable", , ATTR.selectable) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Editable", , ATTR.editable) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "DefaultColorFilter", , ATTR.defaultColorFilter) \
+				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "IconWidth", , ATTR.iconWidth, checkScalarSize) \
+				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "IconMargin", , ATTR.iconMargin, checkPosition) \
+				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "IconMarginLeft", , ATTR.iconMarginLeft, checkPosition) \
+				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "IconMarginTop", , ATTR.iconMarginTop, checkPosition) \
+				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "IconMarginRight", , ATTR.iconMarginRight, checkPosition) \
+				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "IconMarginBottom", , ATTR.iconMarginBottom, checkPosition) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "IconScale", , ATTR.iconScale) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "IconAlign", , ATTR.iconAlign) \
 				LAYOUT_CONTROL_PARSE_STATE_MAP(DRAWABLE, XML, #SECTION "Background", , ATTR.background) \
 				LAYOUT_CONTROL_PARSE_STATE_MAP(COLOR, XML, #SECTION "TextColor", , ATTR.textColor) \
+				LAYOUT_CONTROL_PARSE_STATE_MAP(DRAWABLE, XML, #SECTION "Icon", , ATTR.icon) \
 			}
 			{
 				LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(columnXmls, "column")
@@ -4537,6 +4613,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., fixed)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., visible)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., resizable)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., grid)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column, columnXml)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.bodyAttrs, columnXml, body)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.headerAttrs, columnXml, header)
@@ -4735,13 +4812,30 @@ namespace slib
 				LAYOUT_CONTROL_GENERATE_STRING(ATTR.text, set##PREFIX##Text, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.align, set##PREFIX##Alignment, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_FONT(ATTR.font, set##PREFIX##Font, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.cursor, set##PREFIX##Cursor, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_STRING(ATTR.toolTip, set##PREFIX##ToolTip, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.padding, set##PREFIX##Padding, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.paddingLeft, set##PREFIX##PaddingLeft, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.paddingTop, set##PREFIX##PaddingTop, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.paddingRight, set##PREFIX##PaddingRight, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.paddingBottom, set##PREFIX##PaddingBottom, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.multiLine, set##PREFIX##MultiLine, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.ellipsize, set##PREFIX##Ellipsize, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.selectable, set##PREFIX##Selectable, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.editable, set##PREFIX##Editable, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.defaultColorFilter, set##PREFIX##UsingDefaultColorFilter, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.iconWidth, set##PREFIX##IconWidth, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.iconMargin, set##PREFIX##IconMargin, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.iconMarginLeft, set##PREFIX##IconMarginLeft, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.iconMarginTop, set##PREFIX##IconMarginTop, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.iconMarginRight, set##PREFIX##IconMarginRight, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.iconMarginBottom, set##PREFIX##IconMarginBottom, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.iconScale, set##PREFIX##IconScaleMode, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.iconAlign, set##PREFIX##IconAlignment, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_STATE_MAP(DRAWABLE, ATTR.background, set##PREFIX##Background, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_STATE_MAP(COLOR, ATTR.textColor, set##PREFIX##TextColor, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_STATE_MAP(DRAWABLE, ATTR.icon, set##PREFIX##Icon, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 			}
 
 			{
@@ -4756,6 +4850,7 @@ namespace slib
 					LAYOUT_CONTROL_GENERATE_DIMENSION(column.width, setColumnWidth, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GENERIC(column.visible, setColumnVisible, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GENERIC(column.resizable, setColumnResizable, BASIC, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(column.grid, setColumnGrid, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Column, column, "%d, %s", iCol, value)
 				}
 			}
@@ -4823,13 +4918,30 @@ namespace slib
 				LAYOUT_CONTROL_SIMULATE_STRING(ATTR.text, set##PREFIX##Text, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.align, set##PREFIX##Alignment, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_FONT(ATTR.font, set##PREFIX##Font, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.cursor, set##PREFIX##Cursor, BASIC, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_STRING(ATTR.toolTip, set##PREFIX##ToolTip, BASIC, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.padding, set##PREFIX##Padding, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.paddingLeft, set##PREFIX##PaddingLeft, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.paddingTop, set##PREFIX##PaddingTop, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.paddingRight, set##PREFIX##PaddingRight, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.paddingBottom, set##PREFIX##PaddingBottom, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.multiLine, set##PREFIX##MultiLine, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.ellipsize, set##PREFIX##Ellipsize, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.selectable, set##PREFIX##Selectable, BASIC, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.editable, set##PREFIX##Editable, BASIC, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.defaultColorFilter, set##PREFIX##UsingDefaultColorFilter, BASIC, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.iconWidth, set##PREFIX##IconWidth, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.iconMargin, set##PREFIX##IconMargin, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.iconMarginLeft, set##PREFIX##IconMarginLeft, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.iconMarginTop, set##PREFIX##IconMarginTop, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.iconMarginRight, set##PREFIX##IconMarginRight, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.iconMarginBottom, set##PREFIX##IconMarginBottom, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.iconScale, set##PREFIX##IconScaleMode, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.iconAlign, set##PREFIX##IconAlignment, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_STATE_MAP(DRAWABLE, ATTR.background, set##PREFIX##Background, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_STATE_MAP(COLOR, ATTR.textColor, set##PREFIX##TextColor, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_STATE_MAP(DRAWABLE, ATTR.icon, set##PREFIX##Icon, ITEM, ##__VA_ARGS__, value) \
 			}
 
 			{
@@ -4840,6 +4952,7 @@ namespace slib
 					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.width, setColumnWidth, ITEM, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_GENERIC(column.visible, setColumnVisible, ITEM, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_GENERIC(column.resizable, setColumnResizable, BASIC, (sl_uint32)iCol, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(column.grid, setColumnGrid, ITEM, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Column, column, (sl_uint32)iCol)
 				}
 			}
