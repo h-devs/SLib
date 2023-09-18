@@ -929,7 +929,7 @@ namespace slib
 						szCommand = "Unknown";
 						break;
 				}
-				Log("Command Recieved: %s, Sender=%s", szCommand, address.toString());
+				Log("P2P", "Command Recieved: %s, Sender=%s", szCommand, address.toString());
 			}
 #endif
 
