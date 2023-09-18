@@ -159,9 +159,11 @@ namespace slib
 		Memory key; // [In, Out] If not initialized, socket will generate new key
 		sl_bool flagGeneratedKey; // [Out]
 
+		IPAddress bindAddress;
 		sl_uint16 port; // [In] Lobby port. We recommend you don't change `port` or `portCount`
 		sl_uint16 portCount; // [In] Socket will search unbound port from [port + 1, port+portCount]
 		sl_uint16 boundPort; // [Out] Bound port (UDP/TCP)
+		List<IPv4Address> broadcasterAddresses;
 
 		MemoryView helloPrefix; // [In] Hello Prefix
 		P2PMessage helloMessage; // [In] Hello Message

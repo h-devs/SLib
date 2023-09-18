@@ -40,17 +40,21 @@ namespace slib
 
 	List<IPv4Address> Network::findAllIPv4Addresses()
 	{
-		List<IPv4Address> list;
+		List<IPv4Address> ret;
 		ListElements<NetworkInterfaceInfo> devices(Network::findAllInterfaces());
 		for (sl_size i = 0; i < devices.count; i++) {
-			ListElements<IPv4AddressInfo> addrs(devices[i].addresses_IPv4);
-			for (sl_size k = 0; k < addrs.count; k++) {
-				if (addrs[k].address.isHost()) {
-					list.add_NoLock(addrs[k].address);
+			NetworkInterfaceInfo& device = devices[i];
+			if (device.flagUp) {
+				ListElements<IPv4AddressInfo> addresses(device.addresses_IPv4);
+				for (sl_size k = 0; k < addresses.count; k++) {
+					IPv4Address& ip = addresses[k].address;
+					if (ip.isHost()) {
+						ret.add_NoLock(ip);
+					}
 				}
 			}
 		}
-		return list;
+		return ret;
 	}
 
 	List<IPv4AddressInfo> Network::findAllIPv4AddressInfos()
