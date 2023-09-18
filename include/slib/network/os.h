@@ -41,6 +41,7 @@ namespace slib
 		MacAddress macAddress;
 		List<IPv4AddressInfo> addresses_IPv4;
 		List<IPv6Address> addresses_IPv6;
+		sl_bool flagUp;
 
 	public:
 		NetworkInterfaceInfo();

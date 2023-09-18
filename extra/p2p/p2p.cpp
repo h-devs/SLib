@@ -32,6 +32,7 @@
 #include <slib/core/dispatch_loop.h>
 #include <slib/core/system.h>
 #include <slib/core/scoped_buffer.h>
+#include <slib/core/log.h>
 #include <slib/crypto/aes.h>
 #include <slib/crypto/hkdf.h>
 #ifdef USE_CURVE448
@@ -41,6 +42,14 @@
 #endif
 #include <slib/data/expiring_map.h>
 #include <slib/device/cpu.h>
+
+#ifdef SLIB_DEBUG
+#define LOG_COMMANDS
+#endif
+
+#ifdef LOG_COMMANDS
+#define LOG_RECEIVE_COMMAND(COMMAND, ADDRESS) _logReceiveCommand(COMMAND, ADDRESS);
+#endif
 
 /*
 	P2P Socket Protocol
@@ -881,6 +890,49 @@ namespace slib
 			}
 
 		public:
+#ifdef LOG_COMMANDS
+			void _logReceiveCommand(Command command, const SocketAddress& address)
+			{
+				const char* szCommand = sl_null;
+				switch (command) {
+					case Command::Hello:
+						szCommand = "Hello";
+						break;
+					case Command::ReplyHello:
+						szCommand = "ReplyHello";
+						break;
+					case Command::FindNode:
+						szCommand = "FindNode";
+						break;
+					case Command::ReplyFindNode:
+						szCommand = "ReplyFindNode";
+						break;
+					case Command::ConnectNode:
+						szCommand = "ConnectNode";
+						break;
+					case Command::ReplyConnectNode:
+						szCommand = "ReplyConnectNode";
+						break;
+					case Command::Ping:
+						szCommand = "Ping";
+						break;
+					case Command::ReplyPing:
+						szCommand = "ReplyPing";
+						break;
+					case Command::Broadcast:
+						szCommand = "Broadcast";
+						break;
+					case Command::Datagram:
+						szCommand = "Datagram";
+						break;
+					default:
+						szCommand = "Unknown";
+						break;
+				}
+				Log("Command Recieved: %s, Sender=%s", szCommand, address.toString());
+			}
+#endif
+
 			void _sendUdp(const SocketAddress& address, sl_uint8* buf, sl_size size)
 			{
 				m_socketUdpActor->sendTo(address, buf, size);
@@ -901,15 +953,17 @@ namespace slib
 					ListElements<NetworkInterfaceInfo> interfaces(Network::findAllInterfaces());
 					for (sl_size i = 0; i < interfaces.count; i++) {
 						NetworkInterfaceInfo& iface = interfaces[i];
-						ListElements<IPv4AddressInfo> addresses(iface.addresses_IPv4);
-						for (sl_size j = 0; j < addresses.count; j++) {
-							IPv4Address& ip = addresses[j].address;
-							listIP.add_NoLock(ip);
-							auto socket = Socket::openUdp();
-							bindAddress.ip = ip;
-							if (socket.bind(bindAddress)) {
-								socket.setOption_Broadcast();
-								_sendUdp(targetAddress, buf, size);
+						if (iface.flagUp) {
+							ListElements<IPv4AddressInfo> addresses(iface.addresses_IPv4);
+							for (sl_size j = 0; j < addresses.count; j++) {
+								IPv4Address& ip = addresses[j].address;
+								listIP.add_NoLock(ip);
+								auto socket = Socket::openUdp();
+								bindAddress.ip = ip;
+								if (socket.bind(bindAddress)) {
+									socket.setOption_Broadcast();
+									_sendUdp(targetAddress, buf, size);
+								}
 							}
 						}
 					}
@@ -941,6 +995,7 @@ namespace slib
 					return;
 				}
 				Command cmd = (Command)(*packet);
+				LOG_RECEIVE_COMMAND(cmd, address)
 				switch (cmd) {
 					case Command::Hello:
 						_onReceiveHello(address, packet, sizePacket);
