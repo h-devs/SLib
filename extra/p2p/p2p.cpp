@@ -962,7 +962,7 @@ namespace slib
 								bindAddress.ip = ip;
 								if (socket.bind(bindAddress)) {
 									socket.setOption_Broadcast();
-									_sendUdp(targetAddress, buf, size);
+									socket.sendTo(targetAddress, buf, size);
 								}
 							}
 						}
