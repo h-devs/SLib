@@ -221,6 +221,8 @@ namespace slib
 
 		sl_bool bindAbstractDomain(const StringParam& name) const noexcept;
 
+		sl_bool bindToDevice(const StringParam& name) const noexcept;
+
 		sl_bool listen() const noexcept;
 
 		sl_bool accept(Socket& socket, SocketAddress& address) const noexcept;
@@ -346,8 +348,6 @@ namespace slib
 		sl_bool setOption_IncludeIpHeader(sl_bool flagEnable = sl_true) const noexcept;
 
 		sl_bool getOption_IncludeIpHeader() const noexcept;
-
-		sl_bool setOption_bindToDevice(const StringParam& ifname) const noexcept;
 
 		// multicast
 		// interface address may be null

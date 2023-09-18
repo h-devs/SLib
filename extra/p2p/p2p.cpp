@@ -890,20 +890,26 @@ namespace slib
 			{
 				// Send to other hosts
 				{
-					SocketAddress address;
-					address.port = m_portLobby;
+					SocketAddress bindAddress;
+					bindAddress.port = m_portActor;
+
+					SocketAddress targetAddress;
+					targetAddress.ip = IPv4Address::Broadcast;
+					targetAddress.port = m_portLobby;
+
 					List<IPv4Address> listIP;
-					ListElements<IPv4AddressInfo> addrs(Network::findAllIPv4AddressInfos());
-					for (sl_size i = 0; i < addrs.count; i++) {
-						IPv4Address& addr = addrs[i].address;
-						if (!(addr.isLoopback())) {
-							listIP.add_NoLock(addr);
-							sl_uint32 m = addr.getInt();
-							sl_uint32 n = addrs[i].networkPrefixLength;
-							if (n < 32) {
-								m = m | ((1 << (32 - n)) - 1);
-								address.ip = m;
-								_sendUdp(address, buf, size);
+					ListElements<NetworkInterfaceInfo> interfaces(Network::findAllInterfaces());
+					for (sl_size i = 0; i < interfaces.count; i++) {
+						NetworkInterfaceInfo& iface = interfaces[i];
+						ListElements<IPv4AddressInfo> addresses(iface.addresses_IPv4);
+						for (sl_size j = 0; j < addresses.count; j++) {
+							IPv4Address& ip = addresses[j].address;
+							listIP.add_NoLock(ip);
+							auto socket = Socket::openUdp();
+							bindAddress.ip = ip;
+							if (socket.bind(bindAddress)) {
+								socket.setOption_Broadcast();
+								_sendUdp(targetAddress, buf, size);
 							}
 						}
 					}
@@ -971,7 +977,7 @@ namespace slib
 				}
 			}
 
-			void _sendHello(sl_bool flagNeedReply)
+			void _sendHello(const SocketAddress* address, sl_bool flagNeedReply)
 			{
 				sl_uint8 packet[18 + sizeof(m_helloMessage)];
 				*packet = (sl_uint8)(Command::Hello);
@@ -982,7 +988,16 @@ namespace slib
 					sizeMessage = sizeof(m_helloMessage);
 				}
 				Base::copyMemory(packet + 18, m_helloMessage, sizeMessage);
-				_sendBroadcast(packet, 18 + sizeMessage);
+				if (address) {
+					_sendUdp(*address, packet, 18 + sizeMessage);
+				} else {
+					_sendBroadcast(packet, 18 + sizeMessage);
+				}
+			}
+
+			void _sendHello(sl_bool flagNeedReply)
+			{
+				_sendHello(sl_null, flagNeedReply);
 			}
 
 			void _onReceiveHello(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
@@ -1002,6 +1017,9 @@ namespace slib
 				_onReceiveHelloMessage(message);
 				if (flagNeedReply) {
 					_sendReplyHello(message.remoteAddress);
+				}
+				if (m_timerHello.isNull()) {
+					_sendHello(&(message.remoteAddress), sl_false);
 				}
 				Ref<Node> node = _getNode(message.senderId);
 				if (node.isNotNull()) {

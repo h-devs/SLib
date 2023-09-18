@@ -613,6 +613,16 @@ namespace slib
 		return bindDomain(name, sl_true);
 	}
 
+	sl_bool Socket::bindToDevice(const StringParam& _ifname) const noexcept
+	{
+#if defined(SLIB_PLATFORM_IS_LINUX)
+		StringCstr ifname(_ifname);
+		return setOption(SOL_SOCKET, SO_BINDTODEVICE, ifname.getData(), ifname.getLength());
+#else
+		return sl_false;
+#endif
+	}
+
 	sl_bool Socket::listen() const noexcept
 	{
 		if (isOpened()) {
@@ -1462,16 +1472,6 @@ namespace slib
 	sl_bool Socket::getOption_IncludeIpHeader() const noexcept
 	{
 		return getOption(IPPROTO_IP, IP_HDRINCL) != 0;
-	}
-
-	sl_bool Socket::setOption_bindToDevice(const StringParam& _ifname) const noexcept
-	{
-#if defined(SLIB_PLATFORM_IS_LINUX)
-		StringCstr ifname(_ifname);
-		return setOption(SOL_SOCKET, SO_BINDTODEVICE, ifname.getData(), ifname.getLength());
-#else
-		return sl_false;
-#endif
 	}
 
 	sl_bool Socket::setOption_IpAddMembership(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept

@@ -581,7 +581,7 @@ namespace slib
 				}
 			}
 			if (param.bindDevice.isNotNull()) {
-				if (!(socket.setOption_bindToDevice(param.bindDevice))) {
+				if (!(socket.bindToDevice(param.bindDevice))) {
 					if (param.flagLogError) {
 						LogError(TAG, "AsyncTcpSocket bind device error: %s, %s", param.bindDevice.toString(), Socket::getLastErrorMessage());
 					}

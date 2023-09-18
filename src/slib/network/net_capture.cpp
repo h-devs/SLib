@@ -181,7 +181,7 @@ namespace slib
 								Log(TAG, "Failed to set promiscuous mode to the network device: %s", deviceName);
 							}
 						}
-						if (!(socket.setOption_bindToDevice(deviceName))) {
+						if (!(socket.bindToDevice(deviceName))) {
 							Log(TAG, "Failed to bind the network device: %s", deviceName);
 						}
 					}
