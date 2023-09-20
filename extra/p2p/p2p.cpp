@@ -2073,7 +2073,13 @@ namespace slib
 
 				m_ioLoop->start();
 				m_dispatchLoop->start();
-				m_timerHello->start();
+
+				if (m_timerHello.isNotNull()) {
+					m_timerHello->start();
+				}
+				if (m_timerUpdateEphemeralKey.isNotNull()) {
+					m_timerUpdateEphemeralKey->start();
+				}
 
 				return sl_true;
 			}
