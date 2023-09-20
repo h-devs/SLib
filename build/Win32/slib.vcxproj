@@ -350,6 +350,7 @@
     <ClCompile Include="..\..\src\slib\platform\win32\com.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_bcrypt.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_d3d.cpp" />
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_dwmapi.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_gdiplus.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_iphlpapi.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_kernel32.cpp" />

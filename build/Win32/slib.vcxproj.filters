@@ -1346,5 +1346,8 @@
     <ClCompile Include="..\..\src\slib\crypto\curve448.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_dwmapi.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

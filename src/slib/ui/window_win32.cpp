@@ -28,6 +28,8 @@
 
 #include "view_win32.h"
 
+#include "slib/dl/win32/dwmapi.h"
+
 namespace slib
 {
 
@@ -105,6 +107,7 @@ namespace slib
 			sl_bool m_flagModal;
 			HWND m_hWndDisabledParent;
 
+			sl_bool m_flagTitleBar;
 			sl_bool m_flagResizable;
 			sl_bool m_flagLayered;
 			sl_uint8 m_alpha;
@@ -128,6 +131,7 @@ namespace slib
 				m_flagModal = sl_false;
 				m_hWndDisabledParent = NULL;
 
+				m_flagTitleBar = sl_false;
 				m_flagResizable = sl_false;
 				m_flagLayered = sl_false;
 				m_alpha = 255;
@@ -198,6 +202,14 @@ namespace slib
 					hInst,
 					NULL);
 
+				if ((style & WS_THICKFRAME) && (style & WS_CAPTION) != WS_CAPTION) {
+					auto api = dwmapi::getApi_DwmExtendFrameIntoClientArea();
+					if (api) {
+						dwmapi::MARGINS m = { -1 };
+						api(hWnd, &m);
+					}
+				}
+
 				return hWnd;
 			}
 
@@ -208,6 +220,12 @@ namespace slib
 				if (window) {
 					m_flagBorderless = window->isBorderless();
 					m_flagFullscreen = window->isFullScreen();
+					if (m_flagBorderless) {
+						m_flagTitleBar = sl_false;
+					} else {
+						m_flagTitleBar = window->isTitleBarVisible();
+					}
+					m_flagResizable = window->isResizable();
 					m_flagModal = window->isModal();
 					if (window->isDefaultBackgroundColor()) {
 						m_backgroundColor = window->getBackgroundColor();
@@ -434,27 +452,33 @@ namespace slib
 
 			void setMinimizeButtonEnabled(sl_bool flag) override
 			{
-				if (m_flagBorderless || m_flagFullscreen) {
+				if (m_flagFullscreen) {
 					return;
 				}
-				UIPlatform::setWindowStyle(m_handle, WS_MINIMIZEBOX, flag);
+				if (m_flagTitleBar) {
+					UIPlatform::setWindowStyle(m_handle, WS_MINIMIZEBOX, flag);
+				}
 			}
 
 			void setMaximizeButtonEnabled(sl_bool flag) override
 			{
-				if (m_flagBorderless || m_flagFullscreen) {
+				if (m_flagFullscreen) {
 					return;
 				}
-				UIPlatform::setWindowStyle(m_handle, WS_MAXIMIZEBOX, flag);
+				if (m_flagTitleBar) {
+					UIPlatform::setWindowStyle(m_handle, WS_MAXIMIZEBOX, flag);
+				}
 			}
 
 			void setResizable(sl_bool flag) override
 			{
 				m_flagResizable = flag;
-				if (m_flagBorderless || m_flagFullscreen) {
+				if (m_flagFullscreen) {
 					return;
 				}
-				UIPlatform::setWindowStyle(m_handle, WS_THICKFRAME, flag);
+				if (m_flagTitleBar) {
+					UIPlatform::setWindowStyle(m_handle, WS_THICKFRAME, flag);
+				}
 			}
 
 			void setLayered(sl_bool flag) override
@@ -740,41 +764,59 @@ namespace slib
 				if (!handle) {
 					return sl_false;
 				}
-				if (m_flagBorderless) {
-					if (m_flagResizable) {
-						short x = (short)(lParam & 0xFFFF);
-						short y = (short)((lParam >> 16) & 0xFFFF);
-						RECT rc = { 0 };
-						GetWindowRect(handle, &rc);
+				if (m_flagTitleBar) {
+					return sl_false;
+				}
+				if (m_flagResizable) {
+					short x = (short)(lParam & 0xFFFF);
+					short y = (short)((lParam >> 16) & 0xFFFF);
+					RECT rc = { 0 };
+					GetWindowRect(handle, &rc);
 #define BORDER_SIZE 4
-						rc.left += BORDER_SIZE;
-						rc.top += BORDER_SIZE;
-						rc.right -= BORDER_SIZE;
-						rc.bottom -= BORDER_SIZE;
-						if (x >= rc.right) {
-							if (y >= rc.bottom) {
-								result = HTBOTTOMRIGHT;
-							}
-							if (y <= rc.top) {
-								result = HTTOPRIGHT;
-							} else {
-								result = HTRIGHT;
-							}
-						} else if (x <= rc.left) {
-							if (y >= rc.bottom) {
-								result = HTBOTTOMLEFT;
-							} else if (y <= rc.top) {
-								result = HTTOPLEFT;
-							} else {
-								result = HTLEFT;
-							}
-						} else if (y >= rc.bottom) {
-							result = HTBOTTOM;
+					rc.left += BORDER_SIZE;
+					rc.top += BORDER_SIZE;
+					rc.right -= BORDER_SIZE;
+					rc.bottom -= BORDER_SIZE;
+					if (x >= rc.right) {
+						if (y >= rc.bottom) {
+							result = HTBOTTOMRIGHT;
 						} else if (y <= rc.top) {
-							result = HTTOP;
+							result = HTTOPRIGHT;
 						} else {
-							return sl_false;
+							result = HTRIGHT;
 						}
+					} else if (x <= rc.left) {
+						if (y >= rc.bottom) {
+							result = HTBOTTOMLEFT;
+						} else if (y <= rc.top) {
+							result = HTTOPLEFT;
+						} else {
+							result = HTLEFT;
+						}
+					} else if (y >= rc.bottom) {
+						result = HTBOTTOM;
+					} else if (y <= rc.top) {
+						result = HTTOP;
+					} else {
+						return sl_false;
+					}
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			sl_bool _onNcCalcSize(WPARAM wParam, LPARAM lParam, LRESULT& result)
+			{
+				HWND handle = m_handle;
+				if (!handle) {
+					return sl_false;
+				}
+				if (m_flagTitleBar || m_flagBorderless) {
+					return sl_false;
+				}
+				if (m_flagResizable) {
+					if (wParam) {
+						result = 0;
 						return sl_true;
 					}
 				}
@@ -787,18 +829,19 @@ namespace slib
 				if (!handle) {
 					return sl_false;
 				}
-				if (m_flagBorderless) {
-					MINMAXINFO* mmi = (MINMAXINFO*)lParam;
-					HMONITOR hMonitor = MonitorFromWindow(handle, MONITOR_DEFAULTTONEAREST);
-					if (hMonitor) {
-						MONITORINFO mi;
-						Base::zeroMemory(&mi, sizeof(mi));
-						mi.cbSize = sizeof(mi);
-						GetMonitorInfoW(hMonitor, &mi);
-						mmi->ptMaxSize.y = mi.rcWork.bottom - mi.rcWork.top;
-						result = 0;
-						return sl_true;
-					}
+				if (m_flagTitleBar) {
+					return sl_false;
+				}
+				MINMAXINFO* mmi = (MINMAXINFO*)lParam;
+				HMONITOR hMonitor = MonitorFromWindow(handle, MONITOR_DEFAULTTONEAREST);
+				if (hMonitor) {
+					MONITORINFO mi;
+					Base::zeroMemory(&mi, sizeof(mi));
+					mi.cbSize = sizeof(mi);
+					GetMonitorInfoW(hMonitor, &mi);
+					mmi->ptMaxSize.y = mi.rcWork.bottom - mi.rcWork.top;
+					result = 0;
+					return sl_true;
 				}
 				return sl_false;
 			}
@@ -924,6 +967,14 @@ namespace slib
 						{
 							LRESULT result;
 							if (window->_onNcHitTest(wParam, lParam, result)) {
+								return result;
+							}
+							break;
+						}
+					case WM_NCCALCSIZE:
+						{
+							LRESULT result;
+							if (window->_onNcCalcSize(wParam, lParam, result)) {
 								return result;
 							}
 							break;
