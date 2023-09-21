@@ -2009,6 +2009,11 @@ namespace slib
 			}
 
 		public:
+			sl_bool isOpened() override
+			{
+				return !m_flagClosed;
+			}
+
 			void close() override
 			{
 				if (m_flagClosed) {

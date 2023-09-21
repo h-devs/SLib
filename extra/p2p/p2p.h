@@ -206,6 +206,8 @@ namespace slib
 		static Ref<P2PSocket> open(P2PSocketParam& param);
 
 	public:
+		virtual sl_bool isOpened() = 0;
+
 		virtual void close() = 0;
 
 		virtual sl_bool start() = 0;
