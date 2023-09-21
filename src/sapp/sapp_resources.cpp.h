@@ -350,7 +350,11 @@ namespace slib
 			}
 			RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::from(e->getProperty("caller").getRef());
 			if (caller.isNotNull()) {
-				return caller->getXmlAttribute(name);
+				String value = caller->getXmlAttribute(name);
+				if (value.isNotNull()) {
+					return value;
+				}
+				return caller->getVariableValue(name);
 			}
 			e = e->getParentElement();
 		} while (e.isNotNull());
@@ -362,7 +366,7 @@ namespace slib
 		sl_size len = value.getLength();
 		if (!len) {
 			if (value.isNull()) {
-				if (element->getProperty("inherit").getBoolean()) {
+				if (!(name.startsWith(':')) && element->getProperty("inherit").getBoolean()) {
 					return getVariableValue(name);
 				}
 			}
