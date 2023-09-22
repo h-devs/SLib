@@ -367,7 +367,10 @@ namespace slib
 		if (!len) {
 			if (value.isNull()) {
 				if (!(name.startsWith(':')) && element->getProperty("inherit").getBoolean()) {
-					return getVariableValue(name);
+					RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::from(element->getProperty("caller").getRef());
+					if (caller.isNotNull()) {
+						return caller->getXmlAttribute(name);
+					}
 				}
 			}
 			return value;
