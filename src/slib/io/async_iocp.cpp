@@ -99,14 +99,9 @@ namespace slib
 			_stepBegin();
 
 			DWORD nCount = 0;
-
 			if (!fGetQueuedCompletionStatusEx(handle->hCompletionPort, entries, ASYNC_MAX_WAIT_EVENT, &nCount, 5000, FALSE)) {
 				nCount = 0;
 			}
-			if (m_queueInstancesClosed.isNotEmpty()) {
-				m_queueInstancesClosed.removeAll();
-			}
-
 			for (DWORD i = 0; m_flagRunning && i < nCount; i++) {
 				OVERLAPPED_ENTRY& entry = entries[i];
 				AsyncIoInstance* instance = (AsyncIoInstance*)(entry.lpCompletionKey);
@@ -115,6 +110,10 @@ namespace slib
 					desc.pOverlapped = entry.lpOverlapped;
 					instance->onEvent(&desc);
 				}
+			}
+
+			if (m_queueInstancesClosed.isNotEmpty()) {
+				m_queueInstancesClosed.removeAll();
 			}
 
 			if (m_flagRunning) {
