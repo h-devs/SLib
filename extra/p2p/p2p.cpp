@@ -645,7 +645,6 @@ namespace slib
 			ExpiringMap< P2PNodeId, Ref<Node> > m_mapNodes;
 			ExpiringMap<P2PNodeId, NodeCallbackContainer> m_mapFindCallbacks;
 
-			AtomicList<IPv4Address> m_listBroadcasterAddresses;
 			sl_uint16 m_portLocalhostMax = 0;
 
 		public:
@@ -793,21 +792,6 @@ namespace slib
 				setHelloMessage(param.helloMessage);
 				setConnectMessage(param.connectMessage);
 
-				if (param.bindAddress.isNotNone()) {
-					if (param.bindAddress.isIPv4()) {
-						IPv4Address address = param.bindAddress.getIPv4();
-						if (!(address.isLoopback())) {
-							m_listBroadcasterAddresses = List<IPv4Address>::createFromElement(address);
-						}
-					}
-				} else {
-					if (param.broadcasterAddresses.isNotNull()) {
-						m_listBroadcasterAddresses = param.broadcasterAddresses;
-					} else {
-						m_listBroadcasterAddresses = Network::findAllIPv4Addresses();
-					}
-				}
-
 				m_mapNodes.setupTimer(param.connectionTimeout, m_dispatchLoop);
 				m_mapFindCallbacks.setupTimer(param.findTimeout, m_dispatchLoop);
 
@@ -822,7 +806,7 @@ namespace slib
 
 					AsyncUdpSocketParam udpParam;
 					udpParam.ioLoop = m_ioLoop;
-					udpParam.flagBroadcast = sl_true;
+					udpParam.flagSendingBroadcast = sl_true;
 					udpParam.socket = Move(socketUdp);
 					udpParam.onReceiveFrom = [this](AsyncUdpSocket*, const SocketAddress& address, void* data, sl_uint32 size) {
 						_processReceivedUdp(address, (sl_uint8*)data, size);
@@ -888,8 +872,8 @@ namespace slib
 			{
 				Socket socket = Socket::openUdp();
 				if (socket.isNotNone()) {
-					socket.setOption_ReuseAddress();
-					socket.setOption_ReusePort();
+					socket.setReusingAddress();
+					socket.setReusingPort();
 					if (socket.bind(bindAddress)) {
 						return socket;
 					}
@@ -959,58 +943,55 @@ namespace slib
 				m_socketUdpActor->sendTo(address, buf, size);
 			}
 
-			void _sendBroadcast(sl_uint8* buf, sl_size size)
+			void _sendBroadcast(const IPv4Address& local, sl_uint8* buf, sl_size size)
 			{
 				SocketAddress targetAddress;
-				targetAddress.ip = IPv4Address::Broadcast;
+				targetAddress.ip.setIPv4(IPv4Address::Broadcast);
 				targetAddress.port = m_portLobby;
+				if (m_socketUdpActor->sendTo(local, targetAddress, buf, size)) {
+					return;
+				}
+				if (m_socketUdpActor->getLastError() == SocketError::NotSupported) {
+					auto socket = Socket::openUdp();
+					SocketAddress bindAddress;
+					bindAddress.port = m_portActor;
+					bindAddress.ip = local;
+					if (socket.bind(bindAddress)) {
+						socket.setSendingBroadcast();
+						socket.sendTo(targetAddress, buf, size);
+					}
+				}
+			}
 
+			void _sendBroadcast(sl_uint8* buf, sl_size size)
+			{
 				if (m_bindAddress.isNotNone()) {
 					if (m_bindAddress.isIPv4()) {
 						IPv4Address ip = m_bindAddress.getIPv4();
 						if (ip.isHost()) {
+							SocketAddress targetAddress;
+							targetAddress.ip.setIPv4(IPv4Address::Broadcast);
+							targetAddress.port = m_portLobby;
 							_sendUdp(targetAddress, buf, size);
 						}
 					}
 				} else {
-					SocketAddress bindAddress;
-					bindAddress.port = m_portActor;
-					SocketAddress targetAddress;
-					targetAddress.ip = IPv4Address::Broadcast;
-					targetAddress.port = m_portLobby;
 					if (m_broadcasterAddresses.isNotNull()) {
 						ListElements<IPv4Address> addresses(m_broadcasterAddresses);
 						for (sl_size i = 0; i < addresses.count; i++) {
-							IPv4Address& ip = addresses[i];
-							auto socket = Socket::openUdp();
-							bindAddress.ip = ip;
-							if (socket.bind(bindAddress)) {
-								socket.setOption_Broadcast();
-								socket.sendTo(targetAddress, buf, size);
-							}
+							_sendBroadcast(addresses[i], buf, size);
 						}
 					} else {
-						List<IPv4Address> broadcasters;
 						ListElements<NetworkInterfaceInfo> interfaces(Network::findAllInterfaces());
 						for (sl_size i = 0; i < interfaces.count; i++) {
 							NetworkInterfaceInfo& iface = interfaces[i];
-							if (iface.flagUp) {
+							if (iface.flagUp && !(iface.flagLoopback)) {
 								ListElements<IPv4AddressInfo> addresses(iface.addresses_IPv4);
 								for (sl_size j = 0; j < addresses.count; j++) {
-									IPv4Address& ip = addresses[j].address;
-									if (ip.isHost()) {
-										broadcasters.add_NoLock(ip);
-										auto socket = Socket::openUdp();
-										bindAddress.ip = ip;
-										if (socket.bind(bindAddress)) {
-											socket.setOption_Broadcast();
-											socket.sendTo(targetAddress, buf, size);
-										}
-									}
+									_sendBroadcast(addresses[j].address, buf, size);
 								}
 							}
 						}
-						m_listBroadcasterAddresses = Move(broadcasters);
 					}
 				}
 				// Send to localhost sockets
@@ -1033,9 +1014,6 @@ namespace slib
 			void _processReceivedUdp(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 			{
 				if (!sizePacket) {
-					return;
-				}
-				if (!(_isValidSenderAddress(address))) {
 					return;
 				}
 				Command cmd = (Command)(*packet);
@@ -1104,6 +1082,9 @@ namespace slib
 				if (sizePacket < 18) {
 					return;
 				}
+				if (Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId))) {
+					return;
+				}
 				P2PRequest message(packet + 18, sizePacket - 18);
 				message.senderId = P2PNodeId(packet + 1);
 				message.connectionType = P2PConnectionType::Direct;
@@ -1147,6 +1128,9 @@ namespace slib
 			void _onReceiveReplyHello(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 			{
 				if (sizePacket < 17) {
+					return;
+				}
+				if (Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId))) {
 					return;
 				}
 				P2PRequest message(packet + 17, sizePacket - 17);
@@ -1210,6 +1194,9 @@ namespace slib
 				if (sizePacket != 17) {
 					return;
 				}
+				if (Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId))) {
+					return;
+				}
 				P2PNodeId targetId(packet + 1);
 				_sendConnectNode(address, targetId);
 			}
@@ -1231,6 +1218,9 @@ namespace slib
 					return;
 				}
 				if (!(Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId)))) {
+					return;
+				}
+				if (Base::equalsMemory(m_localNodeId.data, packet + 17, sizeof(P2PNodeId))) {
 					return;
 				}
 				P2PNodeId remoteId(packet + 17);
@@ -1814,23 +1804,6 @@ namespace slib
 			}
 
 		public:
-			sl_bool _isBroadcasterAddress(const IPv4Address& ip)
-			{
-				return List<IPv4Address>(m_listBroadcasterAddresses).contains(ip);
-			}
-
-			sl_bool _isValidSenderAddress(const SocketAddress& address)
-			{
-				IPv4Address ip = address.ip.getIPv4();
-				if (ip.isLoopback()) {
-					return m_portActor != address.port;
-				}
-				if (_isBroadcasterAddress(ip)) {
-					return sl_false;
-				}
-				return sl_true;
-			}
-
 			void _deriveEncryptionKey(const sl_uint8 remoteEphemeralKey[EdDH::KeySize], sl_uint8 key[32])
 			{
 				DeriveKey(m_ephemeralKey.data, remoteEphemeralKey, key);

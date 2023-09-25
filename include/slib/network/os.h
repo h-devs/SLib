@@ -35,6 +35,7 @@ namespace slib
 	class SLIB_EXPORT NetworkInterfaceInfo
 	{
 	public:
+		sl_uint32 index;
 		String name;
 		String displayName;
 		String description;
@@ -42,6 +43,7 @@ namespace slib
 		List<IPv4AddressInfo> addresses_IPv4;
 		List<IPv6Address> addresses_IPv6;
 		sl_bool flagUp;
+		sl_bool flagLoopback;
 
 	public:
 		NetworkInterfaceInfo();
@@ -58,7 +60,7 @@ namespace slib
 		static List<NetworkInterfaceInfo> findAllInterfaces();
 
 
-		// used in L2PacketInfo::iface, and 0 is returned on error (wrapper of if_nametoindex call)
+		// 0 is returned on error (wrapper of if_nametoindex call)
 		static sl_uint32 getInterfaceIndexFromName(const StringParam& name);
 
 		// wrapper of if_indextoname

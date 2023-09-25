@@ -23,9 +23,11 @@
 package slib.android.network;
 
 public class NetworkDevice {
-
+	public int index;
 	public String name;
 	public String macAddress;
 	public String[] addresses_IPv4;
 	public String[] addresses_IPv6;
+	public boolean flagUp;
+	public boolean flagLoopback;
 }

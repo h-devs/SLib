@@ -34,6 +34,7 @@
 
 #	include <winsock2.h>
 #	include <ws2tcpip.h>
+#	include <mswsock.h>
 
 struct SOCKADDR_UN
 {
@@ -42,7 +43,12 @@ struct SOCKADDR_UN
 };
 
 #ifndef AF_UNIX
-#define AF_UNIX 1
+#	define AF_UNIX 1
+#endif
+
+#ifdef CMSG_DATA
+#	undef CMSG_DATA
+#	define CMSG_DATA WSA_CMSG_DATA
 #endif
 
 #	pragma comment(lib, "ws2_32.lib")
@@ -181,7 +187,7 @@ namespace slib
 		if (handle != SLIB_SOCKET_INVALID_HANDLE) {
 			Socket ret = handle;
 			if (isIPv6Type(type)) {
-				ret.setOption_IPv6Only(sl_false);
+				ret.setIPv6Only(sl_false);
 			}
 #if defined(SLIB_PLATFORM_IS_APPLE)
 			ret.setOption(SOL_SOCKET, SO_NOSIGPIPE, 1);
@@ -619,6 +625,7 @@ namespace slib
 		StringCstr ifname(_ifname);
 		return setOption(SOL_SOCKET, SO_BINDTODEVICE, ifname.getData(), ifname.getLength());
 #else
+		_setError(SocketError::NotSupported);
 		return sl_false;
 #endif
 	}
@@ -638,11 +645,15 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool Socket::isListening() const noexcept
+	{
+		return getOption(SOL_SOCKET, SO_ACCEPTCONN) != 0;
+	}
+
 	sl_bool Socket::accept(Socket& socketClient, SocketAddress& address) const noexcept
 	{
 		if (isOpened()) {
-			sockaddr_storage addr;
-			Base::zeroMemory(&addr, sizeof(addr));
+			sockaddr_storage addr = { 0 };
 			socklen_t len = sizeof(addr);
 			Socket client = ::accept(m_socket, (sockaddr*)&addr, &len);
 			if (client != SLIB_SOCKET_INVALID_HANDLE) {
@@ -671,8 +682,7 @@ namespace slib
 	sl_bool Socket::acceptDomain(Socket& socketClient, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract) const noexcept
 	{
 		if (isOpened()) {
-			SOCKADDR_UN addr;
-			Base::zeroMemory(&addr, sizeof(addr));
+			SOCKADDR_UN addr = { 0 };
 			socklen_t len = sizeof(addr);
 			Socket client = ::accept(m_socket, (sockaddr*)&addr, &len);
 			if (client != SLIB_SOCKET_INVALID_HANDLE) {
@@ -700,8 +710,7 @@ namespace slib
 	sl_bool Socket::acceptDomain(Socket& socketClient, String& outPath, sl_bool* pOutFlagAbstract) const noexcept
 	{
 		if (isOpened()) {
-			SOCKADDR_UN addr;
-			Base::zeroMemory(&addr, sizeof(addr));
+			SOCKADDR_UN addr = { 0 };
 			socklen_t len = sizeof(addr);
 			Socket client = ::accept(m_socket, (sockaddr*)&addr, &len);
 			if (client != SLIB_SOCKET_INVALID_HANDLE) {
@@ -954,6 +963,106 @@ namespace slib
 		return SLIB_IO_ERROR;
 	}
 
+	// set `interfaceInex` as zero when you don't specify the interface index
+	sl_int32 Socket::sendTo(sl_uint32 interfaceIndex, const IPAddress& src, const SocketAddress& dst, const void* buf, sl_size size) const noexcept
+	{
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+		static LPFN_WSASENDMSG fnSendMsg = NULL;
+		if (!fnSendMsg) {
+			SOCKET sock = socket(AF_INET, SOCK_DGRAM, 0);
+			if (sock != (SOCKET)-1) {
+				GUID guid = WSAID_WSASENDMSG;
+				DWORD dwBytes = 0;
+				LPFN_WSASENDMSG func;
+				if (WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(guid), &func, sizeof(func), &dwBytes, NULL, NULL) != SOCKET_ERROR) {
+					fnSendMsg = func;
+				}
+				closesocket(sock);
+			}
+			if (!fnSendMsg) {
+				_setError(SocketError::NotSupported);
+				return SLIB_IO_ERROR;
+			}
+		}
+#endif
+		if (!(isOpened())) {
+			_setError(SocketError::Closed);
+			return SLIB_IO_ERROR;
+		}
+		if (src.isNone()) {
+			_setError(SocketError::Invalid);
+			return SLIB_IO_ERROR;
+		}
+		sockaddr_storage addrDst;
+		int sizeDst = dst.getSystemSocketAddress(&addrDst);
+		if (!sizeDst) {
+			_setError(SocketError::Invalid);
+			return SLIB_IO_ERROR;
+		}
+		sl_bool flagIPv6 = src.isIPv6();
+		if (flagIPv6 != dst.ip.isIPv6()) {
+			_setError(SocketError::Invalid);
+			return SLIB_IO_ERROR;
+		}
+		sl_uint8 info[sizeof(in6_pktinfo)] = { 0 };
+		sl_uint32 sizeInfo;
+		in_pktinfo& info4 = *((in_pktinfo*)info);
+		in6_pktinfo& info6 = *((in6_pktinfo*)info);;
+		sl_uint8 cbuf[CMSG_SPACE(sizeof(info6))] = { 0 };
+		cmsghdr* cmsg = (cmsghdr*)cbuf;
+		if (flagIPv6) {
+			src.getIPv6().getBytes(&(info6.ipi6_addr));
+			info6.ipi6_ifindex = interfaceIndex;
+			sizeInfo = sizeof(info6);
+			cmsg->cmsg_level = IPPROTO_IPV6;
+			cmsg->cmsg_type = IPV6_PKTINFO;
+		} else {
+			src.getIPv4().getBytes(&(info4.ipi_addr));
+			info4.ipi_ifindex = interfaceIndex;
+			sizeInfo = sizeof(info4);
+			cmsg->cmsg_level = IPPROTO_IP;
+			cmsg->cmsg_type = IP_PKTINFO;
+		}
+		cmsg->cmsg_len = CMSG_LEN(sizeInfo);
+		sl_uint32 sizeControl = (sl_uint32)(CMSG_SPACE(sizeInfo));
+		Base::copyMemory(CMSG_DATA(cmsg), info, sizeInfo);
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+		WSAMSG msg = { 0 };
+		msg.name = (sockaddr*)&addrDst;
+		msg.namelen = (int)sizeDst;
+		WSABUF wbuf;
+		wbuf.buf = (CHAR*)buf;
+		wbuf.len = (ULONG)size;
+		msg.lpBuffers = &wbuf;
+		msg.dwBufferCount = 1;
+		msg.Control.buf = (CHAR*)cbuf;
+		msg.Control.len = (ULONG)sizeControl;
+		DWORD dwSent = 0;
+		if (fnSendMsg(m_socket, &msg, 0, &dwSent, NULL, NULL)) {
+			return _processError();
+		}
+		return (sl_int32)dwSent;
+#else
+		msghdr msg = { 0 };
+		msg.msg_name = (sockaddr*)&addrDst;
+		msg.msg_namelen = (socklen_t)sizeDst;
+		iovec iov;
+		iov.iov_base = (void*)buf;
+		iov.iov_len = (size_t)size;
+		msg.msg_iov = &iov;
+		msg.msg_iovlen = 1;
+		msg.msg_control = cbuf;
+		msg.msg_controllen = (socklen_t)sizeControl;
+		sl_int32 result = (sl_int32)(sendmsg(m_socket, &msg, 0));
+		return _processResult(result);
+#endif
+	}
+
+	sl_int32 Socket::sendTo(const IPAddress& src, const SocketAddress& dst, const void* buf, sl_size size) const noexcept
+	{
+		return sendTo(0, src, dst, buf, size);
+	}
+
 	sl_int32 Socket::sendToDomain(const StringParam& path, const void* buf, sl_size size, sl_bool flagAbstract) const noexcept
 	{
 		if (isOpened()) {
@@ -983,8 +1092,7 @@ namespace slib
 			if (!size) {
 				return SLIB_IO_EMPTY_CONTENT;
 			}
-			sockaddr_storage addr;
-			Base::zeroMemory(&addr, sizeof(addr));
+			sockaddr_storage addr = { 0 };
 			socklen_t lenAddr = sizeof(addr);
 			sl_int32 ret = (sl_int32)(::recvfrom(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, &lenAddr));
 			if (ret >= 0) {
@@ -995,10 +1103,101 @@ namespace slib
 					return SLIB_IO_ERROR;
 				}
 			}
-			return _processResult(ret);
+			return _processError();
 		} else {
 			_setError(SocketError::Closed);
 		}
+		return SLIB_IO_ERROR;
+	}
+
+	// setUsingPacketInformation (setUsingIPv6PacketInformation) is required
+	sl_int32 Socket::receiveFrom(sl_uint32& interfaceIndex, IPAddress& dst, SocketAddress& src, void* buf, sl_size _size) const noexcept
+	{
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+		static LPFN_WSARECVMSG fnRecvMsg = NULL;
+		if (!fnRecvMsg) {
+			SOCKET sock = socket(AF_INET, SOCK_DGRAM, 0);
+			if (sock != (SOCKET)-1) {
+				GUID guid = WSAID_WSARECVMSG;
+				DWORD dwBytes = 0;
+				LPFN_WSARECVMSG func;
+				if (WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(guid), &func, sizeof(func), &dwBytes, NULL, NULL) != SOCKET_ERROR) {
+					fnRecvMsg = func;
+				}
+				closesocket(sock);
+			}
+			if (!fnRecvMsg) {
+				_setError(SocketError::NotSupported);
+				return SLIB_IO_ERROR;
+			}
+		}
+#endif
+		if (!(isOpened())) {
+			_setError(SocketError::Closed);
+			return SLIB_IO_ERROR;
+		}
+		int size = (int)_size;
+		if (!size) {
+			return SLIB_IO_EMPTY_CONTENT;
+		}
+		sl_uint8 cbuf[1024];
+		sockaddr_storage addrSrc = { 0 };
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+		WSAMSG msg = { 0 };
+		WSABUF wbuf;
+		msg.name = (sockaddr*)&addrSrc;
+		msg.namelen = sizeof(addrSrc);
+		wbuf.buf = (CHAR*)buf;
+		wbuf.len = (ULONG)size;
+		msg.lpBuffers = &wbuf;
+		msg.dwBufferCount = 1;
+		msg.Control.buf = (CHAR*)cbuf;
+		msg.Control.len = sizeof(cbuf);
+		DWORD dwRecv = 0;
+		if (fnRecvMsg(m_socket, &msg, &dwRecv, NULL, NULL)) {
+			return _processError();
+		}
+		sl_uint32 sizeReceived = (sl_uint32)dwRecv;
+		sl_uint32 sizeSrc = (sl_uint32)(msg.namelen);
+#else
+		msghdr msg = { 0 };
+		msg.msg_name = (sockaddr*)&addrSrc;
+		msg.msg_namelen = sizeof(addrSrc);
+		iovec iov;
+		iov.iov_base = buf;
+		iov.iov_len = (size_t)size;
+		msg.msg_iov = &iov;
+		msg.msg_iovlen = 1;
+		msg.msg_control = cbuf;
+		msg.msg_controllen = sizeof(cbuf);
+		sl_int32 sizeReceived = (sl_int32)(recvmsg(m_socket, &msg, 0));
+		if (sizeReceived < 0) {
+			return _processError();
+		}
+		sl_uint32 sizeSrc = (sl_uint32)(msg.msg_namelen);
+#endif
+		if (!(src.setSystemSocketAddress(&addrSrc, sizeSrc))) {
+			_setError(SocketError::Invalid);
+			return SLIB_IO_ERROR;
+		}
+		cmsghdr* cmsg = CMSG_FIRSTHDR(&msg);
+		while (cmsg) {
+			if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_PKTINFO) {
+				in_pktinfo info;
+				Base::copyMemory(&info, CMSG_DATA(cmsg), sizeof(info));
+				interfaceIndex = (sl_uint32)(info.ipi_ifindex);
+				dst = IPv4Address((sl_uint8*)(&(info.ipi_addr)));
+				return sizeReceived;
+			} else if (cmsg->cmsg_level == IPPROTO_IPV6 && cmsg->cmsg_type == IPV6_PKTINFO) {
+				in6_pktinfo info;
+				Base::copyMemory(&info, CMSG_DATA(cmsg), sizeof(info));
+				interfaceIndex = (sl_uint32)(info.ipi6_ifindex);
+				dst = IPv6Address((sl_uint8*)(&(info.ipi6_addr)));
+				return sizeReceived;
+			}
+			cmsg = CMSG_NXTHDR(&msg, cmsg);
+		}
+		_setError(SocketError::NotSupported);
 		return SLIB_IO_ERROR;
 	}
 
@@ -1009,8 +1208,7 @@ namespace slib
 			if (!size) {
 				return SLIB_IO_EMPTY_CONTENT;
 			}
-			SOCKADDR_UN addr;
-			Base::zeroMemory(&addr, sizeof(addr));
+			SOCKADDR_UN addr = { 0 };
 			socklen_t lenAddr = sizeof(addr);
 			sl_int32 ret = (sl_int32)(::recvfrom(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, &lenAddr));
 			if (ret >= 0) {
@@ -1021,7 +1219,7 @@ namespace slib
 					return SLIB_IO_ERROR;
 				}
 			}
-			return _processResult(ret);
+			return _processError();
 		} else {
 			_setError(SocketError::Closed);
 		}
@@ -1035,8 +1233,7 @@ namespace slib
 			if (!size) {
 				return SLIB_IO_EMPTY_CONTENT;
 			}
-			SOCKADDR_UN addr;
-			Base::zeroMemory(&addr, sizeof(addr));
+			SOCKADDR_UN addr = { 0 };
 			socklen_t lenAddr = sizeof(addr);
 			sl_int32 ret = (sl_int32)(::recvfrom(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, &lenAddr));
 			if (ret >= 0) {
@@ -1047,7 +1244,7 @@ namespace slib
 					return SLIB_IO_ERROR;
 				}
 			}
-			return _processResult(ret);
+			return _processError();
 		} else {
 			_setError(SocketError::Closed);
 		}
@@ -1062,24 +1259,24 @@ namespace slib
 			if (!size) {
 				return SLIB_IO_EMPTY_CONTENT;
 			}
-			sockaddr_ll addr;
+			sockaddr_ll addr = { 0 };
 			addr.sll_family = AF_PACKET;
 			addr.sll_protocol = htons((sl_uint16)(info.protocol));
 			addr.sll_ifindex = info.iface;
-			addr.sll_hatype = 0;
 			addr.sll_pkttype = (unsigned char)(info.type);
 			sl_uint32 na = info.lenHardwareAddress;
 			if (na > 8) {
 				na = 8;
 			}
 			addr.sll_halen = na;
-			Base::zeroMemory(addr.sll_addr, 8);
 			Base::copyMemory(addr.sll_addr, info.hardwareAddress, na);
 			sl_int32 ret = (sl_int32)(::sendto(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, sizeof(addr)));
 			return _processResult(ret);
 		} else {
 			_setError(SocketError::Closed);
 		}
+#else
+		_setError(SocketError::NotSupported);
 #endif
 		return SLIB_IO_ERROR;
 	}
@@ -1092,8 +1289,7 @@ namespace slib
 			if (!size) {
 				return SLIB_IO_EMPTY_CONTENT;
 			}
-			sockaddr_ll addr;
-			Base::zeroMemory(&addr, sizeof(addr));
+			sockaddr_ll addr = { 0 };
 			socklen_t lenAddr = sizeof(addr);
 			sl_int32 ret = (sl_int32)(::recvfrom(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, &lenAddr));
 			if (ret >= 0) {
@@ -1113,10 +1309,12 @@ namespace slib
 					return SLIB_IO_ERROR;
 				}
 			}
-			return _processResult(ret);
+			return _processError();
 		} else {
 			_setError(SocketError::Closed);
 		}
+#else
+		_setError(SocketError::NotSupported);
 #endif
 		return SLIB_IO_ERROR;
 	}
@@ -1148,10 +1346,10 @@ namespace slib
 		return sl_false;
 	}
 
+#if defined(SLIB_PLATFORM_IS_LINUX)
 	namespace {
 		static sl_bool SetPromiscuousMode(sl_socket fd, const char* deviceName, sl_bool flagEnable) noexcept
 		{
-#if defined(SLIB_PLATFORM_IS_LINUX)
 			ifreq ifopts;
 			Base::copyString(ifopts.ifr_name, deviceName, IFNAMSIZ - 1);
 			int ret;
@@ -1168,14 +1366,13 @@ namespace slib
 				}
 			}
 			return sl_false;
-#else
-			return sl_false;
-#endif
 		}
 	}
+#endif
 
 	sl_bool Socket::setPromiscuousMode(const StringParam& _deviceName, sl_bool flagEnable) const noexcept
 	{
+#if defined(SLIB_PLATFORM_IS_LINUX)
 		if (isOpened()) {
 			StringCstr deviceName = _deviceName;
 			if (deviceName.isNotEmpty()) {
@@ -1184,6 +1381,9 @@ namespace slib
 				}
 			}
 		}
+#else
+		_setError(SocketError::NotSupported);
+#endif
 		return sl_false;
 	}
 
@@ -1293,6 +1493,7 @@ namespace slib
 		}
 		return sl_false;
 	}
+
 	sl_bool Socket::getOption(int level, int option, void* buf, sl_uint32 bufSize) const noexcept
 	{
 		if (isOpened()) {
@@ -1320,25 +1521,22 @@ namespace slib
 		}
 	}
 
-
-	sl_uint32 Socket::getOption_Error() const noexcept
+	sl_uint32 Socket::getSocketError() const noexcept
 	{
 		return getOption(SOL_SOCKET, SO_ERROR);
 	}
 
-
-	sl_bool Socket::setOption_Broadcast(sl_bool flagEnable) const noexcept
+	sl_bool Socket::setSendingBroadcast(sl_bool flagEnable) const noexcept
 	{
 		return setOption(SOL_SOCKET, SO_BROADCAST, flagEnable ? 1 : 0);
 	}
 
-	sl_bool Socket::getOption_Broadcast() const noexcept
+	sl_bool Socket::isSendingBroadcast() const noexcept
 	{
 		return getOption(SOL_SOCKET, SO_BROADCAST) != 0;
 	}
 
-
-	sl_bool Socket::setOption_ExclusiveAddressUse(sl_bool flagEnable) const noexcept
+	sl_bool Socket::setUsingExclusiveAddress(sl_bool flagEnable) const noexcept
 	{
 #ifdef SO_EXCLUSIVEADDRUSE
 		return setOption(SOL_SOCKET, SO_EXCLUSIVEADDRUSE, flagEnable ? 1 : 0);
@@ -1347,7 +1545,7 @@ namespace slib
 #endif
 	}
 
-	sl_bool Socket::getOption_ExclusiveAddressUse() const noexcept
+	sl_bool Socket::isUsingExclusiveAddress() const noexcept
 	{
 #ifdef SO_EXCLUSIVEADDRUSE
 		return getOption(SOL_SOCKET, SO_EXCLUSIVEADDRUSE) != 0;
@@ -1356,19 +1554,17 @@ namespace slib
 #endif
 	}
 
-
-	sl_bool Socket::setOption_ReuseAddress(sl_bool flagEnable) const noexcept
+	sl_bool Socket::setReusingAddress(sl_bool flagEnable) const noexcept
 	{
 		return setOption(SOL_SOCKET, SO_REUSEADDR, flagEnable ? 1 : 0);
 	}
 
-	sl_bool Socket::getOption_ReuseAddress() const noexcept
+	sl_bool Socket::isReusingAddress() const noexcept
 	{
 		return getOption(SOL_SOCKET, SO_REUSEADDR) != 0;
 	}
 
-
-	sl_bool Socket::setOption_ReusePort(sl_bool flagEnable) const noexcept
+	sl_bool Socket::setReusingPort(sl_bool flagEnable) const noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_ANDROID) || defined(SLIB_PLATFORM_IS_TIZEN)
 		return setOption(SOL_SOCKET, SO_REUSEADDR, flagEnable ? 1 : 0);
@@ -1377,7 +1573,7 @@ namespace slib
 #endif
 	}
 
-	sl_bool Socket::getOption_ReusePort() const noexcept
+	sl_bool Socket::isReusingPort() const noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_ANDROID) || defined(SLIB_PLATFORM_IS_TIZEN)
 		return getOption(SOL_SOCKET, SO_REUSEADDR) != 0;
@@ -1386,65 +1582,57 @@ namespace slib
 #endif
 	}
 
-
-	sl_bool Socket::setOption_SendBufferSize(sl_uint32 size) const noexcept
+	sl_bool Socket::setSendBufferSize(sl_uint32 size) const noexcept
 	{
 		return setOption(SOL_SOCKET, SO_SNDBUF, size);
 	}
 
-	sl_uint32 Socket::getOption_SendBufferSize() const noexcept
+	sl_uint32 Socket::getSendBufferSize() const noexcept
 	{
 		return getOption(SOL_SOCKET, SO_SNDBUF);
 	}
 
-
-	sl_bool Socket::setOption_ReceiveBufferSize(sl_uint32 size) const noexcept
+	sl_bool Socket::setReceiveBufferSize(sl_uint32 size) const noexcept
 	{
 		return setOption(SOL_SOCKET, SO_RCVBUF, size);
 	}
 
-	sl_uint32 Socket::getOption_ReceiveBufferSize() const noexcept
+	sl_uint32 Socket::getReceiveBufferSize() const noexcept
 	{
 		return getOption(SOL_SOCKET, SO_RCVBUF);
 	}
 
-
-	sl_bool Socket::setOption_SendTimeout(sl_uint32 size) const noexcept
+	sl_bool Socket::setSendTimeout(sl_uint32 size) const noexcept
 	{
-		// get is not supported
 		return setOption(SOL_SOCKET, SO_SNDTIMEO, size);
 	}
 
-	sl_bool Socket::setOption_ReceiveTimeout(sl_uint32 size) const noexcept
+	sl_bool Socket::setReceiveTimeout(sl_uint32 size) const noexcept
 	{
-		// get is not supported
 		return setOption(SOL_SOCKET, SO_RCVTIMEO, size);
 	}
 
-
-	sl_bool Socket::setOption_IPv6Only(sl_bool flagEnable) const noexcept
+	sl_bool Socket::setIPv6Only(sl_bool flagEnable) const noexcept
 	{
 		return setOption(IPPROTO_IPV6, IPV6_V6ONLY, flagEnable ? 1 : 0);
 	}
 
-	sl_bool Socket::getOption_IPv6Only() const noexcept
+	sl_bool Socket::isIPv6Only() const noexcept
 	{
 		return getOption(IPPROTO_IPV6, IPV6_V6ONLY) != 0;
 	}
 
-
-	sl_bool Socket::setOption_TcpNoDelay(sl_bool flagEnable) const noexcept
+	sl_bool Socket::setTcpNoDelay(sl_bool flagEnable) const noexcept
 	{
 		return setOption(IPPROTO_TCP, TCP_NODELAY, flagEnable ? 1 : 0);
 	}
 
-	sl_bool Socket::getOption_TcpNoDelay() const noexcept
+	sl_bool Socket::isTcpNoDelay() const noexcept
 	{
 		return getOption(IPPROTO_TCP, TCP_NODELAY) != 0;
 	}
 
-
-	sl_bool Socket::setOption_IpTTL(sl_uint32 ttl) const noexcept
+	sl_bool Socket::setTTL(sl_uint32 ttl) const noexcept
 	{
 		if (ttl > 255) {
 			return sl_false;
@@ -1452,29 +1640,42 @@ namespace slib
 		return setOption(IPPROTO_IP, IP_TTL, ttl);
 	}
 
-	sl_uint32 Socket::getOption_IpTTL() const noexcept
+	sl_uint32 Socket::getTTL() const noexcept
 	{
 		return getOption(IPPROTO_IP, IP_TTL);
 	}
 
-
-	sl_bool Socket::getOption_IsListening() const noexcept
-	{
-		return getOption(SOL_SOCKET, SO_ACCEPTCONN) != 0;
-	}
-
-
-	sl_bool Socket::setOption_IncludeIpHeader(sl_bool flagEnable) const noexcept
+	sl_bool Socket::setIncludingHeader(sl_bool flagEnable) const noexcept
 	{
 		return setOption(IPPROTO_IP, IP_HDRINCL, flagEnable ? 1 : 0);
 	}
 
-	sl_bool Socket::getOption_IncludeIpHeader() const noexcept
+	sl_bool Socket::isIncludingHeader() const noexcept
 	{
 		return getOption(IPPROTO_IP, IP_HDRINCL) != 0;
 	}
 
-	sl_bool Socket::setOption_IpAddMembership(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept
+	sl_bool Socket::setReceivingPacketInformation(sl_bool flagEnable) const noexcept
+	{
+		return setOption(IPPROTO_IP, IP_PKTINFO, flagEnable ? 1 : 0);
+	}
+
+	sl_bool Socket::isReceivingPacketInformation() const noexcept
+	{
+		return getOption(IPPROTO_IP, IP_PKTINFO) != 0;
+	}
+
+	sl_bool Socket::setReceivingIPv6PacketInformation(sl_bool flagEnable) const noexcept
+	{
+		return setOption(IPPROTO_IPV6, IPV6_PKTINFO, flagEnable ? 1 : 0);
+	}
+
+	sl_bool Socket::isReceivingIPv6PacketInformation() const noexcept
+	{
+		return getOption(IPPROTO_IPV6, IPV6_PKTINFO) != 0;
+	}
+
+	sl_bool Socket::joinMulticast(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept
 	{
 		ip_mreq mreq;
 		mreq.imr_multiaddr.s_addr = htonl(ipMulticast.getInt());
@@ -1482,7 +1683,23 @@ namespace slib
 		return setOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
 	}
 
-	sl_bool Socket::setOption_IpDropMembership(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept
+	sl_bool Socket::joinMulticast(const IPv4Address& ipMulticast, sl_uint32 interfaceIndex) const noexcept
+	{
+		ip_mreq mreq;
+		mreq.imr_multiaddr.s_addr = htonl(ipMulticast.getInt());
+		mreq.imr_interface.s_addr = htonl(interfaceIndex);
+		return setOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+	}
+
+	sl_bool Socket::joinMulticast(const IPv6Address& ipMulticast, sl_uint32 interfaceIndex) const noexcept
+	{
+		ipv6_mreq mreq;
+		ipMulticast.getBytes(&(mreq.ipv6mr_multiaddr));
+		mreq.ipv6mr_interface = interfaceIndex;
+		return setOption(IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+	}
+
+	sl_bool Socket::leaveMulticast(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept
 	{
 		ip_mreq mreq;
 		mreq.imr_multiaddr.s_addr = htonl(ipMulticast.getInt());
@@ -1490,17 +1707,43 @@ namespace slib
 		return setOption(IPPROTO_IP, IP_DROP_MEMBERSHIP, &mreq, sizeof(mreq));
 	}
 
-	sl_bool Socket::setOption_IpMulticastLoop(sl_bool flag) const noexcept
+	sl_bool Socket::leaveMulticast(const IPv4Address& ipMulticast, sl_uint32 interfaceIndex) const noexcept
+	{
+		ip_mreq mreq;
+		mreq.imr_multiaddr.s_addr = htonl(ipMulticast.getInt());
+		mreq.imr_interface.s_addr = htonl(interfaceIndex);
+		return setOption(IPPROTO_IP, IP_DROP_MEMBERSHIP, &mreq, sizeof(mreq));
+	}
+
+	sl_bool Socket::leaveMulticast(const IPv6Address& ipMulticast, sl_uint32 interfaceIndex) const noexcept
+	{
+		ipv6_mreq mreq;
+		ipMulticast.getBytes(&(mreq.ipv6mr_multiaddr));
+		mreq.ipv6mr_interface = interfaceIndex;
+		return setOption(IPPROTO_IPV6, IPV6_DROP_MEMBERSHIP, &mreq, sizeof(mreq));
+	}
+
+	sl_bool Socket::setMulticastLoop(sl_bool flag) const noexcept
 	{
 		return setOption(IPPROTO_IP, IP_MULTICAST_LOOP, flag ? 1 : 0);
 	}
 
-	sl_bool Socket::getOption_IpMulticastLoop() const noexcept
+	sl_bool Socket::isMulticastLoop() const noexcept
 	{
 		return getOption(IPPROTO_IP, IP_MULTICAST_LOOP) != 0;
 	}
 
-	sl_bool Socket::setOption_IpMulticastTTL(sl_uint32 ttl) const noexcept
+	sl_bool Socket::setIPv6MulticastLoop(sl_bool flag) const noexcept
+	{
+		return setOption(IPPROTO_IPV6, IPV6_MULTICAST_LOOP, flag ? 1 : 0);
+	}
+
+	sl_bool Socket::isIPv6MulticastLoop() const noexcept
+	{
+		return getOption(IPPROTO_IPV6, IPV6_MULTICAST_LOOP) != 0;
+	}
+
+	sl_bool Socket::setMulticastTTL(sl_uint32 ttl) const noexcept
 	{
 		if (ttl > 255) {
 			return sl_false;
@@ -1508,14 +1751,22 @@ namespace slib
 		return setOption(IPPROTO_IP, IP_MULTICAST_TTL, ttl);
 	}
 
-	sl_uint32 Socket::getOption_IpMulticastTTL() const noexcept
+	sl_uint32 Socket::getMulticastTTL() const noexcept
 	{
 		return getOption(IPPROTO_IP, IP_MULTICAST_TTL);
 	}
 
-	sl_bool Socket::isListening() const noexcept
+	sl_bool Socket::setIPv6MulticastTTL(sl_uint32 ttl) const noexcept
 	{
-		return getOption_IsListening();
+		if (ttl > 255) {
+			return sl_false;
+		}
+		return setOption(IPPROTO_IPV6, IPV6_MULTICAST_HOPS, ttl);
+	}
+
+	sl_uint32 Socket::getIPv6MulticastTTL() const noexcept
+	{
+		return getOption(IPPROTO_IPV6, IPV6_MULTICAST_HOPS);
 	}
 
 	void Socket::initializeSocket() noexcept
@@ -1598,9 +1849,11 @@ namespace slib
 		case SocketError::Interrupted:
 			SLIB_RETURN_STRING("EINTR - Operation is interrupted")
 		case SocketError::Closed:
-			SLIB_RETURN_STRING("Socket is closed")
+			SLIB_RETURN_STRING("Closed Socket")
 		case SocketError::UnexpectedResult:
-			SLIB_RETURN_STRING("Unexpected result")
+			SLIB_RETURN_STRING("Unexpected Result")
+		case SocketError::NotSupported:
+			SLIB_RETURN_STRING("Not Supported")
 		default:
 			break;
 		}
@@ -1822,15 +2075,20 @@ namespace slib
 			return ret;
 		} else {
 			if (ret) {
-				SocketError err = _checkError();
-				if (err == SocketError::WouldBlock || err == SocketError::Interrupted) {
-					return SLIB_IO_WOULD_BLOCK;
-				} else {
-					return SLIB_IO_ERROR;
-				}
+				return _processError();
 			} else {
 				return SLIB_IO_ENDED;
 			}
+		}
+	}
+
+	sl_int32 Socket::_processError() noexcept
+	{
+		SocketError err = _checkError();
+		if (err == SocketError::WouldBlock || err == SocketError::Interrupted) {
+			return SLIB_IO_WOULD_BLOCK;
+		} else {
+			return SLIB_IO_ERROR;
 		}
 	}
 

@@ -58,11 +58,11 @@ void LanTvClientApp::onStart()
 
 		socket.setNonBlockingMode(sl_true);
 		socket.bind(SocketAddress(UDP_PORT_AUDIO));
-		socket.setOption_Broadcast(sl_true);
-		socket.setOption_IpAddMembership(IPv4Address(MULTICAST_ADDR), IPv4Address::Any);
-		socket.setOption_IpMulticastLoop(sl_true);
-		socket.setOption_SendBufferSize(PACKET_SIZE);
-		socket.setOption_ReceiveBufferSize(PACKET_SIZE);
+		socket.joinMulticast(IPv4Address(MULTICAST_ADDR), IPv4Address::Any);
+		socket.setMulticastLoop(sl_true);
+		socket.setSendingBroadcast(sl_true);
+		socket.setSendBufferSize(PACKET_SIZE);
+		socket.setReceiveBufferSize(PACKET_SIZE);
 
 		auto event = SocketEvent::createRead(socket);
 
@@ -104,11 +104,11 @@ void LanTvClientApp::onStart()
 
 		socket.setNonBlockingMode(sl_true);
 		socket.bind(SocketAddress(UDP_PORT_VIDEO));
-		socket.setOption_Broadcast(sl_true);
-		socket.setOption_IpAddMembership(IPv4Address(MULTICAST_ADDR), IPv4Address::Any);
-		socket.setOption_IpMulticastLoop(sl_true);
-		socket.setOption_SendBufferSize(PACKET_SIZE);
-		socket.setOption_ReceiveBufferSize(PACKET_SIZE);
+		socket.joinMulticast(IPv4Address(MULTICAST_ADDR), IPv4Address::Any);
+		socket.setMulticastLoop(sl_true);
+		socket.setSendingBroadcast(sl_true);
+		socket.setSendBufferSize(PACKET_SIZE);
+		socket.setReceiveBufferSize(PACKET_SIZE);
 
 		auto event = SocketEvent::createRead(socket);
 

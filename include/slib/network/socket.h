@@ -130,6 +130,7 @@ namespace slib
 
 		Closed = 101,
 		UnexpectedResult = 102,
+		NotSupported = 103,
 
 		Unknown = 10000
 
@@ -221,9 +222,13 @@ namespace slib
 
 		sl_bool bindAbstractDomain(const StringParam& name) const noexcept;
 
+		// SO_BINDTODEVICE
 		sl_bool bindToDevice(const StringParam& name) const noexcept;
 
 		sl_bool listen() const noexcept;
+
+		// SO_ACCEPTCONN
+		sl_bool isListening() const noexcept; // read-only
 
 		sl_bool accept(Socket& socket, SocketAddress& address) const noexcept;
 
@@ -271,11 +276,17 @@ namespace slib
 
 		sl_int32 sendTo(const SocketAddress& address, const void* buf, sl_size size) const noexcept;
 
+		sl_int32 sendTo(sl_uint32 interfaceIndex, const IPAddress& src, const SocketAddress& dst, const void* buf, sl_size size) const noexcept;
+
+		sl_int32 sendTo(const IPAddress& src, const SocketAddress& dst, const void* buf, sl_size size) const noexcept;
+
 		sl_int32 sendToDomain(const StringParam& path, const void* buf, sl_size size, sl_bool flagAbstract = sl_false) const noexcept;
 
 		sl_int32 sendToAbstractDomain(const StringParam& name, const void* buf, sl_size size) const noexcept;
 
 		sl_int32 receiveFrom(SocketAddress& address, void* buf, sl_size size) const noexcept;
+
+		sl_int32 receiveFrom(sl_uint32& interfaceIndex, IPAddress& dst, SocketAddress& src, void* buf, sl_size size) const noexcept;
 
 		sl_int32 receiveFromDomain(void* buf, sl_size size, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
 
@@ -301,69 +312,85 @@ namespace slib
 
 		String getRemoteDomain(sl_bool* pOutFlagAbstract = sl_null) const noexcept;
 
-		sl_uint32 getOption_Error() const noexcept;
+		sl_uint32 getSocketError() const noexcept;
 
-		sl_bool setOption_Broadcast(sl_bool flagEnable = sl_true) const noexcept;
+		// SO_BROADCAST
+		sl_bool setSendingBroadcast(sl_bool flagEnable = sl_true) const noexcept;
+		sl_bool isSendingBroadcast() const noexcept;
 
-		sl_bool getOption_Broadcast() const noexcept;
+		// SO_EXCLUSIVEADDRUSE
+		sl_bool setUsingExclusiveAddress(sl_bool flagEnable = sl_true) const noexcept;
+		sl_bool isUsingExclusiveAddress() const noexcept;
 
-		sl_bool setOption_ExclusiveAddressUse(sl_bool flagEnable = sl_true) const noexcept;
+		// SO_REUSEADDR
+		sl_bool setReusingAddress(sl_bool flagEnable = sl_true) const noexcept;
+		sl_bool isReusingAddress() const noexcept;
 
-		sl_bool getOption_ExclusiveAddressUse() const noexcept;
+		// SO_REUSEPORT
+		sl_bool setReusingPort(sl_bool flagEnable = sl_true) const noexcept;
+		sl_bool isReusingPort() const noexcept;
 
-		sl_bool setOption_ReuseAddress(sl_bool flagEnable = sl_true) const noexcept;
+		// SO_SNDBUF
+		sl_bool setSendBufferSize(sl_uint32 size) const noexcept;
+		sl_uint32 getSendBufferSize() const noexcept;
 
-		sl_bool getOption_ReuseAddress() const noexcept;
+		// SO_RCVBUF
+		sl_bool setReceiveBufferSize(sl_uint32 size) const noexcept;
+		sl_uint32 getReceiveBufferSize() const noexcept;
 
-		sl_bool setOption_ReusePort(sl_bool flagEnable = sl_true) const noexcept;
+		// SO_SNDTIMEO
+		sl_bool setSendTimeout(sl_uint32 size) const noexcept; // write-only
 
-		sl_bool getOption_ReusePort() const noexcept;
+		// SO_RCVTIMEO
+		sl_bool setReceiveTimeout(sl_uint32 size) const noexcept; // write-only
 
-		sl_bool setOption_SendBufferSize(sl_uint32 size) const noexcept;
+		// IPV6_V6ONLY
+		sl_bool setIPv6Only(sl_bool flagEnable = sl_true) const noexcept;
+		sl_bool isIPv6Only() const noexcept;
 
-		sl_uint32 getOption_SendBufferSize() const noexcept;
+		// TCP_NODELAY
+		sl_bool setTcpNoDelay(sl_bool flagEnable = sl_true) const noexcept;
+		sl_bool isTcpNoDelay() const noexcept;
 
-		sl_bool setOption_ReceiveBufferSize(sl_uint32 size) const noexcept;
+		// IP_TTL
+		sl_bool setTTL(sl_uint32 ttl) const noexcept; // max: 255
+		sl_uint32 getTTL() const noexcept;
 
-		sl_uint32 getOption_ReceiveBufferSize() const noexcept;
+		// IP_HDRINCL
+		sl_bool setIncludingHeader(sl_bool flagEnable = sl_true) const noexcept;
+		sl_bool isIncludingHeader() const noexcept;
 
-		sl_bool setOption_SendTimeout(sl_uint32 size) const noexcept; // write-only
+		// IP_PKTINFO
+		sl_bool setReceivingPacketInformation(sl_bool flagEnable = sl_true) const noexcept;
+		sl_bool isReceivingPacketInformation() const noexcept;
 
-		sl_bool setOption_ReceiveTimeout(sl_uint32 size) const noexcept; // write-only
+		// IPV6_PKTINFO
+		sl_bool setReceivingIPv6PacketInformation(sl_bool flagEnable = sl_true) const noexcept;
+		sl_bool isReceivingIPv6PacketInformation() const noexcept;
 
-		sl_bool setOption_IPv6Only(sl_bool flagEnable = sl_true) const noexcept;
-
-		sl_bool getOption_IPv6Only() const noexcept;
-
-		sl_bool setOption_TcpNoDelay(sl_bool flagEnable = sl_true) const noexcept;
-
-		sl_bool getOption_TcpNoDelay() const noexcept;
-
-		sl_bool setOption_IpTTL(sl_uint32 ttl) const noexcept; // max - 255
-
-		sl_uint32 getOption_IpTTL() const noexcept;
-
-		sl_bool getOption_IsListening() const noexcept; // read-only
-
-		sl_bool setOption_IncludeIpHeader(sl_bool flagEnable = sl_true) const noexcept;
-
-		sl_bool getOption_IncludeIpHeader() const noexcept;
-
-		// multicast
-		// interface address may be null
-		sl_bool setOption_IpAddMembership(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept;
-
-		sl_bool setOption_IpDropMembership(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept;
-
-		sl_bool setOption_IpMulticastLoop(sl_bool flag = sl_true) const noexcept;
-
-		sl_bool getOption_IpMulticastLoop() const noexcept;
-
-		sl_bool setOption_IpMulticastTTL(sl_uint32 ttl = 1) const noexcept;
-
-		sl_uint32 getOption_IpMulticastTTL() const noexcept;
-
-		sl_bool isListening() const noexcept;
+		// Multicast (interface address may be null)
+		// IP_ADD_MEMBERSHIP
+		sl_bool joinMulticast(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept;
+		sl_bool joinMulticast(const IPv4Address& ipMulticast, sl_uint32 interfaceIndex) const noexcept;
+		// IPV6_ADD_MEMBERSHIP
+		sl_bool joinMulticast(const IPv6Address& ipMulticast, sl_uint32 interfaceIndex) const noexcept;
+		// IP_DROP_MEMBERSHIP
+		sl_bool leaveMulticast(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept;
+		sl_bool leaveMulticast(const IPv4Address& ipMulticast, sl_uint32 interfaceIndex) const noexcept;
+		// IPV6_DROP_MEMBERSHIP
+		sl_bool leaveMulticast(const IPv6Address& ipMulticast, sl_uint32 interfaceIndex) const noexcept;
+		// IP_MULTICAST_LOOP
+		sl_bool setMulticastLoop(sl_bool flag = sl_true) const noexcept;
+		sl_bool isMulticastLoop() const noexcept;
+		// IPV6_MULTICAST_LOOP
+		sl_bool setIPv6MulticastLoop(sl_bool flag = sl_true) const noexcept;
+		sl_bool isIPv6MulticastLoop() const noexcept;
+		// IP_MULTICAST_TTL
+		sl_bool setMulticastTTL(sl_uint32 ttl = 1) const noexcept;
+		sl_uint32 getMulticastTTL() const noexcept;
+		// IPV6_MULTICAST_HOPS
+		sl_bool setIPv6MulticastTTL(sl_uint32 ttl = 1) const noexcept;
+		sl_uint32 getIPv6MulticastTTL() const noexcept;
 
 	public:
 		static void initializeSocket() noexcept;
@@ -386,6 +413,7 @@ namespace slib
 		static SocketError _setError(SocketError code) noexcept;
 		static SocketError _checkError() noexcept;
 		static sl_int32 _processResult(sl_int32 result) noexcept;
+		static sl_int32 _processError() noexcept;
 
 		sl_bool setOption(int level, int option, const void* buf, sl_uint32 bufSize) const noexcept;
 		sl_bool getOption(int level, int option, void* buf, sl_uint32 bufSize) const noexcept;

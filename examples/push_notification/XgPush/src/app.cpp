@@ -88,7 +88,7 @@ void XgPushApp::addDevice(const String& device)
 void XgPushApp::startBroadcast()
 {
 	Shared<Socket> socket = Socket::openUdp();
-	socket->setOption_Broadcast(sl_true);
+	socket->setSendingBroadcast(sl_true);
 	socket->setNonBlockingMode(sl_true);
 	if (socket->bind(BROADCAST_PORT)) { // port number
 		timerSendBroadcast = Timer::start([this, socket](Timer*) {

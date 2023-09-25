@@ -361,7 +361,7 @@ namespace slib
 			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
 			if (ev.isNotNull()) {
 				if (ev->waitEvents(timeout) & SocketEvent::Write) {
-					if (getOption_Error() == 0) {
+					if (getSocketError() == 0) {
 						return sl_true;
 					}
 				}
@@ -377,7 +377,7 @@ namespace slib
 			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
 			if (ev.isNotNull()) {
 				if (ev->waitEvents(timeout) & SocketEvent::Write) {
-					if (getOption_Error() == 0) {
+					if (getSocketError() == 0) {
 						return sl_true;
 					}
 				}
@@ -393,7 +393,7 @@ namespace slib
 			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
 			if (ev.isNotNull()) {
 				if (ev->waitEvents(timeout) & SocketEvent::Write) {
-					if (getOption_Error() == 0) {
+					if (getSocketError() == 0) {
 						return sl_true;
 					}
 				}

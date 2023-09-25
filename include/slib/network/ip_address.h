@@ -269,6 +269,11 @@ namespace slib
 
 		sl_bool isLinkLocal() const noexcept;
 
+		static const IPv6Address& getMulticastToAny() noexcept
+		{
+			return *(reinterpret_cast<IPv6Address const*>(&_multicast_any));
+		}
+
 		IPv4Address getIPv4Transition() const noexcept;
 
 		void setIPv4Transition(const IPv4Address& ipv4) noexcept;
@@ -290,7 +295,7 @@ namespace slib
 	private:
 		static const sl_uint8 _zero[16];
 		static const sl_uint8 _loopback[16];
-		static const sl_uint8 _loopback_linkLocal[16];
+		static const sl_uint8 _multicast_any[16];
 
 	};
 

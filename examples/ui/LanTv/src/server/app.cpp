@@ -194,19 +194,19 @@ void LanTvServerApp::doRunServer()
 
 	socketAudio->setNonBlockingMode(sl_true);
 	socketAudio->bind(SocketAddress(UDP_PORT_AUDIO + 2));
-	socketAudio->setOption_Broadcast(sl_true);
-	socketAudio->setOption_IpAddMembership(IPv4Address(MULTICAST_ADDR), IPv4Address::Any);
-	socketAudio->setOption_IpMulticastLoop(sl_true);
-	socketAudio->setOption_SendBufferSize(PACKET_SIZE);
-	socketAudio->setOption_ReceiveBufferSize(PACKET_SIZE);
+	socketAudio->joinMulticast(IPv4Address(MULTICAST_ADDR), IPv4Address::Any);
+	socketAudio->setMulticastLoop(sl_true);
+	socketAudio->setSendingBroadcast(sl_true);
+	socketAudio->setSendBufferSize(PACKET_SIZE);
+	socketAudio->setReceiveBufferSize(PACKET_SIZE);
 
 	socketVideo->setNonBlockingMode(sl_true);
 	socketVideo->bind(SocketAddress(UDP_PORT_VIDEO + 2));
-	socketVideo->setOption_Broadcast(sl_true);
-	socketAudio->setOption_IpAddMembership(IPv4Address(MULTICAST_ADDR), IPv4Address::Any);
-	socketAudio->setOption_IpMulticastLoop(sl_true);
-	socketVideo->setOption_SendBufferSize(PACKET_SIZE);
-	socketVideo->setOption_ReceiveBufferSize(PACKET_SIZE);
+	socketAudio->joinMulticast(IPv4Address(MULTICAST_ADDR), IPv4Address::Any);
+	socketAudio->setMulticastLoop(sl_true);
+	socketVideo->setSendingBroadcast(sl_true);
+	socketVideo->setSendBufferSize(PACKET_SIZE);
+	socketVideo->setReceiveBufferSize(PACKET_SIZE);
 
 	while (Thread::isNotStoppingCurrent()) {
 		Thread::sleep(1000);

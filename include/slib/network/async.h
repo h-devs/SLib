@@ -172,7 +172,7 @@ namespace slib
 		StringParam bindDevice; // optional
 		SocketAddress bindAddress;
 		sl_bool flagIPv6; // default: false
-		sl_bool flagBroadcast; // default: false
+		sl_bool flagSendingBroadcast; // default: false
 		sl_bool flagAutoStart; // default: true
 		sl_bool flagLogError; // default: true
 		sl_uint32 packetSize; // default: 65536
@@ -212,7 +212,7 @@ namespace slib
 	public:
 		sl_socket getSocket();
 
-		void setBroadcast(sl_bool flag = sl_true);
+		void setSendingBroadcast(sl_bool flag = sl_true);
 
 		void setSendBufferSize(sl_uint32 size);
 
@@ -221,6 +221,16 @@ namespace slib
 		sl_bool sendTo(const SocketAddress& addressTo, const void* data, sl_size size);
 
 		sl_bool sendTo(const SocketAddress& addressTo, const MemoryView& mem);
+
+		sl_bool sendTo(sl_uint32 interfaceIndex, const IPAddress& src, const SocketAddress& dst, const void* data, sl_size size);
+
+		sl_bool sendTo(sl_uint32 interfaceIndex, const IPAddress& src, const SocketAddress& dst, const MemoryView& mem);
+
+		sl_bool sendTo(const IPAddress& src, const SocketAddress& dst, const void* data, sl_size size);
+
+		sl_bool sendTo(const IPAddress& src, const SocketAddress& dst, const MemoryView& mem);
+
+		SocketError getLastError();
 
 	protected:
 		Ref<AsyncUdpSocketInstance> _getIoInstance();

@@ -359,9 +359,9 @@ namespace slib
 				Socket socketUDP = Socket::openRaw(InternetProtocol::UDP);
 				Socket socketICMP = Socket::openRaw(InternetProtocol::ICMP);
 				if (socketTCP.isOpened() && socketUDP.isOpened() && socketICMP.isOpened()) {
-					socketTCP.setOption_IncludeIpHeader(sl_true);
-					socketUDP.setOption_IncludeIpHeader(sl_true);
-					socketICMP.setOption_IncludeIpHeader(sl_true);
+					socketTCP.setIncludingHeader(sl_true);
+					socketUDP.setIncludingHeader(sl_true);
+					socketICMP.setIncludingHeader(sl_true);
 					Memory mem = Memory::create(MAX_PACKET_SIZE);
 					if (mem.isNotNull()) {
 						Ref<RawIPv4Capture> ret = new RawIPv4Capture;

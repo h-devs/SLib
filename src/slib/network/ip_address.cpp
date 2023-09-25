@@ -363,7 +363,7 @@ namespace slib
 
 	SLIB_ALIGN(8) const sl_uint8 IPv6Address::_zero[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	SLIB_ALIGN(8) const sl_uint8 IPv6Address::_loopback[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
-	SLIB_ALIGN(8) const sl_uint8 IPv6Address::_loopback_linkLocal[16] = { 0xFE, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
+	SLIB_ALIGN(8) const sl_uint8 IPv6Address::_multicast_any[16] = { 0xFF, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
 
 	IPv6Address::IPv6Address() noexcept
 	{
@@ -482,7 +482,7 @@ namespace slib
 
 	sl_bool IPv6Address::isLoopback() const noexcept
 	{
-		return Base::equalsMemory(_loopback, m, 16) || Base::equalsMemory(_loopback_linkLocal, m, 16);
+		return Base::equalsMemory(_loopback, m, 16);
 	}
 
 	sl_bool IPv6Address::isLinkLocal() const noexcept

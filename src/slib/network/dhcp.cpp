@@ -212,7 +212,7 @@ namespace slib
 			up.bindAddress.port = param.port;
 			up.onReceiveFrom = SLIB_FUNCTION_WEAKREF(ret, _onReceiveFrom);
 			up.packetSize = 4096;
-			up.flagBroadcast = sl_true;
+			up.flagSendingBroadcast = sl_true;
 			up.flagAutoStart = sl_false;
 
 			Ref<AsyncUdpSocket> socket = AsyncUdpSocket::create(up);

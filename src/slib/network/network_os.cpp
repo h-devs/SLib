@@ -33,7 +33,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(NetworkInterfaceInfo)
 
-	NetworkInterfaceInfo::NetworkInterfaceInfo(): flagUp(sl_true)
+	NetworkInterfaceInfo::NetworkInterfaceInfo(): index(0), flagUp(sl_false), flagLoopback(sl_false)
 	{
 	}
 
@@ -44,7 +44,7 @@ namespace slib
 		ListElements<NetworkInterfaceInfo> devices(Network::findAllInterfaces());
 		for (sl_size i = 0; i < devices.count; i++) {
 			NetworkInterfaceInfo& device = devices[i];
-			if (device.flagUp) {
+			if (!(device.flagLoopback)) {
 				ListElements<IPv4AddressInfo> addresses(device.addresses_IPv4);
 				for (sl_size k = 0; k < addresses.count; k++) {
 					IPv4Address& ip = addresses[k].address;
@@ -62,10 +62,13 @@ namespace slib
 		List<IPv4AddressInfo> list;
 		ListElements<NetworkInterfaceInfo> devices(Network::findAllInterfaces());
 		for (sl_size i = 0; i < devices.count; i++) {
-			ListElements<IPv4AddressInfo> addrs(devices[i].addresses_IPv4);
-			for (sl_size k = 0; k < addrs.count; k++) {
-				if (addrs[k].address.isHost()) {
-					list.add_NoLock(addrs[k]);
+			NetworkInterfaceInfo& device = devices[i];
+			if (!(device.flagLoopback)) {
+				ListElements<IPv4AddressInfo> addrs(device.addresses_IPv4);
+				for (sl_size k = 0; k < addrs.count; k++) {
+					if (addrs[k].address.isHost()) {
+						list.add_NoLock(addrs[k]);
+					}
 				}
 			}
 		}
@@ -77,10 +80,13 @@ namespace slib
 		List<IPv6Address> list;
 		ListElements<NetworkInterfaceInfo> devices(Network::findAllInterfaces());
 		for (sl_size i = 0; i < devices.count; i++) {
-			ListElements<IPv6Address> addrs(devices[i].addresses_IPv6);
-			for (sl_size k = 0; k < addrs.count; k++) {
-				if (addrs[k].isNotZero() && !(addrs[k].isLoopback()) && !(addrs[k].isIPv4Transition())) {
-					list.add_NoLock(addrs[k]);
+			NetworkInterfaceInfo& device = devices[i];
+			if (!(device.flagLoopback)) {
+				ListElements<IPv6Address> addrs(device.addresses_IPv6);
+				for (sl_size k = 0; k < addrs.count; k++) {
+					if (addrs[k].isNotZero() && !(addrs[k].isLoopback()) && !(addrs[k].isIPv4Transition())) {
+						list.add_NoLock(addrs[k]);
+					}
 				}
 			}
 		}
@@ -198,15 +204,14 @@ namespace slib
 		}
 
 		List<NetworkInterfaceInfo> ret;
-
 		do {
-
 			NetworkInterfaceInfo device;
-
+			device.index = (sl_uint32)(adapter->IfIndex);
 			device.name = adapter->AdapterName;
 			device.displayName = String::create(adapter->FriendlyName);
 			device.description = String::create(adapter->Description);
 			device.flagUp = adapter->OperStatus == IfOperStatusUp;
+			device.flagLoopback = adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK;
 			IP_ADAPTER_UNICAST_ADDRESS* pip = adapter->FirstUnicastAddress;
 			while (pip) {
 				SocketAddress sa;
@@ -232,17 +237,13 @@ namespace slib
 				}
 				pip = pip->Next;
 			}
-
 			if (adapter->PhysicalAddressLength == 6) {
 				device.macAddress.setBytes(adapter->PhysicalAddress);
 			} else {
 				device.macAddress.setZero();
 			}
-
 			ret.add_NoLock(device);
-
 			adapter = adapter->Next;
-
 		} while (adapter);
 
 		return ret;
@@ -262,10 +263,13 @@ namespace slib
 	namespace {
 
 		SLIB_JNI_BEGIN_CLASS(JNetworkDevice, "slib/android/network/NetworkDevice")
+			SLIB_JNI_INT_FIELD(index);
 			SLIB_JNI_STRING_FIELD(name);
 			SLIB_JNI_STRING_FIELD(macAddress);
 			SLIB_JNI_OBJECT_FIELD(addresses_IPv4, "[Ljava/lang/String;");
 			SLIB_JNI_OBJECT_FIELD(addresses_IPv6, "[Ljava/lang/String;");
+			SLIB_JNI_BOOLEAN_FIELD(flagUp);
+			SLIB_JNI_BOOLEAN_FIELD(flagLoopback);
 		SLIB_JNI_END_CLASS
 
 		SLIB_JNI_BEGIN_CLASS(JNetworkAddress, "slib/android/network/Network")
@@ -285,6 +289,7 @@ namespace slib
 					JniLocal<jobject> jdev = Jni::getObjectArrayElement(jarr, i);
 					if (jdev.isNotNull()) {
 						NetworkInterfaceInfo dev;
+						dev.index = JNetworkDevice::index.get(jdev);
 						dev.name = JNetworkDevice::name.get(jdev);
 						dev.displayName = dev.name;
 						dev.macAddress.setZero();
@@ -303,7 +308,6 @@ namespace slib
 									}
 								}
 							}
-
 						}
 						JniLocal<jobjectArray> jarrIPv6 = JNetworkDevice::addresses_IPv6.get(jdev);
 						if (jarrIPv6.isNotNull()) {
@@ -319,6 +323,8 @@ namespace slib
 								}
 							}
 						}
+						dev.flagUp = JNetworkDevice::flagUp.get(jdev);
+						dev.flagLoopback = JNetworkDevice::flagLoopback.get(jdev);
 						ret.add_NoLock(dev);
 					}
 				}
@@ -350,7 +356,7 @@ namespace slib
 	{
 		HashMap<String, NetworkInterfaceInfo> ret;
 
-		struct ifaddrs * adapters = 0;
+		struct ifaddrs* adapters = 0;
 		getifaddrs(&adapters);
 
 		if (adapters) {
@@ -364,9 +370,12 @@ namespace slib
 				NetworkInterfaceInfo* pdev = ret.getItemPointer(name);
 				if (!pdev) {
 					NetworkInterfaceInfo dev;
+					dev.index = if_nametoindex(adapter->ifa_name);
 					dev.name = name;
 					dev.displayName = name;
 					dev.macAddress.setZero();
+					dev.flagUp = (adapter->ifa_flags & (IFF_UP | IFF_RUNNING)) != 0;
+					dev.flagLoopback = (adapter->ifa_flags & IFF_LOOPBACK) != 0;
 					ret.put_NoLock(name, dev);
 					pdev = ret.getItemPointer(name);
 				}

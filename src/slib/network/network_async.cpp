@@ -361,7 +361,7 @@ namespace slib
 			 *
 			 * http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t
 			 */
-			socket.setOption_ReuseAddress(sl_true);
+			socket.setReusingAddress(sl_true);
 #endif
 
 			if (!(socket.bind(param.bindAddress))) {
@@ -526,7 +526,7 @@ namespace slib
 	AsyncUdpSocketParam::AsyncUdpSocketParam()
 	{
 		flagIPv6 = sl_false;
-		flagBroadcast = sl_false;
+		flagSendingBroadcast = sl_false;
 		flagAutoStart = sl_true;
 		flagLogError = sl_false;
 		packetSize = 65536;
@@ -570,7 +570,7 @@ namespace slib
 			 *
 			 * http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t
 			 */
-			socket.setOption_ReuseAddress(sl_true);
+			socket.setReusingAddress(sl_true);
 #endif
 			if (param.bindAddress.ip.isNotNone() || param.bindAddress.port != 0) {
 				if (!(socket.bind(param.bindAddress))) {
@@ -589,8 +589,8 @@ namespace slib
 				}
 			}
 		}
-		if (param.flagBroadcast) {
-			socket.setOption_Broadcast(sl_true);
+		if (param.flagSendingBroadcast) {
+			socket.setSendingBroadcast(sl_true);
 		}
 
 		Ref<AsyncUdpSocketInstance> instance = _createInstance(Move(socket), param.packetSize);
@@ -656,11 +656,11 @@ namespace slib
 		return SLIB_SOCKET_INVALID_HANDLE;
 	}
 
-	void AsyncUdpSocket::setBroadcast(sl_bool flag)
+	void AsyncUdpSocket::setSendingBroadcast(sl_bool flag)
 	{
 		HandlePtr<Socket> socket(getSocket());
 		if (socket->isNotNone()) {
-			socket->setOption_Broadcast(flag);
+			socket->setSendingBroadcast(flag);
 		}
 	}
 
@@ -668,7 +668,7 @@ namespace slib
 	{
 		HandlePtr<Socket> socket(getSocket());
 		if (socket->isNotNone()) {
-			socket->setOption_SendBufferSize(size);
+			socket->setSendBufferSize(size);
 		}
 	}
 
@@ -676,7 +676,7 @@ namespace slib
 	{
 		HandlePtr<Socket> socket(getSocket());
 		if (socket->isNotNone()) {
-			socket->setOption_ReceiveBufferSize(size);
+			socket->setReceiveBufferSize(size);
 		}
 	}
 
@@ -692,6 +692,39 @@ namespace slib
 	sl_bool AsyncUdpSocket::sendTo(const SocketAddress& addressTo, const MemoryView& mem)
 	{
 		return sendTo(addressTo, mem.data, (sl_uint32)(mem.size));
+	}
+
+	sl_bool AsyncUdpSocket::sendTo(sl_uint32 interfaceIndex, const IPAddress& src, const SocketAddress& dst, const void* data, sl_size size)
+	{
+		HandlePtr<Socket> socket(getSocket());
+		if (socket->isNotNone()) {
+			return socket->sendTo(interfaceIndex, src, dst, data, size) == size;
+		}
+		return sl_false;
+	}
+
+	sl_bool AsyncUdpSocket::sendTo(sl_uint32 interfaceIndex, const IPAddress& src, const SocketAddress& dst, const MemoryView& mem)
+	{
+		return sendTo(interfaceIndex, src, dst, mem.data, (sl_uint32)(mem.size));
+	}
+
+	sl_bool AsyncUdpSocket::sendTo(const IPAddress& src, const SocketAddress& dst, const void* data, sl_size size)
+	{
+		return sendTo(0, src, dst, data, size);
+	}
+
+	sl_bool AsyncUdpSocket::sendTo(const IPAddress& src, const SocketAddress& dst, const MemoryView& mem)
+	{
+		return sendTo(0, src, dst, mem.data, (sl_uint32)(mem.size));
+	}
+
+	SocketError AsyncUdpSocket::getLastError()
+	{
+		HandlePtr<Socket> socket(getSocket());
+		if (socket->isNotNone()) {
+			return socket->getLastError();
+		}
+		return SocketError::Unknown;
 	}
 
 	Ref<AsyncUdpSocketInstance> AsyncUdpSocket::_getIoInstance()
