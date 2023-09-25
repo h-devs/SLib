@@ -89,10 +89,6 @@ namespace slib
 			timeout.tv_nsec = 0;
 			timeout.tv_sec = 5;
 			int nEvents = ::kevent(handle->kq, sl_null, 0, waitEvents, ASYNC_MAX_WAIT_EVENT, &timeout);
-			if (m_queueInstancesClosed.isNotEmpty()) {
-				m_queueInstancesClosed.removeAll();
-			}
-
 			for (int i = 0; m_flagRunning && i < nEvents; i++) {
 				struct kevent& ev = waitEvents[i];
 				AsyncIoInstance* instance = (AsyncIoInstance*)(ev.udata);
@@ -118,6 +114,10 @@ namespace slib
 				} else {
 					handle->eventWake->reset();
 				}
+			}
+
+			if (m_queueInstancesClosed.isNotEmpty()) {
+				m_queueInstancesClosed.removeAll();
 			}
 
 			if (m_flagRunning) {

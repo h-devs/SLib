@@ -94,9 +94,6 @@ namespace slib
 			_stepBegin();
 
 			int nEvents = epoll_wait(handle->fdEpoll, waitEvents, ASYNC_MAX_WAIT_EVENT, 5000);
-			if (m_queueInstancesClosed.isNotEmpty()) {
-				m_queueInstancesClosed.removeAll();
-			}
 			if (nEvents < 0) {
 				int err = errno;
 				if (err == EBADF || err == EFAULT || err == EINVAL) {
@@ -132,6 +129,10 @@ namespace slib
 				} else {
 					handle->eventWake->reset();
 				}
+			}
+
+			if (m_queueInstancesClosed.isNotEmpty()) {
+				m_queueInstancesClosed.removeAll();
 			}
 
 			if (m_flagRunning) {
