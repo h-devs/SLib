@@ -708,16 +708,6 @@ namespace slib
 		return sendTo(interfaceIndex, src, dst, mem.data, (sl_uint32)(mem.size));
 	}
 
-	sl_bool AsyncUdpSocket::sendTo(const IPAddress& src, const SocketAddress& dst, const void* data, sl_size size)
-	{
-		return sendTo(0, src, dst, data, size);
-	}
-
-	sl_bool AsyncUdpSocket::sendTo(const IPAddress& src, const SocketAddress& dst, const MemoryView& mem)
-	{
-		return sendTo(0, src, dst, mem.data, (sl_uint32)(mem.size));
-	}
-
 	Ref<AsyncUdpSocketInstance> AsyncUdpSocket::_getIoInstance()
 	{
 		return Ref<AsyncUdpSocketInstance>::from(AsyncIoObject::getIoInstance());

@@ -163,7 +163,7 @@ namespace slib
 		sl_uint16 port; // [In] Lobby port. We recommend you don't change `port` or `portCount`
 		sl_uint16 portCount; // [In] Socket will search unbound port from [port + 1, port+portCount]
 		sl_uint16 boundPort; // [Out] Bound port (UDP/TCP)
-		List<IPv4Address> broadcasterAddresses;
+		List< Pair<sl_uint32, IPv4Address> > broadcasters; // Pairs of interface index and address
 
 		MemoryView helloPrefix; // [In] Hello Prefix
 		P2PMessage helloMessage; // [In] Hello Message

@@ -226,10 +226,6 @@ namespace slib
 
 		sl_bool sendTo(sl_uint32 interfaceIndex, const IPAddress& src, const SocketAddress& dst, const MemoryView& mem);
 
-		sl_bool sendTo(const IPAddress& src, const SocketAddress& dst, const void* data, sl_size size);
-
-		sl_bool sendTo(const IPAddress& src, const SocketAddress& dst, const MemoryView& mem);
-
 	protected:
 		Ref<AsyncUdpSocketInstance> _getIoInstance();
 

@@ -628,7 +628,7 @@ namespace slib
 			sl_uint16 m_portLobby = 0;
 			sl_uint16 m_portActor = 0;
 			sl_uint16 m_portActorMax = 0;
-			List<IPv4Address> m_broadcasterAddresses;
+			List< Pair<sl_uint32, IPv4Address> > m_broadcasters;
 
 			Ref<AsyncUdpSocket> m_socketUdpLobby;
 			Ref<AsyncUdpSocket> m_socketUdpActor;
@@ -647,7 +647,7 @@ namespace slib
 			ExpiringMap<P2PNodeId, NodeCallbackContainer> m_mapFindCallbacks;
 
 			sl_uint16 m_portLocalhostMax = 0;
-			AtomicList<IPv4Address> m_lastBroadcasterAddresses;
+			AtomicList< Pair<sl_uint32, IPv4Address> > m_lastBroadcasters;
 			sl_uint32 m_lastTickUpdateBroadcasters = 0;
 
 		public:
@@ -795,19 +795,8 @@ namespace slib
 				setHelloMessage(param.helloMessage);
 				setConnectMessage(param.connectMessage);
 
-				if (param.bindAddress.isNotNone()) {
-					if (param.bindAddress.isIPv4()) {
-						IPv4Address address = param.bindAddress.getIPv4();
-						if (!(address.isLoopback())) {
-							m_lastBroadcasterAddresses = List<IPv4Address>::createFromElement(address);
-						}
-					}
-				} else {
-					if (param.broadcasterAddresses.isNotNull()) {
-						m_lastBroadcasterAddresses = param.broadcasterAddresses;
-					} else {
-						_updateBroadcasters();
-					}
+				if (param.bindAddress.isNone() && param.broadcasters.isNull()) {
+					_updateBroadcasters();
 				}
 
 				m_mapNodes.setupTimer(param.connectionTimeout, m_dispatchLoop);
@@ -820,7 +809,7 @@ namespace slib
 					m_portActor = param.boundPort;
 					m_portActorMax = param.port + param.portCount;
 					m_portLocalhostMax = param.boundPort - 1;
-					m_broadcasterAddresses = param.broadcasterAddresses;
+					m_broadcasters = param.broadcasters;
 
 					AsyncUdpSocketParam udpParam;
 					udpParam.ioLoop = m_ioLoop;
@@ -961,12 +950,12 @@ namespace slib
 				m_socketUdpActor->sendTo(address, buf, size);
 			}
 
-			void _sendBroadcast(const IPv4Address& local, sl_uint8* buf, sl_size size)
+			void _sendBroadcast(sl_uint32 interfaceIndex, const IPv4Address& local, sl_uint8* buf, sl_size size)
 			{
 				SocketAddress targetAddress;
 				targetAddress.ip.setIPv4(IPv4Address::Broadcast);
 				targetAddress.port = m_portLobby;
-				if (m_socketUdpActor->sendTo(local, targetAddress, buf, size)) {
+				if (m_socketUdpActor->sendTo(interfaceIndex, local, targetAddress, buf, size)) {
 					return;
 				}
 				if (Socket::getLastError() == SocketError::NotSupported) {
@@ -993,19 +982,19 @@ namespace slib
 							_sendUdp(targetAddress, buf, size);
 						}
 					}
+				} else if (m_broadcasters.isNotNull()) {
+					ListElements< Pair<sl_uint32, IPv4Address> > items(m_broadcasters);
+					for (sl_size i = 0; i < items.count; i++) {
+						Pair<sl_uint32, IPv4Address>& item = items[i];
+						_sendBroadcast(item.first, item.second, buf, size);
+					}
 				} else {
-					if (m_broadcasterAddresses.isNotNull()) {
-						ListElements<IPv4Address> addresses(m_broadcasterAddresses);
-						for (sl_size i = 0; i < addresses.count; i++) {
-							_sendBroadcast(addresses[i], buf, size);
-						}
-					} else {
-						_updateBroadcasters();
-						{
-							ListElements<IPv4Address> items(m_lastBroadcasterAddresses);
-							for (sl_size i = 0; i < items.count; i++) {
-								_sendBroadcast(items[i], buf, size);
-							}
+					_updateBroadcasters();
+					{
+						ListElements< Pair<sl_uint32, IPv4Address> > items(m_lastBroadcasters);
+						for (sl_size i = 0; i < items.count; i++) {
+							Pair<sl_uint32, IPv4Address>& item = items[i];
+							_sendBroadcast(item.first, item.second, buf, size);
 						}
 					}
 				}
@@ -1032,7 +1021,7 @@ namespace slib
 				if (CheckDelay(m_lastTickUpdateBroadcasters, now, DURATION_VALID_BROADCASTERS)) {
 					return;
 				}
-				List<IPv4Address> broadcasters;
+				List< Pair<sl_uint32, IPv4Address> > broadcasters;
 				ListElements<NetworkInterfaceInfo> interfaces(Network::findAllInterfaces());
 				for (sl_size i = 0; i < interfaces.count; i++) {
 					NetworkInterfaceInfo& iface = interfaces[i];
@@ -1040,11 +1029,11 @@ namespace slib
 						ListElements<IPv4AddressInfo> addresses(iface.addresses_IPv4);
 						for (sl_size j = 0; j < addresses.count; j++) {
 							IPv4Address& ip = addresses[j].address;
-							broadcasters.add_NoLock(ip);
+							broadcasters.add_NoLock(iface.index, ip);
 						}
 					}
 				}
-				m_lastBroadcasterAddresses = Move(broadcasters);
+				m_lastBroadcasters = Move(broadcasters);
 				m_lastTickUpdateBroadcasters = now;
 			}
 
@@ -1057,9 +1046,25 @@ namespace slib
 				if (ip.isLoopback()) {
 					return m_portActor != address.port;
 				}
+				if (m_bindAddress.isNotNone()) {
+					return m_bindAddress.getIPv4() != ip;
+				}
+				if (m_broadcasters.isNotNull()) {
+					ListElements< Pair<sl_uint32, IPv4Address> > items(m_broadcasters);
+					for (sl_size i = 0; i < items.count; i++) {
+						Pair<sl_uint32, IPv4Address>& item = items[i];
+						if (item.second == ip) {
+							return sl_false;
+						}
+					}
+				}
 				if (CheckDelay(m_lastTickUpdateBroadcasters, GetCurrentTick(), DURATION_VALID_BROADCASTERS * 2)) {
-					if (SLIB_GET_ATOMIC(m_lastBroadcasterAddresses).contains(ip)) {
-						return sl_false;
+					ListElements< Pair<sl_uint32, IPv4Address> > items(m_lastBroadcasters);
+					for (sl_size i = 0; i < items.count; i++) {
+						Pair<sl_uint32, IPv4Address>& item = items[i];
+						if (item.second == ip) {
+							return sl_false;
+						}
 					}
 				}
 				return sl_true;
