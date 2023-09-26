@@ -1021,7 +1021,11 @@ namespace slib
 			cmsg->cmsg_level = IPPROTO_IPV6;
 			cmsg->cmsg_type = IPV6_PKTINFO;
 		} else {
+#ifdef SLIB_PLATFORM_IS_WINDOWS
 			src.getIPv4().getBytes(&(info4.ipi_addr));
+#else
+			src.getIPv4().getBytes(&(info4.ipi_spec_dst));
+#endif
 			info4.ipi_ifindex = interfaceIndex;
 			sizeInfo = sizeof(info4);
 			cmsg->cmsg_level = IPPROTO_IP;
