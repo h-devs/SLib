@@ -1057,7 +1057,7 @@ namespace slib
 				if (ip.isLoopback()) {
 					return m_portActor != address.port;
 				}
-				if (CheckDelay(m_lastTickUpdateBroadcasters, GetCurrentTick(), DURATION_VALID_BROADCASTERS)) {
+				if (CheckDelay(m_lastTickUpdateBroadcasters, GetCurrentTick(), DURATION_VALID_BROADCASTERS * 2)) {
 					if (SLIB_GET_ATOMIC(m_lastBroadcasterAddresses).contains(ip)) {
 						return sl_false;
 					}
