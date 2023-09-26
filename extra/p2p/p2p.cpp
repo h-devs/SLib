@@ -46,10 +46,11 @@
 #ifdef SLIB_DEBUG
 #define LOG_COMMANDS
 #endif
-
 #ifdef LOG_COMMANDS
 #define LOG_RECEIVE_COMMAND(COMMAND, ADDRESS) _logReceiveCommand(COMMAND, ADDRESS);
 #endif
+
+#define DURATION_VALID_BROADCASTERS 10000
 
 /*
 	P2P Socket Protocol
@@ -647,7 +648,7 @@ namespace slib
 
 			sl_uint16 m_portLocalhostMax = 0;
 			AtomicList<IPv4Address> m_lastBroadcasterAddresses;
-			sl_uint64 m_lastTickUpdateBroadcasters = 0;
+			sl_uint32 m_lastTickUpdateBroadcasters = 0;
 
 		public:
 			P2PSocketImpl()
@@ -1025,25 +1026,10 @@ namespace slib
 				}
 			}
 
-			sl_bool _isValidBroadcastSender(const SocketAddress& address)
-			{
-				IPv4Address ip = address.ip.getIPv4();
-				if (ip.isZero()) {
-					return sl_false;
-				}
-				if (ip.isLoopback()) {
-					return m_portActor != address.port;
-				}
-				if (SLIB_GET_ATOMIC(m_lastBroadcasterAddresses).contains(ip)) {
-					return sl_false;
-				}
-				return sl_true;
-			}
-
 			void _updateBroadcasters()
 			{
-				sl_uint64 now = GetCurrentTick();
-				if (CheckDelay(m_lastTickUpdateBroadcasters, now, 10000)) {
+				sl_uint32 now = GetCurrentTick();
+				if (CheckDelay(m_lastTickUpdateBroadcasters, now, DURATION_VALID_BROADCASTERS)) {
 					return;
 				}
 				List<IPv4Address> broadcasters;
@@ -1059,6 +1045,24 @@ namespace slib
 					}
 				}
 				m_lastBroadcasterAddresses = Move(broadcasters);
+				m_lastTickUpdateBroadcasters = now;
+			}
+
+			sl_bool _isValidBroadcastSender(const SocketAddress& address)
+			{
+				IPv4Address ip = address.ip.getIPv4();
+				if (ip.isZero()) {
+					return sl_false;
+				}
+				if (ip.isLoopback()) {
+					return m_portActor != address.port;
+				}
+				if (CheckDelay(m_lastTickUpdateBroadcasters, GetCurrentTick(), DURATION_VALID_BROADCASTERS)) {
+					if (SLIB_GET_ATOMIC(m_lastBroadcasterAddresses).contains(ip)) {
+						return sl_false;
+					}
+				}
+				return sl_true;
 			}
 
 			void _processReceivedUdp(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
@@ -1067,6 +1071,17 @@ namespace slib
 					return;
 				}
 				Command cmd = (Command)(*packet);
+				switch (cmd) {
+					case Command::Hello:
+					case Command::FindNode:
+					case Command::Broadcast:
+						if (!(_isValidBroadcastSender(address))) {
+							return;
+						}
+						break;
+					default:
+						break;
+				};
 				LOG_RECEIVE_COMMAND(cmd, address)
 				switch (cmd) {
 					case Command::Hello:
@@ -1130,9 +1145,6 @@ namespace slib
 			void _onReceiveHello(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 			{
 				if (sizePacket < 18) {
-					return;
-				}
-				if (!(_isValidBroadcastSender(address))) {
 					return;
 				}
 				if (Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId))) {
@@ -1226,9 +1238,6 @@ namespace slib
 			void _onReceiveFindNode(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 			{
 				if (sizePacket != 17) {
-					return;
-				}
-				if (!(_isValidBroadcastSender(address))) {
 					return;
 				}
 				if (!(Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId)))) {
@@ -1451,9 +1460,6 @@ namespace slib
 			void _onReceiveBroadcast(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 			{
 				if (sizePacket <= 17) {
-					return;
-				}
-				if (!(_isValidBroadcastSender(address))) {
 					return;
 				}
 				if (Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId))) {
