@@ -79,6 +79,10 @@ typedef sockaddr_un SOCKADDR_UN;
 
 #endif
 
+#ifndef IPV6_RECVPKTINFO
+#define IPV6_RECVPKTINFO IPV6_PKTINFO
+#endif
+
 namespace slib
 {
 
@@ -1667,12 +1671,12 @@ namespace slib
 
 	sl_bool Socket::setReceivingIPv6PacketInformation(sl_bool flagEnable) const noexcept
 	{
-		return setOption(IPPROTO_IPV6, IPV6_PKTINFO, flagEnable ? 1 : 0);
+		return setOption(IPPROTO_IPV6, IPV6_RECVPKTINFO, flagEnable ? 1 : 0);
 	}
 
 	sl_bool Socket::isReceivingIPv6PacketInformation() const noexcept
 	{
-		return getOption(IPPROTO_IPV6, IPV6_PKTINFO) != 0;
+		return getOption(IPPROTO_IPV6, IPV6_RECVPKTINFO) != 0;
 	}
 
 	sl_bool Socket::joinMulticast(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept
