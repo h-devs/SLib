@@ -646,6 +646,8 @@ namespace slib
 			ExpiringMap<P2PNodeId, NodeCallbackContainer> m_mapFindCallbacks;
 
 			sl_uint16 m_portLocalhostMax = 0;
+			AtomicList<IPv4Address> m_lastBroadcasterAddresses;
+			sl_uint64 m_lastTickUpdateBroadcasters = 0;
 
 		public:
 			P2PSocketImpl()
@@ -791,6 +793,21 @@ namespace slib
 
 				setHelloMessage(param.helloMessage);
 				setConnectMessage(param.connectMessage);
+
+				if (param.bindAddress.isNotNone()) {
+					if (param.bindAddress.isIPv4()) {
+						IPv4Address address = param.bindAddress.getIPv4();
+						if (!(address.isLoopback())) {
+							m_lastBroadcasterAddresses = List<IPv4Address>::createFromElement(address);
+						}
+					}
+				} else {
+					if (param.broadcasterAddresses.isNotNull()) {
+						m_lastBroadcasterAddresses = param.broadcasterAddresses;
+					} else {
+						_updateBroadcasters();
+					}
+				}
 
 				m_mapNodes.setupTimer(param.connectionTimeout, m_dispatchLoop);
 				m_mapFindCallbacks.setupTimer(param.findTimeout, m_dispatchLoop);
@@ -951,7 +968,7 @@ namespace slib
 				if (m_socketUdpActor->sendTo(local, targetAddress, buf, size)) {
 					return;
 				}
-				if (m_socketUdpActor->getLastError() == SocketError::NotSupported) {
+				if (Socket::getLastError() == SocketError::NotSupported) {
 					auto socket = Socket::openUdp();
 					SocketAddress bindAddress;
 					bindAddress.port = m_portActor;
@@ -982,14 +999,11 @@ namespace slib
 							_sendBroadcast(addresses[i], buf, size);
 						}
 					} else {
-						ListElements<NetworkInterfaceInfo> interfaces(Network::findAllInterfaces());
-						for (sl_size i = 0; i < interfaces.count; i++) {
-							NetworkInterfaceInfo& iface = interfaces[i];
-							if (iface.flagUp && !(iface.flagLoopback)) {
-								ListElements<IPv4AddressInfo> addresses(iface.addresses_IPv4);
-								for (sl_size j = 0; j < addresses.count; j++) {
-									_sendBroadcast(addresses[j].address, buf, size);
-								}
+						_updateBroadcasters();
+						{
+							ListElements<IPv4Address> items(m_lastBroadcasterAddresses);
+							for (sl_size i = 0; i < items.count; i++) {
+								_sendBroadcast(items[i], buf, size);
 							}
 						}
 					}
@@ -1009,6 +1023,42 @@ namespace slib
 					}
 #endif
 				}
+			}
+
+			sl_bool _isValidBroadcastSender(const SocketAddress& address)
+			{
+				IPv4Address ip = address.ip.getIPv4();
+				if (ip.isZero()) {
+					return sl_false;
+				}
+				if (ip.isLoopback()) {
+					return m_portActor != address.port;
+				}
+				if (SLIB_GET_ATOMIC(m_lastBroadcasterAddresses).contains(ip)) {
+					return sl_false;
+				}
+				return sl_true;
+			}
+
+			void _updateBroadcasters()
+			{
+				sl_uint64 now = GetCurrentTick();
+				if (CheckDelay(m_lastTickUpdateBroadcasters, now, 10000)) {
+					return;
+				}
+				List<IPv4Address> broadcasters;
+				ListElements<NetworkInterfaceInfo> interfaces(Network::findAllInterfaces());
+				for (sl_size i = 0; i < interfaces.count; i++) {
+					NetworkInterfaceInfo& iface = interfaces[i];
+					if (iface.flagUp && !(iface.flagLoopback)) {
+						ListElements<IPv4AddressInfo> addresses(iface.addresses_IPv4);
+						for (sl_size j = 0; j < addresses.count; j++) {
+							IPv4Address& ip = addresses[j].address;
+							broadcasters.add_NoLock(ip);
+						}
+					}
+				}
+				m_lastBroadcasterAddresses = Move(broadcasters);
 			}
 
 			void _processReceivedUdp(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
@@ -1080,6 +1130,9 @@ namespace slib
 			void _onReceiveHello(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 			{
 				if (sizePacket < 18) {
+					return;
+				}
+				if (!(_isValidBroadcastSender(address))) {
 					return;
 				}
 				if (Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId))) {
@@ -1173,6 +1226,9 @@ namespace slib
 			void _onReceiveFindNode(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 			{
 				if (sizePacket != 17) {
+					return;
+				}
+				if (!(_isValidBroadcastSender(address))) {
 					return;
 				}
 				if (!(Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId)))) {
@@ -1395,6 +1451,12 @@ namespace slib
 			void _onReceiveBroadcast(const SocketAddress& address, sl_uint8* packet, sl_uint32 sizePacket)
 			{
 				if (sizePacket <= 17) {
+					return;
+				}
+				if (!(_isValidBroadcastSender(address))) {
+					return;
+				}
+				if (Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId))) {
 					return;
 				}
 				P2PRequest request(packet + 17, sizePacket - 17);

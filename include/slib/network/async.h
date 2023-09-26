@@ -230,8 +230,6 @@ namespace slib
 
 		sl_bool sendTo(const IPAddress& src, const SocketAddress& dst, const MemoryView& mem);
 
-		SocketError getLastError();
-
 	protected:
 		Ref<AsyncUdpSocketInstance> _getIoInstance();
 

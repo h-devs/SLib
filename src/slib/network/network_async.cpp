@@ -718,15 +718,6 @@ namespace slib
 		return sendTo(0, src, dst, mem.data, (sl_uint32)(mem.size));
 	}
 
-	SocketError AsyncUdpSocket::getLastError()
-	{
-		HandlePtr<Socket> socket(getSocket());
-		if (socket->isNotNone()) {
-			return socket->getLastError();
-		}
-		return SocketError::Unknown;
-	}
-
 	Ref<AsyncUdpSocketInstance> AsyncUdpSocket::_getIoInstance()
 	{
 		return Ref<AsyncUdpSocketInstance>::from(AsyncIoObject::getIoInstance());
