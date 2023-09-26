@@ -20,6 +20,10 @@
  *   THE SOFTWARE.
  */
 
+#if defined(_WIN32)
+#	define _WIN32_WINNT 0x0600
+#endif
+
 #include "slib/network/socket.h"
 
 #include "slib/network/event.h"
