@@ -415,9 +415,6 @@
 		D72A0895263B506000BCD333 /* lmdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0891263B505F00BCD333 /* lmdb.cpp */; };
 		D72A0896263B506000BCD333 /* key_value_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0892263B505F00BCD333 /* key_value_store.cpp */; };
 		D72A0897263B506000BCD333 /* leveldb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0893263B505F00BCD333 /* leveldb.cpp */; };
-		D738404028F1A77E005F5ED8 /* x_button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D738403D28F1A77E005F5ED8 /* x_button.cpp */; };
-		D738404128F1A77E005F5ED8 /* x_control.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D738403E28F1A77E005F5ED8 /* x_control.cpp */; };
-		D738404228F1A77E005F5ED8 /* x_edit_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D738403F28F1A77E005F5ED8 /* x_edit_view.cpp */; };
 		D738404B28F1A7A8005F5ED8 /* group_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D738404A28F1A7A8005F5ED8 /* group_box.cpp */; };
 		D765664A28F1B501002ED52F /* storage_volume_macos.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D765664928F1B501002ED52F /* storage_volume_macos.cpp */; };
 		D79AF2072693598300FCDE3D /* asset_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = D79AF2062693598300FCDE3D /* asset_apple.mm */; };
@@ -1625,6 +1622,7 @@
 				264AF10721AECF7F004E58CB /* tool */,
 				28CE36531A0FEDC600AB513C /* Products */,
 				2605036A20CEC3C500032B2C /* Frameworks */,
+				D73E0F962AC2D6480039A9EA /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1814,6 +1812,16 @@
 				26FE7D8B25A2F1B800B787F0 /* plot_ui.cpp */,
 			);
 			path = math;
+			sourceTree = "<group>";
+		};
+		D73E0F962AC2D6480039A9EA /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				D738403E28F1A77E005F5ED8 /* x_control.cpp */,
+				D738403F28F1A77E005F5ED8 /* x_edit_view.cpp */,
+				D738403D28F1A77E005F5ED8 /* x_button.cpp */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		D7C3BAFC26AEEEC400FD529D /* doc */ = {
@@ -2251,7 +2259,6 @@
 				26D9D9621E964669005F7BD3 /* bitmap_data.cpp in Sources */,
 				26BB17D021F4BA690089C7EC /* ui_adapter.cpp in Sources */,
 				266E66E121D7F68F00D92386 /* locale_apple.mm in Sources */,
-				D738404128F1A77E005F5ED8 /* x_control.cpp in Sources */,
 				26D9D9D31E96468D005F7BD3 /* select_view.cpp in Sources */,
 				265A937423051C1800B155A2 /* bitmap_ext.cpp in Sources */,
 				26D9D9791E96466A005F7BD3 /* pen.cpp in Sources */,
@@ -2406,7 +2413,6 @@
 				1852CC46279FEC4C00BA677C /* common_dialogs_prompt.cpp in Sources */,
 				26D9D93A1E9645CE005F7BD3 /* block_cipher.cpp in Sources */,
 				26D9D9EC1E96468D005F7BD3 /* view_page.cpp in Sources */,
-				D738404228F1A77E005F5ED8 /* x_edit_view.cpp in Sources */,
 				26D9D9ED1E96468D005F7BD3 /* web_view.cpp in Sources */,
 				26D9D9D61E96468D005F7BD3 /* split_layout.cpp in Sources */,
 				26D9D93D1E9645CE005F7BD3 /* gcm.cpp in Sources */,
@@ -2467,7 +2473,6 @@
 				D738404B28F1A7A8005F5ED8 /* group_box.cpp in Sources */,
 				265A934A2301E43000B155A2 /* screen_capture_macos.mm in Sources */,
 				D7BF60C826311EBF00E0B3DD /* libjpeg_unity2.c in Sources */,
-				D738404028F1A77E005F5ED8 /* x_button.cpp in Sources */,
 				26D9D9B61E96468D005F7BD3 /* camera_view.cpp in Sources */,
 				26D9D9B91E96468D005F7BD3 /* common_dialogs.cpp in Sources */,
 				26D9D94D1E9645CE005F7BD3 /* dispatch.cpp in Sources */,

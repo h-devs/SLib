@@ -34,6 +34,7 @@
 
 #if defined(_M_AMD64) || defined(__x86_64__) || defined(__aarch64__) || defined(__mips64) || defined(__ia64) || (defined(__VMS) && !defined(__vax))
 # define BIT_INTERLEAVE (0)
+# define NOT_BIT_INTERLEAVE
 #else
 # define BIT_INTERLEAVE (sizeof(void*) < 8)
 #endif
@@ -47,26 +48,32 @@ namespace slib
 
 		static sl_uint64 ROL64(sl_uint64 val, int offset)
 		{
-			if (!offset) {
-				return val;
-			} else if (!BIT_INTERLEAVE) {
+			if (offset) {
+#ifndef NOT_BIT_INTERLEAVE
+				if (BIT_INTERLEAVE) {
+					sl_uint32 hi = (sl_uint32)(val >> 32), lo = (sl_uint32)val;
+					if (offset & 1) {
+						sl_uint32 tmp = hi;
+						offset >>= 1;
+						hi = ROL32(lo, offset);
+						lo = ROL32(tmp, offset + 1);
+					} else {
+						offset >>= 1;
+						lo = ROL32(lo, offset);
+						hi = ROL32(hi, offset);
+					}
+					return ((sl_uint64)hi << 32) | lo;
+				}
+#endif
 				return (val << offset) | (val >> (64 - offset));
 			} else {
-				sl_uint32 hi = (sl_uint32)(val >> 32), lo = (sl_uint32)val;
-				if (offset & 1) {
-					sl_uint32 tmp = hi;
-					offset >>= 1;
-					hi = ROL32(lo, offset);
-					lo = ROL32(tmp, offset + 1);
-				} else {
-					offset >>= 1;
-					lo = ROL32(lo, offset);
-					hi = ROL32(hi, offset);
-				}
-				return ((sl_uint64)hi << 32) | lo;
+				return val;
 			}
 		}
 
+#ifdef NOT_BIT_INTERLEAVE
+# define BitInterleave(X) (X)
+#else
 		static sl_uint64 BitInterleave(sl_uint64 Ai)
 		{
 			if (BIT_INTERLEAVE) {
@@ -99,10 +106,13 @@ namespace slib
 
 				Ai = ((sl_uint64)(hi | lo) << 32) | (t1 | t0);
 			}
-
 			return Ai;
 		}
+#endif
 
+#ifdef NOT_BIT_INTERLEAVE
+# define BitDeinterleave(X) (X)
+#else
 		static sl_uint64 BitDeinterleave(sl_uint64 Ai)
 		{
 			if (BIT_INTERLEAVE) {
@@ -135,9 +145,9 @@ namespace slib
 
 				Ai = ((sl_uint64)(hi | lo) << 32) | (t1 | t0);
 			}
-
 			return Ai;
 		}
+#endif
 
 		static const sl_uint8 g_rhotates[5][5] = {
 			{ 0,  1, 62, 28, 27 },

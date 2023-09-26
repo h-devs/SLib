@@ -43,9 +43,6 @@
 		1887E1FA202CD2A600A81967 /* animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E1F9202CD2A600A81967 /* animation.cpp */; };
 		1887E1FD202CD2D900A81967 /* disk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E1FB202CD2D900A81967 /* disk.cpp */; };
 		1887E1FE202CD2D900A81967 /* performance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E1FC202CD2D900A81967 /* performance.cpp */; };
-		1887E205202CD34000A81967 /* x_button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E202202CD34000A81967 /* x_button.cpp */; };
-		1887E206202CD34000A81967 /* x_edit_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E203202CD34000A81967 /* x_edit_view.cpp */; };
-		1887E207202CD34000A81967 /* x_control.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E204202CD34000A81967 /* x_control.cpp */; };
 		1887E558202CF82400A81967 /* fcm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E46F202CF82400A81967 /* fcm.cpp */; };
 		1887E559202CF82400A81967 /* xgpush_service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E471202CF82400A81967 /* xgpush_service.cpp */; };
 		1887E55B202CF82400A81967 /* xgpush_ios.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1887E473202CF82400A81967 /* xgpush_ios.mm */; };
@@ -1521,6 +1518,7 @@
 				1887E46D202CF82400A81967 /* extra */,
 				26A2030020C6ECC6001103AD /* external */,
 				A27731221A1655640002E735 /* Products */,
+				D73E0FA42AC371C20039A9EA /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1531,6 +1529,16 @@
 				1887E353202CF77A00A81967 /* libslib-extra.a */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D73E0FA42AC371C20039A9EA /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				1887E203202CD34000A81967 /* x_edit_view.cpp */,
+				1887E204202CD34000A81967 /* x_control.cpp */,
+				1887E202202CD34000A81967 /* x_button.cpp */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1658,7 +1666,6 @@
 				26A3DA8C228A03440031CBDA /* rc4.cpp in Sources */,
 				D7ECA21E26317C6800D366A8 /* zlib_unity.c in Sources */,
 				26D9D8791E96294F005F7BD3 /* pen.cpp in Sources */,
-				1887E206202CD34000A81967 /* x_edit_view.cpp in Sources */,
 				26FAA8861EC768C1007BC67F /* red_black_tree.cpp in Sources */,
 				D7ECA23B26317D0F00D366A8 /* libpng_unity.c in Sources */,
 				26D9D8971E962962005F7BD3 /* http_server.cpp in Sources */,
@@ -1726,7 +1733,6 @@
 				26D9D8061E9628E0005F7BD3 /* event.cpp in Sources */,
 				26D9D8681E96294F005F7BD3 /* color.cpp in Sources */,
 				26D9D86C1E96294F005F7BD3 /* font_atlas.cpp in Sources */,
-				1887E207202CD34000A81967 /* x_control.cpp in Sources */,
 				26EA207523A2BF8F008218D7 /* database_sql.cpp in Sources */,
 				26D9D86B1E96294F005F7BD3 /* font.cpp in Sources */,
 				26D9D8DD1E962976005F7BD3 /* ui_app.cpp in Sources */,
@@ -1855,7 +1861,6 @@
 				26BB17D821F4E45C0089C7EC /* view_pager.cpp in Sources */,
 				26D9D82A1E9628E0005F7BD3 /* asset.cpp in Sources */,
 				2614D10D237A6556001C52F0 /* device_contacts_ios.mm in Sources */,
-				1887E205202CD34000A81967 /* x_button.cpp in Sources */,
 				26D9D8981E962962005F7BD3 /* icmp.cpp in Sources */,
 				D79AF21026935A5F00FCDE3D /* asset_apple.mm in Sources */,
 				26D9D8E41E962976005F7BD3 /* ui_menu.cpp in Sources */,

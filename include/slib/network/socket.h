@@ -278,8 +278,6 @@ namespace slib
 
 		sl_int32 sendTo(sl_uint32 interfaceIndex, const IPAddress& src, const SocketAddress& dst, const void* buf, sl_size size) const noexcept;
 
-		sl_int32 sendTo(const IPAddress& src, const SocketAddress& dst, const void* buf, sl_size size) const noexcept;
-
 		sl_int32 sendToDomain(const StringParam& path, const void* buf, sl_size size, sl_bool flagAbstract = sl_false) const noexcept;
 
 		sl_int32 sendToAbstractDomain(const StringParam& name, const void* buf, sl_size size) const noexcept;

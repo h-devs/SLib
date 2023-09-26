@@ -55,6 +55,10 @@ struct SOCKADDR_UN
 
 #else
 
+#	if defined(SLIB_PLATFORM_IS_APPLE)
+#		define __APPLE_USE_RFC_3542
+#	endif
+
 #	include <unistd.h>
 #	include <sys/socket.h>
 #	include <sys/un.h>
@@ -80,7 +84,13 @@ typedef sockaddr_un SOCKADDR_UN;
 #endif
 
 #ifndef IPV6_RECVPKTINFO
-#define IPV6_RECVPKTINFO IPV6_PKTINFO
+#	define IPV6_RECVPKTINFO IPV6_PKTINFO
+#endif
+#ifndef IPV6_ADD_MEMBERSHIP
+#	define IPV6_ADD_MEMBERSHIP IPV6_JOIN_GROUP
+#endif
+#ifndef IPV6_DROP_MEMBERSHIP
+#	define IPV6_DROP_MEMBERSHIP IPV6_LEAVE_GROUP
 #endif
 
 namespace slib
@@ -967,7 +977,7 @@ namespace slib
 		return SLIB_IO_ERROR;
 	}
 
-	// set `interfaceInex` as zero when you don't specify the interface index
+	// set `interfaceInex` as zero when you don't specify the interface index (buf fail on some cases)
 	sl_int32 Socket::sendTo(sl_uint32 interfaceIndex, const IPAddress& src, const SocketAddress& dst, const void* buf, sl_size size) const noexcept
 	{
 #ifdef SLIB_PLATFORM_IS_WINDOWS
@@ -1064,11 +1074,6 @@ namespace slib
 		sl_int32 result = (sl_int32)(sendmsg(m_socket, &msg, 0));
 		return _processResult(result);
 #endif
-	}
-
-	sl_int32 Socket::sendTo(const IPAddress& src, const SocketAddress& dst, const void* buf, sl_size size) const noexcept
-	{
-		return sendTo(0, src, dst, buf, size);
 	}
 
 	sl_int32 Socket::sendToDomain(const StringParam& path, const void* buf, sl_size size, sl_bool flagAbstract) const noexcept
