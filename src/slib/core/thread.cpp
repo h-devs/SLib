@@ -296,10 +296,12 @@ namespace slib
 	{
 		Thread* thread = getCurrent();
 		if (thread) {
-			thread->wait(ms);
-		} else {
-			System::sleep(ms);
+			if (!(thread->m_flagRequestStop)) {
+				thread->wait(ms);
+				return;
+			}
 		}
+		System::sleep(ms);
 	}
 
 	sl_bool Thread::isCurrentThread()
