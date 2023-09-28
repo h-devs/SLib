@@ -27,6 +27,7 @@
 
 #include "../io/async_stream.h"
 #include "../core/string.h"
+#include "../core/pair.h"
 #include "../core/default_members.h"
 
 namespace slib
@@ -171,14 +172,19 @@ namespace slib
 		Socket socket; // optional
 		StringParam bindDevice; // optional
 		SocketAddress bindAddress;
+		
 		sl_bool flagIPv6; // default: false
 		sl_bool flagSendingBroadcast; // default: false
+		sl_bool flagMulticastLoop; // default: false
+		List< Pair<IPAddress, sl_uint32> > multicastGroups; // {multicastAddress, interfaceIndex} pairs
+
 		sl_bool flagAutoStart; // default: true
 		sl_bool flagLogError; // default: true
 		sl_uint32 packetSize; // default: 65536
 		Ref<AsyncIoLoop> ioLoop;
 
-		Function<void(AsyncUdpSocket*, SocketAddress&, void* data, sl_uint32 sizeReceived)> onReceiveFrom;
+		Function<void(AsyncUdpSocket*, sl_uint32 interfaceIndex, IPAddress& dst, SocketAddress& src, void* data, sl_uint32 sizeReceived)> onReceive;
+		Function<void(AsyncUdpSocket*, SocketAddress&, void* data, sl_uint32 sizeReceived)> onReceiveFrom; // Ignored when `onReceive` is set
 		Function<void(AsyncUdpSocket*)> onError;
 
 	public:
@@ -231,12 +237,15 @@ namespace slib
 
 		void _onReceive(SocketAddress& address, void* data, sl_uint32 sizeReceived);
 
+		void _onReceive(sl_uint32 interfaceIndex, IPAddress& dst, SocketAddress& src, void* data, sl_uint32 sizeReceived);
+
 		void _onError();
 
 	protected:
 		static Ref<AsyncUdpSocketInstance> _createInstance(Socket&& socket, sl_uint32 packetSize);
 
 	protected:
+		Function<void(AsyncUdpSocket*, sl_uint32 interfaceIndex, IPAddress& dst, SocketAddress& src, void* data, sl_uint32 sizeReceived)> m_onReceive;
 		Function<void(AsyncUdpSocket*, SocketAddress&, void* data, sl_uint32 sizeReceived)> m_onReceiveFrom;
 		Function<void(AsyncUdpSocket*)> m_onError;
 

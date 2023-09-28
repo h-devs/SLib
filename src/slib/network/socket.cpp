@@ -1122,22 +1122,34 @@ namespace slib
 		return SLIB_IO_ERROR;
 	}
 
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+	namespace winsock
+	{
+		LPFN_WSARECVMSG GetWSARecvMsg()
+		{
+			LPFN_WSARECVMSG ret = NULL;
+			SOCKET sock = ::socket(AF_INET, SOCK_DGRAM, 0);
+			if (sock != (SOCKET)-1) {
+				GUID guid = WSAID_WSARECVMSG;
+				DWORD dwBytes = 0;
+				LPFN_WSARECVMSG func;
+				if (WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(guid), &func, sizeof(func), &dwBytes, NULL, NULL) != SOCKET_ERROR) {
+					ret = func;
+				}
+				closesocket(sock);
+			}
+			return ret;
+		}
+	}
+#endif
+
 	// setUsingPacketInformation (setUsingIPv6PacketInformation) is required
 	sl_int32 Socket::receiveFrom(sl_uint32& interfaceIndex, IPAddress& dst, SocketAddress& src, void* buf, sl_size _size) const noexcept
 	{
 #ifdef SLIB_PLATFORM_IS_WINDOWS
 		static LPFN_WSARECVMSG fnRecvMsg = NULL;
 		if (!fnRecvMsg) {
-			SOCKET sock = socket(AF_INET, SOCK_DGRAM, 0);
-			if (sock != (SOCKET)-1) {
-				GUID guid = WSAID_WSARECVMSG;
-				DWORD dwBytes = 0;
-				LPFN_WSARECVMSG func;
-				if (WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(guid), &func, sizeof(func), &dwBytes, NULL, NULL) != SOCKET_ERROR) {
-					fnRecvMsg = func;
-				}
-				closesocket(sock);
-			}
+			fnRecvMsg = winsock::GetWSARecvMsg();
 			if (!fnRecvMsg) {
 				_setError(SocketError::NotSupported);
 				return SLIB_IO_ERROR;

@@ -36,13 +36,7 @@ namespace slib
 		class TcpInstance : public AsyncTcpSocketInstance
 		{
 		public:
-			sl_bool m_flagConnecting;
-
-		public:
-			TcpInstance()
-			{
-				m_flagConnecting = sl_false;
-			}
+			sl_bool m_flagConnecting = sl_false;
 
 		public:
 			static Ref<TcpInstance> create(Socket&& socket)
@@ -239,13 +233,7 @@ namespace slib
 		class TcpServerInstance : public AsyncTcpServerInstance
 		{
 		public:
-			sl_bool m_flagListening;
-
-		public:
-			TcpServerInstance()
-			{
-				m_flagListening = sl_false;
-			}
+			sl_bool m_flagListening = sl_false;
 
 		public:
 			static Ref<TcpServerInstance> create(Socket&& socket)
@@ -310,9 +298,7 @@ namespace slib
 		class UdpInstance : public AsyncUdpSocketInstance
 		{
 		public:
-			UdpInstance()
-			{
-			}
+			sl_bool m_flagPacketInfo;
 
 		public:
 			static Ref<UdpInstance> create(Socket&& socket, const Memory& buffer)
@@ -324,6 +310,7 @@ namespace slib
 							Ref<UdpInstance> ret = new UdpInstance();
 							if (ret.isNotNull()) {
 								ret->m_buffer = buffer;
+								ret->m_flagPacketInfo = socket.isReceivingPacketInformation() || socket.isReceivingIPv6PacketInformation();
 								ret->setHandle(handle);
 								socket.release();
 								return ret;
@@ -358,16 +345,27 @@ namespace slib
 
 				Thread* thread = Thread::getCurrent();
 				while (!thread || thread->isNotStopping()) {
-					SocketAddress addr;
-					sl_int32 n = socket->receiveFrom(addr, buf, sizeBuf);
-					if (n >= 0) {
-						_onReceive(addr, n);
-					} else {
-						if (n != SLIB_IO_WOULD_BLOCK) {
-							_onError();
+					SocketAddress src;
+					sl_int32 n;
+					if (m_flagPacketInfo) {
+						sl_uint32 interfaceIndex = 0;
+						IPAddress dst;
+						n = socket->receiveFrom(interfaceIndex, dst, src, buf, sizeBuf);
+						if (n >= 0) {
+							_onReceive(interfaceIndex, dst, src, n);
+							continue;
 						}
-						break;
+					} else {
+						n = socket->receiveFrom(src, buf, sizeBuf);
+						if (n >= 0) {
+							_onReceive(src, n);
+							continue;
+						}
 					}
+					if (n != SLIB_IO_WOULD_BLOCK) {
+						_onError();
+					}
+					break;
 				}
 			}
 		};

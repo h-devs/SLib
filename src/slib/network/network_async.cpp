@@ -513,6 +513,14 @@ namespace slib
 		}
 	}
 
+	void AsyncUdpSocketInstance::_onReceive(sl_uint32 interfaceIndex, IPAddress& dst, SocketAddress& src, sl_uint32 size)
+	{
+		Ref<AsyncUdpSocket> object = Ref<AsyncUdpSocket>::from(getObject());
+		if (object.isNotNull()) {
+			object->_onReceive(interfaceIndex, dst, src, m_buffer.getData(), size);
+		}
+	}
+
 	void AsyncUdpSocketInstance::_onError()
 	{
 		Ref<AsyncUdpSocket> object = Ref<AsyncUdpSocket>::from(getObject());
@@ -527,6 +535,7 @@ namespace slib
 	{
 		flagIPv6 = sl_false;
 		flagSendingBroadcast = sl_false;
+		flagMulticastLoop = sl_false;
 		flagAutoStart = sl_true;
 		flagLogError = sl_false;
 		packetSize = 65536;
@@ -590,7 +599,36 @@ namespace slib
 			}
 		}
 		if (param.flagSendingBroadcast) {
-			socket.setSendingBroadcast(sl_true);
+			socket.setSendingBroadcast();
+		}
+		if (param.flagMulticastLoop) {
+			if (param.flagIPv6) {
+				socket.setIPv6MulticastLoop();
+			} else {
+				socket.setMulticastLoop();
+			}
+		}
+		if (param.multicastGroups.isNotNull()) {
+			ListElements< Pair<IPAddress, sl_uint32> > items(param.multicastGroups);
+			for (sl_size i = 0; i < items.count; i++) {
+				Pair<IPAddress, sl_uint32>& item = items[i];
+				sl_bool flagError = sl_false;
+				if (item.first.isIPv4()) {
+					flagError = !(socket.joinMulticast(item.first.getIPv4(), item.second));
+				} else if (item.first.isIPv6()) {
+					flagError = !(socket.joinMulticast(item.first.getIPv6(), item.second));
+				}
+				if (flagError && param.flagLogError) {
+					LogError(TAG, "AsyncTcpSocket join multicast error: {%s, %s}, %s", item.first.toString(), item.second, Socket::getLastErrorMessage());
+				}
+			}
+		}
+		if (param.onReceive.isNotNull()) {
+			if (param.flagIPv6) {
+				socket.setReceivingIPv6PacketInformation();
+			} else {
+				socket.setReceivingPacketInformation();
+			}
 		}
 
 		Ref<AsyncUdpSocketInstance> instance = _createInstance(Move(socket), param.packetSize);
@@ -604,7 +642,10 @@ namespace slib
 			}
 			Ref<AsyncUdpSocket> ret = new AsyncUdpSocket;
 			if (ret.isNotNull()) {
-				ret->m_onReceiveFrom = param.onReceiveFrom;
+				ret->m_onReceive = param.onReceive;
+				if (param.onReceive.isNull()) {
+					ret->m_onReceiveFrom = param.onReceiveFrom;
+				}
 				instance->setObject(ret.get());
 				ret->setIoInstance(instance.get());
 				ret->setIoLoop(loop);
@@ -715,7 +756,21 @@ namespace slib
 
 	void AsyncUdpSocket::_onReceive(SocketAddress& address, void* data, sl_uint32 sizeReceived)
 	{
-		m_onReceiveFrom(this, address, data, sizeReceived);
+		if (m_onReceive.isNotNull()) {
+			IPAddress ip;
+			m_onReceive(this, 0, ip, address, data, sizeReceived);
+		} else {
+			m_onReceiveFrom(this, address, data, sizeReceived);
+		}
+	}
+
+	void AsyncUdpSocket::_onReceive(sl_uint32 interfaceIndex, IPAddress& dst, SocketAddress& src, void* data, sl_uint32 sizeReceived)
+	{
+		if (m_onReceive.isNotNull()) {
+			m_onReceive(this, interfaceIndex, dst, src, data, sizeReceived);
+		} else {
+			m_onReceiveFrom(this, src, data, sizeReceived);
+		}
 	}
 
 	void AsyncUdpSocket::_onError()

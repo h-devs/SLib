@@ -120,6 +120,8 @@ namespace slib
 
 		void _onReceive(SocketAddress& address, sl_uint32 size);
 
+		void _onReceive(sl_uint32 interfaceIndex, IPAddress& dst, SocketAddress& src, sl_uint32 size);
+
 		void _onError();
 
 	private:

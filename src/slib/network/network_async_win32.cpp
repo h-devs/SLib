@@ -20,11 +20,14 @@
  *   THE SOFTWARE.
  */
 
+#define _WIN32_WINNT 0x0600
+
 #include "slib/network/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <mswsock.h>
 #pragma comment(lib, "mswsock.lib")
 
@@ -274,8 +277,8 @@ namespace slib
 		class TcpServerInstance : public AsyncTcpServerInstance
 		{
 		public:
+			sl_bool m_flagAccepting = sl_false;
 			sl_bool m_flagIPv6;
-			sl_bool m_flagAccepting;
 
 			WSAOVERLAPPED m_overlapped;
 			char m_bufferAccept[2 * (sizeof(SOCKADDR_IN) + 16)];
@@ -283,12 +286,6 @@ namespace slib
 
 			LPFN_ACCEPTEX m_funcAcceptEx;
 			LPFN_GETACCEPTEXSOCKADDRS m_funcGetAcceptExSockaddrs;
-
-		public:
-			TcpServerInstance()
-			{
-				m_flagAccepting = sl_false;
-			}
 
 		public:
 			static Ref<TcpServerInstance> create(Socket&& socket, sl_bool flagIPv6)
@@ -451,23 +448,24 @@ namespace slib
 		return TcpServerInstance::create(Move(socket), flagIPv6);
 	}
 
+	namespace winsock
+	{
+		LPFN_WSARECVMSG GetWSARecvMsg();
+	}
+
 	namespace {
 		class UdpInstance : public AsyncUdpSocketInstance
 		{
 		public:
-			sl_bool m_flagReceiving;
+			sl_bool m_flagReceiving = sl_false;
 
 			WSAOVERLAPPED m_overlappedReceive;
 			WSABUF m_bufReceive;
 			DWORD m_flagsReceive;
 			sockaddr_storage m_addrReceive;
-			int m_lenAddrReceive;
-
-		public:
-			UdpInstance()
-			{
-				m_flagReceiving = sl_false;
-			}
+			sl_uint8 m_bufControl[1024];
+			WSAMSG m_msgReceive;
+			LPFN_WSARECVMSG m_fnRecvMsg;
 
 		public:
 			static Ref<UdpInstance> create(Socket&& socket, const Memory& buffer)
@@ -478,8 +476,11 @@ namespace slib
 						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 							Ref<UdpInstance> ret = new UdpInstance();
 							if (ret.isNotNull()) {
-								ret->setHandle(handle);
 								ret->m_buffer = buffer;
+								if (socket.isReceivingPacketInformation() || socket.isReceivingIPv6PacketInformation()) {
+									ret->m_fnRecvMsg = winsock::GetWSARecvMsg();
+								}
+								ret->setHandle(handle);
 								socket.release();
 								return ret;
 							}
@@ -506,10 +507,33 @@ namespace slib
 					DWORD dwFlags = 0;
 					if (WSAGetOverlappedResult((SOCKET)handle, pOverlapped, &dwSize, FALSE, &dwFlags)) {
 						m_flagReceiving = sl_false;
-						SocketAddress addr;
-						if (m_lenAddrReceive > 0) {
-							if (addr.setSystemSocketAddress(&m_addrReceive, m_lenAddrReceive)) {
-								_onReceive(addr, dwSize);
+						SocketAddress src;
+						if (m_msgReceive.namelen > 0) {
+							if (src.setSystemSocketAddress(&m_addrReceive, m_msgReceive.namelen)) {
+								if (m_fnRecvMsg) {
+									sl_uint32 interfaceIndex = 0;
+									IPAddress dst;
+									cmsghdr* cmsg = CMSG_FIRSTHDR(&m_msgReceive);
+									while (cmsg) {
+										if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_PKTINFO) {
+											in_pktinfo info;
+											Base::copyMemory(&info, WSA_CMSG_DATA(cmsg), sizeof(info));
+											interfaceIndex = (sl_uint32)(info.ipi_ifindex);
+											dst = IPv4Address((sl_uint8*)(&(info.ipi_addr)));
+											break;
+										} else if (cmsg->cmsg_level == IPPROTO_IPV6 && cmsg->cmsg_type == IPV6_PKTINFO) {
+											in6_pktinfo info;
+											Base::copyMemory(&info, WSA_CMSG_DATA(cmsg), sizeof(info));
+											interfaceIndex = (sl_uint32)(info.ipi6_ifindex);
+											dst = IPv6Address((sl_uint8*)(&(info.ipi6_addr)));
+											break;
+										}
+										cmsg = CMSG_NXTHDR(&m_msgReceive, cmsg);
+									}
+									_onReceive(interfaceIndex, dst, src, dwSize);
+								} else {
+									_onReceive(src, dwSize);
+								}
 							}
 						}
 					} else {
@@ -543,8 +567,19 @@ namespace slib
 				m_bufReceive.len = sizeBuf;
 				m_flagsReceive = 0;
 				DWORD dwRead = 0;
-				m_lenAddrReceive = sizeof(sockaddr_storage);
-				int ret = WSARecvFrom((SOCKET)handle, &m_bufReceive, 1, &dwRead, &m_flagsReceive, (sockaddr*)&m_addrReceive, &m_lenAddrReceive, &m_overlappedReceive, NULL);
+				m_msgReceive.namelen = sizeof(sockaddr_storage);
+				int ret;
+				if (m_fnRecvMsg) {
+					m_msgReceive.name = (sockaddr*)&m_addrReceive;
+					m_msgReceive.lpBuffers = &m_bufReceive;
+					m_msgReceive.dwBufferCount = 1;
+					m_msgReceive.Control.buf = (CHAR*)m_bufControl;
+					m_msgReceive.Control.len = sizeof(m_bufControl);
+					m_msgReceive.dwFlags = 0;
+					ret = m_fnRecvMsg((SOCKET)handle, &m_msgReceive, &dwRead, &m_overlappedReceive, NULL);
+				} else {
+					ret = WSARecvFrom((SOCKET)handle, &m_bufReceive, 1, &dwRead, &m_flagsReceive, (sockaddr*)&m_addrReceive, &(m_msgReceive.namelen), &m_overlappedReceive, NULL);
+				}
 				if (ret) {
 					// SOCKET_ERROR
 					DWORD dwErr = WSAGetLastError();
