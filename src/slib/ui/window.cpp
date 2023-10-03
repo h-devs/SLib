@@ -70,6 +70,7 @@ namespace slib
 		m_flagResizable = sl_false;
 		m_flagLayered = sl_false;
 		m_flagTransparent = sl_false;
+		m_flagVisibleInTaskbar = sl_true;
 
 		m_flagModal = sl_false;
 		m_flagSheet = sl_false;
@@ -784,6 +785,23 @@ namespace slib
 			instance->setTransparent(flag);
 		} else {
 			m_flagTransparent = flag;
+		}
+	}
+
+	sl_bool Window::isVisibleInTaskbar()
+	{
+		return m_flagVisibleInTaskbar;
+	}
+
+	void Window::setVisibleInTaskbar(sl_bool flag)
+	{
+		Ref<WindowInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setVisibleInTaskbar, flag)
+			m_flagVisibleInTaskbar = flag;
+			instance->setVisibleInTaskbar(flag);
+		} else {
+			m_flagVisibleInTaskbar = flag;
 		}
 	}
 
@@ -1931,6 +1949,10 @@ namespace slib
 	}
 
 	void WindowInstance::setTransparent(sl_bool flag)
+	{
+	}
+
+	void WindowInstance::setVisibleInTaskbar(sl_bool flag)
 	{
 	}
 

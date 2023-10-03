@@ -79,6 +79,9 @@ namespace slib
 			if (window->isTransparent()) {
 				styleEx |= WS_EX_TRANSPARENT;
 			}
+			if (!(window->isVisibleInTaskbar())) {
+				styleEx |= WS_EX_TOOLWINDOW;
+			}
 			if (window->isAlwaysOnTop()) {
 				styleEx |= WS_EX_TOPMOST;
 			}
@@ -493,6 +496,11 @@ namespace slib
 			void setTransparent(sl_bool flag) override
 			{
 				UIPlatform::setWindowExStyle(m_handle, WS_EX_TRANSPARENT, flag);
+			}
+
+			void setVisibleInTaskbar(sl_bool flag) override
+			{
+				UIPlatform::setWindowExStyle(m_handle, WS_EX_TOOLWINDOW, !flag);
 			}
 
 			sl_bool getClientInsets(UIEdgeInsets& _out) override
