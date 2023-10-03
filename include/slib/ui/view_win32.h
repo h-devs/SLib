@@ -34,7 +34,7 @@
 namespace slib
 {
 
-	class Win32_LayeredViewContext;
+	class Win32_NativeLayerContext;
 	class Win32_ToolTipViewContext;
 
 	class Win32_ViewInstance : public ViewInstance
@@ -130,6 +130,8 @@ namespace slib
 
 		void setAlpha(View* view, sl_real alpha) override;
 
+		void setColorKey(View* view, const Color& color) override;
+
 		void setClipping(View* view, sl_bool flag) override;
 
 		void setDrawing(View* view, sl_bool flag) override;
@@ -165,9 +167,9 @@ namespace slib
 	public:
 		void setText(const StringParam& text);
 
-		void setLayered(sl_bool flagLayered);
+		void initNativeLayer();
 
-		void updateLayered();
+		void updateNativeLayer();
 
 		void releaseDragging();
 
@@ -186,7 +188,7 @@ namespace slib
 
 		void onPaint();
 
-		void onDrawLayered();
+		void onDrawNativeLayer();
 
 		sl_bool onEventKey(UIAction action, WPARAM wParam, LPARAM lParam);
 
@@ -213,14 +215,14 @@ namespace slib
 		String16 m_text;
 		Ref<Font> m_font;
 
-		Ref<Win32_LayeredViewContext> m_layered;
+		Ref<Win32_NativeLayerContext> m_nativeLayer;
 		Ref<Win32_ToolTipViewContext> m_tooltip;
 		IUnknown* m_dropTarget;
 		HIMC m_imc;
 
 	};
 
-	class Win32_LayeredViewContext : public CRef
+	class Win32_NativeLayerContext : public CRef
 	{
 	public:
 		sl_bool flagInvalidated;
@@ -228,22 +230,18 @@ namespace slib
 		HDC hdcCache;
 		HBITMAP hbmCache;
 		HGDIOBJ hbmOld;
-		Gdiplus::Graphics* graphicsCache;
-		Gdiplus::Bitmap* bitmapCache;
 		sl_uint32 widthCache;
 		sl_uint32 heightCache;
 
 	public:
-		Win32_LayeredViewContext();
+		Win32_NativeLayerContext();
 
-		~Win32_LayeredViewContext();
+		~Win32_NativeLayerContext();
 
 	public:
 		sl_bool prepare(sl_uint32 width, sl_uint32 height);
 
 		void clear();
-
-		void sync(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
 
 	};
 

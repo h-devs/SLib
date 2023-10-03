@@ -6138,6 +6138,25 @@ namespace slib
 		}
 	}
 
+	sl_bool View::isAntiAlias()
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->flagAntiAlias;
+		}
+		return sl_false;
+	}
+
+	void View::setAntiAlias(sl_bool flagAntiAlias, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->flagAntiAlias = flagAntiAlias;
+			invalidateBoundsInParent(mode);
+		}
+	}
+
 	sl_bool View::isOpaque()
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
@@ -6190,22 +6209,29 @@ namespace slib
 		}
 	}
 
-	sl_bool View::isAntiAlias()
+	Color View::getColorKey()
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->flagAntiAlias;
+			return attrs->colorKey;
 		}
-		return sl_false;
+		return Color::zero();
 	}
 
-	void View::setAntiAlias(sl_bool flagAntiAlias, UIUpdateMode mode)
+	void View::setColorKey(const Color& color, UIUpdateMode mode)
 	{
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			attrs->flagAntiAlias = flagAntiAlias;
-			invalidateBoundsInParent(mode);
+			Ref<ViewInstance> instance = m_instance;
+			if (instance.isNotNull()) {
+				SLIB_VIEW_RUN_ON_UI_THREAD(setColorKey, color, mode)
+				attrs->colorKey = color;
+				instance->setColorKey(this, color);
+			} else {
+				attrs->colorKey = color;
+				invalidateBoundsInParent(mode);
+			}
 		}
 	}
 
@@ -11170,6 +11196,10 @@ namespace slib
 	}
 
 	void ViewInstance::setShadowColor(View* view, const Color& color)
+	{
+	}
+
+	void ViewInstance::setColorKey(View* view, const Color& color)
 	{
 	}
 

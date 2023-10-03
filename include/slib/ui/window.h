@@ -637,8 +637,6 @@ namespace slib
 
 		virtual void setResizable(sl_bool flag);
 
-		virtual void setLayered(sl_bool flag);
-
 		virtual void setAlpha(sl_real alpha);
 
 		virtual void setColorKey(const Color& color);

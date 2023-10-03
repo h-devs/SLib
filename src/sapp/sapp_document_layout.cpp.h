@@ -2244,6 +2244,7 @@ namespace slib
 
 		if (flagView) {
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, alpha, setAlpha)
+			LAYOUT_CONTROL_UI_ATTR(COLOR, colorKey, setColorKey)
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, antiAlias, setAntiAlias)
 		}
 
@@ -2418,6 +2419,7 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, resizable, setResizable)
 		LAYOUT_CONTROL_ATTR(GENERIC, layered, setLayered)
 		LAYOUT_CONTROL_ATTR(GENERIC, alpha, setAlpha)
+		LAYOUT_CONTROL_ATTR(COLOR, colorKey, setColorKey)
 		LAYOUT_CONTROL_ATTR(GENERIC, transparent, setTransparent)
 		LAYOUT_CONTROL_ATTR(COLOR, backgroundColor, setBackgroundColor)
 

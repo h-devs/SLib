@@ -43,18 +43,6 @@ namespace slib
 
 	namespace {
 
-		static sl_uint8 ToWindowAlpha(float alpha)
-		{
-			int a = (int)(alpha * 255);
-			if (a < 0) {
-				return 0;
-			}
-			if (a > 255) {
-				return 255;
-			}
-			return (sl_uint8)a;
-		}
-
 		static void MakeWindowStyle(Window* window, DWORD& style, DWORD& styleEx, HMENU& hMenu)
 		{
 			Ref<Menu> menu = window->getMenu();
@@ -85,7 +73,7 @@ namespace slib
 					style |= WS_THICKFRAME;
 				}
 			}
-			if (window->isLayered()) {
+			if (window->isLayered() || UIPlatform::getWindowAlpha(window->getAlpha()) != 255 || window->getColorKey().isNotZero()) {
 				styleEx |= WS_EX_LAYERED;
 			}
 			if (window->isTransparent()) {
@@ -109,14 +97,11 @@ namespace slib
 
 			sl_bool m_flagTitleBar;
 			sl_bool m_flagResizable;
-			sl_bool m_flagLayered;
-			sl_uint8 m_alpha;
-			Color m_colorKey;
 
 			sl_bool m_flagMinimized;
 			sl_bool m_flagMaximized;
 
-			AtomicRef<ViewInstance> m_viewContent;
+			AtomicRef<Win32_ViewInstance> m_viewContent;
 			sl_bool m_flagDestroyOnRelease;
 
 			Color m_backgroundColor;
@@ -133,8 +118,6 @@ namespace slib
 
 				m_flagTitleBar = sl_false;
 				m_flagResizable = sl_false;
-				m_flagLayered = sl_false;
-				m_alpha = 255;
 
 				m_flagMinimized = sl_false;
 				m_flagMaximized = sl_false;
@@ -209,6 +192,11 @@ namespace slib
 						api(hWnd, &m);
 					}
 				}
+				if (styleEx & WS_EX_LAYERED) {
+					if (!(window->isLayered())) {
+						UIPlatform::initLayeredWindowAttributes(hWnd, UIPlatform::getWindowAlpha(window->getAlpha()), window->getColorKey());
+					}
+				}
 
 				return hWnd;
 			}
@@ -230,14 +218,13 @@ namespace slib
 					if (window->isDefaultBackgroundColor()) {
 						m_backgroundColor = window->getBackgroundColor();
 					}
-					m_flagLayered = window->isLayered();
-					m_alpha = ToWindowAlpha(window->getAlpha());
-					m_colorKey = window->getColorKey();
-					updateLayeredAttrs();
 				}
-				Ref<ViewInstance> content = UIPlatform::createViewInstance(hWnd, sl_false);
+				Ref<Win32_ViewInstance> content = Ref<Win32_ViewInstance>::from(UIPlatform::createViewInstance(hWnd, sl_false));
 				if (content.isNotNull()) {
 					content->setWindowContent(sl_true);
+					if (window->isLayered()) {
+						content->initNativeLayer();
+					}
 					m_viewContent = content;
 				}
 				UIPlatform::registerWindowInstance(hWnd, this);
@@ -363,7 +350,7 @@ namespace slib
 					return;
 				}
 				m_backgroundColor = color;
-				Ref<ViewInstance> content = m_viewContent;
+				Ref<Win32_ViewInstance> content = m_viewContent;
 				if (content.isNotNull()) {
 					Ref<View> view = content->getView();
 					if (view.isNotNull()) {
@@ -481,57 +468,25 @@ namespace slib
 				}
 			}
 
-			void setLayered(sl_bool flag) override
-			{
-				HWND hWnd = m_handle;
-				if (hWnd) {
-					if (m_flagLayered == flag) {
-						return;
-					}
-					m_flagLayered = flag;
-					UIPlatform::setWindowExStyle(hWnd, WS_EX_LAYERED, flag);
-					Ref<ViewInstance> instance = m_viewContent;
-					if (instance.isNotNull()) {
-						((Win32_ViewInstance*)(instance.get()))->setLayered(flag);
-					}
-				}
-			}
-
-			void updateLayeredAttrs()
-			{
-				if (!m_flagLayered) {
-					return;
-				}
-				HWND hWnd = m_handle;
-				if (hWnd) {
-					DWORD flags = m_alpha != 255 ? LWA_ALPHA : 0;
-					COLORREF cr = 0;
-					if (m_colorKey.isNotZero()) {
-						cr = GraphicsPlatform::getColorRef(m_colorKey);
-						flags |= LWA_COLORKEY;
-					}
-					SetLayeredWindowAttributes(hWnd, cr, m_alpha, flags);
-					RedrawWindow(hWnd,
-						NULL,
-						NULL,
-						RDW_ERASE | RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN);
-				}
-			}
-
 			void setAlpha(sl_real alpha) override
 			{
-				sl_uint8 a = ToWindowAlpha(alpha);
-				if (m_alpha != a) {
-					m_alpha = a;
-					updateLayeredAttrs();
+				Ref<Win32_ViewInstance> content = m_viewContent;
+				if (content.isNotNull()) {
+					Ref<View> view = content->getView();
+					if (view.isNotNull()) {
+						content->setAlpha(view.get(), alpha);
+					}
 				}
 			}
 
 			void setColorKey(const Color& color) override
 			{
-				if (m_colorKey != color) {
-					m_colorKey = color;
-					updateLayeredAttrs();
+				Ref<Win32_ViewInstance> content = m_viewContent;
+				if (content.isNotNull()) {
+					Ref<View> view = content->getView();
+					if (view.isNotNull()) {
+						content->setColorKey(view.get(), color);
+					}
 				}
 			}
 

@@ -187,6 +187,7 @@ namespace slib
 
 		AtomicRef<Font> font;
 		sl_real alpha;
+		Color colorKey;
 
 		AtomicRef<Bitmap> bitmapLayer;
 		AtomicRef<Canvas> canvasLayer;

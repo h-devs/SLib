@@ -733,14 +733,7 @@ namespace slib
 
 	void Window::setLayered(sl_bool flag)
 	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setLayered, flag)
-			m_flagLayered = flag;
-			instance->setLayered(flag);
-		} else {
-			m_flagLayered = flag;
-		}
+		m_flagLayered = flag;
 	}
 
 	sl_real Window::getAlpha()
@@ -1916,10 +1909,6 @@ namespace slib
 	}
 
 	void WindowInstance::setResizable(sl_bool flag)
-	{
-	}
-
-	void WindowInstance::setLayered(sl_bool flag)
 	{
 	}
 

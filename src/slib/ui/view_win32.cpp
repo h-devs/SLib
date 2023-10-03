@@ -249,7 +249,7 @@ namespace slib
 					style |= WS_BORDER;
 				}
 			}
-			if (view->isLayer()) {
+			if (view->isCreatingNativeLayer() || UIPlatform::getWindowAlpha(view->getAlpha()) != 255 || view->getColorKey().isNotZero()) {
 				styleEx |= WS_EX_LAYERED;
 			}
 			if (view->isCreatingNativeWidget()) {
@@ -287,6 +287,11 @@ namespace slib
 				if (shared) {
 					if (wndClass != (LPCWSTR)(shared->wndClassForView)) {
 						SetWindowSubclass(hWnd, ViewInstanceSubclassProc, 0, 0);
+					}
+				}
+				if (styleEx & WS_EX_LAYERED) {
+					if (!(view->isCreatingNativeLayer())) {
+						UIPlatform::initLayeredWindowAttributes(hWnd, UIPlatform::getWindowAlpha(view->getAlpha()), view->getColorKey());
 					}
 				}
 				return hWnd;
@@ -357,9 +362,9 @@ namespace slib
 			UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(this, func, sl_null));
 			return;
 		}
-		if (m_layered.isNotNull()) {
-			m_layered->flagInvalidated = sl_true;
-			UI::dispatchToUiThreadUrgently(SLIB_FUNCTION_WEAKREF(this, updateLayered));
+		if (m_nativeLayer.isNotNull()) {
+			m_nativeLayer->flagInvalidated = sl_true;
+			UI::dispatchToUiThreadUrgently(SLIB_FUNCTION_WEAKREF(this, updateNativeLayer));
 			return;
 		}
 		HWND hWnd = m_handle;
@@ -375,9 +380,9 @@ namespace slib
 			UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(this, func, sl_null, rect));
 			return;
 		}
-		if (m_layered.isNotNull()) {
-			m_layered->flagInvalidated = sl_true;
-			UI::dispatchToUiThreadUrgently(SLIB_FUNCTION_WEAKREF(this, updateLayered));
+		if (m_nativeLayer.isNotNull()) {
+			m_nativeLayer->flagInvalidated = sl_true;
+			UI::dispatchToUiThreadUrgently(SLIB_FUNCTION_WEAKREF(this, updateNativeLayer));
 			return;
 		}
 		HWND hWnd = m_handle;
@@ -408,8 +413,8 @@ namespace slib
 				, uFlags
 			);
 		}
-		if (m_layered.isNotNull()) {
-			onDrawLayered();
+		if (m_nativeLayer.isNotNull()) {
+			updateNativeLayer();
 		}
 	}
 
@@ -423,16 +428,15 @@ namespace slib
 		if (hWnd) {
 			UINT uFlags = SWP_NOREPOSITION | SWP_NOZORDER | SWP_NOACTIVATE
 				| SWP_NOCOPYBITS
-				| SWP_ASYNCWINDOWPOS
-				;
+				| SWP_ASYNCWINDOWPOS;
 			SetWindowPos(hWnd, NULL
 				, (int)(m_frame.left + m_translation.x), (int)(m_frame.top + m_translation.y)
 				, (int)(m_frame.getWidth()), (int)(m_frame.getHeight())
 				, uFlags
 			);
 		}
-		if (m_layered.isNotNull()) {
-			onDrawLayered();
+		if (m_nativeLayer.isNotNull()) {
+			updateNativeLayer();
 		}
 	}
 
@@ -444,10 +448,8 @@ namespace slib
 			sl_bool f2 = flag ? sl_true : sl_false;
 			if (f1 != f2) {
 				if (f2) {
-					//::ShowWindow(hWnd, SW_SHOW);
 					ShowWindowAsync(hWnd, SW_SHOW);
 				} else {
-					//::ShowWindow(hWnd, SW_HIDE);
 					ShowWindowAsync(hWnd, SW_HIDE);
 				}
 			}
@@ -470,8 +472,40 @@ namespace slib
 	{
 	}
 
+	namespace {
+		static void SetLayeredAttributes(HWND hWnd, sl_real alpha, const Color& colorKey)
+		{
+			sl_uint8 a = UIPlatform::getWindowAlpha(alpha);
+			if (a == 255 && colorKey.isZero()) {
+				UIPlatform::setWindowExStyle(hWnd, WS_EX_LAYERED, sl_false);
+			} else {
+				UIPlatform::setWindowExStyle(hWnd, WS_EX_LAYERED, sl_true);
+			}
+			UIPlatform::updateLayeredWindowAttributes(hWnd, a, colorKey);
+			RedrawWindow(hWnd, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN);
+		}
+	}
+
 	void Win32_ViewInstance::setAlpha(View* view, sl_real alpha)
 	{
+		if (m_nativeLayer.isNotNull()) {
+			return;
+		}
+		HWND hWnd = m_handle;
+		if (hWnd) {
+			SetLayeredAttributes(hWnd, alpha, view->getColorKey());
+		}
+	}
+
+	void Win32_ViewInstance::setColorKey(View* view, const Color& color)
+	{
+		if (m_nativeLayer.isNotNull()) {
+			return;
+		}
+		HWND hWnd = m_handle;
+		if (hWnd) {
+			SetLayeredAttributes(hWnd, view->getAlpha(), color);
+		}
 	}
 
 	void Win32_ViewInstance::setClipping(View* view, sl_bool flag)
@@ -992,12 +1026,12 @@ namespace slib
 		if (handle) {
 			if (flag) {
 				if (!m_flagRegisteredTouch) {
-					m_flagRegisteredTouch = Win32::registerTouchWindow(handle);
+					m_flagRegisteredTouch = UIPlatform::registerTouchWindow(handle);
 				}
 			} else {
 				if (m_flagRegisteredTouch) {
 					m_flagRegisteredTouch = sl_false;
-					Win32::unregisterTouchWindow(handle);
+					UIPlatform::unregisterTouchWindow(handle);
 				}
 			}
 		}
@@ -1013,27 +1047,20 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setLayered(sl_bool flagLayered)
+	void Win32_ViewInstance::initNativeLayer()
 	{
-		UIPlatform::setWindowExStyle(m_handle, WS_EX_LAYERED, flagLayered);
-		if (flagLayered) {
-			if (m_layered.isNull()) {
-				m_layered = new Win32_LayeredViewContext;
-			}
-			if (m_layered.isNotNull()) {
-				onDrawLayered();
-			}
-		} else {
-			m_layered.setNull();
+		if (m_nativeLayer.isNull()) {
+			m_nativeLayer = new Win32_NativeLayerContext;
 		}
 	}
 
-	void Win32_ViewInstance::updateLayered()
+	void Win32_ViewInstance::updateNativeLayer()
 	{
-		if (m_layered.isNotNull()) {
-			if (m_layered->flagInvalidated) {
-				m_layered->flagInvalidated = sl_false;
-				onDrawLayered();
+		Win32_NativeLayerContext* layer = m_nativeLayer.get();
+		if (layer) {
+			if (layer->flagInvalidated) {
+				layer->flagInvalidated = sl_false;
+				onDrawNativeLayer();
 			}
 		}
 	}
@@ -1139,7 +1166,8 @@ namespace slib
 
 	void Win32_ViewInstance::onPaint(Canvas* canvas)
 	{
-		if (m_layered.isNotNull()) {
+		Win32_NativeLayerContext* layer = m_nativeLayer.get();
+		if (layer) {
 			return;
 		}
 
@@ -1269,9 +1297,10 @@ namespace slib
 		EndPaint(hWnd, &ps);
 	}
 
-	void Win32_ViewInstance::onDrawLayered()
+	void Win32_ViewInstance::onDrawNativeLayer()
 	{
-		if (m_layered.isNull()) {
+		Win32_NativeLayerContext* layer = m_nativeLayer.get();
+		if (!layer) {
 			return;
 		}
 
@@ -1279,7 +1308,6 @@ namespace slib
 		if (!hWnd) {
 			return;
 		}
-
 		RECT rc;
 		GetWindowRect(hWnd, &rc);
 		sl_uint32 width = (sl_uint32)(rc.right - rc.left);
@@ -1288,22 +1316,42 @@ namespace slib
 			return;
 		}
 
-		if (!(m_layered->prepare(width, height))) {
+		if (!(layer->prepare(width, height))) {
 			return;
 		}
 
-		Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, m_layered->graphicsCache, width, height, sl_null);
-		if (canvas.isNotNull()) {
-			canvas->setAntiAlias(sl_false);
-			m_layered->graphicsCache->Clear(Gdiplus::Color(0));
-			canvas->setInvalidatedRect(Rectangle(0, 0, (sl_real)(width), (sl_real)(height)));
-			Ref<View> view = getView();
-			if (view.isNotNull()) {
-				view->dispatchDraw(canvas.get());
+		{
+			Gdiplus::Graphics graphics(layer->hdcCache);
+			Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, &graphics, width, height, sl_null);
+			if (canvas.isNotNull()) {
+				canvas->setAntiAlias(sl_false);
+				canvas->setInvalidatedRect(Rectangle(0, 0, (sl_real)(width), (sl_real)(height)));
+				Ref<View> view = getView();
+				if (view.isNotNull()) {
+					sl_bool flagOpaque = sl_false;
+					Color colorBack;
+					if (view->isOpaque()) {
+						flagOpaque = sl_true;
+					} else {
+						Color colorView = view->getBackgroundColor();
+						if (colorView.a == 255) {
+							flagOpaque = sl_true;
+						} else {
+							if (m_flagWindowContent) {
+								Ref<Window> window = view->getWindow();
+								if (window.isNotNull()) {
+									colorBack = window->getBackgroundColor();
+								}
+							}
+						}
+					}
+					if (!flagOpaque) {
+						graphics.Clear(Gdiplus::Color(colorBack.a, colorBack.r, colorBack.g, colorBack.b));
+					}
+					view->dispatchDraw(canvas.get());
+				}
 			}
 		}
-
-		m_layered->sync(0, 0, width, height);
 
 		BLENDFUNCTION bf;
 		bf.AlphaFormat = AC_SRC_ALPHA;
@@ -1317,12 +1365,12 @@ namespace slib
 		size.cx = (LONG)width;
 		size.cy = (LONG)height;
 
-		if (!(UpdateLayeredWindow(hWnd, NULL, NULL, &size, m_layered->hdcCache, &ptSrc, 0, &bf, ULW_ALPHA))) {
+		if (!(UpdateLayeredWindow(hWnd, NULL, NULL, &size, layer->hdcCache, &ptSrc, 0, &bf, ULW_ALPHA))) {
 			DWORD dwErr = GetLastError();
 			if (dwErr = ERROR_INVALID_PARAMETER) {
 				UIPlatform::setWindowExStyle(m_handle, WS_EX_LAYERED, sl_false);
 				UIPlatform::setWindowExStyle(m_handle, WS_EX_LAYERED, sl_true);
-				UpdateLayeredWindow(hWnd, NULL, NULL, &size, m_layered->hdcCache, &ptSrc, 0, &bf, ULW_ALPHA);
+				UpdateLayeredWindow(hWnd, NULL, NULL, &size, layer->hdcCache, &ptSrc, 0, &bf, ULW_ALPHA);
 			}
 		}
 	}
@@ -1374,7 +1422,7 @@ namespace slib
 		sl_ui_posf y = (sl_ui_posf)((short)((lParam >> 16) & 0xffff));
 
 		if (m_flagRegisteredTouch) {
-			if (Win32::isCurrentMessageFromTouch()) {
+			if (UIPlatform::isCurrentMessageFromTouch()) {
 				if (flagSetCapture && action == UIAction::LeftButtonDown) {
 					Ref<UIEvent> ev = UIEvent::createMouseEvent(action, x, y, t);
 					if (ev.isNotNull()) {
@@ -1839,25 +1887,23 @@ namespace slib
 	}
 
 
-	Win32_LayeredViewContext::Win32_LayeredViewContext()
+	Win32_NativeLayerContext::Win32_NativeLayerContext()
 	{
 		flagInvalidated = sl_false;
 
 		hdcCache = NULL;
 		hbmCache = NULL;
 		hbmOld = NULL;
-		graphicsCache = sl_null;
-		bitmapCache = sl_null;
 		widthCache = 0;
 		heightCache = 0;
 	}
 
-	Win32_LayeredViewContext::~Win32_LayeredViewContext()
+	Win32_NativeLayerContext::~Win32_NativeLayerContext()
 	{
 		clear();
 	}
 
-	sl_bool Win32_LayeredViewContext::prepare(sl_uint32 width, sl_uint32 height)
+	sl_bool Win32_NativeLayerContext::prepare(sl_uint32 width, sl_uint32 height)
 	{
 		if (!width || !height) {
 			return sl_false;
@@ -1876,45 +1922,29 @@ namespace slib
 		if (height > sy) {
 			height = sy;
 		}
-		HDC hdcScreen = GetDC(HWND_DESKTOP);
+		HDC hdcScreen = GetDC(NULL);
 		if (!hdcScreen) {
 			return sl_false;
 		}
-		sl_bool bRet = sl_false;
-		Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap((int)width, (int)height, PixelFormat32bppARGB);
-		if (bitmap) {
-			Gdiplus::Graphics* graphics = new Gdiplus::Graphics(bitmap);
-			if (graphics) {
-				HDC hdc = CreateCompatibleDC(hdcScreen);
-				if (hdc) {
-					HBITMAP hbm = CreateCompatibleBitmap(hdcScreen, (int)width, (int)height);
-					if (hbm) {
-						hbmOld = SelectObject(hdc, hbm);
-						hbmCache = hbm;
-						hdcCache = hdc;
-						graphicsCache = graphics;
-						graphics = NULL;
-						bitmapCache = bitmap;
-						bitmap = NULL;
-						widthCache = width;
-						heightCache = height;
-						bRet = sl_true;
-					} else {
-						DeleteDC(hdc);
-					}
-				}
-				if (graphics) {
-					delete graphics;
-				}
+		HDC hdc = CreateCompatibleDC(hdcScreen);
+		if (hdc) {
+			HBITMAP hbm = CreateCompatibleBitmap(hdcScreen, (int)width, (int)height);
+			if (hbm) {
+				hbmOld = SelectObject(hdc, hbm);
+				hbmCache = hbm;
+				hdcCache = hdc;
+				widthCache = width;
+				heightCache = height;
+				ReleaseDC(NULL, hdcScreen);
+				return sl_true;
 			}
-			if (bitmap) {
-				delete bitmap;
-			}
+			DeleteDC(hdc);
 		}
-		return bRet;
+		ReleaseDC(NULL, hdcScreen);
+		return sl_false;
 	}
 
-	void Win32_LayeredViewContext::clear()
+	void Win32_NativeLayerContext::clear()
 	{
 		if (hdcCache) {
 			if (hbmOld) {
@@ -1928,40 +1958,8 @@ namespace slib
 			DeleteObject(hbmCache);
 			hbmCache = NULL;
 		}
-		if (graphicsCache) {
-			delete graphicsCache;
-			graphicsCache = sl_null;
-		}
-		if (bitmapCache) {
-			delete bitmapCache;
-			bitmapCache = sl_null;
-		}
 		widthCache = 0;
 		heightCache = 0;
-	}
-
-	void Win32_LayeredViewContext::sync(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height)
-	{
-		if (bitmapCache && hdcCache) {
-			Gdiplus::Rect rc;
-			rc.X = (int)x;
-			rc.Y = (int)y;
-			rc.Width = (int)width;
-			rc.Height = (int)height;
-			Gdiplus::BitmapData data;
-			if (bitmapCache->LockBits(&rc, Gdiplus::ImageLockModeRead, PixelFormat32bppARGB, &data) == Gdiplus::Ok) {
-				BITMAPINFOHEADER bih;
-				Base::zeroMemory(&bih, sizeof(bih));
-				bih.biSize = sizeof(bih);
-				bih.biBitCount = 32;
-				bih.biCompression = BI_RGB;
-				bih.biWidth = data.Stride >> 2;
-				bih.biHeight = height;
-				bih.biPlanes = 1;
-				StretchDIBits(hdcCache, 0, 0, width, height, 0, height - 1, width, -(int)(height), data.Scan0, (BITMAPINFO*)&bih, DIB_RGB_COLORS, SRCCOPY);
-				bitmapCache->UnlockBits(&data);
-			}
-		}
 	}
 
 

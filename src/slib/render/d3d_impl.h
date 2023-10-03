@@ -23,12 +23,11 @@
 #include "slib/render/d3d.h"
 
 #include "slib/graphics/image.h"
-
 #include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/log.h"
-#include "slib/platform.h"
+#include "slib/ui/platform.h"
 #include "slib/dl/win32/d3d.h"
 
 #if D3D_VERSION_MAJOR < 11
@@ -306,7 +305,7 @@ namespace slib
 			void runStep(RenderEngine* engine)
 			{
 				if (m_hWnd) {
-					if (!(Win32::isWindowVisible(m_hWnd))) {
+					if (!(UIPlatform::isWindowVisible(m_hWnd))) {
 						return;
 					}
 				}

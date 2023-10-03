@@ -909,6 +909,10 @@ namespace slib
 		void setUsingFont(sl_bool flag = sl_true);
 
 
+		sl_bool isAntiAlias();
+
+		void setAntiAlias(sl_bool flagAntiAlias = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		sl_bool isOpaque();
 
 		void setOpaque(sl_bool flagOpaque = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -917,9 +921,9 @@ namespace slib
 
 		void setAlpha(sl_real alpha, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_bool isAntiAlias();
+		Color getColorKey();
 
-		void setAntiAlias(sl_bool flagAntiAlias = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColorKey(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isLayer();
 
@@ -1829,7 +1833,7 @@ namespace slib
 
 		virtual void bringToFront(View* view) = 0;
 
-		// extended functions for view instances
+		// extended functions
 		virtual void setShadowOpacity(View* view, float alpha);
 
 		virtual void setShadowRadius(View* view, sl_ui_posf radius);
@@ -1838,7 +1842,8 @@ namespace slib
 
 		virtual void setShadowColor(View* view, const Color& color);
 
-		// extended functions for native widgets
+		virtual void setColorKey(View* view, const Color& color);
+
 		virtual sl_bool isDrawingEnabled(View* view);
 
 		virtual void setBorder(View* view, sl_bool flag);

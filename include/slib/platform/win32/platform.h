@@ -154,16 +154,6 @@ namespace slib
 
 		static HANDLE createDeviceHandle(const StringParam& path, DWORD dwDesiredAccess, DWORD dwShareMode);
 
-
-		static sl_bool isWindowVisible(HWND hWnd);
-
-
-		static sl_bool registerTouchWindow(HWND hWnd);
-	
-		static void unregisterTouchWindow(HWND hWnd);
-
-		static sl_bool isCurrentMessageFromTouch();
-
 	};
 
 }

@@ -30,7 +30,6 @@
 #include "slib/platform.h"
 #include "slib/platform/win32/registry.h"
 #include "slib/dl/win32/shlwapi.h"
-#include "slib/dl/win32/user32.h"
 
 #include <objbase.h>
 #include <shellapi.h>
@@ -408,48 +407,6 @@ namespace slib
 			}
 		}
 		return CreateFileW((LPCWSTR)(path.getData()), dwDesiredAccess, dwShareMode, NULL, OPEN_EXISTING, 0, NULL);
-	}
-
-	sl_bool Win32::isWindowVisible(HWND hWnd)
-	{
-		if (!(IsWindow(hWnd))) {
-			return sl_false;
-		}
-		if (!(IsWindowVisible(hWnd))) {
-			return sl_false;
-		}
-		if (IsIconic(hWnd)) {
-			return sl_false;
-		}
-		hWnd = GetAncestor(hWnd, GA_PARENT);
-		if (hWnd) {
-			return isWindowVisible(hWnd);
-		}
-		return sl_true;
-	}
-
-	sl_bool Win32::registerTouchWindow(HWND hWnd)
-	{
-		auto func = user32::getApi_RegisterTouchWindow();
-		if (func) {
-			return func(hWnd, 0) != 0;
-		}
-		return sl_false;
-	}
-
-	void Win32::unregisterTouchWindow(HWND hWnd)
-	{
-		auto func = user32::getApi_UnregisterTouchWindow();
-		if (func) {
-			func(hWnd);
-		}
-	}
-
-#define MOUSEEVENTF_FROMTOUCH 0xFF515700
-
-	sl_bool Win32::isCurrentMessageFromTouch()
-	{
-		return (GetMessageExtraInfo() & MOUSEEVENTF_FROMTOUCH) == MOUSEEVENTF_FROMTOUCH;
 	}
 
 }

@@ -37,6 +37,8 @@
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"
 
+#include "slib/dl/win32/user32.h"
+
 #include <commctrl.h>
 #include <shobjidl.h>
 
@@ -428,7 +430,20 @@ namespace slib
 
 	sl_bool UIPlatform::isWindowVisible(HWND hWnd)
 	{
-		return Win32::isWindowVisible(hWnd);
+		if (!(IsWindow(hWnd))) {
+			return sl_false;
+		}
+		if (!(IsWindowVisible(hWnd))) {
+			return sl_false;
+		}
+		if (IsIconic(hWnd)) {
+			return sl_false;
+		}
+		hWnd = GetAncestor(hWnd, GA_PARENT);
+		if (hWnd) {
+			return isWindowVisible(hWnd);
+		}
+		return sl_true;
 	}
 
 	String UIPlatform::getWindowText(HWND hWnd)
@@ -694,6 +709,52 @@ namespace slib
 		si.nMax = nMax;
 		si.nPage = nPage;
 		SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
+	}
+
+	sl_bool UIPlatform::registerTouchWindow(HWND hWnd)
+	{
+		auto func = user32::getApi_RegisterTouchWindow();
+		if (func) {
+			return func(hWnd, 0) != 0;
+		}
+		return sl_false;
+	}
+
+	void UIPlatform::unregisterTouchWindow(HWND hWnd)
+	{
+		auto func = user32::getApi_UnregisterTouchWindow();
+		if (func) {
+			func(hWnd);
+		}
+	}
+
+#define MOUSEEVENTF_FROMTOUCH 0xFF515700
+
+	sl_bool UIPlatform::isCurrentMessageFromTouch()
+	{
+		return (GetMessageExtraInfo() & MOUSEEVENTF_FROMTOUCH) == MOUSEEVENTF_FROMTOUCH;
+	}
+
+	void UIPlatform::initLayeredWindowAttributes(HWND hWnd, sl_uint8 alpha, const Color& colorKey)
+	{
+		DWORD flags = alpha == 255 ? 0 : LWA_ALPHA;
+		COLORREF ck = 0;
+		if (colorKey.isNotZero()) {
+			ck = GraphicsPlatform::getColorRef(colorKey);
+			flags |= LWA_COLORKEY;
+		}
+		SetLayeredWindowAttributes(hWnd, ck, alpha, flags);
+	}
+
+	void UIPlatform::updateLayeredWindowAttributes(HWND hWnd, sl_uint8 alpha, const Color& colorKey)
+	{
+		DWORD flags = LWA_ALPHA;
+		COLORREF ck = 0;
+		if (colorKey.isNotZero()) {
+			ck = GraphicsPlatform::getColorRef(colorKey);
+			flags |= LWA_COLORKEY;
+		}
+		SetLayeredWindowAttributes(hWnd, ck, alpha, flags);
 	}
 
 	sl_int32 UIApp::onExistingInstance()

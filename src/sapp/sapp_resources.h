@@ -254,6 +254,7 @@ namespace slib
 
 		SAppBooleanValue opaque;
 		SAppFloatValue alpha;
+		SAppColorValue colorKey;
 		SAppBooleanValue antiAlias;
 		SAppBooleanValue layer;
 
@@ -350,6 +351,7 @@ namespace slib
 		SAppBooleanValue resizable;
 		SAppBooleanValue layered;
 		SAppFloatValue alpha;
+		SAppColorValue colorKey;
 		SAppBooleanValue transparent;
 		SAppColorValue backgroundColor;
 

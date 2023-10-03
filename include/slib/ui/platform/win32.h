@@ -79,6 +79,18 @@ namespace slib
 		static void setWindowHorizontalScrollParam(HWND hWnd, sl_int32 nMin, sl_int32 nMax, sl_int32 nPage);
 		static void setWindowVerticalScrollParam(HWND hWnd, sl_int32 nMin, sl_int32 nMax, sl_int32 nPage);
 
+		static sl_bool registerTouchWindow(HWND hWnd);
+		static void unregisterTouchWindow(HWND hWnd);
+		static sl_bool isCurrentMessageFromTouch();
+
+		SLIB_INLINE static sl_uint8 getWindowAlpha(sl_real alpha)
+		{
+			return (sl_uint8)(Math::clamp0_255((sl_int32)(alpha * 256)));
+		}
+
+		static void initLayeredWindowAttributes(HWND hWnd, sl_uint8 alpha, const Color& colorKey);
+		static void updateLayeredWindowAttributes(HWND hWnd, sl_uint8 alpha, const Color& colorKey);
+
 	};
 
 }
