@@ -421,7 +421,7 @@ namespace slib
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
-					sl_bool f1 = IsWindowVisible(hWnd) ? sl_true : sl_false;
+					sl_bool f1 = GetWindowLongW(hWnd, GWL_STYLE) & WS_VISIBLE ? sl_true : sl_false;
 					sl_bool f2 = flag ? sl_true : sl_false;
 					if (f1 != f2) {
 						if (f2) {

@@ -734,8 +734,8 @@ namespace slib
 		if (instance.isNotNull()) {
 			m_instance = instance;
 			instance->initialize(this);
-			_doAttach();
 			instance->setView(this);
+			_doAttach();
 		}
 		return instance;
 	}
@@ -1998,15 +1998,16 @@ namespace slib
 	// Run on UI Thread
 	void View::_setInstanceVisible(sl_bool flag)
 	{
+		flag = flag && m_visibility == Visibility::Visible;
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
-			instance->setVisible(this, flag && m_visibility == Visibility::Visible);
+			instance->setVisible(this, flag);
 		} else {
 			Ref<ChildAttributes>& attrs = m_childAttrs;
 			if (attrs.isNotNull() && attrs->flagHasInstances) {
 				ListElements< Ref<View> > children(getChildren());
 				for (sl_size i = 0; i < children.count; i++) {
-					children[i]->_setInstanceVisible(flag && m_visibility == Visibility::Visible);
+					children[i]->_setInstanceVisible(flag);
 				}
 			}
 		}
