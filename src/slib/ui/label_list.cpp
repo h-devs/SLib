@@ -141,6 +141,56 @@ namespace slib
 		invalidate(mode);
 	}
 
+	sl_ui_len LabelList::getItemPaddingLeft()
+	{
+		return m_itemPadding.left;
+	}
+
+	void LabelList::setItemPaddingLeft(sl_ui_len padding, UIUpdateMode mode)
+	{
+		m_itemPadding.left = padding;
+		invalidate(mode);
+	}
+
+	sl_ui_len LabelList::getItemPaddingTop()
+	{
+		return m_itemPadding.top;
+	}
+
+	void LabelList::setItemPaddingTop(sl_ui_len padding, UIUpdateMode mode)
+	{
+		m_itemPadding.top = padding;
+		invalidate(mode);
+	}
+
+	sl_ui_len LabelList::getItemPaddingRight()
+	{
+		return m_itemPadding.right;
+	}
+
+	void LabelList::setItemPaddingRight(sl_ui_len padding, UIUpdateMode mode)
+	{
+		m_itemPadding.right = padding;
+		invalidate(mode);
+	}
+
+	sl_ui_len LabelList::getItemPaddingBottom()
+	{
+		return m_itemPadding.bottom;
+	}
+
+	void LabelList::setItemPaddingBottom(sl_ui_len padding, UIUpdateMode mode)
+	{
+		m_itemPadding.bottom = padding;
+		invalidate(mode);
+	}
+
+	void LabelList::setItemPadding(sl_ui_len padding, UIUpdateMode mode)
+	{
+		m_itemPadding = padding;
+		invalidate(mode);
+	}
+
 	void LabelList::invalidateLabelAppearance(UIUpdateMode mode)
 	{
 		invalidate(mode);
@@ -183,10 +233,10 @@ namespace slib
 		}
 		TextBox::DrawParam drawParam;
 		drawParam.frame = rcItem;
-		drawParam.frame.left += getPaddingLeft();
-		drawParam.frame.right -= getPaddingRight();
-		drawParam.frame.top += getPaddingTop();
-		drawParam.frame.bottom -= getPaddingBottom();
+		drawParam.frame.left += m_itemPadding.left;
+		drawParam.frame.right -= m_itemPadding.right;
+		drawParam.frame.top += m_itemPadding.top;
+		drawParam.frame.bottom -= m_itemPadding.bottom;
 		drawParam.textColor = m_textColors.evaluate(getItemState(itemIndex));
 		TextBox box;
 		param.font = getFont();
@@ -223,9 +273,9 @@ namespace slib
 	{
 		Ref<Font> font = getFont();
 		if (font.isNotNull()) {
-			return (sl_ui_len)(font->getFontHeight() * m_lineHeightWeight) + getPaddingTop() + getPaddingBottom();
+			return (sl_ui_len)(font->getFontHeight() * m_lineHeightWeight) + m_itemPadding.top + m_itemPadding.bottom;
 		} else {
-			return 20 + getPaddingTop() + getPaddingBottom();
+			return 20 + m_itemPadding.top + m_itemPadding.bottom;
 		}
 	}
 

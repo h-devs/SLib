@@ -881,6 +881,11 @@ namespace slib
 		SAppEllipsizeModeValue ellipsize;
 		SAppMultiLineModeValue multiLine;
 
+		SAppDimensionValue itemPaddingLeft;
+		SAppDimensionValue itemPaddingTop;
+		SAppDimensionValue itemPaddingRight;
+		SAppDimensionValue itemPaddingBottom;
+
 		CList<SAppLayoutSelectItem> items;
 	};
 

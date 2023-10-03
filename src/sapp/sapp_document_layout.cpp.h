@@ -2199,7 +2199,7 @@ namespace slib
 				}
 			}
 		}
-			
+
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, background, setBackground)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, backgroundScale, setBackgroundScaleMode)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, backgroundAlign, setBackgroundAlignment)
@@ -4371,6 +4371,29 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, gravity, setGravity)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, ellipsize, setEllipsize)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setMultiLine)
+
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemPaddingLeft, setItemPaddingLeft, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemPaddingTop, setItemPaddingTop, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemPaddingRight, setItemPaddingRight, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemPaddingBottom, setItemPaddingBottom, checkPosition)
+		if (op == SAppLayoutOperation::Parse) {
+			SAppDimensionValue itemPadding;
+			LAYOUT_CONTROL_PARSE_ATTR(DIMENSION, , itemPadding, checkPosition)
+			if (itemPadding.flagDefined) {
+				if (!(attr->itemPaddingLeft.flagDefined)) {
+					attr->itemPaddingLeft = itemPadding;
+				}
+				if (!(attr->itemPaddingTop.flagDefined)) {
+					attr->itemPaddingTop = itemPadding;
+				}
+				if (!(attr->itemPaddingRight.flagDefined)) {
+					attr->itemPaddingRight = itemPadding;
+				}
+				if (!(attr->itemPaddingBottom.flagDefined)) {
+					attr->itemPaddingBottom = itemPadding;
+				}
+			}
+		}
 
 		LAYOUT_CONTROL_PROCESS_SELECT_ITEMS
 

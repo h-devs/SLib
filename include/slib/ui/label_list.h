@@ -194,6 +194,26 @@ public: \
 
 		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
+
+		sl_ui_len getItemPaddingLeft();
+
+		void setItemPaddingLeft(sl_ui_len padding, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		sl_ui_len getItemPaddingTop();
+
+		void setItemPaddingTop(sl_ui_len padding, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		sl_ui_len getItemPaddingRight();
+
+		void setItemPaddingRight(sl_ui_len padding, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		sl_ui_len getItemPaddingBottom();
+
+		void setItemPaddingBottom(sl_ui_len padding, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		void setItemPadding(sl_ui_len padding, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+
 		void invalidateLabelAppearance(UIUpdateMode mode);
 
 	public:
@@ -215,6 +235,7 @@ public: \
 		sl_bool m_flagUseFontHeight;
 		sl_ui_len m_heightFont;
 		float m_lineHeightWeight;
+		UIEdgeInsets m_itemPadding;
 
 		Alignment m_gravity;
 		EllipsizeMode m_ellipsizeMode;
