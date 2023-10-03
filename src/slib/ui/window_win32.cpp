@@ -719,12 +719,23 @@ namespace slib
 				if (!handle) {
 					return sl_false;
 				}
+				short x = (short)(lParam & 0xFFFF);
+				short y = (short)((lParam >> 16) & 0xFFFF);
+				Ref<Window> window = getWindow();
+				if (window.isNotNull()) {
+					Function<WindowPart(sl_ui_pos x, sl_ui_pos y)> tester = window->getHitTester();
+					if (tester.isNotNull()) {
+						WindowPart part = tester(x, y);
+						if (part != WindowPart::Nowhere) {
+							result = (LRESULT)part;
+							return sl_true;
+						}
+					}
+				}
 				if (m_flagTitleBar) {
 					return sl_false;
 				}
 				if (m_flagResizable) {
-					short x = (short)(lParam & 0xFFFF);
-					short y = (short)((lParam >> 16) & 0xFFFF);
 					RECT rc = { 0 };
 					GetWindowRect(handle, &rc);
 #define BORDER_SIZE 4

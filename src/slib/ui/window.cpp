@@ -1223,6 +1223,16 @@ namespace slib
 		}
 	}
 
+	Function<WindowPart(sl_ui_pos x, sl_ui_pos y)> Window::getHitTester()
+	{
+		return m_hitTester;
+	}
+
+	void Window::setHitTester(const Function<WindowPart(sl_ui_pos x, sl_ui_pos y)>& tester)
+	{
+		m_hitTester = tester;
+	}
+
 	sl_bool Window::isCloseOnOK()
 	{
 		return m_flagCloseOnOK;
