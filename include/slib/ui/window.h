@@ -259,6 +259,10 @@ namespace slib
 
 		void setVisibleInTaskbar(sl_bool flag = sl_true);
 
+		sl_bool isExcludingFromCapture();
+
+		void setExcludingFromCapture(sl_bool flag = sl_true);
+
 
 		// aspect = width / height
 		void setSizeRange(const UISize& sizeMinimum, const UISize& sizeMaximum, float aspectRatioMinimum = 0, float aspectRatioMaximum = 0);
@@ -570,6 +574,7 @@ namespace slib
 		sl_bool m_flagLayered: 1;
 		sl_bool m_flagTransparent : 1;
 		sl_bool m_flagVisibleInTaskbar : 1;
+		sl_bool m_flagExcludingFromCapture : 1;
 
 		sl_bool m_flagModal : 1;
 		sl_bool m_flagSheet : 1;
@@ -684,6 +689,8 @@ namespace slib
 		virtual void setTransparent(sl_bool flag);
 
 		virtual void setVisibleInTaskbar(sl_bool flag);
+
+		virtual void setExcludingFromCapture(sl_bool flag);
 
 
 		virtual sl_bool getClientInsets(UIEdgeInsets& _out);

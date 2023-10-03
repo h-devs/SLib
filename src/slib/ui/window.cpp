@@ -71,6 +71,7 @@ namespace slib
 		m_flagLayered = sl_false;
 		m_flagTransparent = sl_false;
 		m_flagVisibleInTaskbar = sl_true;
+		m_flagExcludingFromCapture = sl_false;
 
 		m_flagModal = sl_false;
 		m_flagSheet = sl_false;
@@ -802,6 +803,23 @@ namespace slib
 			instance->setVisibleInTaskbar(flag);
 		} else {
 			m_flagVisibleInTaskbar = flag;
+		}
+	}
+
+	sl_bool Window::isExcludingFromCapture()
+	{
+		return m_flagExcludingFromCapture;
+	}
+
+	void Window::setExcludingFromCapture(sl_bool flag)
+	{
+		Ref<WindowInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setExcludingFromCapture, flag)
+			m_flagExcludingFromCapture = flag;
+			instance->setExcludingFromCapture(flag);
+		} else {
+			m_flagExcludingFromCapture = flag;
 		}
 	}
 
@@ -1953,6 +1971,10 @@ namespace slib
 	}
 
 	void WindowInstance::setVisibleInTaskbar(sl_bool flag)
+	{
+	}
+
+	void WindowInstance::setExcludingFromCapture(sl_bool flag)
 	{
 	}
 

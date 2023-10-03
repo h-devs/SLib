@@ -29,6 +29,7 @@
 #include "view_win32.h"
 
 #include "slib/dl/win32/dwmapi.h"
+#include "slib/dl/win32/user32.h"
 
 namespace slib
 {
@@ -198,6 +199,12 @@ namespace slib
 				if (styleEx & WS_EX_LAYERED) {
 					if (!(window->isLayered())) {
 						UIPlatform::initLayeredWindowAttributes(hWnd, UIPlatform::getWindowAlpha(window->getAlpha()), window->getColorKey());
+					}
+				}
+				if (window->isExcludingFromCapture()) {
+					auto api = user32::getApi_SetWindowDisplayAffinity();
+					if (api) {
+						api(hWnd, 0x11); // WDA_EXCLUDEFROMCAPTURE
 					}
 				}
 
@@ -501,6 +508,20 @@ namespace slib
 			void setVisibleInTaskbar(sl_bool flag) override
 			{
 				UIPlatform::setWindowExStyle(m_handle, WS_EX_TOOLWINDOW, !flag);
+			}
+
+			void setExcludingFromCapture(sl_bool flag) override
+			{
+				HWND hWnd = m_handle;
+				if (hWnd) {
+					auto api = user32::getApi_SetWindowDisplayAffinity();
+					if (api) {
+						api(hWnd, flag ?
+							0x11 // WDA_EXCLUDEFROMCAPTURE
+							: 0
+						);
+					}
+				}
 			}
 
 			sl_bool getClientInsets(UIEdgeInsets& _out) override
