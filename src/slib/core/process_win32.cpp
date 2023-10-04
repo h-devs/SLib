@@ -330,8 +330,8 @@ namespace slib
 				if (funcQueryFullProcessImageNameW(hProcess, NULL, filePath, &lenPath)) {
 					ret = String::from(filePath, lenPath);
 				}
+				CloseHandle(hProcess);
 			}
-			CloseHandle(hProcess);
 		} else {
 			HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, (DWORD)processId);
 			if (hProcess) {
@@ -340,11 +340,22 @@ namespace slib
 				if (dwLen) {
 					ret = String::from(filePath, dwLen);
 				}
+				CloseHandle(hProcess);
 			}
-			CloseHandle(hProcess);
 		}
 		return ret;
 #endif
+	}
+
+	sl_bool Process::kill(sl_uint32 processId)
+	{
+		HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, processId);
+		if (hProcess) {
+			BOOL bRet = TerminateProcess(hProcess, 0);
+			CloseHandle(hProcess);
+			return bRet != 0;
+		}
+		return sl_false;
 	}
 
 	sl_uint32 Process::getCurrentProcessId()

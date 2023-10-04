@@ -56,6 +56,8 @@ namespace slib
 
 		static String getImagePath(sl_uint32 processId);
 
+		static sl_bool kill(sl_uint32 processId);
+
 
 		static Ref<Process> open(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
 
