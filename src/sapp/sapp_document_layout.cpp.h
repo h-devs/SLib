@@ -2421,6 +2421,8 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, alpha, setAlpha)
 		LAYOUT_CONTROL_ATTR(COLOR, colorKey, setColorKey)
 		LAYOUT_CONTROL_ATTR(GENERIC, transparent, setTransparent)
+		LAYOUT_CONTROL_ATTR(GENERIC, taskbar, setVisibleInTaskbar)
+		LAYOUT_CONTROL_ATTR(GENERIC, excludeFromCapture, setExcludingFromCapture)
 		LAYOUT_CONTROL_ATTR(COLOR, backgroundColor, setBackgroundColor)
 
 		LAYOUT_CONTROL_ATTR(GENERIC, modal, setModal)

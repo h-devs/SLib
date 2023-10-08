@@ -353,6 +353,8 @@ namespace slib
 		SAppFloatValue alpha;
 		SAppColorValue colorKey;
 		SAppBooleanValue transparent;
+		SAppBooleanValue taskbar;
+		SAppBooleanValue excludeFromCapture;
 		SAppColorValue backgroundColor;
 
 		SAppBooleanValue modal;
