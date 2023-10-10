@@ -74,12 +74,12 @@ namespace slib
 			HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** ppvObject)
 			{
 				*ppvObject = NULL;
-				if (Base::equalsMemory(&iid, &IID_IUnknown, sizeof(IID))) {
+				if (iid == __uuidof(IUnknown)) {
 					*ppvObject = (IUnknown*)(IMoniker*)this;
 					AddRef();
 					return S_OK;
 				}
-				if (Base::equalsMemory(&iid, &IID_IMoniker, sizeof(IID))) {
+				if (iid == __uuidof(IMoniker)) {
 					*ppvObject = (IMoniker*)this;
 					AddRef();
 					return S_OK;
@@ -135,10 +135,10 @@ namespace slib
 				return E_NOTIMPL;
 			}
 
-			HRESULT STDMETHODCALLTYPE BindToStorage(IBindCtx *pbc, IMoniker *pmkToLeft, REFIID riid, void **ppvObj)
+			HRESULT STDMETHODCALLTYPE BindToStorage(IBindCtx *pbc, IMoniker *pmkToLeft, REFIID iid, void **ppvObj)
 			{
 				*ppvObj = NULL;
-				if (Base::equalsMemory(&riid, &IID_IStream, sizeof(IID))) {
+				if (iid == __uuidof(IStream)) {
 					*ppvObj = m_stream;
 					m_stream->AddRef();
 				} else {
@@ -232,7 +232,7 @@ namespace slib
 				IStream* stream = SHCreateMemStream((BYTE*)(content.getData()), (sl_uint32)(content.getLength()));
 				if (stream) {
 					IPersistMoniker* persistMoniker = NULL;
-					hr = doc->QueryInterface(IID_IPersistMoniker, (void**)(&persistMoniker));
+					hr = doc->QueryInterface(IID_PPV_ARGS(&persistMoniker));
 					if (hr == S_OK) {
 						IBindCtx* ctx = NULL;
 						hr = CreateBindCtx(0, &ctx);
@@ -453,7 +453,7 @@ namespace slib
 				HRESULT hr = browser->get_Document(&document);
 				IHTMLDocument2* ret = NULL;
 				if (hr == S_OK) {
-					hr = document->QueryInterface(IID_IHTMLDocument2, (void**)(&ret));
+					hr = document->QueryInterface(IID_PPV_ARGS(&ret));
 					document->Release();
 				}
 				return ret;
@@ -563,32 +563,32 @@ namespace slib
 			HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** ppvObject)
 			{
 				*ppvObject = NULL;
-				if (Base::equalsMemory(&iid, &IID_IUnknown, sizeof(IID))) {
+				if (iid == __uuidof(IUnknown)) {
 					*ppvObject = (IUnknown*)(IOleClientSite*)this;
 					AddRef();
 					return S_OK;
 				}
-				if (Base::equalsMemory(&iid, &IID_IOleClientSite, sizeof(IID))) {
+				if (iid == __uuidof(IOleClientSite)) {
 					*ppvObject = (IOleClientSite*)this;
 					AddRef();
 					return S_OK;
 				}
-				if (Base::equalsMemory(&iid, &IID_IOleInPlaceSite, sizeof(IID))) {
+				if (iid == __uuidof(IOleInPlaceSite)) {
 					*ppvObject = (IOleInPlaceSite*)this;
 					AddRef();
 					return S_OK;
 				}
-				if (Base::equalsMemory(&iid, &IID_IDocHostUIHandler, sizeof(IID))) {
+				if (iid == __uuidof(IDocHostUIHandler)) {
 					*ppvObject = (IDocHostUIHandler*)this;
 					AddRef();
 					return S_OK;
 				}
-				if (Base::equalsMemory(&iid, &IID_IOleInPlaceFrame, sizeof(IID))) {
+				if (iid == __uuidof(IOleInPlaceFrame)) {
 					*ppvObject = (IOleInPlaceFrame*)this;
 					AddRef();
 					return S_OK;
 				}
-				if (Base::equalsMemory(&iid, &IID_IDispatch, sizeof(IID))) {
+				if (iid == __uuidof(IDispatch)) {
 					*ppvObject = (IDispatch*)this;
 					AddRef();
 					return S_OK;
@@ -713,7 +713,7 @@ namespace slib
 				IOleObject* control = m_viewInstance->m_control;
 				if (control) {
 					IOleInPlaceObject* place = NULL;
-					HRESULT hr = control->QueryInterface(IID_IOleInPlaceObject, (void**)(&place));
+					HRESULT hr = control->QueryInterface(IID_PPV_ARGS(&place));
 					if (hr == S_OK) {
 						place->SetObjectRects(lprcPosRect, lprcPosRect);
 						place->Release();
@@ -947,7 +947,7 @@ namespace slib
 			HRESULT hr;
 			IOleObject* control;
 
-			hr = CoCreateInstance(CLSID_WebBrowser, NULL, CLSCTX_INPROC_SERVER, IID_IOleObject, (void**)(&control));
+			hr = CoCreateInstance(__uuidof(WebBrowser), NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&control));
 			if (hr == S_OK) {
 
 				control->SetClientSite((IOleClientSite*)m_oleClient);
@@ -964,17 +964,17 @@ namespace slib
 					if (hr == S_OK) {
 
 						IWebBrowser2* browser = NULL;
-						hr = control->QueryInterface(IID_IWebBrowser2, (void**)(&browser));
+						hr = control->QueryInterface(IID_PPV_ARGS(&browser));
 						if (hr == S_OK) {
 
 							m_control = control;
 							m_browser = browser;
 
 							IConnectionPointContainer *cpc = NULL;
-							hr = control->QueryInterface(IID_IConnectionPointContainer, (void**)&cpc);
+							hr = control->QueryInterface(IID_PPV_ARGS(&cpc));
 							if (hr == S_OK) {
 								IConnectionPoint *cp = NULL;
-								hr = cpc->FindConnectionPoint(DIID_DWebBrowserEvents2, &cp);
+								hr = cpc->FindConnectionPoint(__uuidof(DWebBrowserEvents2), &cp);
 								if (hr == S_OK) {
 									cp->Advise((IDispatch*)m_oleClient, &m_eventCookie);
 									cp->Release();
@@ -1008,7 +1008,7 @@ namespace slib
 				hr = doc->get_parentWindow(&win);
 				if (win) {
 					IDispatchEx* disp = NULL;
-					hr = win->QueryInterface(IID_IDispatchEx, (void**)(&disp));
+					hr = win->QueryInterface(IID_PPV_ARGS(&disp));
 					if (disp) {
 						DISPID dispid;
 						hr = disp->GetDispID(L"slib_send", fdexNameEnsure, &dispid);

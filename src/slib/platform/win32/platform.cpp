@@ -289,14 +289,14 @@ namespace slib
 	{
 		CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 		IShellLinkW* psl = NULL;
-		HRESULT hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&psl);
+		HRESULT hr = CoCreateInstance(__uuidof(ShellLink), NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&psl));
 		if (SUCCEEDED(hr)) {
 			StringCstr16 pathTarget(_pathTarget);
 			psl->SetPath((LPCWSTR)(pathTarget.getData()));
 			StringCstr16 workDir(File::getParentDirectoryPath(pathTarget));
 			psl->SetWorkingDirectory((LPCWSTR)(workDir.getData()));
 			IPersistFile* ppf = NULL;
-			hr = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+			hr = psl->QueryInterface(IID_PPV_ARGS(&ppf));
 			if (SUCCEEDED(hr)) {
 				StringCstr16 pathLink(_pathLink);
 				hr = ppf->Save((LPCWSTR)(pathLink.getData()), TRUE);

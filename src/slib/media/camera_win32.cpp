@@ -28,55 +28,7 @@
 #include "slib/platform/win32/com.h"
 
 #include <dshow.h>
-
-EXTERN_C const IID IID_ISampleGrabberCB;
-
-MIDL_INTERFACE("0579154A-2B53-4994-B0D0-E773148EFF85")
-ISampleGrabberCB : public IUnknown
-{
-public:
-	virtual HRESULT STDMETHODCALLTYPE SampleCB(
-		double SampleTime,
-		IMediaSample *pSample) = 0;
-
-	virtual HRESULT STDMETHODCALLTYPE BufferCB(
-		double SampleTime,
-		BYTE *pBuffer,
-		long BufferLen) = 0;
-};
-
-EXTERN_C const IID IID_ISampleGrabber;
-
-MIDL_INTERFACE("6B652FFF-11FE-4fce-92AD-0266B5D7C78F")
-ISampleGrabber : public IUnknown
-{
-public:
-	virtual HRESULT STDMETHODCALLTYPE SetOneShot(
-		BOOL OneShot) = 0;
-
-	virtual HRESULT STDMETHODCALLTYPE SetMediaType(
-		const AM_MEDIA_TYPE *pType) = 0;
-
-	virtual HRESULT STDMETHODCALLTYPE GetConnectedMediaType(
-		AM_MEDIA_TYPE *pType) = 0;
-
-	virtual HRESULT STDMETHODCALLTYPE SetBufferSamples(
-		BOOL BufferThem) = 0;
-
-	virtual HRESULT STDMETHODCALLTYPE GetCurrentBuffer(
-		/* [out][in] */ long *pBufferSize,
-		/* [out] */ long *pBuffer) = 0;
-
-	virtual HRESULT STDMETHODCALLTYPE GetCurrentSample(
-		/* [retval][out] */ IMediaSample **ppSample) = 0;
-
-	virtual HRESULT STDMETHODCALLTYPE SetCallback(
-		ISampleGrabberCB *pCallback,
-		long WhichMethodToCallback) = 0;
-};
-
-EXTERN_C const CLSID CLSID_SampleGrabber;
-EXTERN_C const CLSID CLSID_NullRenderer;
+#include <dshow/qedit.h>
 
 #pragma comment(lib, "strmiids.lib")
 
@@ -129,21 +81,20 @@ namespace slib
 				_queryDevices(param.deviceId, &filterSource);
 
 				if (filterSource) {
-
 					IGraphBuilder* graph = NULL;
-					hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC, IID_IGraphBuilder, (void**)&graph);
+					hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC, IID_PPV_ARGS(&graph));
 					if (graph) {
 						ICaptureGraphBuilder2* capture = NULL;
-						hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, CLSCTX_INPROC, IID_ICaptureGraphBuilder2, (void**)&capture);
+						hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, CLSCTX_INPROC, IID_PPV_ARGS(&capture));
 						if (capture) {
 							IMediaControl* control = NULL;
-							hr = graph->QueryInterface(IID_IMediaControl, (LPVOID*)&control);
+							hr = graph->QueryInterface(IID_PPV_ARGS(&control));
 							if (control) {
 								IBaseFilter* filterGrabber = NULL;
-								hr = CoCreateInstance(CLSID_SampleGrabber, NULL, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void**)&filterGrabber);
+								hr = CoCreateInstance(CLSID_SampleGrabber, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&filterGrabber));
 								if (filterGrabber) {
 									IBaseFilter* filterNullRenderer = NULL;
-									hr = CoCreateInstance(CLSID_NullRenderer, NULL, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void**)&filterNullRenderer);
+									hr = CoCreateInstance(CLSID_NullRenderer, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&filterNullRenderer));
 									if (filterNullRenderer) {
 
 										hr = capture->SetFiltergraph(graph);
@@ -153,7 +104,7 @@ namespace slib
 												hr = graph->AddFilter(filterGrabber, L"Sample Grabber");
 												if (SUCCEEDED(hr)) {
 													ISampleGrabber* grabber = NULL;
-													hr = filterGrabber->QueryInterface(IID_ISampleGrabber, (void**)&grabber);
+													hr = filterGrabber->QueryInterface(IID_PPV_ARGS(&grabber));
 													if (grabber) {
 														AM_MEDIA_TYPE mt;
 														ZeroMemory(&mt, sizeof(AM_MEDIA_TYPE));
@@ -205,11 +156,11 @@ namespace slib
 										}
 										filterNullRenderer->Release();
 									} else {
-										LOG_HRESULT("Failed to create CLSID_NullRenderer", hr);
+										LOG_HRESULT("Failed to create NullRenderer", hr);
 									}
 									filterGrabber->Release();
 								} else {
-									LOG_HRESULT("Failed to create CLSID_SampleGrabber", hr);
+									LOG_HRESULT("Failed to create SampleGrabber", hr);
 								}
 								control->Release();
 							} else {
@@ -217,11 +168,11 @@ namespace slib
 							}
 							capture->Release();
 						} else {
-							LOG_HRESULT("Failed to create CLSID_CaptureGraphBuilder2", hr);
+							LOG_HRESULT("Failed to create CaptureGraphBuilder2", hr);
 						}
 						graph->Release();
 					} else {
-						LOG_HRESULT("Failed to create CLSID_FilterGraph", hr);
+						LOG_HRESULT("Failed to create FilterGraph", hr);
 					}
 
 					filterSource->Release();
@@ -330,10 +281,13 @@ namespace slib
 
 			STDMETHODIMP_(ULONG) AddRef() { return 2; }
 			STDMETHODIMP_(ULONG) Release() { return 1; }
-			STDMETHODIMP QueryInterface(REFIID riid, void ** ppv)
+			STDMETHODIMP QueryInterface(REFIID riid, void** ppv)
 			{
-				if (riid == IID_ISampleGrabberCB || riid == IID_IUnknown) {
-					*ppv = (void*)(ISampleGrabberCB*)(this);
+				if (riid == __uuidof(ISampleGrabberCB)) {
+					*ppv = (ISampleGrabberCB*)this;
+					return NOERROR;
+				} else if (riid == __uuidof(IUnknown)) {
+					*ppv = (IUnknown*)((ISampleGrabberCB*)this);
 					return NOERROR;
 				}
 				return E_NOINTERFACE;
@@ -349,7 +303,7 @@ namespace slib
 				}
 
 				ICreateDevEnum* pDevEnum = NULL;
-				hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC, IID_ICreateDevEnum, (void**)&pDevEnum);
+				hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC, IID_PPV_ARGS(&pDevEnum));
 
 				if (pDevEnum) {
 
@@ -368,7 +322,7 @@ namespace slib
 							if (pMoniker) {
 
 								IPropertyBag* prop = NULL;
-								hr = pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void**)&prop);
+								hr = pMoniker->BindToStorage(0, 0, IID_PPV_ARGS(&prop));
 
 								if (prop) {
 
@@ -402,7 +356,7 @@ namespace slib
 								if (dev.id.isNotEmpty()) {
 									if (filter) {
 										if (deviceId.isEmpty() || deviceId == dev.id) {
-											hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)filter);
+											hr = pMoniker->BindToObject(0, 0, IID_PPV_ARGS(filter));
 											if (FAILED(hr)) {
 												LOG_HRESULT("Failed to bind Filter", hr);
 											}
@@ -421,17 +375,16 @@ namespace slib
 						pClassEnum->Release();
 
 					} else {
-						LOG_HRESULT("Failed to create CLSID_VideoInputDeviceCategory", hr);
+						LOG_HRESULT("Failed to create VideoInputDeviceCategory", hr);
 					}
 
 					pDevEnum->Release();
 
 				} else {
-					LOG_HRESULT("Failed to create CLSID_SystemDeviceEnum", hr);
+					LOG_HRESULT("Failed to create SystemDeviceEnum", hr);
 				}
 
 				return ret;
-
 			}
 		};
 

@@ -802,7 +802,7 @@ namespace slib
 				return;
 			}
 			ITaskbarList3* pList = NULL;
-			CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pList));
+			CoCreateInstance(__uuidof(TaskbarList), NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pList));
 			if (pList) {
 				HRESULT hr = pList->HrInit();
 				if (SUCCEEDED(hr)) {

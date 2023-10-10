@@ -28,11 +28,10 @@
 
 #include <objbase.h>
 #include <wbemcli.h>
-#include <wbemIdl.h>
+#include <wbemidl.h>
 #include <winioctl.h>
 #include <comdef.h>
 
-#pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "shlwapi.lib")
 
 namespace slib
@@ -49,10 +48,11 @@ namespace slib
 			}
 			String16 ret;
 			IWbemLocator* pLoc = NULL;
-			hr = CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER, IID_IWbemLocator, (LPVOID*)&pLoc);
+			hr = CoCreateInstance(__uuidof(WbemLocator), 0, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pLoc));
 			if (SUCCEEDED(hr)) {
 				IWbemServices *pSvc = NULL;
-				hr = pLoc->ConnectServer(_bstr_t(L"ROOT\\CIMV2"), NULL, NULL, 0, NULL, 0, 0, &pSvc);
+				_bstr_t strNetwork(L"ROOT\\CIMV2");
+				hr = pLoc->ConnectServer(strNetwork.GetBSTR(), NULL, NULL, 0, NULL, 0, 0, &pSvc);
 				if (SUCCEEDED(hr)) {
 					hr = CoSetProxyBlanket(pSvc, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE);
 					if (SUCCEEDED(hr)) {
