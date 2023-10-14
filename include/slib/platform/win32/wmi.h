@@ -37,7 +37,7 @@ namespace slib
 		class SLIB_EXPORT Wmi
 		{
 		public:
-			static String16 executeQuery(const StringParam& query);
+			static String16 getQueryResponseValue(const StringParam& query, const StringParam& fieldName);
 
 		};
 

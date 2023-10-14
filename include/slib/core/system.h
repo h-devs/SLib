@@ -100,9 +100,10 @@ namespace slib
 
 		static sl_uint32 getMinorVersion();
 
-		static sl_uint32 getPatchVersion();
-
 		static String getBuildVersion();
+#endif
+#if defined(SLIB_PLATFORM_IS_APPLE)
+		static sl_uint32 getPatchVersion();
 #endif
 
 #ifdef SLIB_PLATFORM_IS_WIN32

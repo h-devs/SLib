@@ -28,7 +28,9 @@
 
 #include "slib/io/file.h"
 #include "slib/core/unique_ptr.h"
+#include "slib/core/safe_static.h"
 #include "slib/platform.h"
+#include "slib/platform/win32/wmi.h"
 #include "slib/dl/win32/kernel32.h"
 #include "slib/dl/win32/wininet.h"
 #include "slib/dl/win32/wtsapi32.h"
@@ -264,138 +266,108 @@ namespace slib
 
 	String System::getSystemVersion()
 	{
-#if defined(SLIB_PLATFORM_IS_WIN32)
-		WindowsVersion version = Win32::getVersion();
-		if ((SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Server2012) ||
-			(!SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Windows8)) {
-			String kernelVersion = getProductVersion(System::getSystemDirectory() + "/kernel32.dll");
-			if (kernelVersion.isNotEmpty()) {
-				return kernelVersion;
+		const WindowsVersion& version = Win32::getVersion();
+		return String::concat(String::fromUint32(version.majorVersion), ".", String::fromUint32(version.minorVersion), ".", String::fromUint32(version.buildNumber));
+	}
+
+	namespace
+	{
+		static String GetMainSystemName(const WindowsVersion& version)
+		{
+			if (version.productType == WindowsProductType::Workstation) {
+				if (version.majorVersion >= 10) {
+					if (version.buildNumber >= WindowsVersion::Win11_BuildNumber) {
+						SLIB_RETURN_STRING("Windows 11")
+					} else {
+						SLIB_RETURN_STRING("Windows 10")
+					}
+				} else if (version.majorVersion >= WindowsVersion::Vista_MajorVersion) {
+					if (version.minorVersion >= WindowsVersion::Win8_1_MinorVersion) {
+						SLIB_RETURN_STRING("Windows 8.1")
+					} else if (version.minorVersion >= WindowsVersion::Win8_MinorVersion) {
+						SLIB_RETURN_STRING("Windows 8")
+					} else if (version.minorVersion >= WindowsVersion::Win7_MinorVersion) {
+						SLIB_RETURN_STRING("Windows 7")
+					} else {
+						SLIB_RETURN_STRING("Windows Vista")
+					}
+				} else if (version.majorVersion >= WindowsVersion::Win2000_MajorVersion) {
+					if (version.minorVersion >= WindowsVersion::XP64_MinorVersion) {
+						SLIB_RETURN_STRING("Windows XP 64Bit")
+					} else if (version.minorVersion >= WindowsVersion::XP_MinorVersion) {
+						SLIB_RETURN_STRING("Windows XP")
+					} else {
+						SLIB_RETURN_STRING("Windows 2000")
+					}
+				}
+			} else {
+				if (version.majorVersion >= 10) {
+					if (version.buildNumber >= WindowsVersion::Server2022_BuildNumber) {
+						SLIB_RETURN_STRING("Windows Server 2022")
+					} else if (version.buildNumber >= WindowsVersion::Server2019_BuildNumber) {
+						SLIB_RETURN_STRING("Windows Server 2019")
+					} else {
+						SLIB_RETURN_STRING("Windows Server 2016")
+					}
+				} else if (version.majorVersion >= WindowsVersion::Server2008_MajorVersion) {
+					if (version.minorVersion >= WindowsVersion::Server2012R2_MinorVersion) {
+						SLIB_RETURN_STRING("Windows Server 2012 R2")
+					} else if (version.minorVersion >= WindowsVersion::Server2012_MinorVersion) {
+						SLIB_RETURN_STRING("Windows Server 2012")
+					} else if (version.minorVersion >= WindowsVersion::Server2008R2_MinorVersion) {
+						SLIB_RETURN_STRING("Windows Server 2008 R2")
+					} else {
+						SLIB_RETURN_STRING("Windows Server 2008")
+					}
+				} else if (version.majorVersion >= WindowsVersion::Server2003_MajorVersion) {
+					if (version.minorVersion >= WindowsVersion::Server2003_MinorVersion) {
+						SLIB_RETURN_STRING("Windows Server 2003")
+					}
+				}
+			}
+			return String::concat("Windows NT ", String::fromUint32(version.majorVersion), ".", String::fromUint32(version.minorVersion));
+		}
+
+		static String GetSystemName()
+		{
+			String16 ret = win32::Wmi::getQueryResponseValue(L"SELECT Caption FROM Win32_OperatingSystem", L"Caption");
+			if (ret.isNotNull()) {
+				return String::from(ret);
+			}
+			const WindowsVersion& version = Win32::getVersion();
+			String mainVersion = GetMainSystemName(version);
+			if (version.servicePackMajorVersion) {
+				return String::concat(mainVersion, " SP", String::fromUint32(version.servicePackMajorVersion));
+			} else {
+				return mainVersion;
 			}
 		}
-		return String::concat(String::fromUint32(SLIB_WINDOWS_MAJOR_VERSION(version)), ".", String::fromUint32(SLIB_WINDOWS_MINOR_VERSION(version)));
-#else
-		return "UWP";
-#endif
 	}
 
 	String System::getSystemName()
 	{
-#if defined(SLIB_PLATFORM_IS_WIN32)
-		WindowsVersion version = Win32::getVersion();
-		if ((SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Server2012) ||
-			(!SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Windows8)) {
-			/*
-				Applications not manifested for Windows 8.1 or Windows 10 will return the Windows 8 OS version value (6.2).
-				For more information, visit at https://docs.microsoft.com/en-us/windows/desktop/SysInfo/targeting-your-application-at-windows-8-1
-			*/
-			sl_uint64 productVersion = 0;
-			if (getFileVersionInfo(System::getSystemDirectory() + "/kernel32.dll", sl_null, &productVersion)) {
-				if (SLIB_WINDOWS_IS_SERVER(version)) {
-					version = (WindowsVersion)(PRIV_SLIB_SERVER_VERSION_CODE(SLIB_GET_WORD3(productVersion), SLIB_GET_WORD2(productVersion), 0));
-				} else {
-					sl_uint16 major = SLIB_GET_WORD3(productVersion);
-					sl_uint16 minor = SLIB_GET_WORD2(productVersion);
-					sl_uint16 buildNumber = SLIB_GET_WORD1(productVersion);
-					if (major >= 10 && buildNumber >= 22000) {
-						// Windows 11
-						version = (WindowsVersion)(PRIV_SLIB_WORKSTATION_VERSION_CODE(major, minor, 1));
-					} else {
-						version = (WindowsVersion)(PRIV_SLIB_WORKSTATION_VERSION_CODE(major, minor, 0));
-					}
-				}
-			}
-		}
-		switch (version) {
-		case WindowsVersion::Server2016:
-			return "Windows Server 2016";
-		case WindowsVersion::Server2012_R2:
-			return "Windows Server 2012 R2";
-		case WindowsVersion::Server2012:
-			return "Windows Server 2012";
-		case WindowsVersion::Server2008_R2:
-			return "Windows Server 2008 R2";
-		case WindowsVersion::Server2008:
-			return "Windows Server 2008";
-		case WindowsVersion::Server2003:
-			return "Windows Server 2003";
-		case WindowsVersion::Windows11:
-			return "Windows 11";
-		case WindowsVersion::Windows10:
-			return "Windows 10";
-		case WindowsVersion::Windows8_1:
-			return "Windows 8.1";
-		case WindowsVersion::Windows8:
-			return "Windows 8";
-		case WindowsVersion::Windows7_SP1:
-			return "Windows 7 SP1";
-		case WindowsVersion::Windows7:
-			return "Windows 7";
-		case WindowsVersion::Vista_SP2:
-			return "Windows Vista SP2";
-		case WindowsVersion::Vista_SP1:
-			return "Windows Vista SP1";
-		case WindowsVersion::Vista:
-			return "Windows Vista";
-		case WindowsVersion::XP_64:
-			return "Windows XP 64bit";
-		case WindowsVersion::XP_SP3:
-			return "Windows XP SP3";
-		case WindowsVersion::XP_SP2:
-			return "Windows XP SP2";
-		case WindowsVersion::XP_SP1:
-			return "Windows XP SP1";
-		default:
-			return "Windows XP";
-		}
-#else
-		return "UWP";
-#endif
+		SLIB_SAFE_LOCAL_STATIC(String, ret, GetSystemName())
+		return ret;
 	}
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 	sl_uint32 System::getMajorVersion()
 	{
-		WindowsVersion version = Win32::getVersion();
-		if ((SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Server2012) ||
-			(!SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Windows8)) {
-			sl_uint64 productVersion = 0;
-			if (getFileVersionInfo(System::getSystemDirectory() + "/kernel32.dll", sl_null, &productVersion)) {
-				return SLIB_GET_WORD3(productVersion);
-			}
-		}
-		return SLIB_WINDOWS_MAJOR_VERSION(version);
+		return Win32::getVersion().majorVersion;
 	}
 
 	sl_uint32 System::getMinorVersion()
 	{
-		WindowsVersion version = Win32::getVersion();
-		if ((SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Server2012) ||
-			(!SLIB_WINDOWS_IS_SERVER(version) && version >= WindowsVersion::Windows8)) {
-			sl_uint64 productVersion = 0;
-			if (getFileVersionInfo(System::getSystemDirectory() + "/kernel32.dll", sl_null, &productVersion)) {
-				return SLIB_GET_WORD2(productVersion);
-			}
-		}
-		return SLIB_WINDOWS_MINOR_VERSION(version);
-	}
-
-	sl_uint32 System::getPatchVersion()
-	{
-		WindowsVersion version = Win32::getVersion();
-		return SLIB_WINDOWS_SERVICE_PACK(version);
+		return Win32::getVersion().minorVersion;
 	}
 
 	String System::getBuildVersion()
 	{
-		sl_uint64 productVersion = 0;
-		if (getFileVersionInfo(System::getSystemDirectory() + "/kernel32.dll", sl_null, &productVersion)) {
-			return String::concat(String::fromUint32(SLIB_GET_WORD1(productVersion)), ".", String::fromUint32(SLIB_GET_WORD0(productVersion)));
-		}
-		return sl_null;
+		return String::fromUint32(Win32::getVersion().buildNumber);
 	}
 
-	namespace {
+	namespace
+	{
 
 		static BOOL GetVersionInfo(const StringParam& _filePath, sl_uint64* pFileVersion, sl_uint64* pProductVersion)
 		{
@@ -437,10 +409,11 @@ namespace slib
 			StringCstr16 verEntry(_verEntry);
 			DWORD  verSize = GetFileVersionInfoSizeW((LPCWSTR)(filePath.getData()), &verHandle);
 
-			struct LANGANDCODEPAGE {
+			struct LANGANDCODEPAGE
+			{
 				WORD wLanguage;
 				WORD wCodePage;
-			} *lpTranslate;
+			}* lpTranslate;
 
 			if (verSize != NULL) {
 				UniquePtr<char[]> verData = new char[verSize];

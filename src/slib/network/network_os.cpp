@@ -185,7 +185,7 @@ namespace slib
 			return sl_null;
 		}
 
-		sl_bool flagVista = Win32::getVersion() >= WindowsVersion::Vista;
+		sl_bool flagVista = Win32::getVersion().majorVersion >= WindowsVersion::Vista_MajorVersion;
 		ulOutBufLen = 0;
 		if (!flagVista) {
 			if (funcGetIpAddrTable(sl_null, &ulOutBufLen, TRUE) != ERROR_INSUFFICIENT_BUFFER) {

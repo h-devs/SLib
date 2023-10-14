@@ -39,7 +39,7 @@ namespace slib
 	namespace win32
 	{
 
-		String16 Wmi::executeQuery(const StringParam& _query)
+		String16 Wmi::getQueryResponseValue(const StringParam& _query, const StringParam& _fieldName)
 		{
 			CoInitializeEx(0, COINIT_MULTITHREADED);
 			HRESULT hr = CoInitializeSecurity(NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_DEFAULT, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE, NULL);
@@ -67,27 +67,15 @@ namespace slib
 								if (FAILED(hr)) {
 									break;
 								}
+								StringCstr16 fieldName(_fieldName);
 								VARIANT vtProp;
-								hr = obj->Get(L"SerialNumber", 0, &vtProp, 0, 0);
+								hr = obj->Get((LPCWSTR)(fieldName.getData()), 0, &vtProp, 0, 0);
 								if (hr == S_OK) {
 									ret = String16::from(vtProp.bstrVal);
-									sl_size len = ret.getLength();
-									if (len) {
-										sl_char16* data = ret.getData();
-										sl_size m = 0;
-										for (sl_size i = 0; i < len; i++) {
-											sl_char16 ch = data[i];
-											if (SLIB_CHAR_IS_ALNUM(ch) || ch == '_' || ch == '-') {
-												data[m++] = ch;
-											}
-										}
-										data[m] = 0;
-										ret.setLength(m);
-									}
 								}
 								VariantClear(&vtProp);
 								obj->Release();
-								if (ret.isNotEmpty()) {
+								if (ret.isNotNull()) {
 									break;
 								}
 							}

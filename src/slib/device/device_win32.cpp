@@ -47,7 +47,21 @@ namespace slib
 
 	String Device::getBoardSerialNumber()
 	{
-		return String::from(win32::Wmi::executeQuery("SELECT * FROM Win32_BIOS"));
+		String16 ret = win32::Wmi::getQueryResponseValue(L"SELECT * FROM Win32_BIOS", L"SerialNumber");
+		sl_size len = ret.getLength();
+		if (len) {
+			sl_char16* data = ret.getData();
+			sl_size m = 0;
+			for (sl_size i = 0; i < len; i++) {
+				sl_char16 ch = data[i];
+				if (SLIB_CHAR_IS_ALNUM(ch) || ch == '_' || ch == '-') {
+					data[m++] = ch;
+				}
+			}
+			data[m] = 0;
+			ret.setLength(m);
+		}
+		return String::from(ret);
 	}
 
 }

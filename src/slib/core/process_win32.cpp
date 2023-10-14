@@ -416,10 +416,10 @@ namespace slib
 		BOOL flagResult = FALSE;
 		HANDLE hToken;
 		if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE, &hToken)) {
-			WindowsVersion version = Win32::getVersion();
+			const WindowsVersion& version = Win32::getVersion();
 			sl_bool flagError = sl_false;
 			HANDLE hTokenToCheck = NULL;
-			if (SLIB_WINDOWS_MAJOR_VERSION(version) >= 6) { // Windows Vista or later
+			if (version.majorVersion >= WindowsVersion::Vista_MajorVersion) {
 				TOKEN_ELEVATION_TYPE elevType;
 				DWORD cbSize = 0;
 				if (GetTokenInformation(hToken, TokenElevationType, &elevType, sizeof(elevType), &cbSize)) {

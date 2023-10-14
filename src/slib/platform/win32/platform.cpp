@@ -33,7 +33,6 @@
 
 #include <objbase.h>
 #include <shellapi.h>
-
 #pragma warning(disable: 4091)
 #include <shlobj.h>
 
@@ -76,98 +75,65 @@ namespace slib
 		return handle;
 	}
 
+	namespace
+	{
+		typedef UINT32 (WINAPI* TYPE_RtlGetVersion)(PRTL_OSVERSIONINFOEXW lpVersionInformation);
+
+		static void GetWindowsVersion(WindowsVersion& version)
+		{
+			HMODULE hModule = LoadLibraryW(L"ntdll.dll");
+			if (hModule) {
+				TYPE_RtlGetVersion func = (TYPE_RtlGetVersion)(GetProcAddress(hModule, "RtlGetVersion"));
+				RTL_OSVERSIONINFOEXW vi = {0};
+				vi.dwOSVersionInfoSize = sizeof(vi);
+				func(&vi);
+				version.majorVersion = (sl_uint32)(vi.dwMajorVersion);
+				version.minorVersion = (sl_uint32)(vi.dwMinorVersion);
+				version.servicePackMajorVersion = (sl_uint16)(vi.wServicePackMajor);
+				version.servicePackMinorVersion = (sl_uint16)(vi.wServicePackMinor);
+				version.buildNumber = (sl_uint32)(vi.dwBuildNumber);
+				version.productType = (WindowsProductType)(vi.wProductType);
+				FreeLibrary(hModule);
+			}
+		}
+	}
+
+	const WindowsVersion& Win32::getVersion()
+	{
+		static sl_bool flagChecked = sl_false;
+		static WindowsVersion version = {0};
+		if (flagChecked) {
+			return version;
+		}
+		GetWindowsVersion(version);
+		flagChecked = sl_true;
+		return version;
+	}
+
 	sl_bool Win32::isWindowsServer()
 	{
-		OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0,{ 0 }, 0, 0, 0, VER_NT_WORKSTATION };
-		DWORDLONG const dwlConditionMask = VerSetConditionMask(0, VER_PRODUCT_TYPE, VER_EQUAL);
-		return !VerifyVersionInfoW(&osvi, VER_PRODUCT_TYPE, dwlConditionMask);
+		return getVersion().productType != WindowsProductType::Workstation;
 	}
 
-	namespace {
-		// From VersionHelpers.h
-		static sl_bool IsWindowsVersionOrGreater(WindowsVersion version)
-		{
-			OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0,{ 0 }, 0, 0 };
-			DWORDLONG const dwlConditionMask = VerSetConditionMask(
-				VerSetConditionMask(
-					VerSetConditionMask(
-						0, VER_MAJORVERSION, VER_GREATER_EQUAL),
-					VER_MINORVERSION, VER_GREATER_EQUAL),
-				VER_SERVICEPACKMAJOR, VER_GREATER_EQUAL);
-			osvi.dwMajorVersion = SLIB_WINDOWS_MAJOR_VERSION(version);
-			osvi.dwMinorVersion = SLIB_WINDOWS_MINOR_VERSION(version);
-			osvi.wServicePackMajor = SLIB_WINDOWS_SERVICE_PACK(version);
-			return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR, dwlConditionMask) != FALSE;
-		}
-	}
-
-	WindowsVersion Win32::getVersion()
+	sl_bool Win32::isWindows7OrGreater()
 	{
-		if (isWindowsServer()) {
-			if (IsWindowsVersionOrGreater(WindowsVersion::Server2016)) {
-				return WindowsVersion::Server2016;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::Server2012_R2)) {
-				return WindowsVersion::Server2012_R2;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::Server2012)) {
-				return WindowsVersion::Server2012;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::Server2008_R2)) {
-				return WindowsVersion::Server2008_R2;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::Server2008)) {
-				return WindowsVersion::Server2008;
-			}
-			return WindowsVersion::Server2003;
-		} else {
-			if (IsWindowsVersionOrGreater(WindowsVersion::Windows10)) {
-				return WindowsVersion::Windows10;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::Windows8_1)) {
-				return WindowsVersion::Windows8_1;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::Windows8)) {
-				return WindowsVersion::Windows8;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::Windows7_SP1)) {
-				return WindowsVersion::Windows7_SP1;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::Windows7)) {
-				return WindowsVersion::Windows7;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::Vista_SP2)) {
-				return WindowsVersion::Vista_SP2;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::Vista_SP1)) {
-				return WindowsVersion::Vista_SP1;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::Vista)) {
-				return WindowsVersion::Vista;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::XP_64)) {
-				return WindowsVersion::XP_64;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::XP_SP3)) {
-				return WindowsVersion::XP_SP3;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::XP_SP2)) {
-				return WindowsVersion::XP_SP2;
-			}
-			if (IsWindowsVersionOrGreater(WindowsVersion::XP_SP1)) {
-				return WindowsVersion::XP_SP1;
-			}
-			return WindowsVersion::XP;
-		}
+		const WindowsVersion& version = getVersion();
+		return version.productType == WindowsProductType::Workstation && version.minorVersion >= WindowsVersion::Win7_MajorVersion && version.minorVersion >= WindowsVersion::Win7_MinorVersion;
+	}
+
+	sl_bool Win32::isWindows10OrGreater()
+	{
+		const WindowsVersion& version = getVersion();
+		return version.productType == WindowsProductType::Workstation && version.minorVersion >= WindowsVersion::Win10_MajorVersion;
 	}
 
 	WindowsDllVersion Win32::getDllVersion(const StringParam& _pathDll)
 	{
 		StringCstr16 pathDll(_pathDll);
 		WindowsDllVersion ret;
-		ret.major = 0;
-		ret.minor = 0;
-		ret.build = 0;
+		ret.majorVersion = 0;
+		ret.minorVersion = 0;
+		ret.buildNumber = 0;
 		HINSTANCE hDll = LoadLibraryW((LPCWSTR)(pathDll.getData()));
 		if (hDll) {
 			DLLGETVERSIONPROC proc = (DLLGETVERSIONPROC)(GetProcAddress(hDll, "DllGetVersion"));
@@ -177,9 +143,9 @@ namespace slib
 				info.cbSize = sizeof(info);
 				HRESULT hr = proc(&info);
 				if (SUCCEEDED(hr)) {
-					ret.major = (sl_uint32)(info.dwMajorVersion);
-					ret.minor = (sl_uint32)(info.dwMinorVersion);
-					ret.build = (sl_uint32)(info.dwBuildNumber);
+					ret.majorVersion = (sl_uint32)(info.dwMajorVersion);
+					ret.minorVersion = (sl_uint32)(info.dwMinorVersion);
+					ret.buildNumber = (sl_uint32)(info.dwBuildNumber);
 				}
 			}
 			FreeLibrary(hDll);
