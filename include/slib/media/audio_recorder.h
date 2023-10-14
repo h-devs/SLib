@@ -44,6 +44,7 @@ namespace slib
 	{
 	public:
 		AudioRecordingPreset recordingPreset;
+		sl_bool flagLoopback; // In loopback mode, `deviceId` means player device
 
 		sl_uint32 samplesPerSecond; // per channel
 		sl_uint32 channelCount;

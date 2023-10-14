@@ -715,7 +715,7 @@ namespace slib
 		public:
 			static Ref<WASRecorderImpl> create(const AudioRecorderParam& param)
 			{
-				IMMDevice* device = GetCoreAudioDevice(sl_true, param);
+				IMMDevice* device = GetCoreAudioDevice(!(param.flagLoopback), param);
 				if (device) {
 					IAudioClient* client = NULL;
 					HRESULT hr = device->Activate(__uuidof(IAudioClient), CLSCTX_ALL, NULL, (void**)&client);
@@ -728,7 +728,11 @@ namespace slib
 						wf.nBlockAlign = (wf.wBitsPerSample * wf.nChannels) >> 3;
 						wf.nAvgBytesPerSec = wf.nSamplesPerSec * wf.nBlockAlign;
 						wf.cbSize = 0;
-						hr = client->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY, param.frameLengthInMilliseconds * 10000, 0, &wf, NULL);
+						DWORD flags = AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY;
+						if (param.flagLoopback) {
+							flags |= AUDCLNT_STREAMFLAGS_LOOPBACK;
+						}
+						hr = client->Initialize(AUDCLNT_SHAREMODE_SHARED, flags, param.frameLengthInMilliseconds * 10000, 0, &wf, NULL);
 						if (SUCCEEDED(hr)) {
 							IAudioCaptureClient* capture = NULL;
 							hr = client->GetService(IID_PPV_ARGS(&capture));

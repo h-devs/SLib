@@ -48,6 +48,7 @@ namespace slib
 	AudioRecorderParam::AudioRecorderParam()
 	{
 		recordingPreset = AudioRecordingPreset::None;
+		flagLoopback = sl_false;
 		samplesPerSecond = 16000;
 		channelCount = 1;
 		samplesPerFrame = 0;
