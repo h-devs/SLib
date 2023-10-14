@@ -331,7 +331,7 @@ namespace slib
 		static String GetSystemName()
 		{
 			String16 ret = win32::Wmi::getQueryResponseValue(L"SELECT Caption FROM Win32_OperatingSystem", L"Caption");
-			if (ret.isNotNull()) {
+			if (ret.isNotEmpty()) {
 				return String::from(ret);
 			}
 			const WindowsVersion& version = Win32::getVersion();
