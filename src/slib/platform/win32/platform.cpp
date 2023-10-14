@@ -118,13 +118,13 @@ namespace slib
 	sl_bool Win32::isWindows7OrGreater()
 	{
 		const WindowsVersion& version = getVersion();
-		return version.productType == WindowsProductType::Workstation && version.minorVersion >= WindowsVersion::Win7_MajorVersion && version.minorVersion >= WindowsVersion::Win7_MinorVersion;
+		return version.productType == WindowsProductType::Workstation && (version.majorVersion > WindowsVersion::Win7_MajorVersion || (version.majorVersion == WindowsVersion::Win7_MajorVersion && version.minorVersion >= WindowsVersion::Win7_MinorVersion));
 	}
 
 	sl_bool Win32::isWindows10OrGreater()
 	{
 		const WindowsVersion& version = getVersion();
-		return version.productType == WindowsProductType::Workstation && version.minorVersion >= WindowsVersion::Win10_MajorVersion;
+		return version.productType == WindowsProductType::Workstation && version.majorVersion >= WindowsVersion::Win10_MajorVersion;
 	}
 
 	WindowsDllVersion Win32::getDllVersion(const StringParam& _pathDll)

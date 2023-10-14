@@ -46,7 +46,6 @@ namespace slib
 			AudioDeviceID id;
 			String uid;
 			String name;
-			String manufacturer;
 		};
 
 		static sl_bool GetDeviceInfo(AudioDeviceInfo& outInfo, AudioDeviceID deviceID, sl_bool flagInput)
@@ -98,16 +97,6 @@ namespace slib
 				NSString* s = (__bridge NSString*)deviceName;
 				outInfo.name = Apple::getStringFromNSString(s);
 				CFRelease(deviceName);
-			}
-
-			// Device Manufacturer
-			CFStringRef deviceManufacturer;
-			propDeviceConfig.mSelector = kAudioDevicePropertyDeviceManufacturerCFString;
-			sizeValue = sizeof(deviceManufacturer);
-			if (AudioObjectGetPropertyData(deviceID, &propDeviceConfig, 0, NULL, &sizeValue, &deviceManufacturer) == kAudioHardwareNoError) {
-				NSString* s = (__bridge NSString*)deviceManufacturer;
-				outInfo.manufacturer = Apple::getStringFromNSString(s);
-				CFRelease(deviceManufacturer);
 			}
 
 			return sl_true;
@@ -201,7 +190,6 @@ namespace slib
 			AudioRecorderDeviceInfo info;
 			info.id = list[i].uid;
 			info.name = list[i].name;
-			info.description = list[i].manufacturer;
 			ret.add_NoLock(info);
 		}
 		return ret;
@@ -215,7 +203,6 @@ namespace slib
 			AudioPlayerDeviceInfo info;
 			info.id = list[i].uid;
 			info.name = list[i].name;
-			info.description = list[i].manufacturer;
 			ret.add_NoLock(info);
 		}
 		return ret;

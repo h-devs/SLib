@@ -26,35 +26,23 @@
 #include "audio_data.h"
 
 #include "../data/loop_queue.h"
-#include "../core/string.h"
 #include "../core/event.h"
 #include "../core/function.h"
+
+#include "priv/audio_device.h"
 
 namespace slib
 {
 
 	class Event;
 
-	class SLIB_EXPORT AudioRecorderDeviceInfo
-	{
-	public:
-		String id;
-		String name;
-		String description;
-
-	public:
-		AudioRecorderDeviceInfo();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioRecorderDeviceInfo)
-
-	};
+	typedef AudioDeviceInfo AudioRecorderDeviceInfo;
 
 	class AudioRecorder;
 
-	class SLIB_EXPORT AudioRecorderParam
+	class SLIB_EXPORT AudioRecorderParam : public AudioDeviceParam
 	{
 	public:
-		String deviceId;
 		AudioRecordingPreset recordingPreset;
 
 		sl_uint32 samplesPerSecond; // per channel
@@ -132,6 +120,8 @@ namespace slib
 
 		void _processFrame(sl_int16* s, sl_uint32 count);
 
+		void _processSilent(sl_uint32 count);
+
 	protected:
 		AudioRecorderParam m_param;
 
@@ -144,6 +134,7 @@ namespace slib
 		AtomicArray<sl_int16> m_processData;
 		AtomicArray<sl_int16> m_bufCallback;
 		sl_uint32 m_nSamplesInCallbackBuffer;
+		sl_int16 m_lastSample;
 
 	};
 }

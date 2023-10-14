@@ -26,41 +26,19 @@
 #include "audio_data.h"
 
 #include "../core/object.h"
-#include "../core/string.h"
 #include "../core/event.h"
 #include "../core/memory_queue.h"
 #include "../core/function.h"
+
+#include "priv/audio_device.h"
 
 namespace slib
 {
 
 	class Event;
 
-	class SLIB_EXPORT AudioPlayerDeviceInfo
-	{
-	public:
-		String id;
-		String name;
-		String description;
-
-	public:
-		AudioPlayerDeviceInfo();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioPlayerDeviceInfo)
-
-	};
-
-	class SLIB_EXPORT AudioPlayerDeviceParam
-	{
-	public:
-		String deviceId;
-
-	public:
-		AudioPlayerDeviceParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioPlayerDeviceParam)
-
-	};
+	typedef AudioDeviceInfo AudioPlayerDeviceInfo;
+	typedef AudioDeviceParam AudioPlayerDeviceParam;
 
 	class AudioPlayer;
 
@@ -177,6 +155,7 @@ namespace slib
 		virtual Ref<AudioPlayer> createPlayer(const AudioPlayerParam& param) = 0;
 
 	};
+
 }
 
 #endif
