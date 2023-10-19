@@ -27,6 +27,42 @@
 namespace slib
 {
 
+	String SAppStringResourceItem::get(const Locale& locale, const String& def)
+	{
+		{
+			for (auto& item : values) {
+				if (item.key == locale) {
+					return item.value;
+				}
+			}
+		}
+		{
+			Locale localeCompare = Locale(locale.getLanguage(), locale.getCountry());
+			for (auto& item : values) {
+				if (item.key == localeCompare) {
+					return item.value;
+				}
+			}
+		}
+		{
+			Locale localeCompare(locale.getLanguage(), locale.getScript(), Country::Unknown);
+			for (auto& item : values) {
+				if (item.key == localeCompare) {
+					return item.value;
+				}
+			}
+		}
+		{
+			Locale localeCompare(locale.getLanguage());
+			for (auto& item : values) {
+				if (item.key == localeCompare) {
+					return item.value;
+				}
+			}
+		}
+		return def;
+	}
+
 	Ref<Drawable> SAppDrawableResourceFileItem::load()
 	{
 		ObjectLocker lock(this);

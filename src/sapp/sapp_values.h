@@ -65,6 +65,7 @@ namespace slib
 		sl_bool flagDefined = sl_false;
 		sl_bool flagReferResource = sl_false;
 		String valueOrName;
+		String variant;
 		Ref<XmlElement> referingElement;
 
 	public:

@@ -732,13 +732,13 @@ namespace slib
 			Ref<XmlElement>& child = children[i];
 			if (child.isNotNull()) {
 				String type = child->getName().toLower();
-				if (type == "strings" || type == "string") {
+				if (type == "strings" || type == "string" || type == "vstring") {
 					if (type == "strings") {
 						if (!_parseStringResources(localNamespace, child, locale, textXML)) {
 							return sl_false;
 						}
 					} else {
-						if (!_parseStringResource(localNamespace, child, locale, textXML)) {
+						if (!_parseStringResource(localNamespace, child, locale, type == "vstring", textXML)) {
 							return sl_false;
 						}
 					}

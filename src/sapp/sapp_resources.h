@@ -43,12 +43,21 @@ namespace slib
 		SimulateLayout = 3
 	};
 
-	class SAppStringResource : public CRef
+	class SAppStringResourceItem
+	{
+	public:
+		String defaultValue;
+		HashMap<Locale, String> values;
+
+	public:
+		String get(const Locale& locale, const String& def);
+	};
+
+	class SAppStringResource : public CRef, public SAppStringResourceItem
 	{
 	public:
 		String name;
-		String defaultValue;
-		CHashMap<Locale, String> values;
+		HashMap<String, SAppStringResourceItem> variants;
 	};
 
 	class SAppColorResource : public CRef

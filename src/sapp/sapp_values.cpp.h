@@ -74,11 +74,23 @@ namespace slib
 				if (str.startsWith("string/")) {
 					str = str.substring(7).trim();
 				}
+				String varName;
+				sl_reg index = str.indexOf('/');
+				if (index > 0) {
+					varName = str.substring(index + 1);
+					if (varName.isNotNull()) {
+						if (!(SAppUtil::checkName(varName.getData(), varName.getLength()))) {
+							return sl_false;
+						}
+					}
+					str = str.substring(0, index);
+				}
 				if (!(SAppUtil::checkName(str.getData(), str.getLength()))) {
 					return sl_false;
 				}
 				flagReferResource = sl_true;
 				valueOrName = str;
+				variant = varName;
 				referingElement = element;
 			}
 		} else {

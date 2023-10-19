@@ -164,12 +164,15 @@ namespace slib
 
 		// String Resources
 		sl_bool _parseStringResources(const String& localNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, const String16& source);
-		sl_bool _parseStringResource(const String& localNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, const String16& source);
+		sl_bool _parseStringResource(const String& localNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, sl_bool flagVariants, const String16& source);
+		Ref<SAppStringResource> _registerOrGetStringResource(const String& name, const Ref<XmlElement>& element);
+		sl_bool _registerStringResourceItem(SAppStringResourceItem& item, const Ref<XmlElement>& element, const Locale& locale, const String16& source);
 		sl_bool _generateStringsCpp(const String& targetPath);
+		void _generateStringsCpp_Item(StringBuffer& sbCpp, const String& resourceName, const String& varName, const SAppStringResourceItem& item);
 		sl_bool _getStringAccessString(const String& localNamespace, const SAppStringValue& value, String& result);
 		sl_bool _getStringValue(const String& localNamespace, const SAppStringValue& value, String& result);
 		sl_bool _checkStringValue(const String& localNamespace, const SAppStringValue& value);
-		sl_bool _checkStringName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName = sl_null, Ref<SAppStringResource>* outResource = sl_null);
+		sl_bool _checkStringResource(const String& localNamespace, const SAppStringValue& value, String* outName = sl_null, Ref<SAppStringResource>* outResource = sl_null, SAppStringResourceItem* outItem = sl_null);
 
 		// Color Resources
 		sl_bool _parseColorResource(const String& localNamespace, const Ref<XmlElement>& element);
