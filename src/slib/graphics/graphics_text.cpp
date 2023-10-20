@@ -1298,6 +1298,9 @@ namespace slib
 					return;
 				}
 
+				if (m_ellipsizeMode != EllipsizeMode::None && m_lineWidth > m_layoutWidth) {
+					m_align = Alignment::Left;
+				}
 				sl_real x;
 				if (m_align == Alignment::Left) {
 					x = 0;
@@ -1392,18 +1395,20 @@ namespace slib
 									sl_real widthLimit = xLimit - pos.x;
 									sl_size n = text.getLength();
 									sl_size k = n;
+									Size size;
 									for (; k > 0; k--) {
 										((TextWordItemHelper*)(word.get()))->m_text = text.substring(0, k);
-										if (word->getSize().x <= widthLimit) {
+										size = word->getSize();
+										if (size.x <= widthLimit) {
 											break;
 										}
 									}
 									listItems->setCount_NoLock(i);
 									if (k > 0) {
 										word->setLayoutPosition(item->getLayoutPosition());
-										word->setLayoutSize(word->getSize());
+										word->setLayoutSize(size);
 										listItems->add_NoLock(word);
-										pos.x += word->getSize().x;
+										pos.x += size.x;
 										itemEllipsis->setLayoutPosition(pos);
 									}
 								} else {
@@ -1438,17 +1443,19 @@ namespace slib
 									sl_real widthLimit = widthWord - (sizeEllipsis.x - pos.x);
 									sl_size n = text.getLength();
 									sl_size k = n;
+									Size size;
 									for (; k > 0; k--) {
 										((TextWordItemHelper*)(word.get()))->m_text = text.substring(n - k, n);
-										if (word->getSize().x <= widthLimit) {
+										size = word->getSize();
+										if (size.x <= widthLimit) {
 											break;
 										}
 									}
 									listItems->removeRange_NoLock(0, nItems - i);
 									if (k > 0) {
-										pos.x = pos.x + widthWord - word->getSize().x;
+										pos.x += widthWord - size.x;
 										word->setLayoutPosition(pos);
-										word->setLayoutSize(word->getSize());
+										word->setLayoutSize(size);
 										listItems->add_NoLock(word);
 										pos.x -= sizeEllipsis.x;
 										itemEllipsis->setLayoutPosition(pos);
@@ -1483,29 +1490,57 @@ namespace slib
 						Point pos = item->getLayoutPosition();
 						pos.x = m_layoutWidth - m_lineWidth + pos.x;
 						item->setLayoutPosition(pos);
-						if (pos.x < itemEllipsis->getLayoutFrame().right + sizeEllipsis.x * 0.2f) {
+						if (pos.x < itemEllipsis->getLayoutFrame().right) {
 							if (item->getType() == TextItemType::Word) {
 								sl_real widthWord = item->getLayoutSize().x;
 								String16 text = ((TextWordItem*)item)->getText();
-								Ref<TextWordItem> word = TextWordItem::create(text, item->getStyle());
-								if (word.isNotNull()) {
-									sl_real widthLimit = widthWord - (itemEllipsis->getLayoutFrame().right + sizeEllipsis.x * 0.2f - pos.x);
+								Ref<TextWordItem> word1 = TextWordItem::create(text, item->getStyle());
+								Ref<TextWordItem> word2 = TextWordItem::create(text, item->getStyle());
+								if (word1.isNotNull() && word2.isNotNull()) {
+									sl_real widthLimit = widthWord - (itemEllipsis->getLayoutFrame().right - pos.x);
 									sl_size n = text.getLength();
 									sl_size k = n;
+									Size size1(0, 0);
+									Size size2(0, 0);
 									for (; k > 0; k--) {
-										((TextWordItemHelper*)(word.get()))->m_text = text.substring(n - k, n);
-										if (word->getSize().x <= widthLimit) {
+										String16 text1, text2;
+										if (indexMid || indexMid == nItems - 1 - i) {
+											text1 = text.substring(0, k >> 1);
+											text2 = text.substring(n - k + (k >> 1), n);
+										} else {
+											text2 = text.substring(n - k, n);
+										}
+										if (text1.isNotEmpty()) {
+											((TextWordItemHelper*)(word1.get()))->m_text = text1;
+											size1 = word1->getSize();
+										} else {
+											size1 = Size::zero();
+										}
+										if (text2.isNotEmpty()) {
+											((TextWordItemHelper*)(word2.get()))->m_text = text2;
+											size2 = word2->getSize();
+										}
+										if (size1.x + size2.x <= widthLimit) {
 											break;
 										}
 									}
 									listItems->removeRange(indexMid, nItems - indexMid - i);
 									if (k > 0) {
-										pos.x = pos.x + widthWord - word->getSize().x;
-										word->setLayoutPosition(pos);
-										word->setLayoutSize(word->getSize());
-										listItems->insert_NoLock(indexMid, word);
-										pos.x -= sizeEllipsis.x + sizeEllipsis.x * 0.2f;
+										pos.x = pos.x + widthWord - size2.x;
+										if (size2.x > SLIB_EPSILON) {
+											word2->setLayoutPosition(pos);
+											word2->setLayoutSize(size2);
+											listItems->insert_NoLock(indexMid, word2);
+										}
+										pos.x = (xEllipsis + size1.x + pos.x - sizeEllipsis.x) / 2;
 										itemEllipsis->setLayoutPosition(pos);
+										if (size1.x > SLIB_EPSILON) {
+											pos.x = xEllipsis;
+											word1->setLayoutPosition(pos);
+											word1->setLayoutSize(size1);
+											listItems->insert_NoLock(indexMid, word1);
+											indexMid++;
+										}
 									}
 								} else {
 									listItems->removeRange_NoLock(indexMid, nItems - indexMid - i);
@@ -1790,7 +1825,7 @@ namespace slib
 		Layouter layouter(&m_layoutItems, param);
 		layouter.layout(&m_items);
 
-		m_align = param.align;
+		m_align = layouter.m_align;
 		m_contentWidth = layouter.m_maxWidth;
 		m_contentHeight = layouter.m_y;
 
