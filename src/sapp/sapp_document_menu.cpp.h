@@ -480,7 +480,7 @@ namespace slib
 
 	}
 
-	sl_bool SAppDocument::_getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, String& result)
+	sl_bool SAppDocument::_getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, sl_bool flagForWindow, String& result)
 	{
 		if (!(value.flagDefined)) {
 			result = "slib::Ref<slib::Menu>::null()";
@@ -492,7 +492,7 @@ namespace slib
 		}
 		String name;
 		if (_checkMenuName(localNamespace, value.resourceName, value.referingElement, &name)) {
-			result = String::format("menu::%s::get()->root", name);
+			result = String::format(flagForWindow ? "menu::%s::create()" : "menu::%s::get()", name);
 			return sl_true;
 		} else {
 			return sl_false;

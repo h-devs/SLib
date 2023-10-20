@@ -374,7 +374,7 @@ namespace slib
 		}
 
 		StringBuffer sbHeader, sbHeaderBase, sbCpp;
-		sbHeaderBase.add("#pragma once\r\n\r\n#include <slib/ui/resource.h>\r\n\r\n");
+		sbHeaderBase.add("#pragma once\r\n\r\n#include <slib/ui/resource.h>\r\n#include \"menus.h\"\r\n");
 		sbHeader.add("#pragma once\r\n\r\n");
 
 		{
@@ -392,7 +392,6 @@ namespace slib
 								 "#include \"strings.h\"%n"
 								 "#include \"colors.h\"%n"
 								 "#include \"drawables.h\"%n"
-								 "#include \"menus.h\"%n%n"
 								 , m_conf.generate_cpp_namespace));
 
 		{
@@ -1622,7 +1621,7 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_MENU(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		String value; \
-		if (!(_getMenuAccessString(resource->name, VAR, value))) { \
+		if (!(_getMenuAccessString(resource->name, VAR, sl_false, value))) { \
 			return sl_false; \
 		} \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
@@ -2400,6 +2399,29 @@ namespace slib
 	{
 		Window* view = params->window;
 
+		if (op == SAppLayoutOperation::Parse) {
+			LAYOUT_CONTROL_PARSE_ATTR(MENU, attr->, menu)
+		} else if (op == SAppLayoutOperation::Generate) {
+			if (attr->menu.flagDefined) {
+				String value;
+				if (!(_getMenuAccessString(resource->name, attr->menu, sl_true, value))) {
+					return sl_false;
+				}
+				params->sbDeclare->add(String::format("\t\t\tslib::Ref<menu::%s> menu;%n", attr->menu.resourceName));
+				params->sbDefineInit->add(String::format("%smenu = %s;%n%s%s->setMenu(menu->root);%n", strTab, value, strTab, name));
+			}
+		} else if (op == SAppLayoutOperation::SimulateInit) {
+			if (attr->menu.flagDefined) {
+				Ref<Menu> value;
+				if (!(_getMenuValue(resource->name, attr->menu, value))) {
+					return sl_false;
+				}
+				if (value.isNotNull()) {
+					view->setMenu(value);
+				}
+			}
+		}
+
 		LAYOUT_CONTROL_ATTR(DIMENSION, minWidth, setMinimumWidth, checkForWindow)
 		LAYOUT_CONTROL_ATTR(DIMENSION, maxWidth, setMaximumWidth, checkForWindow)
 		LAYOUT_CONTROL_ATTR(DIMENSION, minHeight, setMinimumHeight, checkForWindow)
@@ -2455,7 +2477,6 @@ namespace slib
 			}
 		}
 
-		LAYOUT_CONTROL_ATTR(MENU, menu, setMenu)
 		LAYOUT_CONTROL_ATTR(STRING, title, setTitle)
 		LAYOUT_CONTROL_ATTR(DIMENSION, left, setLeft, checkForWindow)
 		LAYOUT_CONTROL_ATTR(DIMENSION, top, setTop, checkForWindow)

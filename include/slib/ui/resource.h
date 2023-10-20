@@ -115,6 +115,7 @@ namespace slib
 	class NAME : public slib::CRef { \
 	public: \
 		static const NAME* get(); \
+		static slib::Ref<NAME> create(); \
 		NAME(); \
 		slib::Ref<slib::Menu> root; \
 		slib::Ref<slib::Menu> root_menu;
@@ -139,6 +140,9 @@ namespace slib
 			return sl_null; \
 		} \
 		return &ret; \
+	} \
+	slib::Ref<NAME> NAME::create() { \
+		return new NAME; \
 	} \
 	NAME::NAME() { \
 		root = root_menu = slib::Menu::create(__VA_ARGS__); \
