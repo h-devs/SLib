@@ -80,7 +80,7 @@ namespace slib
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		sl_char16 bufAppPath[PRIV_PATH_MAX] = { 0 };
-		GetModuleFileNameW(GetModuleHandle(NULL), (WCHAR*)bufAppPath, PRIV_PATH_MAX - 1);
+		GetModuleFileNameW(GetModuleHandleW(NULL), (WCHAR*)bufAppPath, PRIV_PATH_MAX - 1);
 		return String::create(bufAppPath);
 #endif
 #if defined(SLIB_PLATFORM_IS_UWP)
