@@ -139,21 +139,23 @@ namespace slib
 
 		public:
 			String getText();
+			String getInternalText();
+
 			String getToolTip();
+			String getInternalToolTip();
+
 			Ref<Drawable> getBackground(ViewState state);
+			Ref<Drawable> getInternalBackground(ViewState state);
+
 			Color getTextColor(ViewState state);
+			Color getInternalTextColor(ViewState state);
+
 			Ref<Drawable> getIcon(ViewState state);
+			Ref<Drawable> getInternalIcon(ViewState state);
 
 			sl_bool getColorFilter(ColorMatrix& _out, ViewState state, sl_bool flagDefaultFilter);
 			Ref<Drawable> filter(const Ref<Drawable>& drawable, ViewState state, sl_bool flagDefaultFilter);
 			Color filter(const Color& color, ViewState state, sl_bool flagDefaultFilter);
-
-		protected:
-			String getInternalText();
-			String getInternalToolTip();
-			Ref<Drawable> getInternalBackground(ViewState state);
-			Color getInternalTextColor(ViewState state);
-			Ref<Drawable> getInternalIcon(ViewState state);
 
 		public:
 			void draw(Canvas*, DrawParam&);
