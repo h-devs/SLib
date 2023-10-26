@@ -25,36 +25,25 @@
 namespace slib
 {
 
-#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_LINUX)
-	String Disk::getSerialNumber(sl_uint32 diskNo)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DiskInfo)
+
+	DiskInfo::DiskInfo()
+	{
+		index = 0;
+		capacity = 0;
+	}
+
+
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_LINUX) && !defined(SLIB_PLATFORM_IS_MACOS)
+	String Device::getSerialNumber(sl_uint32 diskNo)
+	{
+		return sl_null;
+	}
+
+	List<DiskInfo> Disk::getDevices()
 	{
 		return sl_null;
 	}
 #endif
-
-#if !defined(SLIB_PLATFORM_IS_WIN32)
-	sl_bool Disk::getSize(const StringParam& path, sl_uint64* pTotalSize, sl_uint64* pFreeSize)
-	{
-		return sl_false;
-	}
-#endif
-
-	sl_uint64 Disk::getTotalSize(const StringParam& path)
-	{
-		sl_uint64 size;
-		if (getSize(path, &size)) {
-			return size;
-		}
-		return 0;
-	}
-
-	sl_uint64 Disk::getFreeSize(const StringParam& path)
-	{
-		sl_uint64 size;
-		if (getSize(path, sl_null, &size)) {
-			return size;
-		}
-		return 0;
-	}
 
 }

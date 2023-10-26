@@ -88,6 +88,14 @@ namespace slib
 
 		static sl_bool removeDevice(const StringParam& volumPath);
 
+
+		static sl_bool getVolumnSize(const StringParam& path, sl_uint64* pTotalSize = sl_null, sl_uint64* pFreeSize = sl_null);
+
+		static sl_uint64 getVolumnTotalSize(const StringParam& path);
+
+		static sl_uint64 getVolumnFreeSize(const StringParam& path);
+
+
 		static sl_bool disableUsbMassStorage();
 
 		static sl_bool enableUsbMassStorage();

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,46 +20,33 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DEVICE_PHYSICAL_MEMORY
-#define CHECKHEADER_SLIB_DEVICE_PHYSICAL_MEMORY
+#include "slib/device/definition.h"
 
-#include "definition.h"
+#ifdef SLIB_PLATFORM_IS_WIN32
 
-#include "../core/string.h"
+#include "slib/device/printer.h"
+
+#include "slib/platform/win32/wmi.h"
 
 namespace slib
 {
 
-	struct SLIB_EXPORT PhysicalMemoryStatus
+	List<PrinterInfo> Printer::getDevices()
 	{
-		sl_uint64 total; // in bytes
-		sl_uint64 available; // in bytes
-	};
-
-	class SLIB_EXPORT PhysicalMemorySlotInfo
-	{
-	public:
-		sl_uint64 capacity;
-		sl_uint32 speed;
-		String bank;
-
-	public:
-		PhysicalMemorySlotInfo();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PhysicalMemorySlotInfo)
-
-	};
-
-	class SLIB_EXPORT PhysicalMemory
-	{
-	public:
-		static sl_bool getStatus(PhysicalMemoryStatus& _out);
-
-		static sl_uint64 getTotalSize();
-
-		static List<PhysicalMemorySlotInfo> getSlots();
-
-	};
+		List<PrinterInfo> ret;
+		ListElements<VariantMap> items(win32::Wmi::getQueryResponseRecords(L"SELECT * FROM Win32_Printer", L"Name", L"Default", L"Network", L"PortName", L"PrintProcessor"));
+		for (sl_size i = 0; i < items.count; i++) {
+			PrinterInfo printer;
+			VariantMap& item = items[i];
+			printer.name = item.getValue("Name").getString();
+			printer.flagDefault = item.getValue("Default").getBoolean();
+			printer.flagNetwork = item.getValue("Network").getBoolean();
+			printer.port = item.getValue("PortName").getString();
+			printer.processor = item.getValue("PrintProcessor").getString();
+			ret.add_NoLock(Move(printer));
+		}
+		return ret;
+	}
 
 }
 

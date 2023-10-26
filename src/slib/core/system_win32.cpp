@@ -330,9 +330,9 @@ namespace slib
 
 		static String GetSystemName()
 		{
-			String16 ret = win32::Wmi::getQueryResponseValue(L"SELECT Caption FROM Win32_OperatingSystem", L"Caption");
+			String ret = win32::Wmi::getQueryResponseValue(L"SELECT * FROM Win32_OperatingSystem", L"Caption").getString();
 			if (ret.isNotEmpty()) {
-				return String::from(ret);
+				return ret;
 			}
 			const WindowsVersion& version = Win32::getVersion();
 			String mainVersion = GetMainSystemName(version);
@@ -364,6 +364,17 @@ namespace slib
 	String System::getBuildVersion()
 	{
 		return String::fromUint32(Win32::getVersion().buildNumber);
+	}
+
+	Time System::getInstalledTime()
+	{
+		static sl_bool flagInit = sl_true;
+		static sl_uint64 t = 0;
+		if (flagInit) {
+			t = win32::Wmi::getDateTime(win32::Wmi::getQueryResponseValue(L"SELECT * FROM Win32_OperatingSystem", L"InstallDate")).toInt();
+			flagInit = sl_false;
+		}
+		return t;
 	}
 
 	namespace

@@ -32,6 +32,7 @@ namespace slib
 
 	class String;
 	class StringParam;
+	class Time;
 
 	template <class T>
 	class List;
@@ -105,6 +106,8 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_APPLE)
 		static sl_uint32 getPatchVersion();
 #endif
+
+		static Time getInstalledTime();
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 		static sl_bool getFileVersionInfo(const StringParam& filePath, sl_uint64* pFileVersion, sl_uint64* pProductVersion = sl_null);

@@ -24,10 +24,12 @@
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
+#include "slib/platform.h"
+
 #include "slib/io/file.h"
 #include "slib/core/variant.h"
 #include "slib/core/scoped_buffer.h"
-#include "slib/platform.h"
+#include "slib/core/mio.h"
 #include "slib/platform/win32/registry.h"
 #include "slib/dl/win32/shlwapi.h"
 
@@ -101,7 +103,8 @@ namespace slib
 	const WindowsVersion& Win32::getVersion()
 	{
 		static sl_bool flagChecked = sl_false;
-		static WindowsVersion version = {0};
+		static sl_uint8 _version[sizeof(WindowsVersion)] = {0};
+		WindowsVersion& version = *((WindowsVersion*)_version);
 		if (flagChecked) {
 			return version;
 		}
@@ -311,6 +314,61 @@ namespace slib
 			}
 		}
 		return RegisterProgId(progId, appPath);
+	}
+
+	Variant Win32::getVariantFromVARIANT(const void* pVariant)
+	{
+		VARIANT& var = *((VARIANT*)pVariant);
+		switch (var.vt) {
+			case VT_NULL:
+				return sl_null;
+			case VT_I2:
+				return var.iVal;
+			case VT_I4:
+				return var.lVal;
+			case VT_R4:
+				return var.fltVal;
+			case VT_R8:
+				return var.dblVal;
+			case VT_BSTR:
+				return String16::from(var.bstrVal);
+			case VT_BOOL:
+				return var.boolVal != 0;
+			case VT_I1:
+				return var.cVal;
+			case VT_UI1:
+				return var.bVal;
+			case VT_UI2:
+				return var.uiVal;
+			case VT_UI4:
+				return var.ulVal;
+			case VT_I8:
+				return (sl_int64)(var.llVal);
+			case VT_UI8:
+				return (sl_uint64)(var.ullVal);
+			case VT_INT:
+				return var.intVal;
+			case VT_UINT:
+				return var.uintVal;
+			case VT_DATE:
+				return Time::withDaysF(var.date - 25569.0);
+			case VT_CY:
+				return String::concat(String::fromInt64(var.cyVal.int64 / 10000), ".", String::fromUint32(Math::abs((sl_int32)(var.cyVal.int64 % 10000))));
+			case VT_DECIMAL:
+				{
+					BSTR s = NULL;
+					HRESULT hr = VarBstrFromDec(&(var.decVal), LCID_INSTALLED, 0, &s);
+					if (SUCCEEDED(hr)) {
+						String16 ret = String16::from(s);
+						SysFreeString(s);
+						return ret;
+					}
+					break;
+				}
+			default:
+				break;
+		}
+		return Variant();
 	}
 
 	sl_bool Win32::getSYSTEMTIME(SYSTEMTIME& st, const Time& time, sl_bool flagUTC)

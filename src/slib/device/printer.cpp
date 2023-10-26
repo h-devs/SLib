@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,47 +20,25 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DEVICE_PHYSICAL_MEMORY
-#define CHECKHEADER_SLIB_DEVICE_PHYSICAL_MEMORY
-
-#include "definition.h"
-
-#include "../core/string.h"
+#include "slib/device/printer.h"
 
 namespace slib
 {
 
-	struct SLIB_EXPORT PhysicalMemoryStatus
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PrinterInfo)
+
+	PrinterInfo::PrinterInfo()
 	{
-		sl_uint64 total; // in bytes
-		sl_uint64 available; // in bytes
-	};
+		flagDefault = sl_false;
+		flagNetwork = sl_false;
+	}
 
-	class SLIB_EXPORT PhysicalMemorySlotInfo
+
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_LINUX) && !defined(SLIB_PLATFORM_IS_MACOS)
+	List<PrinterInfo> Printer::getDevices()
 	{
-	public:
-		sl_uint64 capacity;
-		sl_uint32 speed;
-		String bank;
-
-	public:
-		PhysicalMemorySlotInfo();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PhysicalMemorySlotInfo)
-
-	};
-
-	class SLIB_EXPORT PhysicalMemory
-	{
-	public:
-		static sl_bool getStatus(PhysicalMemoryStatus& _out);
-
-		static sl_uint64 getTotalSize();
-
-		static List<PhysicalMemorySlotInfo> getSlots();
-
-	};
+		return sl_null;
+	}
+#endif
 
 }
-
-#endif

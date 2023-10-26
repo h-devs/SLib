@@ -1349,5 +1349,11 @@
     <ClCompile Include="..\..\src\slib\platform\win32\dl_dwmapi.cpp">
       <Filter>src\platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\device\printer.cpp">
+      <Filter>src\device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\device\printer_win32.cpp">
+      <Filter>src\device</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

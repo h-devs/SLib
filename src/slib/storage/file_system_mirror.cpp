@@ -22,12 +22,11 @@
 
 #define TAG "MirrorFileSystem"
 #include "slib/storage/file_system_internal.h"
-
 #include "slib/storage/file_system_mirror.h"
 
+#include "slib/storage/storage.h"
 #include "slib/io/file.h"
 #include "slib/core/variant.h"
-#include "slib/device/disk.h"
 
 #include "slib/platform/win32/windows.h"
 
@@ -102,7 +101,7 @@ namespace slib
 
 	sl_bool MirrorFileSystem::getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize)
 	{
-		return Disk::getSize(m_root, pTotalSize, pFreeSize);
+		return Storage::getVolumnSize(m_root, pTotalSize, pFreeSize);
 	}
 
 	sl_bool MirrorFileSystem::createDirectory(const StringParam& path)

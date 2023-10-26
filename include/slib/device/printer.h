@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DEVICE_PHYSICAL_MEMORY
-#define CHECKHEADER_SLIB_DEVICE_PHYSICAL_MEMORY
+#ifndef CHECKHEADER_SLIB_DEVICE_PRINTER
+#define CHECKHEADER_SLIB_DEVICE_PRINTER
 
 #include "definition.h"
 
@@ -30,34 +30,26 @@
 namespace slib
 {
 
-	struct SLIB_EXPORT PhysicalMemoryStatus
-	{
-		sl_uint64 total; // in bytes
-		sl_uint64 available; // in bytes
-	};
-
-	class SLIB_EXPORT PhysicalMemorySlotInfo
+	class SLIB_EXPORT PrinterInfo
 	{
 	public:
-		sl_uint64 capacity;
-		sl_uint32 speed;
-		String bank;
+		String name;
+		sl_bool flagDefault;
+		sl_bool flagNetwork;
+		String port;
+		String processor;
 
 	public:
-		PhysicalMemorySlotInfo();
+		PrinterInfo();
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PhysicalMemorySlotInfo)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PrinterInfo)
 
 	};
 
-	class SLIB_EXPORT PhysicalMemory
+	class SLIB_EXPORT Printer
 	{
 	public:
-		static sl_bool getStatus(PhysicalMemoryStatus& _out);
-
-		static sl_uint64 getTotalSize();
-
-		static List<PhysicalMemorySlotInfo> getSlots();
+		static List<PrinterInfo> getDevices();
 
 	};
 

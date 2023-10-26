@@ -28,63 +28,12 @@
 
 #include "slib/core/scoped_buffer.h"
 #include "slib/platform.h"
+#include "slib/platform/win32/wmi.h"
 
 #include <winioctl.h>
 
-// #define FIX_SERIAL_NUMBER
-
 namespace slib
 {
-
-	namespace {
-		static String ProcessSerialNumber(char* sn, sl_size n)
-		{
-#ifdef FIX_SERIAL_NUMBER
-			sl_size i;
-			sl_bool flagHex = sl_true;
-			for (i = 0; i < n; i++) {
-				char c = sn[i];
-				if (c) {
-					if (!SLIB_CHAR_IS_HEX(c)) {
-						flagHex = sl_false;
-					}
-				} else {
-					n = i;
-					break;
-				}
-			}
-			if (n) {
-				if (flagHex && n % 2 == 0) {
-					n >>= 1;
-					sl_size k = 0;
-					for (i = 0; i < n; i++) {
-						char c1 = sn[k];
-						c1 = SLIB_CHAR_HEX_TO_INT(c1);
-						char c2 = sn[k + 1];
-						c2 = SLIB_CHAR_HEX_TO_INT(c2);
-						sn[i] = (char)((c1 << 4) | c2);
-						k += 2;
-					}
-					String ret = String::fromUtf8(sn, n).trim();
-					if (ret.isNotEmpty()) {
-						n = ret.getLength() >> 1;
-						char* p = ret.getData();
-						for (i = 0; i < n; i++) {
-							Swap(p[0], p[1]);
-							p += 2;
-						}
-					}
-					return ret;
-				} else {
-					return String::fromUtf8(sn, n);
-				}
-			}
-			return sl_null;
-#else
-			return String::fromUtf8(sn, Base::getStringLength(sn, n));
-#endif
-		}
-	}
 
 	String Disk::getSerialNumber(sl_uint32 diskNo)
 	{
@@ -130,7 +79,7 @@ namespace slib
 					if (descriptor->SerialNumberOffset) {
 						char* sn = (char*)(output + descriptor->SerialNumberOffset);
 						sl_size n = nOutput - (sl_size)(descriptor->SerialNumberOffset);
-						ret = ProcessSerialNumber(sn, n);
+						ret = String(sn, Base::getStringLength(sn, n)).trim();
 					}
 				}
 			}
@@ -141,13 +90,54 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool Disk::getSize(const StringParam& _path, sl_uint64* pTotalSize, sl_uint64* pFreeSize)
+	namespace
 	{
-		StringCstr16 path(_path);
-		if (GetDiskFreeSpaceExW((LPCWSTR)(path.getData()), NULL, (ULARGE_INTEGER*)pTotalSize, (ULARGE_INTEGER*)pFreeSize)) {
-			return sl_true;
+		static DiskInterface GetInterfaceType(const String& type)
+		{
+			if (type.equals_IgnoreCase(StringView::literal("IDE"))) {
+				return DiskInterface::IDE;
+			} if (type.equals_IgnoreCase(StringView::literal("USB"))) {
+				return DiskInterface::USB;
+			} if (type.equals_IgnoreCase(StringView::literal("SCSI"))) {
+				return DiskInterface::SCSI;
+			} if (type.equals_IgnoreCase(StringView::literal("HDC"))) {
+				return DiskInterface::HDC;
+			} if (type.equals_IgnoreCase(StringView::literal("1394"))) {
+				return DiskInterface::IEEE1394;
+			}
+			return DiskInterface::Unknown;
 		}
-		return sl_false;
+
+		static DiskType GetMediaType(const String& type)
+		{
+			if (type.startsWith_IgnoreCase(StringView::literal("Fixed"))) {
+				return DiskType::Fixed;
+			} else if (type.startsWith_IgnoreCase(StringView::literal("External"))) {
+				return DiskType::External;
+			} else if (type.startsWith_IgnoreCase(StringView::literal("Removable"))) {
+				return DiskType::Removable;
+			}
+			return DiskType::Unknown;
+		}
+	}
+
+	List<DiskInfo> Disk::getDevices()
+	{
+		List<DiskInfo> ret;
+		ListElements<VariantMap> items(win32::Wmi::getQueryResponseRecords(L"SELECT * FROM Win32_DiskDrive", L"DeviceID", L"Index", L"InterfaceType", L"Size", L"Model", L"MediaType", L"SerialNumber"));
+		for (sl_size i = 0; i < items.count; i++) {
+			DiskInfo disk;
+			VariantMap& item = items[i];
+			disk.index = item.getValue("Index").getUint32();
+			disk.path = item.getValue("DeviceID").getString();
+			disk.interface = GetInterfaceType(item.getValue("InterfaceType").getString());
+			disk.type = GetMediaType(item.getValue("MediaType").getString());
+			disk.model = item.getValue("Model").getString();
+			disk.serialNumber = item.getValue("SerialNumber").getString().trim();
+			disk.capacity = item.getValue("Size").getUint64();
+			ret.add_NoLock(Move(disk));
+		}
+		return ret;
 	}
 
 }

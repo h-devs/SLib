@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,13 @@
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
 #include "slib/device/device.h"
+#include "slib/device/cpu.h"
+#include "slib/device/physical_memory.h"
+#include "slib/device/disk.h"
 
 #include "slib/platform/win32/windows.h"
 #include "slib/platform/win32/wmi.h"
+#include "slib/core/safe_static.h"
 
 namespace slib
 {
@@ -45,23 +49,80 @@ namespace slib
 		return ret;
 	}
 
+	String Device::getManufacturer()
+	{
+		SLIB_SAFE_LOCAL_STATIC(String, ret, win32::Wmi::getQueryResponseValue(L"SELECT * FROM Win32_ComputerSystem", L"Manufacturer").getString())
+		return ret;
+	}
+
+	String Device::getModel()
+	{
+		SLIB_SAFE_LOCAL_STATIC(String, ret, win32::Wmi::getQueryResponseValue(L"SELECT * FROM Win32_ComputerSystem", L"Model").getString())
+		return ret;
+	}
+
 	String Device::getBoardSerialNumber()
 	{
-		String16 ret = win32::Wmi::getQueryResponseValue(L"SELECT * FROM Win32_BIOS", L"SerialNumber");
-		sl_size len = ret.getLength();
-		if (len) {
-			sl_char16* data = ret.getData();
-			sl_size m = 0;
-			for (sl_size i = 0; i < len; i++) {
-				sl_char16 ch = data[i];
-				if (SLIB_CHAR_IS_ALNUM(ch) || ch == '_' || ch == '-') {
-					data[m++] = ch;
-				}
-			}
-			data[m] = 0;
-			ret.setLength(m);
+		SLIB_SAFE_LOCAL_STATIC(String, ret, win32::Wmi::getQueryResponseValue(L"SELECT * FROM Win32_BIOS", L"SerialNumber").getString().trim())
+		return ret;
+	}
+
+	List<VideoControllerInfo> Device::getVideoControllers()
+	{
+		List<VideoControllerInfo> ret;
+		ListElements<VariantMap> items(win32::Wmi::getQueryResponseRecords(L"SELECT * FROM Win32_VideoController", L"Name", L"AdapterRAM"));
+		for (sl_size i = 0; i < items.count; i++) {
+			VideoControllerInfo controller;
+			VariantMap& item = items[i];
+			controller.name = item.getValue("Name").getString();
+			controller.memorySize = item.getValue("AdapterRAM").getUint32();
+			ret.add_NoLock(Move(controller));
 		}
-		return String::from(ret);
+		return ret;
+	}
+
+	List<SoundDeviceInfo> Device::getSoundDevices()
+	{
+		List<SoundDeviceInfo> ret;
+		ListElements<VariantMap> items(win32::Wmi::getQueryResponseRecords(L"SELECT * FROM Win32_SoundDevice", L"Name", L"PNPDeviceID"));
+		for (sl_size i = 0; i < items.count; i++) {
+			SoundDeviceInfo dev;
+			VariantMap& item = items[i];
+			dev.name = item.getValue("Name").getString();
+			dev.pnpDeviceId = item.getValue("PNPDeviceID").getString();
+			ret.add_NoLock(Move(dev));
+		}
+		return ret;
+	}
+
+	String Cpu::getName()
+	{
+		SLIB_SAFE_LOCAL_STATIC(String, ret, String::from(win32::Wmi::getQueryResponseValue(L"SELECT * FROM Win32_Processor", L"Name")))
+		return ret;
+	}
+
+	namespace
+	{
+		static List<PhysicalMemorySlotInfo> GetMemorySlots()
+		{
+			List<PhysicalMemorySlotInfo> ret;
+			ListElements<VariantMap> items(win32::Wmi::getQueryResponseRecords(L"SELECT * FROM Win32_PhysicalMemory", L"Capacity", L"Speed", L"BankLabel"));
+			for (sl_size i = 0; i < items.count; i++) {
+				PhysicalMemorySlotInfo slot;
+				VariantMap& item = items[i];
+				slot.capacity = item.getValue("Capacity").getUint64();
+				slot.speed = item.getValue("Speed").getUint32();
+				slot.bank = item.getValue("BankLabel").getString();
+				ret.add_NoLock(Move(slot));
+			}
+			return ret;
+		}
+	}
+
+	List<PhysicalMemorySlotInfo> PhysicalMemory::getSlots()
+	{
+		SLIB_SAFE_LOCAL_STATIC(List<PhysicalMemorySlotInfo>, ret, GetMemorySlots())
+		return ret;
 	}
 
 }

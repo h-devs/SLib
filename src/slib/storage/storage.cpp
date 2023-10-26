@@ -31,4 +31,30 @@ namespace slib
 	{
 	}
 
+
+#if !defined(SLIB_PLATFORM_IS_WIN32)
+	sl_bool Storage::getVolumnSize(const StringParam& path, sl_uint64* pTotalSize, sl_uint64* pFreeSize)
+	{
+		return sl_false;
+	}
+#endif
+
+	sl_uint64 Storage::getVolumnTotalSize(const StringParam& path)
+	{
+		sl_uint64 size;
+		if (getVolumnSize(path, &size)) {
+			return size;
+		}
+		return 0;
+	}
+
+	sl_uint64 Storage::getVolumnFreeSize(const StringParam& path)
+	{
+		sl_uint64 size;
+		if (getVolumnSize(path, sl_null, &size)) {
+			return size;
+		}
+		return 0;
+	}
+
 }

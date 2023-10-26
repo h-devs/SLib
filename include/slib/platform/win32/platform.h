@@ -37,6 +37,8 @@
 namespace slib
 {
 
+	class Variant;
+
 	enum class WindowsProductType
 	{
 		Workstation = 1, // VER_NT_WORKSTATION
@@ -169,6 +171,8 @@ namespace slib
 
 		static sl_bool registerFileExtensions(const ListParam<StringParam>& extensions, const StringParam& progId, const StringParam& appPath);
 
+
+		static Variant getVariantFromVARIANT(const void* pVariant);
 
 		static sl_bool getSYSTEMTIME(SYSTEMTIME& _out, const Time& time, sl_bool flagUTC);
 

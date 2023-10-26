@@ -218,7 +218,17 @@ namespace slib
 		return bRet;
 	}
 
-	namespace {
+	sl_bool Storage::getVolumnSize(const StringParam& _path, sl_uint64* pTotalSize, sl_uint64* pFreeSize)
+	{
+		StringCstr16 path(_path);
+		if (GetDiskFreeSpaceExW((LPCWSTR)(path.getData()), NULL, (ULARGE_INTEGER*)pTotalSize, (ULARGE_INTEGER*)pFreeSize)) {
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	namespace
+	{
 		static sl_bool SetUsbMassStorageEnabled(sl_bool flag)
 		{
 			return ServiceManager::setStartType(L"usbstor", flag ? ServiceStartType::Manual : ServiceStartType::Disabled);

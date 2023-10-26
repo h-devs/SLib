@@ -219,6 +219,8 @@
     <ClCompile Include="..\..\src\slib\device\disk.cpp" />
     <ClCompile Include="..\..\src\slib\device\disk_win32.cpp" />
     <ClCompile Include="..\..\src\slib\device\performance.cpp" />
+    <ClCompile Include="..\..\src\slib\device\printer.cpp" />
+    <ClCompile Include="..\..\src\slib\device\printer_win32.cpp" />
     <ClCompile Include="..\..\src\slib\device\sensor.cpp" />
     <ClCompile Include="..\..\src\slib\develop\shell_code.cpp" />
     <ClCompile Include="..\..\src\slib\develop\vtable.cpp" />

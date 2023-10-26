@@ -52,12 +52,30 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT NetworkAdapterInfo
+	{
+	public:
+		sl_uint32 index; // Interface Index
+		String name;
+		MacAddress macAddress;
+		sl_bool flagPhysical;
+		String pnpDeviceId;
+
+	public:
+		NetworkAdapterInfo();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(NetworkAdapterInfo)
+
+	};
+
 	class SLIB_EXPORT Network
 	{
 	public:
 		static sl_bool findInterface(const StringParam& nameOrDisplayName, NetworkInterfaceInfo* pInfo);
 
-		static List<NetworkInterfaceInfo> findAllInterfaces();
+		static List<NetworkInterfaceInfo> getInterfaces();
+
+		static List<NetworkAdapterInfo> getAdapters();
 
 
 		// 0 is returned on error (wrapper of if_nametoindex call)

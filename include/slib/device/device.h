@@ -36,6 +36,32 @@ namespace slib
 
 	class Contact;
 
+	class VideoControllerInfo
+	{
+	public:
+		String name;
+		sl_uint64 memorySize;
+
+	public:
+		VideoControllerInfo();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(VideoControllerInfo)
+
+	};
+
+	class SoundDeviceInfo
+	{
+	public:
+		String name;
+		String pnpDeviceId;
+
+	public:
+		SoundDeviceInfo();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SoundDeviceInfo)
+
+	};
+
 	class SLIB_EXPORT Device
 	{
 	public:
@@ -98,7 +124,16 @@ namespace slib
 		static sl_uint32 getScreenHeight();
 
 
+		static String getManufacturer();
+
+		static String getModel();
+
 		static String getBoardSerialNumber();
+
+
+		static List<VideoControllerInfo> getVideoControllers();
+
+		static List<SoundDeviceInfo> getSoundDevices();
 
 
 		static void openDial(const String& phoneNumber);
