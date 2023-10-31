@@ -37,8 +37,7 @@ namespace slib
 #ifdef SLIB_PLATFORM_IS_WIN32
 		String name = File::getFileName(path);
 		if (Process::isCurrentProcessAdmin()) {
-			String command = String::format("netsh advfirewall firewall add rule name=\"%s\" dir=in action=allow program=\"%s\"", name, path);
-			System::execute(command);
+			Process::run(System::getSystemDirectory() + "\\netsh.exe", "advfirewall", "firewall", "add", "rule", String::format("name=\"%s\"", name), "dir=in", "action=allow", String::format("program=\"%s\"", path));
 		} else {
 			Process::runAsAdmin(System::getSystemDirectory() + "\\netsh.exe", "advfirewall", "firewall", "add", "rule", String::format("name=\"%s\"", name), "dir=in", "action=allow", String::format("program=\"%s\"", path));
 		}
@@ -50,8 +49,7 @@ namespace slib
 #ifdef SLIB_PLATFORM_IS_WIN32
 		String name = File::getFileName(path);
 		if (Process::isCurrentProcessAdmin()) {
-			String command = String::format("netsh advfirewall firewall delete rule name=\"%s\" program=\"%s\"", name, path);
-			System::execute(command);
+			Process::run(System::getSystemDirectory() + "\\netsh.exe", "advfirewall", "firewall", "delete", "rule", String::format("name=\"%s\"", name), String::format("program=\"%s\"", path));
 		} else {
 			Process::runAsAdmin(System::getSystemDirectory() + "\\netsh.exe", "advfirewall", "firewall", "delete", "rule", String::format("name=\"%s\"", name), String::format("program=\"%s\"", path));
 		}
