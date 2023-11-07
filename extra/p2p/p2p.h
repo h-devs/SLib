@@ -63,7 +63,10 @@ namespace slib
 
 	public:
 		P2PConnectionType connectionType;
-		SocketAddress remoteAddress; // For receiver (Broadcast)
+
+		// For receiver (Broadcast, Datagram)
+		sl_uint32 interfaceIndex;
+		SocketAddress remoteAddress;
 
 	private:
 		Ref<CRef> ref;
@@ -75,7 +78,7 @@ namespace slib
 	public:
 		P2PMessage();
 
-		P2PMessage(const void* data, sl_uint32 size, CRef* ref = sl_null);
+		P2PMessage(const void* data, sl_size size, CRef* ref = sl_null);
 
 		template <class T>
 		P2PMessage(T&& value): data(sl_null), size(0), connectionType(P2PConnectionType::Unknown)
@@ -179,8 +182,9 @@ namespace slib
 		Function<void(P2PSocket*, P2PRequest&)> onReceiveHello;
 		Function<void(P2PSocket*, P2PRequest&)> onConnectNode;
 		Function<void(P2PSocket*, P2PRequest&, P2PResponse&)> onReceiveMessage;
-		Function<void(P2PSocket*, P2PRequest&)> onReceiveDatagram;
 		Function<void(P2PSocket*, P2PRequest&)> onReceiveBroadcast;
+		Function<void(P2PSocket*, P2PRequest&)> onReceiveDatagram;
+		Function<void(P2PSocket*, P2PRequest&)> onReceiveEncryptedDatagram;
 
 		sl_bool flagAutoStart; // [In] Automatically start the socket
 
@@ -214,19 +218,41 @@ namespace slib
 
 		virtual P2PNodeId getLocalNodeId() = 0;
 
+		virtual sl_uint16 getLocalPort() = 0;
+
 		virtual void setHelloMessage(const P2PMessage& msg) = 0;
 
 		virtual void setConnectMessage(const P2PMessage& msg) = 0;
 
-		virtual void connectNode(const P2PNodeId& nodeId) = 0;
+		virtual void connectNode(const P2PNodeId& nodeId, const SocketAddress* address) = 0;
 
-		virtual void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis = 0) = 0;
+		void connectNode(const P2PNodeId& nodeId, const SocketAddress& address);
 
-		virtual void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, P2PResponse& response, sl_uint32 timeoutMillis = 0) = 0;
+		void connectNode(const P2PNodeId& nodeId);
 
-		virtual void sendBroadcast(const P2PRequest& msg) = 0;
+		// `outKey`: 32 Bytes
+		virtual sl_bool getEncryptionKeyForNode(const P2PNodeId& nodeId, void* outKey) = 0;
 
-		virtual void sendDatagram(const SocketAddress& address, const P2PRequest& msg) = 0;
+		virtual void sendMessage(const P2PNodeId& nodeId, const SocketAddress* address, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis = 0) = 0;
+
+		void sendMessage(const P2PNodeId& nodeId, const SocketAddress& address, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis = 0);
+
+		void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis = 0);
+
+		void sendMessage(const P2PNodeId& nodeId, const SocketAddress* address, const P2PRequest& msg, P2PResponse& response, sl_uint32 timeoutMillis = 0);
+
+		void sendMessage(const P2PNodeId& nodeId, const SocketAddress& address, const P2PRequest& msg, P2PResponse& response, sl_uint32 timeoutMillis = 0);
+
+		void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, P2PResponse& response, sl_uint32 timeoutMillis = 0);
+
+		virtual void sendBroadcast(sl_uint32 interfaceIndex, const P2PRequest& msg) = 0;
+
+		void sendBroadcast(const P2PRequest& msg);
+
+		virtual void sendDatagram(const P2PNodeId& nodeId, const SocketAddress& address, const P2PRequest& msg) = 0;
+
+		// Call after connected
+		virtual void sendEncryptedDatagram(const P2PNodeId& nodeId, const SocketAddress& address, const P2PRequest& msg) = 0;
 
 	};
 
