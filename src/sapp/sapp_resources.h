@@ -988,10 +988,10 @@ namespace slib
 		SAppBooleanValue fixed;
 		SAppBooleanValue visible;
 		SAppBooleanValue resizable;
-		SAppBooleanValue grid;
-		SAppBooleanValue bodyGrid;
-		SAppBooleanValue headerGrid;
-		SAppBooleanValue footerGrid;
+		SAppBooleanValue verticalGrid;
+		SAppBooleanValue bodyVerticalGrid;
+		SAppBooleanValue headerVerticalGrid;
+		SAppBooleanValue footerVerticalGrid;
 
 		SAppLayoutGridCellAttributes bodyAttrs;
 		SAppLayoutGridCellAttributes headerAttrs;
@@ -1004,6 +1004,7 @@ namespace slib
 		SAppNameValue name;
 		SAppDimensionValue height;
 		SAppBooleanValue visible;
+		SAppBooleanValue horizontalGrid;
 
 		List<SAppLayoutGridCell> cells;
 	};
@@ -1015,6 +1016,8 @@ namespace slib
 		SAppDimensionValue rowHeight;
 
 		SAppBorderValue grid;
+		SAppBooleanValue verticalGrid;
+		SAppBooleanValue horizontalGrid;
 	};
 
 	class SAppLayoutGridAttributes : public SAppLayoutViewAttributes
@@ -1039,6 +1042,8 @@ namespace slib
 		SAppDrawableValue ascendingIcon;
 		SAppDrawableValue descendingIcon;
 		SAppDimensionValue sortIconSize;
+		SAppBooleanValue verticalGrid;
+		SAppBooleanValue horizontalGrid;
 
 		SAppCursorValue cellCursor;
 		SAppDimensionValue cellPadding;

@@ -343,13 +343,19 @@ namespace slib
 		void setColumnResizable(sl_uint32 index, sl_bool flagResizable = sl_true);
 		void setColumnResizable(sl_bool flagResizable = sl_true);
 
-		sl_bool isBodyColumnGrid(sl_uint32 index);
-		void setBodyColumnGrid(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-		sl_bool isHeaderColumnGrid(sl_uint32 index);
-		void setHeaderColumnGrid(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-		sl_bool isFooterColumnGrid(sl_uint32 index);
-		void setFooterColumnGrid(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setColumnGrid(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		sl_bool isBodyVerticalGrid(sl_uint32 column);
+		sl_bool isHeaderVerticalGrid(sl_uint32 column);
+		sl_bool isFooterVerticalGrid(sl_uint32 column);
+
+		void setVerticalGrid(sl_uint32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyVerticalGrid(sl_uint32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderVerticalGrid(sl_uint32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterVerticalGrid(sl_uint32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_uint64 getRecordCount();
 		void setRecordCount(sl_uint64 count, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -400,9 +406,22 @@ namespace slib
 		sl_bool isHeaderRowVisible(sl_uint32 index);
 		sl_bool isFooterRowVisible(sl_uint32 index);
 
-		void setBodyRowVisible(sl_uint32 index, sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setHeaderRowVisible(sl_uint32 index, sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setFooterRowVisible(sl_uint32 index, sl_bool flagVisible, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyRowVisible(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderRowVisible(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterRowVisible(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isBodyHorizontalGrid(sl_uint32 row);
+		sl_bool isHeaderHorizontalGrid(sl_uint32 row);
+		sl_bool isFooterHorizontalGrid(sl_uint32 row);
+
+		void setBodyHorizontalGrid(sl_uint32 row, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderHorizontalGrid(sl_uint32 row, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterHorizontalGrid(sl_uint32 row, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setHorizontalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyHorizontalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderHorizontalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterHorizontalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Pen> getBodyGrid();
 		Ref<Pen> getHeaderGrid();
@@ -932,13 +951,14 @@ namespace slib
 			sl_bool isResizable();
 			void setResizable(sl_bool flag = sl_true);
 
-			sl_bool isBodyGrid();
-			void setBodyGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-			sl_bool isHeaderGrid();
-			void setHeaderGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-			sl_bool isFooterGrid();
-			void setFooterGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-			void setGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+			sl_bool isBodyVerticalGrid();
+			sl_bool isHeaderVerticalGrid();
+			sl_bool isFooterVerticalGrid();
+
+			void setBodyVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+			void setHeaderVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+			void setFooterVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+			void setVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		private:
 			void _invalidate(UIUpdateMode mode);
@@ -956,9 +976,9 @@ namespace slib
 			sl_ui_len m_maxWidth;
 			sl_bool m_flagVisible;
 			sl_bool m_flagResizable;
-			sl_bool m_flagBodyGrid;
-			sl_bool m_flagHeaderGrid;
-			sl_bool m_flagFooterGrid;
+			sl_bool m_flagBodyVerticalGrid;
+			sl_bool m_flagHeaderVerticalGrid;
+			sl_bool m_flagFooterVerticalGrid;
 
 			List<BodyCellProp> m_listBodyCell;
 			List<HeaderCellProp> m_listHeaderCell;
@@ -995,7 +1015,12 @@ namespace slib
 			sl_bool isVisible();
 			void setVisible(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+			sl_bool isHorizontalGrid();
+			void setHorizontalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		private:
+			void _invalidate(UIUpdateMode mode);
+
 			void _invalidateLayout(UIUpdateMode mode);
 
 		public:
@@ -1006,6 +1031,7 @@ namespace slib
 			sl_ui_len m_height;
 			sl_ui_len m_fixedHeight;
 			sl_bool m_flagVisible;
+			sl_bool m_flagHorizontalGrid;
 
 			CellProp m_defaultProps;
 
@@ -1111,6 +1137,13 @@ namespace slib
 		sl_ui_len m_defaultBodyRowHeight;
 		sl_ui_len m_defaultHeaderRowHeight;
 		sl_ui_len m_defaultFooterRowHeight;
+
+		sl_bool m_defaultBodyVerticalGrid;
+		sl_bool m_defaultHeaderVerticalGrid;
+		sl_bool m_defaultFooterVerticalGrid;
+		sl_bool m_defaultBodyHorizontalGrid;
+		sl_bool m_defaultHeaderHorizontalGrid;
+		sl_bool m_defaultFooterHorizontalGrid;
 
 		CellProp m_defaultBodyProps;
 		CellProp m_defaultHeaderProps;

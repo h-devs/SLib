@@ -661,9 +661,9 @@ namespace slib
 		m_flagDefaultWidth = sl_true;
 		m_flagVisible = sl_true;
 		m_flagResizable = sl_true;
-		m_flagBodyGrid = sl_true;
-		m_flagHeaderGrid = sl_true;
-		m_flagFooterGrid = sl_true;
+		m_flagBodyVerticalGrid = sl_true;
+		m_flagHeaderVerticalGrid = sl_true;
+		m_flagFooterVerticalGrid = sl_true;
 	}
 
 	GridView::Column::~Column()
@@ -720,6 +720,7 @@ namespace slib
 		m_index = -1;
 		m_fixedHeight = 0;
 		m_flagVisible = sl_true;
+		m_flagHorizontalGrid = sl_true;
 	}
 
 	GridView::Row::~Row()
@@ -749,6 +750,21 @@ namespace slib
 	sl_uint32 GridView::Row::getIndex()
 	{
 		return m_index;
+	}
+
+	void GridView::Row::_invalidate(UIUpdateMode mode)
+	{
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
+		if (m_index < 0) {
+			return;
+		}
+		Ref<GridView> view = m_view;
+		if (view.isNull()) {
+			return;
+		}
+		view->invalidate(mode);
 	}
 
 	void GridView::Row::_invalidateLayout(UIUpdateMode mode)
@@ -867,6 +883,13 @@ namespace slib
 		m_defaultHeaderRowHeight = -1;
 		m_defaultFooterRowHeight = -1;
 
+		m_defaultBodyVerticalGrid = sl_true;
+		m_defaultHeaderVerticalGrid = sl_true;
+		m_defaultFooterVerticalGrid = sl_true;
+		m_defaultBodyHorizontalGrid = sl_true;
+		m_defaultHeaderHorizontalGrid = sl_true;
+		m_defaultFooterHorizontalGrid = sl_true;
+
 		m_defaultBodyProps.creator = TextCell::creator();
 		m_defaultBodyProps.flagSelectable = sl_true;
 		m_defaultBodyProps.backgrounds.set(ViewState::Selected, Drawable::fromColor(Color(200, 235, 255)));
@@ -917,6 +940,9 @@ namespace slib
 		col->m_minWidth = m_defaultColumnMinWidth; \
 		col->m_maxWidth = m_defaultColumnMaxWidth; \
 		col->m_flagResizable = m_defaultColumnResizable; \
+		col->m_flagBodyVerticalGrid = m_defaultBodyVerticalGrid; \
+		col->m_flagHeaderVerticalGrid = m_defaultHeaderVerticalGrid; \
+		col->m_flagFooterVerticalGrid = m_defaultFooterVerticalGrid; \
 		col->m_default##SECTION##Props.inheritFrom(m_default##SECTION##Props); \
 		{ \
 			sl_uint32 nRows = (sl_uint32)(m_list##SECTION##Row.getCount()); \
@@ -1354,58 +1380,85 @@ namespace slib
 		m_defaultColumnResizable = flag;
 	}
 
-#define DEFINE_IS_SET_COLUMN_GRID(SECTION) \
-	sl_bool GridView::is##SECTION##ColumnGrid(sl_uint32 index) \
+#define DEFINE_GET_SET_VERTICAL_GRID(SECTION) \
+	sl_bool GridView::is##SECTION##VerticalGrid(sl_uint32 iCol) \
 	{ \
 		ObjectLocker lock(this); \
-		Ref<Column> col = m_columns.getValueAt_NoLock(index); \
+		Ref<Column> col = m_columns.getValueAt_NoLock(iCol); \
 		if (col.isNotNull()) { \
-			return col->m_flag##SECTION##Grid; \
+			return col->m_flag##SECTION##VerticalGrid; \
 		} else { \
 			return sl_false; \
 		} \
 	} \
-	sl_bool GridView::Column::is##SECTION##Grid() \
+	sl_bool GridView::Column::is##SECTION##VerticalGrid() \
 	{ \
-		return m_flag##SECTION##Grid; \
+		return m_flag##SECTION##VerticalGrid; \
 	} \
-	void GridView::set##SECTION##ColumnGrid(sl_uint32 index, sl_bool flag, UIUpdateMode mode) \
+	void GridView::set##SECTION##VerticalGrid(sl_uint32 iCol, sl_bool flag, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
-		Ref<Column> col = m_columns.getValueAt_NoLock(index); \
+		Ref<Column> col = m_columns.getValueAt_NoLock(iCol); \
 		if (col.isNotNull()) { \
-			col->m_flag##SECTION##Grid = flag; \
+			col->m_flag##SECTION##VerticalGrid = flag; \
 			invalidate(mode); \
 		} \
 	} \
-	void GridView::Column::set##SECTION##Grid(sl_bool flag, UIUpdateMode mode) \
+	void GridView::Column::set##SECTION##VerticalGrid(sl_bool flag, UIUpdateMode mode) \
 	{ \
-		m_flag##SECTION##Grid = flag; \
+		m_flag##SECTION##VerticalGrid = flag; \
 		_invalidate(mode); \
+	} \
+	void GridView::set##SECTION##VerticalGrid(sl_bool flag, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		ListElements< Ref<Column> > columns(m_columns); \
+		for (sl_size iCol = 0; iCol < columns.count; iCol++) { \
+			Column* col = columns[iCol].get(); \
+			col->m_flag##SECTION##VerticalGrid = flag; \
+		} \
+		m_default##SECTION##VerticalGrid = flag; \
+		invalidate(mode); \
 	}
 
-	DEFINE_IS_SET_COLUMN_GRID(Body)
-	DEFINE_IS_SET_COLUMN_GRID(Header)
-	DEFINE_IS_SET_COLUMN_GRID(Footer)
+	DEFINE_GET_SET_VERTICAL_GRID(Body)
+	DEFINE_GET_SET_VERTICAL_GRID(Header)
+	DEFINE_GET_SET_VERTICAL_GRID(Footer)
 
-	void GridView::setColumnGrid(sl_uint32 index, sl_bool flag, UIUpdateMode mode)
+	void GridView::setVerticalGrid(sl_uint32 iCol, sl_bool flag, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
-		Ref<Column> col = m_columns.getValueAt_NoLock(index);
+		Ref<Column> col = m_columns.getValueAt_NoLock(iCol);
 		if (col.isNotNull()) {
-			col->m_flagBodyGrid = flag;
-			col->m_flagHeaderGrid = flag;
-			col->m_flagFooterGrid = flag;
+			col->m_flagBodyVerticalGrid = flag;
+			col->m_flagHeaderVerticalGrid = flag;
+			col->m_flagFooterVerticalGrid = flag;
 			invalidate(mode);
 		}
 	}
 
-	void GridView::Column::setGrid(sl_bool flag, UIUpdateMode mode)
+	void GridView::Column::setVerticalGrid(sl_bool flag, UIUpdateMode mode)
 	{
-		m_flagBodyGrid = flag;
-		m_flagHeaderGrid = flag;
-		m_flagFooterGrid = flag;
+		m_flagBodyVerticalGrid = flag;
+		m_flagHeaderVerticalGrid = flag;
+		m_flagFooterVerticalGrid = flag;
 		_invalidate(mode);
+	}
+
+	void GridView::setVerticalGrid(sl_bool flag, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		ListElements< Ref<Column> > columns(m_columns);
+		for (sl_size iCol = 0; iCol < columns.count; iCol++) {
+			Column* col = columns[iCol].get();
+			col->m_flagBodyVerticalGrid = flag;
+			col->m_flagHeaderVerticalGrid = flag;
+			col->m_flagFooterVerticalGrid = flag;
+		}
+		m_defaultBodyVerticalGrid = flag;
+		m_defaultHeaderVerticalGrid = flag;
+		m_defaultFooterVerticalGrid = flag;
+		invalidate(mode);
 	}
 
 	sl_uint64 GridView::getRecordCount()
@@ -1476,6 +1529,7 @@ namespace slib
 				row->m_section = SECTION_VALUE; \
 				row->m_index = i; \
 				row->m_height = m_default##SECTION##RowHeight; \
+				row->m_flagHorizontalGrid = m_default##SECTION##HorizontalGrid; \
 				row->m_defaultProps.inheritFrom(m_default##SECTION##Props); \
 				rows[i] = Move(row); \
 			} \
@@ -1790,7 +1844,7 @@ namespace slib
 		if (row.isNotNull()) { \
 			return row->m_flagVisible; \
 		} else { \
-			return 0; \
+			return sl_false; \
 		} \
 	} \
 	void GridView::set##SECTION##RowVisible(sl_uint32 index, sl_bool flag, UIUpdateMode mode) \
@@ -1798,10 +1852,12 @@ namespace slib
 		ObjectLocker lock(this); \
 		Ref<Row> row = m_list##SECTION##Row.getValueAt_NoLock(index); \
 		if (row.isNotNull()) { \
-			row->m_flagVisible = flag; \
+			if (row->m_flagVisible != flag) { \
+				row->m_flagVisible = flag; \
+				m_flagInvalidate##SECTION##Layout = sl_true; \
+				refreshContentHeight(mode); \
+			} \
 		} \
-		m_flagInvalidate##SECTION##Layout = sl_true; \
-		refreshContentHeight(mode); \
 	}
 
 	DEFINE_GET_SET_ROW_VISIBLE(Body)
@@ -1815,8 +1871,83 @@ namespace slib
 
 	void GridView::Row::setVisible(sl_bool flag, UIUpdateMode mode)
 	{
-		m_flagVisible = flag;
-		_invalidateLayout(mode);
+		if (m_flagVisible != flag) {
+			m_flagVisible = flag;
+			_invalidateLayout(mode);
+		}
+	}
+	
+#define DEFINE_GET_SET_HORIZONTAL_GRID(SECTION) \
+	sl_bool GridView::is##SECTION##HorizontalGrid(sl_uint32 iRow) \
+	{ \
+		ObjectLocker lock(this); \
+		Ref<Row> row = m_list##SECTION##Row.getValueAt_NoLock(iRow); \
+		if (row.isNotNull()) { \
+			return row->m_flagHorizontalGrid; \
+		} else { \
+			return sl_false; \
+		} \
+	} \
+	void GridView::set##SECTION##HorizontalGrid(sl_uint32 iRow, sl_bool flag, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		Ref<Row> row = m_list##SECTION##Row.getValueAt_NoLock(iRow); \
+		if (row.isNotNull()) { \
+			row->m_flagHorizontalGrid = flag; \
+			invalidate(mode); \
+		} \
+	} \
+	void GridView::set##SECTION##HorizontalGrid(sl_bool flag, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		ListElements< Ref<Row> > rows(m_list##SECTION##Row); \
+		for (sl_size i = 0; i < rows.count; i++) { \
+			rows[i]->m_flagHorizontalGrid = flag; \
+		} \
+		m_default##SECTION##HorizontalGrid = flag; \
+		invalidate(mode); \
+	}
+
+	DEFINE_GET_SET_HORIZONTAL_GRID(Body)
+	DEFINE_GET_SET_HORIZONTAL_GRID(Header)
+	DEFINE_GET_SET_HORIZONTAL_GRID(Footer)
+
+	void GridView::setHorizontalGrid(sl_bool flag, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		{
+			m_defaultBodyHorizontalGrid = flag;
+			ListElements< Ref<Row> > rows(m_listBodyRow);
+			for (sl_size i = 0; i < rows.count; i++) {
+				rows[i]->m_flagHorizontalGrid = flag;
+			}
+		}
+		{
+			m_defaultHeaderHorizontalGrid = flag;
+			ListElements< Ref<Row> > rows(m_listHeaderRow);
+			for (sl_size i = 0; i < rows.count; i++) {
+				rows[i]->m_flagHorizontalGrid = flag;
+			}
+		}
+		{
+			m_defaultFooterHorizontalGrid = flag;
+			ListElements< Ref<Row> > rows(m_listFooterRow);
+			for (sl_size i = 0; i < rows.count; i++) {
+				rows[i]->m_flagHorizontalGrid = flag;
+			}
+		}
+		invalidate(mode);
+	}
+
+	sl_bool GridView::Row::isHorizontalGrid()
+	{
+		return m_flagHorizontalGrid;
+	}
+
+	void GridView::Row::setHorizontalGrid(sl_bool flag, UIUpdateMode mode)
+	{
+		m_flagHorizontalGrid = flag;
+		_invalidate(mode);
 	}
 
 #define DEFINE_GET_SET_GRID(SECTION, DEFAULT) \
@@ -3630,7 +3761,7 @@ namespace slib
 					continue; \
 				} \
 				x += w; \
-				if (!(columns[iCol-1]->m_flag##SECTION##Grid)) { \
+				if (!(columns[iCol-1]->m_flag##SECTION##VerticalGrid)) { \
 					continue; \
 				} \
 				ListElements<SECTION##CellProp> props(columns[iCol]->m_list##SECTION##Cell); \
@@ -3684,6 +3815,9 @@ namespace slib
 						continue; \
 					} \
 					y += h; \
+					if (!(rows[iRow-1]->m_flagHorizontalGrid)) { \
+						continue; \
+					} \
 					sl_ui_pos x = _x; \
 					sl_ui_pos start = x; \
 					for (sl_uint32 iCol = 0; iCol < nColumns; iCol++) { \
@@ -3708,7 +3842,7 @@ namespace slib
 					} \
 				} \
 				y += rows[nRows-1]->m_fixedHeight; \
-				if (flagBody || iRecord + 1 < nRecords) { \
+				if ((flagBody || iRecord + 1 < nRecords) && rows[nRows-1]->m_flagHorizontalGrid) { \
 					canvas->drawLine((sl_real)_x, (sl_real)y, (sl_real)xEnd, (sl_real)y, pen); \
 				} \
 			} \
