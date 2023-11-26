@@ -4662,6 +4662,9 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., visible)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., resizable)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., grid)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., bodyGrid)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., headerGrid)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., footerGrid)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column, columnXml)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.bodyAttrs, columnXml, body)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.headerAttrs, columnXml, header)
@@ -4899,6 +4902,9 @@ namespace slib
 					LAYOUT_CONTROL_GENERATE_GENERIC(column.visible, setColumnVisible, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GENERIC(column.resizable, setColumnResizable, BASIC, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GENERIC(column.grid, setColumnGrid, ITEM, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(column.bodyGrid, setBodyColumnGrid, ITEM, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(column.headerGrid, setHeaderColumnGrid, ITEM, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(column.footerGrid, setFooterColumnGrid, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Column, column, "%d, %s", iCol, value)
 				}
 			}
@@ -5001,6 +5007,9 @@ namespace slib
 					LAYOUT_CONTROL_SIMULATE_GENERIC(column.visible, setColumnVisible, ITEM, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_GENERIC(column.resizable, setColumnResizable, BASIC, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_GENERIC(column.grid, setColumnGrid, ITEM, (sl_uint32)iCol, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(column.bodyGrid, setBodyColumnGrid, ITEM, (sl_uint32)iCol, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(column.headerGrid, setHeaderColumnGrid, ITEM, (sl_uint32)iCol, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(column.footerGrid, setFooterColumnGrid, ITEM, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Column, column, (sl_uint32)iCol)
 				}
 			}

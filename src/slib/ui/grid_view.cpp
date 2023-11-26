@@ -661,7 +661,9 @@ namespace slib
 		m_flagDefaultWidth = sl_true;
 		m_flagVisible = sl_true;
 		m_flagResizable = sl_true;
-		m_flagGrid = sl_true;
+		m_flagBodyGrid = sl_true;
+		m_flagHeaderGrid = sl_true;
+		m_flagFooterGrid = sl_true;
 	}
 
 	GridView::Column::~Column()
@@ -1352,35 +1354,57 @@ namespace slib
 		m_defaultColumnResizable = flag;
 	}
 
-	sl_bool GridView::isColumnGrid(sl_uint32 index)
-	{
-		ObjectLocker lock(this);
-		Ref<Column> col = m_columns.getValueAt_NoLock(index);
-		if (col.isNotNull()) {
-			return col->m_flagGrid;
-		} else {
-			return sl_false;
-		}
+#define DEFINE_IS_SET_COLUMN_GRID(SECTION) \
+	sl_bool GridView::is##SECTION##ColumnGrid(sl_uint32 index) \
+	{ \
+		ObjectLocker lock(this); \
+		Ref<Column> col = m_columns.getValueAt_NoLock(index); \
+		if (col.isNotNull()) { \
+			return col->m_flag##SECTION##Grid; \
+		} else { \
+			return sl_false; \
+		} \
+	} \
+	sl_bool GridView::Column::is##SECTION##Grid() \
+	{ \
+		return m_flag##SECTION##Grid; \
+	} \
+	void GridView::set##SECTION##ColumnGrid(sl_uint32 index, sl_bool flag, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		Ref<Column> col = m_columns.getValueAt_NoLock(index); \
+		if (col.isNotNull()) { \
+			col->m_flag##SECTION##Grid = flag; \
+			invalidate(mode); \
+		} \
+	} \
+	void GridView::Column::set##SECTION##Grid(sl_bool flag, UIUpdateMode mode) \
+	{ \
+		m_flag##SECTION##Grid = flag; \
+		_invalidate(mode); \
 	}
 
-	sl_bool GridView::Column::isGrid()
-	{
-		return m_flagGrid;
-	}
+	DEFINE_IS_SET_COLUMN_GRID(Body)
+	DEFINE_IS_SET_COLUMN_GRID(Header)
+	DEFINE_IS_SET_COLUMN_GRID(Footer)
 
 	void GridView::setColumnGrid(sl_uint32 index, sl_bool flag, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		Ref<Column> col = m_columns.getValueAt_NoLock(index);
 		if (col.isNotNull()) {
-			col->m_flagGrid = flag;
+			col->m_flagBodyGrid = flag;
+			col->m_flagHeaderGrid = flag;
+			col->m_flagFooterGrid = flag;
 			invalidate(mode);
 		}
 	}
 
 	void GridView::Column::setGrid(sl_bool flag, UIUpdateMode mode)
 	{
-		m_flagGrid = flag;
+		m_flagBodyGrid = flag;
+		m_flagHeaderGrid = flag;
+		m_flagFooterGrid = flag;
 		_invalidate(mode);
 	}
 
@@ -3606,7 +3630,7 @@ namespace slib
 					continue; \
 				} \
 				x += w; \
-				if (!(columns[iCol-1]->m_flagGrid)) { \
+				if (!(columns[iCol-1]->m_flag##SECTION##Grid)) { \
 					continue; \
 				} \
 				ListElements<SECTION##CellProp> props(columns[iCol]->m_list##SECTION##Cell); \

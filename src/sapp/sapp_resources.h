@@ -989,6 +989,9 @@ namespace slib
 		SAppBooleanValue visible;
 		SAppBooleanValue resizable;
 		SAppBooleanValue grid;
+		SAppBooleanValue bodyGrid;
+		SAppBooleanValue headerGrid;
+		SAppBooleanValue footerGrid;
 
 		SAppLayoutGridCellAttributes bodyAttrs;
 		SAppLayoutGridCellAttributes headerAttrs;

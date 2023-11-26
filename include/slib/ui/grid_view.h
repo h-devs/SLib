@@ -343,7 +343,12 @@ namespace slib
 		void setColumnResizable(sl_uint32 index, sl_bool flagResizable = sl_true);
 		void setColumnResizable(sl_bool flagResizable = sl_true);
 
-		sl_bool isColumnGrid(sl_uint32 index);
+		sl_bool isBodyColumnGrid(sl_uint32 index);
+		void setBodyColumnGrid(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		sl_bool isHeaderColumnGrid(sl_uint32 index);
+		void setHeaderColumnGrid(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		sl_bool isFooterColumnGrid(sl_uint32 index);
+		void setFooterColumnGrid(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setColumnGrid(sl_uint32 index, sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_uint64 getRecordCount();
@@ -927,7 +932,12 @@ namespace slib
 			sl_bool isResizable();
 			void setResizable(sl_bool flag = sl_true);
 
-			sl_bool isGrid();
+			sl_bool isBodyGrid();
+			void setBodyGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+			sl_bool isHeaderGrid();
+			void setHeaderGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+			sl_bool isFooterGrid();
+			void setFooterGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 			void setGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		private:
@@ -946,7 +956,9 @@ namespace slib
 			sl_ui_len m_maxWidth;
 			sl_bool m_flagVisible;
 			sl_bool m_flagResizable;
-			sl_bool m_flagGrid;
+			sl_bool m_flagBodyGrid;
+			sl_bool m_flagHeaderGrid;
+			sl_bool m_flagFooterGrid;
 
 			List<BodyCellProp> m_listBodyCell;
 			List<HeaderCellProp> m_listHeaderCell;
