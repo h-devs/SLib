@@ -337,7 +337,7 @@ namespace slib
 
 				SLIBTextAreaHandle_TextView* tv = handle->m_textView;
 
-				[[tv textContainer] setWidthTracksTextView:(view->getMultiLine() == MultiLineMode::WordWrap || view->getMultiLine() == MultiLineMode::BreakWord) ? YES : NO];
+				[[tv textContainer] setWidthTracksTextView:IsWrappingMultiLineMode(view->getMultiLine()) ? YES : NO];
 				[[tv textContainer] setContainerSize:NSMakeSize(FLT_MAX, FLT_MAX)];
 
 				updateFont(tv, view->getFont(), sl_false);
@@ -426,7 +426,7 @@ namespace slib
 			{
 				SLIBTextAreaHandle* handle = getHandle();
 				if (handle != nil) {
-					[[handle->m_textView textContainer] setWidthTracksTextView:(mode == MultiLineMode::WordWrap || mode == MultiLineMode::BreakWord) ? YES : NO];
+					[[handle->m_textView textContainer] setWidthTracksTextView:IsWrappingMultiLineMode(mode) ? YES : NO];
 					[[handle->m_textView textContainer] setContainerSize:NSMakeSize(FLT_MAX, FLT_MAX)];
 				}
 			}

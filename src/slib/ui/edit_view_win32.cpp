@@ -368,7 +368,7 @@ namespace slib
 				style |= ES_AUTOVSCROLL;
 			}
 		}
-		if (m_multiLine != MultiLineMode::WordWrap && m_multiLine != MultiLineMode::BreakWord) {
+		if (!(IsWrappingMultiLineMode(m_multiLine))) {
 			if (m_flagAutoHorizontalScrolling) {
 				style |= ES_AUTOHSCROLL;
 			}
@@ -447,8 +447,7 @@ namespace slib
 					setBackgroundColor(view, backgroundColor);
 				}
 				setPadding(view, view->getPadding());
-				MultiLineMode multiLine = view->getMultiLine();
-				if (multiLine == MultiLineMode::WordWrap || multiLine == MultiLineMode::BreakWord) {
+				if (IsWrappingMultiLineMode(view->getMultiLine())) {
 					SendMessageW(handle, EM_SETTARGETDEVICE, 0, 0);
 				}
 			}
@@ -555,7 +554,7 @@ namespace slib
 			{
 				HWND handle = m_handle;
 				if (handle) {
-					if (mode == MultiLineMode::WordWrap || mode == MultiLineMode::BreakWord) {
+					if (IsWrappingMultiLineMode(mode)) {
 						SendMessageW(handle, EM_SETTARGETDEVICE, 0, 0);
 					} else {
 						SendMessageW(handle, EM_SETTARGETDEVICE, 0, 1);
@@ -746,7 +745,7 @@ namespace slib
 		} else if (align != Alignment::Left) {
 			style |= ES_CENTER;
 		}
-		if (m_multiLine != MultiLineMode::WordWrap && m_multiLine != MultiLineMode::BreakWord) {
+		if (!(IsWrappingMultiLineMode(m_multiLine))) {
 			style |= ES_AUTOHSCROLL;
 		}
 		if (m_flagReadOnly) {

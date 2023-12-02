@@ -28,6 +28,7 @@
 
 #include "../core/string.h"
 #include "../core/function.h"
+#include "../core/nullable.h"
 #include "../math/rectangle.h"
 
 namespace slib
@@ -181,7 +182,7 @@ namespace slib
 		~TextWordItem() noexcept;
 
 	public:
-		static Ref<TextWordItem> create(const String16& text, const Ref<TextStyle>& style, sl_bool flagEnabledHyperlinksInPlainText = sl_false) noexcept;
+		static Ref<TextWordItem> create(const String16& text, const Ref<TextStyle>& style) noexcept;
 
 	public:
 		const String16& getText() noexcept;
@@ -190,6 +191,8 @@ namespace slib
 
 		void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param) override;
 
+		sl_bool containsNoLatin() noexcept;
+
 	protected:
 		String16 m_text;
 
@@ -197,6 +200,7 @@ namespace slib
 		String16 m_textCached;
 		sl_real m_widthCached;
 		sl_real m_heightCached;
+		Nullable<sl_bool> m_flagNoLatin;
 	};
 
 	class SLIB_EXPORT TextCharItem : public TextItem

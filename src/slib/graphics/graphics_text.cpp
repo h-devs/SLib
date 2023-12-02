@@ -149,61 +149,13 @@ namespace slib
 	{
 	}
 
-	namespace {
-		static sl_bool CheckURL(const String16& text, String16& url)
-		{
-			SLIB_STATIC_STRING16(http, "http://")
-			SLIB_STATIC_STRING16(https, "https://")
-			SLIB_STATIC_STRING16(www, "www.")
-			if (text.startsWith(http) && text.getLength() > http.getLength()) {
-				url = text;
-				return sl_true;
-			}
-			if (text.startsWith(https) && text.getLength() > https.getLength()) {
-				url = text;
-				return sl_true;
-			}
-			if (text.startsWith(www) && text.getLength() > www.getLength()) {
-				sl_reg len = text.indexOf('/');
-				if (len < 0) {
-					len = text.getLength();
-				}
-				sl_reg indexDotDot = text.indexOf(SLIB_UNICODE(".."));
-				if (indexDotDot >= 0 && indexDotDot < len) {
-					return sl_false;
-				}
-				sl_char16* sz = text.getData();
-				for (sl_reg i = 0; i < len; i++) {
-					sl_char16 ch = sz[i];
-					if (!(SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_' || ch == '.')) {
-						return sl_false;
-					}
-				}
-				url = http + text;
-				return sl_true;
-			}
-			return sl_false;
-		}
-	}
-
-	Ref<TextWordItem> TextWordItem::create(const String16& text, const Ref<TextStyle>& style, sl_bool flagEnabledHyperlinksInPlainText) noexcept
+	Ref<TextWordItem> TextWordItem::create(const String16& text, const Ref<TextStyle>& style) noexcept
 	{
 		if (style.isNotNull()) {
 			Ref<TextWordItem> ret = new TextWordItem;
 			if (ret.isNotNull()) {
 				ret->m_text = text;
 				ret->m_style = style;
-				if (flagEnabledHyperlinksInPlainText) {
-					String16 url;
-					if (CheckURL(text, url)) {
-						Ref<TextStyle> styleNew = style->duplicate();
-						if (styleNew.isNotNull()) {
-							styleNew->flagLink = sl_true;
-							styleNew->href = String::from(url);
-							ret->m_style = styleNew;
-						}
-					}
-				}
 				return ret;
 			}
 		}
@@ -260,6 +212,26 @@ namespace slib
 		dp.y = y;
 		dp.text = m_text;
 		canvas->drawText(dp);
+	}
+
+	sl_bool TextWordItem::containsNoLatin() noexcept
+	{
+		if (m_flagNoLatin.flagNull) {
+			sl_bool flag = sl_false;
+			const String16& text = getText();
+			sl_char16* s = text.getData();
+			sl_size len = text.getLength();
+			for (sl_size i = 0; i < len; i++) {
+				sl_char16 c = s[i];
+				if (c >= 128) {
+					flag = sl_true;
+					break;
+				}
+			}
+			m_flagNoLatin.value = flag;
+			m_flagNoLatin.flagNull = sl_false;
+		}
+		return m_flagNoLatin.value;
 	}
 
 
@@ -561,8 +533,98 @@ namespace slib
 	}
 
 	namespace {
+
 		template <class CHAR>
-		static Ref<TextItem> CreateWordOrCharItem(const CHAR* str, sl_size len, const Ref<TextStyle>& style, sl_bool flagEnabledHyperlinksInPlainText = sl_false)
+		SLIB_INLINE static sl_bool CheckHTTP(const CHAR* s, sl_size len)
+		{
+			if (len <= 7) return sl_false;
+			if (*(s++) != 'h') return sl_false;
+			if (*(s++) != 't') return sl_false;
+			if (*(s++) != 't') return sl_false;
+			if (*(s++) != 'p') return sl_false;
+			if (*(s++) != ':') return sl_false;
+			if (*(s++) != '/') return sl_false;
+			if (*(s++) != '/') return sl_false;
+			return sl_true;
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static sl_bool CheckHTTPS(const CHAR* s, sl_size len)
+		{
+			if (len <= 8) return sl_false;
+			if (*(s++) != 'h') return sl_false;
+			if (*(s++) != 't') return sl_false;
+			if (*(s++) != 't') return sl_false;
+			if (*(s++) != 'p') return sl_false;
+			if (*(s++) != 's') return sl_false;
+			if (*(s++) != ':') return sl_false;
+			if (*(s++) != '/') return sl_false;
+			if (*(s++) != '/') return sl_false;
+			return sl_true;
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static sl_bool CheckWWW(const CHAR* s, sl_size len)
+		{
+			if (len <= 4) return sl_false;
+			if (*(s++) != 'w') return sl_false;
+			if (*(s++) != 'w') return sl_false;
+			if (*(s++) != 'w') return sl_false;
+			if (*(s++) != '.') return sl_false;
+			return sl_true;
+		}
+
+		template <class CHAR>
+		static sl_bool CheckURL(const CHAR* s, sl_size len)
+		{
+			if (CheckHTTP(s, len)) {
+				return sl_true;
+			}
+			if (CheckHTTPS(s, len)) {
+				return sl_true;
+			}
+			if (CheckWWW(s, len)) {
+				return sl_true;
+			}
+			return sl_false;
+		}
+
+		static sl_bool CheckURL(const String16& text, String16& url)
+		{
+			sl_char16* s = text.getData();
+			sl_size len = text.getLength();
+			if (CheckHTTP(s, len)) {
+				url = text;
+				return sl_true;
+			}
+			if (CheckHTTPS(s, len)) {
+				url = text;
+				return sl_true;
+			}
+			if (CheckWWW(s, len)) {
+				sl_reg len = text.indexOf('/');
+				if (len < 0) {
+					len = text.getLength();
+				}
+				sl_reg indexDotDot = text.indexOf(SLIB_UNICODE(".."));
+				if (indexDotDot >= 0 && indexDotDot < len) {
+					return sl_false;
+				}
+				sl_char16* sz = text.getData();
+				for (sl_reg i = 0; i < len; i++) {
+					sl_char16 ch = sz[i];
+					if (!(SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_' || ch == '.')) {
+						return sl_false;
+					}
+				}
+				url = StringView16::literal(u"http://") + text;
+				return sl_true;
+			}
+			return sl_false;
+		}
+
+		template <class CHAR>
+		static Ref<TextItem> CreateWordOrCharItem(const CHAR* str, sl_size len, const Ref<TextStyle>& style)
 		{
 			if (len == 1) {
 				return TextCharItem::create(str[0], style);
@@ -575,9 +637,73 @@ namespace slib
 				if (n == 1) {
 					return TextCharItem::create(s.getAt(0), style);
 				}
-				return TextWordItem::create(s, style, flagEnabledHyperlinksInPlainText);
+				return TextWordItem::create(s, style);
 			}
 		}
+
+		static void AddWordItems(CList< Ref<TextItem> >& items, const String16& str, const Ref<TextStyle>& style, sl_bool flagEnabledHyperlinksInPlainText)
+		{
+			if (flagEnabledHyperlinksInPlainText) {
+				String16 url;
+				if (CheckURL(str, url)) {
+					Ref<TextStyle> styleNew = style->duplicate();
+					if (styleNew.isNotNull()) {
+						styleNew->flagLink = sl_true;
+						styleNew->href = String::from(url);
+						Ref<TextWordItem> item = TextWordItem::create(str, styleNew);
+						if (item.isNotNull()) {
+							items.add_NoLock(Move(item));
+						}
+					}
+					return;
+				}
+			}
+			sl_char16* s = str.getData();
+			sl_size len = str.getLength();
+			sl_size start = 0;
+			for (sl_size i = 0; i < len; i++) {
+				sl_char16 c = s[i];
+				if (c == '-') {
+					Ref<TextWordItem> item = TextWordItem::create(str.substring(start, i + 1), style);
+					if (item.isNotNull()) {
+						items.add_NoLock(Move(item));
+					}
+					start = i + 1;
+				}
+			}
+			if (start < len) {
+				Ref<TextWordItem> item = TextWordItem::create(str.substring(start, len), style);
+				if (item.isNotNull()) {
+					items.add_NoLock(Move(item));
+				}
+			}
+		}
+
+		template <class CHAR>
+		static void AddWordItems(CList< Ref<TextItem> >& items, const CHAR* str, sl_size len, const Ref<TextStyle>& style, sl_bool flagEnabledHyperlinksInPlainText)
+		{
+			if (len == 1) {
+				Ref<TextCharItem> item = TextCharItem::create(str[0], style);
+				if (item.isNotNull()) {
+					items.add_NoLock(Move(item));
+				}
+			} else {
+				String16 s = String16::from(str, len);
+				sl_size n = s.getLength();
+				if (!n) {
+					return;
+				}
+				if (n == 1) {
+					Ref<TextCharItem> item = TextCharItem::create(s.getAt(0), style);
+					if (item.isNotNull()) {
+						items.add_NoLock(Move(item));
+					}
+				} else {
+					AddWordItems(items, s, style, flagEnabledHyperlinksInPlainText);
+				}
+			}
+		}
+
 	}
 
 	template <class CHAR>
@@ -598,10 +724,7 @@ namespace slib
 			}
 #define BEGIN_ADD_TEXT_CASE \
 				if (startWord < oldPos) { \
-					Ref<TextItem> item = CreateWordOrCharItem(data + startWord, oldPos - startWord, style, flagEnabledHyperlinksInPlainText); \
-					if (item.isNotNull()) { \
-						m_items.add_NoLock(item); \
-					} \
+					AddWordItems(m_items, data + startWord, oldPos - startWord, style, flagEnabledHyperlinksInPlainText); \
 				}
 #define END_ADD_TEXT_CASE \
 				startWord = pos; \
@@ -612,14 +735,14 @@ namespace slib
 					BEGIN_ADD_TEXT_CASE {
 						Ref<TextSpaceItem> item = TextSpaceItem::create(style);
 						if (item.isNotNull()) {
-							m_items.add_NoLock(item);
+							m_items.add_NoLock(Move(item));
 						}
 					} END_ADD_TEXT_CASE;
 				case '\t':
 					BEGIN_ADD_TEXT_CASE {
 						Ref<TextTabItem> item = TextTabItem::create(style);
 						if (item.isNotNull()) {
-							m_items.add_NoLock(item);
+							m_items.add_NoLock(Move(item));
 						}
 					} END_ADD_TEXT_CASE;
 				case '\r':
@@ -627,7 +750,7 @@ namespace slib
 					BEGIN_ADD_TEXT_CASE {
 						Ref<TextLineBreakItem> item = TextLineBreakItem::create(style);
 						if (item.isNotNull()) {
-							m_items.add_NoLock(item);
+							m_items.add_NoLock(Move(item));
 						}
 						if (ch == '\r' && pos < len) {
 							if (data[pos] == '\n') {
@@ -643,7 +766,7 @@ namespace slib
 								pos += lenJoinedChar;
 								Ref<TextJoinedCharItem> item = TextJoinedCharItem::create(String16::from(data + oldPos, pos - oldPos), style);
 								if (item.isNotNull()) {
-									m_items.add_NoLock(item);
+									m_items.add_NoLock(Move(item));
 								}
 							} END_ADD_TEXT_CASE;
 						} else if (flagMnemonic && ch == '&' && pos < len) {
@@ -661,7 +784,7 @@ namespace slib
 									}
 									Ref<TextCharItem> item = TextCharItem::create(ch, _style);
 									if (item.isNotNull()) {
-										m_items.add_NoLock(item);
+										m_items.add_NoLock(Move(item));
 									}
 									pos++;
 									flagMnemonic = sl_false;
@@ -670,7 +793,7 @@ namespace slib
 								BEGIN_ADD_TEXT_CASE {
 									Ref<TextCharItem> item = TextCharItem::create('&', style);
 									if (item.isNotNull()) {
-										m_items.add_NoLock(item);
+										m_items.add_NoLock(Move(item));
 									}
 									pos++;
 								} END_ADD_TEXT_CASE;
@@ -682,16 +805,10 @@ namespace slib
 		}
 		if (startWord) {
 			if (startWord < len) {
-				Ref<TextItem> item = CreateWordOrCharItem(data + startWord, len - startWord, style, flagEnabledHyperlinksInPlainText);
-				if (item.isNotNull()) {
-					m_items.add_NoLock(item);
-				}
+				AddWordItems(m_items, data + startWord, len - startWord, style, flagEnabledHyperlinksInPlainText);
 			}
 		} else {
-			Ref<TextItem> item = CreateWordOrCharItem(data, len, style, flagEnabledHyperlinksInPlainText);
-			if (item.isNotNull()) {
-				m_items.add_NoLock(item);
-			}
+			AddWordItems(m_items, data, len, style, flagEnabledHyperlinksInPlainText);
 		}
 	}
 
@@ -1629,70 +1746,48 @@ namespace slib
 				}
 			}
 
-			sl_size processWords(Ref<TextItem>* items, sl_size nItems) noexcept
+			void processWord(TextWordItem* word) noexcept
 			{
-				sl_real x = 0;
-				TextWordItem* lastWord = sl_null;
-
-				sl_size nWords = 0;
-				while (nWords < nItems) {
-					TextItem* item = items[nWords].get();
-					if (item->getType() == TextItemType::Word) {
-						lastWord = static_cast<TextWordItem*>(item);
-						Size size = lastWord->getSize();
-						lastWord->setLayoutSize(size);
-						x += size.x;
-						applyLineHeight(item, size.y);
-					} else {
-						break;
-					}
-					nWords++;
-				}
-				if (nWords == 0) {
-					return 0;
-				}
-
-				sl_bool flagBreakWord = sl_false;
-				if (m_x + x > m_layoutWidth) {
+				Size size = word->getSize();
+				word->setLayoutSize(size);
+				applyLineHeight(word, size.y);
+				if (m_x + size.x > m_layoutWidth) {
+					sl_bool flagWrap = sl_false;
+					sl_bool flagBreak = sl_false;
 					if (m_multiLineMode == MultiLineMode::WordWrap) {
-						if (m_lineItems.getCount() == 0) {
-							flagBreakWord = sl_true;
-						} else {
-							endLine();
-							if (lastWord) {
-								applyLineHeight(lastWord, lastWord->getSize().y);
-							}
-							if (x > m_layoutWidth) {
-								flagBreakWord = sl_true;
-							}
-							if (m_flagEnd) {
-								return nWords - 1;
-							}
-						}
+						flagWrap = sl_true;
 					} else if (m_multiLineMode == MultiLineMode::BreakWord) {
-						flagBreakWord = sl_true;
+						flagBreak = sl_true;
+					} else if (m_multiLineMode == MultiLineMode::LatinWrap) {
+						if (word->containsNoLatin()) {
+							flagBreak = sl_true;
+						} else {
+							flagWrap = sl_true;
+						}
+					}
+					if (flagWrap) {
+						if (m_lineItems.getCount()) {
+							endLine();
+							if (m_flagEnd) {
+								return;
+							}
+							if (size.x > m_layoutWidth) {
+								breakWord(word);
+								return;
+							}
+						} else {
+							breakWord(word);
+							return;
+						}
+					} else if (flagBreak) {
+						breakWord(word);
+						return;
 					}
 				}
 
-				if (flagBreakWord) {
-					for (sl_size i = 0; i < nWords; i++) {
-						TextWordItem* item = static_cast<TextWordItem*>(items[i].get());
-						Size size = item->getLayoutSize();
-						if (m_x + size.x > m_layoutWidth) {
-							breakWord(item);
-							return i;
-						} else {
-							m_lineItems.add_NoLock(item);
-							m_x += size.x;
-							m_lineWidth = m_x;
-						}
-					}
-				} else {
-					m_lineItems.addElements_NoLock(items, nWords);
-					m_x += x;
-					m_lineWidth = m_x;
-				}
-				return nWords - 1;
+				m_lineItems.add_NoLock(word);
+				m_x += size.x;
+				m_lineWidth = m_x;
 			}
 
 			void processChar(TextCharItem* item) noexcept
@@ -1769,7 +1864,7 @@ namespace slib
 
 					switch (type) {
 						case TextItemType::Word:
-							i += processWords(items + i, n - i);
+							processWord(static_cast<TextWordItem*>(item));
 							break;
 
 						case TextItemType::Char:
@@ -1816,7 +1911,7 @@ namespace slib
 
 		m_layoutItems.removeAll_NoLock();
 
-		if (param.multiLineMode == MultiLineMode::WordWrap || param.multiLineMode == MultiLineMode::BreakWord) {
+		if (IsWrappingMultiLineMode(param.multiLineMode)) {
 			if (param.width < SLIB_EPSILON) {
 				return;
 			}

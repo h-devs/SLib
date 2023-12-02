@@ -2051,6 +2051,8 @@ namespace slib
 				return "slib::MultiLineMode::WordWrap";
 			case MultiLineMode::BreakWord:
 				return "slib::MultiLineMode::BreakWord";
+			case MultiLineMode::LatinWrap:
+				return "slib::MultiLineMode::LatinWrap";
 			default:
 				break;
 		}
@@ -2078,6 +2080,10 @@ namespace slib
 			return sl_true;
 		} else if (str == "break-word") {
 			value = MultiLineMode::BreakWord;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "latin-wrap") {
+			value = MultiLineMode::LatinWrap;
 			flagDefined = sl_true;
 			return sl_true;
 		}
