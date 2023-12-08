@@ -22,9 +22,12 @@
 
 #include "slib/ui/label_view.h"
 
-#include "slib/ui/cursor.h"
 #include "slib/ui/core.h"
+#include "slib/ui/cursor.h"
+#include "slib/ui/clipboard.h"
 #include "slib/graphics/util.h"
+
+#include "../resources.h"
 
 namespace slib
 {
@@ -39,6 +42,7 @@ namespace slib
 		setPadding(1, 1, 1, 1, UIUpdateMode::Init);
 
 		m_cell = new LabelViewCell;
+		m_flagContextMenu = sl_false;
 	}
 
 	LabelView::~LabelView()
@@ -114,14 +118,23 @@ namespace slib
 		m_cell->flagMnemonic = flag;
 	}
 
-	Color LabelView::getTextColor()
+	Color LabelView::getTextColor(ViewState state)
 	{
-		return m_cell->textColor;
+		return m_cell->textColors.get(state);
+	}
+
+	void LabelView::setTextColor(const Color& color, ViewState state, UIUpdateMode updateMode)
+	{
+		m_cell->textColors.set(state, color);
+		if (state != ViewState::Default) {
+			setRedrawingOnChangeState(sl_true);
+		}
+		invalidate(updateMode);
 	}
 
 	void LabelView::setTextColor(const Color& color, UIUpdateMode updateMode)
 	{
-		m_cell->textColor = color;
+		m_cell->textColors.defaultValue = color;
 		invalidate(updateMode);
 	}
 
@@ -173,6 +186,16 @@ namespace slib
 		invalidate(updateMode);
 	}
 
+	sl_bool LabelView::isUsingContextMenu()
+	{
+		return m_flagContextMenu;
+	}
+
+	void LabelView::setUsingContextMenu(sl_bool flag)
+	{
+		m_flagContextMenu = flag;
+	}
+
 	UISize LabelView::measureSize()
 	{
 		return m_cell->measureSize();
@@ -206,6 +229,19 @@ namespace slib
 	{
 		View::onClickEvent(ev);
 		m_cell->onClickEvent(ev);
+		if (ev->isAccepted()) {
+			return;
+		}
+		if (m_flagContextMenu) {
+			auto menu = menu::label_view_context::get();
+			if (menu) {
+				Ref<LabelView> label = this;
+				menu->copy->setAction([label]() {
+					Clipboard::setText(label->getText());
+				});
+				menu->root->show(convertCoordinateToScreen(ev->getPoint()));
+			}
+		}
 	}
 
 	void LabelView::onSetCursor(UIEvent* ev)
@@ -243,7 +279,7 @@ namespace slib
 		multiLineMode = MultiLineMode::Single;
 		lineCount = 0;
 
-		textColor = Color::Black;
+		textColors.defaultValue = Color::Black;
 		gravity = Alignment::Left;
 		ellipsizeMode = EllipsizeMode::None;
 		flagEnabledHyperlinksInPlainText = sl_false;
@@ -328,7 +364,7 @@ namespace slib
 		_updateTextBox(bounds.getWidth());
 		TextBox::DrawParam param;
 		param.frame = bounds;
-		param.textColor = textColor;
+		param.textColor = textColors.evaluate(getState());
 		if (shadowOpacity > 0) {
 			param.shadowOpacity = shadowOpacity;
 			param.shadowRadius = shadowRadius;

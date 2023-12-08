@@ -1,7 +1,7 @@
 #pragma once
 
 #include <slib/ui/resource.h>
-
+#include "menus.h"
 
 namespace slib
 {

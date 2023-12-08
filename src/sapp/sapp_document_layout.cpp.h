@@ -2758,7 +2758,7 @@ namespace slib
 
 		LAYOUT_CONTROL_UI_ATTR(STRING, text, setText)
 		LAYOUT_CONTROL_UI_ATTR(STRING, hyperText, setHyperText)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, textColor, setTextColor)
+		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setTextColor)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, gravity, setGravity)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setMultiLine)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, ellipsize, setEllipsize)
@@ -2766,6 +2766,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, linksInText, setDetectingHyperlinksInPlainText);
 		LAYOUT_CONTROL_UI_ATTR(COLOR, linkColor, setLinkColor)
 		LAYOUT_CONTROL_ATTR(GENERIC, mnemonic, setMnemonic)
+		LAYOUT_CONTROL_ATTR(GENERIC, contextMenu, setUsingContextMenu)
 
 		if (op == SAppLayoutOperation::Parse) {
 			if (!(attr->text.flagDefined) && !(attr->hyperText.flagDefined)) {

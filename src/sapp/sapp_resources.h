@@ -443,7 +443,7 @@ namespace slib
 	public:
 		SAppStringValue text;
 		SAppStringValue hyperText;
-		SAppColorValue textColor;
+		SAppStateMap<SAppColorValue> textColor;
 		SAppAlignmentValue gravity;
 		SAppMultiLineModeValue multiLine;
 		SAppEllipsizeModeValue ellipsize;
@@ -451,6 +451,7 @@ namespace slib
 		SAppBooleanValue linksInText;
 		SAppColorValue linkColor;
 		SAppBooleanValue mnemonic;
+		SAppBooleanValue contextMenu;
 	};
 
 	class SAppLayoutLineAttributes : public SAppLayoutViewAttributes

@@ -598,15 +598,12 @@ namespace slib
 		}
 	}
 
-#define DEFINE_STATE_MAP_FUNCS_SUB(FUNC, NAME, TYPE, CHECK_NOT_NULL, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
+#define DEFINE_STATE_MAP_FUNCS_SUB(FUNC, NAME, TYPE, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
 	TYPE Button::get##FUNC(sl_uint32 category, ViewState state) \
 	{ \
 		if (m_cell.isNotNull()) { \
 			if (category < m_cell->categories.getCount()) { \
-				TYPE value = m_cell->categories[category].NAME.get(state); \
-				if (value.CHECK_NOT_NULL()) { \
-					return value; \
-				} \
+				return m_cell->categories[category].NAME.get(state); \
 			} \
 		} \
 		return NULL_VALUE; \
@@ -630,8 +627,8 @@ namespace slib
 		set##FUNC(category, value, ViewState::Default, mode); \
 	}
 
-#define DEFINE_STATE_MAP_FUNCS(FUNC, NAME, TYPE, CHECK_NOT_NULL, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
-	DEFINE_STATE_MAP_FUNCS_SUB(FUNC, NAME, TYPE, CHECK_NOT_NULL, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
+#define DEFINE_STATE_MAP_FUNCS(FUNC, NAME, TYPE, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
+	DEFINE_STATE_MAP_FUNCS_SUB(FUNC, NAME, TYPE, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
 	TYPE Button::get##FUNC(ViewState state) \
 	{ \
 		return get##FUNC(0, state); \
@@ -648,9 +645,37 @@ namespace slib
 		set##FUNC(value, ViewState::Default, mode); \
 	}
 
-	DEFINE_STATE_MAP_FUNCS(TextColor, textColors, Color, isNotZero, Color::zero(), const Color&, .isNotZero(), value)
-	DEFINE_STATE_MAP_FUNCS(Icon, icons, Ref<Drawable>, isNotNull, sl_null, const Ref<Drawable>&, .isNotNull(), value)
-	DEFINE_STATE_MAP_FUNCS_SUB(Background, backgrounds, Ref<Drawable>, isNotNull, sl_null, const Ref<Drawable>&, .isNotNull(), value)
+	DEFINE_STATE_MAP_FUNCS_SUB(TextColor, textColors, Color, Color::zero(), const Color&, .isNotZero(), value)
+
+	Color Button::getTextColor(ViewState state)
+	{
+		if (m_cell.isNotNull()) {
+			return m_cell->textColors.get(state);
+		}
+		return Color::zero();
+	}
+
+	void Button::setTextColor(const Color& value, ViewState state, UIUpdateMode mode)
+	{
+		_initCell();
+		if (m_cell.isNotNull()) {
+			if (value.isNotZero()) {
+				m_cell->textColors.set(state, value);
+			} else {
+				m_cell->textColors.remove(state);
+			}
+			invalidate(mode);
+		}
+	}
+
+	void Button::setTextColor(const Color& value, UIUpdateMode mode)
+	{
+		setTextColor(value, ViewState::Default, mode);
+	}
+
+	DEFINE_STATE_MAP_FUNCS(Icon, icons, Ref<Drawable>, sl_null, const Ref<Drawable>&, .isNotNull(), value)
+
+	DEFINE_STATE_MAP_FUNCS_SUB(Background, backgrounds, Ref<Drawable>, sl_null, const Ref<Drawable>&, .isNotNull(), value)
 
 	Color Button::getBackgroundColor(sl_uint32 category, ViewState state)
 	{
@@ -671,7 +696,7 @@ namespace slib
 		setBackground(category, Drawable::fromColor(color), mode);
 	}
 
-	DEFINE_STATE_MAP_FUNCS_SUB(Border, borders, Ref<Pen>, isNotNull, sl_null, const Ref<Pen>&, .isNotNull(), value)
+	DEFINE_STATE_MAP_FUNCS_SUB(Border, borders, Ref<Pen>, sl_null, const Ref<Pen>&, .isNotNull(), value)
 
 	void Button::setBorder(sl_uint32 category, const PenDesc& desc, ViewState state, UIUpdateMode mode)
 	{
@@ -683,7 +708,7 @@ namespace slib
 		setBorder(category, desc, ViewState::Default, mode);
 	}
 
-	DEFINE_STATE_MAP_FUNCS(ColorFilter, filters, Shared<ColorMatrix>, isNotNull, sl_null, ColorMatrix*, , Shared<ColorMatrix>::create(*value))
+	DEFINE_STATE_MAP_FUNCS(ColorFilter, filters, Shared<ColorMatrix>, sl_null, ColorMatrix*, , Shared<ColorMatrix>::create(*value))
 
 	void Button::setColorOverlay(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode)
 	{
@@ -1054,7 +1079,7 @@ namespace slib
 		flagUseDefaultColorFilter = sl_true;
 		flagUseFocusedColorFilter = BUTTON_DEFAULT_USE_FOCUSED_COLOR_FILTER;
 
-		textColor = Color(0, 100, 200);
+		textColors.defaultValue = Color(0, 100, 200);
 	}
 
 	ButtonCell::~ButtonCell()
@@ -1101,8 +1126,7 @@ namespace slib
 		sl_bool flagUseDefaultColor;
 		Color color = categories[category].textColors.evaluate(state, &flagUseDefaultColor);
 		if (color.isZero()) {
-			flagUseDefaultColor = sl_true;
-			color = textColor;
+			color = textColors.evaluate(state, &flagUseDefaultColor);
 		}
 		ColorMatrix cm;
 		if (getFinalColorFilter(cm, state, flagUseDefaultColor && flagUseDefaultColorFilter)) {
