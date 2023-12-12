@@ -221,6 +221,8 @@ namespace slib
 	{
 		setCustomLayout(sl_true);
 		setSavingCanvasState(sl_false);
+
+		setOnPostDraw(SLIB_FUNCTION_MEMBER(this, _drawGrids));
 	}
 
 	TableLayout::~TableLayout()
@@ -1916,6 +1918,52 @@ namespace slib
 		}
 	}
 
+	Ref<Pen> TableLayout::getHorizontalGrid()
+	{
+		return m_penHorzGrid;
+	}
+
+	void TableLayout::setHorizontalGrid(const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		m_penHorzGrid = pen;
+		invalidate(mode);
+	}
+
+	void TableLayout::setHorizontalGrid(const PenDesc& desc, UIUpdateMode mode)
+	{
+		setHorizontalGrid(Pen::create(desc, getHorizontalGrid()), mode);
+	}
+
+	Ref<Pen> TableLayout::getVerticalGrid()
+	{
+		return m_penVertGrid;
+	}
+
+	void TableLayout::setVerticalGrid(const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		m_penVertGrid = pen;
+		invalidate(mode);
+	}
+
+	void TableLayout::setVerticalGrid(const PenDesc& desc, UIUpdateMode mode)
+	{
+		setVerticalGrid(Pen::create(desc, getVerticalGrid()), mode);
+	}
+
+	void TableLayout::setGrid(const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		m_penHorzGrid = pen;
+		m_penVertGrid = pen;
+		invalidate(mode);
+	}
+
+	void TableLayout::setGrid(const PenDesc& desc, UIUpdateMode mode)
+	{
+		m_penHorzGrid = Pen::create(desc, getHorizontalGrid());
+		m_penVertGrid = Pen::create(desc, getVerticalGrid());
+		invalidate(mode);
+	}
+
 	void TableLayout::onUpdateLayout()
 	{
 		ObjectLocker lock(this);
@@ -2299,6 +2347,18 @@ namespace slib
 				rc.left = rc.right + col.m_marginRight;
 			}
 		}
+	}
+
+	void TableLayout::_drawGrids(View*, Canvas* canvas)
+	{
+		if (m_penHorzGrid.isNull() && m_penVertGrid.isNull()) {
+			return;
+		}
+		CanvasStateScope scope(canvas);
+		if (isClipping()) {
+		}
+		ObjectLocker lock(this);
+
 	}
 
 }

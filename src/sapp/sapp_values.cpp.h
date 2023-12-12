@@ -1717,6 +1717,7 @@ namespace slib
 							flagNull = sl_true;
 							return sl_true;
 						} else if (str.equals_IgnoreCase(StringView::literal("true"))) {
+							flagDefined = sl_true;
 							break;
 						}
 					}
