@@ -1103,7 +1103,6 @@ namespace slib
 	sl_bool SAppNameValue::parse(const String& _str)
 	{
 		String str = _str.trim();
-		str = str.trim();
 		if (str.isEmpty()) {
 			return sl_true;
 		}
@@ -1703,16 +1702,27 @@ namespace slib
 			String attr = String::concat(name, suffix);
 			String str = item->getXmlAttribute(attr);
 			if (str.isNotEmpty()) {
-				if (str.startsWith('@')) {
-					String v = str.substring(1).trim();
-					if (v == "null") {
-						flagDefined = sl_true;
-						flagNull = sl_true;
-						return sl_true;
+				do {
+					if (str.startsWith('@')) {
+						String v = str.substring(1).trim();
+						if (v == "null") {
+							flagDefined = sl_true;
+							flagNull = sl_true;
+							return sl_true;
+						}
+					} else {
+						str = str.trim();
+						if (str.equals_IgnoreCase(StringView::literal("false"))) {
+							flagDefined = sl_true;
+							flagNull = sl_true;
+							return sl_true;
+						} else if (str.equals_IgnoreCase(StringView::literal("true"))) {
+							break;
+						}
 					}
-				}
-				doc->logError(item->element, g_str_error_resource_layout_attribute_invalid, attr, str);
-				return sl_false;
+					doc->logError(item->element, g_str_error_resource_layout_attribute_invalid, attr, str);
+					return sl_false;
+				} while (0);
 			}
 		}
 		const Ref<XmlElement>& xml = item->element;
@@ -1757,7 +1767,6 @@ namespace slib
 	sl_bool SAppAlignLayoutValue::parse(const String& _str)
 	{
 		String str = _str.trim();
-		str = str.trim();
 		if (str.isEmpty()) {
 			return sl_true;
 		}

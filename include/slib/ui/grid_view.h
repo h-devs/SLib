@@ -1154,6 +1154,11 @@ namespace slib
 		AtomicRef<Pen> m_gridFooter;
 		AtomicRef<Pen> m_gridLeft;
 		AtomicRef<Pen> m_gridRight;
+		sl_bool m_flagSetGridBody;
+		sl_bool m_flagSetGridHeader;
+		sl_bool m_flagSetGridFooter;
+		sl_bool m_flagSetGridLeft;
+		sl_bool m_flagSetGridRight;
 		AtomicRef<Pen> m_selectionBorder;
 
 		sl_bool m_flagSorting;

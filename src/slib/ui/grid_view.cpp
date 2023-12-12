@@ -865,6 +865,12 @@ namespace slib
 		m_nLeftColumns = 0;
 		m_nRightColumns = 0;
 
+		m_flagSetGridBody = sl_false;
+		m_flagSetGridHeader = sl_false;
+		m_flagSetGridFooter = sl_false;
+		m_flagSetGridLeft = sl_false;
+		m_flagSetGridRight = sl_false;
+
 		m_selectionBorder = Pen::create(PenStyle::Solid, 3, Color(33, 115, 70));
 		m_selectionMode = SelectionMode::Cell;
 
@@ -1953,6 +1959,9 @@ namespace slib
 #define DEFINE_GET_SET_GRID(SECTION, DEFAULT) \
 	Ref<Pen> GridView::get##SECTION##Grid() \
 	{ \
+		if (m_flagSetGrid##SECTION) { \
+			return m_grid##SECTION; \
+		} \
 		Ref<Pen> grid = m_grid##SECTION; \
 		if (grid.isNotNull()) { \
 			return grid; \
@@ -1962,6 +1971,7 @@ namespace slib
 	void GridView::set##SECTION##Grid(const Ref<Pen>& pen, UIUpdateMode mode) \
 	{ \
 		m_grid##SECTION = pen; \
+		m_flagSetGrid##SECTION = sl_true; \
 		invalidate(mode); \
 	} \
 	void GridView::set##SECTION##Grid(const PenDesc& desc, UIUpdateMode mode) \
@@ -1982,6 +1992,11 @@ namespace slib
 		m_gridFooter = pen;
 		m_gridLeft = pen;
 		m_gridRight = pen;
+		m_flagSetGridBody = sl_true;
+		m_flagSetGridHeader = sl_true;
+		m_flagSetGridFooter = sl_true;
+		m_flagSetGridLeft = sl_true;
+		m_flagSetGridRight = sl_true;
 		invalidate(mode);
 	}
 
