@@ -3288,6 +3288,10 @@ namespace slib
 
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
+		LAYOUT_CONTROL_UI_ATTR(BORDER, grid, setGrid)
+		LAYOUT_CONTROL_UI_ATTR(BORDER, horizontalGrid, setHorizontalGrid)
+		LAYOUT_CONTROL_UI_ATTR(BORDER, verticalGrid, setVerticalGrid)
+
 		if (op == SAppLayoutOperation::Parse) {
 			{
 				LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(columnXmls, "column")
@@ -4552,6 +4556,8 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, resizableColumn, setColumnResizable)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setRowHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(BORDER, grid, setGrid)
+		LAYOUT_CONTROL_UI_ATTR(BORDER, leftGrid, setLeftGrid)
+		LAYOUT_CONTROL_UI_ATTR(BORDER, rightGrid, setRightGrid)
 		LAYOUT_CONTROL_ATTR(GENERIC, sort, setSorting)
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, ascendingIcon, setAscendingIcon)
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, descendingIcon, setDescendingIcon)
@@ -5093,8 +5099,6 @@ namespace slib
 			}
 		}
 
-		LAYOUT_CONTROL_UI_ATTR(BORDER, leftGrid, setLeftGrid)
-		LAYOUT_CONTROL_UI_ATTR(BORDER, rightGrid, setRightGrid)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, recordCount, setRecordCount)
 
 		LAYOUT_CONTROL_ADD_STATEMENT

@@ -3776,12 +3776,13 @@ namespace slib
 			/* Vertical Lines*/ \
 			sl_ui_pos x = _x; \
 			for (sl_uint32 iCol = 1; iCol < nColumns; iCol++) { \
-				sl_ui_len w = columns[iCol-1]->m_fixedWidth; \
+				Column& colPrev = *(columns[iCol-1].get()); \
+				sl_ui_len w = colPrev.m_fixedWidth; \
 				if (!w) { \
 					continue; \
 				} \
 				x += w; \
-				if (!(columns[iCol-1]->m_flag##SECTION##VerticalGrid)) { \
+				if (!(colPrev.m_flag##SECTION##VerticalGrid)) { \
 					continue; \
 				} \
 				ListElements<SECTION##CellProp> props(columns[iCol]->m_list##SECTION##Cell); \
@@ -3830,12 +3831,13 @@ namespace slib
 			sl_ui_pos y = top; \
 			for (sl_uint32 iRecord = 0; iRecord < nRecords; iRecord++) { \
 				for (sl_uint32 iRow = 1; iRow < nRows; iRow++) { \
-					sl_ui_len h = rows[iRow-1]->m_fixedHeight; \
+					Row& rowPrev = *(rows[iRow - 1].get()); \
+					sl_ui_len h = rowPrev.m_fixedHeight; \
 					if (!h) { \
 						continue; \
 					} \
 					y += h; \
-					if (!(rows[iRow-1]->m_flagHorizontalGrid)) { \
+					if (!(rowPrev.m_flagHorizontalGrid)) { \
 						continue; \
 					} \
 					sl_ui_pos x = _x; \

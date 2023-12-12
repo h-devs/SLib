@@ -633,6 +633,9 @@ namespace slib
 	public:
 		CList<SAppLayoutTableColumn> columns;
 		CList<SAppLayoutTableRow> rows;
+		SAppBorderValue grid;
+		SAppBorderValue horizontalGrid;
+		SAppBorderValue verticalGrid;
 	};
 
 	struct SAppLayoutListControlColumn

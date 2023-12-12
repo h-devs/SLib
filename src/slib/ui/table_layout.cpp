@@ -1790,6 +1790,11 @@ namespace slib
 
 	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, UIUpdateMode mode)
 	{
+		setCell(iRow, iCol, view, 0, 0, mode);
+	}
+
+	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode)
+	{
 		ObjectLocker lock(this);
 		Ref<Column> col = m_columns.getValueAt_NoLock(iCol);
 		if (col.isNull()) {
@@ -1799,29 +1804,6 @@ namespace slib
 		if (row.isNull()) {
 			return;
 		}
-		Cell* cell;
-		if (view.isNotNull()) {
-			cell = _allocCell(iRow, iCol);
-		} else {
-			cell = _getCell(iRow, iCol);
-		}
-		if (!cell) {
-			return;
-		}
-		if (cell->view.isNotNull()) {
-			removeChild(cell->view, mode == UIUpdateMode::Init ? UIUpdateMode::Init : UIUpdateMode::None);
-		}
-		cell->view = view;
-		if (view.isNotNull()) {
-			view->setVisible(col->m_flagVisible && row->m_flagVisible);
-			_initCellAlign(cell, iRow, iCol);
-			addChild(view, mode);
-		}
-	}
-
-	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode)
-	{
-		ObjectLocker lock(this);
 		Cell* cell;
 		if (view.isNotNull() || rowspan >= 2 || colspan >= 2) {
 			cell = _allocCell(iRow, iCol);
@@ -1835,9 +1817,17 @@ namespace slib
 			removeChild(cell->view, mode == UIUpdateMode::Init ? UIUpdateMode::Init : UIUpdateMode::None);
 		}
 		cell->view = view;
-		cell->rowspan = rowspan;
-		cell->colspan = colspan;
+		if (rowspan) {
+			cell->rowspan = rowspan;
+		}
+		if (colspan) {
+			cell->colspan = colspan;
+		}
+		if (rowspan || colspan) {
+			_applySpan(iRow, iCol, cell->rowspan, cell->colspan);
+		}
 		if (view.isNotNull()) {
+			view->setVisible(col->m_flagVisible && row->m_flagVisible);
 			_initCellAlign(cell, iRow, iCol);
 			addChild(view, mode);
 		}
@@ -1855,8 +1845,8 @@ namespace slib
 
 	void TableLayout::setRowspan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 rowspan, UIUpdateMode mode)
 	{
-		if (rowspan < 1) {
-			rowspan = 1;
+		if (!rowspan) {
+			return;
 		}
 		ObjectLocker lock(this);
 		Cell* cell;
@@ -1867,6 +1857,7 @@ namespace slib
 		}
 		if (cell) {
 			cell->rowspan = rowspan;
+			_applySpan(iRow, iCol, rowspan, cell->colspan);
 			invalidateLayout(mode);
 		}
 	}
@@ -1883,8 +1874,8 @@ namespace slib
 
 	void TableLayout::setColspan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 colspan, UIUpdateMode mode)
 	{
-		if (colspan < 1) {
-			colspan = 1;
+		if (!colspan) {
+			return;
 		}
 		ObjectLocker lock(this);
 		Cell* cell;
@@ -1895,14 +1886,15 @@ namespace slib
 		}
 		if (cell) {
 			cell->colspan = colspan;
+			_applySpan(iRow, iCol, cell->rowspan, colspan);
 			invalidateLayout(mode);
 		}
 	}
 
 	void TableLayout::setCellSpan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode)
 	{
-		if (colspan < 1) {
-			colspan = 1;
+		if (!rowspan && !colspan) {
+			return;
 		}
 		ObjectLocker lock(this);
 		Cell* cell;
@@ -1912,9 +1904,59 @@ namespace slib
 			cell = _getCell(iRow, iCol);
 		}
 		if (cell) {
-			cell->rowspan = rowspan;
-			cell->colspan = colspan;
+			if (rowspan) {
+				cell->rowspan = rowspan;
+			}
+			if (colspan) {
+				cell->colspan = colspan;
+			}
+			_applySpan(iRow, iCol, cell->rowspan, cell->colspan);
 			invalidateLayout(mode);
+		}
+	}
+
+	void TableLayout::_applySpan(sl_uint32 iRowStart, sl_uint32 iColStart, sl_uint32 rowspan, sl_uint32 colspan)
+	{
+		if (!rowspan || !colspan) {
+			return;
+		}
+		if (rowspan < 2 && colspan < 2) {
+			return;
+		}
+		Ref<Row>* rows = m_rows.getData();
+		sl_size nRows = iRowStart + rowspan;
+		{
+			sl_size n = m_rows.getCount();
+			if (nRows > n) {
+				nRows = n;
+			}
+		}
+		sl_size nCols = iColStart + colspan;
+		{
+			sl_size n = m_columns.getCount();
+			if (nCols > n) {
+				nCols = n;
+			}
+		}
+		for (sl_size iRow = iRowStart; iRow < nRows; iRow++) {
+			Ref<Row>& row = rows[iRow];
+			if (row.isNotNull()) {
+				if (nCols > row->m_cells.getCount()) {
+					if (!(row->m_cells.setCount_NoLock(nCols))) {
+						return;
+					}
+				}
+				Cell* cells = row->m_cells.getData();
+				for (sl_size iCol = iColStart; iCol < nCols; iCol++) {
+					Cell& cell = cells[iCol];
+					if (iRow != iRowStart) {
+						cell.rowspan = 0;
+					}
+					if (iCol != iColStart) {
+						cell.colspan = 0;
+					}
+				}
+			}
 		}
 	}
 
@@ -2354,11 +2396,105 @@ namespace slib
 		if (m_penHorzGrid.isNull() && m_penVertGrid.isNull()) {
 			return;
 		}
-		CanvasStateScope scope(canvas);
+		sl_bool flagClipped = sl_false;
 		if (isClipping()) {
+			canvas->save();
+			clipBounds(canvas);
+			flagClipped = sl_true;
 		}
+		sl_ui_len paddingContainerLeft = getPaddingLeft();
+		sl_ui_len paddingContainerTop = getPaddingTop();
 		ObjectLocker lock(this);
-
+		Ref<Column>* columns = m_columns.getData();
+		sl_size nColumns = m_columns.getCount();
+		Ref<Row>* rows = m_rows.getData();
+		sl_size nRows = m_rows.getCount();
+		if (nColumns) {
+			Ref<Pen> pen = m_penVertGrid;
+			if (pen.isNotNull()) {
+				sl_ui_pos x = paddingContainerLeft;
+				sl_ui_pos yEnd = getHeight() - getPaddingBottom();
+				for (sl_size iCol = 1; iCol < nColumns; iCol++) {
+					Ref<Column>& colPrev = columns[iCol - 1];
+					if (colPrev.isNotNull()) {
+						x += colPrev->m_marginLeft + colPrev->m_widthLayout + colPrev->m_marginRight;
+					}
+					sl_ui_pos y = paddingContainerTop;
+					sl_ui_pos start = y;
+					for (sl_size iRow = 0; iRow < nRows; iRow++) {
+						Ref<Row>& row = rows[iRow];
+						if (row.isNull()) {
+							continue;
+						}
+						sl_ui_pos y2 = y + row->m_marginTop + row->m_heightLayout + row->m_marginBottom;
+						Cell* cell = row->m_cells.getPointerAt(iCol);
+						if (cell) {
+							if (!(cell->colspan)) {
+								if (y != start) {
+									canvas->drawLine((sl_real)x, (sl_real)start, (sl_real)x, (sl_real)y, pen);
+								}
+								start = y2;
+							}
+						}
+						y = y2;
+					}
+					if (y < yEnd) {
+						y = yEnd;
+					}
+					if (y != start) {
+						canvas->drawLine((sl_real)x, (sl_real)start, (sl_real)x, (sl_real)y, pen);
+					}
+				}
+			}
+		}
+		if (nRows) {
+			Ref<Pen> pen = m_penHorzGrid;
+			if (pen.isNotNull()) {
+				sl_ui_pos xEnd = getWidth() - getPaddingRight();
+				sl_ui_pos y = paddingContainerTop;
+				for (sl_size iRow = 1; iRow < nRows; iRow++) {
+					Ref<Row>& rowPrev = rows[iRow - 1];
+					if (rowPrev.isNotNull()) {
+						y += rowPrev->m_marginTop + rowPrev->m_heightLayout + rowPrev->m_marginBottom;
+					}
+					Ref<Row>& row = rows[iRow];
+					Cell* cells = sl_null;
+					sl_size nCells = 0;
+					if (row.isNotNull()) {
+						cells = row->m_cells.getData();
+						nCells = row->m_cells.getCount();
+					}
+					sl_ui_pos x = paddingContainerLeft;
+					sl_ui_pos start = x;
+					for (sl_size iCol = 0; iCol < nColumns; iCol++) {
+						Ref<Column>& col = columns[iCol];
+						if (col.isNull()) {
+							continue;
+						}
+						sl_ui_pos x2 = x + col->m_marginLeft + col->m_widthLayout + col->m_marginRight;
+						if (iCol < nCells) {
+							Cell& cell = cells[iCol];
+							if (!(cell.rowspan)) {
+								if (x != start) {
+									canvas->drawLine((sl_real)start, (sl_real)y, (sl_real)x, (sl_real)y, pen);
+								}
+								start = x2;
+							}
+						}
+						x = x2;
+					}
+					if (x < xEnd) {
+						x = xEnd;
+					}
+					if (x != start) {
+						canvas->drawLine((sl_real)start, (sl_real)y, (sl_real)x, (sl_real)y, pen);
+					}
+				}
+			}
+		}
+		if (flagClipped) {
+			canvas->restore();
+		}
 	}
 
 }

@@ -240,6 +240,8 @@ namespace slib
 		void onDraw(Canvas* canvas) override;
 
 	private:
+		void _applySpan(sl_uint32 row, sl_uint32 col, sl_uint32 rowspan, sl_uint32 colspan);
+
 		void _drawGrids(View*, Canvas*);
 
 	private:
