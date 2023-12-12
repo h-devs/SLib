@@ -412,16 +412,16 @@ namespace slib
 	public:
 		CanvasStateScope();
 
-		CanvasStateScope(const Ref<Canvas>& canvas);
+		CanvasStateScope(Canvas* canvas);
 
 		~CanvasStateScope();
 
 	public:
-		void save(const Ref<Canvas>& canvas);
+		void save(Canvas* canvas);
 
 		void restore();
 
-		Ref<Canvas> getCanvas();
+		const Ref<Canvas>& getCanvas();
 
 	private:
 		Ref<Canvas> m_canvas;

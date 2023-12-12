@@ -2007,6 +2007,11 @@ namespace slib
 		m_gridFooter = Pen::create(desc, getFooterGrid());
 		m_gridLeft = Pen::create(desc, getLeftGrid());
 		m_gridRight = Pen::create(desc, getRightGrid());
+		m_flagSetGridBody = sl_true;
+		m_flagSetGridHeader = sl_true;
+		m_flagSetGridFooter = sl_true;
+		m_flagSetGridLeft = sl_true;
+		m_flagSetGridRight = sl_true;
 		invalidate(mode);
 	}
 

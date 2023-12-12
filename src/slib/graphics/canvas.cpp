@@ -591,7 +591,7 @@ namespace slib
 	{
 	}
 
-	CanvasStateScope::CanvasStateScope(const Ref<Canvas>& canvas)
+	CanvasStateScope::CanvasStateScope(Canvas* canvas)
 	{
 		save(canvas);
 	}
@@ -601,10 +601,10 @@ namespace slib
 		restore();
 	}
 
-	void CanvasStateScope::save(const Ref<Canvas>& canvas)
+	void CanvasStateScope::save(Canvas* canvas)
 	{
 		restore();
-		if (canvas.isNotNull()) {
+		if (canvas) {
 			canvas->save();
 		}
 		m_canvas = canvas;
@@ -612,14 +612,14 @@ namespace slib
 
 	void CanvasStateScope::restore()
 	{
-		Ref<Canvas> canvas = m_canvas;
-		if (canvas.isNotNull()) {
+		Canvas* canvas = m_canvas.get();
+		if (canvas) {
 			canvas->restore();
 			m_canvas.setNull();
 		}
 	}
 
-	Ref<Canvas> CanvasStateScope::getCanvas()
+	const Ref<Canvas>& CanvasStateScope::getCanvas()
 	{
 		return m_canvas;
 	}
