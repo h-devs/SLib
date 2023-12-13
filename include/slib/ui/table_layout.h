@@ -523,6 +523,8 @@ namespace slib
 		CList< Ref<Row> > m_rows;
 		AtomicRef<Pen> m_penHorzGrid;
 		AtomicRef<Pen> m_penVertGrid;
+		sl_bool m_flagSetHorzGrid;
+		sl_bool m_flagSetVertGrid;
 
 	};
 

@@ -219,6 +219,9 @@ namespace slib
 
 	TableLayout::TableLayout()
 	{
+		m_flagSetHorzGrid = sl_false;
+		m_flagSetVertGrid = sl_false;
+
 		setCustomLayout(sl_true);
 		setSavingCanvasState(sl_false);
 
@@ -1962,12 +1965,20 @@ namespace slib
 
 	Ref<Pen> TableLayout::getHorizontalGrid()
 	{
-		return m_penHorzGrid;
+		if (m_flagSetHorzGrid) {
+			return m_penHorzGrid;
+		}
+		Ref<Pen> pen = m_penHorzGrid;
+		if (pen.isNotNull()) {
+			return pen;
+		}
+		return getBorder();
 	}
 
 	void TableLayout::setHorizontalGrid(const Ref<Pen>& pen, UIUpdateMode mode)
 	{
 		m_penHorzGrid = pen;
+		m_flagSetHorzGrid = sl_true;
 		invalidate(mode);
 	}
 
@@ -1978,12 +1989,20 @@ namespace slib
 
 	Ref<Pen> TableLayout::getVerticalGrid()
 	{
-		return m_penVertGrid;
+		if (m_flagSetVertGrid) {
+			return m_penVertGrid;
+		}
+		Ref<Pen> pen = m_penVertGrid;
+		if (pen.isNotNull()) {
+			return pen;
+		}
+		return getBorder();
 	}
 
 	void TableLayout::setVerticalGrid(const Ref<Pen>& pen, UIUpdateMode mode)
 	{
 		m_penVertGrid = pen;
+		m_flagSetVertGrid = sl_true;
 		invalidate(mode);
 	}
 
@@ -1996,6 +2015,8 @@ namespace slib
 	{
 		m_penHorzGrid = pen;
 		m_penVertGrid = pen;
+		m_flagSetHorzGrid = sl_true;
+		m_flagSetVertGrid = sl_true;
 		invalidate(mode);
 	}
 
@@ -2003,6 +2024,8 @@ namespace slib
 	{
 		m_penHorzGrid = Pen::create(desc, getHorizontalGrid());
 		m_penVertGrid = Pen::create(desc, getVerticalGrid());
+		m_flagSetHorzGrid = sl_true;
+		m_flagSetVertGrid = sl_true;
 		invalidate(mode);
 	}
 
@@ -2393,7 +2416,9 @@ namespace slib
 
 	void TableLayout::_drawGrids(View*, Canvas* canvas)
 	{
-		if (m_penHorzGrid.isNull() && m_penVertGrid.isNull()) {
+		Ref<Pen> penHorz = getHorizontalGrid();
+		Ref<Pen> penVert = getVerticalGrid();
+		if (penHorz.isNull() && penVert.isNull()) {
 			return;
 		}
 		sl_bool flagClipped = sl_false;
@@ -2410,8 +2435,7 @@ namespace slib
 		Ref<Row>* rows = m_rows.getData();
 		sl_size nRows = m_rows.getCount();
 		if (nColumns) {
-			Ref<Pen> pen = m_penVertGrid;
-			if (pen.isNotNull()) {
+			if (penHorz.isNotNull()) {
 				sl_ui_pos x = paddingContainerLeft;
 				sl_ui_pos yEnd = getHeight() - getPaddingBottom();
 				for (sl_size iCol = 1; iCol < nColumns; iCol++) {
@@ -2431,7 +2455,7 @@ namespace slib
 						if (cell) {
 							if (!(cell->colspan)) {
 								if (y != start) {
-									canvas->drawLine((sl_real)x, (sl_real)start, (sl_real)x, (sl_real)y, pen);
+									canvas->drawLine((sl_real)x, (sl_real)start, (sl_real)x, (sl_real)y, penHorz);
 								}
 								start = y2;
 							}
@@ -2442,14 +2466,13 @@ namespace slib
 						y = yEnd;
 					}
 					if (y != start) {
-						canvas->drawLine((sl_real)x, (sl_real)start, (sl_real)x, (sl_real)y, pen);
+						canvas->drawLine((sl_real)x, (sl_real)start, (sl_real)x, (sl_real)y, penHorz);
 					}
 				}
 			}
 		}
 		if (nRows) {
-			Ref<Pen> pen = m_penHorzGrid;
-			if (pen.isNotNull()) {
+			if (penVert.isNotNull()) {
 				sl_ui_pos xEnd = getWidth() - getPaddingRight();
 				sl_ui_pos y = paddingContainerTop;
 				for (sl_size iRow = 1; iRow < nRows; iRow++) {
@@ -2476,7 +2499,7 @@ namespace slib
 							Cell& cell = cells[iCol];
 							if (!(cell.rowspan)) {
 								if (x != start) {
-									canvas->drawLine((sl_real)start, (sl_real)y, (sl_real)x, (sl_real)y, pen);
+									canvas->drawLine((sl_real)start, (sl_real)y, (sl_real)x, (sl_real)y, penVert);
 								}
 								start = x2;
 							}
@@ -2487,7 +2510,7 @@ namespace slib
 						x = xEnd;
 					}
 					if (x != start) {
-						canvas->drawLine((sl_real)start, (sl_real)y, (sl_real)x, (sl_real)y, pen);
+						canvas->drawLine((sl_real)start, (sl_real)y, (sl_real)x, (sl_real)y, penVert);
 					}
 				}
 			}
