@@ -144,7 +144,7 @@ namespace slib
 						return ret;
 					}
 					if (flagDestroyOnRelease) {
-						PostMessageW(hWnd, SLIB_UI_MESSAGE_CLOSE, 0, 0);
+						PostMessageW(hWnd, SLIB_UI_MESSAGE_CLOSE_WINDOW, 0, 0);
 					}
 				}
 				return sl_null;
@@ -252,7 +252,7 @@ namespace slib
 					UIPlatform::removeWindowInstance(handle);
 					m_viewContent.setNull();
 					if (m_flagDestroyOnRelease) {
-						PostMessageW(handle, SLIB_UI_MESSAGE_CLOSE, 0, 0);
+						PostMessageW(handle, SLIB_UI_MESSAGE_CLOSE_WINDOW, 0, 0);
 					}
 				}
 			}

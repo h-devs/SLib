@@ -207,7 +207,7 @@ namespace slib
 			}
 			UIPlatform::removeViewInstance(m_handle);
 			if (m_flagDestroyOnRelease) {
-				PostMessageW(m_handle, SLIB_UI_MESSAGE_CLOSE, 0, 0);
+				PostMessageW(m_handle, SLIB_UI_MESSAGE_CLOSE_VIEW, 0, 0);
 			}
 		}
 		if (m_dropTarget) {

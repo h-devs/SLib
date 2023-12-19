@@ -56,7 +56,21 @@ namespace slib
 {
 
 	namespace {
+
 		static sl_bool g_bFlagQuit = sl_false;
+
+		static sl_bool IsOwnedTo(HWND hWnd, HWND owner)
+		{
+			HWND hWndOwner = GetWindow(hWnd, GW_OWNER);
+			while (hWndOwner) {
+				if (hWndOwner == owner) {
+					return sl_true;
+				}
+				hWndOwner = GetWindow(hWndOwner, GW_OWNER);
+			}
+			return sl_false;
+		}
+
 	}
 
 	namespace priv
@@ -92,21 +106,37 @@ namespace slib
 					case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
 						UIDispatcher::processDelayedCallback((sl_reg)(msg.lParam));
 						break;
-					case SLIB_UI_MESSAGE_CLOSE:
-					case WM_DESTROY:
+					case SLIB_UI_MESSAGE_CLOSE_VIEW:
 						DestroyWindow(msg.hwnd);
+						break;
+					case SLIB_UI_MESSAGE_CLOSE_WINDOW:
 						if (hWndModalDialog) {
 							if (msg.hwnd == hWndModalDialog) {
+								DestroyWindow(msg.hwnd);
+								flagQuitLoop = sl_true;
+								break;
+							}
+							if (IsOwnedTo(hWndModalDialog, msg.hwnd)) {
+								PostMessageW(msg.hwnd, SLIB_UI_MESSAGE_CLOSE_WINDOW, 0, 0);
 								flagQuitLoop = sl_true;
 								break;
 							}
 						}
+						DestroyWindow(msg.hwnd);
 						break;
 					case WM_MENUCOMMAND:
 						ProcessMenuCommand(msg.wParam, msg.lParam);
 						break;
 					default:
 						do {
+							if (hWndModalDialog) {
+								if (msg.message == WM_KEYDOWN || msg.message == WM_SYSKEYDOWN || msg.message == WM_KEYUP || msg.message == WM_SYSKEYUP) {
+									if (hWndModalDialog != msg.hwnd && hWndModalDialog != GetAncestor(msg.hwnd, GA_ROOT)) {
+										msg.hwnd = hWndModalDialog;
+										SetFocus(hWndModalDialog);
+									}
+								}
+							}
 							if (ProcessMenuShortcutKey(msg)) {
 								break;
 							}
@@ -128,7 +158,7 @@ namespace slib
 					break;
 				}
 				if (g_bFlagQuit) {
-					return;
+					break;
 				}
 			}
 		}

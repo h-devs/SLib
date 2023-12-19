@@ -57,7 +57,7 @@ namespace slib
 					return ret;
 				} else {
 					if (flagDestroyOnRelease) {
-						PostMessageW(hWnd, SLIB_UI_MESSAGE_CLOSE, 0, 0);
+						PostMessageW(hWnd, SLIB_UI_MESSAGE_CLOSE_VIEW, 0, 0);
 					}
 				}
 			}
