@@ -106,13 +106,14 @@ namespace slib
 		static List<PhysicalMemorySlotInfo> GetMemorySlots()
 		{
 			List<PhysicalMemorySlotInfo> ret;
-			ListElements<VariantMap> items(win32::Wmi::getQueryResponseRecords(L"SELECT * FROM Win32_PhysicalMemory", L"Capacity", L"Speed", L"BankLabel"));
+			ListElements<VariantMap> items(win32::Wmi::getQueryResponseRecords(L"SELECT * FROM Win32_PhysicalMemory", L"Capacity", L"Speed", L"BankLabel", L"SerialNumber"));
 			for (sl_size i = 0; i < items.count; i++) {
 				PhysicalMemorySlotInfo slot;
 				VariantMap& item = items[i];
 				slot.capacity = item.getValue("Capacity").getUint64();
 				slot.speed = item.getValue("Speed").getUint32();
 				slot.bank = item.getValue("BankLabel").getString();
+				slot.serialNumber = item.getValue("SerialNumber").getString();
 				ret.add_NoLock(Move(slot));
 			}
 			return ret;

@@ -42,6 +42,7 @@ namespace slib
 		sl_uint64 capacity;
 		sl_uint32 speed;
 		String bank;
+		String serialNumber;
 
 	public:
 		PhysicalMemorySlotInfo();
