@@ -450,6 +450,7 @@ namespace slib
 		SAppUint32Value lines;
 		SAppBooleanValue linksInText;
 		SAppColorValue linkColor;
+		SAppColorValue lineColor;
 		SAppBooleanValue mnemonic;
 		SAppBooleanValue contextMenu;
 	};

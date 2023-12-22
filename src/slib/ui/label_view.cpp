@@ -86,6 +86,11 @@ namespace slib
 		invalidateLayoutOfWrappingControl(mode);
 	}
 
+	String LabelView::getPlainText()
+	{
+		return m_cell->getPlainText();
+	}
+
 	MultiLineMode LabelView::getMultiLine()
 	{
 		return m_cell->multiLineMode;
@@ -186,6 +191,21 @@ namespace slib
 		invalidate(updateMode);
 	}
 
+	Color LabelView::getLineColor()
+	{
+		Color color = m_cell->lineColor;
+		if (color.isNotZero()) {
+			return color;
+		}
+		return getTextColor();
+	}
+
+	void LabelView::setLineColor(const Color& color, UIUpdateMode updateMode)
+	{
+		m_cell->lineColor = color;
+		invalidate(updateMode);
+	}
+
 	sl_bool LabelView::isUsingContextMenu()
 	{
 		return m_flagContextMenu;
@@ -237,7 +257,7 @@ namespace slib
 			if (menu) {
 				Ref<LabelView> label = this;
 				menu->copy->setAction([label]() {
-					Clipboard::setText(label->getText());
+					Clipboard::setText(label->getPlainText());
 				});
 				menu->root->show(convertCoordinateToScreen(ev->getPoint()));
 			}
@@ -299,6 +319,15 @@ namespace slib
 
 	LabelViewCell::~LabelViewCell()
 	{
+	}
+
+	String LabelViewCell::getPlainText()
+	{
+		if (flagHyperText) {
+			return m_textBox.getPlainText();
+		} else {
+			return text;
+		}
 	}
 
 	UISize LabelViewCell::measureSize()
@@ -379,6 +408,7 @@ namespace slib
 		if (param.linkColor.isZero()) {
 			param.linkColor = TextParagraph::getDefaultLinkColor();
 		}
+		param.lineColor = lineColor;
 		m_textBox.draw(canvas, param);
 	}
 

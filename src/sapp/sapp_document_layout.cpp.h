@@ -2765,6 +2765,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, lines, setLineCount)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, linksInText, setDetectingHyperlinksInPlainText);
 		LAYOUT_CONTROL_UI_ATTR(COLOR, linkColor, setLinkColor)
+		LAYOUT_CONTROL_UI_ATTR(COLOR, lineColor, setLineColor)
 		LAYOUT_CONTROL_ATTR(GENERIC, mnemonic, setMnemonic)
 		LAYOUT_CONTROL_ATTR(GENERIC, contextMenu, setUsingContextMenu)
 

@@ -54,6 +54,8 @@ namespace slib
 
 		void setHyperText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
+		String getPlainText();
+
 		MultiLineMode getMultiLine();
 
 		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
@@ -89,6 +91,10 @@ namespace slib
 		Color getLinkColor();
 
 		void setLinkColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		Color getLineColor();
+
+		void setLineColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 
 		sl_bool isUsingContextMenu();
@@ -136,6 +142,7 @@ namespace slib
 		EllipsizeMode ellipsizeMode;
 		sl_bool flagEnabledHyperlinksInPlainText;
 		Color linkColor;
+		Color lineColor;
 
 		sl_real shadowOpacity;
 		sl_real shadowRadius;
@@ -153,6 +160,8 @@ namespace slib
 		~LabelViewCell();
 
 	public:
+		String getPlainText();
+
 		UISize measureSize();
 
 	public:

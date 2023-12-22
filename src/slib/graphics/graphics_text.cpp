@@ -28,6 +28,7 @@
 #include "slib/device/device.h"
 #include "slib/data/xml.h"
 #include "slib/core/charset.h"
+#include "slib/core/string_buffer.h"
 
 namespace slib
 {
@@ -138,6 +139,11 @@ namespace slib
 	{
 	}
 
+	String TextItem::getPlainText()
+	{
+		return sl_null;
+	}
+
 
 	TextWordItem::TextWordItem() noexcept: TextItem(TextItemType::Word)
 	{
@@ -212,6 +218,11 @@ namespace slib
 		dp.y = y;
 		dp.text = m_text;
 		canvas->drawText(dp);
+	}
+
+	String TextWordItem::getPlainText()
+	{
+		return String::from(m_text);
 	}
 
 	sl_bool TextWordItem::containsNoLatin() noexcept
@@ -302,6 +313,11 @@ namespace slib
 		dp.text = StringView32(&m_char, 1);
 		dp.x = x;
 		canvas->drawText(dp);
+	}
+
+	String TextCharItem::getPlainText()
+	{
+		return String::from(&m_char, 1);
 	}
 
 
@@ -409,6 +425,11 @@ namespace slib
 		}
 	}
 
+	String TextJoinedCharItem::getPlainText()
+	{
+		return String::from(m_text);
+	}
+
 
 	TextSpaceItem::TextSpaceItem() noexcept: TextItem(TextItemType::Space)
 	{
@@ -441,6 +462,11 @@ namespace slib
 			}
 		}
 		return Size::zero();
+	}
+
+	String TextSpaceItem::getPlainText()
+	{
+		SLIB_RETURN_STRING(" ")
 	}
 
 
@@ -477,6 +503,11 @@ namespace slib
 		return 0;
 	}
 
+	String TextTabItem::getPlainText()
+	{
+		SLIB_RETURN_STRING("\t")
+	}
+
 
 	TextLineBreakItem::TextLineBreakItem() noexcept: TextItem(TextItemType::LineBreak)
 	{
@@ -506,6 +537,57 @@ namespace slib
 		} else {
 			return 0;
 		}
+	}
+
+	String TextLineBreakItem::getPlainText()
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		SLIB_RETURN_STRING("\r\n")
+#else
+		SLIB_RETURN_STRING("\n")
+#endif
+	}
+
+
+	TextHorizontalLineItem::TextHorizontalLineItem() noexcept : TextItem(TextItemType::HorizontalLine)
+	{
+	}
+
+	TextHorizontalLineItem::~TextHorizontalLineItem() noexcept
+	{
+	}
+
+	Ref<TextHorizontalLineItem> TextHorizontalLineItem::create(const Ref<TextStyle>& style) noexcept
+	{
+		if (style.isNotNull()) {
+			Ref<TextHorizontalLineItem> ret = new TextHorizontalLineItem;
+			if (ret.isNotNull()) {
+				ret->m_style = style;
+				return ret;
+			}
+		}
+		return sl_null;
+	}
+
+	sl_real TextHorizontalLineItem::getHeight() noexcept
+	{
+		Ref<TextStyle> style = m_style;
+		if (style.isNotNull()) {
+			if (style->lineHeight < 0) {
+				return 1;
+			}
+			return style->lineHeight;
+		}
+		return 1;
+	}
+
+	String TextHorizontalLineItem::getPlainText()
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		SLIB_RETURN_STRING("\r\n")
+#else
+		SLIB_RETURN_STRING("\n")
+#endif
 	}
 
 
@@ -987,25 +1069,25 @@ namespace slib
 		sl_real attrYOffset = 0;
 
 		String name = element->getName().toLower();
-		if (name == "a") {
+		if (name == StringView::literal("a")) {
 			flagDefineLink = sl_true;
-		} else if (name == "b") {
+		} else if (name == StringView::literal("b")) {
 			flagDefineBold = sl_true;
 			attrBold = sl_true;
-		} else if (name == "i") {
+		} else if (name == StringView::literal("i")) {
 			flagDefineItalic = sl_true;
 			attrItalic = sl_true;
-		} else if (name == "u") {
+		} else if (name == StringView::literal("u")) {
 			flagDefineUnderline = sl_true;
 			attrUnderline = sl_true;
-		} else if (name == "sup") {
+		} else if (name == StringView::literal("sup")) {
 			if (font.isNotNull()) {
 				flagDefineYOffset = sl_true;
 				attrYOffset = style->yOffset - font->getFontHeight() / 4;
 				flagDefineFontSize = sl_true;
 				attrFontSizeParsed = font->getSize() * 2 / 3;
 			}
-		} else if (name == "sub") {
+		} else if (name == StringView::literal("sub")) {
 			if (font.isNotNull()) {
 				flagDefineYOffset = sl_true;
 				attrYOffset = style->yOffset + font->getFontHeight() / 4;
@@ -1015,35 +1097,35 @@ namespace slib
 		}
 
 		{
-			String value = element->getAttribute("href");
+			String value = element->getAttribute_IgnoreCase(StringView::literal("href"));
 			if (value.isNotNull()) {
 				flagDefineHref = sl_true;
 				attrHref = value;
 			}
 		}
 		{
-			String value = element->getAttribute("face");
+			String value = element->getAttribute_IgnoreCase(StringView::literal("face"));
 			if (value.isNotNull()) {
 				flagDefineFamilyName = sl_true;
 				attrFamilyName = value;
 			}
 		}
 		{
-			String value = element->getAttribute("joinedCharFace");
+			String value = element->getAttribute_IgnoreCase(StringView::literal("joinedCharFace"));
 			if (value.isNotNull()) {
 				flagDefineJoinedCharFamilyName = sl_true;
 				attrJoinedCharFamilyName = value;
 			}
 		}
 		{
-			String value = element->getAttribute_IgnoreCase("size");
+			String value = element->getAttribute_IgnoreCase(StringView::literal("size"));
 			if (value.isNotNull()) {
 				flagDefineFontSize = sl_true;
 				attrFontSize = value.trim().toLower();
 			}
 		}
 		{
-			String value = element->getAttribute_IgnoreCase("color");
+			String value = element->getAttribute_IgnoreCase(StringView::literal("color"));
 			if (value.isNotNull()) {
 				if (attrTextColor.parse(value)) {
 					flagDefineTextColor = sl_true;
@@ -1051,7 +1133,7 @@ namespace slib
 			}
 		}
 		{
-			String value = element->getAttribute_IgnoreCase("bgcolor");
+			String value = element->getAttribute_IgnoreCase(StringView::literal("bgcolor"));
 			if (value.isNotNull()) {
 				if (attrBackColor.parse(value)) {
 					flagDefineBackColor = sl_true;
@@ -1059,7 +1141,7 @@ namespace slib
 			}
 		}
 
-		String attrStyle = element->getAttribute_IgnoreCase("style");
+		String attrStyle = element->getAttribute_IgnoreCase(StringView::literal("style"));
 		if (attrStyle.isNotEmpty()) {
 			attrStyle = attrStyle.toLower();
 			sl_char8* buf = attrStyle.getData();
@@ -1079,41 +1161,41 @@ namespace slib
 				if (pos < d && (sl_reg)d < end - 1) {
 					String name = attrStyle.substring(pos, d).trim().toLower();
 					String value = attrStyle.substring(d + 1, end).trim().toLower();
-					if (name == "background-color") {
+					if (name == StringView::literal("background-color")) {
 						if (attrBackColor.parse(value)) {
 							flagDefineBackColor = sl_true;
 						}
-					} else if (name == "color") {
+					} else if (name == StringView::literal("color")) {
 						if (attrTextColor.parse(value)) {
 							flagDefineTextColor = sl_true;
 						}
-					} else if (name == "line-height") {
+					} else if (name == StringView::literal("line-height")) {
 						flagDefineLineHeight = sl_true;
 						attrLineHeight = value;
-					} else if (name == "font-family") {
+					} else if (name == StringView::literal("font-family")) {
 						flagDefineFamilyName = sl_true;
 						attrFamilyName = value;
-					} else if (name == "emoji-family") {
+					} else if (name == StringView::literal("emoji-family")) {
 						flagDefineJoinedCharFamilyName = sl_true;
 						attrJoinedCharFamilyName = value;
-					} else if (name == "font-size") {
+					} else if (name == StringView::literal("font-size")) {
 						flagDefineFontSize = sl_true;
 						attrFontSize = value;
-					} else if (name == "font-weight") {
+					} else if (name == StringView::literal("font-weight")) {
 						flagDefineBold = sl_true;
-						attrBold = value == "bold";
-					} else if (name == "font-style") {
+						attrBold = value == StringView::literal("bold");
+					} else if (name == StringView::literal("font-style")) {
 						flagDefineItalic = sl_true;
-						attrItalic = value == "italic" || value == "oblique";
-					} else if (name == "font") {
+						attrItalic = value == StringView::literal("italic") || value == StringView::literal("oblique");
+					} else if (name == StringView::literal("font")) {
 						ListElements<String> elements(value.split(" "));
 						sl_size indexSize = 0;
 						for (; indexSize < elements.count; indexSize++) {
 							String& s = elements[indexSize];
-							if (s == "oblique" || s == "italic") {
+							if (s == StringView::literal("oblique") || s == StringView::literal("italic")) {
 								flagDefineItalic = sl_true;
 								attrBold = sl_true;
-							} else if (s == "bold") {
+							} else if (s == StringView::literal("bold")) {
 								flagDefineBold = sl_true;
 								attrBold = sl_true;
 							}
@@ -1142,13 +1224,13 @@ namespace slib
 							flagDefineFamilyName = sl_true;
 							attrFamilyName = face;
 						}
-					} else if (name == "text-decoration" || name == "text-decoration-line") {
+					} else if (name == StringView::literal("text-decoration") || name == StringView::literal("text-decoration-line")) {
 						flagDefineUnderline = sl_true;
-						attrUnderline = value.contains("underline");
+						attrUnderline = value.contains(StringView::literal("underline"));
 						flagDefineOverline = sl_true;
-						attrOverline = value.contains("overline");
+						attrOverline = value.contains(StringView::literal("overline"));
 						flagDefineLineThrough = sl_true;
-						attrLineThrough = value.contains("line-through");
+						attrLineThrough = value.contains(StringView::literal("line-through"));
 					}
 				}
 				pos = end + 1;
@@ -1325,9 +1407,16 @@ namespace slib
 			}
 		}
 
-		if (name == "br") {
-			SLIB_STATIC_STRING16(line, "\n");
-			addText(line, styleNew);
+		if (name == StringView::literal("br")) {
+			Ref<TextLineBreakItem> item = TextLineBreakItem::create(style);
+			if (item.isNotNull()) {
+				m_items.add_NoLock(Move(item));
+			}
+		} else if (name == StringView::literal("hr")) {
+			Ref<TextHorizontalLineItem> item = TextHorizontalLineItem::create(style);
+			if (item.isNotNull()) {
+				m_items.add_NoLock(Move(item));
+			}
 		}
 		addHyperTextNodeGroup(Ref<XmlNodeGroup>::from(element), styleNew);
 	}
@@ -1343,6 +1432,21 @@ namespace slib
 		if (xml.isNotNull()) {
 			addHyperTextNodeGroup(Ref<XmlNodeGroup>::from(xml), style);
 		}
+	}
+
+	String TextParagraph::getPlainText()
+	{
+		StringBuffer buf;
+		ObjectLocker lock(this);
+		ListElements< Ref<TextItem> > items(m_items);
+		for (sl_size i = 0; i < items.count; i++) {
+			Ref<TextItem>& item = items[i];
+			String text = item->getPlainText();
+			if (text.isNotNull()) {
+				buf.add(text);
+			}
+		}
+		return buf.merge();
 	}
 
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(TextParagraph, LayoutParam)
@@ -1454,7 +1558,7 @@ namespace slib
 				for (sl_size i = 0; i < n; i++) {
 					TextItem* item = p[i].get();
 					TextItemType type = item->getType();
-					if (type == TextItemType::Word || type == TextItemType::Char || type == TextItemType::JoinedChar || type == TextItemType::Space || type == TextItemType::Tab) {
+					if (type == TextItemType::Word || type == TextItemType::Char || type == TextItemType::JoinedChar || type == TextItemType::Space || type == TextItemType::Tab || type == TextItemType::HorizontalLine) {
 						m_layoutItems->add_NoLock(item);
 					}
 				}
@@ -1821,6 +1925,14 @@ namespace slib
 				item->setLayoutPosition(Point(m_x, m_y));
 			}
 
+			void processHorizontalLine(TextHorizontalLineItem* item) noexcept
+			{
+				sl_real h = item->getHeight();
+				addLineItem(item, Size(h / 2, h), sl_false);
+				endLine();
+				item->setLayoutPosition(Point(m_x, m_y));
+			}
+
 			void processAttach(TextAttachItem* item) noexcept
 			{
 				addLineItem(item, item->getSize());
@@ -1887,6 +1999,10 @@ namespace slib
 							processLineBreak(static_cast<TextLineBreakItem*>(item));
 							break;
 
+						case TextItemType::HorizontalLine:
+							processHorizontalLine(static_cast<TextHorizontalLineItem*>(item));
+							break;
+
 						case TextItemType::Attach:
 							processAttach(static_cast<TextAttachItem*>(item));
 							break;
@@ -1928,7 +2044,7 @@ namespace slib
 	
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(TextParagraph, DrawParam)
 
-	TextParagraph::DrawParam::DrawParam() noexcept: linkColor(Color::Zero)
+	TextParagraph::DrawParam::DrawParam() noexcept
 	{
 	}
 
@@ -1971,6 +2087,9 @@ namespace slib
 						param.textColor = _param.textColor;
 					}
 				}
+				if (param.lineColor.isZero()) {
+					param.lineColor = param.textColor;
+				}
 				if (type == TextItemType::Word || type == TextItemType::Char || type == TextItemType::JoinedChar) {
 					Rectangle frame = item->getLayoutFrame();
 					frame.top += style->yOffset;
@@ -1985,20 +2104,30 @@ namespace slib
 							item->draw(canvas, x + frame.left, y + frame.top, param);
 						}
 					}
+				} else if (type == TextItemType::HorizontalLine) {
+					Rectangle frame = item->getLayoutFrame();
+					Color backColor = style->backgroundColor;
+					if (backColor.a > 0) {
+						canvas->fillRectangle(Rectangle(left, y + frame.top, right, y + frame.bottom), backColor);
+					}
+					Ref<Pen> pen = Pen::createSolidPen(param.lineThickness, param.lineColor);
+					if (pen.isNotNull()) {
+						canvas->drawLine(left, y + frame.bottom, right, y + frame.bottom, pen);
+					}
 				}
 				sl_bool flagUnderline = style->flagUnderline;
 				if (!(style->flagDefinedUnderline) && style->flagLink) {
 					flagUnderline = isDefaultLinkUnderline();
 				}
 				if (flagUnderline || style->flagOverline || style->flagLineThrough) {
-					if (type == TextItemType::Word || type == TextItemType::Space || type == TextItemType::Tab) {
+					if (type == TextItemType::Word || type == TextItemType::Char || type == TextItemType::JoinedChar || type == TextItemType::Space || type == TextItemType::Tab) {
 						Rectangle frame = item->getLayoutFrame();
 						frame.top += style->yOffset;
 						frame.bottom += style->yOffset;
 						if (rc.intersectRectangle(frame)) {
 							Ref<Font> font = style->font;
 							if (font.isNotNull()) {
-								Ref<Pen> pen = Pen::createSolidPen(param.lineThickness, param.textColor);
+								Ref<Pen> pen = Pen::createSolidPen(param.lineThickness, param.lineColor);
 								if (pen.isNotNull()) {
 									FontMetrics fm;
 									if (font->getFontMetrics(fm)) {
@@ -2341,6 +2470,16 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 		return m_text;
+	}
+
+	String TextBox::getPlainText() const noexcept
+	{
+		ObjectLocker lock(this);
+		if (m_paragraph.isNotNull()) {
+			return m_paragraph->getPlainText();
+		} else {
+			return sl_null;
+		}
 	}
 
 	MultiLineMode TextBox::getMultiLineMode() const noexcept

@@ -41,6 +41,7 @@ namespace slib
 		Space = 10,
 		Tab = 11,
 		LineBreak = 20,
+		HorizontalLine = 21,
 		JoinedChar = 50,
 		Attach = 100
 	};
@@ -167,6 +168,8 @@ namespace slib
 
 		virtual void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param);
 
+		virtual String getPlainText();
+
 	protected:
 		TextItemType m_type;
 		AtomicRef<TextStyle> m_style;
@@ -190,6 +193,8 @@ namespace slib
 		Size getSize() noexcept;
 
 		void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param) override;
+
+		String getPlainText() override;
 
 		sl_bool containsNoLatin() noexcept;
 
@@ -218,6 +223,8 @@ namespace slib
 
 		void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param) override;
 
+		String getPlainText() override;
+
 	protected:
 		sl_char32 m_char;
 
@@ -245,6 +252,8 @@ namespace slib
 
 		void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param) override;
 
+		String getPlainText() override;
+
 	protected:
 		String16 m_text;
 
@@ -270,6 +279,8 @@ namespace slib
 	public:
 		Size getSize() noexcept;
 
+		String getPlainText() override;
+
 	};
 
 	class SLIB_EXPORT TextTabItem : public TextItem
@@ -284,6 +295,8 @@ namespace slib
 
 	public:
 		sl_real getHeight() noexcept;
+
+		String getPlainText() override;
 
 	};
 
@@ -300,8 +313,26 @@ namespace slib
 	public:
 		sl_real getHeight() noexcept;
 
+		String getPlainText() override;
+
 	};
 
+	class SLIB_EXPORT TextHorizontalLineItem : public TextItem
+	{
+	protected:
+		TextHorizontalLineItem() noexcept;
+
+		~TextHorizontalLineItem() noexcept;
+
+	public:
+		static Ref<TextHorizontalLineItem> create(const Ref<TextStyle>& style) noexcept;
+
+	public:
+		sl_real getHeight() noexcept;
+
+		String getPlainText() override;
+
+	};
 
 	class SLIB_EXPORT TextAttachItem : public TextItem
 	{
@@ -338,7 +369,7 @@ namespace slib
 
 		void addHyperText(const StringParam& text, const Ref<TextStyle>& style) noexcept;
 
-		sl_size getCharacterCount();
+		String getPlainText();
 
 		class LayoutParam
 		{
@@ -362,6 +393,7 @@ namespace slib
 		{
 		public:
 			Color linkColor;
+			Color lineColor;
 
 		public:
 			DrawParam() noexcept;
@@ -460,6 +492,8 @@ namespace slib
 		Ref<Font> getFont() const noexcept;
 
 		String getText() const noexcept;
+
+		String getPlainText() const noexcept;
 
 		MultiLineMode getMultiLineMode() const noexcept;
 
