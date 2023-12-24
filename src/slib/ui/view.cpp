@@ -3250,23 +3250,23 @@ namespace slib
 			return;
 		}
 
-		sl_ui_pos paddingHorz = getPaddingLeft() + getPaddingRight();
-		sl_ui_pos paddingVert = getPaddingTop() + getPaddingBottom();
 		UISize size;
+		sl_ui_pos paddingHorz = getPaddingLeft() + getPaddingRight();
 		if (flagHorizontalWrapping) {
 			size.x = 0;
 		} else {
 			size.x = getLayoutWidth() - paddingHorz;
 			if (size.x < 0) {
-				size.x = 0;
+				return;
 			}
 		}
+		sl_ui_pos paddingVert = getPaddingTop() + getPaddingBottom();
 		if (flagVerticalWrapping) {
 			size.y = 0;
 		} else {
 			size.y = getLayoutHeight() - paddingVert;
 			if (size.y < 0) {
-				size.y = 0;
+				return;
 			}
 		}
 		cell->onMeasure(size, flagHorizontalWrapping, flagVerticalWrapping);

@@ -1548,7 +1548,7 @@ namespace slib
 
 				m_lineNo++;
 				if (m_ellipsizeMode != EllipsizeMode::None) {
-					if ((m_lineWidth > m_layoutWidth && m_multiLineMode == MultiLineMode::Single) || (m_lineCount > 0 && m_lineNo >= m_lineCount)) {
+					if ((m_lineWidth > m_layoutWidth && m_multiLineMode == MultiLineMode::Single) || (m_lineCount > 0 && m_lineNo >= m_lineCount && m_ellipsizeMode == EllipsizeMode::End)) {
 						endEllipsize();
 					}
 				}
@@ -1657,10 +1657,10 @@ namespace slib
 							}
 							itemEllipsis->setLayoutSize(sizeEllipsis);
 							if (item->getType() == TextItemType::Word) {
-								sl_real widthWord = item->getLayoutSize().x;
 								String16 text = ((TextWordItem*)item)->getText();
 								Ref<TextWordItem> word = TextWordItem::create(text, item->getStyle());
 								if (word.isNotNull()) {
+									sl_real widthWord = item->getLayoutSize().x;
 									sl_real widthLimit = widthWord - (sizeEllipsis.x - pos.x);
 									sl_size n = text.getLength();
 									sl_size k = n;
@@ -1693,83 +1693,85 @@ namespace slib
 						}
 					}
 				} else if (m_ellipsizeMode == EllipsizeMode::Middle) {
-					sl_real xEllipsis = 0;
 					itemEllipsis->setLayoutSize(sizeEllipsis);
-					sl_size i;
-					for (i = 0; i < nItems; i++) {
-						TextItem* item = items[i].get();
-						Point pos = item->getLayoutPosition();
-						if (pos.x + item->getLayoutSize().x > xLimit / 2) {
-							xEllipsis = pos.x;
-							break;
-						}
-					}
-					itemEllipsis->setLayoutPosition(Point(xEllipsis, items[0]->getLayoutPosition().y));
-					sl_size indexMid = i;
-					for (i = 0; i < nItems - indexMid; i++) {
-						TextItem* item = items[nItems - 1 - i].get();
-						Point pos = item->getLayoutPosition();
-						pos.x = m_layoutWidth - m_lineWidth + pos.x;
-						item->setLayoutPosition(pos);
-						if (pos.x < itemEllipsis->getLayoutFrame().right) {
-							if (item->getType() == TextItemType::Word) {
-								sl_real widthWord = item->getLayoutSize().x;
-								String16 text = ((TextWordItem*)item)->getText();
-								Ref<TextWordItem> word1 = TextWordItem::create(text, item->getStyle());
-								Ref<TextWordItem> word2 = TextWordItem::create(text, item->getStyle());
-								if (word1.isNotNull() && word2.isNotNull()) {
-									sl_real widthLimit = widthWord - (itemEllipsis->getLayoutFrame().right - pos.x);
+					itemEllipsis->setLayoutPosition(Point(xLimit / 2, items[0]->getLayoutPosition().y));
+					for (sl_size iMidStart = 0; iMidStart < nItems; iMidStart++) {
+						TextItem* itemMidStart = items[iMidStart].get();
+						Point pos = itemMidStart->getLayoutPosition();
+						if (pos.x + itemMidStart->getLayoutSize().x > xLimit / 2) {
+							Ref<TextWordItem> wordStart;
+							if (itemMidStart->getType() == TextItemType::Word) {
+								String16 text = ((TextWordItem*)itemMidStart)->getText();
+								wordStart = TextWordItem::create(text, itemMidStart->getStyle());
+								if (wordStart.isNotNull()) {
+									sl_real widthLimit = xLimit / 2 - pos.x;
 									sl_size n = text.getLength();
 									sl_size k = n;
-									Size size1(0, 0);
-									Size size2(0, 0);
+									Size size;
 									for (; k > 0; k--) {
-										String16 text1, text2;
-										if (indexMid || indexMid == nItems - 1 - i) {
-											text1 = text.substring(0, k >> 1);
-											text2 = text.substring(n - k + (k >> 1), n);
-										} else {
-											text2 = text.substring(n - k, n);
-										}
-										if (text1.isNotEmpty()) {
-											((TextWordItemHelper*)(word1.get()))->m_text = text1;
-											size1 = word1->getSize();
-										} else {
-											size1 = Size::zero();
-										}
-										if (text2.isNotEmpty()) {
-											((TextWordItemHelper*)(word2.get()))->m_text = text2;
-											size2 = word2->getSize();
-										}
-										if (size1.x + size2.x <= widthLimit) {
+										((TextWordItemHelper*)(wordStart.get()))->m_text = text.substring(0, k);
+										size = wordStart->getSize();
+										if (size.x <= widthLimit) {
 											break;
 										}
 									}
-									listItems->removeRange(indexMid, nItems - indexMid - i);
-									if (k > 0) {
-										pos.x = pos.x + widthWord - size2.x;
-										if (size2.x > SLIB_EPSILON) {
-											word2->setLayoutPosition(pos);
-											word2->setLayoutSize(size2);
-											listItems->insert_NoLock(indexMid, word2);
-										}
-										pos.x = (xEllipsis + size1.x + pos.x - sizeEllipsis.x) / 2;
-										itemEllipsis->setLayoutPosition(pos);
-										if (size1.x > SLIB_EPSILON) {
-											pos.x = xEllipsis;
-											word1->setLayoutPosition(pos);
-											word1->setLayoutSize(size1);
-											listItems->insert_NoLock(indexMid, word1);
-											indexMid++;
+									if (k) {
+										wordStart->setLayoutPosition(itemMidStart->getLayoutPosition());
+										wordStart->setLayoutSize(size);
+									} else {
+										wordStart.setNull();
+									}
+								}
+							}
+							Ref<TextWordItem> wordEnd;
+							sl_size iMidEnd = nItems - 1;
+							while (iMidEnd >= iMidStart) {
+								TextItem* itemMidEnd = items[iMidEnd].get();
+								pos = itemMidEnd->getLayoutPosition();
+								pos.x = m_layoutWidth - m_lineWidth + pos.x;
+								itemMidEnd->setLayoutPosition(pos);
+								if (pos.x < xLimit / 2 + sizeEllipsis.x) {
+									if (itemMidEnd->getType() == TextItemType::Word) {
+										String16 text = ((TextWordItem*)itemMidEnd)->getText();
+										wordEnd = TextWordItem::create(text, itemMidEnd->getStyle());
+										if (wordEnd.isNotNull()) {
+											sl_real widthWord = itemMidEnd->getLayoutSize().x;
+											sl_real widthLimit = widthWord - (xLimit / 2 + sizeEllipsis.x - pos.x);
+											sl_size n = text.getLength();
+											sl_size k = n;
+											Size size;
+											for (; k > 0; k--) {
+												((TextWordItemHelper*)(wordEnd.get()))->m_text = text.substring(n - k, n);
+												size = wordEnd->getSize();
+												if (size.x <= widthLimit) {
+													break;
+												}
+											}
+											if (k > 0) {
+												pos.x += widthWord - size.x;
+												wordEnd->setLayoutPosition(pos);
+												wordEnd->setLayoutSize(size);
+											} else {
+												wordEnd.setNull();
+											}
 										}
 									}
-								} else {
-									listItems->removeRange_NoLock(indexMid, nItems - indexMid - i);
+									break;
 								}
-							} else {
-								listItems->removeRange_NoLock(indexMid, nItems - indexMid - i);
+								if (iMidEnd == iMidStart) {
+									break;
+								} else {
+									iMidEnd--;
+								}
 							}
-							listItems->insert_NoLock(indexMid, itemEllipsis);
+							listItems->removeRange_NoLock(iMidStart, iMidEnd - iMidStart + 1);
+							if (wordEnd.isNotNull()) {
+								listItems->insert_NoLock(iMidStart, wordEnd);
+							}
+							listItems->insert_NoLock(iMidStart, itemEllipsis);
+							if (wordStart.isNotNull()) {
+								listItems->insert_NoLock(iMidStart, wordStart);
+							}
 							m_flagEnd = sl_true;
 							return;
 						}
@@ -1850,20 +1852,23 @@ namespace slib
 				}
 			}
 
-			void processWord(TextWordItem* word) noexcept
+			void processLineItem(TextItem* item, const Size& size) noexcept
 			{
-				Size size = word->getSize();
-				word->setLayoutSize(size);
-				applyLineHeight(word, size.y);
+				item->setLayoutSize(size);
+				TextItemType type = item->getType();
 				if (m_x + size.x > m_layoutWidth) {
 					sl_bool flagWrap = sl_false;
 					sl_bool flagBreak = sl_false;
 					if (m_multiLineMode == MultiLineMode::WordWrap) {
 						flagWrap = sl_true;
 					} else if (m_multiLineMode == MultiLineMode::BreakWord) {
-						flagBreak = sl_true;
+						if (type == TextItemType::Word) {
+							flagBreak = sl_true;
+						} else {
+							flagWrap = sl_true;
+						}
 					} else if (m_multiLineMode == MultiLineMode::LatinWrap) {
-						if (word->containsNoLatin()) {
+						if (type == TextItemType::Word && ((TextWordItem*)item)->containsNoLatin()) {
 							flagBreak = sl_true;
 						} else {
 							flagWrap = sl_true;
@@ -1875,38 +1880,69 @@ namespace slib
 							if (m_flagEnd) {
 								return;
 							}
-							if (size.x > m_layoutWidth) {
-								breakWord(word);
+							if (type == TextItemType::Word && size.x > m_layoutWidth) {
+								breakWord((TextWordItem*)item);
 								return;
 							}
 						} else {
-							breakWord(word);
-							return;
+							if (type == TextItemType::Word) {
+								breakWord((TextWordItem*)item);
+								return;
+							}
 						}
 					} else if (flagBreak) {
-						breakWord(word);
+						breakWord((TextWordItem*)item);
 						return;
 					}
 				}
-
-				m_lineItems.add_NoLock(word);
+				applyLineHeight(item, size.y);
+				m_lineItems.add_NoLock(item);
 				m_x += size.x;
 				m_lineWidth = m_x;
 			}
 
+			void addLineItem_SpaceTab(TextItem* item, const Size& size) noexcept
+			{
+				item->setLayoutSize(size);
+				applyLineHeight(item, size.y);
+				m_lineItems.add_NoLock(item);
+				if (IsWrappingMultiLineMode(m_multiLineMode) && m_x + size.x > m_layoutWidth) {
+					endLine();
+				} else {
+					m_x += size.x;
+					m_lineWidth = m_x;
+				}
+			}
+
+			void addLineItem(TextItem* item, const Size& size, sl_bool flagAdvancePosition = sl_true)
+			{
+				item->setLayoutSize(size);
+				applyLineHeight(item, size.y);
+				m_lineItems.add_NoLock(item);
+				if (flagAdvancePosition) {
+					m_x += size.x;
+				}
+				m_lineWidth = m_x;
+			}
+
+			void processWord(TextWordItem* item) noexcept
+			{
+				processLineItem(item, item->getSize());
+			}
+
 			void processChar(TextCharItem* item) noexcept
 			{
-				addLineItem(item, item->getSize());
+				processLineItem(item, item->getSize());
 			}
 
 			void processJoinedChar(TextJoinedCharItem* item) noexcept
 			{
-				addLineItem(item, item->getSize());
+				processLineItem(item, item->getSize());
 			}
 
 			void processSpace(TextSpaceItem* item) noexcept
 			{
-				addLineItem(item, item->getSize());
+				addLineItem_SpaceTab(item, item->getSize());
 			}
 
 			void processTab(TextTabItem* item) noexcept
@@ -1914,7 +1950,7 @@ namespace slib
 				sl_real tabX = m_x + m_tabMargin;
 				tabX = (Math::floor(tabX / m_tabWidth) + 1) * m_tabWidth;
 				sl_real h = item->getHeight();
-				addLineItem(item, Size(tabX - m_x, h));
+				addLineItem_SpaceTab(item, Size(tabX - m_x, h));
 			}
 
 			void processLineBreak(TextLineBreakItem* item) noexcept
@@ -1935,18 +1971,7 @@ namespace slib
 
 			void processAttach(TextAttachItem* item) noexcept
 			{
-				addLineItem(item, item->getSize());
-			}
-
-			void addLineItem(TextItem* item, const Size& size, sl_bool flagAdvancePosition = sl_true)
-			{
-				applyLineHeight(item, size.y);
-				item->setLayoutSize(size);
-				m_lineItems.add_NoLock(item);
-				if (flagAdvancePosition) {
-					m_x += size.x;
-				}
-				m_lineWidth = m_x;
+				processLineItem(item, item->getSize());
 			}
 
 			void applyLineHeight(TextItem* item, sl_real height)
