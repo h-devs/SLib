@@ -35,6 +35,40 @@
 namespace slib
 {
 
+	namespace
+	{
+		static String ProcessSerialNumber(const StringView& sv)
+		{
+			const char* sn = sv.getData();
+			sl_size n = sv.getLength();
+			if (!(n & 1)) {
+				sl_bool flagHex = sl_true;
+				sl_size m = n >> 1;
+				SLIB_SCOPED_BUFFER(char, 1024, h, m)
+				for (sl_size i = 0; i < n; i += 2) {
+					char c1 = sn[i];
+					char c2 = sn[i + 1];
+					if (SLIB_CHAR_IS_HEX(c1) && SLIB_CHAR_IS_HEX(c2)) {
+						char c = (SLIB_CHAR_HEX_TO_INT(c1) << 4) | SLIB_CHAR_HEX_TO_INT(c2);
+						if (SLIB_CHAR_IS_PRINTABLE_ASCII(c)) {
+							h[i >> 1] = c;
+						} else {
+							flagHex = sl_false;
+							break;
+						}
+					} else {
+						flagHex = sl_false;
+						break;
+					}
+				}
+				if (flagHex) {
+					return StringView(h, m).trim();
+				}
+			}
+			return StringView(sn, n).trim();
+		}
+	}
+
 	String Disk::getSerialNumber(sl_uint32 diskNo)
 	{
 		SLIB_STATIC_STRING16(pathTemplate, "\\\\.\\PhysicalDrive")
@@ -79,7 +113,7 @@ namespace slib
 					if (descriptor->SerialNumberOffset) {
 						char* sn = (char*)(output + descriptor->SerialNumberOffset);
 						sl_size n = nOutput - (sl_size)(descriptor->SerialNumberOffset);
-						ret = String(sn, Base::getStringLength(sn, n)).trim();
+						ret = ProcessSerialNumber(StringView(sn, Base::getStringLength(sn, n)));
 					}
 				}
 			}
@@ -133,7 +167,7 @@ namespace slib
 			disk.interface = GetInterfaceType(item.getValue("InterfaceType").getString());
 			disk.type = GetMediaType(item.getValue("MediaType").getString());
 			disk.model = item.getValue("Model").getString();
-			disk.serialNumber = item.getValue("SerialNumber").getString().trim();
+			disk.serialNumber = ProcessSerialNumber(item.getValue("SerialNumber").getString());
 			disk.capacity = item.getValue("Size").getUint64();
 			ret.add_NoLock(Move(disk));
 		}
