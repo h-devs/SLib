@@ -29,8 +29,11 @@
 #include "slib/core/scoped_buffer.h"
 #include "slib/platform.h"
 #include "slib/platform/win32/wmi.h"
+#include "slib/platform/win32/scoped_handle.h"
 
 #include <winioctl.h>
+
+//#define USE_SMART
 
 namespace slib
 {
@@ -67,61 +70,107 @@ namespace slib
 			}
 			return StringView(sn, n).trim();
 		}
+
+		static String GetSerialNumberByStorageQuery(HANDLE hDevice)
+		{
+			STORAGE_PROPERTY_QUERY query;
+			Base::zeroMemory(&query, sizeof(query));
+			query.PropertyId = StorageDeviceProperty;
+			query.QueryType = PropertyStandardQuery;
+
+			STORAGE_DESCRIPTOR_HEADER header;
+			Base::zeroMemory(&header, sizeof(header));
+
+			DWORD dwBytes = 0;
+			if (DeviceIoControl(
+				hDevice,
+				IOCTL_STORAGE_QUERY_PROPERTY,
+				&query, sizeof(query),
+				&header, sizeof(header),
+				&dwBytes, NULL)
+				) {
+				sl_size nOutput = (sl_size)(header.Size);
+				SLIB_SCOPED_BUFFER(sl_uint8, 256, output, nOutput)
+				if (output) {
+					Base::zeroMemory(output, nOutput);
+					if (DeviceIoControl(
+						hDevice,
+						IOCTL_STORAGE_QUERY_PROPERTY,
+						&query, sizeof(query),
+						output, (DWORD)nOutput,
+						&dwBytes, NULL)
+						) {
+						STORAGE_DEVICE_DESCRIPTOR* descriptor = (STORAGE_DEVICE_DESCRIPTOR*)output;
+						if (descriptor->SerialNumberOffset) {
+							char* sn = (char*)(output + descriptor->SerialNumberOffset);
+							sl_size n = nOutput - (sl_size)(descriptor->SerialNumberOffset);
+							return ProcessSerialNumber(StringView(sn, Base::getStringLength(sn, n)));
+						}
+					}
+				}
+			}
+			return sl_null;
+		}
+
+#ifdef USE_SMART
+		static sl_bool IsSmartSupported(HANDLE hDevice)
+		{
+			GETVERSIONINPARAMS params = { 0 };
+			DWORD dwBytes = 0;
+			if (DeviceIoControl(hDevice, SMART_GET_VERSION, NULL, 0, &params, sizeof(params), &dwBytes, NULL)) {
+				return (params.fCapabilities & CAP_SMART_CMD) != 0;
+			}
+			return sl_false;
+		}
+
+		static String GetSerialNumberBySmart(HANDLE hDevice, sl_uint32 diskNumber)
+		{
+			sl_uint8 bufSci[sizeof(SENDCMDINPARAMS) + IDENTIFY_BUFFER_SIZE] = { 0 };
+			SENDCMDINPARAMS& sci = *((SENDCMDINPARAMS*)bufSci);
+			sl_uint8 bufSco[sizeof(SENDCMDOUTPARAMS) + IDENTIFY_BUFFER_SIZE] = { 0 };
+			SENDCMDOUTPARAMS& sco = *((SENDCMDOUTPARAMS*)bufSco);
+			sci.irDriveRegs.bCommandReg = ID_CMD;
+			sci.bDriveNumber = (BYTE)diskNumber;
+			sci.cBufferSize = IDENTIFY_BUFFER_SIZE;
+			DWORD dwBytes = 0;
+			if (DeviceIoControl(hDevice, SMART_RCV_DRIVE_DATA, &sci, sizeof(bufSci), &sco, sizeof(bufSco), &dwBytes, NULL)) {
+				char sn[20];
+				for (sl_size i = 0; i < 20; i += 2) {
+					sn[i] = sco.bBuffer[i + 21];
+					sn[i + 1] = sco.bBuffer[i + 20];
+				}
+				return ProcessSerialNumber(StringView(sn, 20));
+			}
+			return sl_null;
+		}
+#endif
 	}
 
 	String Disk::getSerialNumber(sl_uint32 diskNo)
 	{
 		SLIB_STATIC_STRING16(pathTemplate, "\\\\.\\PhysicalDrive")
 		String16 path = pathTemplate + String16::fromUint32(diskNo);
-
-		HANDLE hDevice = CreateFileW((LPCWSTR)(path.getData()), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-		if (hDevice == INVALID_HANDLE_VALUE) {
-			return sl_null;
-		}
-
-		String ret;
-
-		STORAGE_PROPERTY_QUERY query;
-		Base::zeroMemory(&query, sizeof(query));
-		query.PropertyId = StorageDeviceProperty;
-		query.QueryType = PropertyStandardQuery;
-
-		STORAGE_DESCRIPTOR_HEADER header;
-		Base::zeroMemory(&header, sizeof(header));
-
-		DWORD dwBytes = 0;
-
-		if (DeviceIoControl(
-			hDevice,
-			IOCTL_STORAGE_QUERY_PROPERTY,
-			&query, sizeof(query),
-			&header, sizeof(header),
-			&dwBytes, NULL)
-		) {
-			sl_size nOutput = (sl_size)(header.Size);
-			SLIB_SCOPED_BUFFER(sl_uint8, 256, output, nOutput)
-			if (output) {
-				Base::zeroMemory(output, nOutput);
-				if (DeviceIoControl(
-					hDevice,
-					IOCTL_STORAGE_QUERY_PROPERTY,
-					&query, sizeof(query),
-					output, (DWORD)nOutput,
-					&dwBytes, NULL)
-				) {
-					STORAGE_DEVICE_DESCRIPTOR* descriptor = (STORAGE_DEVICE_DESCRIPTOR*)output;
-					if (descriptor->SerialNumberOffset) {
-						char* sn = (char*)(output + descriptor->SerialNumberOffset);
-						sl_size n = nOutput - (sl_size)(descriptor->SerialNumberOffset);
-						ret = ProcessSerialNumber(StringView(sn, Base::getStringLength(sn, n)));
-					}
-				}
+#ifdef USE_SMART
+		ScopedHandle hDevice = CreateFileW((LPCWSTR)(path.getData()), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+		if (hDevice.isNone()) {
+			hDevice = CreateFileW((LPCWSTR)(path.getData()), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+			if (hDevice.isNone()) {
+				return sl_null;
 			}
 		}
-
-		CloseHandle(hDevice);
-
-		return ret;
+		if (IsSmartSupported(hDevice.handle)) {
+			String ret = GetSerialNumberBySmart(hDevice.handle, diskNo);
+			if (ret.isNotNull()) {
+				return ret;
+			}
+		}
+#else
+		ScopedHandle hDevice = CreateFileW((LPCWSTR)(path.getData()), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+		if (hDevice.isNone()) {
+			return sl_null;
+		}
+#endif
+		return GetSerialNumberByStorageQuery(hDevice.handle);
 	}
 
 	namespace
