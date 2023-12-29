@@ -573,12 +573,16 @@ namespace slib
 	{
 		Ref<TextStyle> style = m_style;
 		if (style.isNotNull()) {
-			if (style->lineHeight < 0) {
-				return 1;
+			if (style->lineHeight >= 0) {
+				return style->lineHeight;
 			}
-			return style->lineHeight;
 		}
-		return 1;
+		Ref<Font> font = getFont();
+		if (font.isNotNull()) {
+			return font->getFontHeight() / 2.0f;
+		} else {
+			return 0;
+		}
 	}
 
 	String TextHorizontalLineItem::getPlainText()
@@ -1963,10 +1967,11 @@ namespace slib
 
 			void processHorizontalLine(TextHorizontalLineItem* item) noexcept
 			{
+				endLine();
 				sl_real h = item->getHeight();
 				addLineItem(item, Size(h / 2, h), sl_false);
-				endLine();
 				item->setLayoutPosition(Point(m_x, m_y));
+				endLine();
 			}
 
 			void processAttach(TextAttachItem* item) noexcept
@@ -2137,7 +2142,8 @@ namespace slib
 					}
 					Ref<Pen> pen = Pen::createSolidPen(param.lineThickness, param.lineColor);
 					if (pen.isNotNull()) {
-						canvas->drawLine(left, y + frame.bottom, right, y + frame.bottom, pen);
+						sl_real cy = frame.getCenterY();
+						canvas->drawLine(left, y + cy, right, y + cy, pen);
 					}
 				}
 				sl_bool flagUnderline = style->flagUnderline;
