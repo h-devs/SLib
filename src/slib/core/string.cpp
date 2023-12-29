@@ -3686,8 +3686,14 @@ namespace slib
 
 			property:
 				[name]: `name` is element index or item name
+
+			precision:
+				-precision: tailing zeros (except first zero) are ignored
+				--precision: tailing zeros (including first zero) are ignored
+
 			`%%` -> `%`
 			`%...%` = `%...s`
+
 		*/
 
 		template <typename CHAR, typename STRING>
@@ -3841,6 +3847,8 @@ namespace slib
 				sl_uint32 minWidth = 0;
 				sl_uint32 precision = 0;
 				sl_bool flagUsePrecision = sl_false;
+				sl_bool flagZeroPaddedFraction = sl_true;
+				sl_bool flagIgnoreZeroFraction = sl_false;
 			};
 
 			sl_bool parseFlags(ConversionFlags& flags)
@@ -3886,13 +3894,27 @@ namespace slib
 					if (pos >= len) {
 						return sl_false;
 					}
-					flags.flagUsePrecision = sl_true;
+					if (format[pos] == '-') {
+						pos++;
+						if (pos >= len) {
+							return sl_false;
+						}
+						flags.flagZeroPaddedFraction = sl_false;
+						if (format[pos] == '-') {
+							pos++;
+							if (pos >= len) {
+								return sl_false;
+							}
+							flags.flagIgnoreZeroFraction = sl_true;
+						}
+					}
 					sl_reg iRet = STRING::parseUint32(10, &(flags.precision), format, pos, len);
 					if (iRet != SLIB_PARSE_ERROR) {
 						pos = iRet;
 						if (pos >= len) {
 							return sl_false;
 						}
+						flags.flagUsePrecision = sl_true;
 					}
 				}
 				return sl_true;
@@ -4136,11 +4158,33 @@ namespace slib
 				if (flags.flagUsePrecision) {
 					precision = flags.precision;
 				}
+				sl_int32 minWidthIntegral = 1;
+				sl_bool flagZeroPaddedFraction = flags.flagZeroPaddedFraction;
+				if (flags.flagZeroPadded) {
+					if (precision > 0) {
+						minWidthIntegral = flags.minWidth - precision - 1;
+					} else {
+						minWidthIntegral = flags.minWidth;
+					}
+					if (minWidthIntegral < 1) {
+						minWidthIntegral = 1;
+					}
+					flagZeroPaddedFraction = sl_true;
+				}
 				STRING content;
 				if (arg.isFloat()) {
-					content = FromFloat<float, CHAR>(arg.getFloat(), precision, flags.flagZeroPadded, 1, ch, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
+					content = FromFloat<float, CHAR>(arg.getFloat(), precision, flagZeroPaddedFraction, minWidthIntegral, ch, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
 				} else {
-					content = FromFloat<double, CHAR>(arg.getDouble(), precision, flags.flagZeroPadded, 1, ch, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
+					content = FromFloat<double, CHAR>(arg.getDouble(), precision, flagZeroPaddedFraction, minWidthIntegral, ch, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
+				}
+				if (flags.flagIgnoreZeroFraction) {
+					sl_size len = content.getLength();
+					if (len > 2) {
+						CHAR* s = content.getData();
+						if (s[len - 2] == '.' && s[len - 1] == '0') {
+							content = content.substring(0, len - 2);
+						}
+					}
 				}
 				return append(content, flags);
 			}
