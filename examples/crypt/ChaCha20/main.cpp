@@ -6,9 +6,9 @@ using namespace slib;
 
 void PrintUsage()
 {
-	Println("Usage: chacha {d|e} [key] [source path] [destination path]");
-	Println("       chacha c [key] [path]   ; Check Password");
-	Println("       chacha u [original key] [new key] [path]   ; Update Password");
+	Println("Usage: chacha {d|e} <key> <source path> <destination path>");
+	Println("       chacha c <key> <path>   ; Check Password");
+	Println("       chacha u <original key> <new key> <path>   ; Update Password");
 }
 
 sl_bool DoFileOperation(sl_bool flagEncrypt, const String& key, const String& pathSrc, const String& pathDst)
