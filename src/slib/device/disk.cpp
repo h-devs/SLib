@@ -22,6 +22,8 @@
 
 #include "slib/device/disk.h"
 
+#include "slib/core/scoped_buffer.h"
+
 namespace slib
 {
 
@@ -45,5 +47,86 @@ namespace slib
 		return sl_null;
 	}
 #endif
+
+	String Disk::normalizeSerialNumber(const StringParam& _sn)
+	{
+		if (_sn.isNull()) {
+			return sl_null;
+		}
+		StringData data(_sn);
+		const sl_char8* sn = data.getData();
+		sl_size n = data.getLength();
+		if (!n) {
+			return String::getEmpty();
+		}
+		sl_bool flagHex = sl_true;
+		if (n & 1) {
+			flagHex = sl_false;
+		} else {
+			sl_size m = n >> 1;
+			for (sl_size i = 0; i < n; i += 2) {
+				sl_char8 c1 = sn[i];
+				sl_char8 c2 = sn[i + 1];
+				if (SLIB_CHAR_IS_HEX(c1) && SLIB_CHAR_IS_HEX(c2)) {
+					char c = (SLIB_CHAR_HEX_TO_INT(c1) << 4) | SLIB_CHAR_HEX_TO_INT(c2);
+					if (!SLIB_CHAR_IS_PRINTABLE_ASCII(c)) {
+						flagHex = sl_false;
+						break;
+					}
+				} else {
+					flagHex = sl_false;
+					break;
+				}
+			}
+		}
+		if (flagHex) {
+			sl_size m = n >> 1;
+			SLIB_SCOPED_BUFFER(sl_char8, 1024, h, m)
+			for (sl_size i = 0; i < n; i += 2) {
+				sl_char8 c1 = sn[i];
+				sl_char8 c2 = sn[i + 1];
+				h[i >> 1] = (SLIB_CHAR_HEX_TO_INT(c1) << 4) | SLIB_CHAR_HEX_TO_INT(c2);
+			}
+			return StringView(h, m).trim();
+		}
+		sl_bool flagNoPrintable = sl_false;
+		sl_size iFirst = 0, iLast = 0;
+		{
+			for (sl_size i = 0; i < n; i++) {
+				sl_char8 c = sn[i];
+				if (!SLIB_CHAR_IS_WHITE_SPACE(c)) {
+					if (!iLast) {
+						iFirst = i;
+					}
+					iLast = i + 1;
+					if (!SLIB_CHAR_IS_PRINTABLE_ASCII(c)) {
+						flagNoPrintable = sl_true;
+					}
+				}
+			}
+		}
+		if (flagNoPrintable) {
+			sn += iFirst;
+			n = iLast - iFirst;
+			if (!n) {
+				return String::getEmpty();
+			}
+			SLIB_SCOPED_BUFFER(sl_char8, 1024, s, n)
+			sl_size k = 0;
+			for (sl_size i = 0; i < n; i++) {
+				sl_char8 c = sn[i];
+				if (SLIB_CHAR_IS_PRINTABLE_ASCII(c)) {
+					s[k++] = c;
+				}
+			}
+			return String(s, k);
+		} else {
+			if (!iFirst && iLast == n) {
+				return _sn.toString();
+			} else {
+				return String(sn + iFirst, iLast - iFirst);
+			}
+		}
+	}
 
 }

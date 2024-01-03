@@ -73,6 +73,8 @@ namespace slib
 
 		static List<DiskInfo> getDevices();
 
+		static String normalizeSerialNumber(const StringParam& sn);
+
 	};
 
 }
