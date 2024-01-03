@@ -692,7 +692,6 @@ namespace slib
 		sl_bool isNotRequiredNative(sl_bool flagCheckBackgroundColor);
 	};
 
-
 	struct SAppLayoutTreeItemAttributes : public CRef
 	{
 		SAppStringValue id;

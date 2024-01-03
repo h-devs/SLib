@@ -253,9 +253,6 @@ namespace slib
 					pos += height;
 					pos += child->getMarginBottom();
 				}
-				if (!(childSizes[i].isAlmostEqual(child->getLayoutSize()))) {
-					child->forceUpdateLayout();
-				}
 			}
 		}
 

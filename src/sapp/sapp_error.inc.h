@@ -114,7 +114,6 @@ namespace {
 	SLIB_STATIC_STRING(g_str_error_resource_layout_attribute_invalid, "Layout Resource: Invalid `%s` attribute value: %s")
 	SLIB_STATIC_STRING(g_str_error_resource_layout_failed_load_reference_view, "Layout Resource: Failed to load reference view: %s")
 	SLIB_STATIC_STRING(g_str_error_resource_layout_scrollview_must_contain_one_child, "Layout Resource: ScrollView can contain only one child")
-	SLIB_STATIC_STRING(g_str_error_resource_layout_item_must_contain_one_child, "Layout Resource: Item can contain only one child")
 	SLIB_STATIC_STRING(g_str_error_resource_layout_refreshview_must_contain_one_child, "Layout Resource: `RefreshView` can contain only one child")
 	SLIB_STATIC_STRING(g_str_error_resource_layout_gridview_unknown_cell_creator, "Layout Resource: Unknown grid cell tag: %s")
 	SLIB_STATIC_STRING(g_str_log_generate_cpp_layouts_begin, "Generating: layouts.h, layouts.cpp")

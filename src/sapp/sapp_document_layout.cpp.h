@@ -246,9 +246,19 @@ namespace slib
 			}
 			SAppLayoutItemType type = SAppLayoutResource::getTypeFromName(strType);
 			if (type == SAppLayoutItemType::Unknown && parent) {
-				if (parent->itemType == SAppLayoutItemType::Tree || parent->itemType == SAppLayoutItemType::TreeItem) {
-					if (strType == "item") {
-						type = SAppLayoutItemType::TreeItem;
+				if (strType == "item") {
+					switch (parent->itemType) {
+						case SAppLayoutItemType::Tree:
+						case SAppLayoutItemType::TreeItem:
+							type = SAppLayoutItemType::TreeItem;
+							break;
+						case SAppLayoutItemType::Tab:
+						case SAppLayoutItemType::Split:
+						case SAppLayoutItemType::Pager:
+							type = SAppLayoutItemType::ViewGroup;
+							break;
+						default:
+							break;
 					}
 				}
 			}
@@ -3662,11 +3672,7 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, itemXml, subItem., selected)
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, itemXml, sl_null)
 				if (childXmls.count > 0) {
-					if (childXmls.count != 1) {
-						logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
-						return sl_false;
-					}
-					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
+					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, itemXml.element, params->source);
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
@@ -3933,22 +3939,14 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(COLOR, itemXml, subItem., dividerColor)
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, itemXml, sl_null)
 				if (childXmls.count > 0) {
-					if (childXmls.count != 1) {
-						logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
-						return sl_false;
-					}
-					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
+					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, itemXml.element, params->source);
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
 					if (IsNoView(subItemView->itemType)) {
 						return sl_false;
 					}
-					SAppLayoutViewAttributes* subAttrs = (SAppLayoutViewAttributes*)(subItemView->attrs.get());
-					subAttrs->width.flagDefined = sl_false;
-					subAttrs->height.flagDefined = sl_false;
-					subAttrs->leftMode = PositionMode::Free;
-					subAttrs->topMode = PositionMode::Free;
+					((SAppLayoutViewAttributes*)(subItemView->attrs.get()))->resetLayout();
 					subItem.view = subItemView;
 				}
 				if (!(attr->items.add_NoLock(Move(subItem)))) {
@@ -4216,11 +4214,7 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, itemXml, subItem., selected)
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, itemXml, sl_null)
 				if (childXmls.count > 0) {
-					if (childXmls.count != 1) {
-						logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
-						return sl_false;
-					}
-					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
+					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, itemXml.element, params->source);
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
