@@ -2532,6 +2532,8 @@ namespace slib
 				}
 			}
 		}
+		LAYOUT_CONTROL_ATTR(GENERIC, closeOnOK, setCloseOnOK)
+		LAYOUT_CONTROL_ATTR(GENERIC, closeOnCancel, setCloseOnCancel)
 
 		params->name = "m_contentView";
 		if (!(_processLayoutResourceControl_View(params))) {

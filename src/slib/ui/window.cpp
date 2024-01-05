@@ -83,6 +83,7 @@ namespace slib
 		m_flagWidthFilling = sl_false;
 		m_flagHeightFilling = sl_false;
 		m_flagCloseOnOK = sl_false;
+		m_flagCloseOnCancel = sl_true;
 
 		m_flagStateResizingWidth = sl_false;
 		m_flagStateDoModal = sl_false;
@@ -1279,6 +1280,16 @@ namespace slib
 		m_flagCloseOnOK = flag;
 	}
 
+	sl_bool Window::isCloseOnCancel()
+	{
+		return m_flagCloseOnCancel;
+	}
+
+	void Window::setCloseOnCancel(sl_bool flag)
+	{
+		m_flagCloseOnCancel = flag;
+	}
+
 	Variant Window::getResult()
 	{
 		SpinLocker lock(&m_lockResult);
@@ -1687,7 +1698,9 @@ namespace slib
 
 	void Window::onCancel()
 	{
-		invokeClose();
+		if (m_flagCloseOnCancel) {
+			invokeClose();
+		}
 	}
 
 	void Window::_refreshClientSize(const UISize& size)

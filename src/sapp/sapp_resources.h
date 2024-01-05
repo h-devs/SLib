@@ -377,6 +377,8 @@ namespace slib
 		SAppDimensionValue marginTop;
 		SAppDimensionValue marginRight;
 		SAppDimensionValue marginBottom;
+		SAppBooleanValue closeOnOK;
+		SAppBooleanValue closeOnCancel;
 	};
 
 	typedef SAppLayoutViewAttributes SAppLayoutPageAttributes;

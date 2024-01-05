@@ -430,6 +430,10 @@ namespace slib
 
 		void setCloseOnOK(sl_bool flag = sl_true);
 
+		sl_bool isCloseOnCancel();
+
+		void setCloseOnCancel(sl_bool flag = sl_true);
+
 		Variant getResult();
 
 		void setResult(const Variant& result);
@@ -586,6 +590,7 @@ namespace slib
 		sl_bool m_flagWidthFilling : 1;
 		sl_bool m_flagHeightFilling : 1;
 		sl_bool m_flagCloseOnOK : 1;
+		sl_bool m_flagCloseOnCancel : 1;
 
 		sl_bool m_flagStateResizingWidth : 1;
 		sl_bool m_flagStateDoModal : 1;
