@@ -2878,14 +2878,9 @@ namespace slib
 	void View::_updateLayout()
 	{
 		Ref<LayoutAttributes>& layoutAttrs = m_layoutAttrs;
-
 		while (m_flagInvalidLayout) {
-
 			sl_int32 updateId = m_idUpdateInvalidateLayout;
-
 			UIRect frame = getLayoutFrame();
-
-			sl_size i;
 			ListElements< Ref<View> > children(getChildren());
 			for (int step = 0; step < 2; step++) {
 				sl_ui_len width = frame.getWidth();
@@ -2915,15 +2910,19 @@ namespace slib
 					param.flagUseLayout = m_flagUsingChildLayouts;
 					param.flagHorizontal = sl_true;
 					param.flagVertical = sl_true;
-					for (i = 0; i < children.count; i++) {
-						Ref<View>& child = children[i];
-						child->setInvalidateLayoutFrameInParent();
+					{
+						for (sl_size i = 0; i < children.count; i++) {
+							Ref<View>& child = children[i];
+							child->setInvalidateLayoutFrameInParent();
+						}
 					}
-					for (i = 0; i < children.count; i++) {
-						Ref<View>& child = children[i];
-						child->updateLayoutFrameInParent(param);
-						if (child->m_flagNeedApplyLayout) {
-							m_flagNeedApplyLayout = sl_true;
+					{
+						for (sl_size i = 0; i < children.count; i++) {
+							Ref<View>& child = children[i];
+							child->updateLayoutFrameInParent(param);
+							if (child->m_flagNeedApplyLayout) {
+								m_flagNeedApplyLayout = sl_true;
+							}
 						}
 					}
 				}
@@ -2933,7 +2932,7 @@ namespace slib
 				if (layoutAttrs->flagCustomLayout || layoutAttrs->flagLastWidthWrapping || layoutAttrs->flagLastHeightWrapping) {
 					onUpdateLayout();
 					if (!m_flagNeedApplyLayout) {
-						for (i = 0; i < children.count; i++) {
+						for (sl_size i = 0; i < children.count; i++) {
 							Ref<View>& child = children[i];
 							if (child->m_flagNeedApplyLayout) {
 								m_flagNeedApplyLayout = sl_true;
@@ -2944,20 +2943,18 @@ namespace slib
 					if (!m_flagUsingChildLayouts) {
 						break;
 					}
-					if (step != 0) {
-						break;
-					}
-					UIRect oldFrame = frame;
-					frame = layoutAttrs->layoutFrame;
-					if (frame.isAlmostEqual(oldFrame)) {
-						break;
-					}
 				}
 				if (!(children.count)) {
 					break;
 				}
+				if (step) {
+					break;
+				}
+				if (frame.isAlmostEqual(layoutAttrs->layoutFrame)) {
+					break;
+				}
+				frame = layoutAttrs->layoutFrame;
 			}
-
 			if (Base::interlockedIncrement32(&m_idUpdateInvalidateLayout) == updateId + 1) {
 				m_flagInvalidLayout = sl_false;
 				break;
@@ -2965,7 +2962,6 @@ namespace slib
 				m_flagInvalidLayout = sl_true;
 			}
 		}
-
 	}
 
 	void View::_applyLayout(UIUpdateMode mode)

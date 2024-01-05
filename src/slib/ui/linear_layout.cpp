@@ -132,17 +132,11 @@ namespace slib
 			updateLayoutParam.flagVertical = flagHorizontalLayout;
 		}
 
-		SLIB_SCOPED_BUFFER(Size, 512, childSizes, children.count);
-		if (!childSizes) {
-			return;
-		}
-
 		sl_size i;
 		for (i = 0; i < children.count; i++) {
 			Ref<View>& child = children[i];
 			if (child->getVisibility() != Visibility::Gone) {
 				child->setInvalidateLayoutFrameInParent();
-				childSizes[i] = child->getLayoutSize();
 				if (flagHorizontalLayout) {
 					if (child->getWidthMode() != SizeMode::Filling) {
 						child->updateLayoutFrameInParent(updateLayoutParam);
@@ -199,25 +193,27 @@ namespace slib
 				if (child->getVisibility() != Visibility::Gone) {
 					if (flagHorizontalLayout) {
 						if (child->getWidthMode() == SizeMode::Filling) {
+							UISize sizeOld = child->getLayoutSize();
 							sl_ui_len width = (sl_ui_len)(remainedSize * child->getWidthWeight() / sumFillWeights);
-							sl_ui_len height = child->getLayoutHeight();
+							if (width != sizeOld.x) {
+								child->_setInvalidateLayout();
+							}
+							sl_ui_len height = sizeOld.y;
 							child->_restrictSize(width, height);
 							child->setLayoutSize(width, height);
 							child->updateLayoutFrameInParent(updateLayoutParam);
-							height = child->getLayoutHeight();
-							child->_restrictSize(width, height);
-							child->setLayoutSize(width, height);
 						}
 					} else {
 						if (child->getHeightMode() == SizeMode::Filling) {
-							sl_ui_len width = child->getLayoutWidth();
+							UISize sizeOld = child->getLayoutSize();
+							sl_ui_len width = sizeOld.x;
 							sl_ui_len height = (sl_ui_len)(remainedSize * child->getHeightWeight() / sumFillWeights);
+							if (height != sizeOld.y) {
+								child->_setInvalidateLayout();
+							}
 							child->_restrictSize(width, height);
 							child->setLayoutSize(width, height);
 							child->updateLayoutFrameInParent(updateLayoutParam);
-							width = child->getLayoutWidth();
-							child->_restrictSize(width, height);
-							child->setLayoutSize(width, height);
 						}
 					}
 				}

@@ -2058,8 +2058,8 @@ namespace slib
 
 		sl_uint32 nFillRows = 0;
 		sl_uint32 nFillCols = 0;
-		sl_ui_len sumWidth = 0;
-		sl_ui_len sumHeight = 0;
+		sl_ui_len _sumWidth = 0;
+		sl_ui_len _sumHeight = 0;
 		sl_real sumRowFillWeights = 0;
 		sl_real sumColFillWeights = 0;
 		sl_bool flagWrappingRows = sl_false;
@@ -2082,7 +2082,7 @@ namespace slib
 				if (row.m_heightMode == SizeMode::Fixed) {
 					rowHeightModes[iRow] = SizeMode::Fixed;
 					row.m_heightLayout = row._getFixedHeight();
-					sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
+					_sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
 				} else {
 					rowHeightModes[iRow] = SizeMode::Wrapping;
 					row.m_heightLayout = 0;
@@ -2093,14 +2093,14 @@ namespace slib
 				switch (row.m_heightMode) {
 					case SizeMode::Fixed:
 						row.m_heightLayout = row._getFixedHeight();
-						sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
+						_sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
 						break;
 					case SizeMode::Weight:
 						row.m_heightLayout = row._getWeightHeight(heightContainer);
-						sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
+						_sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
 						break;
 					case SizeMode::Filling:
-						sumHeight += row.m_marginTop + row.m_marginBottom;
+						_sumHeight += row.m_marginTop + row.m_marginBottom;
 						nFillRows++;
 						sumRowFillWeights += row.m_heightWeight;
 						row.m_heightLayout = 0;
@@ -2123,7 +2123,7 @@ namespace slib
 				if (col.m_widthMode == SizeMode::Fixed) {
 					colWidthModes[iCol] = SizeMode::Fixed;
 					col.m_widthLayout = col._getFixedWidth();
-					sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;
+					_sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;
 				} else {
 					colWidthModes[iCol] = SizeMode::Wrapping;
 					col.m_widthLayout = 0;
@@ -2134,14 +2134,14 @@ namespace slib
 				switch (col.m_widthMode) {
 					case SizeMode::Fixed:
 						col.m_widthLayout = col._getFixedWidth();
-						sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;
+						_sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;
 						break;
 					case SizeMode::Weight:
 						col.m_widthLayout = col._getWeightWidth(widthContainer);
-						sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;
+						_sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;
 						break;
 					case SizeMode::Filling:
-						sumWidth += col.m_marginLeft + col.m_marginRight;
+						_sumWidth += col.m_marginLeft + col.m_marginRight;
 						nFillCols++;
 						sumColFillWeights += col.m_widthWeight;
 						col.m_widthLayout = 0;
@@ -2154,160 +2154,158 @@ namespace slib
 			}
 		}
 
-		if (flagWrappingCols) {
-			UpdateLayoutFrameParam updateLayoutParam;
-			updateLayoutParam.parentContentFrame.left = 0;
-			updateLayoutParam.parentContentFrame.top = 0;
-			updateLayoutParam.flagUseLayout = sl_true;
-			updateLayoutParam.flagHorizontal = sl_true;
-			updateLayoutParam.flagVertical = sl_false;
-			for (iRow = 0; iRow < nRows; iRow++) {
-				Row& row = *(rows[iRow].get());
-				if (!(row.m_flagVisible)) {
-					continue;
-				}
-				Cell* cells = row.m_cells.getData();
-				sl_uint32 nCells = Math::min((sl_uint32)(row.m_cells.getCount()), nCols);
-				for (iCol = 0; iCol < nCells; iCol++) {
-					if (!(cols[iCol]->m_flagVisible)) {
-						continue;
-					}
-					if (colWidthModes[iCol] == SizeMode::Wrapping) {
-						Cell& cell = cells[iCol];
-						Column& col = *(cols[iCol].get());
-						View* view = cell.view.get();
-						if (view && cell.colspan == 1) {
-							SizeMode mode = view->getWidthMode();
-							if (mode == SizeMode::Fixed || mode == SizeMode::Wrapping) {
-								updateLayoutParam.parentContentFrame.right = col.m_widthLayout - col.m_paddingLeft - col.m_paddingRight;
-								updateLayoutParam.parentContentFrame.bottom = row.m_heightLayout - row.m_paddingTop - row.m_paddingBottom;
-								view->setInvalidateLayoutFrameInParent();
-								view->updateLayoutFrameInParent(updateLayoutParam);
-								sl_ui_len w = col._restrictWidth(view->getLayoutWidth() + view->getMarginLeft() + view->getMarginRight() + col.m_paddingLeft + col.m_paddingRight);
-								if (w > col.m_widthLayout) {
-									col.m_widthLayout = w;
-								}
-							}
-						}
-					}
-				}
-			}
-			for (iCol = 0; iCol < nCols; iCol++) {
-				Column& col = *(cols[iCol].get());
-				if (!(col.m_flagVisible)) {
-					continue;
-				}
-				if (colWidthModes[iCol] == SizeMode::Wrapping) {
-					sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;;
-				}
-			}
-		}
-		if (nFillCols) {
-			if (sumWidth < 0) {
-				sumWidth = 0;
-			}
-			sl_ui_len widthRemain;
-			if (widthContainer > sumWidth) {
-				widthRemain = widthContainer - sumWidth;
-				if (widthRemain < 0) {
-					widthRemain = 0;
-				}
-			} else {
-				widthRemain = 0;
-			}
-			if (sumColFillWeights < SLIB_EPSILON) {
-				sumColFillWeights = 1;
-			}
-			for (iCol = 0; iCol < nCols; iCol++) {
-				Column& col = *(cols[iCol].get());
-				if (!(col.m_flagVisible)) {
-					continue;
-				}
-				if (colWidthModes[iCol] == SizeMode::Filling) {
-					col.m_widthLayout = col._restrictWidth((sl_ui_len)(widthRemain * col.m_widthWeight / sumColFillWeights));
-				}
-			}
-		}
-
-		if (flagWrappingRows) {
-			UpdateLayoutFrameParam updateLayoutParam;
-			updateLayoutParam.parentContentFrame.left = 0;
-			updateLayoutParam.parentContentFrame.top = 0;
-			updateLayoutParam.flagUseLayout = sl_true;
-			updateLayoutParam.flagHorizontal = sl_false;
-			updateLayoutParam.flagVertical = sl_true;
-			for (iRow = 0; iRow < nRows; iRow++) {
-				Row& row = *(rows[iRow].get());
-				if (!(row.m_flagVisible)) {
-					continue;
-				}
-				if (rowHeightModes[iRow] == SizeMode::Wrapping) {
-					Cell* cells = row.m_cells.getData();
-					sl_uint32 nCells = Math::min((sl_uint32)(row.m_cells.getCount()), nCols);
-					for (iCol = 0; iCol < nCells; iCol++) {
-						Cell& cell = cells[iCol];
-						Column& col = *(cols[iCol].get());
-						if (!(col.m_flagVisible)) {
-							continue;
-						}
-						View* view = cell.view.get();
-						if (view && cell.rowspan == 1) {
-							SizeMode mode = view->getHeightMode();
-							if (mode == SizeMode::Fixed || mode == SizeMode::Wrapping) {
-								updateLayoutParam.parentContentFrame.right = col.m_widthLayout - col.m_paddingLeft - col.m_paddingRight;
-								updateLayoutParam.parentContentFrame.bottom = row.m_heightLayout - row.m_paddingTop - row.m_paddingBottom;
-								view->setInvalidateLayoutFrameInParent();
-								view->updateLayoutFrameInParent(updateLayoutParam);
-								sl_ui_len h = row._restrictHeight(view->getLayoutHeight() + view->getMarginTop() + view->getMarginBottom() + row.m_paddingTop + row.m_paddingBottom);
-								if (h > row.m_heightLayout) {
-									row.m_heightLayout = h;
-								}
-							}
-						}
-					}
-				}
-			}
-			for (iRow = 0; iRow < nRows; iRow++) {
-				Row& row = *(rows[iRow].get());
-				if (!(row.m_flagVisible)) {
-					continue;
-				}
-				if (rowHeightModes[iRow] == SizeMode::Wrapping) {
-					sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
-				}
-			}
-		}
-		if (nFillRows) {
-			if (sumHeight < 0) {
-				sumHeight = 0;
-			}
-			sl_ui_len heightRemain;
-			if (heightContainer > sumHeight) {
-				heightRemain = heightContainer - sumHeight;
-				if (heightRemain < 0) {
-					heightRemain = 0;
-				}
-			} else {
-				heightRemain = 0;
-			}
-			if (sumRowFillWeights < SLIB_EPSILON) {
-				sumRowFillWeights = 1;
-			}
-			for (iRow = 0; iRow < nRows; iRow++) {
-				Row& row = *(rows[iRow].get());
-				if (!(row.m_flagVisible)) {
-					continue;
-				}
-				if (rowHeightModes[iRow] == SizeMode::Filling) {
-					row.m_heightLayout = row._restrictHeight((sl_ui_len)(heightRemain * row.m_heightWeight / sumRowFillWeights));
-				}
-			}
-		}
-
 		UpdateLayoutFrameParam updateLayoutParam;
+		updateLayoutParam.parentContentFrame.left = 0;
+		updateLayoutParam.parentContentFrame.top = 0;
 		updateLayoutParam.flagUseLayout = sl_true;
 		updateLayoutParam.flagHorizontal = sl_true;
 		updateLayoutParam.flagVertical = sl_true;
+		for (int step = 0; step < 2; step++) {
+			sl_ui_len sumWidth = _sumWidth;
+			sl_ui_len sumHeight = _sumHeight;
+			if (flagWrappingCols) {
+				for (iRow = 0; iRow < nRows; iRow++) {
+					Row& row = *(rows[iRow].get());
+					if (!(row.m_flagVisible)) {
+						continue;
+					}
+					Cell* cells = row.m_cells.getData();
+					sl_uint32 nCells = Math::min((sl_uint32)(row.m_cells.getCount()), nCols);
+					for (iCol = 0; iCol < nCells; iCol++) {
+						if (!(cols[iCol]->m_flagVisible)) {
+							continue;
+						}
+						if (colWidthModes[iCol] == SizeMode::Wrapping) {
+							Cell& cell = cells[iCol];
+							Column& col = *(cols[iCol].get());
+							View* view = cell.view.get();
+							if (view && cell.colspan == 1) {
+								SizeMode mode = view->getWidthMode();
+								if (mode == SizeMode::Fixed || mode == SizeMode::Wrapping) {
+									updateLayoutParam.parentContentFrame.right = col.m_widthLayout - col.m_paddingLeft - col.m_paddingRight;
+									updateLayoutParam.parentContentFrame.bottom = row.m_heightLayout - row.m_paddingTop - row.m_paddingBottom;
+									view->setInvalidateLayoutFrameInParent();
+									view->updateLayoutFrameInParent(updateLayoutParam);
+									sl_ui_len w = col._restrictWidth(view->getLayoutWidth() + view->getMarginLeft() + view->getMarginRight() + col.m_paddingLeft + col.m_paddingRight);
+									if (w > col.m_widthLayout) {
+										col.m_widthLayout = w;
+									}
+								}
+							}
+						}
+					}
+				}
+				for (iCol = 0; iCol < nCols; iCol++) {
+					Column& col = *(cols[iCol].get());
+					if (!(col.m_flagVisible)) {
+						continue;
+					}
+					if (colWidthModes[iCol] == SizeMode::Wrapping) {
+						sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;;
+					}
+				}
+			}
+			if (nFillCols) {
+				if (sumWidth < 0) {
+					sumWidth = 0;
+				}
+				sl_ui_len widthRemain;
+				if (widthContainer > sumWidth) {
+					widthRemain = widthContainer - sumWidth;
+					if (widthRemain < 0) {
+						widthRemain = 0;
+					}
+				} else {
+					widthRemain = 0;
+				}
+				if (sumColFillWeights < SLIB_EPSILON) {
+					sumColFillWeights = 1;
+				}
+				for (iCol = 0; iCol < nCols; iCol++) {
+					Column& col = *(cols[iCol].get());
+					if (!(col.m_flagVisible)) {
+						continue;
+					}
+					if (colWidthModes[iCol] == SizeMode::Filling) {
+						col.m_widthLayout = col._restrictWidth((sl_ui_len)(widthRemain * col.m_widthWeight / sumColFillWeights));
+					}
+				}
+			}
+			if (flagWrappingRows) {
+				for (iRow = 0; iRow < nRows; iRow++) {
+					Row& row = *(rows[iRow].get());
+					if (!(row.m_flagVisible)) {
+						continue;
+					}
+					if (rowHeightModes[iRow] == SizeMode::Wrapping) {
+						Cell* cells = row.m_cells.getData();
+						sl_uint32 nCells = Math::min((sl_uint32)(row.m_cells.getCount()), nCols);
+						for (iCol = 0; iCol < nCells; iCol++) {
+							Cell& cell = cells[iCol];
+							Column& col = *(cols[iCol].get());
+							if (!(col.m_flagVisible)) {
+								continue;
+							}
+							View* view = cell.view.get();
+							if (view && cell.rowspan == 1) {
+								SizeMode mode = view->getHeightMode();
+								if (mode == SizeMode::Fixed || mode == SizeMode::Wrapping) {
+									updateLayoutParam.parentContentFrame.right = col.m_widthLayout - col.m_paddingLeft - col.m_paddingRight;
+									updateLayoutParam.parentContentFrame.bottom = row.m_heightLayout - row.m_paddingTop - row.m_paddingBottom;
+									view->setInvalidateLayoutFrameInParent();
+									if (col.m_widthLayout == 503) {
+										col.m_widthLayout = 503;
+									}
+									view->updateLayoutFrameInParent(updateLayoutParam);
+									sl_ui_len h = row._restrictHeight(view->getLayoutHeight() + view->getMarginTop() + view->getMarginBottom() + row.m_paddingTop + row.m_paddingBottom);
+									if (h > row.m_heightLayout) {
+										row.m_heightLayout = h;
+									}
+								}
+							}
+						}
+					}
+				}
+				for (iRow = 0; iRow < nRows; iRow++) {
+					Row& row = *(rows[iRow].get());
+					if (!(row.m_flagVisible)) {
+						continue;
+					}
+					if (rowHeightModes[iRow] == SizeMode::Wrapping) {
+						sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
+					}
+				}
+			}
+			if (nFillRows) {
+				if (sumHeight < 0) {
+					sumHeight = 0;
+				}
+				sl_ui_len heightRemain;
+				if (heightContainer > sumHeight) {
+					heightRemain = heightContainer - sumHeight;
+					if (heightRemain < 0) {
+						heightRemain = 0;
+					}
+				} else {
+					heightRemain = 0;
+				}
+				if (sumRowFillWeights < SLIB_EPSILON) {
+					sumRowFillWeights = 1;
+				}
+				for (iRow = 0; iRow < nRows; iRow++) {
+					Row& row = *(rows[iRow].get());
+					if (!(row.m_flagVisible)) {
+						continue;
+					}
+					if (rowHeightModes[iRow] == SizeMode::Filling) {
+						row.m_heightLayout = row._restrictHeight((sl_ui_len)(heightRemain * row.m_heightWeight / sumRowFillWeights));
+					}
+				}
+			}
+			if (!flagWrappingCols && !flagWrappingRows) {
+				break;
+			}
+		}
 		sl_ui_len y = paddingContainer.top;
 		for (iRow = 0; iRow < nRows; iRow++) {
 			Row& row = *(rows[iRow].get());
