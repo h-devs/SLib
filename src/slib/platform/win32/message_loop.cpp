@@ -36,7 +36,7 @@ namespace slib
 
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MessageLoopParam)
 
-			MessageLoopParam::MessageLoopParam()
+		MessageLoopParam::MessageLoopParam()
 		{
 			flagAutoStart = sl_true;
 
@@ -185,8 +185,7 @@ namespace slib
 		{
 			HINSTANCE hInstance = GetModuleHandleW(NULL);
 
-			WNDCLASSEXW wc;
-			Base::zeroMemory(&wc, sizeof(wc));
+			WNDCLASSEXW wc = { 0 };
 			wc.cbSize = sizeof(wc);
 			wc.style = m_styleClass;
 			wc.lpszClassName = (LPCWSTR)(m_name.getData());
