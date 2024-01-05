@@ -2952,19 +2952,26 @@ namespace slib
 					if (!m_flagUsingChildLayouts) {
 						break;
 					}
-				}
-				if (!(children.count)) {
-					break;
-				}
-				if (step) {
-					break;
-				}
-				if (!flagUsingRefer) {
-					if (frame.isAlmostEqual(layoutAttrs->layoutFrame)) {
+					if (step) {
+						break;
+					}
+					if (!(children.count)) {
+						break;
+					}
+					if (!flagUsingRefer) {
+						if (frame.isAlmostEqual(layoutAttrs->layoutFrame)) {
+							break;
+						}
+					}
+					frame = layoutAttrs->layoutFrame;
+				} else {
+					if (!flagUsingRefer) {
+						break;
+					}
+					if (!(children.count)) {
 						break;
 					}
 				}
-				frame = layoutAttrs->layoutFrame;
 			}
 			if (Base::interlockedIncrement32(&m_idUpdateInvalidateLayout) == updateId + 1) {
 				m_flagInvalidLayout = sl_false;
