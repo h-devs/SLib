@@ -2893,6 +2893,7 @@ namespace slib
 				if (paddingAttrs.isNotNull()) {
 					paddingAttrs->applyPaddingWeights(width, height);
 				}
+				sl_bool flagUsingRefer = sl_false;
 				if (children.count > 0 && (layoutAttrs.isNull() || !(layoutAttrs->flagCustomLayout))) {
 					UpdateLayoutFrameParam param;
 					Ref<PaddingAttributes>& paddingAttrs = m_paddingAttrs;
@@ -2914,6 +2915,14 @@ namespace slib
 						for (sl_size i = 0; i < children.count; i++) {
 							Ref<View>& child = children[i];
 							child->setInvalidateLayoutFrameInParent();
+							if (!flagUsingRefer) {
+								Ref<LayoutAttributes>& attrs = child->m_layoutAttrs;
+								if (attrs.isNotNull()) {
+									if (attrs->leftReferingView.isNotNull() || attrs->rightReferingView.isNotNull() || attrs->topReferingView.isNotNull() || attrs->bottomReferingView.isNotNull()) {
+										flagUsingRefer = sl_true;
+									}
+								}
+							}
 						}
 					}
 					{
@@ -2950,8 +2959,10 @@ namespace slib
 				if (step) {
 					break;
 				}
-				if (frame.isAlmostEqual(layoutAttrs->layoutFrame)) {
-					break;
+				if (!flagUsingRefer) {
+					if (frame.isAlmostEqual(layoutAttrs->layoutFrame)) {
+						break;
+					}
 				}
 				frame = layoutAttrs->layoutFrame;
 			}
