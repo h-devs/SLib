@@ -26,6 +26,7 @@
 #include "slib/ui/cursor.h"
 #include "slib/ui/clipboard.h"
 #include "slib/graphics/util.h"
+#include "slib/ui/priv/view_state_map.h"
 
 #include "../resources.h"
 

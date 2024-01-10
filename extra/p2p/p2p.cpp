@@ -2311,7 +2311,7 @@ namespace slib
 				_sendFindNode(address, nodeId);
 			}
 
-			sl_bool getEncryptionKeyForNode(const P2PNodeId& nodeId, void* outKey)
+			sl_bool getEncryptionKeyForNode(const P2PNodeId& nodeId, void* outKey) override
 			{
 				Ref<Node> node = m_mapNodes.getValue(nodeId, sl_null, sl_true);
 				if (node.isNotNull()) {
