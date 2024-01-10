@@ -189,7 +189,7 @@ namespace slib
 					hInst,
 					NULL);
 
-				if ((style & WS_THICKFRAME) && (style & WS_CAPTION) != WS_CAPTION) {
+				if ((style & WS_THICKFRAME) && (style & WS_CAPTION) != WS_CAPTION && Win32::isWindows10OrGreater()) {
 					auto api = dwmapi::getApi_DwmExtendFrameIntoClientArea();
 					if (api) {
 						dwmapi::MARGINS m = { -1 };
@@ -809,7 +809,7 @@ namespace slib
 				if (m_flagTitleBar || m_flagBorderless) {
 					return sl_false;
 				}
-				if (m_flagResizable) {
+				if (m_flagResizable && Win32::isWindows10OrGreater()) {
 					if (wParam) {
 						result = 0;
 						return sl_true;

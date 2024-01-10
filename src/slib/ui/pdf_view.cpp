@@ -595,11 +595,9 @@ namespace slib
 					}
 					if (dy2 > dy1) {
 						if (cache.isNotNull()) {
-							sl_bool flagAntialias = canvas->isAntiAlias();
-							canvas->setAntiAlias(sl_false);
+							CanvasAntiAliasScope scope(canvas, sl_false);
 							Rectangle rcSrc(0, (sl_real)(dy1 - topPage), width, (sl_real)(dy2 - topPage));
 							canvas->draw(Rectangle(0, (sl_real)dy1, width, (sl_real)dy2), cache->bitmap, rcSrc);
-							canvas->setAntiAlias(flagAntialias);
 						} else {
 							canvas->fillRectangle(Rectangle(0, (sl_real)dy1, width, (sl_real)dy2), BACKGROUND_COLOR);
 						}

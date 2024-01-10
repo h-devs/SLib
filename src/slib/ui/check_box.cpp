@@ -163,10 +163,11 @@ namespace slib
 			void onDrawAll(Canvas* canvas, const Rectangle& rect, const DrawParam& param) override
 			{
 				sl_bool flagAntiAlias = canvas->isAntiAlias();
-				canvas->setAntiAlias(sl_false);
+				if (flagAntiAlias) {
+					canvas->setAntiAlias(sl_false);
+				}
 				canvas->drawRectangle(rect, m_penBorder, m_brush);
-				canvas->setAntiAlias(flagAntiAlias);
-
+				canvas->setAntiAlias(sl_true);
 				if (m_penCheck.isNotNull()) {
 					Point pts[3];
 					pts[0] = Point(0.2f, 0.6f);
@@ -177,6 +178,9 @@ namespace slib
 						pts[i].y = rect.top + rect.getHeight() * pts[i].y;
 					}
 					canvas->drawLines(pts, 3, m_penCheck);
+				}
+				if (!flagAntiAlias) {
+					canvas->setAntiAlias(sl_false);
 				}
 			}
 

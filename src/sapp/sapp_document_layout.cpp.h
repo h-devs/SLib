@@ -2241,6 +2241,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, contentRadiusX, setContentRadiusX, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, contentRadiusY, setContentRadiusY, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, contentShape, setContentShape)
+		LAYOUT_CONTROL_STATE_MAP(COLOR, paddingColor, setPaddingColor)
 
 		LAYOUT_CONTROL_UI_ATTR(FONT, font, setFont)
 		if (op == SAppLayoutOperation::Parse) {

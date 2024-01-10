@@ -421,13 +421,11 @@ namespace slib
 			if (thumb.isNotNull()) {
 				Color color;
 				if (ColorDrawable::check(thumb, &color)) {
-					sl_bool flagAntiAlias = canvas->isAntiAlias();
-					canvas->setAntiAlias(sl_true);
+					CanvasAntiAliasScope scope(canvas, sl_true);
 					sl_real r = Math::min(thumbRegion.getWidth(), thumbRegion.getHeight()) * 0.5f;
 					sl_real padding = 2;
 					r -= padding;
 					canvas->fillRoundRect(Rectangle(thumbRegion.left + padding - 1, thumbRegion.top + padding, thumbRegion.right - padding, thumbRegion.bottom - padding), Size(r, r), color);
-					canvas->setAntiAlias(flagAntiAlias);
 				} else {
 					canvas->draw(thumbRegion, thumb);
 				}

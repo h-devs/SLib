@@ -2018,15 +2018,9 @@ namespace slib
 
 	void Svg::render(Canvas* canvas, const Rectangle& rectDraw, const DrawParam& param)
 	{
-		sl_bool flagAnitiAlias = canvas->isAntiAlias();
-		if (!flagAnitiAlias) {
-			canvas->setAntiAlias();
-		}
 		ObjectLocker locker(this);
+		CanvasAntiAliasScope scope(canvas, sl_true);
 		((Document*)(m_document.get()))->render(canvas, rectDraw, param);
-		if (!flagAnitiAlias) {
-			canvas->setAntiAlias(sl_false);
-		}
 	}
 
 	Scalar Svg::getGlobalFontSize()

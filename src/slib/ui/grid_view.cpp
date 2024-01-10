@@ -511,14 +511,8 @@ namespace slib
 				TextCell::onDrawContent(canvas, textFrame, param);
 				UIRect iconFrame = frame;
 				iconFrame.left = textFrame.right;
-				sl_bool flagAntiAlias = canvas->isAntiAlias();
-				if (!flagAntiAlias) {
-					canvas->setAntiAlias(sl_true);
-				}
+				CanvasAntiAliasScope scope(canvas, sl_true);
 				canvas->draw(iconFrame, icon, ScaleMode::Contain, Alignment::MiddleCenter);
-				if (!flagAntiAlias) {
-					canvas->setAntiAlias(sl_false);
-				}
 				return;
 			}
 		}

@@ -258,6 +258,7 @@ namespace slib
 		SAppDimensionFloatValue contentRadiusX;
 		SAppDimensionFloatValue contentRadiusY;
 		SAppDimensionFloatValue contentRadius;
+		SAppStateMap<SAppColorValue> paddingColor;
 
 		SAppFontValue font;
 

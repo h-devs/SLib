@@ -359,6 +359,7 @@ namespace slib
 	View::DrawAttributes::DrawAttributes():
 		flagUsingFont(sl_false),
 		flagOpaque(sl_false),
+		flagInheritedAntiAlias(sl_true),
 		flagAntiAlias(sl_false),
 		flagLayer(sl_false),
 
@@ -6010,6 +6011,35 @@ namespace slib
 		}
 	}
 
+	Color View::getPaddingColor(ViewState state)
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->paddingColors.get(state);
+		}
+		return Color::zero();
+	}
+
+	void View::setPaddingColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->paddingColors.set(state, color);
+			invalidate(mode);
+		}
+	}
+
+	void View::setPaddingColor(const Color& color, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->paddingColors.defaultValue = color;
+			invalidate(mode);
+		}
+	}
+
 	Ref<Font> View::getFont()
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
@@ -6168,6 +6198,26 @@ namespace slib
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
 			attrs->flagAntiAlias = flagAntiAlias;
+			attrs->flagInheritedAntiAlias = sl_false;
+			invalidateBoundsInParent(mode);
+		}
+	}
+
+	sl_bool View::isInheritedAntiAlias()
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->flagInheritedAntiAlias;
+		}
+		return sl_false;
+	}
+
+	void View::setInheritedAntiAlias(UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->flagInheritedAntiAlias = sl_true;
 			invalidateBoundsInParent(mode);
 		}
 	}
@@ -8614,24 +8664,28 @@ namespace slib
 			switch (getBoundShape()) {
 				case BoundShape::Rectangle:
 					{
-						if (canvas->isAntiAlias()) {
-							canvas->setAntiAlias(sl_false);
-							canvas->drawRectangle(getBounds(), pen);
-							canvas->setAntiAlias(sl_true);
-						} else {
-							canvas->drawRectangle(getBounds(), pen);
-						}
+						CanvasAntiAliasScope scope(canvas, sl_false);
+						canvas->drawRectangle(getBounds(), pen);
 						break;
 					}
 				case BoundShape::RoundRect:
-					canvas->drawRoundRect(getBounds(), getBoundRadius(), pen);
-					break;
+					{
+						CanvasAntiAliasScope scope(canvas, sl_true);
+						canvas->drawRoundRect(getBounds(), getBoundRadius(), pen);
+						break;
+					}
 				case BoundShape::Ellipse:
-					canvas->drawEllipse(getBounds(), pen);
-					break;
+					{
+						CanvasAntiAliasScope scope(canvas, sl_true);
+						canvas->drawEllipse(getBounds(), pen);
+						break;
+					}
 				case BoundShape::Path:
-					canvas->drawPath(getBoundPath(), pen);
-					break;
+					{
+						CanvasAntiAliasScope scope(canvas, sl_true);
+						canvas->drawPath(getBoundPath(), pen);
+						break;
+					}
 				default:
 					break;
 			}
@@ -8783,9 +8837,8 @@ namespace slib
 
 	void View::drawContent(Canvas* canvas)
 	{
-
 		Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
-
+		Ref<DrawAttributes>& drawAttrs = m_drawAttrs;
 		if (m_flagSavingCanvasState || (scrollAttrs.isNotNull() && scrollAttrs->flagScrollCanvas) || getContentShape() != BoundShape::None) {
 			CanvasStateScope scope(canvas);
 			onDrawBackground(canvas);
@@ -8797,10 +8850,20 @@ namespace slib
 				}
 			}
 			clipContentBounds(canvas);
-			invokeDraw(canvas);
+			if (drawAttrs.isNotNull() && !(drawAttrs->flagInheritedAntiAlias)) {
+				CanvasAntiAliasScope scope(canvas, drawAttrs->flagAntiAlias);
+				invokeDraw(canvas);
+			} else {
+				invokeDraw(canvas);
+			}
 		} else {
 			onDrawBackground(canvas);
-			invokeDraw(canvas);
+			if (drawAttrs.isNotNull() && !(drawAttrs->flagInheritedAntiAlias)) {
+				CanvasAntiAliasScope scope(canvas, drawAttrs->flagAntiAlias);
+				invokeDraw(canvas);
+			} else {
+				invokeDraw(canvas);
+			}
 		}
 
 		{
@@ -9218,6 +9281,24 @@ namespace slib
 	void View::onDrawBackground(Canvas* canvas)
 	{
 		drawBackground(canvas, getCurrentBackground());
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			Color color = attrs->paddingColors.evaluate(getState());
+			if (color.isNotZero()) {
+				Ref<Brush> brush = Brush::createSolidBrush(color);
+				if (brush.isNotNull()) {
+					CanvasAntiAliasScope scope(canvas, sl_false);
+					UIEdgeInsets padding = getPadding();
+					sl_ui_len w = m_frame.getWidth();
+					sl_ui_len h = m_frame.getHeight();
+					canvas->fillRectangle(0, 0, (sl_real)w, (sl_real)(padding.top), brush);
+					sl_ui_len h2 = h - padding.bottom - padding.top;
+					canvas->fillRectangle(0, (sl_real)(padding.top), (sl_real)(padding.left), (sl_real)h, brush);
+					canvas->fillRectangle((sl_real)(w - padding.right), (sl_real)(padding.top), (sl_real)(padding.right), (sl_real)h, brush);
+					canvas->fillRectangle(0, (sl_real)(h - padding.bottom), (sl_real)w, (sl_real)h, brush);
+				}
+			}
+		}
 	}
 
 	void View::onDrawBorder(Canvas* canvas)
@@ -9271,11 +9352,6 @@ namespace slib
 				_updateAndApplyLayoutWithMode(UIUpdateMode::None);
 			}
 
-			sl_bool flagAntiAlias = isAntiAlias() && !(canvas->isAntiAlias());
-			if (flagAntiAlias) {
-				canvas->setAntiAlias();
-			}
-
 			if (m_flagDrawing) {
 
 				getOnPreDraw()(this, canvas);
@@ -9299,10 +9375,6 @@ namespace slib
 						drawChildren(canvas, children.data, children.count);
 					}
 				}
-			}
-
-			if (flagAntiAlias) {
-				canvas->setAntiAlias(sl_false);
 			}
 
 			Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;

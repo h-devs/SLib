@@ -8559,10 +8559,6 @@ namespace slib
 		}
 
 		Canvas* canvas = param.canvas;
-
-		sl_bool flagOldAntiAlias = canvas->isAntiAlias();
-		canvas->setAntiAlias();
-
 		Ref<Context> context = GetContextRef(m_context);
 
 		Renderer renderer;
@@ -8571,7 +8567,9 @@ namespace slib
 		renderer.resources = this;
 		renderer.cache = param.cache.get();
 
-		CanvasStateScope scope(canvas);
+		CanvasStateScope stateScope(canvas);
+		CanvasAntiAliasScope antiAliasScope(canvas, sl_true);
+
 		Rectangle bounds = param.bounds;
 		Swap(bounds.top, bounds.bottom);
 		canvas->concatMatrix(Transform2::getTransformMatrixFromRectToRect(getMediaBox(), bounds));
@@ -8588,8 +8586,6 @@ namespace slib
 				canvas->restore();
 			}
 		}
-
-		canvas->setAntiAlias(flagOldAntiAlias);
 	}
 
 	Rectangle PdfPage::getMediaBox()

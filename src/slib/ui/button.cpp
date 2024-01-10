@@ -1439,10 +1439,8 @@ namespace slib
 		onDrawContent(canvas);
 		Ref<Pen> border = getFinalBorder(state);
 		if (border.isNotNull()) {
-			sl_bool flagAntiAlias = canvas->isAntiAlias();
-			canvas->setAntiAlias(sl_false);
+			CanvasAntiAliasScope scope(canvas, sl_false);
 			canvas->drawRectangle(frame, border);
-			canvas->setAntiAlias(flagAntiAlias);
 		}
 	}
 

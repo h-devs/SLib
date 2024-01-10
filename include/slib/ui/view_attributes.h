@@ -164,6 +164,7 @@ namespace slib
 	public:
 		sl_bool flagUsingFont : 1;
 		sl_bool flagOpaque : 1;
+		sl_bool flagInheritedAntiAlias : 1;
 		sl_bool flagAntiAlias : 1;
 		sl_bool flagLayer : 1;
 
@@ -184,6 +185,8 @@ namespace slib
 		BoundShape contentShape;
 		Size contentRadius;
 		AtomicRef<GraphicsPath> contentBoundPath;
+
+		ViewStateMap<Color> paddingColors;
 
 		AtomicRef<Font> font;
 		sl_real alpha;

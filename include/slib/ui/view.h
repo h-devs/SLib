@@ -889,6 +889,12 @@ namespace slib
 
 		void setContentBoundPath(const Ref<GraphicsPath>& path, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Color getPaddingColor(ViewState state = ViewState::Default);
+
+		void setPaddingColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setPaddingColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 
 		Ref<Font> getFont();
 
@@ -912,6 +918,10 @@ namespace slib
 		sl_bool isAntiAlias();
 
 		void setAntiAlias(sl_bool flagAntiAlias = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isInheritedAntiAlias();
+
+		void setInheritedAntiAlias(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isOpaque();
 
