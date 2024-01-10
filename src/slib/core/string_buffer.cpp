@@ -77,6 +77,40 @@ namespace slib
 		return m_len; \
 	} \
 	\
+	typename BUFFER::Char BUFFER::getFirstChar() const noexcept \
+	{ \
+		Link<StringStorage>* link = m_queue.getFront(); \
+		if (link) { \
+			StringStorage& storage = link->value; \
+			return *((typename BUFFER::Char*)(storage.data)); \
+		} \
+		return 0; \
+	} \
+	\
+	typename BUFFER::Char BUFFER::getLastChar() const noexcept \
+	{ \
+		Link<StringStorage>* link = m_queue.getBack(); \
+		if (link) { \
+			StringStorage& storage = link->value; \
+			return ((typename BUFFER::Char*)(storage.data))[storage.length - 1]; \
+		} \
+		return 0; \
+	} \
+	\
+	typename BUFFER::Char BUFFER::getCharAt(sl_size index) const noexcept \
+	{ \
+		Link<StringStorage>* link = m_queue.getFront(); \
+		while (link) { \
+			StringStorage& storage = link->value; \
+			if (index < storage.length) { \
+				return ((typename BUFFER::Char*)(storage.data))[index]; \
+			} \
+			index -= storage.length; \
+			link = link->next; \
+		} \
+		return 0; \
+	} \
+	\
 	sl_bool BUFFER::add(typename BUFFER::StringType const& str) noexcept \
 	{ \
 		sl_size len = str.getLength(); \

@@ -4667,6 +4667,27 @@ namespace slib
 		} \
 	} \
 	\
+	typename STRING::Char STRING::getFirst() const noexcept \
+	{ \
+		if (m_container) { \
+			if (m_container->len) { \
+				return *(m_container->sz); \
+			} \
+		} \
+		return 0; \
+	} \
+	\
+	typename STRING::Char STRING::getLast() const noexcept \
+	{ \
+		if (m_container) { \
+			sl_size n = m_container->len; \
+			if (n) { \
+				return m_container->sz[n - 1]; \
+			} \
+		} \
+		return 0; \
+	} \
+	\
 	typename STRING::Char STRING::getAt(sl_reg index) const noexcept \
 	{ \
 		if (m_container) { \

@@ -435,6 +435,16 @@ namespace slib
 		void setHashCode(sl_size hash) noexcept;
 
 		/**
+		 * @return the first character
+		 */
+		sl_char32 getFirst() const noexcept;
+
+		/**
+		 * @return the last character
+		 */
+		sl_char32 getLast() const noexcept;
+
+		/**
 		 * @return the character at `index` in string.
 		 */
 		sl_char32 getAt(sl_reg index) const noexcept;
