@@ -818,6 +818,25 @@ namespace slib
 				return sl_false;
 			}
 
+			sl_bool _onNcActivate(WPARAM wParam, LPARAM lParam, LRESULT& result)
+			{
+				HWND handle = m_handle;
+				if (!handle) {
+					return sl_false;
+				}
+				if (m_flagTitleBar || m_flagBorderless) {
+					return sl_false;
+				}
+				if (m_flagResizable && Win32::isWindows10OrGreater()) {
+					if (IsIconic(handle)) {
+						return sl_false;
+					}
+					result = 1;
+					return sl_true;
+				}
+				return sl_false;
+			}
+
 			sl_bool _onGetMinMaxInfo(WPARAM wParam, LPARAM lParam, LRESULT& result)
 			{
 				HWND handle = m_handle;
@@ -970,6 +989,14 @@ namespace slib
 						{
 							LRESULT result;
 							if (window->_onNcCalcSize(wParam, lParam, result)) {
+								return result;
+							}
+							break;
+						}
+					case WM_NCACTIVATE:
+						{
+							LRESULT result;
+							if (window->_onNcActivate(wParam, lParam, result)) {
 								return result;
 							}
 							break;

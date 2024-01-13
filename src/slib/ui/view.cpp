@@ -9293,9 +9293,9 @@ namespace slib
 					sl_ui_len h = m_frame.getHeight();
 					canvas->fillRectangle(0, 0, (sl_real)w, (sl_real)(padding.top), brush);
 					sl_ui_len h2 = h - padding.bottom - padding.top;
-					canvas->fillRectangle(0, (sl_real)(padding.top), (sl_real)(padding.left), (sl_real)h, brush);
-					canvas->fillRectangle((sl_real)(w - padding.right), (sl_real)(padding.top), (sl_real)(padding.right), (sl_real)h, brush);
-					canvas->fillRectangle(0, (sl_real)(h - padding.bottom), (sl_real)w, (sl_real)h, brush);
+					canvas->fillRectangle(0, (sl_real)(padding.top), (sl_real)(padding.left), (sl_real)h2, brush);
+					canvas->fillRectangle((sl_real)(w - padding.right), (sl_real)(padding.top), (sl_real)(padding.right), (sl_real)h2, brush);
+					canvas->fillRectangle(0, (sl_real)(h - padding.bottom), (sl_real)w, (sl_real)(padding.bottom), brush);
 				}
 			}
 		}
