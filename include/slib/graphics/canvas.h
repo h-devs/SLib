@@ -437,9 +437,6 @@ namespace slib
 
 		~CanvasAntiAliasScope();
 
-	private:
-		sl_bool m_flagUpdatedAntiAlias;
-
 	};
 
 }

@@ -48,6 +48,12 @@ namespace slib
 
 		void setLabelColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Ref<Font> getLabelFont();
+
+		void setLabelFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setLabelFont(const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 	protected:
 		void onDrawBorder(Canvas* canvas) override;
 
@@ -59,6 +65,7 @@ namespace slib
 	protected:
 		AtomicString m_label;
 		Color m_labelColor;
+		AtomicRef<Font> m_labelFont;
 
 		sl_ui_len m_paddingBorder;
 		sl_ui_len m_paddingTop;

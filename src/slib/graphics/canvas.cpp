@@ -107,7 +107,7 @@ namespace slib
 
 	void Canvas::setAntiAlias(sl_bool flag)
 	{
-		if (m_flagAntiAlias != flag) {
+		if (!m_flagAntiAlias != !flag) {
 			m_flagAntiAlias = flag;
 			_setAntiAlias(flag);
 		}
@@ -607,19 +607,12 @@ namespace slib
 	CanvasAntiAliasScope::CanvasAntiAliasScope(Canvas* _canvas, sl_bool flagAntiAlias): canvas(_canvas)
 	{
 		flagOriginalAntiAlias = _canvas->isAntiAlias();
-		if (!flagAntiAlias != !flagOriginalAntiAlias) {
-			_canvas->setAntiAlias(flagAntiAlias);
-			m_flagUpdatedAntiAlias = sl_true;
-		} else {
-			m_flagUpdatedAntiAlias = sl_false;
-		}
+		_canvas->setAntiAlias(flagAntiAlias);
 	}
 
 	CanvasAntiAliasScope::~CanvasAntiAliasScope()
 	{
-		if (m_flagUpdatedAntiAlias) {
-			canvas->setAntiAlias(flagOriginalAntiAlias);
-		}
+		canvas->setAntiAlias(flagOriginalAntiAlias);
 	}
 
 }

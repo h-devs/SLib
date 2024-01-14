@@ -768,10 +768,17 @@ namespace slib
 					RECT rc = { 0 };
 					GetWindowRect(handle, &rc);
 #define BORDER_SIZE 4
-					rc.left += BORDER_SIZE;
-					rc.top += BORDER_SIZE;
-					rc.right -= BORDER_SIZE;
-					rc.bottom -= BORDER_SIZE;
+					rc.left -= BORDER_SIZE;
+					rc.top -= BORDER_SIZE;
+					rc.right += BORDER_SIZE;
+					rc.bottom += BORDER_SIZE;
+					if (!(PtInRect(&rc, POINT{ x, y }))) {
+						return sl_false;
+					}
+					rc.left += BORDER_SIZE * 2;
+					rc.top += BORDER_SIZE * 2;
+					rc.right -= BORDER_SIZE * 2;
+					rc.bottom -= BORDER_SIZE * 2;
 					if (x >= rc.right) {
 						if (y >= rc.bottom) {
 							result = HTBOTTOMRIGHT;

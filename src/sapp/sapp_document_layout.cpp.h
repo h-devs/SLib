@@ -3623,6 +3623,12 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, contentBackground, setContentBackground)
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, tabBackground, setTabBackground)
 		LAYOUT_CONTROL_STATE_MAP(COLOR, labelColor, setLabelColor)
+		LAYOUT_CONTROL_UI_ATTR(FONT, labelFont, setLabelFont)
+		if (op == SAppLayoutOperation::Parse) {
+			if (attr->labelFont.flagDefined) {
+				attr->labelFont.inheritFrom(attr->font);
+			}
+		}
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, tabAlign, setTabAlignment)
 
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, tabPaddingLeft, setTabPaddingLeft, checkPosition)
@@ -4459,6 +4465,12 @@ namespace slib
 
 		LAYOUT_CONTROL_UI_ATTR(STRING, label, setLabel)
 		LAYOUT_CONTROL_UI_ATTR(COLOR, labelColor, setLabelColor)
+		LAYOUT_CONTROL_UI_ATTR(FONT, labelFont, setLabelFont)
+		if (op == SAppLayoutOperation::Parse) {
+			if (attr->labelFont.flagDefined) {
+				attr->labelFont.inheritFrom(attr->font);
+			}
+		}
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 

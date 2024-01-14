@@ -680,6 +680,7 @@ namespace slib
 		SAppDrawableValue contentBackground;
 		SAppStateMap<SAppDrawableValue> tabBackground;
 		SAppStateMap<SAppColorValue> labelColor;
+		SAppFontValue labelFont;
 		SAppAlignmentValue tabAlign;
 		SAppDimensionValue tabPaddingLeft;
 		SAppDimensionValue tabPaddingTop;
@@ -927,6 +928,7 @@ namespace slib
 	public:
 		SAppStringValue label;
 		SAppColorValue labelColor;
+		SAppFontValue labelFont;
 	};
 
 	class SAppLayoutGridCellAttributes

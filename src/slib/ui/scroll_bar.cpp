@@ -548,7 +548,7 @@ namespace slib
 	{
 		View::onSetCursor(ev);
 		CHECK_STATUS()
-		ev->accept();
+		ev->acceptByNative();
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Changing, (sl_scroll_pos& value, UIEvent* ev), value, ev)
