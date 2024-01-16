@@ -155,14 +155,13 @@ namespace slib
 			return sl_false;
 		}
 
-		Ref<SAppLayoutResource> layout = new SAppLayoutResource;
+		Ref<SAppLayoutResource> layout = new SAppLayoutResource(element);
 		if (layout.isNull()) {
 			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
 
 		layout->filePath = filePath;
-		layout->element = element;
 
 		if (m_layouts.find(localNamespace)) {
 			logError(element, g_str_error_resource_layout_name_redefined, localNamespace);
@@ -356,18 +355,14 @@ namespace slib
 
 	Ref<SAppLayoutResourceItem> SAppDocument::_parseLayoutResourceItemChild(SAppLayoutResource* layout, SAppLayoutResourceItem* parentItem, const Ref<XmlElement>& element, const String16& source)
 	{
-		Ref<SAppLayoutResourceItem> childItem = new SAppLayoutResourceItem;
+		Ref<SAppLayoutResourceItem> childItem = new SAppLayoutResourceItem(element);
 		if (childItem.isNull()) {
 			logError(element, g_str_error_out_of_memory);
 			return sl_null;
 		}
-
-		childItem->element = element;
-
 		if (!(_parseLayoutResourceItem(layout, childItem.get(), parentItem, source))) {
 			return sl_null;
 		}
-
 		return childItem;
 	}
 
@@ -916,22 +911,26 @@ namespace slib
 		}
 		String strStyles = item->getXmlAttributeWithoutStyle("style").trim();
 		if (strStyles.isNotEmpty()) {
-			item->init();
-			ListElements<String> arr(strStyles.split(","));
-			for (sl_size i = 0; i < arr.count; i++) {
-				String s = arr[i].trim();
-				Ref<SAppLayoutStyle> style;
-				getItemFromMap(m_layoutStyles, localNamespace, s, sl_null, &style);
-				if (style.isNotNull()) {
-					if (!(item->styles.add_NoLock(Move(style)))) {
-						logError(item->element, g_str_error_out_of_memory);
+			List< Ref<SAppLayoutStyle> > styles = Ref< CList< Ref<SAppLayoutStyle> > >::from(item->element->getProperty("styles").getRef());
+			if (styles.isNull()) {
+				ListElements<String> arr(strStyles.split(","));
+				for (sl_size i = 0; i < arr.count; i++) {
+					String s = arr[i].trim();
+					Ref<SAppLayoutStyle> style;
+					getItemFromMap(m_layoutStyles, localNamespace, s, sl_null, &style);
+					if (style.isNotNull()) {
+						if (!(styles.add_NoLock(Move(style)))) {
+							logError(item->element, g_str_error_out_of_memory);
+							return sl_false;
+						}
+					} else {
+						logError(item->element, g_str_error_layout_style_not_found, s);
 						return sl_false;
 					}
-				} else {
-					logError(item->element, g_str_error_layout_style_not_found, s);
-					return sl_false;
 				}
+				item->element->setProperty("styles", styles.ref);
 			}
+			item->styles = Move(styles);
 		}
 		return sl_true;
 	}

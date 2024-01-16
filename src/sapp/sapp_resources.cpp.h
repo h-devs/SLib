@@ -315,27 +315,8 @@ namespace slib
 		return String::null();
 	}
 
-	SAppLayoutXmlItem::SAppLayoutXmlItem()
-	{
-	}
-
-	SAppLayoutXmlItem::~SAppLayoutXmlItem()
-	{
-		if (element.isNotNull()) {
-			element->clearProperty("xml-item");
-		}
-	}
-
 	SAppLayoutXmlItem::SAppLayoutXmlItem(const Ref<XmlElement>& _element): element(_element)
 	{
-		init();
-	}
-
-	void SAppLayoutXmlItem::init()
-	{
-		if (element.isNotNull()) {
-			element->setProperty("xml-item", (void*)this);
-		}
 	}
 
 	String SAppLayoutXmlItem::getXmlAttribute(const String& name)
@@ -372,9 +353,11 @@ namespace slib
 		String vName = ":" + name;
 		Ref<XmlElement> e = element;
 		do {
-			SAppLayoutXmlItem* item = (SAppLayoutXmlItem*)(e->getProperty("xml-item").getPointer());
-			if (item) {
-				String value = item->getXmlAttribute(vName);
+			Ref<CRef> refStyles = e->getProperty("styles").getRef();
+			if (refStyles.isNotNull()) {
+				SAppLayoutXmlItem item(e);
+				item.styles = Ref< CList< Ref<SAppLayoutStyle> > >::from(refStyles);
+				String value = item.getXmlAttribute(vName);
 				if (value.isNotNull()) {
 					return value;
 				}
@@ -411,7 +394,24 @@ namespace slib
 			}
 			return value;
 		}
+		if (len == 1) {
+			return value;
+		}
 		sl_char8* data = value.getData();
+		if (*data == '$') {
+			String attr(data + 1, len - 1);
+			for (sl_size i = 0; i < 100; i++) {
+				String value = getXmlAttribute(attr);
+				if (value.isNotNull()) {
+					return value;
+				}
+				if (value.startsWith('$')) {
+					attr = value.substring(1);
+				} else {
+					break;
+				}
+			}
+		}
 		sl_char8* s = data;
 		sl_char8* e = s + len;
 		sl_char8* p = s;
@@ -485,7 +485,7 @@ namespace slib
 	}
 
 
-	SAppLayoutResourceItem::SAppLayoutResourceItem()
+	SAppLayoutResourceItem::SAppLayoutResourceItem(const Ref<XmlElement>& _element): SAppLayoutXmlItem(_element)
 	{
 		arrayIndex = -1;
 		itemType = SAppLayoutItemType::Unknown;
@@ -495,7 +495,7 @@ namespace slib
 		flagSkipSimulateChildren = sl_false;
 	}
 
-	SAppLayoutResource::SAppLayoutResource()
+	SAppLayoutResource::SAppLayoutResource(const Ref<XmlElement>& _element): SAppLayoutResourceItem(_element)
 	{
 		layoutType = SAppLayoutType::View;
 		itemType = SAppLayoutItemType::ViewGroup;

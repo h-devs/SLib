@@ -8134,7 +8134,7 @@ namespace slib
 				Ref<View>& child = children[i];
 				if (child.isNotNull()) {
 					if (child->isVisible() && child->isEnabled()) {
-						if (child->isFocusable()) {
+						if (child->isFocusable() && child->isTabStopEnabled() && child->isEnabled()) {
 							return child;
 						}
 						Ref<View> v = child->getFirstFocusableDescendant();
@@ -8172,7 +8172,7 @@ namespace slib
 						if (v.isNotNull()) {
 							return v;
 						}
-						if (child->isFocusable()) {
+						if (child->isFocusable() && child->isTabStopEnabled() && child->isEnabled()) {
 							return child;
 						}
 					}
@@ -8191,7 +8191,7 @@ namespace slib
 			Ref<View>& child = children[i];
 			if (child.isNotNull()) {
 				if (child->isVisible() && child->isEnabled()) {
-					if (child->isFocusable()) {
+					if (child->isFocusable() && child->isTabStopEnabled() && child->isEnabled()) {
 						return child;
 					}
 					Ref<View> v = child->getFirstFocusableDescendant();
@@ -8215,7 +8215,7 @@ namespace slib
 					if (v.isNotNull()) {
 						return v;
 					}
-					if (child->isFocusable() && child->isEnabled()) {
+					if (child->isFocusable() && child->isTabStopEnabled() && child->isEnabled()) {
 						return child;
 					}
 				}
@@ -9514,13 +9514,12 @@ namespace slib
 			}
 
 			if (!(ev->isAccepted())) {
-
 				if (m_flagFocusable) {
 					if (action == UIAction::LeftButtonDown || action == UIAction::RightButtonDown || action == UIAction::MiddleButtonDown) {
 						setFocus();
+						ev->accept();
 					}
 				}
-
 				invokeMouseEvent(ev);
 			}
 		}
@@ -10527,38 +10526,38 @@ namespace slib
 			} else {
 				Keycode keycode = ev->getKeycode();
 				switch (keycode) {
-				case Keycode::Tab:
-					if (isTabStopEnabled() && !(hasFocalChild())) {
-						if (ev->isShiftKey()) {
-							Ref<View> v = getPreviousTabStop();
-							if (v.isNotNull() && v != this) {
-								v->setFocus();
-								ev->accept();
-							}
-						} else {
-							Ref<View> v = getNextTabStop();
-							if (v.isNotNull() && v != this) {
-								v->setFocus();
-								ev->accept();
+					case Keycode::Tab:
+						if (!(hasFocalChild())) {
+							if (ev->isShiftKey()) {
+								Ref<View> v = getPreviousTabStop();
+								if (v.isNotNull() && v != this) {
+									v->setFocus();
+									ev->accept();
+								}
+							} else {
+								Ref<View> v = getNextTabStop();
+								if (v.isNotNull() && v != this) {
+									v->setFocus();
+									ev->accept();
+								}
 							}
 						}
-					}
-					break;
-				case Keycode::Enter:
-				case Keycode::NumpadEnter:
-					if (m_flagOkCancelEnabled) {
-						invokeOK();
-						ev->accept();
-					}
-					break;
-				case Keycode::Escape:
-					if (m_flagOkCancelEnabled) {
-						invokeCancel();
-						ev->accept();
-					}
-					break;
-				default:
-					break;
+						break;
+					case Keycode::Enter:
+					case Keycode::NumpadEnter:
+						if (m_flagOkCancelEnabled) {
+							invokeOK();
+							ev->accept();
+						}
+						break;
+					case Keycode::Escape:
+						if (m_flagOkCancelEnabled) {
+							invokeCancel();
+							ev->accept();
+						}
+						break;
+					default:
+						break;
 				}
 			}
 		}

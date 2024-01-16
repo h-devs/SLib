@@ -1171,13 +1171,9 @@ namespace slib
 		List< Ref<SAppLayoutStyle> > styles;
 
 	public:
-		SAppLayoutXmlItem();
-		~SAppLayoutXmlItem();
-		SAppLayoutXmlItem(const Ref<XmlElement>& _element);
+		SAppLayoutXmlItem(const Ref<XmlElement>& element);
 
 	public:
-		void init();
-
 		String getTagName()
 		{
 			return element->getName();
@@ -1219,7 +1215,7 @@ namespace slib
 		CList< Ref<SAppLayoutResourceItem> > children;
 
 	public:
-		SAppLayoutResourceItem();
+		SAppLayoutResourceItem(const Ref<XmlElement>& element);
 
 	};
 
@@ -1289,7 +1285,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameGrid = 0;
 
 	public:
-		SAppLayoutResource();
+		SAppLayoutResource(const Ref<XmlElement>& element);
 
 	public:
 		String getAutoIncreasingName(SAppLayoutItemType type);
