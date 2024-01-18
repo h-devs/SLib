@@ -231,13 +231,24 @@ namespace slib
 	{
 		static sl_bool SetUsbMassStorageEnabled(sl_bool flag)
 		{
-			return ServiceManager::setStartType(L"usbstor", flag ? ServiceStartType::Manual : ServiceStartType::Disabled);
+			ServiceStartType type = flag ? ServiceStartType::Manual : ServiceStartType::Disabled;
+			if (!(ServiceManager::setStartType(L"usbstor", type))) {
+				return sl_false;
+			}
+			return ServiceManager::setStartType(L"winusb", type);
 		}
 
 		static sl_bool IsUsbMassStorageEnabled()
 		{
 			ServiceStartType type = ServiceManager::getStartType(L"usbstor");
-			return type != ServiceStartType::Disabled && type != ServiceStartType::Unknown;
+			if (type == ServiceStartType::Disabled || type == ServiceStartType::Unknown) {
+				return sl_false;
+			}
+			type = ServiceManager::getStartType(L"winusb");
+			if (type == ServiceStartType::Disabled || type == ServiceStartType::Unknown) {
+				return sl_false;
+			}
+			return sl_true;
 		}
 	}
 
