@@ -2255,6 +2255,8 @@ namespace slib
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, alpha, setAlpha)
 			LAYOUT_CONTROL_UI_ATTR(COLOR, colorKey, setColorKey)
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, antiAlias, setAntiAlias)
+			LAYOUT_CONTROL_UI_ATTR(GENERIC, backgroundAntiAlias, setBackgroundAntiAlias)
+			LAYOUT_CONTROL_UI_ATTR(GENERIC, contentAntiAlias, setContentAntiAlias)
 		}
 
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, opaque, setOpaque)

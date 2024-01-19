@@ -359,8 +359,10 @@ namespace slib
 	View::DrawAttributes::DrawAttributes():
 		flagUsingFont(sl_false),
 		flagOpaque(sl_false),
-		flagInheritedAntiAlias(sl_true),
-		flagAntiAlias(sl_false),
+		flagDefinedBackgroundAntiAlias(sl_false),
+		flagBackgroundAntiAlias(sl_false),
+		flagDefinedContentAntiAlias(sl_false),
+		flagContentAntiAlias(sl_false),
 		flagLayer(sl_false),
 
 		flagForcedDraw(sl_false),
@@ -6187,37 +6189,121 @@ namespace slib
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->flagAntiAlias;
+			return attrs->flagDefinedBackgroundAntiAlias && attrs->flagBackgroundAntiAlias && attrs->flagDefinedContentAntiAlias && attrs->flagContentAntiAlias;
 		}
 		return sl_false;
 	}
 
-	void View::setAntiAlias(sl_bool flagAntiAlias, UIUpdateMode mode)
+	void View::setAntiAlias(AntiAliasMode antiAliasMode, UIUpdateMode updateMode)
 	{
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			attrs->flagAntiAlias = flagAntiAlias;
-			attrs->flagInheritedAntiAlias = sl_false;
+			if (antiAliasMode == AntiAliasMode::Inherit) {
+				attrs->flagDefinedBackgroundAntiAlias = sl_false;
+				attrs->flagDefinedContentAntiAlias = sl_false;
+			} else {
+				sl_bool flag = antiAliasMode == AntiAliasMode::True;
+				attrs->flagBackgroundAntiAlias = flag;
+				attrs->flagDefinedBackgroundAntiAlias = sl_true;
+				attrs->flagContentAntiAlias = flag;
+				attrs->flagDefinedContentAntiAlias = sl_true;
+			}
+			invalidateBoundsInParent(updateMode);
+		}
+	}
+
+	void View::setAntiAlias(sl_bool flag, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->flagBackgroundAntiAlias = flag;
+			attrs->flagDefinedBackgroundAntiAlias = sl_true;
+			attrs->flagContentAntiAlias = flag;
+			attrs->flagDefinedContentAntiAlias = sl_true;
 			invalidateBoundsInParent(mode);
 		}
 	}
 
-	sl_bool View::isInheritedAntiAlias()
+	AntiAliasMode View::getBackgroundAntiAlias()
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->flagInheritedAntiAlias;
+			if (attrs->flagDefinedBackgroundAntiAlias) {
+				if (attrs->flagBackgroundAntiAlias) {
+					return AntiAliasMode::True;
+				} else {
+					return AntiAliasMode::False;
+				}
+			}
 		}
-		return sl_false;
+		return AntiAliasMode::Inherit;
 	}
 
-	void View::setInheritedAntiAlias(UIUpdateMode mode)
+	void View::setBackgroundAntiAlias(AntiAliasMode antiAliasMode, UIUpdateMode updateMode)
 	{
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			attrs->flagInheritedAntiAlias = sl_true;
+			if (antiAliasMode == AntiAliasMode::Inherit) {
+				attrs->flagDefinedBackgroundAntiAlias = sl_false;
+			} else {
+				attrs->flagBackgroundAntiAlias = antiAliasMode == AntiAliasMode::True;
+				attrs->flagDefinedBackgroundAntiAlias = sl_true;
+			}
+			invalidateBoundsInParent(updateMode);
+		}
+	}
+
+	void View::setBackgroundAntiAlias(sl_bool flag, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->flagBackgroundAntiAlias = flag;
+			attrs->flagDefinedBackgroundAntiAlias = sl_true;
+			invalidateBoundsInParent(mode);
+		}
+	}
+
+	AntiAliasMode View::getContentAntiAlias()
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			if (attrs->flagDefinedContentAntiAlias) {
+				if (attrs->flagContentAntiAlias) {
+					return AntiAliasMode::True;
+				} else {
+					return AntiAliasMode::False;
+				}
+			}
+		}
+		return AntiAliasMode::Inherit;
+	}
+
+	void View::setContentAntiAlias(AntiAliasMode antiAliasMode, UIUpdateMode updateMode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			if (antiAliasMode == AntiAliasMode::Inherit) {
+				attrs->flagDefinedContentAntiAlias = sl_false;
+			} else {
+				attrs->flagContentAntiAlias = antiAliasMode == AntiAliasMode::True;
+				attrs->flagDefinedContentAntiAlias = sl_true;
+			}
+			invalidateBoundsInParent(updateMode);
+		}
+	}
+
+	void View::setContentAntiAlias(sl_bool flag, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->flagContentAntiAlias = flag;
+			attrs->flagDefinedContentAntiAlias = sl_true;
 			invalidateBoundsInParent(mode);
 		}
 	}
@@ -8841,7 +8927,12 @@ namespace slib
 		Ref<DrawAttributes>& drawAttrs = m_drawAttrs;
 		if (m_flagSavingCanvasState || (scrollAttrs.isNotNull() && scrollAttrs->flagScrollCanvas) || getContentShape() != BoundShape::None) {
 			CanvasStateScope scope(canvas);
-			onDrawBackground(canvas);
+			if (drawAttrs.isNotNull() && drawAttrs->flagDefinedBackgroundAntiAlias) {
+				CanvasAntiAliasScope scope(canvas, drawAttrs->flagBackgroundAntiAlias);
+				onDrawBackground(canvas);
+			} else {
+				onDrawBackground(canvas);
+			}
 			if (scrollAttrs.isNotNull() && scrollAttrs->flagScrollCanvas) {
 				sl_real scrollX = (sl_real)(scrollAttrs->x);
 				sl_real scrollY = (sl_real)(scrollAttrs->y);
@@ -8849,17 +8940,23 @@ namespace slib
 					canvas->translate(-scrollX, -scrollY);
 				}
 			}
-			clipContentBounds(canvas);
-			if (drawAttrs.isNotNull() && !(drawAttrs->flagInheritedAntiAlias)) {
-				CanvasAntiAliasScope scope(canvas, drawAttrs->flagAntiAlias);
+			if (drawAttrs.isNotNull() && drawAttrs->flagDefinedContentAntiAlias) {
+				CanvasAntiAliasScope scope(canvas, drawAttrs->flagContentAntiAlias);
+				clipContentBounds(canvas);
 				invokeDraw(canvas);
 			} else {
+				clipContentBounds(canvas);
 				invokeDraw(canvas);
 			}
 		} else {
-			onDrawBackground(canvas);
-			if (drawAttrs.isNotNull() && !(drawAttrs->flagInheritedAntiAlias)) {
-				CanvasAntiAliasScope scope(canvas, drawAttrs->flagAntiAlias);
+			if (drawAttrs.isNotNull() && drawAttrs->flagDefinedBackgroundAntiAlias) {
+				CanvasAntiAliasScope scope(canvas, drawAttrs->flagBackgroundAntiAlias);
+				onDrawBackground(canvas);
+			} else {
+				onDrawBackground(canvas);
+			}
+			if (drawAttrs.isNotNull() && drawAttrs->flagDefinedContentAntiAlias) {
+				CanvasAntiAliasScope scope(canvas, drawAttrs->flagContentAntiAlias);
 				invokeDraw(canvas);
 			} else {
 				invokeDraw(canvas);
@@ -10178,7 +10275,7 @@ namespace slib
 		}
 		String toolTip = getToolTip();
 		if (toolTip.isNotNull()) {
-			ev->setToolTip(this, toolTip);
+			ev->setToolTip((sl_uint64)((void*)this), toolTip);
 		}
 
 		if (isNativeWidget() && !(getChildCount())) {

@@ -265,7 +265,9 @@ namespace slib
 		SAppBooleanValue opaque;
 		SAppFloatValue alpha;
 		SAppColorValue colorKey;
-		SAppBooleanValue antiAlias;
+		SAppAntiAliasModeValue antiAlias;
+		SAppAntiAliasModeValue backgroundAntiAlias;
+		SAppAntiAliasModeValue contentAntiAlias;
 		SAppBooleanValue layer;
 
 		SAppFloatValue shadowOpacity;

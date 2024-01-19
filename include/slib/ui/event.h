@@ -280,9 +280,9 @@ namespace slib
 
 		const String& getToolTip() const;
 
-		View* getToolTipView() const;
+		sl_uint64 getToolTipOwnerId() const;
 
-		void setToolTip(View* view, const String& toolTip);
+		void setToolTip(sl_uint64 ownerId, const String& toolTip);
 
 		// drag & drop
 		const DragItem& getDragItem() const;

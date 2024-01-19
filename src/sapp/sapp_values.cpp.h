@@ -2564,6 +2564,48 @@ namespace slib
 	}
 
 
+	String SAppAntiAliasModeValue::getAccessString() const
+	{
+		if (!flagDefined) {
+			return "slib::AntiAliasMode::Inherit";
+		}
+		switch (value) {
+			case AntiAliasMode::Inherit:
+				return "slib::AntiAliasMode::Inherit";
+			case AntiAliasMode::True:
+				return "slib::AntiAliasMode::True";
+			case AntiAliasMode::False:
+				return "slib::AntiAliasMode::False";
+			default:
+				break;
+		}
+		return "slib::AntiAliasMode::Inherit";
+	}
+
+	sl_bool SAppAntiAliasModeValue::parse(const String& _str)
+	{
+		String str = _str.trim();
+		if (str.isEmpty()) {
+			return sl_true;
+		}
+		str = str.toLower();
+		if (str == "inherit") {
+			value = AntiAliasMode::Inherit;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "true") {
+			value = AntiAliasMode::True;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "false") {
+			value = AntiAliasMode::False;
+			flagDefined = sl_true;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+
 	String SAppGridSelectionModeValue::getAccessString() const
 	{
 		if (!flagDefined) {

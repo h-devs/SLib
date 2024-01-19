@@ -57,7 +57,7 @@ namespace slib
 					return ret;
 				} else {
 					if (flagDestroyOnRelease) {
-						PostMessageW(hWnd, SLIB_UI_MESSAGE_CLOSE_VIEW, 0, 0);
+						_destroy(hWnd);
 					}
 				}
 			}
@@ -175,7 +175,7 @@ namespace slib
 
 		sl_bool doDragging(UIAction action);
 
-		void updateToolTip(View* view, const String& toolTip);
+		void updateToolTip(sl_uint64 ownerId, const String& toolTip);
 
 		void enableIME();
 
@@ -201,6 +201,9 @@ namespace slib
 		sl_bool onEventSetCursor();
 
 		void setGenericView(sl_bool flag);
+
+	private:
+		static void _destroy(HWND hWnd);
 
 	protected:
 		HWND m_handle;
@@ -249,7 +252,7 @@ namespace slib
 	{
 	public:
 		HWND hWndToolTip;
-		Ref<View> viewToolTip;
+		sl_uint64 ownerId;
 		String toolTip;
 
 	public:
@@ -258,7 +261,7 @@ namespace slib
 		~Win32_ToolTipViewContext();
 
 	public:
-		void update(Win32_ViewInstance* instance, View* viewToolTip, const String& toolTip);
+		void update(Win32_ViewInstance* instance, sl_uint64 ownerId, const String& toolTip);
 
 	};
 

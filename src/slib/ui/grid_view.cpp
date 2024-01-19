@@ -364,7 +364,7 @@ namespace slib
 		if (action == UIAction::SetCursor) {
 			String toolTip = getToolTip();
 			if (toolTip.isNotNull()) {
-				ev->setToolTip(view, toolTip);
+				ev->setToolTip((sl_uint64)((void*)this), toolTip);
 			}
 			Ref<Cursor>& cursor = attr->cursor;
 			if (cursor.isNotNull()) {

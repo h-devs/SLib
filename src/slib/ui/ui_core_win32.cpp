@@ -34,6 +34,7 @@
 #include "slib/ui/window.h"
 #include "slib/io/file.h"
 #include "slib/core/process.h"
+#include "slib/core/queue.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"
 
@@ -59,6 +60,14 @@ namespace slib
 
 		static sl_bool g_bFlagQuit = sl_false;
 
+		struct CUSTOM_EVENT
+		{
+			sl_uint32 type;
+			HWND window;
+		};
+
+		SLIB_SAFE_STATIC_GETTER(LinkedQueue<CUSTOM_EVENT>, GetCustomEventQueue)
+
 		static sl_bool IsOwnedTo(HWND hWnd, HWND owner)
 		{
 			HWND hWndOwner = GetWindow(hWnd, GW_OWNER);
@@ -83,79 +92,82 @@ namespace slib
 		WNDPROC g_wndProc_CustomMsgBox = NULL;
 		WNDPROC g_wndProc_SystemTrayIcon = NULL;
 
+		void PostCustomEvent(sl_uint32 type, HWND window)
+		{
+			LinkedQueue<CUSTOM_EVENT>* queue = GetCustomEventQueue();
+			if (queue) {
+				CUSTOM_EVENT msg;
+				msg.type = type;
+				msg.window = window;
+				if (queue->getCount() < 65536) {
+					queue->push(msg);
+					PostMessageW(window, SLIB_UI_MESSAGE_CUSTOM_QUEUE, 0, 0);
+				}
+			}
+		}
+
 		void RunUiLoop(HWND hWndModalDialog)
 		{
 			if (g_bFlagQuit) {
 				return;
 			}
+			LinkedQueue<CUSTOM_EVENT>* customQueue = GetCustomEventQueue();
+			if (!customQueue) {
+				return;
+			}
 			ReleaseCapture();
 			MSG msg;
 			while (GetMessageW(&msg, NULL, 0, 0)) {
-				sl_bool flagQuitLoop = sl_false;
-				switch (msg.message) {
-					case WM_QUIT:
-						PostQuitMessage((int)(msg.wParam));
-						flagQuitLoop = sl_true;
-						break;
-					case SLIB_UI_MESSAGE_QUIT_LOOP:
-						flagQuitLoop = sl_true;
-						break;
-					case SLIB_UI_MESSAGE_DISPATCH:
-						UIDispatcher::processCallbacks();
-						break;
-					case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
-						UIDispatcher::processDelayedCallback((sl_reg)(msg.lParam));
-						break;
-					case SLIB_UI_MESSAGE_CLOSE_VIEW:
-						DestroyWindow(msg.hwnd);
-						break;
-					case SLIB_UI_MESSAGE_CLOSE_WINDOW:
+				if (msg.message == WM_QUIT) {
+					PostQuitMessage((int)(msg.wParam));
+					return;
+				} else if (msg.message == WM_MENUCOMMAND) {
+					ProcessMenuCommand(msg.wParam, msg.lParam);
+				} else {
+					do {
 						if (hWndModalDialog) {
-							if (msg.hwnd == hWndModalDialog) {
-								DestroyWindow(msg.hwnd);
-								flagQuitLoop = sl_true;
-								break;
-							}
-							if (IsOwnedTo(hWndModalDialog, msg.hwnd)) {
-								PostMessageW(msg.hwnd, SLIB_UI_MESSAGE_CLOSE_WINDOW, 0, 0);
-								flagQuitLoop = sl_true;
-								break;
+							if (msg.message == WM_KEYDOWN || msg.message == WM_SYSKEYDOWN || msg.message == WM_KEYUP || msg.message == WM_SYSKEYUP) {
+								if (hWndModalDialog != msg.hwnd && hWndModalDialog != GetAncestor(msg.hwnd, GA_ROOT)) {
+									msg.hwnd = hWndModalDialog;
+									SetFocus(hWndModalDialog);
+								}
 							}
 						}
-						DestroyWindow(msg.hwnd);
-						break;
-					case WM_MENUCOMMAND:
-						ProcessMenuCommand(msg.wParam, msg.lParam);
-						break;
-					default:
-						do {
-							if (hWndModalDialog) {
-								if (msg.message == WM_KEYDOWN || msg.message == WM_SYSKEYDOWN || msg.message == WM_KEYUP || msg.message == WM_SYSKEYUP) {
-									if (hWndModalDialog != msg.hwnd && hWndModalDialog != GetAncestor(msg.hwnd, GA_ROOT)) {
-										msg.hwnd = hWndModalDialog;
-										SetFocus(hWndModalDialog);
-									}
+						if (ProcessMenuShortcutKey(msg)) {
+							break;
+						}
+						Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
+						if (instance.isNotNull()) {
+							Ref<View> view = instance->getView();
+							if (view.isNotNull()) {
+								if (CaptureChildInstanceEvents(view.get(), msg)) {
+									break;
 								}
 							}
-							if (ProcessMenuShortcutKey(msg)) {
-								break;
-							}
-							Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
-							if (instance.isNotNull()) {
-								Ref<View> view = instance->getView();
-								if (view.isNotNull()) {
-									if (CaptureChildInstanceEvents(view.get(), msg)) {
-										break;
-									}
-								}
-							}
-							TranslateMessage(&msg);
-							DispatchMessageW(&msg);
-						} while (0);
-						break;
+						}
+						TranslateMessage(&msg);
+						DispatchMessageW(&msg);
+					} while (0);
 				}
-				if (flagQuitLoop) {
-					break;
+				if (customQueue->isNotEmpty()) {
+					CUSTOM_EVENT ev;
+					while (customQueue->pop(&ev)) {
+						if (ev.type == SLIB_UI_EVENT_QUIT_LOOP) {
+							return;
+						} else if (ev.type == SLIB_UI_EVENT_CLOSE_WINDOW) {
+							if (hWndModalDialog) {
+								if (ev.window == hWndModalDialog) {
+									DestroyWindow(ev.window);
+									return;
+								}
+								if (IsOwnedTo(hWndModalDialog, ev.window)) {
+									PostCustomEvent(SLIB_UI_EVENT_CLOSE_WINDOW, ev.window);
+									return;
+								}
+							}
+							DestroyWindow(ev.window);
+						}
+					}
 				}
 				if (g_bFlagQuit) {
 					break;
@@ -415,7 +427,7 @@ namespace slib
 
 	void UIPlatform::quitLoop()
 	{
-		PostGlobalMessage(SLIB_UI_MESSAGE_QUIT_LOOP, 0, 0);
+		PostCustomEvent(SLIB_UI_EVENT_QUIT_LOOP, NULL);
 	}
 
 	void UIPlatform::initApp()
@@ -902,6 +914,9 @@ namespace slib
 				case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
 					UIDispatcher::processDelayedCallback((sl_reg)lParam);
 					return 0;
+				case SLIB_UI_MESSAGE_CLOSE_VIEW:
+					DestroyWindow((HWND)lParam);
+					break;
 				case SLIB_UI_MESSAGE_CUSTOM_MSGBOX:
 					if (g_wndProc_CustomMsgBox) {
 						return g_wndProc_CustomMsgBox(hWnd, uMsg, wParam, lParam);

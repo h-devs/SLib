@@ -37,6 +37,8 @@
 #include <shlobj.h>
 #include <commdlg.h>
 
+#define CUSTOM_MSGBOX_INITIAL_CAPTION L"CustomizedMsgBox"
+
 namespace slib
 {
 
@@ -53,7 +55,7 @@ namespace slib
 	namespace {
 		static LRESULT CALLBACK ProcessCustomMsgBox(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
-			HWND hWndMsg = FindWindowW(NULL, L"CustomizedMsgBox");
+			HWND hWndMsg = FindWindowW(NULL, CUSTOM_MSGBOX_INITIAL_CAPTION);
 			if (!hWndMsg) {
 				return 0;
 			}
@@ -154,7 +156,7 @@ namespace slib
 		if (shared) {
 			priv::g_wndProc_CustomMsgBox = &ProcessCustomMsgBox;
 			PostMessageW(shared->hWndMessage, SLIB_UI_MESSAGE_CUSTOM_MSGBOX, 0, (LPARAM)(this));
-			result = MessageBoxW(hWndParent, (LPCWSTR)(text.getData()), L"CustomizedMsgBox", style);
+			result = MessageBoxW(hWndParent, (LPCWSTR)(text.getData()), CUSTOM_MSGBOX_INITIAL_CAPTION, style);
 		} else {
 			StringCstr16 caption = this->caption;
 			result = MessageBoxW(hWndParent, (LPCWSTR)(text.getData()), (LPCWSTR)(caption.getData()), style);

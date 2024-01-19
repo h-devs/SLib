@@ -282,6 +282,13 @@ namespace slib
 		Path = 10
 	};
 
+	enum class AntiAliasMode
+	{
+		False = 0,
+		True = 1,
+		Inherit = 2
+	};
+
 }
 
 #endif

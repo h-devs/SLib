@@ -917,11 +917,21 @@ namespace slib
 
 		sl_bool isAntiAlias();
 
+		void setAntiAlias(AntiAliasMode antiAliasMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
 		void setAntiAlias(sl_bool flagAntiAlias = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_bool isInheritedAntiAlias();
+		AntiAliasMode getBackgroundAntiAlias();
 
-		void setInheritedAntiAlias(UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBackgroundAntiAlias(AntiAliasMode antiAliasMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		void setBackgroundAntiAlias(sl_bool flagAntiAlias = sl_true, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		AntiAliasMode getContentAntiAlias();
+
+		void setContentAntiAlias(AntiAliasMode antiAliasMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		void setContentAntiAlias(sl_bool flagAntiAlias = sl_true, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 		sl_bool isOpaque();
 

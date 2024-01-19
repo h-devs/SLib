@@ -37,6 +37,7 @@ namespace slib
 	namespace priv
 	{
 		void RunUiLoop(HWND hWndModalDialog);
+		void PostCustomEvent(sl_uint32 type, HWND window);
 		sl_bool IsAnyViewPainting();
 	}
 
@@ -144,7 +145,7 @@ namespace slib
 						return ret;
 					}
 					if (flagDestroyOnRelease) {
-						PostMessageW(hWnd, SLIB_UI_MESSAGE_CLOSE_WINDOW, 0, 0);
+						_destroy(hWnd);
 					}
 				}
 				return sl_null;
@@ -240,6 +241,11 @@ namespace slib
 				UIPlatform::registerWindowInstance(hWnd, this);
 			}
 
+			static void _destroy(HWND hWnd)
+			{
+				PostCustomEvent(SLIB_UI_EVENT_CLOSE_WINDOW, hWnd);
+			}
+
 			void close() override
 			{
 				ObjectLocker lock(this);
@@ -252,7 +258,7 @@ namespace slib
 					UIPlatform::removeWindowInstance(handle);
 					m_viewContent.setNull();
 					if (m_flagDestroyOnRelease) {
-						PostMessageW(handle, SLIB_UI_MESSAGE_CLOSE_WINDOW, 0, 0);
+						_destroy(handle);
 					}
 				}
 			}

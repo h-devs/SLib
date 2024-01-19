@@ -637,6 +637,19 @@ namespace slib
 
 	};
 
+	class SAppAntiAliasModeValue
+	{
+	public:
+		sl_bool flagDefined = sl_false;
+		AntiAliasMode value = AntiAliasMode::Inherit;
+
+	public:
+		String getAccessString() const;
+
+		sl_bool parse(const String& str);
+
+	};
+
 	class SAppGridSelectionModeValue
 	{
 	public:

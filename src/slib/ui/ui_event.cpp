@@ -495,7 +495,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 		public:
 			Ref<Cursor> cursor;
 			String toolTip;
-			Ref<View> toolTipView;
+			sl_uint64 toolTipOwnerId;
 
 		public:
 			SetCursorEvent(const Time& time, sl_ui_posf x, sl_ui_posf y): MouseEvent(UIAction::SetCursor, time, x, y)
@@ -906,19 +906,19 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return String::null();
 	}
 
-	View* UIEvent::getToolTipView() const
+	sl_uint64 UIEvent::getToolTipOwnerId() const
 	{
 		if (IsInstanceOf<SetCursorEvent>(this)) {
-			return ((SetCursorEvent*)this)->toolTipView.get();
+			return ((SetCursorEvent*)this)->toolTipOwnerId;
 		}
-		return sl_null;
+		return 0;
 	}
 
-	void UIEvent::setToolTip(View* view, const String& toolTip)
+	void UIEvent::setToolTip(sl_uint64 ownerId, const String& toolTip)
 	{
 		if (IsInstanceOf<SetCursorEvent>(this)) {
 			((SetCursorEvent*)this)->toolTip = toolTip;
-			((SetCursorEvent*)this)->toolTipView = view;
+			((SetCursorEvent*)this)->toolTipOwnerId = ownerId;
 		}
 	}
 

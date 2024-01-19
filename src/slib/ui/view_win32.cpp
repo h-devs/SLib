@@ -207,11 +207,21 @@ namespace slib
 			}
 			UIPlatform::removeViewInstance(m_handle);
 			if (m_flagDestroyOnRelease) {
-				PostMessageW(m_handle, SLIB_UI_MESSAGE_CLOSE_VIEW, 0, 0);
+				_destroy(m_handle);
 			}
 		}
 		if (m_dropTarget) {
 			m_dropTarget->Release();
+		}
+	}
+
+	void Win32_ViewInstance::_destroy(HWND hWnd)
+	{
+		Win32_UI_Shared* shared = Win32_UI_Shared::get();
+		if (shared) {
+			PostMessageW(shared->hWndMessage, SLIB_UI_MESSAGE_CLOSE_VIEW, 0, (LPARAM)hWnd);
+		} else {
+			DestroyWindow(hWnd);
 		}
 	}
 
@@ -1114,15 +1124,15 @@ namespace slib
 		return bRet;
 	}
 
-	void Win32_ViewInstance::updateToolTip(View* viewToolTip, const String& toolTip)
+	void Win32_ViewInstance::updateToolTip(sl_uint64 ownerId, const String& toolTip)
 	{
 		if (m_tooltip.isNotNull()) {
-			m_tooltip->update(this, viewToolTip, toolTip);
+			m_tooltip->update(this, ownerId, toolTip);
 		} else {
-			if (viewToolTip && toolTip.isNotNull()) {
+			if (toolTip.isNotNull()) {
 				m_tooltip = new Win32_ToolTipViewContext;
 				if (m_tooltip.isNotNull()) {
-					m_tooltip->update(this, viewToolTip, toolTip);
+					m_tooltip->update(this, ownerId, toolTip);
 				}
 			}
 		}
@@ -1595,7 +1605,7 @@ namespace slib
 			Ref<UIEvent> ev = UIEvent::createSetCursorEvent((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), t);
 			if (ev.isNotNull()) {
 				onSetCursor(ev.get());
-				updateToolTip(ev->getToolTipView(), ev->getToolTip());
+				updateToolTip(ev->getToolTipOwnerId(), ev->getToolTip());
 				if (ev->getFlags() & UIEventFlags::NotInvokeNative) {
 					return sl_true;
 				}
@@ -1966,7 +1976,7 @@ namespace slib
 	}
 
 
-	Win32_ToolTipViewContext::Win32_ToolTipViewContext(): hWndToolTip(sl_null)
+	Win32_ToolTipViewContext::Win32_ToolTipViewContext(): hWndToolTip(sl_null), ownerId(0)
 	{
 	}
 
@@ -1977,21 +1987,21 @@ namespace slib
 		}
 	}
 
-	void Win32_ToolTipViewContext::update(Win32_ViewInstance* instance, View* _viewToolTip, const String& _toolTip)
+	void Win32_ToolTipViewContext::update(Win32_ViewInstance* instance, sl_uint64 _ownerId, const String& _toolTip)
 	{
 		Ref<View> view = instance->getView();
 		if (view.isNull()) {
 			return;
 		}
-		if (viewToolTip == _viewToolTip && toolTip == _toolTip) {
+		if (ownerId == _ownerId && toolTip == _toolTip) {
 			return;
 		}
-		viewToolTip = _viewToolTip;
+		ownerId = _ownerId;
 		toolTip = _toolTip;
 		if (hWndToolTip) {
 			DestroyWindow(hWndToolTip);
 		}
-		if (viewToolTip.isNotNull() && toolTip.isNotNull()) {
+		if (toolTip.isNotNull()) {
 			HINSTANCE hInstance = GetModuleHandleW(NULL);
 			HWND hWndParent = instance->getHandle();
 			hWndToolTip = CreateWindowExW(
