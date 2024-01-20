@@ -203,7 +203,7 @@ namespace slib
 		Ref<SAppMenuResourceItem> _parseMenuResourceItem(const String& localNamespace, const Ref<XmlElement>& element, SAppMenuResource* menu, int platforms);
 		sl_bool _generateMenusCpp(const String& targetPath);
 		sl_bool _generateMenusCpp_Item(SAppMenuResource* resource, const String& parentName, int parentPlatforms, SAppMenuResourceItem* item, StringBuffer& sbHeader, StringBuffer& sbCpp, int tabLevel);
-		sl_bool _getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, sl_bool flagForWindow, String& result);
+		sl_bool _getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, sl_bool flagForWindow, String& name, String& result);
 		sl_bool _getMenuValue(const String& localNamespace, const SAppMenuValue& value, Ref<Menu>& result);
 		sl_bool _getMenuValue_Item(SAppMenuResource* resource, const Ref<Menu>& parent, SAppMenuResourceItem* item);
 		sl_bool _checkMenuValue(const String& localNamespace, const SAppMenuValue& value);

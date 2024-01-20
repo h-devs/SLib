@@ -338,6 +338,8 @@ namespace slib
 	public:
 		SAppMenuValue menu;
 		SAppStringValue title;
+		SAppDrawableValue icon;
+		SAppStringValue iconResource;
 
 		SAppDimensionValue left;
 		SAppDimensionValue top;

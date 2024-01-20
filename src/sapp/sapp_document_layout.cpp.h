@@ -1629,8 +1629,8 @@ namespace slib
 #define LAYOUT_CONTROL_PARSE_MENU(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, SUFFIX, VAR)
 #define LAYOUT_CONTROL_GENERATE_MENU(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
-		String value; \
-		if (!(_getMenuAccessString(resource->name, VAR, sl_false, value))) { \
+		String name, value; \
+		if (!(_getMenuAccessString(resource->name, VAR, sl_false, name, value))) { \
 			return sl_false; \
 		} \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
@@ -2415,11 +2415,11 @@ namespace slib
 			LAYOUT_CONTROL_PARSE_ATTR(MENU, attr->, menu)
 		} else if (op == SAppLayoutOperation::Generate) {
 			if (attr->menu.flagDefined) {
-				String value;
-				if (!(_getMenuAccessString(resource->name, attr->menu, sl_true, value))) {
+				String menuName, value;
+				if (!(_getMenuAccessString(resource->name, attr->menu, sl_true, menuName, value))) {
 					return sl_false;
 				}
-				params->sbDeclare->add(String::format("\t\t\tslib::Ref<menu::%s> menu;%n", attr->menu.resourceName));
+				params->sbDeclare->add(String::format("\t\t\tslib::Ref<menu::%s> menu;%n", menuName));
 				params->sbDefineInit->add(String::format("%smenu = %s;%n%s%s->setMenu(menu->root);%n", strTab, value, strTab, name));
 			}
 		} else if (op == SAppLayoutOperation::SimulateInit) {
@@ -2490,6 +2490,8 @@ namespace slib
 		}
 
 		LAYOUT_CONTROL_ATTR(STRING, title, setTitle)
+		LAYOUT_CONTROL_ATTR(DRAWABLE, icon, setIcon)
+		LAYOUT_CONTROL_ATTR(STRING, iconResource, setIconResource)
 		LAYOUT_CONTROL_ATTR(DIMENSION, left, setLeft, checkForWindow)
 		LAYOUT_CONTROL_ATTR(DIMENSION, top, setTop, checkForWindow)
 		if (op == SAppLayoutOperation::Parse) {

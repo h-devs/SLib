@@ -190,6 +190,11 @@ namespace slib
 					hInst,
 					NULL);
 
+				String iconName = window->getIconResource();
+				if (iconName.isNotNull()) {
+					setIcon(hWnd, iconName);
+				}
+
 				if ((style & WS_THICKFRAME) && (style & WS_CAPTION) != WS_CAPTION && Win32::isWindows10OrGreater()) {
 					auto api = dwmapi::getApi_DwmExtendFrameIntoClientArea();
 					if (api) {
@@ -321,6 +326,29 @@ namespace slib
 				HWND hWnd = m_handle;
 				if (hWnd) {
 					UIPlatform::setWindowText(hWnd, title);
+				}
+			}
+
+			static void setIcon(HWND hWnd, const String& name)
+			{
+				Win32_UI_Shared* shared = Win32_UI_Shared::get();
+				if (!shared) {
+					return;
+				}
+				HICON hIcon = LoadIconA(shared->hInstance, name.getData());
+				if (hIcon) {
+					HICON hIconOld = (HICON)(SendMessageW(hWnd, WM_SETICON, 0, (LPARAM)hIcon));
+					if (hIconOld) {
+						DeleteObject(hIconOld);
+					}
+				}
+			}
+
+			void setIcon(const String& name) override
+			{
+				HWND hWnd = m_handle;
+				if (hWnd) {
+					setIcon(hWnd, name);
 				}
 			}
 

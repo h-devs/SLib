@@ -187,6 +187,10 @@ namespace slib
 
 		void setIcon(const Ref<Drawable>& icon);
 
+		String getIconResource();
+
+		void setIconResource(const String& name);
+
 		Color getBackgroundColor();
 
 		void setBackgroundColor(const Color& color);
@@ -550,6 +554,7 @@ namespace slib
 
 		AtomicString m_title;
 		AtomicRef<Drawable> m_icon;
+		AtomicString m_iconResource;
 		Color m_backgroundColor;
 		sl_bool m_flagDefaultBackgroundColor;
 
@@ -650,6 +655,8 @@ namespace slib
 		virtual void setTitle(const String& title);
 
 		virtual void setIcon(const Ref<Drawable>& icon);
+
+		virtual void setIcon(const String& resourceName);
 
 		virtual void setMenu(const Ref<Menu>& menu);
 
