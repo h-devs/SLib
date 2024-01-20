@@ -1143,14 +1143,19 @@ namespace slib
 	}
 #endif
 
-	// setUsingPacketInformation (setUsingIPv6PacketInformation) is required
-	sl_int32 Socket::receiveFrom(sl_uint32& interfaceIndex, IPAddress& dst, SocketAddress& src, void* buf, sl_size _size) const noexcept
+	// setReceivingPacketInformation (setReceivingIPv6PacketInformation) is required
+	sl_int32 Socket::receiveFrom(sl_uint32& interfaceIndex, IPAddress& dst, SocketAddress& src, void* buf, sl_size _size, sl_bool flagFallbackToGenericReceive) const noexcept
 	{
 #ifdef SLIB_PLATFORM_IS_WINDOWS
 		static LPFN_WSARECVMSG fnRecvMsg = NULL;
 		if (!fnRecvMsg) {
 			fnRecvMsg = winsock::GetWSARecvMsg();
 			if (!fnRecvMsg) {
+				if (flagFallbackToGenericReceive) {
+					interfaceIndex = 0;
+					dst.setNone();
+					return receiveFrom(src, buf, _size);
+				}
 				_setError(SocketError::NotSupported);
 				return SLIB_IO_ERROR;
 			}
@@ -1220,6 +1225,11 @@ namespace slib
 				return sizeReceived;
 			}
 			cmsg = CMSG_NXTHDR(&msg, cmsg);
+		}
+		if (flagFallbackToGenericReceive) {
+			interfaceIndex = 0;
+			dst.setNone();
+			return receiveFrom(src, buf, _size);
 		}
 		_setError(SocketError::NotSupported);
 		return SLIB_IO_ERROR;

@@ -286,7 +286,7 @@ namespace slib
 
 		sl_int32 receiveFrom(SocketAddress& address, void* buf, sl_size size) const noexcept;
 
-		sl_int32 receiveFrom(sl_uint32& interfaceIndex, IPAddress& dst, SocketAddress& src, void* buf, sl_size size) const noexcept;
+		sl_int32 receiveFrom(sl_uint32& interfaceIndex, IPAddress& dst, SocketAddress& src, void* buf, sl_size size, sl_bool flagFallbackToGenericReceive = sl_false) const noexcept;
 
 		sl_int32 receiveFromDomain(void* buf, sl_size size, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
 
