@@ -335,12 +335,25 @@ namespace slib
 				if (!shared) {
 					return;
 				}
-				HICON hIcon = LoadIconA(shared->hInstance, name.getData());
-				if (hIcon) {
-					HICON hIconOld = (HICON)(SendMessageW(hWnd, WM_SETICON, 0, (LPARAM)hIcon));
-					if (hIconOld) {
-						DeleteObject(hIconOld);
+				HICON hIcon;
+				sl_uint32 resID;
+				if (name.parseUint32(&resID)) {
+					hIcon = LoadIconA(shared->hInstance, MAKEINTRESOURCEA(resID));
+					if (!hIcon) {
+						hIcon = LoadIconA(shared->hInstance, name.getData());
+						if (!hIcon) {
+							return;
+						}
 					}
+				} else {
+					hIcon = LoadIconA(shared->hInstance, name.getData());
+					if (!hIcon) {
+						return;
+					}
+				}
+				HICON hIconOld = (HICON)(SendMessageW(hWnd, WM_SETICON, 0, (LPARAM)hIcon));
+				if (hIconOld) {
+					DeleteObject(hIconOld);
 				}
 			}
 
