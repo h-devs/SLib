@@ -33,13 +33,69 @@
 
 #include <winioctl.h>
 
-//#define USE_SMART
-
 namespace slib
 {
 
 	namespace
 	{
+
+		enum STORAGE_PROTOCOL_TYPE {
+			ProtocolTypeUnknown = 0,
+			ProtocolTypeScsi,
+			ProtocolTypeAta,
+			ProtocolTypeNvme,
+			ProtocolTypeSd
+		};
+
+		struct STORAGE_PROTOCOL_SPECIFIC_DATA
+		{
+			STORAGE_PROTOCOL_TYPE ProtocolType;
+			ULONG DataType;
+			ULONG ProtocolDataRequestValue;
+			ULONG ProtocolDataRequestSubValue;
+			ULONG ProtocolDataOffset;
+			ULONG ProtocolDataLength;
+			ULONG FixedProtocolReturnData;
+			ULONG Reserved[3];
+		};
+
+		struct STORAGE_PROTOCOL_SPECIFIC_QUERY_WITH_BUFFER
+		{
+			struct { // STORAGE_PROPERTY_QUERY without AdditionalsParameters[1]
+				STORAGE_PROPERTY_ID PropertyId;
+				STORAGE_QUERY_TYPE QueryType;
+			} PropertyQuery;
+			STORAGE_PROTOCOL_SPECIFIC_DATA ProtocolSpecific;
+			BYTE DataBuffer[4096];
+		};
+
+		static String GetSerialNumberFromNVMe(HANDLE hDevice)
+		{
+			STORAGE_PROTOCOL_SPECIFIC_QUERY_WITH_BUFFER query;
+			Base::zeroMemory(&query, sizeof(query));
+			query.PropertyQuery.PropertyId = (STORAGE_PROPERTY_ID)50; // StorageDeviceProtocolSpecificProperty
+			query.PropertyQuery.QueryType = PropertyStandardQuery;
+			query.ProtocolSpecific.ProtocolType = ProtocolTypeNvme;
+			query.ProtocolSpecific.DataType = 1; // NVMeDataTypeIdentify
+			query.ProtocolSpecific.ProtocolDataRequestValue = 1; // cdw10
+			query.ProtocolSpecific.ProtocolDataRequestSubValue = 0; // nsid
+			query.ProtocolSpecific.ProtocolDataOffset = sizeof(query.ProtocolSpecific);
+			query.ProtocolSpecific.ProtocolDataLength = sizeof(query.DataBuffer);
+
+			DWORD dwBytes = 0;
+			if (DeviceIoControl(
+				hDevice,
+				IOCTL_STORAGE_QUERY_PROPERTY,
+				&query, sizeof(query),
+				&query, sizeof(query),
+				&dwBytes, NULL)
+				) {
+				char* sn = (char*)(query.DataBuffer) + 4;
+				return Disk::normalizeSerialNumber(StringView(sn, Base::getStringLength(sn, 20)));
+			}
+			return sl_null;
+		}
+
 		static String GetSerialNumberByStorageQuery(HANDLE hDevice)
 		{
 			STORAGE_PROPERTY_QUERY query;
@@ -47,8 +103,7 @@ namespace slib
 			query.PropertyId = StorageDeviceProperty;
 			query.QueryType = PropertyStandardQuery;
 
-			STORAGE_DESCRIPTOR_HEADER header;
-			Base::zeroMemory(&header, sizeof(header));
+			STORAGE_DESCRIPTOR_HEADER header = { 0 };
 
 			DWORD dwBytes = 0;
 			if (DeviceIoControl(
@@ -70,6 +125,13 @@ namespace slib
 						&dwBytes, NULL)
 						) {
 						STORAGE_DEVICE_DESCRIPTOR* descriptor = (STORAGE_DEVICE_DESCRIPTOR*)output;
+						if (descriptor->BusType == 0x11) {
+							// NVMe
+							String ret = GetSerialNumberFromNVMe(hDevice);
+							if (ret.isNotNull()) {
+								return ret;
+							}
+						}
 						if (descriptor->SerialNumberOffset) {
 							char* sn = (char*)(output + descriptor->SerialNumberOffset);
 							sl_size n = nOutput - (sl_size)(descriptor->SerialNumberOffset);
@@ -81,69 +143,6 @@ namespace slib
 			return sl_null;
 		}
 
-#ifdef USE_SMART
-		static sl_bool IsSmartSupported(HANDLE hDevice)
-		{
-			GETVERSIONINPARAMS params = { 0 };
-			DWORD dwBytes = 0;
-			if (DeviceIoControl(hDevice, SMART_GET_VERSION, NULL, 0, &params, sizeof(params), &dwBytes, NULL)) {
-				return (params.fCapabilities & CAP_SMART_CMD) != 0;
-			}
-			return sl_false;
-		}
-
-		static String GetSerialNumberBySmart(HANDLE hDevice, sl_uint32 diskNumber)
-		{
-			sl_uint8 bufSci[sizeof(SENDCMDINPARAMS) + IDENTIFY_BUFFER_SIZE] = { 0 };
-			SENDCMDINPARAMS& sci = *((SENDCMDINPARAMS*)bufSci);
-			sl_uint8 bufSco[sizeof(SENDCMDOUTPARAMS) + IDENTIFY_BUFFER_SIZE] = { 0 };
-			SENDCMDOUTPARAMS& sco = *((SENDCMDOUTPARAMS*)bufSco);
-			sci.irDriveRegs.bCommandReg = ID_CMD;
-			sci.bDriveNumber = (BYTE)diskNumber;
-			sci.cBufferSize = IDENTIFY_BUFFER_SIZE;
-			DWORD dwBytes = 0;
-			if (DeviceIoControl(hDevice, SMART_RCV_DRIVE_DATA, &sci, sizeof(bufSci), &sco, sizeof(bufSco), &dwBytes, NULL)) {
-				char sn[20];
-				for (sl_size i = 0; i < 20; i += 2) {
-					sn[i] = sco.bBuffer[i + 21];
-					sn[i + 1] = sco.bBuffer[i + 20];
-				}
-				return Disk::normalizeSerialNumber(StringView(sn, 20));
-			}
-			return sl_null;
-		}
-#endif
-	}
-
-	String Disk::getSerialNumber(sl_uint32 diskNo)
-	{
-		SLIB_STATIC_STRING16(pathTemplate, "\\\\.\\PhysicalDrive")
-		String16 path = pathTemplate + String16::fromUint32(diskNo);
-#ifdef USE_SMART
-		ScopedHandle hDevice = CreateFileW((LPCWSTR)(path.getData()), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-		if (hDevice.isNone()) {
-			hDevice = CreateFileW((LPCWSTR)(path.getData()), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-			if (hDevice.isNone()) {
-				return sl_null;
-			}
-		}
-		if (IsSmartSupported(hDevice.handle)) {
-			String ret = GetSerialNumberBySmart(hDevice.handle, diskNo);
-			if (ret.isNotNull()) {
-				return ret;
-			}
-		}
-#else
-		ScopedHandle hDevice = CreateFileW((LPCWSTR)(path.getData()), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-		if (hDevice.isNone()) {
-			return sl_null;
-		}
-#endif
-		return GetSerialNumberByStorageQuery(hDevice.handle);
-	}
-
-	namespace
-	{
 		static DiskInterface GetInterfaceType(const String& type)
 		{
 			if (type.equals_IgnoreCase(StringView::literal("IDE"))) {
@@ -164,13 +163,27 @@ namespace slib
 		{
 			if (type.startsWith_IgnoreCase(StringView::literal("Fixed"))) {
 				return DiskType::Fixed;
-			} else if (type.startsWith_IgnoreCase(StringView::literal("External"))) {
+			}
+			else if (type.startsWith_IgnoreCase(StringView::literal("External"))) {
 				return DiskType::External;
-			} else if (type.startsWith_IgnoreCase(StringView::literal("Removable"))) {
+			}
+			else if (type.startsWith_IgnoreCase(StringView::literal("Removable"))) {
 				return DiskType::Removable;
 			}
 			return DiskType::Unknown;
 		}
+
+	}
+
+	String Disk::getSerialNumber(sl_uint32 diskNo)
+	{
+		SLIB_STATIC_STRING16(pathTemplate, "\\\\.\\PhysicalDrive")
+		String16 path = pathTemplate + String16::fromUint32(diskNo);
+		ScopedHandle hDevice = CreateFileW((LPCWSTR)(path.getData()), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+		if (hDevice.isNone()) {
+			return sl_null;
+		}
+		return GetSerialNumberByStorageQuery(hDevice.handle);
 	}
 
 	List<DiskInfo> Disk::getDevices()
@@ -185,7 +198,10 @@ namespace slib
 			disk.interface = GetInterfaceType(item.getValue("InterfaceType").getString());
 			disk.type = GetMediaType(item.getValue("MediaType").getString());
 			disk.model = item.getValue("Model").getString();
-			disk.serialNumber = Disk::normalizeSerialNumber(item.getValue("SerialNumber").getString());
+			disk.serialNumber = Disk::getSerialNumber(disk.index);
+			if (disk.serialNumber.isNull()) {
+				disk.serialNumber = Disk::normalizeSerialNumber(item.getValue("SerialNumber").getString());
+			}
 			disk.capacity = item.getValue("Size").getUint64();
 			ret.add_NoLock(Move(disk));
 		}
