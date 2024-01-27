@@ -1472,9 +1472,9 @@ namespace slib
 			}
 
 			attach(window, sl_false);
+			m_flagDispatchedDestroy = sl_false;
 
 			invokeCreate();
-
 			window->doPostCreate();
 
 			if (m_flagVisible) {

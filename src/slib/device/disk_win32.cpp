@@ -147,13 +147,13 @@ namespace slib
 		{
 			if (type.equals_IgnoreCase(StringView::literal("IDE"))) {
 				return DiskInterface::IDE;
-			} if (type.equals_IgnoreCase(StringView::literal("USB"))) {
+			} else if (type.equals_IgnoreCase(StringView::literal("USB"))) {
 				return DiskInterface::USB;
-			} if (type.equals_IgnoreCase(StringView::literal("SCSI"))) {
+			} else if (type.equals_IgnoreCase(StringView::literal("SCSI"))) {
 				return DiskInterface::SCSI;
-			} if (type.equals_IgnoreCase(StringView::literal("HDC"))) {
+			} else if (type.equals_IgnoreCase(StringView::literal("HDC"))) {
 				return DiskInterface::HDC;
-			} if (type.equals_IgnoreCase(StringView::literal("1394"))) {
+			} else if (type.equals_IgnoreCase(StringView::literal("1394"))) {
 				return DiskInterface::IEEE1394;
 			}
 			return DiskInterface::Unknown;
@@ -163,11 +163,9 @@ namespace slib
 		{
 			if (type.startsWith_IgnoreCase(StringView::literal("Fixed"))) {
 				return DiskType::Fixed;
-			}
-			else if (type.startsWith_IgnoreCase(StringView::literal("External"))) {
+			} else if (type.startsWith_IgnoreCase(StringView::literal("External"))) {
 				return DiskType::External;
-			}
-			else if (type.startsWith_IgnoreCase(StringView::literal("Removable"))) {
+			} else if (type.startsWith_IgnoreCase(StringView::literal("Removable"))) {
 				return DiskType::Removable;
 			}
 			return DiskType::Unknown;
