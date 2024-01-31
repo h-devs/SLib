@@ -2230,43 +2230,85 @@ namespace slib
 		setRecordCount(list.getCount(), UIUpdateMode::None);
 	}
 
-	void GridView::setData(const VariantList& data, UIUpdateMode mode)
+	void GridView::_setData(const List<VariantMap>& list)
 	{
-		if (!m_flagDefinedSorting) {
-			setSorting(sl_true);
-		}
-		_setData(data);
-		setOnSort([data](GridView* view, const String& field, sl_bool flagAsc) {
-			if (field.isNotEmpty()) {
-				VariantList newList = data.duplicate();
-				newList.sort_NoLock(CompareRecord(field, flagAsc));
-				view->_setData(newList);
-			} else {
-				view->_setData(data);
-			}
-			view->invalidate();
-		});
-		invalidate(mode);
+		setDataGetter([list](sl_uint64 record) {
+			return list.getValueAt((sl_size)record);
+		}, UIUpdateMode::None);
+		setRecordCount(list.getCount(), UIUpdateMode::None);
 	}
 
-	void GridView::setData(const JsonList& data, UIUpdateMode mode)
+	void GridView::_setData(const Variant& data)
 	{
-		setData(*(reinterpret_cast<const VariantList*>(&data)), mode);
-	}
-
-	void GridView::setData(const Variant& data, UIUpdateMode mode)
-	{
-		if (data.isVariantList()) {
-			setData(data.getVariantList(), mode);
-			return;
-		}
-		if (!m_flagDefinedSorting) {
-			setSorting(sl_false);
-		}
 		setDataGetter([data](sl_uint64 record) {
 			return data.getElement((sl_size)record);
 		}, UIUpdateMode::None);
 		setRecordCount(data.getElementCount(), UIUpdateMode::None);
+	}
+
+	namespace
+	{
+		static VariantList DuplicateData(const VariantList& list)
+		{
+			return list.duplicate();
+		}
+
+		static VariantList DuplicateData(const List<VariantMap>& list)
+		{
+			VariantList ret;
+			ListLocker<VariantMap> items(list);
+			for (sl_size i = 0; i < items.count; i++) {
+				ret.add_NoLock(items[i]);
+			}
+			return ret;
+		}
+
+		static VariantList DuplicateData(const Variant& data)
+		{
+			VariantList ret;
+			Ref<Collection> collection = data.getCollection();
+			if (collection.isNotNull()) {
+				sl_size n = (sl_size)(collection->getElementCount());
+				for (sl_size i = 0; i < n; i++) {
+					ret.add_NoLock(collection->getElement(i));
+				}
+			}
+			return ret;
+		}
+	}
+
+#define DEFINE_SET_DATA(DATA_TYPE) \
+	void GridView::setData(const DATA_TYPE& data, UIUpdateMode mode) \
+	{ \
+		if (!m_flagDefinedSorting) { \
+			setSorting(sl_true); \
+		} \
+		_setData(data); \
+		m_cacheData.setNull(); \
+		setOnSort([this, data](GridView*, const String& field, sl_bool flagAsc) { \
+			if (field.isNotEmpty()) { \
+				VariantList cache = m_cacheData; \
+				if (cache.isNull()) { \
+					cache = DuplicateData(data); \
+					m_cacheData = cache; \
+				} \
+				cache.sort_NoLock(CompareRecord(field, flagAsc)); \
+				_setData(cache); \
+			} else { \
+				_setData(data); \
+			} \
+			invalidate(); \
+		}); \
+		invalidate(mode); \
+	}
+
+	DEFINE_SET_DATA(VariantList)
+	DEFINE_SET_DATA(List<VariantMap>)
+	DEFINE_SET_DATA(Variant)
+
+	void GridView::setData(const JsonList& data, UIUpdateMode mode)
+	{
+		setData(*(reinterpret_cast<const VariantList*>(&data)), mode);
 	}
 
 	GridView::CellProp* GridView::_getCellProp(RecordIndex section, sl_uint32 iRow, sl_uint32 iCol)

@@ -466,6 +466,7 @@ namespace slib
 
 		void setData(const VariantList& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setData(const JsonList& data, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setData(const List<VariantMap>& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setData(const Variant& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		CellCreator getBodyCreator(sl_uint32 row, sl_uint32 column);
@@ -1044,6 +1045,8 @@ namespace slib
 		sl_ui_len _getDefaultRowHeight();
 
 		void _setData(const VariantList& list);
+		void _setData(const List<VariantMap>& list);
+		void _setData(const Variant& data);
 
 		CellProp* _getCellProp(RecordIndex section, sl_uint32 row, sl_uint32 column);
 		BodyCellProp* _getBodyCellProp(sl_uint32 row, sl_uint32 col);
