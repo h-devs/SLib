@@ -1172,6 +1172,7 @@ namespace slib
 
 		typedef Function<Variant(sl_uint64 record)> DataGetter;
 		Atomic<DataGetter> m_recordData;
+		AtomicList<Variant> m_cacheData;
 
 		SelectionMode m_selectionMode;
 		Selection m_hover;
