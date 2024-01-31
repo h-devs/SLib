@@ -581,6 +581,7 @@ namespace slib
 			void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
 			{
 				if (m_brush.isNotNull()) {
+					CanvasAntiAliasScope scope(canvas, sl_true);
 					Point pts[3];
 					for (int i = 0; i < 3; i++) {
 						pts[i].x = rectDst.left + rectDst.getWidth() * m_pts[i].x;
@@ -1201,12 +1202,12 @@ namespace slib
 				if (item->m_flagOpened) {
 					Ref<Drawable> icon = m_iconExpanded;
 					if (icon.isNotNull()) {
-						canvas->draw(UIRect(left - m_itemIndent, top, left, bottom), icon, ScaleMode::None, Alignment::MiddleCenter);
+						canvas->draw(UIRect(left - m_itemIndent, top, left, bottom), icon, ScaleMode::Contain, Alignment::MiddleCenter);
 					}
 				} else {
 					Ref<Drawable> icon = m_iconCollapsed;
 					if (icon.isNotNull()) {
-						canvas->draw(UIRect(left - m_itemIndent, top, left, bottom), icon, ScaleMode::None, Alignment::MiddleCenter);
+						canvas->draw(UIRect(left - m_itemIndent, top, left, bottom), icon, ScaleMode::Contain, Alignment::MiddleCenter);
 					}
 				}
 			}
