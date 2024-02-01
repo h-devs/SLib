@@ -432,7 +432,7 @@ namespace slib
 					sl_bool f2 = flag ? sl_true : sl_false;
 					if (f1 != f2) {
 						if (f2) {
-							ShowWindowAsync(hWnd, SW_FORCEMINIMIZE);
+							ShowWindowAsync(hWnd, SW_MINIMIZE);
 						} else {
 							ShowWindowAsync(hWnd, SW_RESTORE);
 						}
@@ -700,13 +700,18 @@ namespace slib
 				if (height > 60000) {
 					height = 60000;
 				}
-				if (wParam == SIZE_MAXIMIZED) {
-					m_flagMaximized = sl_true;
-					onMaximize();
-					onResize(handle, (sl_ui_pos)width, (sl_ui_pos)height);
-				} else if (wParam == SIZE_MINIMIZED) {
+				if (wParam == SIZE_MINIMIZED) {
 					m_flagMinimized = sl_true;
 					onMinimize();
+				} else if (wParam == SIZE_MAXIMIZED) {
+					if (m_flagMinimized) {
+						m_flagMinimized = sl_false;
+						onDeminimize();
+					} else {
+						m_flagMaximized = sl_true;
+						onMaximize();
+					}
+					onResize(handle, (sl_ui_pos)width, (sl_ui_pos)height);
 				} else if (wParam == SIZE_RESTORED) {
 					if (m_flagMinimized) {
 						m_flagMinimized = sl_false;
