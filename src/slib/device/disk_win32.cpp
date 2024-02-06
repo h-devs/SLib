@@ -39,17 +39,9 @@ namespace slib
 	namespace
 	{
 
-		enum STORAGE_PROTOCOL_TYPE {
-			ProtocolTypeUnknown = 0,
-			ProtocolTypeScsi,
-			ProtocolTypeAta,
-			ProtocolTypeNvme,
-			ProtocolTypeSd
-		};
-
 		struct STORAGE_PROTOCOL_SPECIFIC_DATA
 		{
-			STORAGE_PROTOCOL_TYPE ProtocolType;
+			ULONG ProtocolType;
 			ULONG DataType;
 			ULONG ProtocolDataRequestValue;
 			ULONG ProtocolDataRequestSubValue;
@@ -61,10 +53,11 @@ namespace slib
 
 		struct STORAGE_PROTOCOL_SPECIFIC_QUERY_WITH_BUFFER
 		{
-			struct { // STORAGE_PROPERTY_QUERY without AdditionalsParameters[1]
+			struct
+			{
 				STORAGE_PROPERTY_ID PropertyId;
 				STORAGE_QUERY_TYPE QueryType;
-			} PropertyQuery;
+			} PropertyQuery; // STORAGE_PROPERTY_QUERY without AdditionalsParameters[1]
 			STORAGE_PROTOCOL_SPECIFIC_DATA ProtocolSpecific;
 			BYTE DataBuffer[4096];
 		};
@@ -73,12 +66,11 @@ namespace slib
 		{
 			STORAGE_PROTOCOL_SPECIFIC_QUERY_WITH_BUFFER query;
 			Base::zeroMemory(&query, sizeof(query));
-			query.PropertyQuery.PropertyId = (STORAGE_PROPERTY_ID)50; // StorageDeviceProtocolSpecificProperty
+			query.PropertyQuery.PropertyId = (STORAGE_PROPERTY_ID)49; // StorageAdapterProtocolSpecificProperty
 			query.PropertyQuery.QueryType = PropertyStandardQuery;
-			query.ProtocolSpecific.ProtocolType = ProtocolTypeNvme;
+			query.ProtocolSpecific.ProtocolType = 3; // ProtocolTypeNvme;
 			query.ProtocolSpecific.DataType = 1; // NVMeDataTypeIdentify
-			query.ProtocolSpecific.ProtocolDataRequestValue = 1; // cdw10
-			query.ProtocolSpecific.ProtocolDataRequestSubValue = 0; // nsid
+			query.ProtocolSpecific.ProtocolDataRequestValue = 1; // NVME_IDENTIFY_CNS_CONTROLLER
 			query.ProtocolSpecific.ProtocolDataOffset = sizeof(query.ProtocolSpecific);
 			query.ProtocolSpecific.ProtocolDataLength = sizeof(query.DataBuffer);
 
@@ -128,7 +120,7 @@ namespace slib
 						if (descriptor->BusType == 0x11) {
 							// NVMe
 							String ret = GetSerialNumberFromNVMe(hDevice);
-							if (ret.isNotNull()) {
+							if (ret.isNotEmpty()) {
 								return ret;
 							}
 						}
@@ -197,7 +189,7 @@ namespace slib
 			disk.type = GetMediaType(item.getValue("MediaType").getString());
 			disk.model = item.getValue("Model").getString();
 			disk.serialNumber = Disk::getSerialNumber(disk.index);
-			if (disk.serialNumber.isNull()) {
+			if (disk.serialNumber.isEmpty()) {
 				disk.serialNumber = Disk::normalizeSerialNumber(item.getValue("SerialNumber").getString());
 			}
 			disk.capacity = item.getValue("Size").getUint64();
