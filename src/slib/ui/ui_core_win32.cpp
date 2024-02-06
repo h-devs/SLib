@@ -1049,9 +1049,20 @@ namespace slib
 		wc.style = CS_DBLCLKS | CS_PARENTDC;
 		wc.lpfnWndProc = ViewInstanceProc;
 		wc.hInstance = hInstance;
-		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
 		wc.hbrBackground = NULL;
 		wc.lpszClassName = PRIV_SLIB_UI_VIEW_WINDOW_CLASS_NAME;
+	}
+
+	namespace
+	{
+		static BOOL EnumApplicationIcon(HMODULE hModule, LPCWSTR lpType, LPWSTR lpName, LONG_PTR lParam
+		)
+		{
+			WNDCLASSW& wc = *((WNDCLASS*)lParam);
+			wc.hIcon = LoadIconW(hModule, lpName);
+			return FALSE;
+		}
 	}
 
 	void Win32_UI_Shared::prepareClassForWindow(WNDCLASSEXW& wc)
@@ -1061,8 +1072,8 @@ namespace slib
 		wc.style = CS_DBLCLKS;
 		wc.lpfnWndProc = WindowInstanceProc;
 		wc.hInstance = hInstance;
-		wc.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
-		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+		EnumResourceNamesW(hInstance, RT_GROUP_ICON, &EnumApplicationIcon, (LONG_PTR)&wc);
+		wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
 		wc.hbrBackground = NULL;
 		wc.lpszClassName = PRIV_SLIB_UI_GENERIC_WINDOW_CLASS_NAME;
 	}
