@@ -75,7 +75,7 @@ namespace slib
 	{
 		View::init();
 		setPadding(1, 1, 1, 1, UIUpdateMode::Init);
-		setAntiAlias(sl_true, UIUpdateMode::Init);
+		setContentAntiAlias(sl_true, UIUpdateMode::Init);
 	}
 
 	String Button::getText()

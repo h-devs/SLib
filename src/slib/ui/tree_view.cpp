@@ -613,7 +613,7 @@ namespace slib
 
 		m_itemHeight = 0;
 
-		setAntiAlias(sl_true, UIUpdateMode::Init);
+		setContentAntiAlias(sl_true, UIUpdateMode::Init);
 		ScrollView::setPadding(6, 6, 6, 6, UIUpdateMode::Init);
 		m_itemPadding = 8;
 		m_itemIndent = 16;

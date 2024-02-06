@@ -48,7 +48,7 @@ namespace slib
 	void ImageView::init()
 	{
 		View::init();
-		setAntiAlias(sl_true, UIUpdateMode::Init);
+		setContentAntiAlias(sl_true, UIUpdateMode::Init);
 	}
 
 	Ref<ImageView> ImageView::create(sl_ui_len width, sl_ui_len height, const Ref<slib::Drawable> &drawable)

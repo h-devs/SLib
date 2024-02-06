@@ -49,7 +49,7 @@ namespace slib
 	void SwitchView::init()
 	{
 		View::init();
-		setAntiAlias(sl_true, UIUpdateMode::Init);
+		setContentAntiAlias(sl_true, UIUpdateMode::Init);
 	}
 
 	SwitchValue SwitchView::getValue()
