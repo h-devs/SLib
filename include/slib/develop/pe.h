@@ -49,8 +49,23 @@
 #define SLIB_PE_DIRECTORY_CLR						14
 // Reserved											15
 
-#define SLIB_PE_RELOC_I386_REL32					0x0014
-#define SLIB_PE_REL_AMD64_REL32								0x0004
+#define SLIB_PE_RELOC_I386_REL32								0x0014
+#define SLIB_PE_REL_I386_DIR32									0x0006
+#define SLIB_PE_REL_I386_DIR32NB								0x0007
+
+#define SLIB_PE_REL_AMD64_ADDR64								0x0001
+#define SLIB_PE_REL_AMD64_ADDR32								0x0002
+#define SLIB_PE_REL_AMD64_ADDR32_NB								0x0003
+#define SLIB_PE_REL_AMD64_REL32									0x0004
+#define SLIB_PE_REL_AMD64_REL32_1								0x0005
+#define SLIB_PE_REL_AMD64_REL32_2								0x0006
+#define SLIB_PE_REL_AMD64_REL32_3								0x0007
+#define SLIB_PE_REL_AMD64_REL32_4								0x0008
+#define SLIB_PE_REL_AMD64_REL32_5								0x0009
+
+#define	SLIB_IMAGE_SYM_CLASS_EXTERNAL				2
+#define	SLIB_IMAGE_SYM_CLASS_STATIC					3
+#define	SLIB_IMAGE_SYM_CLASS_FUNCTION				101
 
 namespace slib
 {

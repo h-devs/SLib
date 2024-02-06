@@ -25,6 +25,7 @@
 #include "slib/develop/protect.h"
 #include "slib/io/memory_reader.h"
 #include "slib/io/priv/seekable_reader_helper.h"
+#include "slib/io/file.h"
 
 namespace slib
 {
@@ -394,19 +395,22 @@ namespace slib
 		return sl_null;
 	}
 
+
 	List<Coff::CodeSection> Coff::getCodeSections()
 	{
 		if (!(isLoaded())) {
 			return sl_null;
 		}
-		List<CodeSection> ret;
+		List<Coff::CodeSection> ret;
 		sl_uint32 codeOffset = 0;
 		for (sl_uint32 i = 0; i < header.numberOfSections; i++) {
-			CodeSection section;
+			Coff::CodeSection section;
 			if (getSection(i, section)) {
-				if (section.name == "text") {
+				if (section.name == "text" || section.name == ".rdata" || section.name == ".bss" 
+					|| section.name == ".data" || section.name == ".pdata" || section.name ==".xdata") {
 					section.codeOffset = codeOffset;
 					section.sectionIndex = i;
+
 					codeOffset += getCodeSectionSize(section);
 					if (!(ret.add_NoLock(Move(section)))) {
 						return sl_null;
@@ -415,6 +419,22 @@ namespace slib
 			}
 		}
 		return ret;
+	}
+
+	sl_bool Coff::getDataSection(Coff::Section &section)
+	{
+		if (!(isLoaded())) {
+			return sl_false;
+		}
+		sl_uint32 codeOffset = 0;
+		for (sl_uint32 i = 0; i < header.numberOfSections; i++) {
+			if (getSection(i, section)) {
+				if (section.name == ".data") {
+					return sl_true;
+				}
+			}
+		}
+		return sl_false;
 	}
 
 	List<Coff::CodeSection> Coff::getCodeSectionsReferencedFrom(const StringParam& entrySymbolName)
@@ -426,12 +446,12 @@ namespace slib
 		IReader* reader = m_reader;
 		ISeekable* seeker = m_seekable;
 
-		CodeSectionSet sections(getCodeSections());
+		Coff::CodeSectionSet sections(getCodeSections());
 		if (!(sections.count)) {
 			return sl_null;
 		}
 
-		Symbol* pSymbolEntry = findSymbol(entrySymbolName);
+		Coff::Symbol* pSymbolEntry = findSymbol(entrySymbolName);
 		if (!pSymbolEntry) {
 			return sl_null;
 		}
@@ -442,54 +462,65 @@ namespace slib
 		for (;;) {
 			sl_bool flagFoundNewSection = sl_false;
 			for (auto& item : refSections) {
-				CodeSection* pSection = sections.getSectionByNumber(item.key);
-				if (pSection) {
-					if (!(item.value)) {
-						item.value = 1;
-						flagFoundNewSection = sl_true;
-						if (!(seeker->seek(pSection->offsetToRelocations, SeekPosition::Begin))) {
-							return sl_null;
-						}
-						for (sl_uint32 i = 0; i < pSection->numberOfRelocations; i++) {
-							SectionRelocation relocation;
-							if (!(reader->readFully(&relocation, sizeof(relocation)))) {
+				if (item.key) {
+					Coff::CodeSection* pSection = sections.getSectionByNumber(item.key);
+					if (pSection) {
+						if (!(item.value)) {
+							item.value = 1;
+							flagFoundNewSection = sl_true;
+							if (!(seeker->seek(pSection->offsetToRelocations, SeekPosition::Begin))) {
 								return sl_null;
 							}
-							if (relocation.type == SLIB_PE_RELOC_I386_REL32 || relocation.type == SLIB_PE_REL_AMD64_REL32) {
-								Symbol* pSymbol = getSymbol(relocation.symbolTableIndex);
-								if (pSymbol) {
-									if (!(refSections.find_NoLock(pSymbol->sectionNumber))) {
-										refSections.put_NoLock(pSymbol->sectionNumber, 0);
-									}
-								} else {
+							for (sl_uint32 i = 0; i < pSection->numberOfRelocations; i++) {
+								Coff::SectionRelocation relocation;
+								if (!(reader->readFully(&relocation, sizeof(relocation)))) {
 									return sl_null;
+								}
+#ifdef SLIB_PLATFORM_IS_WIN64
+								{
+#else
+								if (relocation.type == SLIB_PE_RELOC_I386_REL32 || relocation.type == SLIB_PE_REL_I386_DIR32) {
+#endif // SLIB_PLATFORM_IS_WIN64
+									Coff::Symbol* pSymbol = getSymbol(relocation.symbolTableIndex);
+									if (pSymbol) {
+										if (!(refSections.find_NoLock(pSymbol->sectionNumber))) {
+											refSections.put_NoLock(pSymbol->sectionNumber, 0);
+										}
+									}
+									else {
+										return sl_null;
+									}
 								}
 							}
 						}
 					}
-				} else {
-					return sl_null;
+					else {
+						return sl_null;
+					}
 				}
+
 			}
 			if (!flagFoundNewSection) {
 				break;
 			}
 		}
 
-		List<CodeSection> ret;
+		List<Coff::CodeSection> ret;
 		{
 			for (auto& item : refSections) {
-				CodeSection* pSection = sections.getSectionByNumber(item.key);
-				if (pSection) {
-					ret.add_NoLock(*pSection);
-				} else {
-					return sl_null;
+				if (item.key) {
+					Coff::CodeSection* pSection = sections.getSectionByNumber(item.key);
+					if (pSection) {
+						ret.add_NoLock(*pSection);
+					}
+					else {
+						return sl_null;
+					}
 				}
 			}
 		}
 		return ret;
 	}
-
 	sl_uint32 Coff::getCodeSectionSize(const SectionDesc& section)
 	{
 		sl_uint32 sizeOfRawData = section.sizeOfRawData;

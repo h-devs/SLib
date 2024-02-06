@@ -6,8 +6,26 @@
 #include "../core/memory.h"
 #include "../core/string.h"
 
+#define JMP_SECTION_SIZE				28
+#define SIZE_OF_CALL					5
+
 namespace slib
 {
+	struct ShellCodeRelocTableHeader
+	{
+		sl_uint32 nRelocsCount;
+	};
+
+	struct ShellCodeRelocTableItem
+	{
+		sl_uint32 OffsetToReloc;
+	};
+
+	struct ShellCodeHeader
+	{
+		sl_uint8 jmpSection[JMP_SECTION_SIZE];
+		ShellCodeRelocTableHeader relocTable;
+	};
 
 	class SLIB_EXPORT ShellCode
 	{

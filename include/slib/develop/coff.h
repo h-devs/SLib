@@ -192,6 +192,8 @@ namespace slib
 
 		List<CodeSection> getCodeSections();
 
+		sl_bool getDataSection(Section &section);
+
 		List<CodeSection> getCodeSectionsReferencedFrom(const StringParam& entrySymbolName);
 
 		sl_uint32 getCodeSectionSize(const SectionDesc& section);
