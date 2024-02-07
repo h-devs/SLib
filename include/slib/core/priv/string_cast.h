@@ -315,13 +315,64 @@ namespace slib
 #endif
 
 
+	constexpr const String& ToString(const String& str) noexcept
+	{
+		return str;
+	}
+
+	constexpr String&& ToString(String&& str) noexcept
+	{
+		return Move(str);
+	}
+
+	String ToString(const Atomic<String>& str) noexcept;
+	String ToString(const String16& str) noexcept;
+	String ToString(const Atomic<String16>& str) noexcept;
+	String ToString(const String32& str) noexcept;
+	String ToString(const Atomic<String32>& str) noexcept;
+	String ToString(const StringView& str) noexcept;
+	String ToString(const StringView16& str) noexcept;
+	String ToString(const StringView32& str) noexcept;
+	String ToString(const StringParam& str) noexcept;
+	String ToString(const char* str) noexcept;
+	String ToString(const wchar_t* str) noexcept;
+	String ToString(const char16_t* str) noexcept;
+	String ToString(const char32_t* str) noexcept;
+#ifdef SLIB_SUPPORT_STD_TYPES
+	String ToString(const std::string& str) noexcept;
+	String ToString(const std::wstring& str) noexcept;
+	String ToString(const std::u16string& str) noexcept;
+	String ToString(const std::u32string& str) noexcept;
+#endif
+	String ToString(signed char value) noexcept;
+	String ToString(unsigned char value) noexcept;
+	String ToString(short value) noexcept;
+	String ToString(unsigned short value) noexcept;
+	String ToString(int value) noexcept;
+	String ToString(unsigned int value) noexcept;
+	String ToString(long value) noexcept;
+	String ToString(unsigned long value) noexcept;
+	String ToString(sl_int64 value) noexcept;
+	String ToString(sl_uint64 value) noexcept;
+	String ToString(float value) noexcept;
+	String ToString(double value) noexcept;
+	String ToString(sl_bool value) noexcept;
+	String ToString(const Time& value) noexcept;
+	String ToString(const Variant& var) noexcept;
+
+	template <class T>
+	SLIB_INLINE static String ToString(const T& t)
+	{
+		return t.toString();
+	}
+
 	template <class T>
 	class Cast<T, String>
 	{
 	public:
 		String operator()(const T& v) const
 		{
-			return String::from(v);
+			return ToString(v);
 		}
 	};
 

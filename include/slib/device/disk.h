@@ -40,6 +40,8 @@ namespace slib
 		IEEE1394 = 5
 	};
 
+	String ToString(DiskInterface);
+
 	enum class DiskType
 	{
 		Unknown = 0,
@@ -47,6 +49,9 @@ namespace slib
 		External = 2,
 		Removable = 3
 	};
+
+	String ToString(DiskType);
+
 
 	class SLIB_EXPORT DiskInfo
 	{

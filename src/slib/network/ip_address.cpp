@@ -830,15 +830,4 @@ namespace slib
 		return *this;
 	}
 
-
-	String Cast<IPv4Address, String>::operator()(const IPv4Address& v) const
-	{
-		return v.toString();
-	}
-
-	String Cast<IPv6Address, String>::operator()(const IPv6Address& v) const
-	{
-		return v.toString();
-	}
-
 }

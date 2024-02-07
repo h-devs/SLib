@@ -144,13 +144,6 @@ namespace slib
 
 	};
 
-	template <>
-	class Cast<MacAddress, String>
-	{
-	public:
-		String operator()(const MacAddress& v) const;
-	};
-
 }
 
 #endif

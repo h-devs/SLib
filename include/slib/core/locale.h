@@ -747,7 +747,7 @@ namespace slib
 
 #define SLIB_LOCALE(LANG, SCRIPT, COUNTRY) SLIB_MAKE_QWORD4(SCRIPT, SLIB_MAKE_DWORD2(COUNTRY, LANG))
 
-	class Locale
+	class SLIB_EXPORT Locale
 	{
 	public:
 		SLIB_DEFINE_PRIMITIVE_WRAPPER_MEMBERS(Locale, sl_uint64, value)

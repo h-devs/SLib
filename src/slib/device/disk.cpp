@@ -129,4 +129,38 @@ namespace slib
 		}
 	}
 
+	String ToString(DiskInterface interface)
+	{
+		switch (interface) {
+			case DiskInterface::IDE:
+				SLIB_RETURN_STRING("IDE")
+			case DiskInterface::USB:
+				SLIB_RETURN_STRING("USB")
+			case DiskInterface::SCSI:
+				SLIB_RETURN_STRING("SCSI")
+			case DiskInterface::HDC:
+				SLIB_RETURN_STRING("HDC")
+			case DiskInterface::IEEE1394:
+				SLIB_RETURN_STRING("1394")
+			default:
+				break;
+		}
+		return sl_null;
+	}
+
+	String ToString(DiskType type)
+	{
+		switch (type) {
+			case DiskType::Fixed:
+				SLIB_RETURN_STRING("Fixed")
+			case DiskType::External:
+				SLIB_RETURN_STRING("External")
+			case DiskType::Removable:
+				SLIB_RETURN_STRING("Removable")
+			default:
+				break;
+		}
+		return sl_null;
+	}
+
 }

@@ -5831,6 +5831,54 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String16>)
 DEFINE_COMMON_STRING_FUNC_IMPL(String32)
 DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 
+	String ToString(const Atomic<String>& str) noexcept
+	{
+		return str;
+	}
+
+	String ToString(const StringView& str) noexcept
+	{
+		return str;
+	}
+
+#define DEFINE_TO_STRING(TYPE) \
+	String ToString(TYPE str) noexcept \
+	{ \
+		return String::from(str); \
+	}
+
+	DEFINE_TO_STRING(const String16&)
+	DEFINE_TO_STRING(const Atomic<String16>&)
+	DEFINE_TO_STRING(const String32&)
+	DEFINE_TO_STRING(const Atomic<String32>&)
+	DEFINE_TO_STRING(const StringView16&)
+	DEFINE_TO_STRING(const StringView32&)
+	DEFINE_TO_STRING(const StringParam&)
+	DEFINE_TO_STRING(const char*)
+	DEFINE_TO_STRING(const wchar_t*)
+	DEFINE_TO_STRING(const char16_t*)
+	DEFINE_TO_STRING(const char32_t*)
+	DEFINE_TO_STRING(const std::string&)
+	DEFINE_TO_STRING(const std::wstring&)
+	DEFINE_TO_STRING(const std::u16string&)
+	DEFINE_TO_STRING(const std::u32string&)
+	DEFINE_TO_STRING(signed char)
+	DEFINE_TO_STRING(unsigned char)
+	DEFINE_TO_STRING(short)
+	DEFINE_TO_STRING(unsigned short)
+	DEFINE_TO_STRING(int)
+	DEFINE_TO_STRING(unsigned int)
+	DEFINE_TO_STRING(long)
+	DEFINE_TO_STRING(unsigned long)
+	DEFINE_TO_STRING(sl_int64)
+	DEFINE_TO_STRING(sl_uint64)
+	DEFINE_TO_STRING(float)
+	DEFINE_TO_STRING(double)
+	DEFINE_TO_STRING(sl_bool)
+	DEFINE_TO_STRING(const Time&)
+	DEFINE_TO_STRING(const Variant&)
+
+
 #define DEFINE_STRING_VIEW_FUNC_IMPL(VIEW) \
 	VIEW::VIEW(typename VIEW::StringType const& value) noexcept \
 	{ \
