@@ -3639,7 +3639,7 @@ namespace slib
 	{
 		SerializeBuffer buf(data, size);
 		if (deserialize(&buf)) {
-			return buf.current - buf.begin;
+			return buf.getOffset();
 		} else {
 			return 0;
 		}
@@ -3649,7 +3649,7 @@ namespace slib
 	{
 		SerializeBuffer buf(mem);
 		if (deserialize(&buf)) {
-			return buf.current - buf.begin;
+			return buf.getOffset();
 		} else {
 			return 0;
 		}

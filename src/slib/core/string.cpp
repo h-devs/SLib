@@ -4603,6 +4603,11 @@ namespace slib
 		return create(str); \
 	} \
 	\
+	STRING STRING::from(const StringView32& str) noexcept \
+	{ \
+		return create(str); \
+	} \
+	\
 	STRING STRING::from(const char* str, sl_reg length) noexcept \
 	{ \
 		return create(str, length); \

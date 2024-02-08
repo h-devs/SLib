@@ -93,7 +93,7 @@ namespace slib
 			return 0;
 		}
 		if (buf.current == buf.end) {
-			return (sl_int32)(buf.current - buf.begin);
+			return (sl_int32)(buf.getOffset());
 		}
 		if (!(buf.readUint16BE(extentionsSize))) {
 			return 0;
@@ -101,7 +101,7 @@ namespace slib
 		if (buf.current + extentionsSize <= buf.end) {
 			sl_int32 ret = _parseExtensions(buf.current, extentionsSize);
 			if (ret > 0) {
-				return (sl_int32)(buf.current - buf.begin) + ret;
+				return (sl_int32)(buf.getOffset()) + ret;
 			} else {
 				return ret;
 			}
@@ -134,7 +134,7 @@ namespace slib
 			}
 			extensions.add_NoLock(extension);
 		}
-		return (sl_int32)(buf.current - buf.begin);
+		return (sl_int32)(buf.getOffset());
 	}
 
 	sl_bool TlsServerNameIndicationExtension::parse(const void* data, sl_size size) noexcept
