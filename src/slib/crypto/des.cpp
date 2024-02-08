@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  */
 
 #include "slib/crypto/des.h"
+#include "slib/crypto/3des.h"
 
 #include "slib/core/mio.h"
 
@@ -316,7 +317,7 @@ namespace slib
 		m_des3.setKey(key3);
 	}
 
-	void TripleDES::setKey24(const void* _key)
+	void TripleDES::setKey(const void* _key)
 	{
 		char* key = (char*)(_key);
 		m_des1.setKey(key);
@@ -324,17 +325,17 @@ namespace slib
 		m_des3.setKey(key + 16);
 	}
 
-	void TripleDES::setKey(const void* key1, const void* key2)
+	void TripleDES::setKey2(const void* key1, const void* key2)
 	{
 		setKey(key1, key2, key1);
 	}
 
-	void TripleDES::setKey(sl_uint64 key1, sl_uint64 key2)
+	void TripleDES::setKey2(sl_uint64 key1, sl_uint64 key2)
 	{
 		setKey(key1, key2, key1);
 	}
 
-	void TripleDES::setKey16(const void* _key)
+	void TripleDES::setKey2(const void* _key)
 	{
 		char* key = (char*)(_key);
 		m_des1.setKey(key);
@@ -345,10 +346,10 @@ namespace slib
 	sl_bool TripleDES::setKey(const void* key, sl_size lenKey)
 	{
 		if (lenKey == 24) {
-			setKey24(key);
+			setKey(key);
 			return sl_true;
 		} else if (lenKey == 16) {
-			setKey16(key);
+			setKey2(key);
 			return sl_true;
 		}
 		return sl_false;

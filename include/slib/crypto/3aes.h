@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,51 +20,48 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CRYPTO_HEADER
-#define CHECKHEADER_SLIB_CRYPTO_HEADER
+#ifndef CHECKHEADER_SLIB_CRYPTO_3AES
+#define CHECKHEADER_SLIB_CRYPTO_3AES
 
-// Hash
-#include "crypto/md5.h"
-#include "crypto/sha1.h"
-#include "crypto/sha2.h"
-#include "crypto/sha3.h"
+#include "aes.h"
 
-// Block Cipher
-#include "crypto/aes.h"
-#include "crypto/blowfish.h"
-#include "crypto/3des.h"
-#include "crypto/rc2.h"
+namespace slib
+{
 
-// Stream Cipher
-#include "crypto/rc4.h"
-#include "crypto/chacha.h"
+	class SLIB_EXPORT TripleAES : public BlockCipher<TripleAES>
+	{
+	public:
+		enum {
+			BlockSize = 16
+		};
 
-// Message authentication code
-#include "crypto/hmac.h"
-#include "crypto/poly1305.h"
+	public:
+		TripleAES();
 
-// Public-key cryptosystems
-#include "crypto/curve25519.h"
-#include "crypto/curve448.h"
-#include "crypto/rsa.h"
-#include "crypto/ecc.h"
-#include "crypto/dh.h"
+		~TripleAES();
 
-// Certification
-#include "crypto/x509.h"
-#include "crypto/pkcs12.h"
-#include "crypto/pkcs8.h"
-#include "crypto/pem.h"
-#include "crypto/jwt.h"
+	public:
+		// 3 x 256 bit (96 bytes)
+		void setKey(const void* key);
+		void setKey(const void* key1, const void* key2, const void* key3);
 
-// Key Derivation Function
-#include "crypto/pbkdf.h"
-#include "crypto/hkdf.h"
+		void encrypt(sl_uint32& d0, sl_uint32& d1, sl_uint32& d2, sl_uint32& d3) const;
 
-// Third-party
-#include "crypto/openssl.h"
+		void decrypt(sl_uint32& d0, sl_uint32& d1, sl_uint32& d2, sl_uint32& d3) const;
 
-#include "crypto/json.h"
-#include "crypto/serialize.h"
+		// 128 bits (16 bytes) block
+		void encryptBlock(const void* src, void* dst) const;
+
+		// 128 bits (16 bytes) block
+		void decryptBlock(const void* src, void* dst) const;
+
+	private:
+		AES m_aes1;
+		AES m_aes2;
+		AES m_aes3;
+
+	};
+
+}
 
 #endif

@@ -20,22 +20,15 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CRYPTO_DES
-#define CHECKHEADER_SLIB_CRYPTO_DES
+#ifndef CHECKHEADER_SLIB_CRYPTO_3DES
+#define CHECKHEADER_SLIB_CRYPTO_3DES
 
-#include "block_cipher.h"
-
-/*
- 	DES - Data Encryption Standard
-
-	User Key Size - 56 bits (7 bytes)
-	Block Size - 64 bits (8 bytes)
-*/
+#include "des.h"
 
 namespace slib
 {
 
-	class SLIB_EXPORT DES : public BlockCipher<DES>
+	class SLIB_EXPORT TripleDES : public BlockCipher<TripleDES>
 	{
 	public:
 		enum {
@@ -43,16 +36,20 @@ namespace slib
 		};
 
 	public:
-		DES();
+		TripleDES();
 
-		~DES();
+		~TripleDES();
 
 	public:
-		void setKey(sl_uint64 key);
+		// 3 x 64 bit (8 bytes), note that most significant bit of each byte is not used
+		void setKey(const void* key1, const void* key2, const void* key3);
+		void setKey(sl_uint64 key1, sl_uint64 key2, sl_uint64 key3);
+		void setKey(const void* key); // 24 Bytes
+		void setKey2(const void* key1, const void* key2);
+		void setKey2(sl_uint64 key1, sl_uint64 key2);
+		void setKey2(const void* key); // 16 Bytes
 
-		// 64 bit (8 bytes), note that most significant bit of each byte is not used
-		void setKey(const void* key);
-
+		// 16 or 24 bytes
 		sl_bool setKey(const void* key, sl_size lenKey);
 
 		sl_uint64 encrypt(sl_uint64 data) const;
@@ -66,7 +63,9 @@ namespace slib
 		void decryptBlock(const void* src, void* dst) const;
 
 	private:
-		sl_uint64 m_K[16];
+		DES m_des1;
+		DES m_des2;
+		DES m_des3;
 
 	};
 
