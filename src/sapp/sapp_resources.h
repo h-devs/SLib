@@ -965,6 +965,9 @@ namespace slib
 		SAppUint32Value lineCount;
 		SAppBooleanValue selectable;
 		SAppBooleanValue editable;
+		SAppBooleanValue backgroundAntiAlias;
+		SAppBooleanValue contentAntiAlias;
+		SAppBooleanValue antiAlias;
 		SAppBooleanValue defaultColorFilter;
 		SAppDimensionValue iconWidth;
 		SAppDimensionValue iconMargin;
@@ -1070,6 +1073,9 @@ namespace slib
 		SAppAlignmentValue cellAlign;
 		SAppBooleanValue selectable;
 		SAppBooleanValue editable;
+		SAppBooleanValue cellBackgroundAntiAlias;
+		SAppBooleanValue cellContentAntiAlias;
+		SAppBooleanValue cellAntiAlias;
 		SAppBooleanValue defaultColorFilter;
 		SAppDimensionValue iconWidth;
 		SAppDimensionValue iconMargin;

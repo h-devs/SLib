@@ -122,7 +122,7 @@ namespace slib
 
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellAttribute)
 
-	GridView::CellAttribute::CellAttribute(): multiLineMode(MultiLineMode::Single), ellipsizeMode(EllipsizeMode::None), lineCount(0), align(Alignment::MiddleCenter), flagSelectable(sl_false), flagEditable(sl_false), iconWidth(-1), iconScale(ScaleMode::Contain), iconAlign(Alignment::Default), colspan(1), rowspan(1), width(0), height(0)
+	GridView::CellAttribute::CellAttribute(): multiLineMode(MultiLineMode::Single), ellipsizeMode(EllipsizeMode::None), lineCount(0), align(Alignment::MiddleCenter), flagSelectable(sl_false), flagEditable(sl_false), flagBackgroundAntiAlias(sl_false), flagContentAntiAlias(sl_true), iconWidth(-1), iconScale(ScaleMode::Contain), iconAlign(Alignment::Default), colspan(1), rowspan(1), width(0), height(0)
 	{
 		padding.left = padding.top = padding.right = padding.bottom = 1;
 		iconMargin.left = iconMargin.top = iconMargin.right = iconMargin.bottom = 2;
@@ -303,8 +303,10 @@ namespace slib
 		UIRect frame(param.x, param.y, param.x + attr->width, param.y + attr->height);
 		Ref<Drawable> background = getBackground(param.state);
 		if (background.isNotNull()) {
+			CanvasAntiAliasScope scope(canvas, attr->flagBackgroundAntiAlias);
 			canvas->draw(frame, background);
 		}
+		CanvasAntiAliasScope scope(canvas, attr->flagContentAntiAlias);
 		Ref<Drawable> icon = getIcon(param.contentState);
 		if (icon.isNotNull()) {
 			UIRect iconFrame = frame;
@@ -620,6 +622,8 @@ namespace slib
 		align = other.align;
 		flagSelectable = other.flagSelectable;
 		flagEditable = other.flagEditable;
+		flagBackgroundAntiAlias = other.flagBackgroundAntiAlias;
+		flagContentAntiAlias = other.flagContentAntiAlias;
 		flagDefaultFilter = other.flagDefaultFilter;
 		backgroundGetter = other.backgroundGetter;
 		textColorGetter = other.textColorGetter;
@@ -2597,6 +2601,23 @@ namespace slib
 	DEFINE_GET_SET_CELL_LAYOUT_ATTR_SUB(Footer, FUNC, RET, ARG, NAME, DEF) \
 	DEFINE_SET_COLUMN_LAYOUT_ATTR(FUNC, ARG, NAME)
 
+#define DEFINE_GET_SET_CELL_BOOL_LAYOUT_ATTR_SUB(SECTION, FUNC, NAME, DEF) \
+	sl_bool GridView::is##SECTION##FUNC(sl_uint32 iRow, sl_uint32 iCol) \
+	{ \
+		ObjectLocker lock(this); \
+		SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
+		if (prop) { \
+			return prop->NAME; \
+		} \
+		return DEF; \
+	} \
+	DEFINE_SET_CELL_LAYOUT_ATTR_SUB(SECTION, FUNC, sl_bool, NAME)
+
+#define DEFINE_GET_SET_CELL_BOOL_LAYOUT_ATTR(FUNC, NAME, DEF) \
+	DEFINE_GET_SET_CELL_BOOL_LAYOUT_ATTR_SUB(Body, FUNC, NAME, DEF) \
+	DEFINE_GET_SET_CELL_BOOL_LAYOUT_ATTR_SUB(Header, FUNC, NAME, DEF) \
+	DEFINE_GET_SET_CELL_BOOL_LAYOUT_ATTR_SUB(Footer, FUNC, NAME, DEF) \
+	DEFINE_SET_COLUMN_LAYOUT_ATTR(FUNC, sl_bool, NAME)
 
 #define DEFINE_GET_SET_CELL_STATE_ATTR_SUB(SECTION, FUNC, RET, ARG, NAME, DEF) \
 	RET GridView::get##SECTION##FUNC(sl_uint32 iRow, sl_uint32 iCol, ViewState state) \
@@ -2668,7 +2689,6 @@ namespace slib
 	DEFINE_GET_SET_CELL_STATE_ATTR_SUB(Footer, FUNC, RET, ARG, NAME, DEF) \
 	DEFINE_SET_COLUMN_STATE_ATTR(FUNC, ARG, NAME)
 
-
 #define DEFINE_GET_FONT(SECTION) \
 	Ref<Font> GridView::get##SECTION##Font(sl_uint32 iRow, sl_uint32 iCol) \
 	{ \
@@ -2679,7 +2699,6 @@ namespace slib
 		} \
 		return getFont(); \
 	}
-
 
 	DEFINE_GET_SET_CELL_LAYOUT_ATTR(Creator, GridView::CellCreator, const CellCreator&, creator, sl_null)
 	DEFINE_GET_SET_CELL_LAYOUT_ATTR(Field, String, const String&, field, sl_null)
@@ -2703,6 +2722,8 @@ namespace slib
 	DEFINE_GET_SET_CELL_LAYOUT_ATTR(Alignment, Alignment, const Alignment&, align, 0)
 	DEFINE_GET_SET_CELL_BOOL_ATTR(Selectable, flagSelectable, sl_false)
 	DEFINE_GET_SET_CELL_BOOL_ATTR(Editable, flagEditable, sl_false)
+	DEFINE_GET_SET_CELL_BOOL_LAYOUT_ATTR(BackgroundAntiAlias, flagBackgroundAntiAlias, sl_false)
+	DEFINE_GET_SET_CELL_BOOL_LAYOUT_ATTR(ContentAntiAlias, flagContentAntiAlias, sl_true)
 	DEFINE_GET_SET_CELL_BOOL_ATTR(UsingDefaultColorFilter, flagDefaultFilter, sl_false)
 	DEFINE_GET_SET_CELL_LAYOUT_ATTR(BackgroundGetter, GridView::DrawableGetter, const DrawableGetter&, backgroundGetter, sl_null)
 	DEFINE_GET_SET_CELL_LAYOUT_ATTR(TextColorGetter, GridView::ColorGetter, const ColorGetter&, textColorGetter, sl_null)
@@ -2719,6 +2740,36 @@ namespace slib
 	DEFINE_GET_SET_CELL_STATE_ATTR(Background, Ref<Drawable>, const Ref<Drawable>&, background, sl_null)
 	DEFINE_GET_SET_CELL_STATE_ATTR(TextColor, Color, const Color&, textColor, Color::zero())
 	DEFINE_GET_SET_CELL_STATE_ATTR(ColorFilter, Shared<ColorMatrix>, const Shared<ColorMatrix>&, filter, sl_null)
+
+	void GridView::setBodyAntiAlias(sl_int32 row, sl_int32 column, sl_bool flag, UIUpdateMode mode)
+	{
+		setBodyBackgroundAntiAlias(row, column, flag, UIUpdateMode::Init);
+		setBodyContentAntiAlias(row, column, flag, mode);
+	}
+
+	void GridView::setHeaderAntiAlias(sl_int32 row, sl_int32 column, sl_bool flag, UIUpdateMode mode)
+	{
+		setHeaderBackgroundAntiAlias(row, column, flag, UIUpdateMode::Init);
+		setHeaderContentAntiAlias(row, column, flag, mode);
+	}
+
+	void GridView::setFooterAntiAlias(sl_int32 row, sl_int32 column, sl_bool flag, UIUpdateMode mode)
+	{
+		setFooterBackgroundAntiAlias(row, column, flag, UIUpdateMode::Init);
+		setFooterContentAntiAlias(row, column, flag, mode);
+	}
+
+	void GridView::setColumnAntiAlias(sl_int32 column, sl_bool flag, UIUpdateMode mode)
+	{
+		setColumnBackgroundAntiAlias(column, flag, UIUpdateMode::Init);
+		setColumnContentAntiAlias(column, flag, mode);
+	}
+
+	void GridView::setCellAntiAlias(sl_bool flag, UIUpdateMode mode)
+	{
+		setBackgroundAntiAlias(flag, UIUpdateMode::Init);
+		setContentAntiAlias(flag, mode);
+	}
 
 #define DEFINE_GET_SET_SPAN(SECTION) \
 	sl_uint32 GridView::get##SECTION##Rowspan(sl_uint32 iRow, sl_uint32 iCol) \

@@ -60,8 +60,10 @@ namespace slib
 			EllipsizeMode ellipsizeMode;
 			sl_uint32 lineCount;
 			Alignment align;
-			sl_bool flagSelectable;
-			sl_bool flagEditable;
+			sl_bool flagSelectable : 1;
+			sl_bool flagEditable : 1;
+			sl_bool flagBackgroundAntiAlias : 1;
+			sl_bool flagContentAntiAlias : 1;
 
 			DrawableGetter backgroundGetter;
 			ColorGetter textColorGetter;
@@ -171,9 +173,9 @@ namespace slib
 			UIRect m_contentFrame; // Relative
 
 			Color m_defaultTextColor;
-			sl_bool m_flagSelectable;
-			sl_bool m_flagDefaultFilter;
-			sl_bool m_flagUseContentState;
+			sl_bool m_flagSelectable : 1;
+			sl_bool m_flagDefaultFilter : 1;
+			sl_bool m_flagUseContentState : 1;
 
 			friend class GridView;
 		};
@@ -632,21 +634,47 @@ namespace slib
 		sl_bool isHeaderSelectable(sl_uint32 row, sl_uint32 column);
 		sl_bool isFooterSelectable(sl_uint32 row, sl_uint32 column);
 
-		void setBodySelectable(sl_int32 row, sl_int32 column, sl_bool flag);
-		void setHeaderSelectable(sl_int32 row, sl_int32 column, sl_bool flag);
-		void setFooterSelectable(sl_int32 row, sl_int32 column, sl_bool flag);
-		void setColumnSelectable(sl_int32 column, sl_bool flag);
-		void setCellSelectable(sl_bool flag);
+		void setBodySelectable(sl_int32 row, sl_int32 column, sl_bool flag = sl_true);
+		void setHeaderSelectable(sl_int32 row, sl_int32 column, sl_bool flag = sl_true);
+		void setFooterSelectable(sl_int32 row, sl_int32 column, sl_bool flag = sl_true);
+		void setColumnSelectable(sl_int32 column, sl_bool flag = sl_true);
+		void setCellSelectable(sl_bool flag = sl_true);
 
 		sl_bool isBodyEditable(sl_uint32 row, sl_uint32 column);
 		sl_bool isHeaderEditable(sl_uint32 row, sl_uint32 column);
 		sl_bool isFooterEditable(sl_uint32 row, sl_uint32 column);
 
-		void setBodyEditable(sl_int32 row, sl_int32 column, sl_bool flag);
-		void setHeaderEditable(sl_int32 row, sl_int32 column, sl_bool flag);
-		void setFooterEditable(sl_int32 row, sl_int32 column, sl_bool flag);
-		void setColumnEditable(sl_int32 column, sl_bool flag);
-		void setCellEditable(sl_bool flag);
+		void setBodyEditable(sl_int32 row, sl_int32 column, sl_bool flag = sl_true);
+		void setHeaderEditable(sl_int32 row, sl_int32 column, sl_bool flag = sl_true);
+		void setFooterEditable(sl_int32 row, sl_int32 column, sl_bool flag = sl_true);
+		void setColumnEditable(sl_int32 column, sl_bool flag = sl_true);
+		void setCellEditable(sl_bool flag = sl_true);
+
+		sl_bool isBodyBackgroundAntiAlias(sl_uint32 row, sl_uint32 column);
+		sl_bool isHeaderBackgroundAntiAlias(sl_uint32 row, sl_uint32 column);
+		sl_bool isFooterBackgroundAntiAlias(sl_uint32 row, sl_uint32 column);
+
+		void setBodyBackgroundAntiAlias(sl_int32 row, sl_int32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderBackgroundAntiAlias(sl_int32 row, sl_int32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterBackgroundAntiAlias(sl_int32 row, sl_int32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnBackgroundAntiAlias(sl_int32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellBackgroundAntiAlias(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isBodyContentAntiAlias(sl_uint32 row, sl_uint32 column);
+		sl_bool isHeaderContentAntiAlias(sl_uint32 row, sl_uint32 column);
+		sl_bool isFooterContentAntiAlias(sl_uint32 row, sl_uint32 column);
+
+		void setBodyContentAntiAlias(sl_int32 row, sl_int32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderContentAntiAlias(sl_int32 row, sl_int32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterContentAntiAlias(sl_int32 row, sl_int32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnContentAntiAlias(sl_int32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellContentAntiAlias(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBodyAntiAlias(sl_int32 row, sl_int32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderAntiAlias(sl_int32 row, sl_int32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterAntiAlias(sl_int32 row, sl_int32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnAntiAlias(sl_int32 column, sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellAntiAlias(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isBodyUsingDefaultColorFilter(sl_uint32 row, sl_uint32 column);
 		sl_bool isHeaderUsingDefaultColorFilter(sl_uint32 row, sl_uint32 column);
@@ -886,8 +914,8 @@ namespace slib
 		{
 		public:
 			CellCreator creator;
-			sl_bool flagCoveredX;
-			sl_bool flagCoveredY;
+			sl_bool flagCoveredX : 1;
+			sl_bool flagCoveredY : 1;
 
 		public:
 			CellProp();

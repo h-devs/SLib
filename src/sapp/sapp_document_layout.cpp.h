@@ -4591,6 +4591,9 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellAlign, setCellAlignment)
 		LAYOUT_CONTROL_ATTR(GENERIC, selectable, setCellSelectable)
 		LAYOUT_CONTROL_ATTR(GENERIC, editable, setCellEditable)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellAntiAlias, setCellAntiAlias)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellBackgroundAntiAlias, setCellBackgroundAntiAlias)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellContentAntiAlias, setCellContentAntiAlias)
 		LAYOUT_CONTROL_ATTR(GENERIC, defaultColorFilter, setCellUsingDefaultColorFilter)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconWidth, setCellIconWidth, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMargin, setCellIconMargin, checkPosition)
@@ -4622,6 +4625,9 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., lineCount) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., selectable) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., editable) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., antiAlias) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., backgroundAntiAlias) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., contentAntiAlias) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., defaultColorFilter) \
 				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., iconWidth, checkScalarSize) \
 				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., iconMargin, checkPosition) \
@@ -4652,6 +4658,9 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "LineCount", , ATTR.lineCount) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Selectable", , ATTR.selectable) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Editable", , ATTR.editable) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "AntiAlias", , ATTR.antiAlias) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "BackgroundAntiAlias", , ATTR.backgroundAntiAlias) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "ContentAntiAlias", , ATTR.contentAntiAlias) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "DefaultColorFilter", , ATTR.defaultColorFilter) \
 				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "IconWidth", , ATTR.iconWidth, checkScalarSize) \
 				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "IconMargin", , ATTR.iconMargin, checkPosition) \
@@ -4902,6 +4911,9 @@ namespace slib
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.selectable, set##PREFIX##Selectable, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.editable, set##PREFIX##Editable, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.antiAlias, set##PREFIX##AntiAlias, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.backgroundAntiAlias, set##PREFIX##BackgroundAntiAlias, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.contentAntiAlias, set##PREFIX##ContentAntiAlias, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.defaultColorFilter, set##PREFIX##UsingDefaultColorFilter, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.iconWidth, set##PREFIX##IconWidth, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.iconMargin, set##PREFIX##IconMargin, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
@@ -5025,6 +5037,9 @@ namespace slib
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.selectable, set##PREFIX##Selectable, BASIC, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.editable, set##PREFIX##Editable, BASIC, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.antiAlias, set##PREFIX##AntiAlias, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.backgroundAntiAlias, set##PREFIX##BackgroundAntiAlias, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.contentAntiAlias, set##PREFIX##ContentAntiAlias, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.defaultColorFilter, set##PREFIX##UsingDefaultColorFilter, BASIC, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.iconWidth, set##PREFIX##IconWidth, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.iconMargin, set##PREFIX##IconMargin, ITEM, ##__VA_ARGS__, value) \
