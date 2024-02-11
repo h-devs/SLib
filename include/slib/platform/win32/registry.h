@@ -48,7 +48,11 @@ namespace slib
 		public:
 			static Registry open(HKEY hKeyParent, const StringParam& subPath, REGSAM sam = KEY_ALL_ACCESS, sl_bool flagCreate = sl_false);
 
+			static Registry open(const StringParam& path, REGSAM sam = KEY_ALL_ACCESS, sl_bool flagCreate = sl_false);
+
 			static Registry create(HKEY hKeyParent, const StringParam& subPath, REGSAM sam = KEY_ALL_ACCESS);
+
+			static Registry create(const StringParam& path, REGSAM sam = KEY_ALL_ACCESS);
 
 		public:
 			VariantMap getValues();
@@ -62,6 +66,12 @@ namespace slib
 			static sl_bool getValue(HKEY hKeyParent, const StringParam& subPath, const StringParam& name, Variant* out);
 
 			static sl_bool getValue(const StringParam& path, const StringParam& name, Variant* out);
+
+			Variant getValue(const StringParam& name);
+
+			static Variant getValue(HKEY hKeyParent, const StringParam& subPath, const StringParam& name);
+
+			static Variant getValue(const StringParam& path, const StringParam& name);
 
 			sl_size setValues(const VariantMap& values);
 
