@@ -393,7 +393,8 @@ namespace slib
 	void Process::runAsAdmin(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		ShellExecuteParam param;
-		param.runAsAdmin = sl_true;
+		param.flagRunAsAdmin = sl_true;
+		param.flagWait = sl_true;
 		param.path = pathExecutable;
 		param.params = CommandLine::build(arguments, nArguments);
 		Win32::shell(param);

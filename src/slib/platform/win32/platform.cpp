@@ -161,18 +161,18 @@ namespace slib
 
 	ShellExecuteParam::ShellExecuteParam()
 	{
-		runAsAdmin = sl_false;
+		flagRunAsAdmin = sl_false;
+		flagWait = sl_false;
 		hWndParent = NULL;
 		nShow = SW_NORMAL;
 	}
 
 	sl_bool Win32::shell(const ShellExecuteParam& param)
 	{
-		SHELLEXECUTEINFOW sei;
-		Base::zeroMemory(&sei, sizeof(sei));
+		SHELLEXECUTEINFOW sei = { 0 };
 		sei.cbSize = sizeof(sei);
 		StringCstr16 operation(param.operation);
-		if (param.runAsAdmin) {
+		if (param.flagRunAsAdmin) {
 			sei.lpVerb = L"runas";
 		} else if (param.operation.isNotEmpty()) {
 			sei.lpVerb = (LPCWSTR)(operation.getData());
@@ -189,7 +189,14 @@ namespace slib
 		}
 		sei.hwnd = param.hWndParent;
 		sei.nShow = param.nShow;
+		if (param.flagWait) {
+			sei.fMask = SEE_MASK_NOCLOSEPROCESS;
+		}
 		if (ShellExecuteExW(&sei)) {
+			if (param.flagWait) {
+				WaitForSingleObject(sei.hProcess, INFINITE);
+				CloseHandle(sei.hProcess);
+			}
 			return sl_true;
 		}
 		return sl_false;
