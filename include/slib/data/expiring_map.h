@@ -92,6 +92,16 @@ namespace slib
 			}
 		}
 
+		const Function<void(HashMap<KT, VT>& removedItems)>& getOnExpired() const
+		{
+			return m_onExpired;
+		}
+
+		void setOnExpired(const Function<void(HashMap<KT, VT>& removedItems)>& callback)
+		{
+			m_onExpired = callback;
+		}
+
 		sl_size getCount() const
 		{
 			return m_mapBackup.getCount() + m_mapCurrent.getCount();
@@ -253,6 +263,9 @@ namespace slib
 					}
 				}
 			}
+			if (old.isNotEmpty() && m_onExpired.isNotNull()) {
+				m_onExpired(old);
+			}
 		}
 
 		void _setupTimer()
@@ -282,6 +295,8 @@ namespace slib
 
 		HashMap<KT, VT> m_mapCurrent;
 		HashMap<KT, VT> m_mapBackup;
+
+		Function<void(HashMap<KT, VT>& removedItems)> m_onExpired;
 
 	};
 
