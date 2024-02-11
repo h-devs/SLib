@@ -77,6 +77,16 @@ namespace slib
 		return m_len; \
 	} \
 	\
+	sl_bool BUFFER::isEmpty() const noexcept \
+	{ \
+		return !m_len; \
+	} \
+	\
+	sl_bool BUFFER::isNotEmpty() const noexcept \
+	{ \
+		return m_len != 0; \
+	} \
+	\
 	typename BUFFER::Char BUFFER::getFirstChar() const noexcept \
 	{ \
 		Link<StringStorage>* link = m_queue.getFront(); \

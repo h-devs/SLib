@@ -55,6 +55,16 @@ namespace slib
 		sl_size getLength() const noexcept;
 
 		/**
+		 * @return `true` if this buffer is empty.
+		 */
+		sl_bool isEmpty() const noexcept;
+
+		/**
+		 * @return `true` if this buffer is not empty.
+		 */
+		sl_bool isNotEmpty() const noexcept;
+
+		/**
 		 * @return the first character in the buffer.
 		 */
 		sl_char8 getFirstChar() const noexcept;
@@ -139,6 +149,16 @@ namespace slib
 		sl_size getLength() const noexcept;
 
 		/**
+		 * @return `true` if this buffer is empty.
+		 */
+		sl_bool isEmpty() const noexcept;
+
+		/**
+		 * @return `true` if this buffer is not empty.
+		 */
+		sl_bool isNotEmpty() const noexcept;
+
+		/**
 		 * @return the first character in the buffer.
 		 */
 		sl_char16 getFirstChar() const noexcept;
@@ -221,6 +241,16 @@ namespace slib
 		 * @return total length of all string items.
 		 */
 		sl_size getLength() const noexcept;
+		
+		/**
+		 * @return `true` if this buffer is empty.
+		 */
+		sl_bool isEmpty() const noexcept;
+
+		/**
+		 * @return `true` if this buffer is not empty.
+		 */
+		sl_bool isNotEmpty() const noexcept;
 
 		/**
 		 * @return the first character in the buffer.

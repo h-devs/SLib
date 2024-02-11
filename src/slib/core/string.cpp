@@ -4043,6 +4043,7 @@ namespace slib
 						content = STRING::from(time.getMonthShort(*zone));
 						break;
 					case 's':
+					case '%':
 						content = STRING::from(time.toString(*zone));
 						break;
 					default:
