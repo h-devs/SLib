@@ -2014,6 +2014,7 @@ namespace slib
 			if (!hWndToolTip) {
 				return;
 			}
+			SendMessageW(hWndToolTip, TTM_SETMAXTIPWIDTH, 0, (LPARAM)(GetSystemMetrics(SM_CXSCREEN) >> 1));
 			TOOLINFOW toolInfo = { 0 };
 			toolInfo.cbSize = sizeof(toolInfo);
 			toolInfo.hwnd = hWndParent;
