@@ -1056,7 +1056,7 @@ namespace slib
 
 	namespace
 	{
-		static BOOL EnumApplicationIcon(HMODULE hModule, LPCWSTR lpType, LPWSTR lpName, LONG_PTR lParam
+		static BOOL CALLBACK EnumApplicationIcon(HMODULE hModule, LPCWSTR lpType, LPWSTR lpName, LONG_PTR lParam
 		)
 		{
 			WNDCLASSW& wc = *((WNDCLASS*)lParam);
