@@ -184,7 +184,7 @@ namespace slib
 			if (remainedSize < 0) {
 				remainedSize = 0;
 			}
-			if (sumFillWeights < SLIB_EPSILON) {
+			if (sumFillWeights < 1) {
 				sumFillWeights = 1;
 			}
 
