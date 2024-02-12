@@ -115,7 +115,7 @@ namespace slib
 			Screen,
 			KeyboardEvent,
 			MouseEvent,
-			MouseWheelEvent,
+			MouseEventWithDelta,
 			TouchEvent,
 			SetCursorEvent,
 			DragEvent,

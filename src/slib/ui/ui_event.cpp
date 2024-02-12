@@ -390,15 +390,8 @@ sl_bool UIEvent::is##NAME##Key() const \
 		};
 
 		SLIB_DEFINE_OBJECT(MouseEvent, UIEvent)
-	}
 
-	Ref<UIEvent> UIEvent::createMouseEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, const Time& time)
-	{
-		return new MouseEvent(action, time, x, y);
-	}
-
-	namespace {
-		class MouseWheelEvent : public MouseEvent
+		class MouseEventWithDelta : public MouseEvent
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -407,14 +400,14 @@ sl_bool UIEvent::is##NAME##Key() const \
 			sl_real m_deltaY;
 
 		public:
-			MouseWheelEvent(const Time& time, sl_ui_posf x, sl_ui_posf y, sl_real deltaX, sl_real deltaY): MouseEvent(UIAction::MouseWheel, time, x, y), m_deltaX(deltaX), m_deltaY(deltaY)
+			MouseEventWithDelta(UIAction action, const Time& time, sl_ui_posf x, sl_ui_posf y, sl_real deltaX, sl_real deltaY): MouseEvent(action, time, x, y), m_deltaX(deltaX), m_deltaY(deltaY)
 			{
 			}
 
 		public:
 			Ref<UIEvent> duplicate() const override
 			{
-				MouseWheelEvent* ret = new MouseWheelEvent(m_time, m_pt.point.x, m_pt.point.y, m_deltaX, m_deltaY);
+				MouseEventWithDelta* ret = new MouseEventWithDelta(m_action, m_time, m_pt.point.x, m_pt.point.y, m_deltaX, m_deltaY);
 				if (ret) {
 					ret->_copyProperties(this);
 					return ret;
@@ -424,12 +417,23 @@ sl_bool UIEvent::is##NAME##Key() const \
 
 		};
 
-		SLIB_DEFINE_OBJECT(MouseWheelEvent, MouseEvent)
+		SLIB_DEFINE_OBJECT(MouseEventWithDelta, MouseEvent)
+
+	}
+
+	Ref<UIEvent> UIEvent::createMouseEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, const Time& time)
+	{
+		return new MouseEvent(action, time, x, y);
+	}
+
+	Ref<UIEvent> UIEvent::createMouseEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, sl_real deltaX, sl_real deltaY, const Time& time)
+	{
+		return new MouseEventWithDelta(action, time, x, y, deltaX, deltaY);
 	}
 
 	Ref<UIEvent> UIEvent::createMouseWheelEvent(sl_ui_posf mouseX, sl_ui_posf mouseY, sl_real deltaX, sl_real deltaY, const Time& time)
 	{
-		return new MouseWheelEvent(time, mouseX, mouseY, deltaX, deltaY);
+		return new MouseEventWithDelta(UIAction::MouseWheel, time, mouseX, mouseY, deltaX, deltaY);
 	}
 
 	namespace {
@@ -712,8 +716,8 @@ sl_bool UIEvent::is##NAME##Key() const \
 
 	sl_real UIEvent::getDelta() const
 	{
-		if (IsInstanceOf<MouseWheelEvent>(this)) {
-			MouseWheelEvent* ev = (MouseWheelEvent*)this;
+		if (IsInstanceOf<MouseEventWithDelta>(this)) {
+			MouseEventWithDelta* ev = (MouseEventWithDelta*)this;
 			if (Math::abs(ev->m_deltaY) > Math::abs(ev->m_deltaX)) {
 				return ev->m_deltaY;
 			} else {
@@ -725,31 +729,31 @@ sl_bool UIEvent::is##NAME##Key() const \
 
 	sl_real UIEvent::getDeltaX() const
 	{
-		if (IsInstanceOf<MouseWheelEvent>(this)) {
-			return ((MouseWheelEvent*)this)->m_deltaX;
+		if (IsInstanceOf<MouseEventWithDelta>(this)) {
+			return ((MouseEventWithDelta*)this)->m_deltaX;
 		}
 		return 0;
 	}
 
 	void UIEvent::setDeltaX(sl_real x)
 	{
-		if (IsInstanceOf<MouseWheelEvent>(this)) {
-			((MouseWheelEvent*)this)->m_deltaX = x;
+		if (IsInstanceOf<MouseEventWithDelta>(this)) {
+			((MouseEventWithDelta*)this)->m_deltaX = x;
 		}
 	}
 
 	sl_real UIEvent::getDeltaY() const
 	{
-		if (IsInstanceOf<MouseWheelEvent>(this)) {
-			return ((MouseWheelEvent*)this)->m_deltaY;
+		if (IsInstanceOf<MouseEventWithDelta>(this)) {
+			return ((MouseEventWithDelta*)this)->m_deltaY;
 		}
 		return 0;
 	}
 
 	void UIEvent::setDeltaY(sl_real y)
 	{
-		if (IsInstanceOf<MouseWheelEvent>(this)) {
-			((MouseWheelEvent*)this)->m_deltaY = y;
+		if (IsInstanceOf<MouseEventWithDelta>(this)) {
+			((MouseEventWithDelta*)this)->m_deltaY = y;
 		}
 	}
 

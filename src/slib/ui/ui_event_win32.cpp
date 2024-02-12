@@ -304,8 +304,6 @@ namespace slib
 		INPUT input;
 		Base::zeroMemory(&input, sizeof(input));
 		input.type = INPUT_MOUSE;
-		input.mi.dx = (LONG)x;
-		input.mi.dy = (LONG)y;
 		switch (action) {
 		case UIAction::LeftButtonDown:
 			input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
@@ -347,6 +345,11 @@ namespace slib
 		}
 		if (flagAbsolutePos) {
 			input.mi.dwFlags |= MOUSEEVENTF_ABSOLUTE;
+			input.mi.dx = (LONG)((x << 16) / GetSystemMetrics(SM_CXSCREEN));
+			input.mi.dy = (LONG)((y << 16) / GetSystemMetrics(SM_CYSCREEN));
+		} else {
+			input.mi.dx = (LONG)x;
+			input.mi.dy = (LONG)y;
 		}
 		SendInput(1, &input, sizeof(input));
 	}

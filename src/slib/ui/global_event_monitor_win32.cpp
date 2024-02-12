@@ -28,6 +28,7 @@
 
 #include "slib/core/thread.h"
 #include "slib/core/safe_static.h"
+#include "slib/ui/core.h"
 #include "slib/ui/platform.h"
 #include "slib/platform/win32/message_loop.h"
 
@@ -116,9 +117,12 @@ namespace slib
 			} else if (raw.header.dwType == RIM_TYPEMOUSE) {
 				sl_ui_posf x;
 				sl_ui_posf y;
+				sl_real dx = 0;
+				sl_real dy = 0;
+				sl_bool flagDelta = sl_false;
 				if (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) {
-					x = (sl_ui_posf)(raw.data.mouse.lLastX);
-					y = (sl_ui_posf)(raw.data.mouse.lLastY);
+					x = (sl_ui_posf)((raw.data.mouse.lLastX * GetSystemMetrics(SM_CXSCREEN)) >> 16);
+					y = (sl_ui_posf)((raw.data.mouse.lLastY * GetSystemMetrics(SM_CYSCREEN)) >> 16);
 				} else {
 					POINT pt;
 					if (GetCursorPos(&pt)) {
@@ -128,13 +132,14 @@ namespace slib
 						x = 0;
 						y = 0;
 					}
+					dx = (sl_ui_posf)(raw.data.mouse.lLastX);
+					dy = (sl_ui_posf)(raw.data.mouse.lLastY);
+					flagDelta = sl_true;
 				}
 				Time t;
 				t.setMillisecondCount(GetMessageTime());
 				sl_uint32 buttons = raw.data.mouse.usButtonFlags;
 				if ((buttons & RI_MOUSE_WHEEL) || (buttons & 0x0800 /*RI_MOUSE_HWHEEL*/)) {
-					sl_real dx = 0;
-					sl_real dy = 0;
 					if (buttons & RI_MOUSE_WHEEL) {
 						dy = (sl_real)(short)(unsigned short)(raw.data.mouse.usButtonData);
 					} else {
@@ -162,7 +167,12 @@ namespace slib
 					} else {
 						action = UIAction::MouseMove;
 					}
-					Ref<UIEvent> ev = UIEvent::createMouseEvent(action, x, y, t);
+					Ref<UIEvent> ev;
+					if (flagDelta) {
+						ev = UIEvent::createMouseEvent(action, x, y, dx, dy, t);
+					} else {
+						ev = UIEvent::createMouseEvent(action, x, y, t);
+					}
 					if (ev.isNotNull()) {
 						UIPlatform::applyEventModifiers(ev.get());
 						GlobalEventMonitorHelper::_onEvent(ev.get());
