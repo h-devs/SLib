@@ -22,6 +22,8 @@
 
 #include "slib/ui/cursor.h"
 
+#include "slib/core/safe_static.h"
+
 namespace slib
 {
 	SLIB_DEFINE_OBJECT(Cursor, Object)
