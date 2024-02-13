@@ -38,16 +38,17 @@ namespace slib
 			NSCursor* m_cursor;
 
 		public:
+			NativeCursorImpl(NSCursor* cursor): m_cursor(cursor)
+			{
+			}
+
+		public:
 			static Ref<NativeCursorImpl> create(NSCursor* cursor)
 			{
-				Ref<NativeCursorImpl> ret;
 				if (cursor != nil) {
-					ret = new NativeCursorImpl;
-					if (ret.isNotNull()) {
-						ret->m_cursor = cursor;
-					}
+					return new NativeCursorImpl(cursor);
 				}
-				return ret;
+				return sl_null;
 			}
 		};
 	}
@@ -64,6 +65,11 @@ namespace slib
 		}
 		NativeCursorImpl* c = (NativeCursorImpl*)(cursor);
 		return c->m_cursor;
+	}
+
+	Ref<Cursor> Cursor::getNone()
+	{
+		return new NativeCursorImpl(nil);
 	}
 
 	Ref<Cursor> Cursor::getArrow()
@@ -98,11 +104,12 @@ namespace slib
 
 	void Cursor::setCurrent(const Ref<Cursor>& cursor)
 	{
-		if (cursor.isNull()) {
-			return;
+		if (cursor.isNotNull()) {
+			NSCursor* handle = ((NativeCursorImpl*)(cursor.get()))->m_cursor;
+			if (handle != nil) {
+				[handle set];
+			}
 		}
-		NativeCursorImpl* c = (NativeCursorImpl*)(cursor.get());
-		[c->m_cursor set];
 	}
 
 	Ref<Cursor> Cursor::getCurrent()
