@@ -38,19 +38,26 @@ namespace slib
 
 	namespace {
 
-		static DWORD FromServiceType(ServiceType type)
+		static DWORD FromServiceType(ServiceType type, sl_bool flagInteractive)
 		{
+			DWORD ret = 0;
 			switch (type) {
 				case ServiceType::Driver:
 					return SERVICE_KERNEL_DRIVER;
 				case ServiceType::FileSystem:
 					return SERVICE_FILE_SYSTEM_DRIVER;
 				case ServiceType::Shared:
-					return SERVICE_WIN32_SHARE_PROCESS;
+					ret = SERVICE_WIN32_SHARE_PROCESS;
+					break;
 				default:
+					ret = SERVICE_WIN32_OWN_PROCESS;
 					break;
 			}
-			return SERVICE_WIN32_OWN_PROCESS;
+			if (flagInteractive) {
+				return ret | SERVICE_INTERACTIVE_PROCESS;
+			} else {
+				return ret;
+			}
 		}
 
 		static DWORD FromServiceStartType(ServiceStartType type)
@@ -219,7 +226,7 @@ namespace slib
 				(LPCWSTR)(name.getData()),
 				(LPCWSTR)(displayName.getData()),
 				0,
-				FromServiceType(param.type),
+				FromServiceType(param.type, param.flagInteractive),
 				FromServiceStartType(param.startType),
 				FromServiceErrorControl(param.errorControl),
 				(LPCWSTR)(path.getData()),

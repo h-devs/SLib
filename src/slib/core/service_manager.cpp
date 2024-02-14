@@ -36,6 +36,7 @@ namespace slib
 	CreateServiceParam::CreateServiceParam() noexcept
 	{
 		type = ServiceType::Generic;
+		flagInteractive = sl_false;
 		startType = ServiceStartType::Manual;
 		errorControl = ServiceErrorControl::Normal;
 	}

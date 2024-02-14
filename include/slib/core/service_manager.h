@@ -88,6 +88,7 @@ namespace slib
 		StringParam name;
 		StringParam displayName;
 		ServiceType type;
+		sl_bool flagInteractive;
 		ServiceStartType startType;
 		ServiceErrorControl errorControl;
 		StringParam commandLine;
