@@ -52,6 +52,9 @@ namespace slib
 
 	String ToString(DiskType);
 
+#ifdef interface
+#undef interface
+#endif
 
 	class SLIB_EXPORT DiskInfo
 	{

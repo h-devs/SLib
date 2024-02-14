@@ -216,7 +216,7 @@ namespace slib
 			{
 				if (loop.isNull()) {
 					win32::MessageLoopParam param;
-					param.name = SLIB_UNICODE("SLibGlobalEventMonitor");
+					param.name = SLIB_UNICODE("GlobalEventMonitor");
 					param.onMessage = &ProcessMessage;
 					param.flagAutoStart = sl_false;
 					loop = win32::MessageLoop::create(param);

@@ -340,7 +340,7 @@ namespace slib
 				} else {
 					if (m_loop.isNull()) {
 						win32::MessageLoopParam param;
-						param.name = SLIB_UNICODE("SLibDeviceChangeMonitor");
+						param.name = SLIB_UNICODE("DeviceChangeMonitor");
 						param.onMessage = SLIB_FUNCTION_MEMBER(this, onMessage);
 						param.hWndParent = NULL;
 						m_loop = win32::MessageLoop::create(param);

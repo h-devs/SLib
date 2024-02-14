@@ -494,7 +494,7 @@ namespace slib
 					sqlite3_vfs* vfsDefault = sqlite3_vfs_find(0);
 					Base::copyMemory(&m_vfs, vfsDefault, sizeof(sqlite3_vfs));
 					m_vfs.db = this;
-					m_vfs.zName = "slib_encryption";
+					m_vfs.zName = "encryption";
 					m_vfs.xOpen = &xOpenEncryption;
 					m_vfsFileCustomOffset = ((m_vfs.szOsFile - 1) | 15) + 1;
 					m_vfs.szOsFile = m_vfsFileCustomOffset + sizeof(EncryptionCustomFile);

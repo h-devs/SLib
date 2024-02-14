@@ -235,7 +235,7 @@ namespace slib
 				m_sql = sql.toNullTerminated();
 				char t[16];
 				Math::randomMemory(t, 16);
-				String name = "slib_temp_stmt_" + String::makeHexString(t, 16);
+				String name = "temp_stmt_" + String::makeHexString(t, 16);
 				PGresult* res = PQprepare(connection, name.getData(), m_sql.getData(), 0, sl_null);
 				if (res) {
 					if (PQresultStatus(res) == PGRES_COMMAND_OK) {

@@ -53,7 +53,7 @@ namespace slib
 		public:
 			Context()
 			{
-				LPCWSTR szClassName = L"SLibClipboardOwner";
+				LPCWSTR szClassName = L"ClipboardOwner";
 				WNDCLASSEXW wc;
 				Base::zeroMemory(&wc, sizeof(wc));
 				wc.cbSize = sizeof(wc);
