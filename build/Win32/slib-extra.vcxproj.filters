@@ -37,6 +37,9 @@
     <Filter Include="src\pseudo_tcp">
       <UniqueIdentifier>{4180a0ea-a09f-4f6a-821b-d745a5744082}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\winhook">
+      <UniqueIdentifier>{a9d8e6bc-c0b4-495d-a87a-0c1a5cf130b5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\extra\qrcode\zxing_scanner.h">
@@ -113,6 +116,12 @@
     </ClInclude>
     <ClInclude Include="..\..\extra\pseudo_tcp\pseudo_tcp.h">
       <Filter>src\pseudo_tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\winhook\winhook.h">
+      <Filter>src\winhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\winhook\input_dll_file.h">
+      <Filter>src\winhook</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -223,6 +232,15 @@
     </ClCompile>
     <ClCompile Include="..\..\extra\pseudo_tcp\pseudo_tcp.cpp">
       <Filter>src\pseudo_tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\winhook\winhook.cpp">
+      <Filter>src\winhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\winhook\input_dll_file.cpp">
+      <Filter>src\winhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\winhook\install_input.cpp">
+      <Filter>src\winhook</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

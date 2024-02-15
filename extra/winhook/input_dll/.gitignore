@@ -1,5 +1,5 @@
 .vscode
 .DS_Store
-
-/lib
-/bin
+.vs
+build
+*.user

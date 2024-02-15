@@ -1395,17 +1395,17 @@ namespace slib
 			sl_uint32 vkey = (sl_uint32)wParam;
 			Keycode key;
 			if (action != UIAction::Char) {
-				UINT scancode = (lParam & 0x00ff0000) >> 16;
-				int extended = (lParam & 0x01000000) != 0;
+				UINT scanCode = (lParam & 0x00ff0000) >> 16;
+				sl_bool flagExtended = (lParam & 0x01000000) != 0;
 				switch (vkey) {
 				case VK_SHIFT:
-					vkey = MapVirtualKeyW(scancode, MAPVK_VSC_TO_VK_EX);
+					vkey = MapVirtualKeyW(scanCode, MAPVK_VSC_TO_VK_EX);
 					break;
 				case VK_CONTROL:
-					vkey = extended ? VK_RCONTROL : VK_LCONTROL;
+					vkey = flagExtended ? VK_RCONTROL : VK_LCONTROL;
 					break;
 				case VK_MENU:
-					vkey = extended ? VK_RMENU : VK_LMENU;
+					vkey = flagExtended ? VK_RMENU : VK_LMENU;
 					break;
 				}
 				key = UIEvent::getKeycodeFromSystemKeycode(vkey);
