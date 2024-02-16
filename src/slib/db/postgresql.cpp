@@ -256,8 +256,9 @@ namespace slib
 				return sl_false;
 			}
 
-			sl_int64 executeBy(const Variant* params, sl_uint32 nParams) override
+			sl_int64 executeBy(const Variant* params, sl_size _nParams) override
 			{
+				sl_uint32 nParams = (sl_uint32)_nParams;
 				SLIB_SCOPED_BUFFER(String, 32, strings, nParams)
 				SLIB_SCOPED_BUFFER(const char*, 32, values, nParams)
 				SLIB_SCOPED_BUFFER(int, 32, lengths, nParams)
@@ -283,8 +284,9 @@ namespace slib
 				return -1;
 			}
 
-			Ref<DatabaseCursor> queryBy(const Variant* params, sl_uint32 nParams) override
+			Ref<DatabaseCursor> queryBy(const Variant* params, sl_size _nParams) override
 			{
+				sl_uint32 nParams = (sl_uint32)_nParams;
 				SLIB_SCOPED_BUFFER(String, 32, strings, nParams)
 				SLIB_SCOPED_BUFFER(const char*, 32, values, nParams)
 				SLIB_SCOPED_BUFFER(int, 32, lengths, nParams)
@@ -375,10 +377,10 @@ namespace slib
 				return sl_null;
 			}
 
-			sl_int64 _executeBy(const StringParam& _sql, const Variant* params, sl_uint32 nParams) override
+			sl_int64 _executeBy(const StringParam& _sql, const Variant* params, sl_size _nParams) override
 			{
 				StringCstr sql(_sql);
-
+				sl_uint32 nParams = (sl_uint32)_nParams;
 				SLIB_SCOPED_BUFFER(String, 32, strings, nParams)
 				SLIB_SCOPED_BUFFER(const char*, 32, values, nParams)
 				SLIB_SCOPED_BUFFER(int, 32, lengths, nParams)
@@ -405,10 +407,10 @@ namespace slib
 				return ret;
 			}
 
-			Ref<DatabaseCursor> _queryBy(const StringParam& _sql, const Variant* params, sl_uint32 nParams) override
+			Ref<DatabaseCursor> _queryBy(const StringParam& _sql, const Variant* params, sl_size _nParams) override
 			{
 				StringCstr sql(_sql);
-
+				sl_uint32 nParams = (sl_uint32)_nParams;
 				SLIB_SCOPED_BUFFER(String, 32, strings, nParams)
 				SLIB_SCOPED_BUFFER(const char*, 32, values, nParams)
 				SLIB_SCOPED_BUFFER(int, 32, lengths, nParams)

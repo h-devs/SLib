@@ -46,7 +46,7 @@ namespace slib
 
 		void setParameterNames(const ListParam<String>& names);
 
-		virtual sl_int64 executeBy(const Variant* params, sl_uint32 nParams) = 0;
+		virtual sl_int64 executeBy(const Variant* params, sl_size nParams) = 0;
 
 		template <class T>
 		sl_int64 executeBy(const T& _params)
@@ -67,7 +67,7 @@ namespace slib
 			return executeBy(params, sizeof...(args));
 		}
 
-		virtual Ref<DatabaseCursor> queryBy(const Variant* params, sl_uint32 nParams) = 0;
+		virtual Ref<DatabaseCursor> queryBy(const Variant* params, sl_size nParams) = 0;
 
 		template <class T>
 		Ref<DatabaseCursor> queryBy(const T& _params)
@@ -88,7 +88,7 @@ namespace slib
 			return queryBy(params, sizeof...(args));
 		}
 
-		virtual List<VariantMap> getRecordsBy(const Variant* params, sl_uint32 nParams);
+		virtual List<VariantMap> getRecordsBy(const Variant* params, sl_size nParams);
 
 		template <class T>
 		List<VariantMap> getRecordsBy(const T& _params)
@@ -109,7 +109,7 @@ namespace slib
 			return getRecordsBy(params, sizeof...(args));
 		}
 
-		virtual VariantMap getRecordBy(const Variant* params, sl_uint32 nParams);
+		virtual VariantMap getRecordBy(const Variant* params, sl_size nParams);
 
 		template <class T>
 		VariantMap getRecordBy(const T& _params)
@@ -130,7 +130,7 @@ namespace slib
 			return getRecordBy(params, sizeof...(args));
 		}
 
-		virtual Variant getValueBy(const Variant* params, sl_uint32 nParams);
+		virtual Variant getValueBy(const Variant* params, sl_size nParams);
 
 		template <class T>
 		Variant getValueBy(const T& _params)

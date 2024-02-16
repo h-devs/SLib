@@ -44,7 +44,7 @@ namespace slib
 
 		Ref<DatabaseStatement> prepareStatement(const SqlBuilder& builder);
 
-		sl_int64 executeBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
+		sl_int64 executeBy(const StringParam& sql, const Variant* params, sl_size nParams);
 
 		template <class T>
 		sl_int64 executeBy(const SqlBuilder& builder, const T& _params)
@@ -62,7 +62,7 @@ namespace slib
 			return executeBy(sql, params, sizeof...(args));
 		}
 
-		Ref<DatabaseCursor> queryBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
+		Ref<DatabaseCursor> queryBy(const StringParam& sql, const Variant* params, sl_size nParams);
 
 		template <class T>
 		Ref<DatabaseCursor> queryBy(const SqlBuilder& builder, const T& _params)
@@ -80,7 +80,7 @@ namespace slib
 			return queryBy(sql, params, sizeof...(args));
 		}
 
-		List<VariantMap> getRecordsBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
+		List<VariantMap> getRecordsBy(const StringParam& sql, const Variant* params, sl_size nParams);
 
 		template <class T>
 		List<VariantMap> getRecordsBy(const SqlBuilder& builder, const T& _params)
@@ -98,7 +98,7 @@ namespace slib
 			return getRecordsBy(sql, params, sizeof...(args));
 		}
 
-		VariantMap getRecordBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
+		VariantMap getRecordBy(const StringParam& sql, const Variant* params, sl_size nParams);
 
 		template <class T>
 		VariantMap getRecordBy(const SqlBuilder& builder, const T& _params)
@@ -116,7 +116,7 @@ namespace slib
 			return getRecordBy(sql, params, sizeof...(args));
 		}
 
-		Variant getValueBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
+		Variant getValueBy(const StringParam& sql, const Variant* params, sl_size nParams);
 
 		template <class T>
 		Variant getValueBy(const SqlBuilder& builder, const T& _params)
@@ -190,7 +190,7 @@ namespace slib
 			}
 			Ref<DatabaseStatement> stmt = prepareInsert(table, names);
 			if (stmt.isNotNull()) {
-				return stmt->executeBy(values.getData(), (sl_uint32)(values.getCount()));
+				return stmt->executeBy(values.getData(), values.getCount());
 			}
 			return -1;
 		}
@@ -213,7 +213,7 @@ namespace slib
 				for (sl_size i = 0; i < nParams; i++) {
 					values.add_NoLock(params[i]);
 				}
-				return stmt->executeBy(values.getData(), (sl_uint32)(values.getCount()));
+				return stmt->executeBy(values.getData(), values.getCount());
 			}
 			return -1;
 		}
@@ -385,21 +385,21 @@ namespace slib
 	protected:
 		virtual Ref<DatabaseStatement> _prepareStatement(const StringParam& sql) = 0;
 
-		virtual sl_int64 _executeBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
+		virtual sl_int64 _executeBy(const StringParam& sql, const Variant* params, sl_size nParams);
 
 		virtual sl_int64 _execute(const StringParam& sql);
 
-		virtual Ref<DatabaseCursor> _queryBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
+		virtual Ref<DatabaseCursor> _queryBy(const StringParam& sql, const Variant* params, sl_size nParams);
 
 		virtual Ref<DatabaseCursor> _query(const StringParam& sql);
 
 		void _logSQL(const StringParam& sql);
 
-		void _logSQL(const StringParam& sql, const Variant* params, sl_uint32 nParams);
+		void _logSQL(const StringParam& sql, const Variant* params, sl_size nParams);
 
 		void _logError(const StringParam& sql);
 
-		void _logError(const StringParam& sql, const Variant* params, sl_uint32 nParams);
+		void _logError(const StringParam& sql, const Variant* params, sl_size nParams);
 
 	protected:
 		sl_bool m_flagLogSQL;

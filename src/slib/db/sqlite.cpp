@@ -325,13 +325,13 @@ namespace slib
 				return sl_false;
 			}
 
-			sl_bool _execute(const Variant* _params, sl_uint32 nParams)
+			sl_bool _execute(const Variant* _params, sl_size nParams)
 			{
 				sqlite3_reset(m_statement);
 				sqlite3_clear_bindings(m_statement);
 				m_boundParams.setNull();
 
-				if (nParams == 0) {
+				if (!nParams) {
 					return sl_true;
 				}
 
@@ -340,7 +340,7 @@ namespace slib
 					return sl_false;
 				}
 				sl_uint32 n = (sl_uint32)(sqlite3_bind_parameter_count(m_statement));
-				if (n == nParams) {
+				if (n == (sl_uint32)nParams) {
 					if (n > 0) {
 						for (sl_uint32 i = 0; i < n; i++) {
 							int iRet = SQLITE_ABORT;
@@ -392,7 +392,7 @@ namespace slib
 				return sl_false;
 			}
 
-			sl_int64 executeBy(const Variant* params, sl_uint32 nParams) override
+			sl_int64 executeBy(const Variant* params, sl_size nParams) override
 			{
 				ObjectLocker lock(m_db.get());
 				if (_execute(params, nParams)) {
@@ -405,7 +405,7 @@ namespace slib
 				return -1;
 			}
 
-			Ref<DatabaseCursor> queryBy(const Variant* params, sl_uint32 nParams) override
+			Ref<DatabaseCursor> queryBy(const Variant* params, sl_size nParams) override
 			{
 				ObjectLocker lock(m_db.get());
 				Ref<DatabaseCursor> ret;
