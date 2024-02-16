@@ -698,6 +698,7 @@ namespace slib
 					appendStatic(", ");
 				}
 				appendIdentifier(columns[i]);
+				appendStatic("=");
 				appendParameter();
 			}
 		}
