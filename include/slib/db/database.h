@@ -206,13 +206,13 @@ namespace slib
 				names.add_NoLock(pair.key);
 				values.add_NoLock(pair.value);
 			}
-			Variant params[] = {Forward<ARGS>(args)...};
-			sl_size nParams = (sl_size)(sizeof...(args));
-			for (sl_size i = 0; i < nParams; i++) {
-				values.add_NoLock(params[i]);
-			}
 			Ref<DatabaseStatement> stmt = prepareUpdate(table, names, where);
 			if (stmt.isNotNull()) {
+				Variant params[] = { Forward<ARGS>(args)... };
+				sl_size nParams = (sl_size)(sizeof...(args));
+				for (sl_size i = 0; i < nParams; i++) {
+					values.add_NoLock(params[i]);
+				}
 				return stmt->executeBy(values.getData(), (sl_uint32)(values.getCount()));
 			}
 			return -1;
@@ -223,9 +223,9 @@ namespace slib
 		template <class... ARGS>
 		sl_int64 deleteRecords(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
 			Ref<DatabaseStatement> stmt = prepareDelete(table, where);
 			if (stmt.isNotNull()) {
+				Variant params[] = { Forward<ARGS>(args)... };
 				return stmt->executeBy(params, sizeof...(args));
 			}
 			return -1;
@@ -238,15 +238,38 @@ namespace slib
 
 		Ref<DatabaseStatement> prepareQuery(const DatabaseIdentifier& table, const DatabaseExpression& where);
 
+		List<VariantMap> findRecords(const SelectParam& query);
+
 		List<VariantMap> findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where);
+
+		template <class... ARGS>
+		List<VariantMap> findRecords(const SelectParam& query, ARGS&&... args)
+		{
+			Ref<DatabaseStatement> stmt = prepareQuery(query);
+			if (stmt.isNotNull()) {
+				Variant params[] = { Forward<ARGS>(args)... };
+				return stmt->getRecordsBy(params, sizeof...(args));
+			}
+			return sl_null;
+		}
 
 		template <class... ARGS>
 		List<VariantMap> findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
 			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
 			if (stmt.isNotNull()) {
+				Variant params[] = { Forward<ARGS>(args)... };
 				return stmt->getRecordsBy(params, sizeof...(args));
+			}
+			return sl_null;
+		}
+
+		template <class T>
+		List<VariantMap> findRecordsBy(const SelectParam& query, const T& params)
+		{
+			Ref<DatabaseStatement> stmt = prepareQuery(query);
+			if (stmt.isNotNull()) {
+				return stmt->getRecordsBy(params);
 			}
 			return sl_null;
 		}
@@ -261,15 +284,38 @@ namespace slib
 			return sl_null;
 		}
 
+		VariantMap findRecord(const SelectParam& query);
+
 		VariantMap findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where);
+
+		template <class... ARGS>
+		VariantMap findRecord(const SelectParam& query)
+		{
+			Ref<DatabaseStatement> stmt = prepareQuery(query);
+			if (stmt.isNotNull()) {
+				Variant params[] = { Forward<ARGS>(args)... };
+				return stmt->getRecordBy(params, sizeof...(args));
+			}
+			return sl_null;
+		}
 
 		template <class... ARGS>
 		VariantMap findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
 			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
 			if (stmt.isNotNull()) {
+				Variant params[] = { Forward<ARGS>(args)... };
 				return stmt->getRecordBy(params, sizeof...(args));
+			}
+			return sl_null;
+		}
+
+		template <class T>
+		VariantMap findRecordBy(const SelectParam& query, const T& params)
+		{
+			Ref<DatabaseStatement> stmt = prepareQuery(query);
+			if (stmt.isNotNull()) {
+				return stmt->getRecordBy(params);
 			}
 			return sl_null;
 		}
@@ -284,15 +330,38 @@ namespace slib
 			return sl_null;
 		}
 
+		Variant findValue(const SelectParam& query);
+
 		Variant findValue(const DatabaseIdentifier& table, const DatabaseExpression& where);
+
+		template <class... ARGS>
+		Variant findValue(const SelectParam& query, ARGS&&... args)
+		{
+			Ref<DatabaseStatement> stmt = prepareQuery(query);
+			if (stmt.isNotNull()) {
+				Variant params[] = { Forward<ARGS>(args)... };
+				return stmt->getValueBy(params, sizeof...(args));
+			}
+			return sl_null;
+		}
 
 		template <class... ARGS>
 		Variant findValue(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
-			Variant params[] = {Forward<ARGS>(args)...};
 			Ref<DatabaseStatement> stmt = prepareQuery(table, where);
 			if (stmt.isNotNull()) {
+				Variant params[] = { Forward<ARGS>(args)... };
 				return stmt->getValueBy(params, sizeof...(args));
+			}
+			return sl_null;
+		}
+
+		template <class T>
+		Variant findValueBy(const SelectParam& query, const T& params)
+		{
+			Ref<DatabaseStatement> stmt = prepareQuery(query);
+			if (stmt.isNotNull()) {
+				return stmt->getValueBy(params);
 			}
 			return sl_null;
 		}

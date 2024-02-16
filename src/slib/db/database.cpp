@@ -345,6 +345,15 @@ namespace slib
 		return prepareStatement(sql);
 	}
 
+	List<VariantMap> Database::findRecords(const SelectParam& query)
+	{
+		Ref<DatabaseStatement> stmt = prepareQuery(query);
+		if (stmt.isNotNull()) {
+			return stmt->getRecordsBy(sl_null, 0);
+		}
+		return sl_null;
+	}
+
 	List<VariantMap> Database::findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where)
 	{
 		Ref<DatabaseStatement> stmt = prepareQuery(table, where);
@@ -354,11 +363,29 @@ namespace slib
 		return sl_null;
 	}
 
+	VariantMap Database::findRecord(const SelectParam& query)
+	{
+		Ref<DatabaseStatement> stmt = prepareQuery(query);
+		if (stmt.isNotNull()) {
+			return stmt->getRecordBy(sl_null, 0);
+		}
+		return sl_null;
+	}
+
 	VariantMap Database::findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where)
 	{
 		Ref<DatabaseStatement> stmt = prepareQuery(table, where);
 		if (stmt.isNotNull()) {
 			return stmt->getRecordBy(sl_null, 0);
+		}
+		return sl_null;
+	}
+
+	Variant Database::findValue(const SelectParam& query)
+	{
+		Ref<DatabaseStatement> stmt = prepareQuery(query);
+		if (stmt.isNotNull()) {
+			return stmt->getValueBy(sl_null, 0);
 		}
 		return sl_null;
 	}
