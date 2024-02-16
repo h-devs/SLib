@@ -1,5 +1,4 @@
 #include <slib.h>
-#include <slib/platform/win32/windows.h>
 
 #include <winhook.h>
 
@@ -35,7 +34,7 @@ int main(int argc, const char * argv[])
 				}
 				break;
 			case UIAction::KeyUp:
-				Println("KeyUp: %s %s", UIEvent::getKeyName(ev->getKeycode()), ev->getKeycode());
+				Println("KeyUp: %s %s", UIEvent::getKeyName(ev->getKeycode()), strInjected);
 				break;
 			case UIAction::LeftButtonDown:
 				Println("LBDown: (%s, %s) %s", ev->getX(), ev->getY(), strInjected);

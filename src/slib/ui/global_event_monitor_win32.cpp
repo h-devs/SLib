@@ -75,6 +75,10 @@ namespace slib
 			if (uRet < sizeof(RAWINPUTHEADER) || uRet > sizeof(bufRawInput)) {
 				return;
 			}
+			sl_bool flagInjected = sl_false;
+			if (!(raw.header.hDevice)) {
+				flagInjected = sl_true;
+			}
 			if (raw.header.dwType == RIM_TYPEKEYBOARD) {
 				UIAction action;
 				switch (raw.data.keyboard.Message) {
@@ -111,6 +115,9 @@ namespace slib
 				t.setMillisecondCount(GetMessageTime());
 				Ref<UIEvent> ev = UIEvent::createKeyEvent(action, key, vkey, t);
 				if (ev.isNotNull()) {
+					if (flagInjected) {
+						ev->addFlag(UIEventFlags::Injected);
+					}
 					UIPlatform::applyEventModifiers(ev.get());
 					GlobalEventMonitorHelper::_onEvent(ev.get());
 				}
@@ -147,6 +154,9 @@ namespace slib
 					}
 					Ref<UIEvent> ev = UIEvent::createMouseWheelEvent(x, y, dx, dy, t);
 					if (ev.isNotNull()) {
+						if (flagInjected) {
+							ev->addFlag(UIEventFlags::Injected);
+						}
 						UIPlatform::applyEventModifiers(ev.get());
 						GlobalEventMonitorHelper::_onEvent(ev.get());
 					}
@@ -174,6 +184,9 @@ namespace slib
 						ev = UIEvent::createMouseEvent(action, x, y, t);
 					}
 					if (ev.isNotNull()) {
+						if (flagInjected) {
+							ev->addFlag(UIEventFlags::Injected);
+						}
 						UIPlatform::applyEventModifiers(ev.get());
 						GlobalEventMonitorHelper::_onEvent(ev.get());
 					}
