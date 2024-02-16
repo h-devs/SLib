@@ -698,7 +698,7 @@ namespace slib
 					appendStatic(", ");
 				}
 				appendIdentifier(columns[i]);
-				appendStatic("=?");
+				appendParameter();
 			}
 		}
 		if (where.isNotNull()) {
