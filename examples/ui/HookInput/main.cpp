@@ -34,7 +34,7 @@ int main(int argc, const char * argv[])
 				}
 				break;
 			case UIAction::KeyUp:
-				Println("KeyUp: %s %s", UIEvent::getKeyName(ev->getKeycode()), strInjected);
+				Println("KeyUp: %s %s", UIEvent::getKeyName(ev->getKeycode()), ev->getKeycode());
 				break;
 			case UIAction::LeftButtonDown:
 				Println("LBDown: (%s, %s) %s", ev->getX(), ev->getY(), strInjected);
