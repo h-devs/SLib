@@ -141,6 +141,18 @@ namespace slib
 			PDWORD lpdwSize
 		)
 
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			ProcessIdToSessionId,
+			BOOL, WINAPI,
+			DWORD dwProcessId,
+			DWORD *pSessionId
+		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			WTSGetActiveConsoleSessionId,
+			DWORD, WINAPI
+		)
+
 	SLIB_IMPORT_LIBRARY_END
 
 }

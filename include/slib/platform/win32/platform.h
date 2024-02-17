@@ -148,9 +148,6 @@ namespace slib
 		static HANDLE getEventHandle(Event* event);
 
 
-		static void setApplicationRunAtStartup(const StringParam& name, const StringParam& path, sl_bool flagRegister);
-
-
 		static const WindowsVersion& getVersion();
 
 		static sl_bool isWindowsServer();
@@ -181,6 +178,9 @@ namespace slib
 
 
 		static HANDLE createDeviceHandle(const StringParam& path, DWORD dwDesiredAccess, DWORD dwShareMode);
+
+
+		static HANDLE createSystemProcess(const StringParam& commandLine);
 
 	};
 

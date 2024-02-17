@@ -40,6 +40,9 @@
     <Filter Include="src\winhook">
       <UniqueIdentifier>{a9d8e6bc-c0b4-495d-a87a-0c1a5cf130b5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\input_sender">
+      <UniqueIdentifier>{fa91f3f7-c053-4a6b-a991-fcd8948eb1ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\extra\qrcode\zxing_scanner.h">
@@ -122,6 +125,9 @@
     </ClInclude>
     <ClInclude Include="..\..\extra\winhook\input_dll_file.h">
       <Filter>src\winhook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\input_sender\input_sender.h">
+      <Filter>src\input_sender</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -241,6 +247,9 @@
     </ClCompile>
     <ClCompile Include="..\..\extra\winhook\install_input.cpp">
       <Filter>src\winhook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\input_sender\input_sender.cpp">
+      <Filter>src\input_sender</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

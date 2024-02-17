@@ -35,6 +35,7 @@
 #include "slib/dl/win32/kernel32.h"
 
 #include <process.h>
+#include <tlhelp32.h>
 
 namespace slib
 {
@@ -480,6 +481,76 @@ namespace slib
 	void Process::exit(int code)
 	{
 		::exit(code);
+	}
+
+
+	namespace
+	{
+		static sl_bool GetLogonPid(DWORD& pid)
+		{
+			auto funcProcessIdToSessionId = kernel32::getApi_ProcessIdToSessionId();
+			if (!funcProcessIdToSessionId) {
+				return sl_false;
+			}
+			auto funcWTSGetActiveConsoleSessionId = kernel32::getApi_WTSGetActiveConsoleSessionId();
+			if (!funcWTSGetActiveConsoleSessionId) {
+				return sl_false;
+			}
+			sl_bool bRet = sl_false;
+			HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+			if (hSnapshot != INVALID_HANDLE_VALUE) {
+				PROCESSENTRY32W entry;
+				entry.dwSize = sizeof(entry);
+				if (Process32FirstW(hSnapshot, &entry)) {
+					do {
+						if (Base::equalsString2((sl_char16*)(entry.szExeFile), u"winlogon.exe")) {
+							DWORD sessionId = 0;
+							if (funcProcessIdToSessionId(entry.th32ProcessID, &sessionId)) {
+								if (sessionId == funcWTSGetActiveConsoleSessionId()) {
+									pid = entry.th32ProcessID;
+									bRet = sl_true;
+								}
+							}
+						}
+					} while (Process32NextW(hSnapshot, &entry));
+				}
+				CloseHandle(hSnapshot);
+			}
+			return bRet;
+		}
+
+		static sl_bool GetLogonSessionToken(HANDLE& token)
+		{
+			sl_bool bRet = FALSE;
+			DWORD pid;
+			if (GetLogonPid(pid)) {
+				HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+				if (hProcess) {
+					bRet = OpenProcessToken(hProcess, TOKEN_ALL_ACCESS, &token) != 0;
+					CloseHandle(hProcess);
+				}
+			}
+			return bRet;
+		}
+	}
+
+	HANDLE Win32::createSystemProcess(const StringParam& _command)
+	{
+		HANDLE hProcess = NULL;
+		HANDLE hToken;
+		if (GetLogonSessionToken(hToken)) {
+			STARTUPINFO si = { 0 };
+			si.cb = sizeof si;
+			si.dwFlags = STARTF_USESHOWWINDOW;
+			StringCstr16 command(_command);
+			PROCESS_INFORMATION pi;
+			if (CreateProcessAsUserW(hToken, NULL, (LPWSTR)(command.getData()), NULL, NULL, FALSE, DETACHED_PROCESS, NULL, NULL, &si, &pi)) {
+				CloseHandle(pi.hThread);
+				hProcess = pi.hProcess;
+			}
+			CloseHandle(hToken);
+		}
+		return hProcess;
 	}
 
 #endif
