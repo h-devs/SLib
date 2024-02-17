@@ -152,6 +152,11 @@ namespace slib
 	{
 		return ServiceStartType::Unknown;
 	}
+
+	String ServiceManager::getCommandPath(const StringParam& serviceName)
+	{
+		return sl_null;
+	}
 #endif
 
 }

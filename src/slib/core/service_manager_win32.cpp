@@ -166,7 +166,7 @@ namespace slib
 		public:
 			WSService(const WSManager& manager, const StringParam& _name, DWORD dwAccess)
 			{
-				StringCstr16 name = _name;
+				StringCstr16 name(_name);
 				handle = OpenServiceW(manager, (LPCWSTR)(name.getData()), dwAccess);
 			}
 
@@ -196,6 +196,30 @@ namespace slib
 
 		};
 
+		static QUERY_SERVICE_CONFIGW* GetServiceConfig(const StringParam& serviceName, Memory& out)
+		{
+			WSManager manager(GENERIC_READ);
+			if (manager) {
+				StringCstr16 name(serviceName);
+				WSService service(manager, name, GENERIC_READ);
+				if (service) {
+					DWORD dwBytes = 0;
+					QueryServiceConfigW(service, NULL, 0, &dwBytes);
+					if (dwBytes) {
+						Memory mem = Memory::create(dwBytes);
+						if (mem.isNotNull()) {
+							QUERY_SERVICE_CONFIGW& config = *((QUERY_SERVICE_CONFIGW*)(mem.getData()));
+							if (QueryServiceConfigW(service, &config, dwBytes, &dwBytes)) {
+								out = Move(mem);
+								return &config;
+							}
+						}
+					}
+				}
+			}
+			return sl_null;
+		}
+
 	}
 
 	sl_bool ServiceManager::isExisting(const StringParam& name)
@@ -214,13 +238,13 @@ namespace slib
 	{
 		WSManager manager(SC_MANAGER_CREATE_SERVICE);
 		if (manager) {
-			StringCstr16 name = param.name;
+			StringCstr16 name(param.name);
 			StringParam _displayName = param.displayName;
 			if (_displayName.isNull()) {
 				_displayName = name;
 			}
-			StringCstr16 displayName = _displayName;
-			StringCstr16 path = param.getCommandLine();
+			StringCstr16 displayName(_displayName);
+			StringCstr16 path(param.getCommandLine());
 			SC_HANDLE handle = CreateServiceW(
 				manager,
 				(LPCWSTR)(name.getData()),
@@ -287,7 +311,7 @@ namespace slib
 						bRet = ControlService(service, SERVICE_CONTROL_CONTINUE, &statusReturned);
 					} else if (state == SERVICE_STOPPED) {
 						if (argc) {
-							StringCstr16 argName = name;
+							StringCstr16 argName(name);
 							LPCWSTR args[64];
 							StringCstr16 _args[60];
 							if (argc > 60) {
@@ -417,25 +441,22 @@ namespace slib
 
 	ServiceStartType ServiceManager::getStartType(const StringParam& serviceName)
 	{
-		WSManager manager(GENERIC_READ);
-		if (manager) {
-			StringCstr16 name = serviceName;
-			WSService service(manager, name, GENERIC_READ);
-			if (service) {
-				DWORD dwBytes = 0;
-				QueryServiceConfigW(service, NULL, 0, &dwBytes);
-				if (dwBytes) {
-					Memory mem = Memory::create(dwBytes);
-					if (mem.isNotNull()) {
-						QUERY_SERVICE_CONFIGW& config = *((QUERY_SERVICE_CONFIGW*)(mem.getData()));
-						if (QueryServiceConfigW(service, &config, dwBytes, &dwBytes)) {
-							return ToServiceStartType(config.dwStartType);
-						}
-					}
-				}
-			}
+		Memory mem;
+		QUERY_SERVICE_CONFIGW* config = GetServiceConfig(serviceName, mem);
+		if (config) {
+			return ToServiceStartType(config->dwStartType);
 		}
 		return ServiceStartType::Unknown;
+	}
+
+	String ServiceManager::getCommandPath(const StringParam& serviceName)
+	{
+		Memory mem;
+		QUERY_SERVICE_CONFIGW* config = GetServiceConfig(serviceName, mem);
+		if (config) {
+			return String::from(config->lpBinaryPathName);
+		}
+		return sl_null;
 	}
 
 }

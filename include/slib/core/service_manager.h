@@ -140,6 +140,8 @@ namespace slib
 
 		static ServiceStartType getStartType(const StringParam& serviceName);
 
+		static String getCommandPath(const StringParam& serviceName);
+
 	};
 
 }
