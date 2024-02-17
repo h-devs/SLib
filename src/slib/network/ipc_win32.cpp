@@ -70,63 +70,90 @@ namespace slib
 			}
 
 		public:
-			void sendMessage(const StringParam& _targetName, const Memory& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse) override
+			HANDLE createPipe(const StringParam& _targetName)
+			{
+				if (_targetName.isNotEmpty()) {
+					String16 targetName = String16::concat(L"\\\\.\\pipe\\", _targetName);
+					if (m_threads.getCount() < m_maxThreadCount) {
+						HANDLE hPipe = CreateFileW(
+							(LPCWSTR)(targetName.getData()),
+							GENERIC_READ | GENERIC_WRITE,
+							0, // No sharing 
+							NULL, // Default security attributes
+							OPEN_EXISTING,
+							FILE_FLAG_OVERLAPPED,
+							NULL // No template file
+						);
+						if (hPipe != INVALID_HANDLE_VALUE) {
+							DWORD dwMode = PIPE_READMODE_MESSAGE;
+							if (SetNamedPipeHandleState(hPipe, &dwMode, NULL, NULL)) {
+								return hPipe;
+							}
+							CloseHandle(hPipe);
+						}
+					}
+				}
+				return INVALID_HANDLE_VALUE;
+			}
+
+			void sendMessage(const StringParam& targetName, const Memory& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse) override
 			{
 				if (data.isNotNull()) {
-					if (_targetName.isNotEmpty()) {
-						String16 targetName = String16::concat(L"\\\\.\\pipe\\", _targetName);
-						if (m_threads.getCount() < m_maxThreadCount) {
-							HANDLE hPipe = CreateFileW(
-								(LPCWSTR)(targetName.getData()),
-								GENERIC_READ | GENERIC_WRITE,
-								0, // No sharing 
-								NULL, // Default security attributes
-								OPEN_EXISTING,
-								FILE_FLAG_OVERLAPPED,
-								NULL // No template file
-							);
-							if (hPipe != INVALID_HANDLE_VALUE) {
-								DWORD dwMode = PIPE_READMODE_MESSAGE;
-								if (SetNamedPipeHandleState(hPipe, &dwMode, NULL, NULL)) {
-									auto thiz = ToWeakRef(this);
-									Ref<Thread> thread = Thread::create([thiz, this, hPipe, data, callbackResponse]() {
-										auto ref = ToRef(thiz);
-										if (ref.isNull()) {
-											callbackResponse(sl_null, 0);
-											return;
-										}
-										processSending(hPipe, data, callbackResponse);
-										CloseHandle(hPipe);
-									});
-									if (thread.isNotNull()) {
-										m_threads.add(thread);
-										thread->start();
-										return;
-									}
-								}
-								CloseHandle(hPipe);
+					HANDLE hPipe = createPipe(targetName);
+					if (hPipe != INVALID_HANDLE_VALUE) {
+						auto thiz = ToWeakRef(this);
+						Ref<Thread> thread = Thread::create([thiz, this, hPipe, data, callbackResponse]() {
+							auto ref = ToRef(thiz);
+							if (ref.isNull()) {
+								callbackResponse(sl_null, 0);
+								return;
 							}
+							processSending(hPipe, data, callbackResponse, sl_true);
+							CloseHandle(hPipe);
+						});
+						if (thread.isNotNull()) {
+							m_threads.add(thread);
+							thread->start();
+							return;
 						}
 					}
 				}
 				callbackResponse(sl_null, 0);
 			}
 
-			void processSending(HANDLE hPipe, const Memory& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse)
+			Memory sendMessageSynchronous(const StringParam& targetName, const MemoryView& data) override
 			{
-				Thread* thread = Thread::getCurrent();
-				if (thread) {
-					if (writeMessage(thread, hPipe, data.getData(), (sl_uint32)(data.getSize()))) {
-						if (thread->isNotStoppingCurrent()) {
-							Memory mem = readMessage(thread, hPipe);
-							callbackResponse((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()));
-							m_threads.remove(thread);
-							return;
-						}
+				if (data.size) {
+					HANDLE hPipe = createPipe(targetName);
+					if (hPipe != INVALID_HANDLE_VALUE) {
+						Memory ret = processSending(hPipe, data, sl_null, sl_true);
+						CloseHandle(hPipe);
+						return ret;
 					}
 				}
-				callbackResponse(sl_null, 0);
-				m_threads.remove(thread);
+				return sl_null;
+			}
+
+			Memory processSending(HANDLE hPipe, const MemoryView& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse, sl_bool flagAsync)
+			{
+				Thread* thread = Thread::getCurrent();
+				if (writeMessage(hPipe, data.data, (sl_uint32)(data.size))) {
+					if (!thread || thread->isNotStoppingCurrent()) {
+						Memory mem = readMessage(thread, hPipe);
+						if (flagAsync) {
+							callbackResponse((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()));
+							m_threads.remove(thread);
+						}
+						return mem;
+					}
+				}
+				if (flagAsync) {
+					callbackResponse(sl_null, 0);
+					if (thread) {
+						m_threads.remove(thread);
+					}
+				}
+				return sl_null;
 			}
 
 			Memory readMessage(Thread* thread, HANDLE handle)
@@ -142,7 +169,7 @@ namespace slib
 				MemoryBuffer bufRead;
 				char buf[1024];
 
-				while (thread->isNotStopping()) {
+				while (!thread || thread->isNotStopping()) {
 
 					OVERLAPPED overlapped;
 					Base::zeroMemory(&overlapped, sizeof(overlapped));
@@ -188,7 +215,7 @@ namespace slib
 				return sl_null;
 			}
 
-			sl_bool writeMessage(Thread* thread, HANDLE handle, const void* _data, sl_uint32 size)
+			sl_bool writeMessage(HANDLE handle, const void* _data, sl_uint32 size)
 			{
 				sl_uint8* data = (sl_uint8*)_data;
 				Ref<Event> event = Event::create();
@@ -329,19 +356,28 @@ namespace slib
 									}
 								}
 								if (flagConnected) {
-									auto thiz = ToWeakRef(this);
-									Ref<Thread> threadNew = Thread::create([thiz, this, hPipe]() {
-										auto ref = ToRef(thiz);
-										if (ref.isNull()) {
-											return;
+									if (m_flagReceiveOnNewThread) {
+										auto thiz = ToWeakRef(this);
+										Ref<Thread> threadNew = Thread::create([thiz, this, hPipe]() {
+											auto ref = ToRef(thiz);
+											if (ref.isNull()) {
+												return;
+											}
+											Thread* thread = Thread::getCurrent();
+											if (!thread) {
+												return;
+											}
+											processReceiving(hPipe, thread, sl_true);
+											CloseHandle(hPipe);
+										});
+										if (threadNew.isNotNull()) {
+											m_threads.add(threadNew);
+											threadNew->start();
+										} else {
+											CloseHandle(hPipe);
 										}
-										processReceiving(hPipe);
-										CloseHandle(hPipe);
-									});
-									if (threadNew.isNotNull()) {
-										m_threads.add(threadNew);
-										threadNew->start();
 									} else {
+										processReceiving(hPipe, thread, sl_false);
 										CloseHandle(hPipe);
 									}
 									break;
@@ -357,20 +393,18 @@ namespace slib
 				}
 			}
 
-			void processReceiving(HANDLE hPipe)
+			void processReceiving(HANDLE hPipe, Thread* thread, sl_bool flagAsync)
 			{
-				Thread* thread = Thread::getCurrent();
-				if (!thread) {
-					return;
-				}
 				Memory mem = readMessage(thread, hPipe);
 				if (mem.isNotNull() && thread->isNotStoppingCurrent()) {
 					MemoryOutput response;
 					m_onReceiveMessage((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()), &response);
 					Memory output = response.merge();
-					writeMessage(thread, hPipe, output.getData(), (sl_uint32)(output.getSize()));
+					writeMessage(hPipe, output.getData(), (sl_uint32)(output.getSize()));
 				}
-				m_threads.remove(thread);
+				if (flagAsync) {
+					m_threads.remove(thread);
+				}
 			}
 
 		};

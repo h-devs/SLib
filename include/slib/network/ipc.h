@@ -39,6 +39,7 @@ namespace slib
 	public:
 		StringParam name;
 
+		sl_bool flagReceiveOnNewThread;
 		sl_uint32 maxThreadCount;
 		sl_uint32 maxReceivingMessageSize;
 		sl_uint32 timeout; // milliseconds
@@ -73,10 +74,13 @@ namespace slib
 	public:
 		virtual void sendMessage(const StringParam& targetName, const Memory& data, const Function<void(sl_uint8* data, sl_uint32 size)>& callbackResponse) = 0;
 
+		virtual Memory sendMessageSynchronous(const StringParam& targetName, const MemoryView& data) = 0;
+
 	protected:
 		void _init(const IPCParam& param) noexcept;
 
 	protected:
+		sl_bool m_flagReceiveOnNewThread;
 		sl_uint32 m_maxThreadCount;
 		sl_uint32 m_maxReceivingMessageSize;
 		sl_uint32 m_timeout;

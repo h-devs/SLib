@@ -38,6 +38,7 @@ namespace slib
 
 	IPCParam::IPCParam()
 	{
+		flagReceiveOnNewThread = sl_false;
 		maxThreadCount = 16;
 		maxReceivingMessageSize = 64 << 20;
 		timeout = 10000;
@@ -57,6 +58,7 @@ namespace slib
 
 	void IPC::_init(const IPCParam& param) noexcept
 	{
+		m_flagReceiveOnNewThread = param.flagReceiveOnNewThread;
 		m_maxThreadCount = param.maxThreadCount;
 		m_maxReceivingMessageSize = param.maxReceivingMessageSize;
 		m_timeout = param.timeout;
@@ -138,7 +140,7 @@ namespace slib
 										callbackResponse(sl_null, 0);
 										return;
 									}
-									processSending(socket, targetName, data, callbackResponse);
+									processSending(socket, targetName, data, callbackResponse, sl_true);
 								});
 								if (thread.isNotNull()) {
 									m_threads.add(thread);
@@ -152,7 +154,21 @@ namespace slib
 				callbackResponse(sl_null, 0);
 			}
 
-			void processSending(const Socket& socket, const String& serverName, const Memory& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse)
+			Memory sendMessageSynchronous(const StringParam& _targetName, const MemoryView& data) override
+			{
+				String targetName = _targetName.toString();
+				if (targetName.isNotEmpty()) {
+					if (data.size) {
+						MoveT<Socket> socket = Socket::openDomainStream();
+						if (socket.isOpened()) {
+							return processSending(socket, targetName, data, sl_null, sl_false);
+						}
+					}
+				}
+				return sl_null;
+			}
+
+			Memory processSending(const Socket& socket, const String& serverName, const MemoryView& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse, sl_bool flagAsync)
 			{
 				Thread* thread = Thread::getCurrent();
 				if (thread) {
@@ -161,19 +177,24 @@ namespace slib
 #else
 					if (socket.connectDomainAndWait(GetDomainName(serverName))) {
 #endif
-						if (writeMessage(thread, socket, data.getData(), (sl_uint32)(data.getSize()))) {
+						if (writeMessage(thread, socket, data.data, (sl_uint32)(data.size))) {
 							if (thread->isNotStoppingCurrent()) {
 								Memory mem = readMessage(thread, socket);
 								writeMessage(thread, socket, sl_null, 0); // Dummy message to safely close
-								callbackResponse((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()));
-								m_threads.remove(thread);
-								return;
+								if (flagAsync) {
+									callbackResponse((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()));
+									m_threads.remove(thread);
+								}
+								return mem;
 							}
 						}
 					}
 				}
-				callbackResponse(sl_null, 0);
-				m_threads.remove(thread);
+				if (flagAsync) {
+					callbackResponse(sl_null, 0);
+					m_threads.remove(thread);
+				}
+				return sl_null;
 			}
 
 			Memory readMessage(Thread* thread, const Socket& socket)
@@ -358,17 +379,25 @@ namespace slib
 						String address;
 						MoveT<Socket> socket = m_socketServer.acceptDomain(address);
 						if (socket.isOpened()) {
-							auto thiz = ToWeakRef(this);
-							Ref<Thread> threadNew = Thread::create([socket, thiz, this]() {
-								auto ref = ToRef(thiz);
-								if (ref.isNull()) {
-									return;
+							if (m_flagReceiveOnNewThread) {
+								auto thiz = ToWeakRef(this);
+								Ref<Thread> threadNew = Thread::create([socket, thiz, this]() {
+									auto ref = ToRef(thiz);
+									if (ref.isNull()) {
+										return;
+									}
+									Thread* thread = Thread::getCurrent();
+									if (!thread) {
+										return;
+									}
+									processReceiving(socket, thread, sl_true);
+								});
+								if (threadNew.isNotNull()) {
+									m_threads.add(threadNew);
+									threadNew->start();
 								}
-								processReceiving(socket);
-							});
-							if (threadNew.isNotNull()) {
-								m_threads.add(threadNew);
-								threadNew->start();
+							} else {
+								processReceiving(socket, thread, sl_false);
 							}
 						} else {
 							if (Socket::getLastError() == SocketError::WouldBlock) {
@@ -383,12 +412,8 @@ namespace slib
 				}
 			}
 
-			void processReceiving(const Socket& socket)
+			void processReceiving(const Socket& socket, Thread* thread, sl_bool flagAsync)
 			{
-				Thread* thread = Thread::getCurrent();
-				if (!thread) {
-					return;
-				}
 				Memory mem = readMessage(thread, socket);
 				if (mem.isNotNull() && thread->isNotStoppingCurrent()) {
 					MemoryOutput response;
@@ -397,7 +422,9 @@ namespace slib
 					writeMessage(thread, socket, output.getData(), (sl_uint32)(output.getSize()));
 					readMessage(thread, socket); // Dummy message to safely close
 				}
-				m_threads.remove(thread);
+				if (flagAsync) {
+					m_threads.remove(thread);
+				}
 			}
 
 		};
