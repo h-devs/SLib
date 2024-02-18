@@ -28,7 +28,11 @@
 #include "slib/core/process.h"
 #include "slib/core/log.h"
 
-#ifndef SLIB_PLATFORM_IS_WINDOWS
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+#include "slib/core/console.h"
+#include "slib/platform/win32/windows.h"
+#include <conio.h>
+#else
 #include <signal.h>
 #endif
 
@@ -372,11 +376,32 @@ namespace slib
 
 		String stopId = appName + STOP_ID;
 
+#ifdef SLIB_PLATFORM_IS_WIN32
+		sl_bool flagConsole = GetConsoleWindow() != NULL;
+		if (flagConsole) {
+			Console::println("Press x to exit!");
+		}
+#endif
+
 		while (!m_flagRequestQuit) {
 			if (NamedInstance::exists(stopId)) {
 				break;
 			}
+#if defined(SLIB_PLATFORM_IS_WIN32)
+			if (flagConsole) {
+				if (_kbhit()) {
+					if (_getch() == 'x') {
+						quit();
+						break;
+					}
+				}
+				m_eventQuit->wait(10);
+			} else {
+				m_eventQuit->wait(500);
+			}
+#else
 			m_eventQuit->wait(500);
+#endif
 		}
 
 		onStopService();
