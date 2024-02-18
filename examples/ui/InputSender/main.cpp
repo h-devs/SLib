@@ -7,7 +7,7 @@
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
 {
 	System::setDebugFlags();
-	if (InputSender::prepare()) {
+	if (InputSender::prepare("InputSender")) {
 		InputSenderApp::main();
 	}
 	return 0;

@@ -12,11 +12,9 @@
 #include <slib/ui/core.h>
 #include <slib/platform.h>
 
-#define SERVICE_NAME "InputSender"
 #define SERVICE_COMMAND "daemon"
 #define AGENT_COMMAND "agent"
 #define INSTALL_COMMAND "install"
-#define AGENT_NAME "input_agent"
 
 #define IPC_CMD_QUIT 0x01
 #define IPC_CMD_SEND_KEY 0x02
@@ -29,6 +27,12 @@ namespace slib
 	namespace
 	{
 
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_serviceName)
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_onStartService)
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_onStopService)
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_onStartAgent)
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_onStopAgent)
+
 		static void SendAgentMessage(sl_uint8 uMsg, sl_uint32 param1, sl_uint32 param2, sl_uint32 param3)
 		{
 			SLIB_SAFE_LOCAL_STATIC(Ref<IPC>, ipc, IPC::create())
@@ -38,7 +42,7 @@ namespace slib
 				MIO::writeUint32(buf + 1, param1);
 				MIO::writeUint32(buf + 5, param2);
 				MIO::writeUint32(buf + 9, param3);
-				ipc->sendMessageSynchronous(AGENT_NAME, Memory::create(buf, 13));
+				ipc->sendMessageSynchronous(g_serviceName, Memory::create(buf, 13));
 			}
 		}
 
@@ -52,49 +56,18 @@ namespace slib
 		public:
 			String getServiceId() override
 			{
-				return SERVICE_NAME;
+				return g_serviceName;
 			}
 
 			sl_bool onStartService() override
 			{
-				m_thread = Thread::start(SLIB_FUNCTION_MEMBER(this, onRunAgent));
+				InputSender::onStartService();
 				return sl_true;
 			}
 
 			void onStopService() override
 			{
-				m_thread->finishAndWait();
-			}
-
-			void onRunAgent()
-			{
-				HANDLE hProcessAgent = NULL;
-				while (Thread::isNotStoppingCurrent()) {
-					if (hProcessAgent) {
-						do {
-							DWORD dwExitCode = 0;
-							if (GetExitCodeProcess(hProcessAgent, &dwExitCode)) {
-								if (dwExitCode == STILL_ACTIVE) {
-									break;
-								}
-							}
-							CloseHandle(hProcessAgent);
-							hProcessAgent = NULL;
-						} while (0);
-					}
-					if (!hProcessAgent) {
-						quitAgent();
-						String16 cmd = String16::concat(StringView16::literal(u"\""), System::getApplicationPath(), StringView16::literal(u"\" " AGENT_COMMAND));
-						hProcessAgent = Win32::createSystemProcess(cmd);
-					}
-					Thread::sleep(500);
-				}
-				quitAgent();
-			}
-
-			void quitAgent()
-			{
-				SendAgentMessage(IPC_CMD_QUIT, 0, 0, 0);
+				InputSender::onStopService();
 			}
 
 		};
@@ -166,83 +139,27 @@ namespace slib
 			return sl_false;
 		}
 
-		static void RunAgent()
-		{
-			static sl_bool flagQuit = sl_false;
-
-			NamedInstance instance(AGENT_NAME);
-			if (instance.isNone()) {
-				return;
-			}
-
-			IPCParam param;
-			param.name = AGENT_NAME;
-			param.onReceiveMessage = [](sl_uint8* data, sl_uint32 size, MemoryOutput* output) {
-				if (size != 13) {
-					return;
-				}
-				SelectInputDesktop();
-				sl_uint8 cmd = *data;
-				sl_uint32 param1 = MIO::readUint32(data + 1);
-				sl_uint32 param2 = MIO::readUint32(data + 5);
-				sl_uint32 param3 = MIO::readUint32(data + 9);
-				switch (cmd) {
-				case IPC_CMD_QUIT:
-					flagQuit = sl_true;
-					break;
-				case IPC_CMD_SEND_KEY:
-					UI::sendKeyEvent((UIAction)param1, (Keycode)param2);
-					break;
-				case IPC_CMD_SEND_MOUSE_RELATIVE:
-					UI::sendMouseEvent((UIAction)param1, (sl_ui_pos)param2, (sl_ui_pos)param3, sl_false);
-					break;
-				case IPC_CMD_SEND_MOUSE_ABSOLUTE:
-					UI::sendMouseEvent((UIAction)param1, (sl_ui_pos)param2, (sl_ui_pos)param3, sl_true);
-					break;
-				}
-			};
-			Ref<IPC> ipc = IPC::create(param);
-			if (ipc.isNull()) {
-				return;
-			}
-
-			while (!flagQuit) {
-				System::sleep(500);
-			}
-		}
-
 		static sl_bool InstallService()
 		{
 			CreateServiceParam param;
-			param.name = SERVICE_NAME;
+			param.name = g_serviceName;
 			param.path = System::getApplicationPath();
 			param.arguments.add(SERVICE_COMMAND);
-			String path = ServiceManager::getCommandPath(SERVICE_NAME);
-			if (path.isNotNull()) {
-				if (path == param.getCommandLine()) {
-					if (ServiceManager::isRunning(SERVICE_NAME)) {
-						return sl_true;
-					} else {
-						return ServiceManager::start(SERVICE_NAME);
-					}
-				}
-				ServiceManager::remove(SERVICE_NAME);
-			}
-			ServiceManager::create(param);
-			return ServiceManager::start(SERVICE_NAME);
+			return ServiceManager::checkPathAndCreateAndStart(param);
 		}
 
 	}
 
-	sl_bool InputSender::prepare()
+	sl_bool InputSender::prepare(const StringParam& serviceName)
 	{
+		setServiceName(serviceName);
 		String commandLine = String::create(GetCommandLineW());
 		List<String> arguments = CommandLine::parse(commandLine);
 		if (arguments.contains(SERVICE_COMMAND)) {
 			InputService::main();
 			return sl_false;
 		} else if (arguments.contains(AGENT_COMMAND)) {
-			RunAgent();
+			runAgent();
 			return sl_false;
 		} else if (arguments.contains(INSTALL_COMMAND)) {
 			InstallService();
@@ -251,16 +168,12 @@ namespace slib
 			if (Process::isCurrentProcessAdmin()) {
 				return InstallService();
 			} else {
-				String path = ServiceManager::getCommandPath(SERVICE_NAME);
-				if (path.isNotNull()) {
-					CreateServiceParam param;
-					param.path = System::getApplicationPath();
-					param.arguments.add(SERVICE_COMMAND);
-					if (path == param.getCommandLine()) {
-						if (ServiceManager::isRunning(SERVICE_NAME)) {
-							return sl_true;
-						}
-					}
+				CreateServiceParam param;
+				param.name = serviceName;
+				param.path = System::getApplicationPath();
+				param.arguments.add(SERVICE_COMMAND);
+				if (ServiceManager::checkPathAndIsRunning(param)) {
+					return sl_true;
 				}
 				Process::runAsAdmin(System::getApplicationPath(), INSTALL_COMMAND);
 				return sl_true;
@@ -276,6 +189,92 @@ namespace slib
 	void InputSender::sendMouseEvent(UIAction action, sl_ui_pos x, sl_ui_pos y, sl_bool flagAbsolutePos)
 	{
 		SendAgentMessage(flagAbsolutePos ? IPC_CMD_SEND_MOUSE_ABSOLUTE : IPC_CMD_SEND_MOUSE_RELATIVE, (sl_uint32)action, (sl_uint32)x, (sl_uint32)y);
+	}
+
+	void InputSender::setServiceName(const StringParam& _serviceName)
+	{
+		g_serviceName = String::from(_serviceName);
+	}
+
+	void InputSender::setOnStartService(const Function<void()>& callback)
+	{
+		g_onStartService = callback;
+	}
+
+	void InputSender::setOnStopService(const Function<void()>& callback)
+	{
+		g_onStopService = callback;
+	}
+
+	void InputSender::setOnStartAgent(const Function<void()>& callback)
+	{
+		g_onStartAgent = callback;
+	}
+
+	void InputSender::setOnStopAgent(const Function<void()>& callback)
+	{
+		g_onStopAgent = callback;
+	}
+
+	void InputSender::onStartService()
+	{
+		String16 cmd = String16::concat(StringView16::literal(u"\""), System::getApplicationPath(), StringView16::literal(u"\" " AGENT_COMMAND));
+		Win32::createSystemProcess(cmd);
+		g_onStartService();
+	}
+
+	void InputSender::onStopService()
+	{
+		g_onStopService();
+		SendAgentMessage(IPC_CMD_QUIT, 0, 0, 0);
+	}
+
+	void InputSender::runAgent()
+	{
+		static sl_bool flagQuit = sl_false;
+
+		String serviceName = g_serviceName;
+		NamedInstance instance(String::concat(serviceName, "_agent"));
+		if (instance.isNone()) {
+			return;
+		}
+
+		IPCParam param;
+		param.name = serviceName;
+		param.onReceiveMessage = [](sl_uint8* data, sl_uint32 size, MemoryOutput* output) {
+			if (size != 13) {
+				return;
+			}
+			SelectInputDesktop();
+			sl_uint8 cmd = *data;
+			sl_uint32 param1 = MIO::readUint32(data + 1);
+			sl_uint32 param2 = MIO::readUint32(data + 5);
+			sl_uint32 param3 = MIO::readUint32(data + 9);
+			switch (cmd) {
+			case IPC_CMD_QUIT:
+				flagQuit = sl_true;
+				break;
+			case IPC_CMD_SEND_KEY:
+				UI::sendKeyEvent((UIAction)param1, (Keycode)param2);
+				break;
+			case IPC_CMD_SEND_MOUSE_RELATIVE:
+				UI::sendMouseEvent((UIAction)param1, (sl_ui_pos)param2, (sl_ui_pos)param3, sl_false);
+				break;
+			case IPC_CMD_SEND_MOUSE_ABSOLUTE:
+				UI::sendMouseEvent((UIAction)param1, (sl_ui_pos)param2, (sl_ui_pos)param3, sl_true);
+				break;
+			}
+		};
+		Ref<IPC> ipc = IPC::create(param);
+		if (ipc.isNull()) {
+			return;
+		}
+
+		g_onStartAgent();
+		while (!flagQuit) {
+			System::sleep(500);
+		}
+		g_onStopAgent();
 	}
 
 }

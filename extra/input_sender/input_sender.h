@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_EXTRA_INPUT_SENDER
 
 #include <slib/ui/constants.h>
+#include <slib/core/function.h>
 
 namespace slib
 {
@@ -31,11 +32,29 @@ namespace slib
 	class InputSender
 	{
 	public:
-		static sl_bool prepare();
+		static sl_bool prepare(const StringParam& serviceName);
 
 		static void sendKeyEvent(UIAction action, Keycode key);
 
 		static void sendMouseEvent(UIAction action, sl_ui_pos x, sl_ui_pos y, sl_bool flagAbsolutePos = sl_true);
+
+
+		static void setServiceName(const StringParam& serviceName);
+
+		static void setOnStartService(const Function<void()>& callback);
+
+		static void setOnStopService(const Function<void()>& callback);
+
+		static void setOnStartAgent(const Function<void()>& callback);
+
+		static void setOnStopAgent(const Function<void()>& callback);
+
+
+		static void onStartService();
+
+		static void onStopService();
+
+		static void runAgent();
 
 	};
 
