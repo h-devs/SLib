@@ -51,6 +51,45 @@ namespace slib
 	}
 
 
+	sl_bool ServiceManager::checkPath(const CreateServiceParam& param)
+	{
+		String path = getCommandPath(param.name);
+		if (path.isNotNull()) {
+			if (path == param.getCommandLine()) {
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool ServiceManager::checkPathAndIsRunning(const CreateServiceParam& param)
+	{
+		if (checkPath(param)) {
+			return isRunning(param.name);
+		}
+		return sl_false;
+	}
+
+	sl_bool ServiceManager::checkPathAndCreateAndStart(const CreateServiceParam& param, sl_int32 timeout)
+	{
+		String path = getCommandPath(param.name);
+		if (path.isNotNull()) {
+			if (path == param.getCommandLine()) {
+				if (isRunning(param.name)) {
+					return sl_true;
+				} else {
+					return start(param.name, timeout);
+				}
+			}
+			stopAndRemove(param.name, timeout);
+		}
+		if (create(param)) {
+			return start(param.name, timeout);
+		} else {
+			return sl_false;
+		}
+	}
+
 	sl_bool ServiceManager::isStarted(const StringParam& name)
 	{
 		ServiceState state = getState(name);

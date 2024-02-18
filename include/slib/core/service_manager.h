@@ -98,7 +98,7 @@ namespace slib
 	public:
 		CreateServiceParam() noexcept;
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CreateServiceParam);
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CreateServiceParam)
 
 	public:
 		String getCommandLine() const noexcept;
@@ -113,6 +113,12 @@ namespace slib
 		static sl_bool create(const CreateServiceParam& param);
 
 		static sl_bool createAndStart(const CreateServiceParam& param, sl_int32 timeout = -1);
+
+		static sl_bool checkPath(const CreateServiceParam& param);
+
+		static sl_bool checkPathAndIsRunning(const CreateServiceParam& param);
+
+		static sl_bool checkPathAndCreateAndStart(const CreateServiceParam& param, sl_int32 timeout = -1);
 
 		static sl_bool remove(const StringParam& serviceName);
 
