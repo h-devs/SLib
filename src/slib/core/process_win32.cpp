@@ -541,7 +541,6 @@ namespace slib
 		if (GetLogonSessionToken(hToken)) {
 			STARTUPINFO si = { 0 };
 			si.cb = sizeof si;
-			si.dwFlags = STARTF_USESHOWWINDOW;
 			StringCstr16 command(_command);
 			PROCESS_INFORMATION pi;
 			if (CreateProcessAsUserW(hToken, NULL, (LPWSTR)(command.getData()), NULL, NULL, FALSE, DETACHED_PROCESS, NULL, NULL, &si, &pi)) {
