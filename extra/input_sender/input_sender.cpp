@@ -30,6 +30,8 @@ namespace slib
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_serviceName)
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_onStartService)
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_onStopService)
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_onInstallService)
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<sl_bool()>, g_onCheckInstall)
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_onStartAgent)
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_onStopAgent)
 
@@ -145,7 +147,12 @@ namespace slib
 			param.name = g_serviceName;
 			param.path = System::getApplicationPath();
 			param.arguments.add(SERVICE_COMMAND);
-			return ServiceManager::checkPathAndCreateAndStart(param);
+			param.startType = ServiceStartType::Auto;
+			if (ServiceManager::checkPathAndCreateAndStart(param)) {
+				g_onInstallService();
+				return sl_true;
+			}
+			return sl_false;
 		}
 
 	}
@@ -173,7 +180,13 @@ namespace slib
 				param.path = System::getApplicationPath();
 				param.arguments.add(SERVICE_COMMAND);
 				if (ServiceManager::checkPathAndIsRunning(param)) {
-					return sl_true;
+					Function<sl_bool()> onCheckInstall = g_onCheckInstall;
+					if (onCheckInstall.isNull()) {
+						return sl_true;
+					}
+					if (onCheckInstall()) {
+						return sl_true;
+					}
 				}
 				Process::runAsAdmin(System::getApplicationPath(), INSTALL_COMMAND);
 				return sl_true;
@@ -204,6 +217,16 @@ namespace slib
 	void InputSender::setOnStopService(const Function<void()>& callback)
 	{
 		g_onStopService = callback;
+	}
+
+	void InputSender::setOnInstallService(const Function<void()>& callback)
+	{
+		g_onInstallService = callback;
+	}
+
+	void InputSender::setOnCheckInstall(const Function<sl_bool()>& callback)
+	{
+		g_onCheckInstall = callback;
 	}
 
 	void InputSender::setOnStartAgent(const Function<void()>& callback)

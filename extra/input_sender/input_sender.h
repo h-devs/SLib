@@ -45,6 +45,10 @@ namespace slib
 
 		static void setOnStopService(const Function<void()>& callback);
 
+		static void setOnInstallService(const Function<void()>& callback);
+
+		static void setOnCheckInstall(const Function<sl_bool()>& callback);
+
 		static void setOnStartAgent(const Function<void()>& callback);
 
 		static void setOnStopAgent(const Function<void()>& callback);
