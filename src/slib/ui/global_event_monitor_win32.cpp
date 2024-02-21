@@ -100,15 +100,15 @@ namespace slib
 				sl_uint32 scanCode = (sl_uint32)(raw.data.keyboard.MakeCode);
 				int extended = raw.data.keyboard.Flags & (RI_KEY_E0 | RI_KEY_E1);
 				switch (vkey) {
-				case VK_SHIFT:
-					vkey = (unsigned char)(MapVirtualKeyW(scanCode, MAPVK_VSC_TO_VK_EX));
-					break;
-				case VK_CONTROL:
-					vkey = extended ? VK_RCONTROL : VK_LCONTROL;
-					break;
-				case VK_MENU:
-					vkey = extended ? VK_RMENU : VK_LMENU;
-					break;
+					case VK_SHIFT:
+						vkey = (unsigned char)(MapVirtualKeyW(scanCode, MAPVK_VSC_TO_VK_EX));
+						break;
+					case VK_CONTROL:
+						vkey = extended ? VK_RCONTROL : VK_LCONTROL;
+						break;
+					case VK_MENU:
+						vkey = extended ? VK_RMENU : VK_LMENU;
+						break;
 				}
 				Keycode key = UIEvent::getKeycodeFromSystemKeycode(vkey);
 				Time t;

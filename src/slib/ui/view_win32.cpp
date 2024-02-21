@@ -1398,15 +1398,15 @@ namespace slib
 				UINT scanCode = (lParam & 0x00ff0000) >> 16;
 				sl_bool flagExtended = (lParam & 0x01000000) != 0;
 				switch (vkey) {
-				case VK_SHIFT:
-					vkey = MapVirtualKeyW(scanCode, MAPVK_VSC_TO_VK_EX);
-					break;
-				case VK_CONTROL:
-					vkey = flagExtended ? VK_RCONTROL : VK_LCONTROL;
-					break;
-				case VK_MENU:
-					vkey = flagExtended ? VK_RMENU : VK_LMENU;
-					break;
+					case VK_SHIFT:
+						vkey = MapVirtualKeyW(scanCode, MAPVK_VSC_TO_VK_EX);
+						break;
+					case VK_CONTROL:
+						vkey = flagExtended ? VK_RCONTROL : VK_LCONTROL;
+						break;
+					case VK_MENU:
+						vkey = flagExtended ? VK_RMENU : VK_LMENU;
+						break;
 				}
 				key = UIEvent::getKeycodeFromSystemKeycode(vkey);
 			} else {

@@ -280,68 +280,94 @@ namespace slib
 
 	void UI::sendKeyEvent(UIAction action, Keycode key)
 	{
-		INPUT input;
-		Base::zeroMemory(&input, sizeof(input));
+		INPUT input = { 0 };
 		input.type = INPUT_KEYBOARD;
 		input.ki.wVk = UIEvent::getSystemKeycode(key);
 		if (!(input.ki.wVk)) {
 			return;
 		}
+		switch (key) {
+			case Keycode::LeftShift:
+				input.ki.wScan = MapVirtualKeyW(VK_LSHIFT, MAPVK_VK_TO_VSC);
+				input.ki.dwFlags = KEYEVENTF_SCANCODE;
+				break;
+			case Keycode::RightShift:
+				input.ki.wScan = MapVirtualKeyW(VK_RSHIFT, MAPVK_VK_TO_VSC);
+				input.ki.dwFlags = KEYEVENTF_SCANCODE;
+				break;
+			case Keycode::LeftControl:
+				input.ki.wScan = MapVirtualKeyW(VK_CONTROL, MAPVK_VK_TO_VSC);
+				input.ki.dwFlags = KEYEVENTF_SCANCODE;
+				break;
+			case Keycode::RightControl:
+				input.ki.wScan = MapVirtualKeyW(VK_CONTROL, MAPVK_VK_TO_VSC) | 0xE000;
+				input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+				break;
+			case Keycode::LeftAlt:
+				input.ki.wScan = MapVirtualKeyW(VK_MENU, MAPVK_VK_TO_VSC);
+				input.ki.dwFlags = KEYEVENTF_SCANCODE;
+				break;
+			case Keycode::RightAlt:
+				input.ki.wScan = MapVirtualKeyW(VK_MENU, MAPVK_VK_TO_VSC) | 0xE000;
+				input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+				break;
+			default:
+				break;
+		}
 		switch (action) {
-		case UIAction::KeyDown:
-			break;
-		case UIAction::KeyUp:
-			input.ki.dwFlags = KEYEVENTF_KEYUP;
-			break;
-		default:
-			return;
+			case UIAction::KeyDown:
+				break;
+			case UIAction::KeyUp:
+				input.ki.dwFlags |= KEYEVENTF_KEYUP;
+				break;
+			default:
+				return;
 		}
 		SendInput(1, &input, sizeof(input));
 	}
 
 	void UI::sendMouseEvent(UIAction action, sl_ui_pos x, sl_ui_pos y, sl_bool flagAbsolutePos)
 	{
-		INPUT input;
-		Base::zeroMemory(&input, sizeof(input));
+		INPUT input = { 0 };
 		input.type = INPUT_MOUSE;
 		switch (action) {
-		case UIAction::LeftButtonDown:
-			input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-			break;
-		case UIAction::LeftButtonUp:
-			input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-			break;
-		case UIAction::RightButtonDown:
-			input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
-			break;
-		case UIAction::RightButtonUp:
-			input.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
-			break;
-		case UIAction::MiddleButtonDown:
-			input.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
-			break;
-		case UIAction::MiddleButtonUp:
-			input.mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
-			break;
-		case UIAction::MouseMove:
-			input.mi.dwFlags = MOUSEEVENTF_MOVE;
-			break;
-		case UIAction::MouseWheel:
-			input.mi.dx = 0;
-			input.mi.dy = 0;
-			flagAbsolutePos = sl_false;
-			if (y) {
-				input.mi.dwFlags = MOUSEEVENTF_WHEEL;
-				input.mi.mouseData = y;
-			} else if (x) {
-				input.mi.dwFlags = 0x01000; // MOUSEEVENTF_HWHEEL;
-				input.mi.mouseData = x;
-			} else {
+			case UIAction::LeftButtonDown:
+				input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+				break;
+			case UIAction::LeftButtonUp:
+				input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+				break;
+			case UIAction::RightButtonDown:
+				input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
+				break;
+			case UIAction::RightButtonUp:
+				input.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
+				break;
+			case UIAction::MiddleButtonDown:
+				input.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
+				break;
+			case UIAction::MiddleButtonUp:
+				input.mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
+				break;
+			case UIAction::MouseMove:
+				input.mi.dwFlags = MOUSEEVENTF_MOVE;
+				break;
+			case UIAction::MouseWheel:
+				input.mi.dx = 0;
+				input.mi.dy = 0;
+				flagAbsolutePos = sl_false;
+				if (y) {
+					input.mi.dwFlags = MOUSEEVENTF_WHEEL;
+					input.mi.mouseData = y;
+				} else if (x) {
+					input.mi.dwFlags = 0x01000; // MOUSEEVENTF_HWHEEL;
+					input.mi.mouseData = x;
+				} else {
+					return;
+				}
+				break;
+			default:
 				return;
-			}
-			break;
-		default:
-			return;
 		}
 		if (flagAbsolutePos) {
 			input.mi.dwFlags |= MOUSEEVENTF_ABSOLUTE;
