@@ -428,14 +428,10 @@ namespace slib
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
-					sl_bool f1 = IsIconic(hWnd) ? sl_true : sl_false;
-					sl_bool f2 = flag ? sl_true : sl_false;
-					if (f1 != f2) {
-						if (f2) {
-							ShowWindowAsync(hWnd, SW_MINIMIZE);
-						} else {
-							ShowWindowAsync(hWnd, SW_RESTORE);
-						}
+					if (flag) {
+						ShowWindowAsync(hWnd, SW_MINIMIZE);
+					} else {
+						ShowWindowAsync(hWnd, SW_RESTORE);
 					}
 				}
 			}
@@ -452,14 +448,10 @@ namespace slib
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
-					sl_bool f1 = IsZoomed(hWnd) ? sl_true : sl_false;
-					sl_bool f2 = flag ? sl_true : sl_false;
-					if (f1 != f2) {
-						if (f2) {
-							ShowWindowAsync(hWnd, SW_MAXIMIZE);
-						} else {
-							ShowWindowAsync(hWnd, SW_RESTORE);
-						}
+					if (flag) {
+						ShowWindowAsync(hWnd, SW_MAXIMIZE);
+					} else {
+						ShowWindowAsync(hWnd, SW_RESTORE);
 					}
 				}
 			}
@@ -468,14 +460,10 @@ namespace slib
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
-					sl_bool f1 = GetWindowLongW(hWnd, GWL_STYLE) & WS_VISIBLE ? sl_true : sl_false;
-					sl_bool f2 = flag ? sl_true : sl_false;
-					if (f1 != f2) {
-						if (f2) {
-							ShowWindowAsync(hWnd, SW_SHOW);
-						} else {
-							ShowWindowAsync(hWnd, SW_HIDE);
-						}
+					if (flag) {
+						ShowWindowAsync(hWnd, SW_SHOW);
+					} else {
+						ShowWindowAsync(hWnd, SW_HIDE);
 					}
 				}
 			}
