@@ -53,9 +53,6 @@ namespace slib
 			SLIB_APPLICATION(InputService)
 
 		public:
-			Ref<Thread> m_thread;
-
-		public:
 			String getServiceId() override
 			{
 				return g_serviceName;
@@ -86,11 +83,7 @@ namespace slib
 				return sl_false;
 			}
 			sl_bool bRet = sl_false;
-			HDESK hInput = OpenInputDesktop(0, FALSE,
-				DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW |
-				DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL |
-				DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS |
-				DESKTOP_SWITCHDESKTOP | GENERIC_WRITE);
+			HDESK hInput = GetInputDesktop();
 			if (hInput) {
 				DWORD size;
 				WCHAR currentName[256] = { 0 };
