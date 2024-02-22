@@ -1378,7 +1378,7 @@ namespace slib
 		size.cx = (LONG)width;
 		size.cy = (LONG)height;
 
-		if (!(UpdateLayeredWindow(hWnd, NULL, NULL, &size, layer->hdcCache, &ptSrc, 0, &bf, ULW_OPAQUE))) {
+		if (!(UpdateLayeredWindow(hWnd, NULL, NULL, &size, layer->hdcCache, &ptSrc, 0, &bf, ULW_ALPHA))) {
 			DWORD dwErr = GetLastError();
 			if (dwErr = ERROR_INVALID_PARAMETER) {
 				UIPlatform::setWindowExStyle(m_handle, WS_EX_LAYERED, sl_false);
@@ -1386,6 +1386,7 @@ namespace slib
 				UpdateLayeredWindow(hWnd, NULL, NULL, &size, layer->hdcCache, &ptSrc, 0, &bf, ULW_ALPHA);
 			}
 		}
+
 	}
 
 	sl_bool Win32_ViewInstance::onEventKey(UIAction action, WPARAM wParam, LPARAM lParam)
@@ -1925,35 +1926,27 @@ namespace slib
 			return sl_true;
 		}
 		clear();
-		width = ((width - 1) | 0xFF) + 1;
-		height = ((height - 1) | 0xFF) + 1;
-		sl_uint32 sx = (sl_uint32)(GetSystemMetrics(SM_CXSCREEN));
-		sl_uint32 sy = (sl_uint32)(GetSystemMetrics(SM_CYSCREEN));
-		if (width > sx) {
-			width = sx;
-		}
-		if (height > sy) {
-			height = sy;
-		}
-		HDC hdcScreen = GetDC(NULL);
-		if (!hdcScreen) {
-			return sl_false;
-		}
-		HDC hdc = CreateCompatibleDC(hdcScreen);
+		HDC hdc = CreateCompatibleDC(NULL);
 		if (hdc) {
-			HBITMAP hbm = CreateCompatibleBitmap(hdcScreen, (int)width, (int)height);
+			BITMAPINFO bmi = { 0 };
+			bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			bmi.bmiHeader.biWidth = width;
+			bmi.bmiHeader.biHeight = height;
+			bmi.bmiHeader.biPlanes = 1;
+			bmi.bmiHeader.biBitCount = 32;
+			bmi.bmiHeader.biCompression = BI_RGB;
+			void* ppBits = sl_null;
+			HBITMAP hbm = CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, &ppBits, NULL, 0);
 			if (hbm) {
 				hbmOld = SelectObject(hdc, hbm);
 				hbmCache = hbm;
 				hdcCache = hdc;
 				widthCache = width;
 				heightCache = height;
-				ReleaseDC(NULL, hdcScreen);
 				return sl_true;
 			}
 			DeleteDC(hdc);
 		}
-		ReleaseDC(NULL, hdcScreen);
 		return sl_false;
 	}
 

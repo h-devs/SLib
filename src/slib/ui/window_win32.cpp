@@ -52,7 +52,7 @@ namespace slib
 
 			style = WS_CLIPCHILDREN;
 			styleEx = WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY;
-			if (window->isBorderless() || window->isFullScreen()) {
+			if (window->isBorderless() || window->isFullScreen() || window->isLayered()) {
 				style |= WS_POPUP;
 			} else {
 				if (window->isTitleBarVisible()) {
