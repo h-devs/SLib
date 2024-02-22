@@ -1378,7 +1378,7 @@ namespace slib
 		size.cx = (LONG)width;
 		size.cy = (LONG)height;
 
-		if (!(UpdateLayeredWindow(hWnd, NULL, NULL, &size, layer->hdcCache, &ptSrc, 0, &bf, ULW_ALPHA))) {
+		if (!(UpdateLayeredWindow(hWnd, NULL, NULL, &size, layer->hdcCache, &ptSrc, 0, &bf, ULW_OPAQUE))) {
 			DWORD dwErr = GetLastError();
 			if (dwErr = ERROR_INVALID_PARAMETER) {
 				UIPlatform::setWindowExStyle(m_handle, WS_EX_LAYERED, sl_false);
