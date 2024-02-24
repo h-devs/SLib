@@ -318,6 +318,17 @@ namespace slib
 		return (sl_uint64)(getTickCount64());
 	}
 
+	float System::getUptime()
+	{
+		String strUptime = File::readAllTextUTF8("/proc/uptime");
+		float t;
+		sl_reg iRet = String::parseFloat(&t, strUptime.getData(), 0, strUptime.getLength());
+		if (iRet >= 0) {
+			return t;
+		}
+		return 0;
+	}
+
 	void System::sleep(sl_uint32 milliseconds)
 	{
 		struct timespec req;
