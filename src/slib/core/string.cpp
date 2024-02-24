@@ -3556,14 +3556,26 @@ namespace slib
 			FLOAT min_value;
 			if (precision < 0) {
 				if (sizeof(FLOAT) == 4) {
-					precision = 5 - nInt;
+					if (nInt >= 5) {
+						precision = 10 - nInt;
+					} else if (nInt >= 0) {
+						precision = 5;
+					} else {
+						precision = 5 - nInt;
+					}
 				} else {
-					precision = 15 - nInt;
+					if (nInt >= 5) {
+						precision = 15 - nInt;
+					} else if (nInt >= 0) {
+						precision = 10;
+					} else {
+						precision = 10 - nInt;
+					}
 				}
 				if (precision < 1) {
 					precision = 1;
-				} else if (precision > 50) {
-					precision = 50;
+				} else if (precision > 30) {
+					precision = 30;
 				}
 			}
 			min_value = Math::pow((FLOAT)10, (FLOAT)(-precision));
