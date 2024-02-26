@@ -311,6 +311,38 @@ namespace slib
 				input.ki.wScan = MapVirtualKeyW(VK_MENU, MAPVK_VK_TO_VSC) | 0xE000;
 				input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
 				break;
+			case Keycode::Insert:
+			case Keycode::Delete:
+			case Keycode::Home:
+			case Keycode::End:
+			case Keycode::PageUp:
+			case Keycode::PageDown:
+			case Keycode::Left:
+			case Keycode::Right:
+			case Keycode::Up:
+			case Keycode::Down:
+			case Keycode::PrintScreen:
+			case Keycode::ScrollLock:
+			case Keycode::Pause:
+			case Keycode::NumLock:
+			case Keycode::NumpadDivide:
+			case Keycode::NumpadMultiply:
+			case Keycode::NumpadMinus:
+			case Keycode::NumpadPlus:
+			case Keycode::NumpadEnter:
+			case Keycode::NumpadDecimal:
+			case Keycode::Numpad0:
+			case Keycode::Numpad1:
+			case Keycode::Numpad2:
+			case Keycode::Numpad3:
+			case Keycode::Numpad4:
+			case Keycode::Numpad5:
+			case Keycode::Numpad6:
+			case Keycode::Numpad7:
+			case Keycode::Numpad8:
+			case Keycode::Numpad9:
+				input.ki.dwFlags = KEYEVENTF_EXTENDEDKEY;
+				break;
 			default:
 				break;
 		}
