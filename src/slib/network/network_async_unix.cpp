@@ -266,7 +266,7 @@ namespace slib
 				Thread* thread = Thread::getCurrent();
 				while (!thread || thread->isNotStopping()) {
 					Socket socketAccept;
-					if (flagDomain) {
+					if (m_flagDomain) {
 						String path;
 						sl_bool flagAbstract = sl_false;
 						if (socket->acceptDomain(socketAccept, path, &flagAbstract)) {
