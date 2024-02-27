@@ -289,7 +289,7 @@ namespace slib
 		VariantMap findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where);
 
 		template <class... ARGS>
-		VariantMap findRecord(const SelectParam& query)
+		VariantMap findRecord(const SelectParam& query, ARGS&&... args)
 		{
 			Ref<DatabaseStatement> stmt = prepareQuery(query);
 			if (stmt.isNotNull()) {

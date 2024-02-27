@@ -225,7 +225,7 @@ namespace slib
 	List<AudioPlayerDeviceInfo> AudioPlayerDevice::getDevices()
 	{
 		List<AudioRecorderDeviceInfo> ret;
-		GetAllDevices(ret, sl_false;
+		GetAllDevices(ret, sl_false);
 		return ret;
 	}
 
