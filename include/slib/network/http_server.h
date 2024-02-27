@@ -434,7 +434,7 @@ namespace slib
 		virtual HashMap<String, WebDavItemProperty> getWebDavItems(HttpServerContext* context, const String& path);
 
 
-		virtual Ref<HttpServerConnection> addConnection(const Ref<AsyncStream>& stream, const SocketAddress& remoteAddress, const SocketAddress& localAddress);
+		virtual Ref<HttpServerConnection> addConnection(AsyncStream* stream, const SocketAddress& remoteAddress, const SocketAddress& localAddress);
 
 		virtual void closeConnection(HttpServerConnection* connection);
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -33,19 +33,19 @@ namespace slib
 {
 
 	namespace {
-		class TcpInstance : public AsyncTcpSocketInstance
+		class StreamInstance : public AsyncSocketStreamInstance
 		{
 		public:
 			sl_bool m_flagConnecting = sl_false;
 
 		public:
-			static Ref<TcpInstance> create(Socket&& socket)
+			static Ref<StreamInstance> create(Socket&& socket)
 			{
 				if (socket.isOpened()) {
 					if (socket.setNonBlockingMode()) {
 						sl_async_handle handle = (sl_async_handle)(socket.get());
 						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
-							Ref<TcpInstance> ret = new TcpInstance();
+							Ref<StreamInstance> ret = new StreamInstance();
 							if (ret.isNotNull()) {
 								ret->setHandle(handle);
 								socket.release();
@@ -224,26 +224,28 @@ namespace slib
 		};
 	}
 
-	Ref<AsyncTcpSocketInstance> AsyncTcpSocket::_createInstance(Socket&& socket, sl_bool flagIPv6)
+	Ref<AsyncSocketStreamInstance> AsyncSocketStream::_createInstance(Socket&& socket, sl_bool flagIPv6)
 	{
-		return TcpInstance::create(Move(socket));
+		return StreamInstance::create(Move(socket));
 	}
 
 	namespace {
-		class TcpServerInstance : public AsyncTcpServerInstance
+		class ServerInstance : public AsyncSocketServerInstance
 		{
 		public:
 			sl_bool m_flagListening = sl_false;
+			sl_bool m_flagDomain;
 
 		public:
-			static Ref<TcpServerInstance> create(Socket&& socket)
+			static Ref<ServerInstance> create(Socket&& socket, sl_bool flagDomain)
 			{
 				if (socket.isOpened()) {
 					if (socket.setNonBlockingMode()) {
 						sl_async_handle handle = (sl_async_handle)(socket.get());
 						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
-							Ref<TcpServerInstance> ret = new TcpServerInstance();
+							Ref<ServerInstance> ret = new ServerInstance();
 							if (ret.isNotNull()) {
+								ret->m_flagDomain = flagDomain;
 								ret->setHandle(handle);
 								socket.release();
 								return ret;
@@ -263,16 +265,30 @@ namespace slib
 
 				Thread* thread = Thread::getCurrent();
 				while (!thread || thread->isNotStopping()) {
-					SocketAddress addr;
 					Socket socketAccept;
-					if (socket->accept(socketAccept, addr)) {
-						_onAccept(socketAccept, addr);
-					} else {
-						SocketError err = Socket::getLastError();
-						if (err != SocketError::WouldBlock) {
-							_onError();
+					if (flagDomain) {
+						String path;
+						sl_bool flagAbstract = sl_false;
+						if (socket->acceptDomain(socketAccept, path, &flagAbstract)) {
+							_onAccept(socketAccept, path, flagAbstract);
+						} else {
+							SocketError err = Socket::getLastError();
+							if (err != SocketError::WouldBlock) {
+								_onError();
+							}
+							return;
 						}
-						return;
+					} else {
+						SocketAddress addr;
+						if (socket->accept(socketAccept, addr)) {
+							_onAccept(socketAccept, addr);
+						} else {
+							SocketError err = Socket::getLastError();
+							if (err != SocketError::WouldBlock) {
+								_onError();
+							}
+							return;
+						}
 					}
 				}
 			}
@@ -289,9 +305,9 @@ namespace slib
 		};
 	}
 
-	Ref<AsyncTcpServerInstance> AsyncTcpServer::_createInstance(Socket&& socket, sl_bool flagIPv6)
+	Ref<AsyncSocketServerInstance> AsyncSocketServer::_createInstance(Socket&& socket, sl_bool flagIPv6, sl_bool flagDomain)
 	{
-		return TcpServerInstance::create(Move(socket));
+		return ServerInstance::create(Move(socket), flagDomain);
 	}
 
 	namespace {

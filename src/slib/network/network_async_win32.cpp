@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ namespace slib
 {
 
 	namespace {
-		class TcpInstance : public AsyncTcpSocketInstance
+		class StreamInstance : public AsyncSocketStreamInstance
 		{
 		public:
 			sl_bool m_flagIPv6;
@@ -56,12 +56,12 @@ namespace slib
 			LPFN_CONNECTEX m_funcConnectEx;
 
 		public:
-			static Ref<TcpInstance> create(Socket&& socket, sl_bool flagIPv6)
+			static Ref<StreamInstance> create(Socket&& socket, sl_bool flagIPv6)
 			{
 				if (socket.isOpened()) {
 					sl_async_handle handle = (sl_async_handle)(socket.get());
 					if (handle != SLIB_ASYNC_INVALID_HANDLE) {
-						Ref<TcpInstance> ret = new TcpInstance();
+						Ref<StreamInstance> ret = new StreamInstance();
 						if (ret.isNotNull()) {
 							ret->m_flagIPv6 = flagIPv6;
 							ret->setHandle(handle);
@@ -268,34 +268,43 @@ namespace slib
 		};
 	}
 
-	Ref<AsyncTcpSocketInstance> AsyncTcpSocket::_createInstance(Socket&& socket, sl_bool flagIPv6)
+	Ref<AsyncSocketStreamInstance> AsyncSocketStream::_createInstance(Socket&& socket, sl_bool flagIPv6)
 	{
-		return TcpInstance::create(Move(socket), flagIPv6);
+		return StreamInstance::create(Move(socket), flagIPv6);
 	}
 
 	namespace {
-		class TcpServerInstance : public AsyncTcpServerInstance
+
+		struct SOCKET_ADDRESS
+		{
+			ADDRESS_FAMILY family;
+			char data[256];
+		};
+
+		class ServerInstance : public AsyncSocketServerInstance
 		{
 		public:
 			sl_bool m_flagAccepting = sl_false;
 			sl_bool m_flagIPv6;
+			sl_bool m_flagDomain;
 
 			WSAOVERLAPPED m_overlapped;
-			char m_bufferAccept[2 * (sizeof(SOCKADDR_IN) + 16)];
+			char m_bufferAccept[sizeof(SOCKET_ADDRESS) << 1];
 			Socket m_socketAccept;
 
 			LPFN_ACCEPTEX m_funcAcceptEx;
 			LPFN_GETACCEPTEXSOCKADDRS m_funcGetAcceptExSockaddrs;
 
 		public:
-			static Ref<TcpServerInstance> create(Socket&& socket, sl_bool flagIPv6)
+			static Ref<ServerInstance> create(Socket&& socket, sl_bool flagIPv6, sl_bool flagDomain)
 			{
 				if (socket.isOpened()) {
 					sl_async_handle handle = (sl_async_handle)(socket.get());
 					if (handle != SLIB_ASYNC_INVALID_HANDLE) {
-						Ref<TcpServerInstance> ret = new TcpServerInstance();
+						Ref<ServerInstance> ret = new ServerInstance();
 						if (ret.isNotNull()) {
 							ret->m_flagIPv6 = flagIPv6;
+							ret->m_flagDomain = flagDomain;
 							ret->setHandle(handle);
 							if (ret->initialize()) {
 								socket.release();
@@ -358,7 +367,7 @@ namespace slib
 				}
 				Thread* thread = Thread::getCurrent();
 				while (!thread || thread->isNotStopping()) {
-					Socket socketAccept = Socket::open(m_flagIPv6 ? SocketType::StreamIPv6 : SocketType::Stream);
+					Socket socketAccept = Socket::open(m_flagDomain ? SocketType::DomainStream : (m_flagIPv6 ? SocketType::StreamIPv6 : SocketType::Stream));
 					if (socketAccept.isOpened()) {
 						SOCKET handleAccept = socketAccept.get();
 						m_socketAccept = Move(socketAccept);
@@ -366,7 +375,7 @@ namespace slib
 						DWORD dwSize = 0;
 						BOOL ret = m_funcAcceptEx(
 							(SOCKET)(handle), handleAccept,
-							m_bufferAccept, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &dwSize,
+							m_bufferAccept, 0, sizeof(SOCKET_ADDRESS), sizeof(SOCKET_ADDRESS), &dwSize,
 							&m_overlapped);
 						if (ret) {
 							processAccept(sl_false);
@@ -425,27 +434,35 @@ namespace slib
 				if (flagError) {
 					_onError();
 				} else {
-					SOCKADDR_IN *paddr_local, *paddr_remote;
-					int lenaddr_local = 0;
-					int lenaddr_remote = 0;
-					m_funcGetAcceptExSockaddrs(m_bufferAccept, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, (sockaddr**)&paddr_local, &lenaddr_local, (sockaddr**)&paddr_remote, &lenaddr_remote);
-					if (paddr_remote) {
+					SOCKET_ADDRESS* pLocalAddress;
+					SOCKET_ADDRESS* pRemoteAddress;
+					int nLocalAddress = 0;
+					int nRemoteAddress = 0;
+					m_funcGetAcceptExSockaddrs(m_bufferAccept, 0, sizeof(SOCKET_ADDRESS), sizeof(SOCKET_ADDRESS), (sockaddr**)&pLocalAddress, &nLocalAddress, (sockaddr**)&pRemoteAddress, &nRemoteAddress);
+					if (pRemoteAddress) {
 						SOCKET socketListen = (SOCKET)(getHandle());
 						setsockopt(socketAccept.get(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&socketListen, sizeof(void*));
-						SocketAddress addressRemote;
-						addressRemote.setSystemSocketAddress(paddr_remote);
-						SocketAddress addressLocal;
-						addressLocal.setSystemSocketAddress(paddr_local);
-						_onAccept(socketAccept, addressRemote);
+						if (m_flagDomain) {
+							sl_bool flagAbstract = sl_false;
+							String path = SocketAddress::getDomainPathFromSystemSocketAddress(pRemoteAddress, nRemoteAddress, &flagAbstract);
+							if (path.isNotNull()) {
+								_onAccept(socketAccept, path, flagAbstract);
+							}
+						} else {
+							SocketAddress addressRemote;
+							if (addressRemote.setSystemSocketAddress(pRemoteAddress, nRemoteAddress)) {
+								_onAccept(socketAccept, addressRemote);
+							}
+						}
 					}
 				}
 			}
 		};
 	}
 
-	Ref<AsyncTcpServerInstance> AsyncTcpServer::_createInstance(Socket&& socket, sl_bool flagIPv6)
+	Ref<AsyncSocketServerInstance> AsyncSocketServer::_createInstance(Socket&& socket, sl_bool flagIPv6, sl_bool flagDomain)
 	{
-		return TcpServerInstance::create(Move(socket), flagIPv6);
+		return ServerInstance::create(Move(socket), flagIPv6, flagDomain);
 	}
 
 	namespace winsock

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -34,14 +34,14 @@
 namespace slib
 {
 
-	class SLIB_EXPORT AsyncTcpSocketInstance : public AsyncStreamInstance
+	class SLIB_EXPORT AsyncSocketStreamInstance : public AsyncStreamInstance
 	{
 		SLIB_DECLARE_OBJECT
 
 	protected:
-		AsyncTcpSocketInstance();
+		AsyncSocketStreamInstance();
 
-		~AsyncTcpSocketInstance();
+		~AsyncSocketStreamInstance();
 
 	public:
 		sl_socket getSocket();
@@ -68,14 +68,14 @@ namespace slib
 		Ref<AsyncStreamRequest> m_requestWriting;
 	};
 
-	class SLIB_EXPORT AsyncTcpServerInstance : public AsyncIoInstance
+	class SLIB_EXPORT AsyncSocketServerInstance : public AsyncIoInstance
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		AsyncTcpServerInstance();
+		AsyncSocketServerInstance();
 
-		~AsyncTcpServerInstance();
+		~AsyncSocketServerInstance();
 
 	public:
 		void start();
@@ -88,6 +88,8 @@ namespace slib
 		void onClose() override;
 
 		void _onAccept(Socket& socketAccept, SocketAddress& address);
+
+		void _onAccept(Socket& socketAccept, String& path, sl_bool flagAbstract);
 
 		void _onError();
 

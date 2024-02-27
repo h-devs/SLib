@@ -67,6 +67,8 @@ namespace slib
 		// HostName:port
 		sl_bool setHostAddress(const StringParam& address) noexcept;
 
+		static String getDomainPathFromSystemSocketAddress(const void* sockaddr, sl_size len = 0, sl_bool* pFlagAbstract = sl_null) noexcept;
+
 	public:
 		/*
 		 Address Format

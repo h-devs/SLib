@@ -744,6 +744,11 @@ namespace slib
 		return ret;
 	}
 
+	String SocketAddress::getDomainPathFromSystemSocketAddress(const void* sockaddr, sl_size len, sl_bool* pFlagAbstract) noexcept
+	{
+		return GetDomainAddress(*((const SOCKADDR_UN*)sockaddr), (socklen_t)len, pFlagAbstract);
+	}
+
 	sl_bool Socket::connect(const SocketAddress& address) const noexcept
 	{
 		if (isOpened()) {

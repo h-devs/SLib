@@ -1803,9 +1803,9 @@ namespace slib
 		context->setResponseContentLengthHeader(context->getResponseContentLength());
 	}
 
-	Ref<HttpServerConnection> HttpServer::addConnection(const Ref<AsyncStream>& stream, const SocketAddress& remoteAddress, const SocketAddress& localAddress)
+	Ref<HttpServerConnection> HttpServer::addConnection(AsyncStream* stream, const SocketAddress& remoteAddress, const SocketAddress& localAddress)
 	{
-		Ref<HttpServerConnection> connection = HttpServerConnection::create(this, stream.get());
+		Ref<HttpServerConnection> connection = HttpServerConnection::create(this, stream);
 		if (connection.isNotNull()) {
 			if (m_param.flagLogDebug) {
 				Log(SERVER_TAG, "[%s] Connection Created - Address: %s",
@@ -1896,10 +1896,7 @@ namespace slib
 					}
 					SocketAddress addrLocal;
 					socketAccept.getLocalAddress(addrLocal);
-					AsyncTcpSocketParam cp;
-					cp.socket = Move(socketAccept);
-					cp.ioLoop = loop;
-					Ref<AsyncTcpSocket> stream = AsyncTcpSocket::create(cp);
+					Ref<AsyncSocketStream> stream = AsyncSocketStream::create(Move(socketAccept), loop);
 					if (stream.isNotNull()) {
 						server->addConnection(stream.get(), address, addrLocal);
 					}

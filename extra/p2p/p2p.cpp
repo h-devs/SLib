@@ -457,11 +457,11 @@ namespace slib
 		class TcpStream : public CRef
 		{
 		public:
-			Ref<AsyncTcpSocket> m_socket;
+			Ref<AsyncSocketStream> m_socket;
 			TcpCommand m_currentCommand = TcpCommand::Unknown;
 
 		public:
-			TcpStream(Ref<AsyncTcpSocket>&& _socket, sl_size maximumMessageSize): m_socket(Move(_socket)), m_maximumMessageSize(maximumMessageSize) {}
+			TcpStream(Ref<AsyncSocketStream>&& _socket, sl_size maximumMessageSize): m_socket(Move(_socket)), m_maximumMessageSize(maximumMessageSize) {}
 
 		public:
 			sl_int32 processReceivedData(sl_uint8* data, sl_size size)
@@ -528,14 +528,14 @@ namespace slib
 			sl_bool m_flagWriting = sl_false;
 
 		public:
-			TcpServerStream(Ref<AsyncTcpSocket>&& _socket, const SocketAddress& remoteAddress, sl_size maximumMessageSize): TcpStream(Move(_socket), maximumMessageSize), m_remoteAddress(remoteAddress) {}
+			TcpServerStream(Ref<AsyncSocketStream>&& _socket, const SocketAddress& remoteAddress, sl_size maximumMessageSize): TcpStream(Move(_socket), maximumMessageSize), m_remoteAddress(remoteAddress) {}
 
 		};
 
 		class TcpClientStream : public TcpStream
 		{
 		public:
-			TcpClientStream(Ref<AsyncTcpSocket>&& _socket, sl_size maximumMessageSize): TcpStream(Move(_socket), maximumMessageSize) {}
+			TcpClientStream(Ref<AsyncSocketStream>&& _socket, sl_size maximumMessageSize): TcpStream(Move(_socket), maximumMessageSize) {}
 
 		};
 
@@ -1575,10 +1575,7 @@ namespace slib
 		public:
 			void _onAcceptTcpServerConnection(Socket& socket, const SocketAddress& address)
 			{
-				AsyncTcpSocketParam param;
-				param.socket = Move(socket);
-				param.ioLoop = m_ioLoop;
-				Ref<AsyncTcpSocket> client = AsyncTcpSocket::create(param);
+				Ref<AsyncSocketStream> client = AsyncSocketStream::create(Move(socket), m_ioLoop);
 				if (client.isNotNull()) {
 					Ref<TcpServerStream> stream = new TcpServerStream(Move(client), address, m_maximumMessageSize);
 					if (stream.isNotNull()) {
@@ -1761,10 +1758,11 @@ namespace slib
 						context.callback = callback;
 						context.node = node;
 						context.connection = connection;
-						Ref<TcpClientStream> stream = new TcpClientStream(Move(socket), m_maximumMessageSize);
+						Ref<AsyncSocketStream> socketStream = socket;
+						Ref<TcpClientStream> stream = new TcpClientStream(Move(socketStream), m_maximumMessageSize);
 						if (stream.isNotNull() && TimeoutMonitor::create(context.timeoutMonitor, tickEnd)) {
 							context.stream = stream;
-							if (stream->m_socket->connect(connection->m_address, [this, context](AsyncTcpSocket* socket, sl_bool flagError) {
+							if (socket->connect(connection->m_address, [this, context](AsyncTcpSocket* socket, sl_bool flagError) {
 								if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
 									return;
 								}

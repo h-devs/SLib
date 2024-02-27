@@ -248,7 +248,7 @@ namespace slib
 
 		sl_bool connectDomain(const StringParam& path, sl_bool flagAbstract = sl_false) const noexcept;
 
-		sl_bool connectDomainAndWait(const StringParam& address, sl_int32 timeout = -1) const noexcept;
+		sl_bool connectDomainAndWait(const StringParam& path, sl_int32 timeout = -1) const noexcept;
 
 		sl_bool connectAbstractDomain(const StringParam& name) const noexcept;
 
