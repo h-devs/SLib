@@ -910,6 +910,8 @@ namespace slib
 		m_flagInitialize = sl_true;
 
 		m_resizingColumn.index = -1;
+		m_cellSort = sl_null;
+		m_flagSortAsc = sl_false;
 	}
 
 	void GridView::init()
@@ -2303,6 +2305,9 @@ namespace slib
 			} \
 			invalidate(); \
 		}); \
+		if (m_cellSort) { \
+			invokeSort(m_cellSort->field, m_flagSortAsc); \
+		} \
 		invalidate(mode); \
 	}
 
