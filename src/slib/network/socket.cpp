@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -35,30 +35,8 @@
 #include "slib/io/priv/impl.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-
-#	include <winsock2.h>
-#	include <ws2tcpip.h>
-#	include <mswsock.h>
-
-struct SOCKADDR_UN
-{
-	ADDRESS_FAMILY sun_family; // AF_UNIX
-	char sun_path[108];
-};
-
-#ifndef AF_UNIX
-#	define AF_UNIX 1
-#endif
-
-#ifdef CMSG_DATA
-#	undef CMSG_DATA
-#	define CMSG_DATA WSA_CMSG_DATA
-#endif
-
-#	pragma comment(lib, "ws2_32.lib")
-
+#	include "slib/platform/win32/socket.h"
 #else
-
 #	include <unistd.h>
 #	include <sys/socket.h>
 #	include <sys/un.h>
@@ -77,10 +55,7 @@ struct SOCKADDR_UN
 #	include <signal.h>
 #	include <stddef.h>
 #	include <errno.h>
-
-typedef sockaddr_un SOCKADDR_UN;
 #	define SOCKET_ERROR -1
-
 #endif
 
 #ifndef IPV6_RECVPKTINFO
@@ -522,92 +497,13 @@ namespace slib
 		return sl_false;
 	}
 
-	namespace {
-
-		static int SetDomainAddress(SOCKADDR_UN& addr, const StringParam& _path, sl_bool flagAbstract) noexcept
-		{
-			StringData path(_path);
-			sl_size len = path.getLength();
-			sl_size offset = offsetof(SOCKADDR_UN, sun_path);
-			char* str = addr.sun_path;
-			if (flagAbstract) {
-				if (len >= sizeof(addr.sun_path) - 2) {
-					return 0;
-				}
-				str++;
-				offset++;
-			} else {
-				if (len >= sizeof(addr.sun_path) - 1) {
-					return 0;
-				}
-			}
-			Base::zeroMemory(&addr, offset);
-			Base::copyMemory(str, path.getData(), len);
-			str[len] = 0;
-			addr.sun_family = AF_UNIX;
-			return (int)(offset + len + 1);
-		}
-
-		static sl_bool GetDomainAddress(const SOCKADDR_UN& addr, socklen_t len, String* outStr, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract) noexcept
-		{
-			socklen_t offset = (socklen_t)(offsetof(SOCKADDR_UN, sun_path));
-			if (len >= offset) {
-				if (addr.sun_family == AF_UNIX) {
-					const char* str = addr.sun_path;
-					len -= offset;
-					sl_bool flagAbstract = sl_true;
-					if (len) {
-						if (*str) {
-							flagAbstract = sl_false;
-						} else {
-							str++;
-							len--;
-						}
-						len = (socklen_t)(Base::getStringLength(str, len));
-					}
-					if (pOutFlagAbstract) {
-						*pOutFlagAbstract = flagAbstract;
-					}
-					if (outStr) {
-						*outStr = String::fromUtf8(str, (sl_reg)len);
-						return sl_true;
-					} else {
-						if (inOutLenPath >= (sl_uint32)len) {
-							Base::copyMemory(outPath, str, len);
-							inOutLenPath = (sl_uint32)len;
-							return sl_true;
-						}
-					}
-				}
-			}
-			return sl_false;
-		}
-
-		static sl_bool GetDomainAddress(const SOCKADDR_UN& addr, socklen_t len, String& outPath, sl_bool* pOutFlagAbstract) noexcept
-		{
-			sl_uint32 lenPath;
-			return GetDomainAddress(addr, len, &outPath, (char*)sl_null, lenPath, pOutFlagAbstract);
-		}
-
-		static String GetDomainAddress(const SOCKADDR_UN& addr, socklen_t len, sl_bool* pOutFlagAbstract) noexcept
-		{
-			String str;
-			sl_uint32 lenPath;
-			if (GetDomainAddress(addr, len, &str, (char*)sl_null, lenPath, pOutFlagAbstract)) {
-				return str;
-			}
-			return sl_null;
-		}
-
-	}
-
-	sl_bool Socket::bindDomain(const StringParam& path, sl_bool flagAbstract) const noexcept
+	sl_bool Socket::bind(const DomainSocketPath& path) const noexcept
 	{
 		if (isOpened()) {
-			SOCKADDR_UN addr;
-			int len = SetDomainAddress(addr, path, flagAbstract);
+			sockaddr_un addr;
+			sl_uint32 len = path.getSystemSocketAddress(&addr);
 			if (len) {
-				int ret = ::bind(m_socket, (sockaddr*)&addr, len);
+				int ret = ::bind(m_socket, (sockaddr*)&addr, (int)len);
 				if (ret != SOCKET_ERROR) {
 					return sl_true;
 				} else {
@@ -620,11 +516,6 @@ namespace slib
 			_setError(SocketError::Closed);
 		}
 		return sl_false;
-	}
-
-	sl_bool Socket::bindAbstractDomain(const StringParam& name) const noexcept
-	{
-		return bindDomain(name, sl_true);
 	}
 
 	sl_bool Socket::bindToDevice(const StringParam& _ifname) const noexcept
@@ -658,7 +549,7 @@ namespace slib
 		return getOption(SOL_SOCKET, SO_ACCEPTCONN) != 0;
 	}
 
-	sl_bool Socket::accept(Socket& socketClient, SocketAddress& address) const noexcept
+	sl_bool Socket::accept(Socket& socket, SocketAddress& address) const noexcept
 	{
 		if (isOpened()) {
 			sockaddr_storage addr = { 0 };
@@ -666,7 +557,7 @@ namespace slib
 			Socket client = ::accept(m_socket, (sockaddr*)&addr, &len);
 			if (client != SLIB_SOCKET_INVALID_HANDLE) {
 				if (address.setSystemSocketAddress(&addr)) {
-					socketClient = Move(client);
+					socket = Move(client);
 					return sl_true;
 				} else {
 					_setError(SocketError::Invalid);
@@ -687,15 +578,15 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool Socket::acceptDomain(Socket& socketClient, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract) const noexcept
+	sl_bool Socket::accept(Socket& socket, DomainSocketPath& path) const noexcept
 	{
 		if (isOpened()) {
-			SOCKADDR_UN addr = { 0 };
+			sockaddr_un addr = { 0 };
 			socklen_t len = sizeof(addr);
 			Socket client = ::accept(m_socket, (sockaddr*)&addr, &len);
 			if (client != SLIB_SOCKET_INVALID_HANDLE) {
-				if (GetDomainAddress(addr, len, sl_null, outPath, inOutLenPath, pOutFlagAbstract)) {
-					socketClient = Move(client);
+				if (path.setSystemSocketAddress(&addr, (sl_uint32)len)) {
+					socket = Move(client);
 				} else {
 					_setError(SocketError::Invalid);
 				}
@@ -708,45 +599,11 @@ namespace slib
 		return sl_false;
 	}
 
-	Socket Socket::acceptDomain(char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract) const noexcept
+	Socket Socket::accept(DomainSocketPath& path) const noexcept
 	{
 		Socket ret;
-		acceptDomain(ret, outPath, inOutLenPath, pOutFlagAbstract);
+		accept(ret, path);
 		return ret;
-	}
-
-	sl_bool Socket::acceptDomain(Socket& socketClient, String& outPath, sl_bool* pOutFlagAbstract) const noexcept
-	{
-		if (isOpened()) {
-			SOCKADDR_UN addr = { 0 };
-			socklen_t len = sizeof(addr);
-			Socket client = ::accept(m_socket, (sockaddr*)&addr, &len);
-			if (client != SLIB_SOCKET_INVALID_HANDLE) {
-				if (GetDomainAddress(addr, len, outPath, pOutFlagAbstract)) {
-					socketClient = Move(client);
-					return sl_true;
-				} else {
-					_setError(SocketError::Invalid);
-				}
-			} else {
-				_checkError();
-			}
-		} else {
-			_setError(SocketError::Closed);
-		}
-		return sl_false;
-	}
-
-	Socket Socket::acceptDomain(String& outPath, sl_bool* pOutFlagAbstract) const noexcept
-	{
-		Socket ret;
-		acceptDomain(ret, outPath, pOutFlagAbstract);
-		return ret;
-	}
-
-	String SocketAddress::getDomainPathFromSystemSocketAddress(const void* sockaddr, sl_size len, sl_bool* pFlagAbstract) noexcept
-	{
-		return GetDomainAddress(*((const SOCKADDR_UN*)sockaddr), (socklen_t)len, pFlagAbstract);
 	}
 
 	sl_bool Socket::connect(const SocketAddress& address) const noexcept
@@ -775,13 +632,13 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Socket::connectDomain(const StringParam& path, sl_bool flagAbstract) const noexcept
+	sl_bool Socket::connect(const DomainSocketPath& path) const noexcept
 	{
 		if (isOpened()) {
-			SOCKADDR_UN addr;
-			int sizeAddr = SetDomainAddress(addr, path, flagAbstract);
+			sockaddr_un addr;
+			sl_uint32 sizeAddr = path.getSystemSocketAddress(&addr);
 			if (sizeAddr) {
-				int ret = ::connect(m_socket, (sockaddr*)&addr, sizeAddr);
+				int ret = ::connect(m_socket, (sockaddr*)&addr, (int)sizeAddr);
 				if (ret != SOCKET_ERROR) {
 					return sl_true;
 				} else {
@@ -799,11 +656,6 @@ namespace slib
 			_setError(SocketError::Closed);
 		}
 		return sl_false;
-	}
-
-	sl_bool Socket::connectAbstractDomain(const StringParam& name) const noexcept
-	{
-		return connectDomain(name, sl_true);
 	}
 
 	sl_int32 Socket::send(const void* buf, sl_size size) const noexcept
@@ -1080,13 +932,13 @@ namespace slib
 		return sendTo(0, src, dst, buf, size);
 	}
 
-	sl_int32 Socket::sendToDomain(const StringParam& path, const void* buf, sl_size size, sl_bool flagAbstract) const noexcept
+	sl_int32 Socket::sendTo(const DomainSocketPath& path, const void* buf, sl_size size) const noexcept
 	{
 		if (isOpened()) {
-			SOCKADDR_UN addr;
-			int sizeAddr = SetDomainAddress(addr, path, flagAbstract);
+			sockaddr_un addr;
+			sl_uint32 sizeAddr = path.getSystemSocketAddress(&addr);
 			if (sizeAddr) {
-				sl_int32 ret = (sl_int32)(::sendto(m_socket, (char*)buf, (int)size, 0, (sockaddr*)&addr, sizeAddr));
+				sl_int32 ret = (sl_int32)(::sendto(m_socket, (char*)buf, (int)size, 0, (sockaddr*)&addr, (int)sizeAddr));
 				return _processResult(ret);
 			} else {
 				_setError(SocketError::Invalid);
@@ -1095,11 +947,6 @@ namespace slib
 			_setError(SocketError::Closed);
 		}
 		return SLIB_IO_ERROR;
-	}
-
-	sl_int32 Socket::sendToAbstractDomain(const StringParam& name, const void* buf, sl_size size) const noexcept
-	{
-		return sendToDomain(name, buf, size, sl_true);
 	}
 
 	sl_int32 Socket::receiveFrom(SocketAddress& address, void* buf, sl_size _size) const noexcept
@@ -1240,43 +1087,18 @@ namespace slib
 		return SLIB_IO_ERROR;
 	}
 
-	sl_int32 Socket::receiveFromDomain(void* buf, sl_size _size, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract) const noexcept
+	sl_int32 Socket::receiveFrom(DomainSocketPath& path, void* buf, sl_size _size) const noexcept
 	{
 		if (isOpened()) {
 			int size = (int)_size;
 			if (!size) {
 				return SLIB_IO_EMPTY_CONTENT;
 			}
-			SOCKADDR_UN addr = { 0 };
+			sockaddr_un addr = { 0 };
 			socklen_t lenAddr = sizeof(addr);
 			sl_int32 ret = (sl_int32)(::recvfrom(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, &lenAddr));
 			if (ret >= 0) {
-				if (GetDomainAddress(addr, lenAddr, sl_null, outPath, inOutLenPath, pOutFlagAbstract)) {
-					return ret;
-				} else {
-					_setError(SocketError::Invalid);
-					return SLIB_IO_ERROR;
-				}
-			}
-			return _processError();
-		} else {
-			_setError(SocketError::Closed);
-		}
-		return SLIB_IO_ERROR;
-	}
-
-	sl_int32 Socket::receiveFromDomain(void* buf, sl_size _size, String& outPath, sl_bool* pOutFlagAbstract) const noexcept
-	{
-		if (isOpened()) {
-			int size = (int)_size;
-			if (!size) {
-				return SLIB_IO_EMPTY_CONTENT;
-			}
-			SOCKADDR_UN addr = { 0 };
-			socklen_t lenAddr = sizeof(addr);
-			sl_int32 ret = (sl_int32)(::recvfrom(m_socket, (char*)buf, size, 0, (sockaddr*)&addr, &lenAddr));
-			if (ret >= 0) {
-				if (GetDomainAddress(addr, lenAddr, outPath, pOutFlagAbstract)) {
+				if (path.setSystemSocketAddress(&addr, (sl_uint32)lenAddr)) {
 					return ret;
 				} else {
 					_setError(SocketError::Invalid);
@@ -1458,13 +1280,13 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Socket::getLocalDomain(char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract) const noexcept
+	sl_bool Socket::getLocalPath(DomainSocketPath& out) const noexcept
 	{
 		if (isOpened()) {
-			SOCKADDR_UN addr;
+			sockaddr_un addr;
 			socklen_t size = sizeof(addr);
 			if (!(getsockname(m_socket, (sockaddr*)(&addr), &size))) {
-				return GetDomainAddress(addr, size, sl_null, outPath, inOutLenPath, pOutFlagAbstract);
+				return out.setSystemSocketAddress(&addr, (sl_uint32)size);
 			} else {
 				_checkError();
 			}
@@ -1474,29 +1296,13 @@ namespace slib
 		return sl_false;
 	}
 
-	String Socket::getLocalDomain(sl_bool* pOutFlagAbstract) const noexcept
+	sl_bool Socket::getRemotePath(DomainSocketPath& out) const noexcept
 	{
 		if (isOpened()) {
-			SOCKADDR_UN addr;
-			socklen_t size = sizeof(addr);
-			if (!(getsockname(m_socket, (sockaddr*)(&addr), &size))) {
-				return GetDomainAddress(addr, size, pOutFlagAbstract);
-			} else {
-				_checkError();
-			}
-		} else {
-			_setError(SocketError::Closed);
-		}
-		return sl_null;
-	}
-
-	sl_bool Socket::getRemoteDomain(char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract) const noexcept
-	{
-		if (isOpened()) {
-			SOCKADDR_UN addr;
+			sockaddr_un addr;
 			socklen_t size = sizeof(addr);
 			if (!(getpeername(m_socket, (sockaddr*)(&addr), &size))) {
-				return GetDomainAddress(addr, size, sl_null, outPath, inOutLenPath, pOutFlagAbstract);
+				return out.setSystemSocketAddress(&addr, (sl_uint32)size);
 			} else {
 				_checkError();
 			}
@@ -1504,22 +1310,6 @@ namespace slib
 			_setError(SocketError::Closed);
 		}
 		return sl_false;
-	}
-
-	String Socket::getRemoteDomain(sl_bool* pOutFlagAbstract) const noexcept
-	{
-		if (isOpened()) {
-			SOCKADDR_UN addr;
-			socklen_t size = sizeof(addr);
-			if (!(getpeername(m_socket, (sockaddr*)(&addr), &size))) {
-				return GetDomainAddress(addr, size, pOutFlagAbstract);
-			} else {
-				_checkError();
-			}
-		} else {
-			_setError(SocketError::Closed);
-		}
-		return sl_null;
 	}
 
 	sl_bool Socket::setOption(int level, int option, const void* buf, sl_uint32 bufSize) const noexcept

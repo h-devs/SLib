@@ -51,6 +51,8 @@ namespace slib
 	public:
 		sl_bool connect(const SocketAddress& address);
 
+		sl_bool connect(const DomainSocketPath& path);
+
 	protected:
 		void onClose() override;
 
@@ -63,6 +65,7 @@ namespace slib
 		sl_bool m_flagSupportingConnect;
 		sl_bool m_flagRequestConnect;
 		SocketAddress m_addressRequestConnect;
+		DomainSocketPath m_pathRequestConnect;
 
 		Ref<AsyncStreamRequest> m_requestReading;
 		Ref<AsyncStreamRequest> m_requestWriting;
@@ -87,9 +90,9 @@ namespace slib
 	protected:
 		void onClose() override;
 
-		void _onAccept(Socket& socketAccept, SocketAddress& address);
+		void _onAccept(Socket& client, SocketAddress&);
 
-		void _onAccept(Socket& socketAccept, String& path, sl_bool flagAbstract);
+		void _onAccept(Socket& client, DomainSocketPath&);
 
 		void _onError();
 
@@ -97,6 +100,7 @@ namespace slib
 		void _closeHandle();
 
 	protected:
+		sl_bool m_flagDomainSocket;
 		sl_bool m_flagRunning;
 
 	};

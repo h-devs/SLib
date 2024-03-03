@@ -240,22 +240,6 @@ namespace slib
 			return tickNew >= tickOld && tickNew < tickOld + timeout;
 		}
 
-		static void PrepareMessageContent(const Variant& var, P2PMessage& content)
-		{
-			if (var.isNotNull()) {
-				if (var.isMemory()) {
-					content.setMemory(var.getMemory());
-				} else if (var.isObject() || var.isCollection()) {
-					Json json(var);
-					Memory mem = json.serialize();
-					content.setJson(Move(json), Move(mem));
-				} else {
-					String str = var.getString();
-					content.setString(Move(str));
-				}
-			}
-		}
-
 		static void ReplyErrorResponse(const Function<void(P2PResponse&)>& callback)
 		{
 			P2PResponse response;
@@ -651,7 +635,7 @@ namespace slib
 			Ref<AsyncTcpServer> m_serverTcp;
 
 			ExpiringMap< TcpStream*, Ref<TcpStream> > m_mapTcpStreams;
-			ExpiringMap< DirectConnection*, Ref<AsyncTcpSocket> > m_mapIdleTcpSockets;
+			ExpiringMap< DirectConnection*, Ref<AsyncSocketStream> > m_mapIdleTcpSockets;
 
 			Ref<ThreadPool> m_threadPool;
 			Ref<AsyncIoLoop> m_ioLoop;
@@ -1742,7 +1726,7 @@ namespace slib
 
 			void _getTcpClientStream(Node* node, DirectConnection* connection, const Function<void(This*, Node*, DirectConnection*, TcpClientStream*)>& callback, sl_uint64 tickEnd)
 			{
-				Ref<AsyncTcpSocket> socket;
+				Ref<AsyncSocketStream> socket;
 				if (m_mapIdleTcpSockets.remove(connection, &socket)) {
 					Ref<TcpClientStream> stream = new TcpClientStream(Move(socket), m_maximumMessageSize);
 					if (stream.isNotNull()) {
@@ -2447,137 +2431,12 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(P2PMessage)
 
-	P2PMessage::P2PMessage(): data(sl_null), size(0), connectionType(P2PConnectionType::Unknown), flagNotJson(sl_false), interfaceIndex(0)
+	P2PMessage::P2PMessage(): connectionType(P2PConnectionType::Unknown), interfaceIndex(0)
 	{
 	}
 
-	P2PMessage::P2PMessage(const void* _data, sl_size _size, CRef* _ref): data(_data), size((sl_uint32)_size), ref(_ref), connectionType(P2PConnectionType::Unknown), flagNotJson(sl_false), interfaceIndex(0)
+	P2PMessage::P2PMessage(const void* data, sl_size size, CRef* ref): DataContainer(data, size, ref), connectionType(P2PConnectionType::Unknown), interfaceIndex(0)
 	{
-	}
-
-	void P2PMessage::clear()
-	{
-		data = sl_null;
-		size = 0;
-		ref.setNull();
-		mem.setNull();
-		str.setNull();
-		json.setNull();
-		flagNotJson = sl_false;
-	}
-
-	void P2PMessage::setContent(const void* _data, sl_uint32 _size, CRef* _ref)
-	{
-		clear();
-		data = _data;
-		size = _size;
-		ref = _ref;
-	}
-
-	void P2PMessage::setContent(const Variant& var)
-	{
-		clear();
-		PrepareMessageContent(var, *this);
-	}
-
-	void P2PMessage::setContent(P2PMessage& content)
-	{
-		data = content.data;
-		size = content.size;
-		ref = content.ref;
-		mem = content.mem;
-		str = content.str;
-		json = content.json;
-		flagNotJson = content.flagNotJson;
-	}
-
-	Memory P2PMessage::getMemory()
-	{
-		if (data && size) {
-			if (mem.isNotNull()) {
-				if (data == mem.getData() && size == mem.getSize()) {
-					return mem;
-				} else {
-					return Memory::createStatic(data, size, mem.ref.get());
-				}
-			} else {
-				if (ref.isNotNull()) {
-					mem = Memory::createStatic(data, size, ref.get());
-				} else {
-					mem = Memory::create(data, size);
-				}
-			}
-			return mem;
-		}
-		return sl_null;
-	}
-
-	void P2PMessage::setMemory(const Memory& _mem)
-	{
-		clear();
-		data = _mem.getData();
-		size = (sl_uint32)(_mem.getSize());
-		mem = _mem;
-	}
-
-	String P2PMessage::getString()
-	{
-		if (data && size) {
-			if (str.isNotNull()) {
-				if (data == str.getData() && size == str.getLength()) {
-					return str;
-				}
-			}
-			str = String::fromUtf8(data, size);
-			return str;
-		}
-		return sl_null;
-	}
-
-	void P2PMessage::setString(const String& _str)
-	{
-		clear();
-		data = _str.getData();
-		size = (sl_uint32)(_str.getLength());
-		str = _str;
-	}
-
-	Json P2PMessage::getJson()
-	{
-		if (flagNotJson) {
-			return sl_null;
-		}
-		if (json.isNotNull()) {
-			return json;
-		}
-		if (json.deserialize(getMemory())) {
-			return json;
-		}
-		flagNotJson = sl_true;
-		return sl_null;
-	}
-
-	void P2PMessage::setJson(const Json& _json)
-	{
-		clear();
-		if (_json.isNotNull()) {
-			Memory _mem = _json.serialize();
-			if (_mem.isNotNull()) {
-				setMemory(_mem);
-				json = _json;
-			}
-		}
-	}
-
-	void P2PMessage::setJson(const Json& _json, const Memory& _mem)
-	{
-		clear();
-		if (_json.isNotNull()) {
-			if (_mem.isNotNull()) {
-				setMemory(_mem);
-				json = _json;
-			}
-		}
 	}
 
 

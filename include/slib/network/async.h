@@ -44,7 +44,6 @@ namespace slib
 
 		~AsyncSocketStream();
 
-
 	public:
 		static Ref<AsyncSocketStream> create(Socket&& socket, const Ref<AsyncIoLoop>& loop);
 
@@ -66,6 +65,12 @@ namespace slib
 
 		static Ref<AsyncSocketStreamInstance> _createInstance(Socket&& socket, sl_bool flagIPv6);
 
+		void _onConnect(sl_bool flagError);
+
+	protected:
+		AtomicFunction<void(AsyncSocketStream*, sl_bool flagError)> m_onConnect;
+
+		friend class AsyncSocketStreamInstance;
 	};
 
 	class AsyncSocketServerInstance;
@@ -125,8 +130,6 @@ namespace slib
 
 	class SLIB_EXPORT AsyncTcpSocket : public AsyncSocketStream
 	{
-		SLIB_DECLARE_OBJECT
-
 	protected:
 		AsyncTcpSocket();
 
@@ -141,14 +144,6 @@ namespace slib
 		sl_bool connect(const SocketAddress& address, sl_int32 timeout = -1);
 
 		sl_bool connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback);
-
-	protected:
-		void _onConnect(sl_bool flagError);
-
-	protected:
-		friend class AsyncSocketStreamInstance;
-
-		AtomicFunction<void(AsyncTcpSocket*, sl_bool flagError)> m_onConnect;
 
 	};
 
@@ -201,8 +196,7 @@ namespace slib
 	{
 	public:
 		Socket socket; // optional
-		StringParam bindPath;
-		sl_bool flagAbstract; // default: false
+		DomainSocketPath bindPath;
 		sl_bool flagLogError; // default: true
 		Ref<AsyncIoLoop> ioLoop;
 
@@ -228,9 +222,9 @@ namespace slib
 		static Ref<AsyncDomainSocket> create();
 
 	public:
-		sl_bool connect(const StringParam& path, sl_int32 timeout = -1);
+		sl_bool connect(const DomainSocketPath& path, sl_int32 timeout = -1);
 
-		sl_bool connectAbstract(const StringParam& name, sl_int32 timeout = -1);
+		sl_bool connect(const DomainSocketPath& path, const Function<void(AsyncDomainSocket*, sl_bool flagError)>& callback);
 
 	};
 
@@ -240,14 +234,13 @@ namespace slib
 	{
 	public:
 		Socket socket; // optional
-		StringParam bindPath;
-		sl_bool flagAbstract; // default: false
+		DomainSocketPath bindPath;
 
 		sl_bool flagAutoStart; // default: true
 		sl_bool flagLogError; // default: true
 		Ref<AsyncIoLoop> ioLoop;
 
-		Function<void(AsyncDomainSocketServer*, Socket&, String& path, sl_bool flagAbstract)> onAccept;
+		Function<void(AsyncDomainSocketServer*, Socket&, DomainSocketPath&)> onAccept;
 		Function<void(AsyncDomainSocketServer*)> onError;
 
 	public:
@@ -270,10 +263,10 @@ namespace slib
 		static Ref<AsyncDomainSocketServer> create(AsyncDomainSocketServerParam& param);
 
 	protected:
-		void _onAccept(Socket&, String& path, sl_bool flagAbstract);
+		void _onAccept(Socket&, DomainSocketPath&);
 
 	protected:
-		Function<void(AsyncDomainSocketServer*, Socket&, String& path, sl_bool flagAbstract)> m_onAccept;
+		Function<void(AsyncDomainSocketServer*, Socket&, DomainSocketPath&)> m_onAccept;
 
 		friend class AsyncSocketServerInstance;
 

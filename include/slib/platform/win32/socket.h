@@ -20,51 +20,38 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_OBJECT_TYPES
-#define CHECKHEADER_SLIB_NETWORK_OBJECT_TYPES
+#ifndef CHECKHEADER_SLIB_PLATFORM_WIN32_SOCKET
+#define CHECKHEADER_SLIB_PLATFORM_WIN32_SOCKET
 
-#include "../object_types.h"
+#include "../definition.h"
 
-namespace slib
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+
+#	include <winsock2.h>
+#	include <ws2tcpip.h>
+#	include <mswsock.h>
+
+struct SOCKADDR_UN
 {
-	namespace object_types
-	{
+	ADDRESS_FAMILY sun_family; // AF_UNIX
+	char sun_path[108];
+};
+#ifdef sockaddr_un
+#undef sockaddr_un
+#endif
+#define sockaddr_un SOCKADDR_UN
 
-		enum {
-			Package_Network = packages::Network,
-			AsyncSocketStream,
-			AsyncSocketStreamInstance,
-			AsyncSocketServer,
-			AsyncSocketServerInstance,
-			AsyncTcpServer,
-			AsyncDomainSocketServer,
-			AsyncUdpSocket,
-			AsyncUdpSocketInstance,
-			UrlRequest,
-			HttpServer,
-			HttpServerContext,
-			HttpServerConnection,
-			HttpServerConnectionProvider,
-			HttpUploadFile,
-			HttpContentReader,
-			WebController,
-			WebService,
-			DnsClient,
-			DnsServer,
-			DhcpServer,
-			StunServer,
-			NetCapture,
-			NatTable,
-			P2PSocket,
-			Tap,
-			Pcap,
-			AnyDevicePcap,
-			IPCRequest,
-			IPCServer,
-			SmbServer
-		};
+#ifndef AF_UNIX
+#	define AF_UNIX 1
+#endif
 
-	}
-}
+#ifdef CMSG_DATA
+#	undef CMSG_DATA
+#	define CMSG_DATA WSA_CMSG_DATA
+#endif
+
+#	pragma comment(lib, "ws2_32.lib")
+
+#endif
 
 #endif

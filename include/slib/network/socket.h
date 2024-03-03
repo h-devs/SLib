@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 #include "constants.h"
 #include "socket_address.h"
 #include "mac_address.h"
+#include "domain_socket_path.h"
 
 #include "../core/handle_container.h"
 #include "../io/priv/def.h"
@@ -218,9 +219,7 @@ namespace slib
 
 		sl_bool bind(const SocketAddress& address) const noexcept;
 
-		sl_bool bindDomain(const StringParam& path, sl_bool flagAbstract = sl_false) const noexcept;
-
-		sl_bool bindAbstractDomain(const StringParam& name) const noexcept;
+		sl_bool bind(const DomainSocketPath& path) const noexcept;
 
 		// SO_BINDTODEVICE
 		sl_bool bindToDevice(const StringParam& name) const noexcept;
@@ -234,25 +233,17 @@ namespace slib
 
 		Socket accept(SocketAddress& address) const noexcept;
 
-		sl_bool acceptDomain(Socket& socket, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
+		sl_bool accept(Socket& socket, DomainSocketPath& path) const noexcept;
 
-		Socket acceptDomain(char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
-
-		sl_bool acceptDomain(Socket& socket, String& outPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
-
-		Socket acceptDomain(String& outPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
+		Socket accept(DomainSocketPath& path) const noexcept;
 
 		sl_bool connect(const SocketAddress& address) const noexcept;
 
 		sl_bool connectAndWait(const SocketAddress& address, sl_int32 timeout = -1) const noexcept;
 
-		sl_bool connectDomain(const StringParam& path, sl_bool flagAbstract = sl_false) const noexcept;
+		sl_bool connect(const DomainSocketPath& path) const noexcept;
 
-		sl_bool connectDomainAndWait(const StringParam& path, sl_int32 timeout = -1) const noexcept;
-
-		sl_bool connectAbstractDomain(const StringParam& name) const noexcept;
-
-		sl_bool connectAbstractDomainAndWait(const StringParam& name, sl_int32 timeout = -1) const noexcept;
+		sl_bool connectAndWait(const DomainSocketPath& path, sl_int32 timeout = -1) const noexcept;
 
 		sl_int32 send(const void* buf, sl_size size) const noexcept;
 
@@ -280,17 +271,13 @@ namespace slib
 
 		sl_int32 sendTo(const IPAddress& src, const SocketAddress& dst, const void* buf, sl_size size) const noexcept;
 
-		sl_int32 sendToDomain(const StringParam& path, const void* buf, sl_size size, sl_bool flagAbstract = sl_false) const noexcept;
-
-		sl_int32 sendToAbstractDomain(const StringParam& name, const void* buf, sl_size size) const noexcept;
+		sl_int32 sendTo(const DomainSocketPath& path, const void* buf, sl_size size) const noexcept;
 
 		sl_int32 receiveFrom(SocketAddress& address, void* buf, sl_size size) const noexcept;
 
 		sl_int32 receiveFrom(sl_uint32& interfaceIndex, IPAddress& dst, SocketAddress& src, void* buf, sl_size size, sl_bool flagFallbackToGenericReceive = sl_false) const noexcept;
 
-		sl_int32 receiveFromDomain(void* buf, sl_size size, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
-
-		sl_int32 receiveFromDomain(void* buf, sl_size size, String& outPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
+		sl_int32 receiveFrom(DomainSocketPath& path, void* buf, sl_size size) const noexcept;
 
 		sl_int32 sendPacket(const void* buf, sl_size size, const L2PacketInfo& info) const noexcept;
 
@@ -304,13 +291,9 @@ namespace slib
 
 		sl_bool getRemoteAddress(SocketAddress& _out) const noexcept;
 
-		sl_bool getLocalDomain(char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
+		sl_bool getLocalPath(DomainSocketPath& _out) const noexcept;
 
-		String getLocalDomain(sl_bool* pOutFlagAbstract = sl_null) const noexcept;
-
-		sl_bool getRemoteDomain(char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract = sl_null) const noexcept;
-
-		String getRemoteDomain(sl_bool* pOutFlagAbstract = sl_null) const noexcept;
+		sl_bool getRemotePath(DomainSocketPath& _out) const noexcept;
 
 		sl_uint32 getSocketError() const noexcept;
 

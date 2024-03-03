@@ -26,13 +26,10 @@
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <mswsock.h>
-#pragma comment(lib, "mswsock.lib")
-
 #include "slib/core/thread.h"
+#include "slib/core/handle_ptr.h"
 #include "slib/core/log.h"
+#include "slib/platform/win32/socket.h"
 
 #include "network_async.h"
 
@@ -180,8 +177,9 @@ namespace slib
 				if (m_flagRequestConnect) {
 					m_flagRequestConnect = sl_false;
 					if (m_funcConnectEx) {
+						sl_bool flagDomain = m_addressRequestConnect.isInvalid();
 						sockaddr_storage addr;
-						sl_uint32 lenAddr = m_addressRequestConnect.getSystemSocketAddress(&addr);
+						sl_uint32 lenAddr = flagDomain ? m_pathRequestConnect.getSystemSocketAddress(&addr) : m_addressRequestConnect.getSystemSocketAddress(&addr);
 						if (lenAddr) {
 							Base::zeroMemory(&m_overlappedConnect, sizeof(m_overlappedConnect));
 							BOOL ret = m_funcConnectEx((SOCKET)handle, (sockaddr*)&addr, lenAddr, NULL, 0, NULL, &m_overlappedConnect);
@@ -191,16 +189,19 @@ namespace slib
 								int err = WSAGetLastError();
 								if (err == WSAEINVAL) {
 									// ConnectEx requires the socket to be 'initially bound'
-									sockaddr_storage saBind;
-									SocketAddress aBind;
-									aBind.port = 0;
-									if (m_flagIPv6) {
-										aBind.ip = IPv6Address::zero();
+									HandlePtr<Socket> socket((sl_socket)handle);
+									if (flagDomain) {
+										socket->bind(DomainSocketPath());
 									} else {
-										aBind.ip = IPv4Address::zero();
+										SocketAddress sa;
+										sa.port = 0;
+										if (m_flagIPv6) {
+											sa.ip = IPv6Address::zero();
+										} else {
+											sa.ip = IPv4Address::zero();
+										}
+										socket->bind(sa);
 									}
-									sl_uint32 nSaBind = aBind.getSystemSocketAddress(&saBind);
-									bind((SOCKET)handle, (SOCKADDR*)&saBind, nSaBind);
 									BOOL ret = m_funcConnectEx((SOCKET)handle, (sockaddr*)&addr, lenAddr, NULL, 0, NULL, &m_overlappedConnect);
 									if (ret) {
 										_onConnect(sl_true);
@@ -286,7 +287,6 @@ namespace slib
 		public:
 			sl_bool m_flagAccepting = sl_false;
 			sl_bool m_flagIPv6;
-			sl_bool m_flagDomain;
 
 			WSAOVERLAPPED m_overlapped;
 			char m_bufferAccept[sizeof(SOCKET_ADDRESS) << 1];
@@ -303,8 +303,8 @@ namespace slib
 					if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 						Ref<ServerInstance> ret = new ServerInstance();
 						if (ret.isNotNull()) {
+							ret->m_flagDomainSocket = flagDomain;
 							ret->m_flagIPv6 = flagIPv6;
-							ret->m_flagDomain = flagDomain;
 							ret->setHandle(handle);
 							if (ret->initialize()) {
 								socket.release();
@@ -367,7 +367,7 @@ namespace slib
 				}
 				Thread* thread = Thread::getCurrent();
 				while (!thread || thread->isNotStopping()) {
-					Socket socketAccept = Socket::open(m_flagDomain ? SocketType::DomainStream : (m_flagIPv6 ? SocketType::StreamIPv6 : SocketType::Stream));
+					Socket socketAccept = Socket::open(m_flagDomainSocket ? SocketType::DomainStream : (m_flagIPv6 ? SocketType::StreamIPv6 : SocketType::Stream));
 					if (socketAccept.isOpened()) {
 						SOCKET handleAccept = socketAccept.get();
 						m_socketAccept = Move(socketAccept);
@@ -427,8 +427,8 @@ namespace slib
 				if (server.isNull()) {
 					return;
 				}
-				Socket& socketAccept = m_socketAccept;
-				if (socketAccept.isNone()) {
+				Socket& client = m_socketAccept;
+				if (client.isNone()) {
 					return;
 				}
 				if (flagError) {
@@ -441,17 +441,16 @@ namespace slib
 					m_funcGetAcceptExSockaddrs(m_bufferAccept, 0, sizeof(SOCKET_ADDRESS), sizeof(SOCKET_ADDRESS), (sockaddr**)&pLocalAddress, &nLocalAddress, (sockaddr**)&pRemoteAddress, &nRemoteAddress);
 					if (pRemoteAddress) {
 						SOCKET socketListen = (SOCKET)(getHandle());
-						setsockopt(socketAccept.get(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&socketListen, sizeof(void*));
-						if (m_flagDomain) {
-							sl_bool flagAbstract = sl_false;
-							String path = SocketAddress::getDomainPathFromSystemSocketAddress(pRemoteAddress, nRemoteAddress, &flagAbstract);
-							if (path.isNotNull()) {
-								_onAccept(socketAccept, path, flagAbstract);
+						setsockopt(client.get(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&socketListen, sizeof(void*));
+						if (m_flagDomainSocket) {
+							DomainSocketPath remotePath;
+							if (remotePath.setSystemSocketAddress(pRemoteAddress, nRemoteAddress)) {
+								_onAccept(client, remotePath);
 							}
 						} else {
 							SocketAddress addressRemote;
 							if (addressRemote.setSystemSocketAddress(pRemoteAddress, nRemoteAddress)) {
-								_onAccept(socketAccept, addressRemote);
+								_onAccept(client, addressRemote);
 							}
 						}
 					}

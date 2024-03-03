@@ -76,8 +76,19 @@ namespace slib
 
 	sl_bool AsyncSocketStreamInstance::connect(const SocketAddress& address)
 	{
+		if (address.isInvalid()) {
+			return sl_false;
+		}
 		m_flagRequestConnect = sl_true;
 		m_addressRequestConnect = address;
+		return sl_true;
+	}
+
+	sl_bool AsyncSocketStreamInstance::connect(const DomainSocketPath& path)
+	{
+		m_flagRequestConnect = sl_true;
+		m_pathRequestConnect = path;
+		m_addressRequestConnect.setNone();
 		return sl_true;
 	}
 
@@ -106,7 +117,7 @@ namespace slib
 
 	void AsyncSocketStreamInstance::_onConnect(sl_bool flagError)
 	{
-		Ref<AsyncTcpSocket> object = Ref<AsyncTcpSocket>::from(getObject());
+		Ref<AsyncSocketStream> object = Ref<AsyncSocketStream>::from(getObject());
 		if (object.isNotNull()) {
 			object->_onConnect(flagError);
 		}
@@ -121,6 +132,9 @@ namespace slib
 
 	AsyncSocketStream::~AsyncSocketStream()
 	{
+		if (m_onConnect.isNotNull()) {
+			m_onConnect(sl_null, sl_false);
+		}
 	}
 
 	Ref<AsyncSocketStream> AsyncSocketStream::create(Socket&& socket, const Ref<AsyncIoLoop>& _loop)
@@ -185,11 +199,20 @@ namespace slib
 		return Ref<AsyncSocketStreamInstance>::from(AsyncStreamBase::getIoInstance());
 	}
 
+	void AsyncSocketStream::_onConnect(sl_bool flagError)
+	{
+		if (m_onConnect.isNotNull()) {
+			m_onConnect(this, flagError);
+			m_onConnect.setNull();
+		}
+	}
+
 
 	SLIB_DEFINE_OBJECT(AsyncSocketServerInstance, AsyncIoInstance)
 
 	AsyncSocketServerInstance::AsyncSocketServerInstance()
 	{
+		m_flagDomainSocket = sl_false;
 		m_flagRunning = sl_false;
 	}
 
@@ -233,19 +256,19 @@ namespace slib
 		}
 	}
 
-	void AsyncSocketServerInstance::_onAccept(Socket& socketAccept, SocketAddress& address)
+	void AsyncSocketServerInstance::_onAccept(Socket& client, SocketAddress& address)
 	{
 		Ref<AsyncTcpServer> server = Ref<AsyncTcpServer>::from(getObject());
 		if (server.isNotNull()) {
-			server->_onAccept(socketAccept, address);
+			server->_onAccept(client, address);
 		}
 	}
 
-	void AsyncSocketServerInstance::_onAccept(Socket& socketAccept, String& path, sl_bool flagAbstract)
+	void AsyncSocketServerInstance::_onAccept(Socket& client, DomainSocketPath& path)
 	{
 		Ref<AsyncDomainSocketServer> server = Ref<AsyncDomainSocketServer>::from(getObject());
 		if (server.isNotNull()) {
-			server->_onAccept(socketAccept, path, flagAbstract);
+			server->_onAccept(client, path);
 		}
 	}
 
@@ -324,17 +347,12 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(AsyncTcpSocket, AsyncSocketStream)
-
 	AsyncTcpSocket::AsyncTcpSocket()
 	{
 	}
 
 	AsyncTcpSocket::~AsyncTcpSocket()
 	{
-		if (m_onConnect.isNotNull()) {
-			m_onConnect(sl_null, sl_false);
-		}
 	}
 
 	Ref<AsyncTcpSocket> AsyncTcpSocket::create(AsyncTcpSocketParam& param)
@@ -390,11 +408,7 @@ namespace slib
 		if (instance.isNotNull()) {
 			HandlePtr<Socket> socket(instance->getSocket());
 			if (socket->isOpened()) {
-				if (timeout) {
-					return socket->connectAndWait(address, timeout);
-				} else {
-					return socket->connect(address);
-				}
+				return socket->connectAndWait(address, timeout);
 			}
 		}
 		return sl_false;
@@ -416,7 +430,7 @@ namespace slib
 				if (m_onConnect.isNotNull()) {
 					m_onConnect(this, sl_false);
 				}
-				m_onConnect = callback;
+				m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::from(callback);
 				if (instance->isSupportedConnect()) {
 					if (instance->connect(address)) {
 						loop->requestOrder(instance.get());
@@ -433,14 +447,6 @@ namespace slib
 			}
 		}
 		return sl_false;
-	}
-
-	void AsyncTcpSocket::_onConnect(sl_bool flagError)
-	{
-		if (m_onConnect.isNotNull()) {
-			m_onConnect(this, flagError);
-			m_onConnect.setNull();
-		}
 	}
 
 
@@ -516,9 +522,9 @@ namespace slib
 		return sl_null;
 	}
 
-	void AsyncTcpServer::_onAccept(Socket& socketAccept, SocketAddress& address)
+	void AsyncTcpServer::_onAccept(Socket& client, SocketAddress& address)
 	{
-		m_onAccept(this, socketAccept, address);
+		m_onAccept(this, client, address);
 	}
 
 
@@ -526,12 +532,9 @@ namespace slib
 
 	AsyncDomainSocketParam::AsyncDomainSocketParam()
 	{
-		flagAbstract = sl_false;
 		flagLogError = sl_true;
 	}
 
-
-	SLIB_DEFINE_OBJECT(AsyncDomainSocket, AsyncSocketStream)
 
 	AsyncDomainSocket::AsyncDomainSocket()
 	{
@@ -549,10 +552,10 @@ namespace slib
 			if (socket.isNone()) {
 				return sl_null;
 			}
-			if (param.bindPath.isNotNull()) {
-				if (!(socket.bindDomain(param.bindPath, param.flagAbstract))) {
+			if (param.bindPath.length) {
+				if (!(socket.bind(param.bindPath))) {
 					if (param.flagLogError) {
-						LogError(TAG, "AsyncDomainSocket bind error: %s, %s", param.bindPath, Socket::getLastErrorMessage());
+						LogError(TAG, "AsyncDomainSocket bind error: %s, %s", param.bindPath.get(), Socket::getLastErrorMessage());
 					}
 					return sl_null;
 				}
@@ -577,32 +580,47 @@ namespace slib
 		return create(param);
 	}
 
-	sl_bool AsyncDomainSocket::connect(const StringParam& path, sl_int32 timeout)
+	sl_bool AsyncDomainSocket::connect(const DomainSocketPath& path, sl_int32 timeout)
 	{
 		Ref<AsyncSocketStreamInstance> instance = _getIoInstance();
 		if (instance.isNotNull()) {
 			HandlePtr<Socket> socket(instance->getSocket());
 			if (socket->isOpened()) {
-				if (timeout) {
-					return socket->connectDomainAndWait(path, timeout);
-				} else {
-					return socket->connectDomain(path);
-				}
+				return socket->connectAndWait(path, timeout);
 			}
 		}
 		return sl_false;
 	}
 
-	sl_bool AsyncDomainSocket::connectAbstract(const StringParam& name, sl_int32 timeout)
+	sl_bool AsyncDomainSocket::connect(const DomainSocketPath& path, const Function<void(AsyncDomainSocket*, sl_bool flagError)>& callback)
 	{
+		Ref<AsyncIoLoop> loop = getIoLoop();
+		if (loop.isNull()) {
+			return sl_false;
+		}
+		if (!(path.length)) {
+			return sl_false;
+		}
 		Ref<AsyncSocketStreamInstance> instance = _getIoInstance();
 		if (instance.isNotNull()) {
 			HandlePtr<Socket> socket(instance->getSocket());
 			if (socket->isOpened()) {
-				if (timeout) {
-					return socket->connectAbstractDomainAndWait(name, timeout);
+				if (m_onConnect.isNotNull()) {
+					m_onConnect(this, sl_false);
+				}
+				m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::from(callback);
+				if (instance->isSupportedConnect()) {
+					if (instance->connect(path)) {
+						loop->requestOrder(instance.get());
+						return sl_true;
+					}
 				} else {
-					return socket->connectAbstractDomain(name);
+					if (socket->connectAndWait(path)) {
+						_onConnect(sl_true);
+						return sl_true;
+					} else {
+						_onConnect(sl_false);
+					}
 				}
 			}
 		}
@@ -614,7 +632,6 @@ namespace slib
 
 	AsyncDomainSocketServerParam::AsyncDomainSocketServerParam()
 	{
-		flagAbstract = sl_false;
 		flagAutoStart = sl_true;
 		flagLogError = sl_true;
 	}
@@ -634,16 +651,16 @@ namespace slib
 	{
 		Socket& socket = param.socket;
 		if (socket.isNone()) {
-			if (param.bindPath.isNull()) {
+			if (!(param.bindPath.length)) {
 				return sl_null;
 			}
 			socket = Socket::openDomainStream();
 			if (socket.isNone()) {
 				return sl_null;
 			}
-			if (!(socket.bindDomain(param.bindPath, param.flagAbstract))) {
+			if (!(socket.bind(param.bindPath))) {
 				if (param.flagLogError) {
-					LogError(TAG, "AsyncDomainSocketServer bind error: %s, %s", param.bindPath, Socket::getLastErrorMessage());
+					LogError(TAG, "AsyncDomainSocketServer bind error: %s, %s", param.bindPath.get(), Socket::getLastErrorMessage());
 				}
 				return sl_null;
 			}
@@ -665,9 +682,9 @@ namespace slib
 		return sl_null;
 	}
 
-	void AsyncDomainSocketServer::_onAccept(Socket& socketAccept, String& path, sl_bool flagAbstract)
+	void AsyncDomainSocketServer::_onAccept(Socket& client, DomainSocketPath& path)
 	{
-		m_onAccept(this, socketAccept, path, flagAbstract);
+		m_onAccept(this, client, path);
 	}
 
 

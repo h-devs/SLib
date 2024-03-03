@@ -24,7 +24,7 @@
 #define CHECKHEADER_SLIB_EXTRA_P2P
 
 #include <slib/network/socket_address.h>
-#include <slib/data/json.h>
+#include <slib/data/data_container.h>
 #include <slib/io/async.h>
 
 #define SLIB_P2P_DEFAULT_PORT 39000
@@ -55,12 +55,8 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT P2PMessage
+	class SLIB_EXPORT P2PMessage : public DataContainer
 	{
-	public:
-		const void* data;
-		sl_uint32 size;
-
 	public:
 		P2PConnectionType connectionType;
 
@@ -68,58 +64,15 @@ namespace slib
 		sl_uint32 interfaceIndex;
 		SocketAddress remoteAddress;
 
-	private:
-		Ref<CRef> ref;
-		Memory mem;
-		String str;
-		Json json;
-		sl_bool flagNotJson;
-
 	public:
 		P2PMessage();
 
 		P2PMessage(const void* data, sl_size size, CRef* ref = sl_null);
 
 		template <class T>
-		P2PMessage(T&& value): data(sl_null), size(0), connectionType(P2PConnectionType::Unknown)
-		{
-			setContent(Forward<T>(value));
-		}
+		P2PMessage(T&& value): DataContainer(Forward<T>(value)), connectionType(P2PConnectionType::Unknown), interfaceIndex(0) {}
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(P2PMessage)
-
-	public:
-		sl_bool isEmpty()
-		{
-			return !size;
-		}
-
-		sl_bool isNotEmpty()
-		{
-			return size > 0;
-		}
-
-		void clear();
-
-		void setContent(const void* data, sl_uint32 size, CRef* ref = sl_null);
-
-		void setContent(const Variant& var);
-
-		void setContent(P2PMessage& content);
-
-		Memory getMemory();
-
-		void setMemory(const Memory& mem);
-
-		String getString();
-
-		void setString(const String& str);
-
-		Json getJson();
-
-		void setJson(const Json& json);
-
-		void setJson(const Json& json, const Memory& mem);
 
 	};
 

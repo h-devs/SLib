@@ -177,10 +177,18 @@ namespace slib
 				}
 				if (m_flagRequestConnect) {
 					m_flagRequestConnect = sl_false;
-					if (socket->connect(m_addressRequestConnect)) {
-						m_flagConnecting = sl_true;
+					if (m_addressRequestConnect.isValid()) {
+						if (socket->connect(m_addressRequestConnect)) {
+							m_flagConnecting = sl_true;
+						} else {
+							_onConnect(sl_true);
+						}
 					} else {
-						_onConnect(sl_true);
+						if (socket->connect(m_pathRequestConnect)) {
+							m_flagConnecting = sl_true;
+						} else {
+							_onConnect(sl_true);
+						}
 					}
 					return;
 				}
@@ -234,7 +242,6 @@ namespace slib
 		{
 		public:
 			sl_bool m_flagListening = sl_false;
-			sl_bool m_flagDomain;
 
 		public:
 			static Ref<ServerInstance> create(Socket&& socket, sl_bool flagDomain)
@@ -245,7 +252,7 @@ namespace slib
 						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 							Ref<ServerInstance> ret = new ServerInstance();
 							if (ret.isNotNull()) {
-								ret->m_flagDomain = flagDomain;
+								ret->m_flagDomainSocket = flagDomain;
 								ret->setHandle(handle);
 								socket.release();
 								return ret;
@@ -266,11 +273,10 @@ namespace slib
 				Thread* thread = Thread::getCurrent();
 				while (!thread || thread->isNotStopping()) {
 					Socket socketAccept;
-					if (m_flagDomain) {
-						String path;
-						sl_bool flagAbstract = sl_false;
-						if (socket->acceptDomain(socketAccept, path, &flagAbstract)) {
-							_onAccept(socketAccept, path, flagAbstract);
+					if (m_flagDomainSocket) {
+						DomainSocketPath path;
+						if (socket->accept(socketAccept, path)) {
+							_onAccept(socketAccept, path);
 						} else {
 							SocketError err = Socket::getLastError();
 							if (err != SocketError::WouldBlock) {

@@ -13,7 +13,7 @@ int main(int argc, const char * argv[])
 			Println("Domain socket is not supported!");
 			return;
 		}
-		if (!(server.bindDomain(SERVER_PATH))) {
+		if (!(server.bind(DomainSocketPath(SERVER_PATH)))) {
 			Println("Bind: %s", Socket::getLastErrorMessage());
 			return;
 		}
@@ -25,8 +25,8 @@ int main(int argc, const char * argv[])
 		// Connecting Thread
 		Thread::start([]() {
 			auto socket = Socket::openDomainStream();
-			socket.bindAbstractDomain("first client");
-			if (!(socket.connectDomain(SERVER_PATH))) {
+			socket.bind(AbstractDomainSocketPath("first client"));
+			if (!(socket.connect(DomainSocketPath(SERVER_PATH)))) {
 				Println("Connect: %s", Socket::getLastErrorMessage());
 				return;
 			}
@@ -38,14 +38,13 @@ int main(int argc, const char * argv[])
 			}
 		});
 
-		String pathClient;
-		sl_bool flagAbstract;
-		auto socket = server.acceptDomain(pathClient, &flagAbstract);
+		DomainSocketPath path;
+		auto socket = server.accept(path);
 		if (socket.isNone()) {
 			Println("%s", Socket::getLastErrorMessage());
 			return;
 		}
-		Println("Accepted: %s, Abstract: %s", pathClient, flagAbstract);
+		Println("Accepted: %s, Abstract: %s", path.get(), path.flagAbstract);
 		for (;;) {
 			String msg;
 			Deserialize(&socket, msg);
