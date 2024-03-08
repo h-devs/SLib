@@ -52,13 +52,13 @@ namespace slib
 	public:
 		sl_socket getSocket();
 
-		sl_bool receive(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
+		void receive(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
 
-		sl_bool receive(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
+		void receive(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 
-		sl_bool send(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
+		void send(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
 
-		sl_bool send(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
+		void send(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 
 	protected:
 		Ref<AsyncSocketStreamInstance> _getIoInstance();
@@ -138,12 +138,14 @@ namespace slib
 	public:
 		static Ref<AsyncTcpSocket> create(AsyncTcpSocketParam& param);
 
+		static Ref<AsyncTcpSocket> create(const Ref<AsyncIoLoop>& loop);
+
 		static Ref<AsyncTcpSocket> create();
 
 	public:
 		sl_bool connect(const SocketAddress& address, sl_int32 timeout = -1);
 
-		sl_bool connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback);
+		void connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback);
 
 	};
 
@@ -219,12 +221,14 @@ namespace slib
 	public:
 		static Ref<AsyncDomainSocket> create(AsyncDomainSocketParam& param);
 
+		static Ref<AsyncDomainSocket> create(const Ref<AsyncIoLoop>& loop);
+
 		static Ref<AsyncDomainSocket> create();
 
 	public:
 		sl_bool connect(const DomainSocketPath& path, sl_int32 timeout = -1);
 
-		sl_bool connect(const DomainSocketPath& path, const Function<void(AsyncDomainSocket*, sl_bool flagError)>& callback);
+		void connect(const DomainSocketPath& path, const Function<void(AsyncDomainSocket*, sl_bool flagError)>& callback);
 
 	};
 

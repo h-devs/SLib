@@ -24,9 +24,9 @@
 #define CHECKHEADER_SLIB_DATA_SERIALIZE_MEMORY
 
 #include "primitive.h"
-#include "variable_length_integer.h"
 #include "generic.h"
 
+#include "../cvli.h"
 #include "../../core/memory_buffer.h"
 
 namespace slib

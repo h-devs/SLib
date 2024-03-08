@@ -80,62 +80,58 @@ namespace slib
 					return;
 				}
 				if (m_requestReading.isNull()) {
-					Ref<AsyncStreamRequest> req;
-					if (popReadRequest(req)) {
-						if (req.isNotNull()) {
-							if (req->data && req->size) {
-								Base::zeroMemory(&m_overlappedRead, sizeof(m_overlappedRead));
-								m_overlappedRead.Offset = (DWORD)m_offset;
-								m_overlappedRead.OffsetHigh = (DWORD)(m_offset >> 32);
-								DWORD size;
-								if (req->size > 0x40000000) {
-									size = 0x40000000;
-								} else {
-									size = (DWORD)(req->size);
-								}
-								if (ReadFile((HANDLE)handle, req->data, size, NULL, &m_overlappedRead)) {
-									processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
-								} else {
-									DWORD dwErr = ::GetLastError();
-									if (dwErr == ERROR_IO_PENDING) {
-										m_requestReading = Move(req);
-									} else {
-										processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
-									}
-								}
+					Ref<AsyncStreamRequest> req = getReadRequest();
+					if (req.isNotNull()) {
+						if (req->data && req->size) {
+							Base::zeroMemory(&m_overlappedRead, sizeof(m_overlappedRead));
+							m_overlappedRead.Offset = (DWORD)m_offset;
+							m_overlappedRead.OffsetHigh = (DWORD)(m_offset >> 32);
+							DWORD size;
+							if (req->size > 0x40000000) {
+								size = 0x40000000;
 							} else {
-								processStreamResult(req.get(), req->size, AsyncStreamResultCode::Success);
+								size = (DWORD)(req->size);
 							}
+							if (ReadFile((HANDLE)handle, req->data, size, NULL, &m_overlappedRead)) {
+								processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
+							} else {
+								DWORD dwErr = ::GetLastError();
+								if (dwErr == ERROR_IO_PENDING) {
+									m_requestReading = Move(req);
+								} else {
+									processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
+								}
+							}
+						} else {
+							processStreamResult(req.get(), req->size, AsyncStreamResultCode::Success);
 						}
 					}
 				}
 				if (m_requestWriting.isNull()) {
-					Ref<AsyncStreamRequest> req;
-					if (popWriteRequest(req)) {
-						if (req.isNotNull()) {
-							if (req->data && req->size) {
-								Base::zeroMemory(&m_overlappedWrite, sizeof(m_overlappedWrite));
-								m_overlappedWrite.Offset = (DWORD)m_offset;
-								m_overlappedWrite.OffsetHigh = (DWORD)(m_offset >> 32);
-								DWORD size;
-								if (req->size > 0x40000000) {
-									size = 0x40000000;
-								} else {
-									size = (DWORD)(req->size);
-								}
-								if (WriteFile((HANDLE)handle, req->data, size, NULL, &m_overlappedWrite)) {
-									processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
-								} else {
-									DWORD dwErr = ::GetLastError();
-									if (dwErr == ERROR_IO_PENDING) {
-										m_requestWriting = Move(req);
-									} else {
-										processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
-									}
-								}
+					Ref<AsyncStreamRequest> req = getWriteRequest();
+					if (req.isNotNull()) {
+						if (req->data && req->size) {
+							Base::zeroMemory(&m_overlappedWrite, sizeof(m_overlappedWrite));
+							m_overlappedWrite.Offset = (DWORD)m_offset;
+							m_overlappedWrite.OffsetHigh = (DWORD)(m_offset >> 32);
+							DWORD size;
+							if (req->size > 0x40000000) {
+								size = 0x40000000;
 							} else {
-								processStreamResult(req.get(), req->size, AsyncStreamResultCode::Success);
+								size = (DWORD)(req->size);
 							}
+							if (WriteFile((HANDLE)handle, req->data, size, NULL, &m_overlappedWrite)) {
+								processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
+							} else {
+								DWORD dwErr = ::GetLastError();
+								if (dwErr == ERROR_IO_PENDING) {
+									m_requestWriting = Move(req);
+								} else {
+									processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
+								}
+							}
+						} else {
+							processStreamResult(req.get(), req->size, AsyncStreamResultCode::Success);
 						}
 					}
 				}

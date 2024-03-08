@@ -54,16 +54,7 @@
 	float readFloat(float def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool readDouble(double* output, EndianType endian = Endian::Little) __VA_ARGS__; \
 	double readDouble(double def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool readCVLI32(sl_uint32* output, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_uint32 readCVLI32(sl_uint32 def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool readCVLI64(sl_uint64* output, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_uint64 readCVLI64(sl_uint64 def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool readCVLI(sl_size* output, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_size readCVLI(sl_size def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
-	Memory readToMemory(sl_size size) __VA_ARGS__; \
-	String readTextUTF8(sl_size size) __VA_ARGS__; \
-	String16 readTextUTF16(sl_size size, EndianType endian = Endian::Little) __VA_ARGS__; \
-	StringParam readText(sl_size size) __VA_ARGS__; \
+	Memory readToMemory(sl_size size) __VA_ARGS__;
 
 #define SLIB_DECLARE_IWRITER_MEMBERS(...) \
 	sl_reg writeFully(const void* buf, sl_size size) __VA_ARGS__; \
@@ -78,9 +69,6 @@
 	sl_bool writeUint64(sl_uint64 value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeFloat(float value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeDouble(double value, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool writeCVLI32(sl_uint32 value, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool writeCVLI64(sl_uint64 value, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool writeCVLI(sl_size value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeTextUTF8(const StringView& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__; \
 	sl_bool writeTextUTF16LE(const StringView16& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__; \
 	sl_bool writeTextUTF16BE(const StringView16& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__;
@@ -105,9 +93,6 @@
 	String readLine() ATTR; \
 	String readNullTerminatedString() ATTR; \
 	Memory readAllBytes(sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
-	String readAllTextUTF8(sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
-	String16 readAllTextUTF16(EndianType endian = Endian::Little, sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
-	StringParam readAllText(sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
 	sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_uint64 sizeFind = SLIB_UINT64_MAX) ATTR; \
 	sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_uint64 sizeFind = SLIB_UINT64_MAX) ATTR;
 

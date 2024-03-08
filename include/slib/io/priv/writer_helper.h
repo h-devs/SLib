@@ -27,7 +27,6 @@
 #include "../../core/thread.h"
 #include "../../core/memory.h"
 #include "../../core/string.h"
-#include "../../data/serialize/variable_length_integer.h"
 
 namespace slib
 {
@@ -164,14 +163,6 @@ namespace slib
 				value = Endian::swapDoubleBE(value);
 			}
 			return writeFully(writer, &value, 8) == 8;
-		}
-
-		template <class WRITER, class T>
-		static sl_bool writeCVLI(WRITER* writer, const T& value, EndianType endian)
-		{
-			sl_uint8 t[16];
-			sl_uint32 n = CVLI::serialize(t, value, endian);
-			return writeFully(writer, t, n) == n;
 		}
 
 		template <class WRITER>

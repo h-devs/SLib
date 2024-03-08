@@ -37,14 +37,14 @@ namespace slib
 	private:
 		Ref<CRef> ref;
 		Memory mem;
-		String str;
+		String string;
 		Json json;
 		sl_bool flagNotJson;
 
 	public:
-		DataContainer();
+		DataContainer() noexcept;
 
-		DataContainer(const void* data, sl_size size, CRef* ref = sl_null);
+		DataContainer(const void* data, sl_size size, CRef* ref = sl_null) noexcept;
 
 		template <class T>
 		DataContainer(T&& value): data(sl_null), size(0)
@@ -55,12 +55,12 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DataContainer)
 
 	public:
-		sl_bool isEmpty()
+		sl_bool isEmpty() const noexcept
 		{
 			return !size;
 		}
 
-		sl_bool isNotEmpty()
+		sl_bool isNotEmpty() const
 		{
 			return size > 0;
 		}
@@ -71,15 +71,15 @@ namespace slib
 
 		void setContent(const Variant& var);
 
-		Memory getMemory();
+		Memory getMemory() const noexcept;
 
 		void setMemory(const Memory& mem);
 
-		String getString();
+		String getString() const noexcept;
 
 		void setString(const String& str);
 
-		Json getJson();
+		Json getJson() const noexcept;
 
 		void setJson(const Json& json);
 

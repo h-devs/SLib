@@ -40,7 +40,7 @@ namespace slib
 
 		static sl_uint32 PrepareKey(sl_uint8* _out, sl_uint64 parentId, sl_bool flagDictionary)
 		{
-			return CVLI::serialize(_out, (parentId << 1) | (flagDictionary ? 1 : 0));
+			return CVLI::encode(_out, (parentId << 1) | (flagDictionary ? 1 : 0));
 		}
 
 		static sl_uint32 PrepareKey(sl_uint8* _out, sl_uint64 parentId, sl_bool flagDictionary, const StringView& key)
@@ -61,7 +61,7 @@ namespace slib
 		{
 			if (size) {
 				sl_uint64 dictionaryId = 0;
-				if (CVLI::deserialize(data, size, dictionaryId)) {
+				if (CVLI::decode(data, size, dictionaryId)) {
 					return dictionaryId;
 				}
 			}
@@ -391,7 +391,7 @@ namespace slib
 					newId++;
 					if (batch->put(StringParam::literal(KEY_NAME_LAST_DICTIONARY_ID), newId)) {
 						sl_uint8 buf[DICTIONARY_BUFFER_SIZE];
-						sl_uint32 size = CVLI::serialize(buf, newId);
+						sl_uint32 size = CVLI::encode(buf, newId);
 						if (batch->put(key, nKey, buf, size)) {
 							if (batch->commit()) {
 								return new DictionaryImpl(this, newId);

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,7 @@
 #include "slib/io/file_io.h"
 #include "slib/io/file_util.h"
 
-#include "slib/core/string_buffer.h"
-#include "slib/core/scoped_buffer.h"
+#include "slib/io/text.h"
 #include "slib/io/priv/impl.h"
 
 namespace slib
@@ -518,7 +517,7 @@ namespace slib
 	{
 		File file = File::openForRead(path);
 		if (file.isNotNone()) {
-			return file.readAllTextUTF8();
+			return TextIO::readAllUTF8(&file);
 		}
 		return sl_null;
 	}
@@ -527,7 +526,7 @@ namespace slib
 	{
 		File file = File::openForRead(path);
 		if (file.isNotNone()) {
-			return file.readAllTextUTF16(endian, maxSize);
+			return TextIO::readAllUTF16(&file, endian, maxSize);
 		}
 		return sl_null;
 	}
@@ -536,7 +535,7 @@ namespace slib
 	{
 		File file = File::openForRead(path);
 		if (file.isNotNone()) {
-			return file.readAllText(maxSize);
+			return TextIO::readAll(&file, maxSize);
 		}
 		return sl_null;
 	}

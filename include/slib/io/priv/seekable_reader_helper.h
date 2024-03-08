@@ -185,57 +185,6 @@ namespace slib
 		}
 
 		template <class READER, class SEEKABLE>
-		static String readAllTextUTF8(READER* reader, SEEKABLE* seekable, sl_size maxSize)
-		{
-			sl_uint64 _size = seekable->getSize();
-			sl_size size = SLIB_SIZE_FROM_UINT64(_size);
-			if (size > maxSize) {
-				size = maxSize;
-			}
-			if (!size) {
-				return sl_null;
-			}
-			if (seekable->seekToBegin()) {
-				return reader->readTextUTF8(size);
-			}
-			return sl_null;
-		}
-
-		template <class READER, class SEEKABLE>
-		static String16 readAllTextUTF16(READER* reader, SEEKABLE* seekable, EndianType endian, sl_size maxSize)
-		{
-			sl_uint64 _size = seekable->getSize();
-			sl_size size = SLIB_SIZE_FROM_UINT64(_size);
-			if (size > maxSize) {
-				size = maxSize;
-			}
-			if (!size) {
-				return sl_null;
-			}
-			if (seekable->seekToBegin()) {
-				return reader->readTextUTF16(size, endian);
-			}
-			return sl_null;
-		}
-
-		template <class READER, class SEEKABLE>
-		static StringParam readAllText(READER* reader, SEEKABLE* seekable, sl_size maxSize)
-		{
-			sl_uint64 _size = seekable->getSize();
-			sl_size size = SLIB_SIZE_FROM_UINT64(_size);
-			if (size > maxSize) {
-				size = maxSize;
-			}
-			if (!size) {
-				return sl_null;
-			}
-			if (seekable->seekToBegin()) {
-				return reader->readText(size);
-			}
-			return sl_null;
-		}
-
-		template <class READER, class SEEKABLE>
 		static sl_int64 find(READER* reader, SEEKABLE* seekable, const void* _pattern, sl_size nPattern, sl_int64 _startPosition, sl_uint64 sizeFind)
 		{
 			sl_uint64 size = seekable->getSize();

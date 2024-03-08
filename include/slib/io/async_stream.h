@@ -70,6 +70,13 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT AsyncStreamErrorResult : public AsyncStreamResult
+	{
+	public:
+		AsyncStreamErrorResult(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject) noexcept;
+
+	};
+
 	class SLIB_EXPORT AsyncStreamRequest : public CRef
 	{
 		SLIB_DECLARE_OBJECT
@@ -108,16 +115,12 @@ namespace slib
 		~AsyncStreamInstance();
 
 	public:
-		virtual sl_bool addRequest(const Ref<AsyncStreamRequest>& request);
+		virtual sl_bool request(const Ref<AsyncStreamRequest>& request);
 
 	protected:
-		sl_bool popReadRequest(Ref<AsyncStreamRequest>& request);
+		Ref<AsyncStreamRequest> getReadRequest();
 
-		sl_size getReadRequestCount();
-
-		sl_bool popWriteRequest(Ref<AsyncStreamRequest>& request);
-
-		sl_size getWriteRequestCount();
+		Ref<AsyncStreamRequest> getWriteRequest();
 
 		void processStreamResult(AsyncStreamRequest* request, sl_size size, AsyncStreamResultCode resultCode);
 
@@ -136,8 +139,8 @@ namespace slib
 		void _freeRequests();
 
 	private:
-		LinkedQueue< Ref<AsyncStreamRequest> > m_requestsRead;
-		LinkedQueue< Ref<AsyncStreamRequest> > m_requestsWrite;
+		AtomicRef<AsyncStreamRequest> m_requestRead;
+		AtomicRef<AsyncStreamRequest> m_requestWrite;
 
 	};
 
@@ -162,13 +165,13 @@ namespace slib
 
 		virtual sl_bool requestIo(const Ref<AsyncStreamRequest>& request) = 0;
 
-		sl_bool read(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
+		void read(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
 
-		sl_bool read(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
+		void read(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 
-		sl_bool write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
+		void write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
 
-		sl_bool write(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
+		void write(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 
 		virtual sl_bool addTask(const Function<void()>& callback) = 0;
 

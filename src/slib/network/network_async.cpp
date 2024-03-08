@@ -81,11 +81,15 @@ namespace slib
 		}
 		m_flagRequestConnect = sl_true;
 		m_addressRequestConnect = address;
+		m_pathRequestConnect.length = 0;
 		return sl_true;
 	}
 
 	sl_bool AsyncSocketStreamInstance::connect(const DomainSocketPath& path)
 	{
+		if (!(path.length)) {
+			return sl_false;
+		}
 		m_flagRequestConnect = sl_true;
 		m_pathRequestConnect = path;
 		m_addressRequestConnect.setNone();
@@ -174,24 +178,24 @@ namespace slib
 		return SLIB_SOCKET_INVALID_HANDLE;
 	}
 
-	sl_bool AsyncSocketStream::receive(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
+	void AsyncSocketStream::receive(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
 	{
-		return AsyncStreamBase::read(data, size, callback, userObject);
+		AsyncStreamBase::read(data, size, callback, userObject);
 	}
 
-	sl_bool AsyncSocketStream::receive(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
+	void AsyncSocketStream::receive(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
 	{
-		return AsyncStreamBase::read(mem.getData(), mem.getSize(), callback, mem.ref.get());
+		AsyncStreamBase::read(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
 
-	sl_bool AsyncSocketStream::send(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
+	void AsyncSocketStream::send(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
 	{
-		return AsyncStreamBase::write(data, size, callback, userObject);
+		AsyncStreamBase::write(data, size, callback, userObject);
 	}
 
-	sl_bool AsyncSocketStream::send(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
+	void AsyncSocketStream::send(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
 	{
-		return AsyncStreamBase::write(mem.getData(), mem.getSize(), callback, mem.ref.get());
+		AsyncStreamBase::write(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
 
 	Ref<AsyncSocketStreamInstance> AsyncSocketStream::_getIoInstance()
@@ -393,6 +397,13 @@ namespace slib
 		return sl_null;
 	}
 
+	Ref<AsyncTcpSocket> AsyncTcpSocket::create(const Ref<AsyncIoLoop>& loop)
+	{
+		AsyncTcpSocketParam param;
+		param.ioLoop = loop;
+		return create(param);
+	}
+
 	Ref<AsyncTcpSocket> AsyncTcpSocket::create()
 	{
 		AsyncTcpSocketParam param;
@@ -414,39 +425,32 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool AsyncTcpSocket::connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback)
+	void AsyncTcpSocket::connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback)
 	{
-		Ref<AsyncIoLoop> loop = getIoLoop();
-		if (loop.isNull()) {
-			return sl_false;
-		}
-		if (address.isInvalid()) {
-			return sl_false;
-		}
-		Ref<AsyncSocketStreamInstance> instance = _getIoInstance();
-		if (instance.isNotNull()) {
-			HandlePtr<Socket> socket(instance->getSocket());
-			if (socket->isOpened()) {
-				if (m_onConnect.isNotNull()) {
-					m_onConnect(this, sl_false);
-				}
-				m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::from(callback);
-				if (instance->isSupportedConnect()) {
-					if (instance->connect(address)) {
-						loop->requestOrder(instance.get());
-						return sl_true;
-					}
-				} else {
-					if (socket->connectAndWait(address)) {
-						_onConnect(sl_true);
-						return sl_true;
-					} else {
-						_onConnect(sl_false);
+		_onConnect(sl_true);
+		if (address.isValid()) {
+			Ref<AsyncIoLoop> loop = getIoLoop();
+			if (loop.isNotNull()) {
+				Ref<AsyncSocketStreamInstance> instance = _getIoInstance();
+				if (instance.isNotNull()) {
+					HandlePtr<Socket> socket(instance->getSocket());
+					if (socket->isOpened()) {
+						if (instance->isSupportedConnect()) {
+							m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::from(callback);
+							instance->connect(address);
+							loop->requestOrder(instance.get());
+							return;
+						} else {
+							if (socket->connectAndWait(address)) {
+								callback(this, sl_false);
+								return;
+							}
+						}
 					}
 				}
 			}
 		}
-		return sl_false;
+		callback(this, sl_true);
 	}
 
 
@@ -574,6 +578,13 @@ namespace slib
 		return sl_null;
 	}
 
+	Ref<AsyncDomainSocket> AsyncDomainSocket::create(const Ref<AsyncIoLoop>& loop)
+	{
+		AsyncDomainSocketParam param;
+		param.ioLoop = loop;
+		return create(param);
+	}
+
 	Ref<AsyncDomainSocket> AsyncDomainSocket::create()
 	{
 		AsyncDomainSocketParam param;
@@ -592,39 +603,32 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool AsyncDomainSocket::connect(const DomainSocketPath& path, const Function<void(AsyncDomainSocket*, sl_bool flagError)>& callback)
+	void AsyncDomainSocket::connect(const DomainSocketPath& path, const Function<void(AsyncDomainSocket*, sl_bool flagError)>& callback)
 	{
-		Ref<AsyncIoLoop> loop = getIoLoop();
-		if (loop.isNull()) {
-			return sl_false;
-		}
-		if (!(path.length)) {
-			return sl_false;
-		}
-		Ref<AsyncSocketStreamInstance> instance = _getIoInstance();
-		if (instance.isNotNull()) {
-			HandlePtr<Socket> socket(instance->getSocket());
-			if (socket->isOpened()) {
-				if (m_onConnect.isNotNull()) {
-					m_onConnect(this, sl_false);
-				}
-				m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::from(callback);
-				if (instance->isSupportedConnect()) {
-					if (instance->connect(path)) {
-						loop->requestOrder(instance.get());
-						return sl_true;
-					}
-				} else {
-					if (socket->connectAndWait(path)) {
-						_onConnect(sl_true);
-						return sl_true;
-					} else {
-						_onConnect(sl_false);
+		_onConnect(sl_true);
+		if (path.length) {
+			Ref<AsyncIoLoop> loop = getIoLoop();
+			if (loop.isNotNull()) {
+				Ref<AsyncSocketStreamInstance> instance = _getIoInstance();
+				if (instance.isNotNull()) {
+					HandlePtr<Socket> socket(instance->getSocket());
+					if (socket->isOpened()) {
+						if (instance->isSupportedConnect()) {
+							m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::from(callback);
+							instance->connect(path);
+							loop->requestOrder(instance.get());
+							return;
+						} else {
+							if (socket->connectAndWait(path)) {
+								callback(this, sl_false);
+								return;
+							}
+						}
 					}
 				}
 			}
 		}
-		return sl_false;
+		callback(this, sl_true);
 	}
 
 

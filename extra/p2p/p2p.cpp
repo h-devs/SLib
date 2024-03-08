@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -1746,7 +1746,17 @@ namespace slib
 						Ref<TcpClientStream> stream = new TcpClientStream(Move(socketStream), m_maximumMessageSize);
 						if (stream.isNotNull() && TimeoutMonitor::create(context.timeoutMonitor, tickEnd)) {
 							context.stream = stream;
-							if (socket->connect(connection->m_address, [this, context](AsyncTcpSocket* socket, sl_bool flagError) {
+							m_mapTcpStreams.put(stream.get(), stream);
+							if (context.timeoutMonitor.isNotNull()) {
+								TimeoutMonitor::dispatchTimeout(context.timeoutMonitor, m_dispatchLoop, [this, context]() {
+									Ref<TcpStream> stream = context.stream;
+									if (stream.isNotNull()) {
+										m_mapTcpStreams.remove(stream.get());
+									}
+									context.callback(this, context.node.get(), context.connection.get(), sl_null);
+								}, tickEnd);
+							}
+							socket->connect(connection->m_address, [this, context](AsyncTcpSocket* socket, sl_bool flagError) {
 								if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
 									return;
 								}
@@ -1762,19 +1772,7 @@ namespace slib
 								if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
 									context.callback(this, context.node.get(), context.connection.get(), sl_null);
 								}
-							})) {
-								m_mapTcpStreams.put(stream.get(), stream);
-								if (context.timeoutMonitor.isNotNull()) {
-									TimeoutMonitor::dispatchTimeout(context.timeoutMonitor, m_dispatchLoop, [this, context]() {
-										Ref<TcpStream> stream = context.stream;
-										if (stream.isNotNull()) {
-											m_mapTcpStreams.remove(stream.get());
-										}
-										context.callback(this, context.node.get(), context.connection.get(), sl_null);
-									}, tickEnd);
-								}
-								return;
-							}
+							});
 						}
 					}
 					callback(this, node, connection, sl_null);

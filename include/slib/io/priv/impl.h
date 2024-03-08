@@ -51,16 +51,7 @@
 	float CLASS::readFloat(float def, EndianType endian) ATTR { return ReaderHelper::readFloat(this, def, endian); } \
 	sl_bool CLASS::readDouble(double* output, EndianType endian) ATTR { return ReaderHelper::readDouble(this, output, endian); } \
 	double CLASS::readDouble(double def, EndianType endian) ATTR { return ReaderHelper::readDouble(this, def, endian); } \
-	sl_bool CLASS::readCVLI32(sl_uint32* output, EndianType endian) ATTR { return ReaderHelper::readCVLI(this, output, endian); } \
-	sl_uint32 CLASS::readCVLI32(sl_uint32 def, EndianType endian) ATTR { return ReaderHelper::readCVLI(this, def, endian); } \
-	sl_bool CLASS::readCVLI64(sl_uint64* output, EndianType endian) ATTR { return ReaderHelper::readCVLI(this, output, endian); } \
-	sl_uint64 CLASS::readCVLI64(sl_uint64 def, EndianType endian) ATTR { return ReaderHelper::readCVLI(this, def, endian); } \
-	sl_bool CLASS::readCVLI(sl_size* output, EndianType endian) ATTR { return ReaderHelper::readCVLI(this, output, endian); } \
-	sl_size CLASS::readCVLI(sl_size def, EndianType endian) ATTR { return ReaderHelper::readCVLI(this, def, endian); } \
-	Memory CLASS::readToMemory(sl_size size) ATTR { return ReaderHelper::readToMemory(this, size); } \
-	String CLASS::readTextUTF8(sl_size size) ATTR { return ReaderHelper::readTextUTF8(this, size); } \
-	String16 CLASS::readTextUTF16(sl_size size, EndianType endian) ATTR { return ReaderHelper::readTextUTF16(this, size, endian); } \
-	StringParam CLASS::readText(sl_size size) ATTR { return ReaderHelper::readText(this, size); } \
+	Memory CLASS::readToMemory(sl_size size) ATTR { return ReaderHelper::readToMemory(this, size); }
 
 #define SLIB_DEFINE_IWRITER_MEMBERS(CLASS, ATTR) \
 	sl_reg CLASS::writeFully(const void* buf, sl_size size) ATTR { return WriterHelper::writeFully(this, buf, size); } \
@@ -75,9 +66,6 @@
 	sl_bool CLASS::writeUint64(sl_uint64 value, EndianType endian) ATTR { return WriterHelper::writeInt64(this, value, endian); } \
 	sl_bool CLASS::writeFloat(float value, EndianType endian) ATTR { return WriterHelper::writeFloat(this, value, endian); } \
 	sl_bool CLASS::writeDouble(double value, EndianType endian) ATTR { return WriterHelper::writeDouble(this, value, endian); } \
-	sl_bool CLASS::writeCVLI32(sl_uint32 value, EndianType endian) ATTR { return WriterHelper::writeCVLI(this, value, endian); } \
-	sl_bool CLASS::writeCVLI64(sl_uint64 value, EndianType endian) ATTR { return WriterHelper::writeCVLI(this, value, endian); } \
-	sl_bool CLASS::writeCVLI(sl_size value, EndianType endian) ATTR { return WriterHelper::writeCVLI(this, value, endian); } \
 	sl_bool CLASS::writeTextUTF8(const StringView& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF8(this, text, flagWriteByteOrderMark); } \
 	sl_bool CLASS::writeTextUTF16LE(const StringView16& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16LE(this, text, flagWriteByteOrderMark); } \
 	sl_bool CLASS::writeTextUTF16BE(const StringView16& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16BE(this, text, flagWriteByteOrderMark); }
@@ -129,9 +117,6 @@
 	String CLASS::readLine() ATTR { return SeekableReaderHelper::readLine(this, this); } \
 	String CLASS::readNullTerminatedString() ATTR { return SeekableReaderHelper::readNullTerminatedString(this, this); } \
 	Memory CLASS::readAllBytes(sl_size maxSize) ATTR { return SeekableReaderHelper::readAllBytes(this, this, maxSize); } \
-	String CLASS::readAllTextUTF8(sl_size maxSize) ATTR { return SeekableReaderHelper::readAllTextUTF8(this, this, maxSize); } \
-	String16 CLASS::readAllTextUTF16(EndianType endian, sl_size maxSize) ATTR { return SeekableReaderHelper::readAllTextUTF16(this, this, endian, maxSize); } \
-	StringParam CLASS::readAllText(sl_size maxSize) ATTR { return SeekableReaderHelper::readAllText(this, this, maxSize); } \
 	sl_int64 CLASS::find(const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind) ATTR { return SeekableReaderHelper::find(this, this, pattern, nPattern, startPosition, sizeFind); } \
 	sl_int64 CLASS::findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind) ATTR { return SeekableReaderHelper::findBackward(this, this, pattern, nPattern, startPosition, sizeFind); }
 

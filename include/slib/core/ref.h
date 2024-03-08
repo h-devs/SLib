@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -147,7 +147,8 @@ public: \
 	Atomic& operator=(const Atomic& other) noexcept { ref = other.ref; return *this; } \
 	Atomic& operator=(Atomic& other) noexcept { ref = other.ref; return *this; } \
 	Atomic& operator=(Atomic const&& other) noexcept { ref = Move(other.ref); return *this; } \
-	Atomic& operator=(Atomic&& other) noexcept { ref = Move(other.ref); return *this; }
+	Atomic& operator=(Atomic&& other) noexcept { ref = Move(other.ref); return *this; } \
+	typename RemoveAtomic<Atomic>::Type release() noexcept { return ref._releaseObject<typename RemoveAtomic<Atomic>::Type>(); }
 
 #define SLIB_ATOMIC_REF_WRAPPER(...) \
 	SLIB_ATOMIC_REF_WRAPPER_NO_OP(__VA_ARGS__) \
@@ -880,6 +881,15 @@ namespace slib
 			return _ptr != sl_null;
 		}
 
+		Ref<T> release() noexcept
+		{
+			m_lock.lock();
+			T* before = _ptr;
+			_ptr = sl_null;
+			m_lock.unlock();
+			return Move(*((Ref<T>*)&before));
+		}
+
 	public:
 		T* _retainObject() const noexcept
 		{
@@ -904,6 +914,16 @@ namespace slib
 			if (before) {
 				before->decreaseReference();
 			}
+		}
+
+		template <class TYPE>
+		TYPE _releaseObject() noexcept
+		{
+			m_lock.lock();
+			T* before = _ptr;
+			_ptr = sl_null;
+			m_lock.unlock();
+			return Move(*((TYPE*)&before));
 		}
 
 		void _move_assign(void* _other) noexcept

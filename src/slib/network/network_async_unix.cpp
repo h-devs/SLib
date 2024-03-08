@@ -63,20 +63,12 @@ namespace slib
 				if (socket->isNone()) {
 					return;
 				}
-
 				Ref<AsyncStreamRequest> request = Move(m_requestReading);
-				sl_size nQueue = getReadRequestCount();
-
 				Thread* thread = Thread::getCurrent();
 				while (!thread || thread->isNotStopping()) {
 					if (request.isNull()) {
-						if (nQueue > 0) {
-							nQueue--;
-							popReadRequest(request);
-							if (request.isNull()) {
-								return;
-							}
-						} else {
+						request = getReadRequest();
+						if (request.isNull()) {
 							return;
 						}
 					}
@@ -113,20 +105,12 @@ namespace slib
 				if (socket->isNone()) {
 					return;
 				}
-
 				Ref<AsyncStreamRequest> request = Move(m_requestWriting);
-				sl_size nQueue = getWriteRequestCount();
-
 				Thread* thread = Thread::getCurrent();
 				while (!thread || thread->isNotStopping()) {
 					if (request.isNull()) {
-						if (nQueue > 0) {
-							nQueue--;
-							popWriteRequest(request);
-							if (request.isNull()) {
-								return;
-							}
-						} else {
+						request = getWriteRequest();
+						if (request.isNull()) {
 							return;
 						}
 					}

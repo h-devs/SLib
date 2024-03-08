@@ -108,6 +108,8 @@ namespace slib
 	protected:
 		sl_bool _read();
 
+		void _processReadRequests();
+
 		void _closeAllReadRequests();
 
 	protected:

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -1238,11 +1238,11 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DataContainer)
 
-	DataContainer::DataContainer(): data(sl_null), size(0), flagNotJson(sl_false)
+	DataContainer::DataContainer() noexcept: data(sl_null), size(0), flagNotJson(sl_false)
 	{
 	}
 
-	DataContainer::DataContainer(const void* _data, sl_size _size, CRef* _ref) : data(_data), size((sl_uint32)_size), ref(_ref), flagNotJson(sl_false)
+	DataContainer::DataContainer(const void* _data, sl_size _size, CRef* _ref)  noexcept: data(_data), size((sl_uint32)_size), ref(_ref), flagNotJson(sl_false)
 	{
 	}
 
@@ -1252,7 +1252,7 @@ namespace slib
 		size = 0;
 		ref.setNull();
 		mem.setNull();
-		str.setNull();
+		string.setNull();
 		json.setNull();
 		flagNotJson = sl_false;
 	}
@@ -1282,7 +1282,7 @@ namespace slib
 		}
 	}
 
-	Memory DataContainer::getMemory()
+	Memory DataContainer::getMemory() const noexcept
 	{
 		if (data && size) {
 			if (mem.isNotNull()) {
@@ -1293,9 +1293,13 @@ namespace slib
 				}
 			} else {
 				if (ref.isNotNull()) {
-					mem = Memory::createStatic(data, size, ref.get());
+					((DataContainer*)this)->mem = Memory::createStatic(data, size, ref.get());
 				} else {
-					mem = Memory::create(data, size);
+					if (string.isNotNull() && data == string.getData() && size == string.getLength()) {
+						((DataContainer*)this)->mem = string.toMemory();
+					} else {
+						((DataContainer*)this)->mem = Memory::create(data, size);
+					}
 				}
 			}
 			return mem;
@@ -1311,16 +1315,16 @@ namespace slib
 		mem = _mem;
 	}
 
-	String DataContainer::getString()
+	String DataContainer::getString() const noexcept
 	{
 		if (data && size) {
-			if (str.isNotNull()) {
-				if (data == str.getData() && size == str.getLength()) {
-					return str;
+			if (string.isNotNull()) {
+				if (data == string.getData() && size == string.getLength()) {
+					return string;
 				}
 			}
-			str = String::fromUtf8(data, size);
-			return str;
+			((DataContainer*)this)->string = String::fromUtf8(data, size);
+			return string;
 		}
 		return sl_null;
 	}
@@ -1330,10 +1334,10 @@ namespace slib
 		clear();
 		data = _str.getData();
 		size = (sl_uint32)(_str.getLength());
-		str = _str;
+		string = _str;
 	}
 
-	Json DataContainer::getJson()
+	Json DataContainer::getJson() const noexcept
 	{
 		if (flagNotJson) {
 			return sl_null;
@@ -1341,10 +1345,10 @@ namespace slib
 		if (json.isNotNull()) {
 			return json;
 		}
-		if (json.deserialize(getMemory())) {
+		if (((DataContainer*)this)->json.deserialize(getMemory())) {
 			return json;
 		}
-		flagNotJson = sl_true;
+		((DataContainer*)this)->flagNotJson = sl_true;
 		return sl_null;
 	}
 

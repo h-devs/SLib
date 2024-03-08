@@ -24,8 +24,8 @@
 #define CHECKHEADER_SLIB_DATA_SERIALIZE_LIST
 
 #include "primitive.h"
-#include "variable_length_integer.h"
 
+#include "../cvli.h"
 #include "../../core/priv/list_helper.h"
 
 namespace slib

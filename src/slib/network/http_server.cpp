@@ -307,15 +307,10 @@ namespace slib
 			return;
 		}
 		m_flagReading = sl_true;
-		sl_bool bSuccess;
 		if (result) {
-			bSuccess = m_io->read(result->data, result->requestSize, result->callback, result->userObject);
+			m_io->read(result->data, result->requestSize, result->callback, result->userObject);
 		} else {
-			bSuccess = m_io->read(m_bufRead, SLIB_FUNCTION_WEAKREF(this, onReadStream));
-		}
-		if (!bSuccess) {
-			m_flagReading = sl_false;
-			close();
+			m_io->read(m_bufRead, SLIB_FUNCTION_WEAKREF(this, onReadStream));
 		}
 	}
 
@@ -569,12 +564,11 @@ namespace slib
 	void HttpServerConnection::sendResponseAndRestart(const Memory& mem)
 	{
 		if (mem.isNotNull()) {
-			if (m_io->write(mem, sl_null)) {
-				start();
-				return;
-			}
+			m_io->write(mem, sl_null);
+			start();
+		} else {
+			close();
 		}
-		close();
 	}
 
 	namespace {
@@ -603,11 +597,10 @@ namespace slib
 	{
 		if (mem.isNotNull()) {
 			Ref<SendResponseAndCloseListener> listener(new SendResponseAndCloseListener(this));
-			if (m_io->write(mem, SLIB_FUNCTION_REF(listener, onWriteStream))) {
-				return;
-			}
+			m_io->write(mem, SLIB_FUNCTION_REF(listener, onWriteStream));
+		} else {
+			close();
 		}
-		close();
 	}
 
 	void HttpServerConnection::sendResponseAndClose_BadRequest()

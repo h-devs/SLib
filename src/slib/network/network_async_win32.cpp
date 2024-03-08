@@ -77,12 +77,12 @@ namespace slib
 				m_funcConnectEx = sl_null;
 				// ConnectEx
 				{
-					GUID Guid = WSAID_CONNECTEX;
+					GUID guidConnectEx = WSAID_CONNECTEX;
 					DWORD dwBytes = 0;
 					int ret = WSAIoctl(
 						(SOCKET)(handle),
 						SIO_GET_EXTENSION_FUNCTION_POINTER,
-						&Guid, sizeof(Guid),
+						&guidConnectEx, sizeof(guidConnectEx),
 						&m_funcConnectEx, sizeof(m_funcConnectEx),
 						&dwBytes,
 						NULL, NULL);
@@ -100,77 +100,73 @@ namespace slib
 					return;
 				}
 				if (m_requestReading.isNull()) {
-					Ref<AsyncStreamRequest> req;
-					if (popReadRequest(req)) {
-						if (req.isNotNull()) {
-							char* data = (char*)(req->data);
-							sl_size size = req->size;
-							if (data && size) {
-								Base::zeroMemory(&m_overlappedRead, sizeof(m_overlappedRead));
-								m_bufRead.buf = data;
-								if (size > 0x40000000) {
-									m_bufRead.len = 0x40000000;
-								} else {
-									m_bufRead.len = (ULONG)size;
-								}
-								m_flagsRead = 0;
-								DWORD dwRead = 0;
-								int ret = WSARecv((SOCKET)handle, &m_bufRead, 1, &dwRead, &m_flagsRead, &m_overlappedRead, NULL);
-								if (ret) {
-									// SOCKET_ERROR
-									DWORD dwErr = WSAGetLastError();
-									if (dwErr == WSA_IO_PENDING) {
-										m_requestReading = Move(req);
-									} else {
-										processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
-									}
-								} else {
-									// No Error
+					Ref<AsyncStreamRequest> req = getReadRequest();
+					if (req.isNotNull()) {
+						char* data = (char*)(req->data);
+						sl_size size = req->size;
+						if (data && size) {
+							Base::zeroMemory(&m_overlappedRead, sizeof(m_overlappedRead));
+							m_bufRead.buf = data;
+							if (size > 0x40000000) {
+								m_bufRead.len = 0x40000000;
+							} else {
+								m_bufRead.len = (ULONG)size;
+							}
+							m_flagsRead = 0;
+							DWORD dwRead = 0;
+							int ret = WSARecv((SOCKET)handle, &m_bufRead, 1, &dwRead, &m_flagsRead, &m_overlappedRead, NULL);
+							if (ret) {
+								// SOCKET_ERROR
+								DWORD dwErr = WSAGetLastError();
+								if (dwErr == WSA_IO_PENDING) {
 									m_requestReading = Move(req);
-									EventDesc desc;
-									desc.pOverlapped = &m_overlappedRead;
-									onEvent(&desc);
+								} else {
+									processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 								}
 							} else {
-								processStreamResult(req.get(), 0, AsyncStreamResultCode::Success);
+								// No Error
+								m_requestReading = Move(req);
+								EventDesc desc;
+								desc.pOverlapped = &m_overlappedRead;
+								onEvent(&desc);
 							}
+						} else {
+							processStreamResult(req.get(), 0, AsyncStreamResultCode::Success);
 						}
 					}
 				}
 				if (m_requestWriting.isNull()) {
-					Ref<AsyncStreamRequest> req;
-					if (popWriteRequest(req)) {
-						if (req.isNotNull()) {
-							char* data = (char*)(req->data);
-							sl_size size = req->size;
-							if (data && size) {
-								Base::zeroMemory(&m_overlappedWrite, sizeof(m_overlappedWrite));
-								m_bufWrite.buf = data;
-								if (size > 0x40000000) {
-									m_bufWrite.len = 0x40000000;
-								} else {
-									m_bufWrite.len = (ULONG)size;
-								}
-								DWORD dwWrite = 0;
-								int ret = WSASend((SOCKET)handle, &m_bufWrite, 1, &dwWrite, 0, &m_overlappedWrite, NULL);
-								if (ret) {
-									// SOCKET_ERROR
-									int dwErr = WSAGetLastError();
-									if (dwErr == WSA_IO_PENDING) {
-										m_requestWriting = Move(req);
-									} else {
-										processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
-									}
-								} else {
-									// No Error
+					Ref<AsyncStreamRequest> req = getWriteRequest();
+					if (req.isNotNull()) {
+						char* data = (char*)(req->data);
+						sl_size size = req->size;
+						if (data && size) {
+							Base::zeroMemory(&m_overlappedWrite, sizeof(m_overlappedWrite));
+							m_bufWrite.buf = data;
+							if (size > 0x40000000) {
+								m_bufWrite.len = 0x40000000;
+							} else {
+								m_bufWrite.len = (ULONG)size;
+							}
+							DWORD dwWrite = 0;
+							int ret = WSASend((SOCKET)handle, &m_bufWrite, 1, &dwWrite, 0, &m_overlappedWrite, NULL);
+							if (ret) {
+								// SOCKET_ERROR
+								int dwErr = WSAGetLastError();
+								if (dwErr == WSA_IO_PENDING) {
 									m_requestWriting = Move(req);
-									EventDesc desc;
-									desc.pOverlapped = &m_overlappedWrite;
-									onEvent(&desc);
+								} else {
+									processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 								}
 							} else {
-								processStreamResult(req.get(), 0, AsyncStreamResultCode::Success);
+								// No Error
+								m_requestWriting = Move(req);
+								EventDesc desc;
+								desc.pOverlapped = &m_overlappedWrite;
+								onEvent(&desc);
 							}
+						} else {
+							processStreamResult(req.get(), 0, AsyncStreamResultCode::Success);
 						}
 					}
 				}

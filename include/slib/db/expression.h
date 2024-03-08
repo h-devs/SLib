@@ -46,16 +46,7 @@ namespace slib
 
 	};
 
-	class DatabaseExpression;
-
-	template <>
-	class SLIB_EXPORT Atomic<DatabaseExpression>
-	{
-	public:
-		AtomicRef<CDatabaseExpression> ref;
-		SLIB_ATOMIC_REF_WRAPPER_NO_OP(CDatabaseExpression)
-
-	};
+	template <> class Atomic<DatabaseExpression>;
 
 	class SLIB_EXPORT DatabaseExpression
 	{
@@ -100,6 +91,15 @@ namespace slib
 		static DatabaseExpression unaryOp(const String& op, DatabaseExpression& e);
 
 		static DatabaseExpression unaryOpSuffix(const String& op, DatabaseExpression& e);
+
+	};
+
+	template <>
+	class SLIB_EXPORT Atomic<DatabaseExpression>
+	{
+	public:
+		AtomicRef<CDatabaseExpression> ref;
+		SLIB_ATOMIC_REF_WRAPPER_NO_OP(CDatabaseExpression)
 
 	};
 

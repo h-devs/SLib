@@ -131,14 +131,7 @@ namespace slib
 
 	};
 
-	template <>
-	class SLIB_EXPORT Atomic<Memory>
-	{
-	public:
-		AtomicRef<CMemory> ref;
-		SLIB_ATOMIC_REF_WRAPPER_NO_OP(CMemory)
-
-	};
+	template <> class Atomic<Memory>;
 
 	class SLIB_EXPORT Memory
 	{
@@ -235,6 +228,15 @@ namespace slib
 	private:
 		static Memory _createStatic(const void* buf, sl_size size, CRef* ref) noexcept;
 		static Memory _createStaticMove(const void* buf, sl_size size, void* pRef) noexcept;
+
+	};
+
+	template <>
+	class SLIB_EXPORT Atomic<Memory>
+	{
+	public:
+		AtomicRef<CMemory> ref;
+		SLIB_ATOMIC_REF_WRAPPER_NO_OP(CMemory)
 
 	};
 

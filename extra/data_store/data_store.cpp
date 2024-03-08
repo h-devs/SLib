@@ -169,15 +169,15 @@ namespace slib
 			template <class READER>
 			sl_bool read(READER* reader)
 			{
-				if (!(reader->readCVLI32(&flags))) {
+				if (!(CVLI::read32(reader, &flags))) {
 					return sl_false;
 				}
 				sl_uint32 _type;
-				if (!(reader->readCVLI32(&_type))) {
+				if (!(CVLI::read32(reader, &_type))) {
 					return sl_false;
 				}
 				type = (DataStoreItemType)_type;
-				if (!(reader->readCVLI64(&size))) {
+				if (!(CVLI::read64(reader, &size))) {
 					return sl_false;
 				}
 				if (!size) {
@@ -459,13 +459,13 @@ namespace slib
 				}
 
 				// Write Item Header
-				if (!(m_file.writeCVLI32((sl_uint32)(flags.value)))) {
+				if (!(CVLI::write32(&m_file, (sl_uint32)(flags.value)))) {
 					return sl_false;
 				}
-				if (!(m_file.writeCVLI32((sl_uint32)type))) {
+				if (!(CVLI::write32(&m_file, (sl_uint32)type))) {
 					return sl_false;
 				}
-				if (!(m_file.writeCVLI64(dataSize))) {
+				if (!(CVLI::write64(&m_file, dataSize))) {
 					return sl_false;
 				}
 
