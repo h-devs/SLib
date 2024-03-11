@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,8 @@
 public: \
 	Container* container; \
 public: \
-	SLIB_CONSTEXPR Shared(): container(sl_null) {} \
-	SLIB_CONSTEXPR Shared(sl_null_t): container(sl_null) {} \
+	SLIB_CONSTEXPR Shared() noexcept: container(sl_null) {} \
+	SLIB_CONSTEXPR Shared(sl_null_t) noexcept: container(sl_null) {} \
 	Shared(Shared&& other) noexcept \
 	{ \
 		container = other.container; \
@@ -58,11 +58,11 @@ public: \
 	{ \
 		return *(reinterpret_cast<Shared const*>(&(priv::shared::g_null))); \
 	} \
-	SLIB_CONSTEXPR sl_bool isNull() const \
+	SLIB_CONSTEXPR sl_bool isNull() const noexcept \
 	{ \
 		return !container; \
 	} \
-	SLIB_CONSTEXPR sl_bool isNotNull() const \
+	SLIB_CONSTEXPR sl_bool isNotNull() const noexcept \
 	{ \
 		return container != sl_null; \
 	} \
@@ -90,11 +90,11 @@ public: \
 		} \
 		return *this; \
 	} \
-	SLIB_CONSTEXPR explicit operator sl_bool() const \
+	SLIB_CONSTEXPR explicit operator sl_bool() const noexcept \
 	{ \
 		return container != sl_null; \
 	} \
-	SLIB_CONSTEXPR T* operator->() const \
+	SLIB_CONSTEXPR T* operator->() const noexcept \
 	{ \
 		return get(); \
 	} \
@@ -137,6 +137,10 @@ private: \
 public: \
 	SLIB_CONSTEXPR Atomic(): _container(sl_null) {} \
 	SLIB_CONSTEXPR Atomic(sl_null_t): _container(sl_null) {} \
+	Atomic(Atomic&& other) noexcept \
+	{ \
+		_container = other._release(); \
+	} \
 	Atomic(const Atomic& other) noexcept \
 	{ \
 		_container = other._retain(); \
@@ -174,6 +178,10 @@ public: \
 	{ \
 		_replace(sl_null); \
 	} \
+	typename RemoveAtomic<Atomic>::Type release() \
+	{ \
+		return Move(*this); \
+	} \
 	void swap(typename RemoveAtomic<Atomic>::Type& other) \
 	{ \
 		m_lock.lock(); \
@@ -207,6 +215,13 @@ public: \
 		} \
 	} \
 public: \
+	Atomic& operator=(Atomic&& other) \
+	{ \
+		if (this != &other) { \
+			_replace(other._release()); \
+		} \
+		return *this; \
+	} \
 	Atomic& operator=(const Atomic& other) \
 	{ \
 		if (_container != other._container) { \
