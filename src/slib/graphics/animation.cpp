@@ -917,12 +917,12 @@ namespace slib
 			ObjectLocker lock(this);
 			List< Ref<Animation> > animations;
 			{
-				for (auto& pair : m_mapAnimations) {
+				for (auto&& pair : m_mapAnimations) {
 					animations.add_NoLock(pair.value);
 				}
 			}
 			{
-				for (auto& pair : m_mapWeakAnimations) {
+				for (auto&& pair : m_mapWeakAnimations) {
 					Ref<Animation> animation(pair.value);
 					if (animation.isNotNull()) {
 						animations.add_NoLock(animation);

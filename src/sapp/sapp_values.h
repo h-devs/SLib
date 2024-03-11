@@ -48,7 +48,7 @@ namespace slib
 	public:
 		void mergeDefault(SAppStateMap& base)
 		{
-			for (auto& item : base.values) {
+			for (auto&& item : base.values) {
 				if (!(values.find_NoLock(item.key))) {
 					values.put_NoLock(item.key, item.value);
 				}

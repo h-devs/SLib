@@ -232,7 +232,7 @@ namespace slib
 		{
 			MutexLocker lock(map.getLocker());
 			StringBuffer sb;
-			for (auto& item: map) {
+			for (auto&& item: map) {
 				if (item.key.isNotEmpty()) {
 					if (sb.getLength() > 0) {
 						sb.addStatic(&delimiter, 1);
@@ -547,7 +547,7 @@ namespace slib
 		{
 			StringBuffer sb;
 			sl_bool flagFirst = sl_true;
-			for (auto& pair : params) {
+			for (auto&& pair : params) {
 				if (!flagFirst) {
 					sb.addStatic("&");
 				}
@@ -564,7 +564,7 @@ namespace slib
 		{
 			StringBuffer sb;
 			sl_bool flagFirst = sl_true;
-			for (auto& pair : params) {
+			for (auto&& pair : params) {
 				if (!flagFirst) {
 					sb.addStatic("&");
 				}

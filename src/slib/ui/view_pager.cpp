@@ -366,7 +366,7 @@ namespace slib
 				if (indexOther != indexCurrent) {
 					_loadPage(indexOther);
 				}
-				for (auto& item : m_cache) {
+				for (auto&& item : m_cache) {
 					item.value->setTranslationX((sl_real)(_getPagePosition(item.key)));
 				}
 			}
@@ -493,7 +493,7 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 		m_offsetPages = 0;
-		for (auto& item : m_cache) {
+		for (auto&& item : m_cache) {
 			item.value->setTranslationX((sl_real)(_getPagePosition(item.key)));
 		}
 	}
@@ -503,7 +503,7 @@ namespace slib
 		ObjectLocker lock(this);
 		UIRect rect = getBoundsInnerPadding();
 		m_offsetPages = 0;
-		for (auto& item : m_cache) {
+		for (auto&& item : m_cache) {
 			item.value->setFrame(rect);
 			item.value->setTranslationX((sl_real)(_getPagePosition(item.key)));
 		}
@@ -512,7 +512,7 @@ namespace slib
 	void ViewPager::_reloadPages()
 	{
 		ObjectLocker lock(this);
-		for (auto& item : m_cache) {
+		for (auto&& item : m_cache) {
 			removeChild(item.value, UIUpdateMode::None);
 		}
 		m_cache.removeAll_NoLock();
@@ -525,7 +525,7 @@ namespace slib
 		ObjectLocker lock(this);
 		sl_uint64 indexCurrent = m_indexCurrent;
 		Ref<View> current;
-		for (auto& item : m_cache) {
+		for (auto&& item : m_cache) {
 			if (item.key == indexCurrent) {
 				current = item.value;
 			} else {
@@ -556,7 +556,7 @@ namespace slib
 			_cleanCache();
 		}
 		m_offsetPages = offset;
-		for (auto& item : m_cache) {
+		for (auto&& item : m_cache) {
 			item.value->setTranslationX((sl_real)(_getPagePosition(item.key)));
 		}
 	}

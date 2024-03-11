@@ -117,7 +117,7 @@ namespace slib
 	template <class KT, class... TYPES>
 	Json::Json(const std::map<KT, TYPES...>& _in)
 	{
-		for (auto& item : _in) {
+		for (auto&& item : _in) {
 			put_NoLock(Cast<KT, String>()(item.first), Json(item.second));
 		}
 	}
@@ -131,7 +131,7 @@ namespace slib
 	template <class KT, class... TYPES>
 	Json::Json(const std::unordered_map<KT, TYPES...>& _in)
 	{
-		for (auto& item : _in) {
+		for (auto&& item : _in) {
 			put_NoLock(Cast<KT, String>()(item.first), Json(item.second));
 		}
 	}

@@ -33,7 +33,7 @@ int main(int argc, const char * argv[])
 		db->insert("book", map);
 		Println("Inserted %dth row", i);
 	}
-	for (auto& row : db->findRecords("book", DatabaseExpression::null())) {
+	for (auto&& row : db->findRecords("book", DatabaseExpression::null())) {
 		String title = row["title"].getString();
 		String abstract = row["abstract"].getString();
 		Println("Title: %s, Abstract: %s", title, abstract);

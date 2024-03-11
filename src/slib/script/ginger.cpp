@@ -1081,7 +1081,7 @@ namespace slib
 									VariantMap map = var.getVariantMap();
 									if (map.isNotNull()) {
 										if (map.isNotEmpty()) {
-											GINGER_PROCESS_FOR_IMPL(for (auto& pair : map), pair.key)
+											GINGER_PROCESS_FOR_IMPL(for (auto&& pair : map), pair.key)
 										}
 									} else {
 										VariantList list = var.getVariantList();

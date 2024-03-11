@@ -331,7 +331,7 @@ namespace slib
 				return sl_false;
 			}
 			sl_size ret = 0;
-			for (auto& item : values) {
+			for (auto&& item : values) {
 				if (setValue(item.key, item.value)) {
 					ret++;
 				}

@@ -179,7 +179,7 @@ namespace slib
 		Context* context = (Context*)_context;
 		if (context) {
 			HashMap<String16, FileInfo> ret;
-			for (auto& item : File::getFileInfos(context->absolutePath)) {
+			for (auto&& item : File::getFileInfos(context->absolutePath)) {
 				FileInfo info;
 				info.size = item.value.size;
 				info.attributes = item.value.attributes;
@@ -1449,24 +1449,24 @@ namespace slib
 							bufTotal.add(GenerateFileIdBothDirectoryInfo(s1, 0, share->getFileUniqueId(path), info));
 							bufTotal.add(GenerateFileIdBothDirectoryInfo(s2, 0, share->getFileUniqueId(GetParentDirectoryPath(path)), info));
 							sl_uint32 index = 1;
-							for (auto& item : share->getFiles(file.get())) {
+							for (auto&& item : share->getFiles(file.get())) {
 								bufTotal.add(GenerateFileIdBothDirectoryInfo(item.key, index, share->getFileUniqueId(String16::concat(path, g_strPathDelimiter, item.key)), item.value));
 								index++;
 							}
 						} else if (pattern.startsWith('*')) {
-							for (auto& item : share->getFiles(file.get())) {
+							for (auto&& item : share->getFiles(file.get())) {
 								if (item.key.endsWith(pattern.substring(1))) {
 									bufTotal.add(GenerateFileIdBothDirectoryInfo(item.key, 0, share->getFileUniqueId(String16::concat(path, g_strPathDelimiter, item.key)), item.value));
 								}
 							}
 						} else if (pattern.endsWith('*')) {
-							for (auto& item : share->getFiles(file.get())) {
+							for (auto&& item : share->getFiles(file.get())) {
 								if (item.key.startsWith(pattern.substring(0, pattern.getLength() - 1))) {
 									bufTotal.add(GenerateFileIdBothDirectoryInfo(item.key, 0, share->getFileUniqueId(String16::concat(path, g_strPathDelimiter, item.key)), item.value));
 								}
 							}
 						} else {
-							for (auto& item : share->getFiles(file.get())) {
+							for (auto&& item : share->getFiles(file.get())) {
 								if (item.key == pattern) {
 									bufTotal.add(GenerateFileIdBothDirectoryInfo(item.key, 0, share->getFileUniqueId(String16::concat(path, g_strPathDelimiter, item.key)), item.value));
 								}

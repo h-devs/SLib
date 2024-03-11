@@ -30,7 +30,7 @@ namespace slib
 	String SAppStringResourceItem::get(const Locale& locale, const String& def)
 	{
 		{
-			for (auto& item : values) {
+			for (auto&& item : values) {
 				if (item.key == locale) {
 					return item.value;
 				}
@@ -38,7 +38,7 @@ namespace slib
 		}
 		{
 			Locale localeCompare = Locale(locale.getLanguage(), locale.getCountry());
-			for (auto& item : values) {
+			for (auto&& item : values) {
 				if (item.key == localeCompare) {
 					return item.value;
 				}
@@ -46,7 +46,7 @@ namespace slib
 		}
 		{
 			Locale localeCompare(locale.getLanguage(), locale.getScript(), Country::Unknown);
-			for (auto& item : values) {
+			for (auto&& item : values) {
 				if (item.key == localeCompare) {
 					return item.value;
 				}
@@ -54,7 +54,7 @@ namespace slib
 		}
 		{
 			Locale localeCompare(locale.getLanguage());
-			for (auto& item : values) {
+			for (auto&& item : values) {
 				if (item.key == localeCompare) {
 					return item.value;
 				}
@@ -115,7 +115,7 @@ namespace slib
 
 	sl_bool SAppLayoutViewAttributes::isNotRequiredNative(sl_bool flagCheckBackgroundColor)
 	{
-		for (auto& item : background.values) {
+		for (auto&& item : background.values) {
 			if (item.key == ViewState::Default) {
 				if (flagCheckBackgroundColor) {
 					return sl_true;

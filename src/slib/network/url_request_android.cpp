@@ -88,7 +88,7 @@ namespace slib
 				JniLocal<jobjectArray> jheaders;
 				{
 					CList<String> list;
-					for (auto& pair : m_requestHeaders) {
+					for (auto&& pair : m_requestHeaders) {
 						list.add_NoLock(pair.key);
 						list.add_NoLock(pair.value);
 					}

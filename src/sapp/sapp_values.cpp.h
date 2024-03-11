@@ -1687,7 +1687,7 @@ namespace slib
 		{
 			SAppBorderValue* v = map.values.getItemPointer(ViewState::Default);
 			if (v) {
-				for (auto& item : map.values) {
+				for (auto&& item : map.values) {
 					if (item.key != ViewState::Default) {
 						item.value.inheritFrom(*v);
 					}

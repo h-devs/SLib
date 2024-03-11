@@ -104,7 +104,7 @@ namespace slib
 		}
 		List< Ref<Thread> > list;
 		MutexLocker lock(map.getLocker());
-		for (auto& item : map) {
+		for (auto&& item : map) {
 			Ref<Thread> thread = item.value;
 			if (thread.isNotNull()) {
 				list.add_NoLock(thread);

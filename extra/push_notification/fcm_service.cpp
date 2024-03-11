@@ -90,7 +90,7 @@ namespace slib
 		notification.putItem(g_str_sound, param.message.sound);
 		body.putItem(g_str_notification, notification);
 		if (param.customMessage.isJsonMap()) {
-			for (auto& item : param.customMessage.getJsonMap()) {
+			for (auto&& item : param.customMessage.getJsonMap()) {
 				body.putItem(item.key, item.value);
 			}
 		}

@@ -161,7 +161,7 @@ namespace slib
 
 	sl_bool SAppDocument::_openResourcesExceptUi()
 	{
-		for (auto& include : m_conf.includes) {
+		for (auto&& include : m_conf.includes) {
 			if (!(_openResourcesExceptUi(include))) {
 				return sl_false;
 			}
@@ -190,7 +190,7 @@ namespace slib
 	{
 		List<String> fileList = File::getFiles(pathApp);
 		fileList.sort();
-		for (auto& fileName : fileList) {
+		for (auto&& fileName : fileList) {
 			if (fileName.isNotNull()) {
 				if (fileName == "image") {
 					if (!(_registerFileResources("image", pathApp + "/image", Locale::Unknown))) {
@@ -229,7 +229,7 @@ namespace slib
 	sl_bool SAppDocument::_openGlobalResources(const String& pathApp, const String& subdir)
 	{
 		String pathDir = File::concatPath(pathApp, subdir);
-		for (auto& fileName : File::getFiles(pathDir)) {
+		for (auto&& fileName : File::getFiles(pathDir)) {
 			String path = File::concatPath(pathDir, fileName);
 			if (File::exists(path)) {
 				if (!(File::isDirectory(path))) {
@@ -246,7 +246,7 @@ namespace slib
 
 	sl_bool SAppDocument::_openUiResources()
 	{
-		for (auto& include : m_conf.includes) {
+		for (auto&& include : m_conf.includes) {
 			if (!(_openUiResources(File::concatPath(include, "layout")))) {
 				return sl_false;
 			}
@@ -265,7 +265,7 @@ namespace slib
 
 	sl_bool SAppDocument::_openUiResources(const String& pathLayouts)
 	{
-		for (auto& fileName : File::getFiles(pathLayouts)) {
+		for (auto&& fileName : File::getFiles(pathLayouts)) {
 			String path = File::concatPath(pathLayouts, fileName);
 			if (File::getFileExtension(fileName) == "xml" || File::getFileExtension(fileName) == "uiml") {
 				if (!(_openUiResource(path))) {
@@ -296,7 +296,7 @@ namespace slib
 
 	sl_bool SAppDocument::_openUiResourceByName(const String& name)
 	{
-		for (auto& include : m_conf.includes) {
+		for (auto&& include : m_conf.includes) {
 			String path = File::concatPath(include, "layout", name);
 			if (File::isFile(path + ".xml")) {
 				return _openUiResource(path + ".xml");

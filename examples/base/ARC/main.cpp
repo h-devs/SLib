@@ -74,7 +74,7 @@ public:
 				Println("[Print] Leaf Node: %s, Parent: %s", name, parent->name);
 			}
 		}
-		for (auto& child : children) {
+		for (auto&& child : children) {
 			child->print();
 		}
 	}

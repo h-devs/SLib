@@ -109,7 +109,7 @@ namespace slib
 							req.timeoutInterval = NSTimeInterval(param.timeout) / 1000;
 							req.HTTPShouldHandleCookies = NO;
 							{
-								for (auto& pair : param.requestHeaders) {
+								for (auto&& pair : param.requestHeaders) {
 									[req addValue:(Apple::getNSStringFromString(pair.value)) forHTTPHeaderField:(Apple::getNSStringFromString(pair.key))];
 								}
 							}

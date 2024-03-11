@@ -280,7 +280,7 @@ namespace slib
 								 , m_conf.generate_cpp_namespace));
 
 
-		for (auto& pair : m_menus) {
+		for (auto&& pair : m_menus) {
 			if (pair.value.isNotNull()) {
 
 				sbHeader.add(String::format("\t\tSLIB_DECLARE_MENU_BEGIN(%s)%n", pair.key));

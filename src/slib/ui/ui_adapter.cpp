@@ -226,7 +226,7 @@ namespace slib
 					if (nChildren) {
 						group->removeAllChildren(UIUpdateMode::None);
 					}
-					for (auto& child : children) {
+					for (auto&& child : children) {
 						group->addChild(child, flagNewGroup ? UIUpdateMode::Init : UIUpdateMode::None);
 					}
 					if (!flagNewGroup) {

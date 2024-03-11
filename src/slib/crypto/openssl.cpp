@@ -265,7 +265,7 @@ namespace slib
 					KeyStore::applyPrivateKey(ctx, param.privateKey);
 					HashMap< String, Ref<KeyStore> > keyStores;
 					if (param.certificates.isNotEmpty() && param.privateKeys.isNotEmpty()) {
-						for (auto& item : param.certificates) {
+						for (auto&& item : param.certificates) {
 							if (item.key.isNotEmpty() && item.value.isNotNull()) {
 								Memory privateKey;
 								if (param.privateKeys.get(item.key, &privateKey)) {

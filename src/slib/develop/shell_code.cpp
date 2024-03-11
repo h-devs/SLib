@@ -134,7 +134,7 @@ namespace slib
 				}
 
 				//recalculate the relocation item's offset from the shellcode block
-				for (auto& reloc : listReloc) {
+				for (auto&& reloc : listReloc) {
 					reloc += (sl_uint32)section.codeOffset;
 				}
 				totalListReloc.addAll_NoLock(listReloc);
@@ -148,7 +148,7 @@ namespace slib
 			if (mem.isNull()) {
 				return sl_null;
 			}
-			for (auto& reloc : listReloc) {
+			for (auto&& reloc : listReloc) {
 				reloc += (sl_uint32)pSectionEntry->codeOffset;
 			}
 			totalListReloc.addAll_NoLock(listReloc);

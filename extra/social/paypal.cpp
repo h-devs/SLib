@@ -193,7 +193,7 @@ namespace slib
 		}
 		orderId = response["id"].getString();
 		status = ParseOrderStatus(response["status"].getString());
-		for (auto& item : response["links"].getJsonList()) {
+		for (auto&& item : response["links"].getJsonList()) {
 			if (item["rel"].getString() == "approve") {
 				approveLink = item["href"].getString();
 				break;

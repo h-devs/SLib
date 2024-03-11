@@ -104,7 +104,7 @@ namespace slib
 			message.putItem(g_str_android, android);
 		}
 		if (param.customMessage.isJsonMap()) {
-			for (auto& item : param.customMessage.getJsonMap()) {
+			for (auto&& item : param.customMessage.getJsonMap()) {
 				message.putItem(item.key, item.value);
 			}
 		}

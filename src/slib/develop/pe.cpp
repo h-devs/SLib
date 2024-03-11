@@ -461,7 +461,7 @@ namespace slib
 
 		for (;;) {
 			sl_bool flagFoundNewSection = sl_false;
-			for (auto& item : refSections) {
+			for (auto&& item : refSections) {
 				if (item.key) {
 					Coff::CodeSection* pSection = sections.getSectionByNumber(item.key);
 					if (pSection) {
@@ -507,7 +507,7 @@ namespace slib
 
 		List<Coff::CodeSection> ret;
 		{
-			for (auto& item : refSections) {
+			for (auto&& item : refSections) {
 				if (item.key) {
 					Coff::CodeSection* pSection = sections.getSectionByNumber(item.key);
 					if (pSection) {

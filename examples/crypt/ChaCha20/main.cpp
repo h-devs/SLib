@@ -71,7 +71,7 @@ sl_bool DoFileOperation(sl_bool flagEncrypt, const String& key, const String& pa
 
 sl_bool DoDirOperation(sl_bool flagEncrypt, const String& key, const String& pathSrc, const String& pathDst)
 {
-	for (auto& fileName : File::getFiles(pathSrc)) {
+	for (auto&& fileName : File::getFiles(pathSrc)) {
 		String pathSrcFile = pathSrc + "/" + fileName;
 		String pathDstFile = pathDst + "/" + fileName;
 		FileAttributes attrs = File::getAttributes(pathSrcFile);
@@ -142,7 +142,7 @@ sl_bool UpdateFilePassword(const String& oldKey, const String& newKey, const Str
 
 sl_bool UpdateDirPassword(const String& oldKey, const String& newKey, const String& path)
 {
-	for (auto& fileName : File::getFiles(path)) {
+	for (auto&& fileName : File::getFiles(path)) {
 		String pathFile = path + "/" + fileName;
 		FileAttributes attrs = File::getAttributes(pathFile);
 		if (!(attrs & FileAttributes::NotExist)) {

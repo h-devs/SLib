@@ -114,7 +114,7 @@ namespace slib
 			return sl_false;
 		}
 		if (count) {
-			for (auto& item : _in) {
+			for (auto&& item : _in) {
 				if (!(Serialize(output, item.first))) {
 					return sl_false;
 				}
@@ -140,7 +140,7 @@ namespace slib
 			return sl_false;
 		}
 		if (count) {
-			for (auto& item : _in) {
+			for (auto&& item : _in) {
 				if (!(Serialize(output, item.first))) {
 					return sl_false;
 				}

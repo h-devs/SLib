@@ -955,13 +955,13 @@ namespace slib
 
 	void HttpServerRouter::add(const String& path, const HttpServerRouter& router)
 	{
-		for (auto& item : router.routes) {
+		for (auto&& item : router.routes) {
 			add(item.key, path, item.value);
 		}
-		for (auto& item : router.preRoutes) {
+		for (auto&& item : router.preRoutes) {
 			before(item.key, path, item.value);
 		}
-		for (auto& item : router.postRoutes) {
+		for (auto&& item : router.postRoutes) {
 			after(item.key, path, item.value);
 		}
 	}
@@ -1046,7 +1046,7 @@ namespace slib
 	HashMap<String, WebDavItemProperty> WebDavItemProperty::getFiles(const StringParam& path)
 	{
 		HashMap<String, WebDavItemProperty> ret;
-		for (auto& file : File::getFileInfos(path)) {
+		for (auto&& file : File::getFileInfos(path)) {
 			WebDavItemProperty prop;
 			if (file.value.attributes & FileAttributes::Directory) {
 				prop.flagCollection = sl_true;
@@ -1647,7 +1647,7 @@ namespace slib
 					processWebDav_PROPFIND_Response(context, path, sl_null, prop);
 					if (chDepth == '1') {
 						if (prop.flagCollection) {
-							for (auto& item : getWebDavItems(context, path)) {
+							for (auto&& item : getWebDavItems(context, path)) {
 								processWebDav_PROPFIND_Response(context, path, item.key, item.value);
 							}
 						}

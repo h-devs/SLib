@@ -507,7 +507,7 @@ namespace slib
 
 		pathDirBase = File::normalizeDirectoryPath(pathDirBase);
 
-		for (auto& file : filesBase) {
+		for (auto&& file : filesBase) {
 			String name = toWrapperPath(file.key, sl_true);
 			if (name.isEmpty()) {
 				String path = toWrapperPath(String::concat(pathDirBase, "/", file.key), sl_false);

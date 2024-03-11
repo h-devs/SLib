@@ -114,7 +114,7 @@ int main(int argc, const char * argv[])
 		}
 	}
 
-	for (auto& item : symbolsToRemove) {
+	for (auto&& item : symbolsToRemove) {
 		symbols.remove_NoLock(item.key);
 	}
 
@@ -124,7 +124,7 @@ int main(int argc, const char * argv[])
 	}
 
 	Println("Found symbols:\n");
-	for (auto& item : symbols) {
+	for (auto&& item : symbols) {
 		Println(format, item.key);
 	}
 

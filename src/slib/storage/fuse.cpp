@@ -156,7 +156,7 @@ namespace slib
 			SLIB_UNUSED(off)
 
 			HashMap<String, FileInfo> files = provider->getFiles(path);
-			for (auto& item : files) {
+			for (auto&& item : files) {
 				FileInfo& info = item.value;
 
 				struct stat st = { 0 };

@@ -184,7 +184,7 @@ namespace slib
 		{
 			List<String> names;
 			List<Variant> values;
-			for (auto& pair : map) {
+			for (auto&& pair : map) {
 				names.add_NoLock(pair.key);
 				values.add_NoLock(pair.value);
 			}
@@ -202,7 +202,7 @@ namespace slib
 		{
 			List<String> names;
 			List<Variant> values;
-			for (auto& pair : map) {
+			for (auto&& pair : map) {
 				names.add_NoLock(pair.key);
 				values.add_NoLock(pair.value);
 			}

@@ -88,7 +88,7 @@ namespace slib
 
 		sbMap.add("\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_BEGIN\r\n");
 
-		for (auto& pair : m_colors) {
+		for (auto&& pair : m_colors) {
 
 			if (pair.value.isNotNull()) {
 

@@ -180,7 +180,7 @@ namespace slib
 				// HTTP headers and additional headers
 				if(m_requestHeaders.isNotEmpty())
 				{
-					for (auto& pair : m_requestHeaders) {
+					for (auto&& pair : m_requestHeaders) {
 						String s = String::concat(pair.key, ": ", pair.value);
 						headerChunk = curl_slist_append(headerChunk, s.getData());
 					}

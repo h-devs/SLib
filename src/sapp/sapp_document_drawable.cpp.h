@@ -46,7 +46,7 @@ namespace slib
 
 		// iterate file resources
 		{
-			for (auto& pair : m_drawables) {
+			for (auto&& pair : m_drawables) {
 				if (pair.value.isNotNull()) {
 					Ref<SAppDrawableResource>& res = pair.value;
 					if (res->type == SAppDrawableResource::typeFile) {
@@ -58,7 +58,7 @@ namespace slib
 
 		// iterate other resources
 		{
-			for (auto& pair : m_drawables) {
+			for (auto&& pair : m_drawables) {
 				if (pair.value.isNotNull()) {
 					Ref<SAppDrawableResource>& res = pair.value;
 					if (res->type == SAppDrawableResource::typeNinePieces) {
@@ -379,7 +379,7 @@ namespace slib
 
 			CList< Pair<Locale, List< Ref<SAppDrawableResourceFileItem> > > > listPairs;
 			{
-				for (auto& pairItems : fileAttr->files) {
+				for (auto&& pairItems : fileAttr->files) {
 					if (pairItems.key.getCountry() != Country::Unknown && pairItems.key.getScript() != LanguageScript::Unknown) {
 						if (!(listPairs.add_NoLock(pairItems.key, pairItems.value))) {
 							logError(g_str_error_out_of_memory);
@@ -389,7 +389,7 @@ namespace slib
 				}
 			}
 			{
-				for (auto& pairItems : fileAttr->files) {
+				for (auto&& pairItems : fileAttr->files) {
 					if (pairItems.key.getCountry() != Country::Unknown && pairItems.key.getScript() == LanguageScript::Unknown) {
 						if (!(listPairs.add_NoLock(pairItems.key, pairItems.value))) {
 							logError(g_str_error_out_of_memory);
@@ -399,7 +399,7 @@ namespace slib
 				}
 			}
 			{
-				for (auto& pairItems : fileAttr->files) {
+				for (auto&& pairItems : fileAttr->files) {
 					if (pairItems.key.getCountry() == Country::Unknown && pairItems.key.getScript() != LanguageScript::Unknown) {
 						if (!(listPairs.add_NoLock(pairItems.key, pairItems.value))) {
 							logError(g_str_error_out_of_memory);
@@ -409,7 +409,7 @@ namespace slib
 				}
 			}
 			{
-				for (auto& pairItems : fileAttr->files) {
+				for (auto&& pairItems : fileAttr->files) {
 					if (pairItems.key.getCountry() == Country::Unknown && pairItems.key.getScript() == LanguageScript::Unknown) {
 						if (!(listPairs.add_NoLock(pairItems.key, pairItems.value))) {
 							logError(g_str_error_out_of_memory);
@@ -480,7 +480,7 @@ namespace slib
 		do {
 			Locale locale = getCurrentSimulatorLocale();
 			{
-				for (auto& item : fileAttr->files) {
+				for (auto&& item : fileAttr->files) {
 					if (item.key == locale) {
 						listItems = item.value;
 						break;
@@ -491,7 +491,7 @@ namespace slib
 				}
 			}
 			{
-				for (auto& item : fileAttr->files) {
+				for (auto&& item : fileAttr->files) {
 					if (item.key == Locale(locale.getLanguage(), locale.getCountry())) {
 						listItems = item.value;
 						break;
@@ -502,7 +502,7 @@ namespace slib
 				}
 			}
 			{
-				for (auto& item : fileAttr->files) {
+				for (auto&& item : fileAttr->files) {
 					if (item.key == Locale(locale.getLanguage(), locale.getScript(), Country::Unknown)) {
 						listItems = item.value;
 						break;
@@ -513,7 +513,7 @@ namespace slib
 				}
 			}
 			{
-				for (auto& item : fileAttr->files) {
+				for (auto&& item : fileAttr->files) {
 					if (item.key == Locale(locale.getLanguage())) {
 						listItems = item.value;
 						break;

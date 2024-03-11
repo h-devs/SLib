@@ -97,7 +97,7 @@ namespace slib
 		}
 
 		if (flagVariants) {
-			for (auto& e : element->getChildElements()) {
+			for (auto&& e : element->getChildElements()) {
 				String vName = e->getName();
 				if (vName == "default") {
 					if (!(_registerStringResourceItem(*res, e, locale, source))) {
@@ -200,13 +200,13 @@ namespace slib
 
 		sbMap.add("\t\tSLIB_DEFINE_STRING_RESOURCE_MAP_BEGIN\r\n");
 
-		for (auto& pair : m_strings) {
+		for (auto&& pair : m_strings) {
 			if (pair.value.isNotNull()) {
 				auto& res = *(pair.value);
 				sbHeader.add(String::format("\t\tSLIB_DECLARE_STRING_RESOURCE(%s)%n", pair.key));
 				sbMap.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_MAP_ITEM(%s)%n", pair.key));
 				_generateStringsCpp_Item(sbCpp, pair.key, sl_null, res);
-				for (auto& var : res.variants) {
+				for (auto&& var : res.variants) {
 					sbHeader.add(String::format("\t\tSLIB_DECLARE_STRING_VARIANT(%s, %s)%n", pair.key, var.key));
 					sbMap.add(String::format("\t\t\tSLIB_DEFINE_STRING_VARIANT_MAP_ITEM(%s, %s)%n", pair.key, var.key));
 					_generateStringsCpp_Item(sbCpp, pair.key, var.key, var.value);
@@ -262,28 +262,28 @@ namespace slib
 				sbCpp.add(String::format("\t\tSLIB_DEFINE_STRING_RESOURCE_BEGIN(%s, \"%s\")%n", resourceName, Stringx::applyBackslashEscapes(defValue, sl_true, sl_false, sl_true)));
 			}
 			{
-				for (auto& pairValues : item.values) {
+				for (auto&& pairValues : item.values) {
 					if (pairValues.key.getCountry() != Country::Unknown && pairValues.key.getScript() != LanguageScript::Unknown) {
 						sbCpp.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_VALUE(%s, \"%s\")%n", pairValues.key.toString(), Stringx::applyBackslashEscapes(pairValues.value, sl_true, sl_false, sl_true)));
 					}
 				}
 			}
 			{
-				for (auto& pairValues : item.values) {
+				for (auto&& pairValues : item.values) {
 					if (pairValues.key.getCountry() != Country::Unknown && pairValues.key.getScript() == LanguageScript::Unknown) {
 						sbCpp.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_VALUE(%s, \"%s\")%n", pairValues.key.toString(), Stringx::applyBackslashEscapes(pairValues.value, sl_true, sl_false, sl_true)));
 					}
 				}
 			}
 			{
-				for (auto& pairValues : item.values) {
+				for (auto&& pairValues : item.values) {
 					if (pairValues.key.getCountry() == Country::Unknown && pairValues.key.getScript() != LanguageScript::Unknown) {
 						sbCpp.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_VALUE(%s, \"%s\")%n", pairValues.key.toString(), Stringx::applyBackslashEscapes(pairValues.value, sl_true, sl_false, sl_true)));
 					}
 				}
 			}
 			{
-				for (auto& pairValues : item.values) {
+				for (auto&& pairValues : item.values) {
 					if (pairValues.key.getCountry() == Country::Unknown && pairValues.key.getScript() == LanguageScript::Unknown) {
 						sbCpp.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_VALUE(%s, \"%s\")%n", pairValues.key.toString(), Stringx::applyBackslashEscapes(pairValues.value, sl_true, sl_false, sl_true)));
 					}

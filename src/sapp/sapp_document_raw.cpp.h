@@ -144,7 +144,7 @@ namespace slib
 
 		StringBuffer sbData;
 
-		for (auto& pair : m_raws) {
+		for (auto&& pair : m_raws) {
 			if (pair.value.isNotNull()) {
 				Ref<SAppRawResource> res = pair.value;
 				if (!(_generateRawCppItem(res.get(), targetPath, sl_null, sl_null, sbHeader, sbCpp, sbMap, sbData, tabCountStart, 0))) {
@@ -228,7 +228,7 @@ namespace slib
 			sbHeader.add(strNamespace);
 			sbCpp.add(strNamespace);
 			sbData.add(strNamespace);
-			for (auto& pair : res->sub) {
+			for (auto&& pair : res->sub) {
 				if (pair.value.isNotNull()) {
 					Ref<SAppRawResource> res = pair.value;
 					if (!(_generateRawCppItem(res.get(), targetPath, relativePath, namespacePath, sbHeader, sbCpp, sbMap, sbData, tabCountStart, tabCountRelative + 1))) {

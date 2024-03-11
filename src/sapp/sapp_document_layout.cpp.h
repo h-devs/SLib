@@ -410,7 +410,7 @@ namespace slib
 
 		sbHeaderBase.add(String::format("%n" "namespace %s%n" "{%n\tnamespace ui%n\t{%n", m_conf.generate_cpp_namespace));
 		{
-			for (auto& pair : m_layouts) {
+			for (auto&& pair : m_layouts) {
 				if (pair.value.isNotNull()) {
 					Ref<SAppLayoutResource> layout = pair.value;
 					sbHeaderBase.add(String::format("\t\tclass %s;%n", pair.key));
@@ -420,7 +420,7 @@ namespace slib
 		sbHeaderBase.add("\t}\r\n}\r\n");
 
 		{
-			for (auto& pair : m_layouts) {
+			for (auto&& pair : m_layouts) {
 				if (pair.value.isNotNull()) {
 					sbHeader.add(String::format("#include \"ui/%s.h\"%n", pair.key));
 					sbCpp.add(String::format("#include \"ui/%s.cpp.inc\"%n", pair.key));
@@ -507,7 +507,7 @@ namespace slib
 		}
 		{
 			ObjectLocker lock(&(layout->itemArrays));
-			for (auto& item : layout->itemArrays) {
+			for (auto&& item : layout->itemArrays) {
 				sbHeader.add(String::format("\t\t\tslib::Ref<%s> %s[%d];%n", item.value.className, item.key, item.value.itemCount));
 			}
 			if (layout->itemArrays.isNotEmpty()) {
@@ -1744,14 +1744,14 @@ namespace slib
 #define LAYOUT_CONTROL_PARSE_STATE_MAP_ATTR(TYPE, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_STATE_MAP_XML(TYPE, *resourceItem, ATTR, NAME, ##__VA_ARGS__)
 #define LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	{ \
-		for (auto& item : VAR.values) { \
+		for (auto&& item : VAR.values) { \
 			const char* state = GetViewStateAcessString(item.key); \
 			LAYOUT_CONTROL_GENERATE_##TYPE(item.value, SETFUNC, CATEGORY, ARG_FORMAT ", %s", ##__VA_ARGS__, state) \
 		} \
 	}
 #define LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, VAR, SETFUNC, CATEGORY, ...) \
 	{ \
-		for (auto& item : VAR.values) { \
+		for (auto&& item : VAR.values) { \
 			LAYOUT_CONTROL_SIMULATE_##TYPE(item.value, SETFUNC, CATEGORY, ##__VA_ARGS__, item.key) \
 		} \
 	}

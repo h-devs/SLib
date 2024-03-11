@@ -297,7 +297,7 @@ namespace slib
 					return;
 				}
 				{
-					for (auto& pair : m_requestHeaders) {
+					for (auto&& pair : m_requestHeaders) {
 						String16 line = String16::format(SLIB_UNICODE("%s: %s\r\n"), pair.key, pair.value);
 						WinHttpAddRequestHeaders(m_hRequest, (LPCWSTR)(line.getData()), (DWORD)(line.getLength()), WINHTTP_ADDREQ_FLAG_ADD);
 					}

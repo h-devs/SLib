@@ -34,7 +34,7 @@ void LanTvServerApp::onStart()
 		m_viewSelectVideoSource->setCenterVertical();
 		m_viewSelectVideoSource->setMargin(5);
 		List<String> values, titles;
-		for (auto& cameraInfo : Camera::getCameras()) {
+		for (auto&& cameraInfo : Camera::getCameras()) {
 			values.add(cameraInfo.id);
 			titles.add(cameraInfo.name);
 		}
@@ -60,7 +60,7 @@ void LanTvServerApp::onStart()
 		m_viewSelectAudioSource->setCenterVertical();
 		m_viewSelectAudioSource->setMargin(5);
 		List<String> values, titles;
-		for (auto& audioInfo : AudioRecorder::getDevices()) {
+		for (auto&& audioInfo : AudioRecorder::getDevices()) {
 			values.add(audioInfo.id);
 			titles.add(audioInfo.name);
 		}

@@ -50,10 +50,10 @@ namespace slib
 			~NamedPipeIPC()
 			{
 				List< Ref<Thread> > threads = m_threads.duplicate();
-				for (auto& item : threads) {
+				for (auto&& item : threads) {
 					item->finish();
 				}
-				for (auto& item : threads) {
+				for (auto&& item : threads) {
 					item->finishAndWait();
 				}
 			}
