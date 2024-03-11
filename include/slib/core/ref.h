@@ -75,6 +75,7 @@ public: \
 	static sl_object_type ObjectType() noexcept { return __VA_ARGS__::ObjectType(); } \
 	SLIB_CONSTEXPR WRAPPER() = default; \
 	SLIB_CONSTEXPR WRAPPER(sl_null_t) {} \
+	SLIB_CONSTEXPR WRAPPER(priv::ref::DummyContainer* container): ref(container) {} \
 	WRAPPER(__VA_ARGS__* obj) noexcept: ref(obj) {} \
 	WRAPPER(WRAPPER&& other) noexcept: ref(Move(other.ref)) {} \
 	WRAPPER(const WRAPPER& other) noexcept: ref(other.ref) {} \
@@ -143,7 +144,7 @@ public: \
 	Atomic& operator=(typename RemoveAtomic<Atomic>::Type&& other) noexcept { ref = Move(*(reinterpret_cast<Ref<__VA_ARGS__>*>(&other))); return *this; } \
 	Atomic& operator=(typename RemoveAtomic<Atomic>::Type const& other) noexcept { ref = *(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other)); return *this; } \
 	Atomic& operator=(typename RemoveAtomic<Atomic>::Type& other) noexcept { ref = *(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other)); return *this; } \
-	typename RemoveAtomic<Atomic>::Type release() noexcept { return (sl_reg*)((void*)(ref._release())); }
+	typename RemoveAtomic<Atomic>::Type release() noexcept { return (priv::ref::DummyContainer*)((void*)(ref._release())); }
 
 #define SLIB_ATOMIC_REF_WRAPPER(...) \
 	SLIB_ATOMIC_REF_WRAPPER_NO_OP(__VA_ARGS__) \
@@ -165,6 +166,7 @@ namespace slib
 		namespace ref
 		{
 			extern void* const g_null;
+			class DummyContainer;
 		}
 	}
 
@@ -261,6 +263,8 @@ namespace slib
 		SLIB_CONSTEXPR Ref(): ptr(sl_null) {}
 
 		SLIB_CONSTEXPR Ref(sl_null_t): ptr(sl_null) {}
+
+		SLIB_CONSTEXPR Ref(priv::ref::DummyContainer* _ptr): ptr((T*)((void*)_ptr)) {}
 
 		Ref(T* other) noexcept
 		{
@@ -590,9 +594,6 @@ namespace slib
 	public:
 		T* ptr;
 
-	private:
-		SLIB_CONSTEXPR explicit Ref(sl_reg* _ptr) noexcept: ptr((T*)((void*)_ptr)) {}
-
 	};
 
 	template <class T>
@@ -708,7 +709,7 @@ namespace slib
 		
 		Ref<T> release() noexcept
 		{
-			return (sl_reg*)((void*)_release());
+			return (priv::ref::DummyContainer*)((void*)_release());
 		}
 
 		template <class OTHER>
@@ -918,6 +919,9 @@ namespace slib
 
 		T* _release() noexcept
 		{
+			if (!_ptr) {
+				return sl_null;
+			}
 			m_lock.lock();
 			T* before = _ptr;
 			_ptr = sl_null;
