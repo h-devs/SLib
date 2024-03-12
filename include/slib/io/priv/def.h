@@ -59,6 +59,7 @@
 #define SLIB_DECLARE_IWRITER_MEMBERS(...) \
 	sl_reg writeFully(const void* buf, sl_size size) __VA_ARGS__; \
 	sl_reg writeFully(const MemoryView& mem) __VA_ARGS__; \
+	sl_reg writeFully(const StringView& str) __VA_ARGS__; \
 	sl_bool writeInt8(sl_int8 value) __VA_ARGS__; \
 	sl_bool writeUint8(sl_uint8 value) __VA_ARGS__; \
 	sl_bool writeInt16(sl_int16 value, EndianType endian = Endian::Little) __VA_ARGS__; \
@@ -69,9 +70,9 @@
 	sl_bool writeUint64(sl_uint64 value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeFloat(float value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeDouble(double value, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool writeTextUTF8(const StringView& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__; \
-	sl_bool writeTextUTF16LE(const StringView16& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__; \
-	sl_bool writeTextUTF16BE(const StringView16& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__;
+	sl_bool writeAllBytes(const void* buf, sl_size size) __VA_ARGS__; \
+	sl_bool writeAllBytes(const MemoryView& mem) __VA_ARGS__; \
+	sl_bool writeAllBytes(const StringView& str) __VA_ARGS__;
 
 #define SLIB_DECLARE_ISTREAM_MEMBERS(...) \
 	SLIB_DECLARE_IREADER_MEMBERS(__VA_ARGS__) \

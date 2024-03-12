@@ -85,25 +85,25 @@ namespace slib
 #endif
 		{
 			Memory data = Zlib::decompress(npcap_inf_compressed_data, npcap_inf_compressed_size);
-			if (File::writeAllBytes(path + "\\npcap.inf", data) != data.getSize()) {
+			if (!(File::writeAllBytes(path + "\\npcap.inf", data))) {
 				return sl_false;
 			}
 		}
 		{
 			Memory data = Zlib::decompress(npcap_sys_compressed_data, npcap_sys_compressed_size);
-			if (File::writeAllBytes(path + "\\npcap.sys", data) != data.getSize()) {
+			if (!(File::writeAllBytes(path + "\\npcap.sys", data))) {
 				return sl_false;
 			}
 		}
 		{
 			Memory data = Zlib::decompress(npcap_cat_compressed_data, npcap_cat_compressed_size);
-			if (File::writeAllBytes(path + "\\npcap.cat", data) != data.getSize()) {
+			if (!(File::writeAllBytes(path + "\\npcap.cat", data))) {
 				return sl_false;
 			}
 		}
 		{
 			Memory data = Zlib::decompress(npfinstall_exe_compressed_data, npfinstall_exe_compressed_size);
-			if (File::writeAllBytes(path + "\\npfinstall.exe", data) != data.getSize()) {
+			if (!(File::writeAllBytes(path + "\\npfinstall.exe", data))) {
 				return sl_false;
 			}
 		}
@@ -142,7 +142,7 @@ namespace slib
 #endif
 		{
 			Memory data = Zlib::decompress(npfinstall_exe_compressed_data, npfinstall_exe_compressed_size);
-			if (File::writeAllBytes(path + "\\npfinstall.exe", data) != data.getSize()) {
+			if (!(File::writeAllBytes(path + "\\npfinstall.exe", data))) {
 				return sl_false;
 			}
 		}

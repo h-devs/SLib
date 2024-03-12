@@ -15,7 +15,7 @@ int main(int argc, const char * argv[])
 
 	auto onRequest = [](sl_uint8* data, sl_size size, MemoryOutput* output) {
 		Println("Request: %s", StringView((char*)data, size));
-		output->writeTextUTF8("success");
+		output->writeAllBytes("success");
 	};
 
 	auto onResponse = [](sl_uint8* data, sl_size size) {

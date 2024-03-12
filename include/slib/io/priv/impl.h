@@ -56,6 +56,7 @@
 #define SLIB_DEFINE_IWRITER_MEMBERS(CLASS, ATTR) \
 	sl_reg CLASS::writeFully(const void* buf, sl_size size) ATTR { return WriterHelper::writeFully(this, buf, size); } \
 	sl_reg CLASS::writeFully(const MemoryView& mem) ATTR { return WriterHelper::writeFully(this, mem.data, mem.size); } \
+	sl_reg CLASS::writeFully(const StringView& str) ATTR { return WriterHelper::writeFully(this, str.getData(), str.getLength()); } \
 	sl_bool CLASS::writeInt8(sl_int8 value) ATTR { return WriterHelper::writeInt8(this, value); } \
 	sl_bool CLASS::writeUint8(sl_uint8 value) ATTR { return WriterHelper::writeInt8(this, value); } \
 	sl_bool CLASS::writeInt16(sl_int16 value, EndianType endian) ATTR { return WriterHelper::writeInt16(this, value, endian); } \
@@ -66,9 +67,9 @@
 	sl_bool CLASS::writeUint64(sl_uint64 value, EndianType endian) ATTR { return WriterHelper::writeInt64(this, value, endian); } \
 	sl_bool CLASS::writeFloat(float value, EndianType endian) ATTR { return WriterHelper::writeFloat(this, value, endian); } \
 	sl_bool CLASS::writeDouble(double value, EndianType endian) ATTR { return WriterHelper::writeDouble(this, value, endian); } \
-	sl_bool CLASS::writeTextUTF8(const StringView& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF8(this, text, flagWriteByteOrderMark); } \
-	sl_bool CLASS::writeTextUTF16LE(const StringView16& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16LE(this, text, flagWriteByteOrderMark); } \
-	sl_bool CLASS::writeTextUTF16BE(const StringView16& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16BE(this, text, flagWriteByteOrderMark); }
+	sl_bool CLASS::writeAllBytes(const void* buf, sl_size size) ATTR { return WriterHelper::writeFully(this, buf, size) == (sl_reg)size; } \
+	sl_bool CLASS::writeAllBytes(const MemoryView& mem) ATTR { return WriterHelper::writeFully(this, mem.data, mem.size) == (sl_reg)(mem.size); } \
+	sl_bool CLASS::writeAllBytes(const StringView& str) ATTR { return writeAllBytes(str.getData(), str.getLength()); }
 
 #define SLIB_DEFINE_ISTREAM_MEMBERS(CLASS, ATTR) \
 	SLIB_DEFINE_IREADER_MEMBERS(CLASS, ATTR) \

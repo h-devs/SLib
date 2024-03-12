@@ -168,6 +168,110 @@ namespace slib
 			return sl_null;
 		}
 
+		
+		template <class WRITER>
+		static sl_bool writeUTF8(WRITER* writer, const StringView& text, sl_bool flagWriteByteOrderMark = sl_false)
+		{
+			if (flagWriteByteOrderMark) {
+				static sl_char8 sbuf[3] = { (sl_char8)0xEF, (sl_char8)0xBB, (sl_char8)0xBF };
+				if (writer->writeFully(sbuf, 3) != 3) {
+					return sl_false;
+				}
+			}
+			sl_size n = text.getLength();
+			if (!n) {
+				return sl_true;
+			}
+			if (writer->writeFully(text.getData(), n) == (sl_reg)n) {
+				return sl_true;
+			}
+			return sl_false;
+		}
+
+		template <class WRITER>
+		static sl_bool writeUTF16LE(WRITER* writer, const StringView16& text, sl_bool flagWriteByteOrderMark = sl_false)
+		{
+			if (flagWriteByteOrderMark) {
+				static sl_char8 sbuf[2] = { (sl_char8)0xFF, (sl_char8)0xFE };
+				if (writer->writeFully(sbuf, 2) != 2) {
+					return sl_false;
+				}
+			}
+			sl_size n = text.getLength();
+			if (!n) {
+				return sl_true;
+			}
+			if (Endian::isLE()) {
+				n <<= 1;
+				if (writer->writeFully(text.getData(), n) == (sl_reg)n) {
+					return sl_true;
+				}
+				return sl_false;
+			} else {
+				sl_char16* s = text.getData();
+				sl_char16 buf[0x2000];
+				while (n > 0) {
+					sl_size m = sizeof(buf);
+					if (m > n) {
+						m = n;
+					}
+					for (sl_size i = 0; i < m; i++) {
+						sl_uint16 c = (sl_uint16)(s[i]);
+						buf[i] = (sl_char16)((c >> 8) | (c << 8));
+					}
+					sl_size l = m << 1;
+					if (writer->writeFully(buf, l) != (sl_reg)l) {
+						return sl_false;
+					}
+					n -= m;
+					s += m;
+				}
+				return sl_true;
+			}
+		}
+
+		template <class WRITER>
+		static sl_bool writeUTF16BE(WRITER* writer, const StringView16& text, sl_bool flagWriteByteOrderMark = sl_false)
+		{
+			if (flagWriteByteOrderMark) {
+				static sl_char8 sbuf[2] = { (sl_char8)0xFE, (sl_char8)0xFF };
+				if (writer->writeFully(sbuf, 2) != 2) {
+					return sl_false;
+				}
+			}
+			sl_size n = text.getLength();
+			if (!n) {
+				return sl_true;
+			}
+			if (Endian::isBE()) {
+				n <<= 1;
+				if (writer->writeFully(text.getData(), n) == (sl_reg)n) {
+					return sl_true;
+				}
+				return sl_false;
+			} else {
+				sl_char16* s = text.getData();
+				sl_char16 buf[0x2000];
+				while (n > 0) {
+					sl_size m = 0x2000;
+					if (m > n) {
+						m = n;
+					}
+					for (sl_size i = 0; i < m; i++) {
+						sl_uint16 c = (sl_uint16)(s[i]);
+						buf[i] = (sl_char16)((c >> 8) | (c << 8));
+					}
+					sl_size l = m << 1;
+					if (writer->writeFully(buf, l) != (sl_reg)l) {
+						return sl_false;
+					}
+					n -= m;
+					s += m;
+				}
+				return sl_true;
+			}
+		}
+
 	private:
 		template <class READER>
 		static String _read8(READER* reader, sl_size size)

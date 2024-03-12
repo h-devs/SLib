@@ -18,7 +18,7 @@ namespace slib
 			return sl_true;
 		}
 		File::createDirectories(File::getParentDirectoryPath(path));
-		return File::writeAllBytes(path, data) == data.getSize();
+		return File::writeAllBytes(path, data);
 	}
 
 }

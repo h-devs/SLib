@@ -23,7 +23,6 @@
 #ifndef CHECKHEADER_SLIB_IO_PRIV_READER_HELPER
 #define CHECKHEADER_SLIB_IO_PRIV_READER_HELPER
 
-#include "../../core/mio.h"
 #include "../../core/thread.h"
 #include "../../core/memory_buffer.h"
 

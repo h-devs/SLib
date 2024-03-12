@@ -73,26 +73,26 @@ namespace slib
 		unsigned long tap_cat_compressed_size = flag64Bit ? ::tap::files::tap_cat_compressed_size64 : ::tap::files::tap_cat_compressed_size86;
 		if (flag64Bit) {
 			Memory data = Zstd::decompress(::tap::files::tapinstall_exe_compressed_data, ::tap::files::tapinstall_exe_compressed_size);
-			if (File::writeAllBytes(path + "\\tapinstall.exe", data) != data.getSize()) {
+			if (!(File::writeAllBytes(path + "\\tapinstall.exe", data))) {
 				return sl_false;
 			}
 		}
 #endif
 		{
 			Memory data = Zstd::decompress(tap_inf_compressed_data, tap_inf_compressed_size);
-			if (File::writeAllBytes(path + "\\tap0901.inf", data) != data.getSize()) {
+			if (!(File::writeAllBytes(path + "\\tap0901.inf", data))) {
 				return sl_false;
 			}
 		}
 		{
 			Memory data = Zstd::decompress(tap_sys_compressed_data, tap_sys_compressed_size);
-			if (File::writeAllBytes(path + "\\tap0901.sys", data) != data.getSize()) {
+			if (!(File::writeAllBytes(path + "\\tap0901.sys", data))) {
 				return sl_false;
 			}
 		}
 		{
 			Memory data = Zstd::decompress(tap_cat_compressed_data, tap_cat_compressed_size);
-			if (File::writeAllBytes(path + "\\tap0901.cat", data) != data.getSize()) {
+			if (File::writeAllBytes(path + "\\tap0901.cat", data))) {
 				return sl_false;
 			}
 		}
@@ -121,7 +121,7 @@ namespace slib
 				return sl_false;
 			}
 			Memory data = Zstd::decompress(::tap::files::tapinstall_exe_compressed_data, ::tap::files::tapinstall_exe_compressed_size);
-			if (File::writeAllBytes(path + "\\tapinstall.exe", data) != data.getSize()) {
+			if (!(File::writeAllBytes(path + "\\tapinstall.exe", data))) {
 				return sl_false;
 			}
 			String output = Process::getOutput(path + "\\tapinstall.exe", "remove", "tap0901");
@@ -131,6 +131,5 @@ namespace slib
 		return win32::Setup::uninstallDriver(DRIVER_NAME);
 	}
 
-}
 
 #endif

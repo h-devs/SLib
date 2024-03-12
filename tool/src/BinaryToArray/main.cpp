@@ -128,7 +128,7 @@ int main(int argc, const char * argv[])
 		} else {
 			mem = Memory::createStatic(buf.getData(), buf.getCount());
 		}
-		if (File::writeAllBytes(fileOutput, mem) != mem.getSize()) {
+		if (!(File::writeAllBytes(fileOutput, mem))) {
 			Println("Failed to write!");
 			return -1;
 		}
@@ -165,7 +165,7 @@ int main(int argc, const char * argv[])
 			}
 		}
 		mem = sb.mergeToMemory();
-		if (File::writeAllBytes(fileOutput, mem) != mem.getSize()) {
+		if (!(File::writeAllBytes(fileOutput, mem))) {
 			Println("Failed to write!");
 			return -1;
 		}

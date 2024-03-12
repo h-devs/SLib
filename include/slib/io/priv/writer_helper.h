@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,7 @@
 #ifndef CHECKHEADER_SLIB_IO_PRIV_WRITER_HELPER
 #define CHECKHEADER_SLIB_IO_PRIV_WRITER_HELPER
 
-#include "../../core/mio.h"
 #include "../../core/thread.h"
-#include "../../core/memory.h"
-#include "../../core/string.h"
 
 namespace slib
 {
@@ -164,110 +161,6 @@ namespace slib
 			}
 			return writeFully(writer, &value, 8) == 8;
 		}
-
-		template <class WRITER>
-		static sl_bool writeTextUTF8(WRITER* writer, const StringView& text, sl_bool flagWriteByteOrderMark)
-		{
-			if (flagWriteByteOrderMark) {
-				static sl_char8 sbuf[3] = { (sl_char8)0xEF, (sl_char8)0xBB, (sl_char8)0xBF };
-				if (writeFully(writer, sbuf, 3) != 3) {
-					return sl_false;
-				}
-			}
-			sl_size n = text.getLength();
-			if (!n) {
-				return sl_true;
-			}
-			if (writeFully(writer, text.getData(), n) == (sl_reg)n) {
-				return sl_true;
-			}
-			return sl_false;
-		}
-
-		template <class WRITER>
-		static sl_bool writeTextUTF16LE(WRITER* writer, const StringView16& text, sl_bool flagWriteByteOrderMark)
-		{
-			if (flagWriteByteOrderMark) {
-				static sl_char8 sbuf[2] = { (sl_char8)0xFF, (sl_char8)0xFE };
-				if (writeFully(writer, sbuf, 2) != 2) {
-					return sl_false;
-				}
-			}
-			sl_size n = text.getLength();
-			if (!n) {
-				return sl_true;
-			}
-			if (Endian::isLE()) {
-				n <<= 1;
-				if (writeFully(writer, text.getData(), n) == (sl_reg)n) {
-					return sl_true;
-				}
-				return sl_false;
-			} else {
-				sl_char16* s = text.getData();
-				sl_char16 buf[0x2000];
-				while (n > 0) {
-					sl_size m = sizeof(buf);
-					if (m > n) {
-						m = n;
-					}
-					for (sl_size i = 0; i < m; i++) {
-						sl_uint16 c = (sl_uint16)(s[i]);
-						buf[i] = (sl_char16)((c >> 8) | (c << 8));
-					}
-					sl_size l = m << 1;
-					if (writeFully(writer, buf, l) != (sl_reg)l) {
-						return sl_false;
-					}
-					n -= m;
-					s += m;
-				}
-				return sl_true;
-			}
-		}
-
-		template <class WRITER>
-		static sl_bool writeTextUTF16BE(WRITER* writer, const StringView16& text, sl_bool flagWriteByteOrderMark)
-		{
-			if (flagWriteByteOrderMark) {
-				static sl_char8 sbuf[2] = { (sl_char8)0xFE, (sl_char8)0xFF };
-				if (writeFully(writer, sbuf, 2) != 2) {
-					return sl_false;
-				}
-			}
-			sl_size n = text.getLength();
-			if (!n) {
-				return sl_true;
-			}
-			if (Endian::isBE()) {
-				n <<= 1;
-				if (writeFully(writer, text.getData(), n) == (sl_reg)n) {
-					return sl_true;
-				}
-				return sl_false;
-			} else {
-				sl_char16* s = text.getData();
-				sl_char16 buf[0x2000];
-				while (n > 0) {
-					sl_size m = 0x2000;
-					if (m > n) {
-						m = n;
-					}
-					for (sl_size i = 0; i < m; i++) {
-						sl_uint16 c = (sl_uint16)(s[i]);
-						buf[i] = (sl_char16)((c >> 8) | (c << 8));
-					}
-					sl_size l = m << 1;
-					if (writeFully(writer, buf, l) != (sl_reg)l) {
-						return sl_false;
-					}
-					n -= m;
-					s += m;
-				}
-				return sl_true;
-			}
-		}
-
 	};
 
 	class BlockWriterHelper
