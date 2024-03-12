@@ -38,8 +38,6 @@ namespace slib
 	SAppConfiguration::SAppConfiguration()
 	{
 		simulator_locale = Locale::Unknown;
-		AtomicShared<int*> c;
-		c.release();
 	}
 
 	SAppConfiguration::SAppConfiguration(SAppConfiguration&& other) = default;

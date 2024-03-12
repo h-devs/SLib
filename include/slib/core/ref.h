@@ -342,9 +342,6 @@ namespace slib
 		template <class T1, class T2, class... TYPES>
 		Ref(const Ref<T1, T2, TYPES...>& other) noexcept;
 
-		template <class T1, class T2, class... TYPES>
-		Ref(Ref<T1, T2, TYPES...>&& other) noexcept;
-
 		template <class... TYPES>
 		Ref(const Pointer<TYPES...>& other) noexcept;
 
@@ -483,9 +480,6 @@ namespace slib
 			other.ptr = sl_null;
 			return *this;
 		}
-
-		template <class T1, class T2, class... TYPES>
-		Ref& operator=(Ref<T1, T2, TYPES...>&& other) noexcept;
 
 		template <class T1, class T2, class... TYPES>
 		Ref& operator=(const Ref<T1, T2, TYPES...>& other) noexcept;
@@ -675,9 +669,6 @@ namespace slib
 		template <class T1, class T2, class... TYPES>
 		Atomic(const Ref<T1, T2, TYPES...>& other) noexcept;
 
-		template <class T1, class T2, class... TYPES>
-		Atomic(Ref<T1, T2, TYPES...>&& other) noexcept;
-
 		template <class... TYPES>
 		Atomic(const Pointer<TYPES...>& other) noexcept;
 
@@ -811,9 +802,6 @@ namespace slib
 			other.ptr = sl_null;
 			return *this;
 		}
-
-		template <class T1, class T2, class... TYPES>
-		Atomic& operator=(Ref<T1, T2, TYPES...>&& other) noexcept;
 
 		template <class T1, class T2, class... TYPES>
 		Atomic& operator=(const Ref<T1, T2, TYPES...>& other) noexcept;

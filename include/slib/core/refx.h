@@ -30,6 +30,8 @@
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Ref) \
 	public: \
 		using Ref<T1>::ptr; \
+		template <class OTHER> \
+		Ref(OTHER* v) noexcept: Ref<T1>(v) { _init(v); } \
 		template <class... OTHERS> \
 		Ref(Ref<OTHERS...>&& v) noexcept { ptr = v.ptr; _init(v); v.ptr = sl_null; } \
 		template <class... OTHERS> \
@@ -40,8 +42,6 @@
 		Ref(const WeakRef<OTHER>& v) noexcept: Ref(Ref<OTHER>(v)) {} \
 		template <class OTHER> \
 		Ref(const AtomicWeakRef<OTHER>& v) noexcept: Ref(Ref<OTHER>(v)) {} \
-		template <class OTHER> \
-		Ref(OTHER* v) noexcept: Ref<T1>(v) { _init(v); } \
 		template <class... OTHERS> \
 		Ref(const Pointer<OTHERS...>& v) noexcept: Ref<T1>(v) { _init(v); } \
 		static Ref null() noexcept { return sl_null; } \
@@ -226,15 +226,6 @@ namespace slib
 	}
 
 	template <class T>
-	template <class T1, class T2, class... TYPES>
-	SLIB_INLINE Ref<T>::Ref(Ref<T1, T2, TYPES...>&& other) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(T1*, T*)
-		ptr = other.ptr;
-		other.ptr = sl_null;
-	}
-
-	template <class T>
 	template <class... TYPES>
 	SLIB_INLINE Ref<T>::Ref(const Pointer<TYPES...>& other) noexcept
 	{
@@ -243,15 +234,6 @@ namespace slib
 			o->increaseReference();
 		}
 		ptr = o;
-	}
-
-	template <class T>
-	template <class T1, class T2, class... TYPES>
-	SLIB_INLINE Ref<T>& Ref<T>::operator=(Ref<T1, T2, TYPES...>&& other) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(T1*, T*)
-		_move(&other);
-		return *this;
 	}
 
 	template <class T>
@@ -271,7 +253,6 @@ namespace slib
 		return *this;
 	}
 
-
 	template <class T>
 	template <class T1, class T2, class... TYPES>
 	SLIB_INLINE Atomic< Ref<T> >::Atomic(const Ref<T1, T2, TYPES...>& other) noexcept
@@ -285,14 +266,6 @@ namespace slib
 	}
 
 	template <class T>
-	template <class T1, class T2, class... TYPES>
-	SLIB_INLINE Atomic< Ref<T> >::Atomic(Ref<T1, T2, TYPES...>&& other) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(T1*, T*)
-		_ptr = other._release();
-	}
-
-	template <class T>
 	template <class... TYPES>
 	SLIB_INLINE Atomic< Ref<T> >::Atomic(const Pointer<TYPES...>& other) noexcept
 	{
@@ -301,15 +274,6 @@ namespace slib
 			o->increaseReference();
 		}
 		_ptr = o;
-	}
-
-	template <class T>
-	template <class T1, class T2, class... TYPES>
-	SLIB_INLINE Atomic< Ref<T> >& Atomic< Ref<T> >::operator=(Ref<T1, T2, TYPES...>&& other) noexcept
-	{
-		SLIB_TRY_CONVERT_TYPE(T1*, T*)
-		_move(&other);
-		return *this;
 	}
 
 	template <class T>
@@ -328,7 +292,6 @@ namespace slib
 		_copy(other);
 		return *this;
 	}
-
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
@@ -361,7 +324,6 @@ namespace slib
 		_set(other);
 		return *this;
 	}
-
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
