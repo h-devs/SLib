@@ -228,7 +228,7 @@ namespace slib
 		static Ptr createManaged(const T* ptr)
 		{
 			if (ptr) {
-				Ref<CRef> ref = new priv::ptr::ManagedPtrContainer<T>(ptr);
+				Ref<CRef> ref = new priv::ptr::ManagedPtrContainer<T>((T*)ptr);
 				if (ref.isNotNull()) {
 					return Ptr((T*)ptr, Move(ref));
 				}
@@ -240,7 +240,7 @@ namespace slib
 		static Ptr createManagedWithDeleter(const T* ptr, DELETER&& deleter)
 		{
 			if (ptr) {
-				Ref<CRef> ref = new priv::ptr::ManagedPtrContainerWithDeleter<T, typename RemoveConstReference<DELETER>::Type>(ptr, deleter);
+				Ref<CRef> ref = new priv::ptr::ManagedPtrContainerWithDeleter<T, typename RemoveConstReference<DELETER>::Type>((T*)ptr, deleter);
 				if (ref.isNotNull()) {
 					return Ptr((T*)ptr, Move(ref));
 				}
@@ -608,7 +608,7 @@ namespace slib
 		}
 		
 		template <class OTHER>
-		Atomic(const AtomicPtr<OTHER>& other) noexcept
+		Atomic(AtomicPtr<OTHER>&& other) noexcept
 		{
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 			_ptr = other._release(_ref);
@@ -724,6 +724,11 @@ namespace slib
 		{
 			Ptr<T> p(*this);
 			return p.lock();
+		}
+
+		Ptr<T> release() noexcept
+		{
+			return Move(*this);
 		}
 
 	public:

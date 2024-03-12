@@ -46,6 +46,7 @@ namespace slib
 
 	};
 
+	class DatabaseExpression;
 	template <> class Atomic<DatabaseExpression>;
 
 	class SLIB_EXPORT DatabaseExpression

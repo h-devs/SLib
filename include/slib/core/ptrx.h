@@ -35,7 +35,7 @@
 		template <class OTHER> \
 		Ptr(OTHER* v) noexcept: Ptr<T>(v) { _init(v); } \
 		template <class... OTHER> \
-		Ptr(Ptr<OTHER...>&& v) noexcept { _init(v); ptr = v.ptr; _move_init(&v); } \
+		Ptr(Ptr<OTHER...>&& v) noexcept: Ptr<T>(Move(v)) { _init(v); } \
 		template <class... OTHERS> \
 		Ptr(const Ptr<OTHERS...>& v) noexcept: Ptr<T>(v) { _init(v); } \
 		template <class OTHER> \
@@ -62,7 +62,7 @@
 		template <class OTHER> \
 		void set(OTHER* v) noexcept { Ptr<T>::set(v); _init(v); } \
 		template <class... OTHERS> \
-		void set(Ptr<OTHERS...>&& v) noexcept { Ptr<T>::set(Move(Ptr<T>::from(v))); _init(v); } \
+		void set(Ptr<OTHERS...>&& v) noexcept { Ptr<T>::set(Move(v)); _init(v); } \
 		template <class... OTHERS> \
 		void set(const Ptr<OTHERS...>& v) noexcept { Ptr<T>::set(v); _init(v); } \
 		template <class OTHER> \
@@ -100,11 +100,14 @@ namespace slib
 
 		SLIB_CONSTEXPR Ptr(sl_null_t) {}
 
-		template <class... OTHERS>
-		Ptr(const Ptr<OTHERS...>& v) noexcept: Ptr<T>(_cast(v), v.ref) {}
-
+		template <class OTHER>
+		SLIB_CONSTEXPR Ptr(OTHER* v) : Ptr<T>(_cast(v)) {}
+		
 		template <class... OTHERS>
 		Ptr(Ptr<OTHERS...>&& v) noexcept: Ptr<T>(_cast(v), Move(v.ref)) {}
+
+		template <class... OTHERS>
+		Ptr(const Ptr<OTHERS...>& v) noexcept: Ptr<T>(_cast(v), v.ref) {}
 
 		template <class OTHER>
 		Ptr(const AtomicPtr<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {}
@@ -120,9 +123,6 @@ namespace slib
 
 		template <class OTHER>
 		Ptr(const AtomicWeakRef<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {}
-
-		template <class OTHER>
-		SLIB_CONSTEXPR Ptr(OTHER* v): Ptr<T>(_cast(v)) {}
 
 		template <class... OTHERS>
 		Ptr(const Pointer<OTHERS...>& v) noexcept: Ptr<T>(_cast(v)) {}
@@ -162,15 +162,15 @@ namespace slib
 		}
 
 		template <class... OTHERS>
-		void set(const Ptr<OTHERS...>& v) noexcept
-		{
-			Ptr<T>::set(_cast(v), v.ref);
-		}
-
-		template <class... OTHERS>
 		void set(Ptr<OTHERS...>&& v) noexcept
 		{
 			Ptr<T>::set(_cast(v), Move(v.ref));
+		}
+
+		template <class... OTHERS>
+		void set(const Ptr<OTHERS...>& v) noexcept
+		{
+			Ptr<T>::set(_cast(v), v.ref);
 		}
 
 		template <class OTHER>

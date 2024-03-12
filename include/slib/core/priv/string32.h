@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -85,6 +85,7 @@ namespace slib
 		}
 
 		String32(const String32& src) noexcept;
+		String32(AtomicString32&& src) noexcept;
 		String32(const AtomicString32& src) noexcept;
 		String32(const StringView32& src) noexcept;
 
@@ -477,6 +478,7 @@ namespace slib
 		 */
 		String32& operator=(String32&& other) noexcept;
 		String32& operator=(const String32& other) noexcept;
+		String32& operator=(AtomicString32&& other) noexcept;
 		String32& operator=(const AtomicString32& other) noexcept;
 		String32& operator=(const StringView32& other) noexcept;
 		String32& operator=(sl_null_t) noexcept;
@@ -987,7 +989,8 @@ namespace slib
 		}
 
 		Atomic(const String32& src) noexcept;
-		Atomic(const AtomicString32& src) noexcept;
+		Atomic(Atomic&& src) noexcept;
+		Atomic(const Atomic& src) noexcept;
 		Atomic(const StringView32& src) noexcept;
 
 		/**
@@ -1047,23 +1050,30 @@ namespace slib
 		 */
 		void setEmpty() noexcept;
 
+		/**
+		 * make this string as a null and returns the original string.
+		 */
+		String32 release() noexcept;
+
 	public:
 		/**
 		 * String assignment
 		 */
-		AtomicString32& operator=(String32&& other) noexcept;
-		AtomicString32& operator=(const String32& other) noexcept;
-		AtomicString32& operator=(const AtomicString32& other) noexcept;
-		AtomicString32& operator=(const StringView32& other) noexcept;
-		AtomicString32& operator=(sl_null_t) noexcept;
-		AtomicString32& operator=(const sl_char32* str) noexcept;
+		Atomic& operator=(String32&& other) noexcept;
+		Atomic& operator=(const String32& other) noexcept;
+		Atomic& operator=(Atomic&& other) noexcept;
+		Atomic& operator=(const Atomic& other) noexcept;
+		Atomic& operator=(const StringView32& other) noexcept;
+		Atomic& operator=(sl_null_t) noexcept;
+		Atomic& operator=(const sl_char32* str) noexcept;
 #ifdef SLIB_SUPPORT_STD_TYPES
-		AtomicString32& operator=(const std::u32string& other) noexcept;
-		AtomicString32& operator=(std::u32string&& other) noexcept;
+		Atomic& operator=(const std::u32string& other) noexcept;
+		Atomic& operator=(std::u32string&& other) noexcept;
 #endif
 
 	private:
 		Container* _retainContainer() const noexcept;
+		Container* _releaseContainer() noexcept;
 		void _replaceContainer(Container* other) noexcept;
 
 		friend class String32;

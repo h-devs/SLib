@@ -4345,8 +4345,8 @@ namespace slib
 	}
 
 	DEFINE_STRING_CONTAINER_IMPL(StringContainer)
-	DEFINE_STRING_CONTAINER_IMPL(StringContainer16)
-	DEFINE_STRING_CONTAINER_IMPL(StringContainer32)
+		DEFINE_STRING_CONTAINER_IMPL(StringContainer16)
+		DEFINE_STRING_CONTAINER_IMPL(StringContainer32)
 
 
 #define DEFINE_STRING_INLINE_IMPL(STRING) \
@@ -4381,6 +4381,18 @@ namespace slib
 		} \
 		m_lock.unlock(); \
 		return container; \
+	} \
+	\
+	SLIB_INLINE typename STRING::Container* Atomic<STRING>::_releaseContainer() noexcept \
+	{ \
+		if (!m_container) { \
+			return sl_null; \
+		} \
+		m_lock.lock(); \
+		Container* container = m_container; \
+		m_container = sl_null; \
+		m_lock.unlock(); \
+		return container; \
 	}
 
 	DEFINE_STRING_INLINE_IMPL(String)
@@ -4398,7 +4410,12 @@ namespace slib
 		m_container= container; \
 	} \
 	\
-	STRING::CONSTRUCTOR(typename AddAtomic<STRING>::Type const & src) noexcept \
+	STRING::CONSTRUCTOR(typename AddAtomic<STRING>::Type&& src) noexcept \
+	{ \
+		m_container = src._releaseContainer(); \
+	} \
+	\
+	STRING::CONSTRUCTOR(typename AddAtomic<STRING>::Type const& src) noexcept \
 	{ \
 		m_container = src._retainContainer(); \
 	} \
@@ -5768,6 +5785,10 @@ namespace slib
 			_replaceContainer(sl_null); \
 		} \
 	} \
+	STRING Atomic<STRING>::release() noexcept \
+	{ \
+		return _releaseContainer(); \
+	} \
 	\
 	Atomic<STRING>& Atomic<STRING>::operator=(sl_null_t) noexcept \
 	{ \
@@ -5814,6 +5835,14 @@ DEFINE_ATOMIC_STRING_FUNC_IMPL(String32)
 	{ \
 		if (m_container != other.m_container) { \
 			_replaceContainer(other._retainContainer()); \
+		} \
+		return *this; \
+	} \
+	\
+	STRING& STRING::operator=(typename AddAtomic<STRING>::Type&& other) noexcept \
+	{ \
+		if (m_container != other.m_container) { \
+			_replaceContainer(other._releaseContainer()); \
 		} \
 		return *this; \
 	} \

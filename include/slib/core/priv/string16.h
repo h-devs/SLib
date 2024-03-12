@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -85,6 +85,7 @@ namespace slib
 		}
 
 		String16(const String16& src) noexcept;
+		String16(AtomicString16&& src) noexcept;
 		String16(const AtomicString16& src) noexcept;
 		String16(const StringView16& src) noexcept;
 
@@ -476,6 +477,7 @@ namespace slib
 		 */
 		String16& operator=(String16&& other) noexcept;
 		String16& operator=(const String16& other) noexcept;
+		String16& operator=(AtomicString16&& other) noexcept;
 		String16& operator=(const AtomicString16& other) noexcept;
 		String16& operator=(const StringView16& other) noexcept;
 		String16& operator=(sl_null_t) noexcept;
@@ -985,7 +987,8 @@ namespace slib
 		}
 
 		Atomic(const String16& src) noexcept;
-		Atomic(const AtomicString16& src) noexcept;
+		Atomic(Atomic&& src) noexcept;
+		Atomic(const Atomic& src) noexcept;
 		Atomic(const StringView16& src) noexcept;
 
 		/**
@@ -1045,23 +1048,30 @@ namespace slib
 		 */
 		void setEmpty() noexcept;
 
+		/**
+		 * make this string as a null and returns the original string.
+		 */
+		String16 release() noexcept;
+
 	public:
 		/**
 		 * String assignment
 		 */
-		AtomicString16& operator=(String16&& other) noexcept;
-		AtomicString16& operator=(const String16& other) noexcept;
-		AtomicString16& operator=(const AtomicString16& other) noexcept;
-		AtomicString16& operator=(const StringView16& other) noexcept;
-		AtomicString16& operator=(sl_null_t) noexcept;
-		AtomicString16& operator=(const sl_char16* str) noexcept;
+		Atomic& operator=(String16&& other) noexcept;
+		Atomic& operator=(const String16& other) noexcept;
+		Atomic& operator=(Atomic&& other) noexcept;
+		Atomic& operator=(const Atomic& other) noexcept;
+		Atomic& operator=(const StringView16& other) noexcept;
+		Atomic& operator=(sl_null_t) noexcept;
+		Atomic& operator=(const sl_char16* str) noexcept;
 #ifdef SLIB_SUPPORT_STD_TYPES
-		AtomicString16& operator=(const std::u16string& other) noexcept;
-		AtomicString16& operator=(std::u16string&& other) noexcept;
+		Atomic& operator=(const std::u16string& other) noexcept;
+		Atomic& operator=(std::u16string&& other) noexcept;
 #endif
 
 	private:
 		Container* _retainContainer() const noexcept;
+		Container* _releaseContainer() noexcept;
 		void _replaceContainer(Container* other) noexcept;
 
 		friend class String16;

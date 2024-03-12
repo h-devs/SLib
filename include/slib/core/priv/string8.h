@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -85,6 +85,7 @@ namespace slib
 		}
 
 		String(const String& src) noexcept;
+		String(AtomicString&& src) noexcept;
 		String(const AtomicString& src) noexcept;
 		String(const StringView& src) noexcept;
 
@@ -475,6 +476,7 @@ namespace slib
 	public:
 		String& operator=(String&& other) noexcept;
 		String& operator=(const String& other) noexcept;
+		String& operator=(AtomicString&& other) noexcept;
 		String& operator=(const AtomicString& other) noexcept;
 		String& operator=(const StringView& other) noexcept;
 		String& operator=(sl_null_t) noexcept;
@@ -999,7 +1001,8 @@ namespace slib
 		}
 
 		Atomic(const String& src) noexcept;
-		Atomic(const AtomicString& src) noexcept;
+		Atomic(Atomic&& src) noexcept;
+		Atomic(const Atomic& src) noexcept;
 		Atomic(const StringView& src) noexcept;
 
 		/**
@@ -1059,23 +1062,30 @@ namespace slib
 		 */
 		void setEmpty() noexcept;
 
+		/**
+		 * make this string as a null and returns the original string.
+		 */
+		String release() noexcept;
+
 	public:
 		/**
 		 * String assignment
 		 */
-		AtomicString& operator=(String&& other) noexcept;
-		AtomicString& operator=(const String& other) noexcept;
-		AtomicString& operator=(const AtomicString& other) noexcept;
-		AtomicString& operator=(const StringView& other) noexcept;
-		AtomicString& operator=(sl_null_t) noexcept;
-		AtomicString& operator=(const sl_char8* sz) noexcept;
+		Atomic& operator=(String&& other) noexcept;
+		Atomic& operator=(const String& other) noexcept;
+		Atomic& operator=(Atomic&& other) noexcept;
+		Atomic& operator=(const Atomic& other) noexcept;
+		Atomic& operator=(const StringView& other) noexcept;
+		Atomic& operator=(sl_null_t) noexcept;
+		Atomic& operator=(const sl_char8* sz) noexcept;
 #ifdef SLIB_SUPPORT_STD_TYPES
-		AtomicString& operator=(const std::string& other) noexcept;
-		AtomicString& operator=(std::string&& other) noexcept;
+		Atomic& operator=(const std::string& other) noexcept;
+		Atomic& operator=(std::string&& other) noexcept;
 #endif
 
 	private:
 		Container* _retainContainer() const noexcept;
+		Container* _releaseContainer() noexcept;
 		void _replaceContainer(Container* other) noexcept;
 
 		friend class String;

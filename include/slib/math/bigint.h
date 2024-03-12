@@ -441,6 +441,7 @@ namespace slib
 
 	};
 
+	class BigInt;
 	template <> class Atomic<BigInt>;
 
 	class SLIB_EXPORT BigInt
