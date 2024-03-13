@@ -169,9 +169,17 @@ namespace slib
 
 		void read(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 
+		void readFully(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
+
+		void readFully(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
+
 		void write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
 
 		void write(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
+
+		void writeFully(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
+
+		void writeFully(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 
 		virtual sl_bool addTask(const Function<void()>& callback) = 0;
 

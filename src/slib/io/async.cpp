@@ -621,6 +621,35 @@ namespace slib
 		read(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
 
+	void AsyncStream::readFully(void* _data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
+	{
+		sl_uint8* data = (sl_uint8*)_data;
+		read(data, size, [data, size, callback](AsyncStreamResult& result) {
+			result.data = data;
+			result.size = ((sl_uint8*)(result.data) - data) + result.size;
+			result.requestSize = size;
+			if (result.isError()) {
+				callback(result);
+			} else {
+				if (result.size < size) {
+					if (result.isEnded()) {
+						result.resultCode = AsyncStreamResultCode::Unknown;
+						callback(result);
+					} else {
+						result.stream->read(data + result.size, size - result.size, result.callback, result.userObject);
+					}
+				} else {
+					callback(result);
+				}
+			}
+		}, userObject);
+	}
+
+	void AsyncStream::readFully(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
+	{
+		readFully(mem.getData(), mem.getSize(), callback, mem.ref.get());
+	}
+
 	void AsyncStream::write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
 	{
 		Ref<AsyncStreamRequest> req = AsyncStreamRequest::createWrite(data, size, userObject, callback);
@@ -636,6 +665,35 @@ namespace slib
 	void AsyncStream::write(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
 	{
 		write(mem.getData(), mem.getSize(), callback, mem.ref.get());
+	}
+
+	void AsyncStream::writeFully(const void* _data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
+	{
+		const sl_uint8* data = (const sl_uint8*)_data;
+		write(data, size, [data, size, callback](AsyncStreamResult& result) {
+			result.data = (void*)data;
+			result.size = ((const sl_uint8*)(result.data) - data) + result.size;
+			result.requestSize = size;
+			if (result.isError()) {
+				callback(result);
+			} else {
+				if (result.size < size) {
+					if (result.isEnded()) {
+						result.resultCode = AsyncStreamResultCode::Unknown;
+						callback(result);
+					} else {
+						result.stream->write(data + result.size, size - result.size, result.callback, result.userObject);
+					}
+				} else {
+					callback(result);
+				}
+			}
+		}, userObject);
+	}
+
+	void AsyncStream::writeFully(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
+	{
+		writeFully(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
 
 	sl_bool AsyncStream::isSeekable()
