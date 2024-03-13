@@ -33,7 +33,8 @@
 
 #define SLIB_DECLARE_IREADER_MEMBERS(...) \
 	sl_reg readFully(void* buf, sl_size size) __VA_ARGS__; \
-	Memory readFully() __VA_ARGS__; \
+	sl_reg readFully(MemoryBuffer& output, sl_size size = SLIB_SIZE_MAX, sl_size segmentSize = 0) __VA_ARGS__; \
+	Memory readFully(sl_size size = SLIB_SIZE_MAX, sl_size segmentSize = 0) __VA_ARGS__; \
 	sl_bool readInt8(sl_int8* output) __VA_ARGS__; \
 	sl_int8 readInt8(sl_int8 def = 0) __VA_ARGS__; \
 	sl_bool readUint8(sl_uint8* output) __VA_ARGS__; \
@@ -53,8 +54,7 @@
 	sl_bool readFloat(float* output, EndianType endian = Endian::Little) __VA_ARGS__; \
 	float readFloat(float def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool readDouble(double* output, EndianType endian = Endian::Little) __VA_ARGS__; \
-	double readDouble(double def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
-	Memory readToMemory(sl_size size) __VA_ARGS__;
+	double readDouble(double def = 0, EndianType endian = Endian::Little) __VA_ARGS__;
 
 #define SLIB_DECLARE_IWRITER_MEMBERS(...) \
 	sl_reg writeFully(const void* buf, sl_size size) __VA_ARGS__; \
@@ -113,6 +113,7 @@ namespace slib
 {
 
 	class Memory;
+	class MemoryBuffer;
 	class String;
 	class String16;
 	class StringView;

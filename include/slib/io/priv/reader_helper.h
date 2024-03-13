@@ -78,27 +78,93 @@ namespace slib
 		}
 
 		template <class READER>
-		static Memory readFully(READER* reader)
+		static sl_reg readFully(READER* reader, MemoryBuffer& output, sl_size size, sl_size segmentSize)
 		{
-			MemoryBuffer mb;
-			char buf[1024];
+			if (!size) {
+				char ch;
+				return reader->read(&ch, 0);
+			}
+			if (!segmentSize) {
+				segmentSize = 1024;
+			}
 			CurrentThread thread;
 			for (;;) {
-				sl_reg m = reader->read(buf, sizeof(buf));
-				if (m > 0) {
-					if (!(mb.addNew(buf, m))) {
-						return sl_null;
+				sl_size nRequest = SLIB_MIN(segmentSize, size);
+				Memory segment = Memory::create(nRequest);
+				if (segment.isNull()) {
+					return SLIB_IO_ERROR;
+				}
+				sl_uint8* buf = (sl_uint8*)(segment.getData());
+				sl_size nRead = 0;
+				for (;;) {
+					sl_reg m = reader->read(buf, nRequest);
+					if (m > 0) {
+						nRead += m;
+						if (nRequest <= (sl_size)m) {
+							break;
+						}
+						buf += m;
+						nRequest -= m;
+					} else if (m == SLIB_IO_WOULD_BLOCK) {
+						reader->waitRead();
+					} else if (m == SLIB_IO_ENDED) {
+						if (nRead) {
+							if (nRead < nRequest) {
+								segment = segment.sub(0, nRead);
+								if (segment.isNull()) {
+									return SLIB_IO_ERROR;
+								}
+							}
+							if (!(output.add(Move(segment)))) {
+								return SLIB_IO_ERROR;
+							}
+						}
+						return output.getSize();
+					} else {
+						return m;
 					}
-				} else if (m == SLIB_IO_ENDED) {
-					return mb.merge();
-				} else if (m == SLIB_IO_WOULD_BLOCK) {
-					reader->waitRead();
-				} else {
-					return sl_null;
+					if (thread.isStopping()) {
+						return SLIB_IO_ERROR;
+					}
 				}
+				if (!(output.add(Move(segment)))) {
+					return SLIB_IO_ERROR;
+				}
+				if (size <= nRequest) {
+					break;
+				}
+				size -= nRequest;
 				if (thread.isStopping()) {
-					return sl_null;
+					return SLIB_IO_ERROR;
 				}
+			}
+			return output.getSize();
+		}
+
+		template <class READER>
+		static Memory readFully(READER* reader, sl_size size, sl_size segmentSize)
+		{
+			if (!size) {
+				return sl_null;
+			}
+			if (size != SLIB_SIZE_MAX && !segmentSize) {
+				Memory mem = Memory::create(size);
+				if (mem.isNotNull()) {
+					sl_reg nRead = readFully(reader, mem.getData(), size);
+					if (nRead == size) {
+						return mem;
+					} else if (nRead > 0) {
+						return mem.sub(0, nRead);
+					}
+				}
+				return sl_null;
+			}
+			MemoryBuffer buffer;
+			sl_reg m = readFully(reader, buffer, size, segmentSize);
+			if (m > 0) {
+				return buffer.merge();
+			} else {
+				return sl_null;
 			}
 		}
 
@@ -366,21 +432,6 @@ namespace slib
 			} else {
 				return def;
 			}
-		}
-
-		template <class READER>
-		static Memory readToMemory(READER* reader, sl_size size)
-		{
-			Memory mem = Memory::create(size);
-			if (mem.isNotNull()) {
-				sl_reg nRead = readFully(reader, mem.getData(), size);
-				if (nRead == size) {
-					return mem;
-				} else if (nRead > 0) {
-					return mem.sub(0, nRead);
-				}
-			}
-			return sl_null;
 		}
 
 	};

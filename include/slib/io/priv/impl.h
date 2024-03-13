@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,8 @@
 
 #define SLIB_DEFINE_IREADER_MEMBERS(CLASS, ATTR) \
 	sl_reg CLASS::readFully(void* buf, sl_size size) ATTR { return ReaderHelper::readFully(this, buf, size); } \
-	Memory CLASS::readFully() ATTR { return ReaderHelper::readFully(this); } \
+	sl_reg CLASS::readFully(MemoryBuffer& output, sl_size size, sl_size segmentSize) ATTR { return ReaderHelper::readFully(this, output, size, segmentSize); } \
+	Memory CLASS::readFully(sl_size size, sl_size segmentSize) ATTR { return ReaderHelper::readFully(this, size, segmentSize); }
 	sl_bool CLASS::readInt8(sl_int8* output) ATTR { return ReaderHelper::readInt8(this, output); } \
 	sl_int8 CLASS::readInt8(sl_int8 def) ATTR { return ReaderHelper::readInt8(this, def); } \
 	sl_bool CLASS::readUint8(sl_uint8* output) ATTR { return ReaderHelper::readUint8(this, output); } \
@@ -51,7 +52,6 @@
 	float CLASS::readFloat(float def, EndianType endian) ATTR { return ReaderHelper::readFloat(this, def, endian); } \
 	sl_bool CLASS::readDouble(double* output, EndianType endian) ATTR { return ReaderHelper::readDouble(this, output, endian); } \
 	double CLASS::readDouble(double def, EndianType endian) ATTR { return ReaderHelper::readDouble(this, def, endian); } \
-	Memory CLASS::readToMemory(sl_size size) ATTR { return ReaderHelper::readToMemory(this, size); }
 
 #define SLIB_DEFINE_IWRITER_MEMBERS(CLASS, ATTR) \
 	sl_reg CLASS::writeFully(const void* buf, sl_size size) ATTR { return WriterHelper::writeFully(this, buf, size); } \
