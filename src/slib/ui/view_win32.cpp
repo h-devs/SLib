@@ -196,6 +196,7 @@ namespace slib
 		m_flagDestroyOnRelease = sl_false;
 		m_flagRegisteredTouch = sl_false;
 
+		m_dropTarget = NULL;
 		m_imc = NULL;
 	}
 
