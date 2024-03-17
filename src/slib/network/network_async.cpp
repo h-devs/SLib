@@ -177,27 +177,7 @@ namespace slib
 		}
 		return SLIB_SOCKET_INVALID_HANDLE;
 	}
-
-	void AsyncSocketStream::receive(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
-	{
-		AsyncStreamBase::read(data, size, callback, userObject);
-	}
-
-	void AsyncSocketStream::receive(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
-	{
-		AsyncStreamBase::read(mem.getData(), mem.getSize(), callback, mem.ref.get());
-	}
-
-	void AsyncSocketStream::send(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
-	{
-		AsyncStreamBase::write(data, size, callback, userObject);
-	}
-
-	void AsyncSocketStream::send(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
-	{
-		AsyncStreamBase::write(mem.getData(), mem.getSize(), callback, mem.ref.get());
-	}
-
+	
 	Ref<AsyncSocketStreamInstance> AsyncSocketStream::_getIoInstance()
 	{
 		return Ref<AsyncSocketStreamInstance>::from(AsyncStreamBase::getIoInstance());

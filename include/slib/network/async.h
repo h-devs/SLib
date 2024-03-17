@@ -52,14 +52,6 @@ namespace slib
 	public:
 		sl_socket getSocket();
 
-		void receive(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
-
-		void receive(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
-
-		void send(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
-
-		void send(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
-
 	protected:
 		Ref<AsyncSocketStreamInstance> _getIoInstance();
 

@@ -28,11 +28,14 @@
 #include "slib/io/async_file_stream.h"
 #include "slib/io/async_copy.h"
 #include "slib/io/async_output.h"
+#include "slib/io/chunk.h"
 
 #include "slib/core/thread.h"
 #include "slib/core/dispatch_loop.h"
 #include "slib/core/handle_ptr.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/mio.h"
+#include "slib/core/memory_buffer.h"
 
 namespace slib
 {
@@ -399,9 +402,9 @@ namespace slib
 	}
 
 
-	AsyncStreamErrorResult::AsyncStreamErrorResult(const void* _data, sl_size _size, const Function<void(AsyncStreamResult&)>& _callback, CRef* _userObject) noexcept
+	AsyncStreamErrorResult::AsyncStreamErrorResult(AsyncStream* _stream, const void* _data, sl_size _size, const Function<void(AsyncStreamResult&)>& _callback, CRef* _userObject) noexcept
 	{
-		stream = sl_null;
+		stream = _stream;
 		request = sl_null;
 		size = 0;
 		resultCode = AsyncStreamResultCode::Unknown;
@@ -454,6 +457,9 @@ namespace slib
 
 	void AsyncStreamRequest::runCallback(AsyncStream* stream, sl_size resultSize, AsyncStreamResultCode code)
 	{
+		if (stream) {
+			stream->setLastResultCode(code);
+		}
 		if (callback.isNotNull()) {
 			if (stream && !flagRead) {
 				if (code == AsyncStreamResultCode::Success && resultSize && resultSize < size) {
@@ -580,6 +586,7 @@ namespace slib
 
 	AsyncStream::AsyncStream()
 	{
+		m_lastResultCode = AsyncStreamResultCode::Success;
 	}
 
 	AsyncStream::~AsyncStream()
@@ -612,7 +619,7 @@ namespace slib
 				return;
 			}
 		}
-		AsyncStreamErrorResult error(data, size, callback, userObject);
+		AsyncStreamErrorResult error(this, data, size, callback, userObject);
 		callback(error);
 	}
 
@@ -650,6 +657,104 @@ namespace slib
 		readFully(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
 
+	namespace
+	{
+		class ReadStreamResult
+		{
+		public:
+			AsyncStream* stream;
+			Memory ret;
+			sl_bool flagError;
+			Function<void(ReadStreamResult&)> callback;
+			Ref<CRef> userObject;
+
+		public:
+			ReadStreamResult(AsyncStream* _stream, Memory&& _ret, const Function<void(ReadStreamResult&)> _callback, const Ref<CRef>& _userObject): stream(_stream), ret(Move(_ret)), callback(_callback), userObject(_userObject)
+			{
+				flagError = sl_false;
+			}
+
+			ReadStreamResult(AsyncStream* _stream, const Function<void(ReadStreamResult&)> _callback, const Ref<CRef>& _userObject): stream(_stream), callback(_callback), userObject(_userObject)
+			{
+				ret = sl_null;
+				flagError = sl_true;
+			}
+
+		};
+
+		static void ReadStreamFully(AsyncStream* stream, sl_size size, const Function<void(ReadStreamResult&)>& callback, const Ref<CRef>& userObject)
+		{
+			Memory mem = Memory::create(size);
+			if (mem.isNull()) {
+				ReadStreamResult err(stream, callback, userObject);
+				callback(err);
+				return;
+			}
+			stream->readFully(mem, [mem, callback, userObject](AsyncStreamResult& result) {
+				Memory _mem = mem;
+				if (mem.getSize() != result.size) {
+					_mem = mem.sub(0, result.size);
+					if (_mem.isNull()) {
+						ReadStreamResult err(result.stream, callback, userObject);
+						callback(err);
+						return;
+					}
+				}
+				ReadStreamResult success(result.stream, Move(_mem), callback, userObject);
+				callback(success);
+			});
+		}
+	}
+
+	void AsyncStream::readFully(sl_size size, const Function<void(AsyncStream*, Memory&, sl_bool flagError)>& callback)
+	{
+		ReadStreamFully(this, size, [callback](ReadStreamResult& result) {
+			if (result.flagError) {
+				Memory null;
+				callback(result.stream, null, sl_true);
+			} else {
+				callback(result.stream, result.ret, sl_false);
+			}
+		}, sl_null);
+	}
+
+	void AsyncStream::readFully(sl_size size, const Function<void(AsyncStream*, MemoryBuffer&, sl_bool flagError)>& callback, sl_size segmentSize)
+	{
+		if (!segmentSize) {
+			MemoryBuffer null;
+			callback(this, null, sl_true);
+			return;
+		}
+		RefT<MemoryBuffer> buf = new CRefT<MemoryBuffer>();
+		if (buf.isNull()) {
+			MemoryBuffer null;
+			callback(this, null, sl_true);
+			return;
+		}
+		if (segmentSize > size) {
+			segmentSize = size;
+		}
+		ReadStreamFully(this, segmentSize, [callback, size, segmentSize](ReadStreamResult& result) {
+			if (result.flagError) {
+				MemoryBuffer null;
+				callback(result.stream, null, sl_true);
+				return;
+			}
+			MemoryBuffer& buf = *(RefT<MemoryBuffer>::from(result.userObject));
+			if (!(buf.add(Move(result.ret)))) {
+				MemoryBuffer null;
+				callback(result.stream, null, sl_true);
+				return;
+			}
+			sl_size bufSize = buf.getSize();
+			if (bufSize >= size) {
+				callback(result.stream, buf, sl_false);
+				return;
+			}
+			ReadStreamFully(result.stream, SLIB_MIN(size - bufSize, segmentSize), result.callback, result.userObject);
+		}, buf);
+	}
+
 	void AsyncStream::write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
 	{
 		Ref<AsyncStreamRequest> req = AsyncStreamRequest::createWrite(data, size, userObject, callback);
@@ -658,7 +763,7 @@ namespace slib
 				return;
 			}
 		}
-		AsyncStreamErrorResult error(data, size, callback, userObject);
+		AsyncStreamErrorResult error(this, data, size, callback, userObject);
 		callback(error);
 	}
 
@@ -667,33 +772,15 @@ namespace slib
 		write(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
 
-	void AsyncStream::writeFully(const void* _data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject)
+	void AsyncStream::createMemoryAndWrite(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback)
 	{
-		const sl_uint8* data = (const sl_uint8*)_data;
-		write(data, size, [data, size, callback](AsyncStreamResult& result) {
-			result.data = (void*)data;
-			result.size = ((const sl_uint8*)(result.data) - data) + result.size;
-			result.requestSize = size;
-			if (result.isError()) {
-				callback(result);
-			} else {
-				if (result.size < size) {
-					if (result.isEnded()) {
-						result.resultCode = AsyncStreamResultCode::Unknown;
-						callback(result);
-					} else {
-						result.stream->write(data + result.size, size - result.size, result.callback, result.userObject);
-					}
-				} else {
-					callback(result);
-				}
-			}
-		}, userObject);
-	}
-
-	void AsyncStream::writeFully(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback)
-	{
-		writeFully(mem.getData(), mem.getSize(), callback, mem.ref.get());
+		Memory mem = Memory::create(data, size);
+		if (mem.isNull()) {
+			AsyncStreamErrorResult result(this, data, size, callback, sl_null);
+			callback(result);
+			return;
+		}
+		write(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
 
 	sl_bool AsyncStream::isSeekable()
@@ -731,6 +818,18 @@ namespace slib
 			return instance->getSize();
 		}
 		return 0;
+	}
+
+	AsyncStreamResultCode AsyncStream::getLastResultCode()
+	{
+		return m_lastResultCode;
+	}
+
+	void AsyncStream::setLastResultCode(AsyncStreamResultCode code)
+	{
+		if (m_lastResultCode == AsyncStreamResultCode::Success) {
+			m_lastResultCode = code;
+		}
 	}
 
 
@@ -2112,6 +2211,84 @@ namespace slib
 				req->runCallback(this, 0, AsyncStreamResultCode::Closed);
 			}
 		}
+	}
+
+
+	void ChunkIO::readAsync(AsyncStream* stream, const Function<void(Memory&, sl_bool flagError)>& callback, sl_size maxSize, sl_size segmentSize)
+	{
+		if (maxSize == SLIB_SIZE_MAX) {
+			if (!segmentSize) {
+				segmentSize = 1024;
+			}
+		}
+		stream->readFully(4, [callback, maxSize, segmentSize](AsyncStream* stream, Memory& memSizeField, sl_bool flagError) {
+			if (flagError || memSizeField.getSize() != 4) {
+				Memory null;
+				callback(null, sl_true);
+				return;
+			}
+			sl_uint32 size = MIO::readUint32LE(memSizeField.getData());
+			if (!size) {
+				Memory null;
+				callback(null, sl_false);
+				return;
+			}
+			if (size > maxSize) {
+				Memory null;
+				callback(null, sl_true);
+				return;
+			}
+			if (!segmentSize || size < segmentSize) {
+				stream->readFully(size, [callback](AsyncStream*, Memory& data, sl_bool flagError) {
+					callback(data, flagError);
+				});
+			} else {
+				stream->readFully(size, [callback](AsyncStream*, MemoryBuffer& buf, sl_bool flagError) {
+					if (flagError) {
+						Memory null;
+						callback(null, sl_true);
+						return;
+					}
+					Memory data = buf.merge();
+					if (data.isNull()) {
+						Memory null;
+						callback(null, sl_true);
+						return;
+					}
+					callback(data, sl_false);
+				}, segmentSize);
+			}
+		});
+	}
+
+	void ChunkIO::writeAsync(AsyncStream* stream, const Memory& data, const Function<void(sl_bool flagError)>& callback)
+	{
+		sl_size size = data.getSize();
+#ifdef SLIB_ARCH_IS_64BIT
+		if (size >> 32) {
+			callback(sl_true);
+			return;
+		}
+#endif
+		sl_uint8 bufSizeField[4];
+		MIO::writeUint32LE(bufSizeField, (sl_uint32)size);
+		stream->createMemoryAndWrite(bufSizeField, 4, [data, size, callback](AsyncStreamResult& result) {
+			if (result.isError() || result.size != 4) {
+				callback(sl_true);
+				return;
+			}
+			if (!size) {
+				callback(sl_false);
+				return;
+			}
+			result.stream->write(data, [callback, size](AsyncStreamResult& result) {
+				if (result.isError() || result.size != size) {
+					callback(sl_true);
+				} else {
+					callback(sl_false);
+				}
+			});
+		});
 	}
 
 }

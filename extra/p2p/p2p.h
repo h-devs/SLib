@@ -129,7 +129,7 @@ namespace slib
 		sl_uint32 connectionTimeout; // [In, Out] In milliseconds
 		sl_uint32 findTimeout; // [In, Out] In milliseconds
 		sl_uint32 maximumMessageSize; // [In, Out] In bytes
-		sl_uint32 messageBufferSize; // [In, Out] In bytes
+		sl_uint32 messageSegmentSize; // [In] In bytes
 		sl_uint32 ephemeralKeyDuration; // [In, Out] In milliseconds
 
 		Function<void(P2PSocket*, P2PRequest&)> onReceiveHello;

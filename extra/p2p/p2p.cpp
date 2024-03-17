@@ -41,6 +41,7 @@
 #include <slib/crypto/curve25519.h>
 #endif
 #include <slib/data/expiring_map.h>
+#include <slib/io/chunk.h>
 #include <slib/device/cpu.h>
 
 #ifdef SLIB_DEBUG
@@ -174,14 +175,14 @@ Length(B)	Type			Value
 Length(B)	Type			Value
 -----------------------------------------------
 1			Command			2 (Message)
-CVLI		Uint32			Total Length (From next field)
+4			Uint32LE		Total Length (From next field)
 *			Bytes			Encryption
 
 - ReplyMessage
 Length(B)	Type			Value
 -----------------------------------------------
 1			Command			3 (ReplyMessage)
-CVLI		Uint32			Total Length (From next field)
+4			Uint32LE		Total Length (From next field)
 *			Bytes			Encryption
 
 */
@@ -276,7 +277,7 @@ namespace slib
 			NodeCallback m_callback;
 
 		};
-
+		
 		class Connection : public CRef
 		{
 		public:
@@ -345,181 +346,32 @@ namespace slib
 
 		};
 
-		class TcpCommandContentReceiver
+		class TcpSocket : public CRef
 		{
 		public:
-			sl_uint8* content = sl_null;
-			sl_size contentSize;
+			Ref<AsyncSocketStream> m_stream;
 
 		public:
-			TcpCommandContentReceiver(sl_uint32 _contentSize, sl_size maxSize): contentSize(_contentSize), m_flagParsingHeader(!_contentSize), m_maxContentSize(maxSize) {}
-
-		public:
-			// returns -1 on error, 1 on success, 0 on incomplete
-			sl_int32 put(sl_uint8* data, sl_size size)
-			{
-				if (m_flagParsingHeader) {
-					sl_uint32 n = sizeof(m_bufHeader) - m_sizeHeader;
-					if (n > size) {
-						n = (sl_uint32)size;
-					}
-					if (n) {
-						Base::copyMemory(m_bufHeader, data, n);
-						m_sizeHeader += n;
-					}
-					sl_uint32 m = CVLI::deserialize(m_bufHeader, m_sizeHeader, contentSize);
-					if (m) {
-						if (contentSize > m_maxContentSize) {
-							return -1;
-						}
-						if (m >= 8) {
-							return -1;
-						}
-						if (m <= m_sizeHeader - n) {
-							return -1;
-						}
-						sl_uint32 l = m - (m_sizeHeader - n);
-						data += l;
-						size -= l;
-						m_flagParsingHeader = sl_false;
-						m_sizeHeader = m;
-						if (size > contentSize) {
-							return -1;
-						}
-						if (size == contentSize) {
-							content = data;
-							return 1;
-						}
-						if (size) {
-							if (!(m_bufContent.addNew(data, size))) {
-								return -1;
-							}
-						}
-					} else {
-						if (m_sizeHeader >= 8) {
-							return -1;
-						}
-					}
-				} else {
-					sl_size sizeOld = m_bufContent.getSize();
-					sl_size sizeNew = sizeOld + size;
-					if (sizeNew > contentSize) {
-						return -1;
-					}
-					if (sizeNew == contentSize) {
-						if (sizeOld) {
-							if (m_bufContent.addNew(data, size)) {
-								m_memContent = m_bufContent.merge();
-								if (m_memContent.isNotNull()) {
-									content = (sl_uint8*)(m_memContent.getData());
-									return 1;
-								}
-							}
-							return -1;
-						} else {
-							content = data;
-							return 1;
-						}
-					} else {
-						if (!(m_bufContent.addNew(data, size))) {
-							return -1;
-						}
-					}
-				}
-				return 0;
-			}
-
-		private:
-			sl_size m_maxContentSize;
-			sl_bool m_flagParsingHeader;
-			sl_uint8 m_bufHeader[10];
-			sl_uint32 m_sizeHeader = 0;
-			MemoryBuffer m_bufContent;
-			Memory m_memContent;
-		};
-
-		class TcpStream : public CRef
-		{
-		public:
-			Ref<AsyncSocketStream> m_socket;
-			TcpCommand m_currentCommand = TcpCommand::Unknown;
-
-		public:
-			TcpStream(Ref<AsyncSocketStream>&& _socket, sl_size maximumMessageSize): m_socket(Move(_socket)), m_maximumMessageSize(maximumMessageSize) {}
-
-		public:
-			sl_int32 processReceivedData(sl_uint8* data, sl_size size)
-			{
-				if (!size) {
-					return 0;
-				}
-				if (m_receiver.isNull()) {
-					m_currentCommand = (TcpCommand)(*data);
-					sl_uint32 contentSize = 0;
-					switch (m_currentCommand) {
-						case TcpCommand::Init:
-							contentSize = 22;
-							break;
-						default:
-							break;
-					}
-					m_receiver = Shared<TcpCommandContentReceiver>::create(contentSize, m_maximumMessageSize + 1024);
-					if (m_receiver.isNull()) {
-						return -1;
-					}
-					data++;
-					size--;
-					if (!size) {
-						return 0;
-					}
-				}
-				return m_receiver->put(data, size);
-			}
-
-			sl_uint8* getContent()
-			{
-				if (m_receiver.isNotNull()) {
-					return m_receiver->content;
-				}
-				return sl_null;
-			}
-
-			sl_size getContentSize()
-			{
-				if (m_receiver.isNotNull()) {
-					return m_receiver->contentSize;
-				}
-				return 0;
-			}
-
-			void clear()
-			{
-				m_receiver.setNull();
-			}
-
-		private:
-			sl_size m_maximumMessageSize;
-			Shared<TcpCommandContentReceiver> m_receiver;
+			TcpSocket(Ref<AsyncSocketStream>&& _stream): m_stream(Move(_stream)) {}
 
 		};
 
-		class TcpServerStream : public TcpStream
+		class TcpServerSocket : public TcpSocket
 		{
 		public:
 			SocketAddress m_remoteAddress;
 			P2PNodeId m_remoteId;
 			sl_uint16 m_remoteActor = 0;
-			sl_bool m_flagWriting = sl_false;
 
 		public:
-			TcpServerStream(Ref<AsyncSocketStream>&& _socket, const SocketAddress& remoteAddress, sl_size maximumMessageSize): TcpStream(Move(_socket), maximumMessageSize), m_remoteAddress(remoteAddress) {}
+			TcpServerSocket(Ref<AsyncSocketStream>&& _socket, const SocketAddress& _remoteAddress): TcpSocket(Move(_socket)), m_remoteAddress(_remoteAddress) {}
 
 		};
 
-		class TcpClientStream : public TcpStream
+		class TcpClientSocket : public TcpSocket
 		{
 		public:
-			TcpClientStream(Ref<AsyncSocketStream>&& _socket, sl_size maximumMessageSize): TcpStream(Move(_socket), maximumMessageSize) {}
+			TcpClientSocket(Ref<AsyncSocketStream>&& stream): TcpSocket(Move(stream)) {}
 
 		};
 
@@ -583,14 +435,6 @@ namespace slib
 			volatile sl_int32 m_counter = 1;
 		};
 
-		class MessageBody
-		{
-		public:
-			Memory packet; // Same layout with Message command
-			sl_uint32 lengthOfSize = 0; // Size of CVLI
-
-		};
-
 		class P2PSocketImpl : public P2PSocket
 		{
 		public:
@@ -602,7 +446,7 @@ namespace slib
 
 			sl_uint32 m_connectionTimeout = 0;
 			sl_uint32 m_findTimeout = 0;
-			sl_uint32 m_messageBufferSize = 0;
+			sl_uint32 m_messageSegmentSize = 0;
 			sl_uint32 m_maximumMessageSize = 0;
 
 			Memory m_helloPrefix;
@@ -634,8 +478,8 @@ namespace slib
 			Ref<AsyncUdpSocket> m_socketUdpActor;
 			Ref<AsyncTcpServer> m_serverTcp;
 
-			ExpiringMap< TcpStream*, Ref<TcpStream> > m_mapTcpStreams;
-			ExpiringMap< DirectConnection*, Ref<AsyncSocketStream> > m_mapIdleTcpSockets;
+			ExpiringMap< TcpSocket*, Ref<TcpSocket> > m_mapTcpSockets;
+			ExpiringMap< DirectConnection*, Ref<AsyncSocketStream> > m_mapIdleTcpStreams;
 
 			Ref<ThreadPool> m_threadPool;
 			Ref<AsyncIoLoop> m_ioLoop;
@@ -773,11 +617,7 @@ namespace slib
 				}
 				m_connectionTimeout = param.connectionTimeout;
 
-				if (param.messageBufferSize < 64) {
-					param.messageBufferSize = 64;
-				}
-				m_messageBufferSize = param.messageBufferSize;
-
+				m_messageSegmentSize = param.messageSegmentSize;
 				if (param.maximumMessageSize < 1) {
 					param.maximumMessageSize = 1;
 				}
@@ -836,8 +676,8 @@ namespace slib
 
 				// Initialize TCP Server
 				{
-					m_mapTcpStreams.setupTimer(param.connectionTimeout, m_dispatchLoop);
-					m_mapIdleTcpSockets.setupTimer(param.connectionTimeout, m_dispatchLoop);
+					m_mapTcpSockets.setupTimer(param.connectionTimeout, m_dispatchLoop);
+					m_mapIdleTcpStreams.setupTimer(param.connectionTimeout, m_dispatchLoop);
 					AsyncTcpServerParam serverParam;
 					serverParam.ioLoop = m_ioLoop;
 					serverParam.onAccept = [this](AsyncTcpServer*, Socket& socket, const SocketAddress& address) {
@@ -1557,217 +1397,232 @@ namespace slib
 			}
 
 		public:
-			void _onAcceptTcpServerConnection(Socket& socket, const SocketAddress& address)
+			void _onAcceptTcpServerConnection(Socket& _socket, const SocketAddress& address)
 			{
-				Ref<AsyncSocketStream> client = AsyncSocketStream::create(Move(socket), m_ioLoop);
+				Ref<AsyncSocketStream> client = AsyncSocketStream::create(Move(_socket), m_ioLoop);
 				if (client.isNotNull()) {
-					Ref<TcpServerStream> stream = new TcpServerStream(Move(client), address, m_maximumMessageSize);
-					if (stream.isNotNull()) {
-						if (_receiveTcpServerConnection(stream)) {
-							m_mapTcpStreams.put(stream.get(), stream);
-						}
+					Ref<TcpServerSocket> socket = new TcpServerSocket(Move(client), address);
+					if (socket.isNotNull()) {
+						m_mapTcpSockets.put(socket.get(), socket);
+						_receiveTcpServerCommand(socket);
 					}
 				}
 			}
 
-			sl_bool _receiveTcpServerConnection(const Ref<TcpServerStream>& stream)
+			void _receiveTcpServerCommand(const Ref<TcpServerSocket>& socket)
 			{
-				WeakRef<TcpServerStream> weakStream = stream;
-				return stream->m_socket->receive(Memory::create(m_messageBufferSize), [this, weakStream](AsyncStreamResult& result) {
-					Ref<TcpServerStream> stream = weakStream;
-					if (stream.isNull()) {
+				WeakRef<TcpServerSocket> weakSocket = socket;
+				socket->m_stream->readFully(1, [this, weakSocket](AsyncStream* stream, Memory& memCommand, sl_bool flagError) {
+					Ref<TcpServerSocket> socket = weakSocket;
+					if (socket.isNull()) {
 						return;
 					}
-					if (result.isSuccess() && !(stream->m_flagWriting)) {
-						sl_int32 iRet = stream->processReceivedData((sl_uint8*)(result.data), result.size);
-						if (iRet >= 0) {
-							if (iRet > 0) {
-								if (_onReceiveTcpServerStream(stream, result)) {
-									return;
-								}
-							} else {
-								if (stream->m_socket->receive(result.data, result.requestSize, result.callback, result.userObject)) {
-									return;
-								}
-							}
+					if (!flagError && stream->getLastResultCode() == AsyncStreamResultCode::Success && memCommand.getSize() == 1) {
+						TcpCommand command = (TcpCommand)(*((sl_uint8*)(memCommand.getData())));
+						switch (command) {
+							case TcpCommand::Init:
+								_receiveTcpServer_Init(socket);
+								return;
+							case TcpCommand::Message:
+								_receiveTcpServer_Message(socket);
+								return;
+							default:
+								break;
 						}
 					}
-					m_mapTcpStreams.remove(stream.get());
+					m_mapTcpSockets.remove(socket.get());
 				});
 			}
 
-			sl_bool _onReceiveTcpServerStream(const Ref<TcpServerStream>& stream, AsyncStreamResult& result)
+			void _sendTcpServerReply(const Ref<TcpServerSocket>& socket, const Memory& response)
 			{
-				if (stream->m_currentCommand == TcpCommand::Init) {
-					if (stream->getContentSize() != 22) {
-						return sl_false;
+				WeakRef<TcpServerSocket> weakSocket = socket;
+				socket->m_stream->write(response, [this, weakSocket](AsyncStreamResult& result) {
+					Ref<TcpServerSocket> socket = weakSocket;
+					if (socket.isNull()) {
+						return;
 					}
-					sl_uint8* packet = stream->getContent();
-					if (!(Base::equalsMemory(m_localNodeId.data, packet, 4))) {
-						return sl_false;
+					if (result.isSuccess() && result.size == result.requestSize) {
+						_receiveTcpServerCommand(socket);
+						return;
 					}
-					stream->m_remoteId = P2PNodeId(packet + 4);
-					stream->m_remoteActor = MIO::readUint16LE(packet + 20);
-				}
-				Memory buf = (CMemory*)(result.userObject);
-				SocketAddress address(stream->m_remoteAddress.ip, stream->m_remoteActor);
-				Function<void(AsyncStreamResult&)> callback = result.callback;
-				_findNode(&address, stream->m_remoteId, [this, stream, buf, callback](Node* node, void*) {
-					if (node) {
-						Memory response = _onReceiveTcpServerStream(node, stream->m_currentCommand, stream->getContent(), stream->getContentSize());
-						if (response.isNotNull()) {
-							stream->clear();
-							m_mapTcpStreams.get(stream.get());
-							if (_sendTcpServerStream(stream, response)) {
-								if (stream->m_socket->receive(buf, callback)) {
-									return;
+					m_mapTcpSockets.remove(socket.get());
+				});
+			}
+
+			void _receiveTcpServer_Init(const Ref<TcpServerSocket>& socket)
+			{
+				WeakRef<TcpServerSocket> weakSocket = socket;
+				socket->m_stream->readFully(22, [this, weakSocket](AsyncStream* stream, Memory& mem, sl_bool flagError) {
+					Ref<TcpServerSocket> socket = weakSocket;
+					if (socket.isNull()) {
+						return;
+					}
+					if (!flagError && stream->getLastResultCode() == AsyncStreamResultCode::Success && mem.getSize() == 22) {
+						sl_uint8* packet = (sl_uint8*)(mem.getData());
+						if (Base::equalsMemory(m_localNodeId.data, packet, 4)) {
+							socket->m_remoteId = P2PNodeId(packet + 4);
+							socket->m_remoteActor = MIO::readUint16LE(packet + 20);
+							SocketAddress address(socket->m_remoteAddress.ip, socket->m_remoteActor);
+							_findNode(&address, socket->m_remoteId, [this, socket](Node* node, void*) {
+								if (node) {
+									if (_sendTcpServer_ReplyInit(socket)) {
+										return;
+									}
 								}
-							}
+								m_mapTcpSockets.remove(socket.get());
+							}, 0);
+							return;
 						}
 					}
-					m_mapTcpStreams.remove(stream.get());
-				}, 0);
+					m_mapTcpSockets.remove(socket.get());
+				});
+			}
+
+			sl_bool _sendTcpServer_ReplyInit(const Ref<TcpServerSocket>& socket)
+			{
+				sl_uint8 c = (sl_uint8)(TcpCommand::ReplyInit);
+				Memory mem = Memory::create(&c, 1);
+				if (mem.isNull()) {
+					return sl_false;
+				}
+				_sendTcpServerReply(socket, mem);
 				return sl_true;
 			}
 
-			Memory _onReceiveTcpServerStream(Node* node, TcpCommand command, sl_uint8* packet, sl_size sizePacket)
+			void _receiveTcpServer_Message(const Ref<TcpServerSocket>& socket)
 			{
-				switch (command) {
-					case TcpCommand::Init:
-						{
-							sl_uint8 c = (sl_uint8)(TcpCommand::ReplyInit);
-							return Memory::create(&c, 1);
-						}
-						break;
-					case TcpCommand::Message:
-						{
-							node->updateEncryptionKey(m_ephemeralKey.data, m_ephemeralPublicKey.data);
-							P2PResponse response;
-							if (sizePacket > 28) {
-								AES_GCM decryptor;
-								decryptor.setKey(node->m_encryptionKey, 32);
-								decryptor.start(packet, 12);
-								packet += 28;
-								sizePacket -= 28;
-								decryptor.decrypt(packet, packet, sizePacket);
-								if (decryptor.finishAndCheckTag(packet - 16)) {
-									P2PRequest request(packet, (sl_uint32)sizePacket);
-									request.senderId = node->m_id;
-									request.connectionType = P2PConnectionType::Direct;
-									m_onReceiveMessage(this, request, response);
-								} else {
-									return sl_null;
-								}
-							} else if (!sizePacket) {
-								P2PRequest request;
-								request.senderId = node->m_id;
-								m_onReceiveMessage(this, request, response);
-							} else {
-								return sl_null;
-							}
-							if (response.size) {
-								sl_uint8 bufSize[16];
-								sl_uint32 nSize = CVLI::serialize(bufSize, response.size + 28);
-								Memory memPacket = Memory::create(29 + nSize + response.size);
-								if (memPacket.isNull()) {
-									return sl_null;
-								}
-								AES_GCM encryption;
-								encryption.setKey(node->m_encryptionKey, 32);
-								packet = (sl_uint8*)(memPacket.getData());
-								*(packet++) = (sl_uint8)(TcpCommand::ReplyMessage);
-								Base::copyMemory(packet, bufSize, nSize);
-								packet += nSize;
-								Math::randomMemory(packet, 12); // iv
-								encryption.start(packet, 12);
-								packet += 12;
-								encryption.encrypt(response.data, packet + 16, response.size);
-								encryption.finish(packet);
-								return memPacket;
-							} else {
-								sl_uint8 buf[2];
-								buf[0] = (sl_uint8)(TcpCommand::ReplyMessage);
-								buf[1] = 0;
-								return Memory::create(buf, 2);
-							}
-						}
-						break;
-					default:
-						break;
-				}
-				return sl_null;
-			}
-
-			sl_bool _sendTcpServerStream(TcpServerStream* stream, const Memory& content)
-			{
-				stream->m_flagWriting = sl_true;
-				WeakRef<TcpServerStream> weakStream = stream;
-				return stream->m_socket->send(content, [this, weakStream](AsyncStreamResult& result) {
-					Ref<TcpServerStream> stream = weakStream;
-					if (stream.isNull()) {
+				WeakRef<TcpServerSocket> weakSocket = socket;
+				ChunkIO::readAsync(socket->m_stream.get(), [this, weakSocket](Memory& data, sl_bool flagError) {
+					Ref<TcpServerSocket> socket = weakSocket;
+					if (socket.isNull()) {
 						return;
 					}
-					stream->m_flagWriting = sl_false;
-					if (!(result.isSuccess())) {
-						m_mapTcpStreams.remove(stream.get());
+					if (!flagError && socket->m_stream->getLastResultCode() == AsyncStreamResultCode::Success) {
+						SocketAddress address(socket->m_remoteAddress.ip, socket->m_remoteActor);
+						_findNode(&address, socket->m_remoteId, [this, socket, data](Node* node, void*) {
+							if (node) {
+								Memory response = _processTcpServer_Message(node, (sl_uint8*)(data.getData()), data.getSize());
+								if (response.isNotNull()) {
+									_sendTcpServerReply(socket, response);
+									return;
+								}
+							}
+							m_mapTcpSockets.remove(socket.get());
+						}, 0);
+						return;
 					}
-				});
+					m_mapTcpSockets.remove(socket.get());
+				}, m_maximumMessageSize, m_messageSegmentSize);
+			}
+
+			Memory _processTcpServer_Message(Node* node, sl_uint8* packet, sl_size sizePacket)
+			{
+				node->updateEncryptionKey(m_ephemeralKey.data, m_ephemeralPublicKey.data);
+				P2PResponse response;
+				if (sizePacket > 28) {
+					AES_GCM decryptor;
+					decryptor.setKey(node->m_encryptionKey, 32);
+					decryptor.start(packet, 12);
+					packet += 28;
+					sizePacket -= 28;
+					decryptor.decrypt(packet, packet, sizePacket);
+					if (decryptor.finishAndCheckTag(packet - 16)) {
+						P2PRequest request(packet, (sl_uint32)sizePacket);
+						request.senderId = node->m_id;
+						request.connectionType = P2PConnectionType::Direct;
+						m_onReceiveMessage(this, request, response);
+					} else {
+						return sl_null;
+					}
+				} else if (!sizePacket) {
+					P2PRequest request;
+					request.senderId = node->m_id;
+					m_onReceiveMessage(this, request, response);
+				} else {
+					return sl_null;
+				}
+				if (response.size) {
+					sl_uint8 bufSize[16];
+					sl_uint32 nSize = CVLI::serialize(bufSize, response.size + 28);
+					Memory memPacket = Memory::create(29 + nSize + response.size);
+					if (memPacket.isNull()) {
+						return sl_null;
+					}
+					AES_GCM encryption;
+					encryption.setKey(node->m_encryptionKey, 32);
+					packet = (sl_uint8*)(memPacket.getData());
+					*(packet++) = (sl_uint8)(TcpCommand::ReplyMessage);
+					Base::copyMemory(packet, bufSize, nSize);
+					packet += nSize;
+					Math::randomMemory(packet, 12); // iv
+					encryption.start(packet, 12);
+					packet += 12;
+					encryption.encrypt(response.data, packet + 16, response.size);
+					encryption.finish(packet);
+					return memPacket;
+				} else {
+					sl_uint8 buf[2];
+					buf[0] = (sl_uint8)(TcpCommand::ReplyMessage);
+					buf[1] = 0;
+					return Memory::create(buf, 2);
+				}
 			}
 
 		public:
-			struct TcpClientStream_InitContext
+			struct TcpClientSocket_InitContext
 			{
 				Ref<Node> node;
 				Ref<DirectConnection> connection;
-				WeakRef<TcpClientStream> stream;
+				WeakRef<TcpClientSocket> socket;
 				Shared<TimeoutMonitor> timeoutMonitor;
-				Function<void(This*, Node*, DirectConnection*, TcpClientStream*)> callback;
+				Function<void(This*, Node*, DirectConnection*, TcpClientSocket*)> callback;
 			};
 
-			void _getTcpClientStream(Node* node, DirectConnection* connection, const Function<void(This*, Node*, DirectConnection*, TcpClientStream*)>& callback, sl_uint64 tickEnd)
+			void _getTcpClientSocket(Node* node, DirectConnection* connection, const Function<void(This*, Node*, DirectConnection*, TcpClientSocket*)>& callback, sl_uint64 tickEnd)
 			{
-				Ref<AsyncSocketStream> socket;
-				if (m_mapIdleTcpSockets.remove(connection, &socket)) {
-					Ref<TcpClientStream> stream = new TcpClientStream(Move(socket), m_maximumMessageSize);
-					if (stream.isNotNull()) {
-						m_mapTcpStreams.put(stream.get(), stream);
+				Ref<AsyncSocketStream> stream;
+				if (m_mapIdleTcpStreams.remove(connection, &stream)) {
+					Ref<TcpClientSocket> socket = new TcpClientSocket(Move(stream));
+					if (socket.isNotNull()) {
+						m_mapTcpSockets.put(socket.get(), socket);
 					}
-					callback(this, node, connection, stream.get());
+					callback(this, node, connection, socket.get());
 				} else {
 					AsyncTcpSocketParam param;
 					param.ioLoop = m_ioLoop;
-					Ref<AsyncTcpSocket> socket = AsyncTcpSocket::create(param);
-					if (socket.isNotNull()) {
-						TcpClientStream_InitContext context;
+					Ref<AsyncTcpSocket> stream = AsyncTcpSocket::create(param);
+					if (stream.isNotNull()) {
+						TcpClientSocket_InitContext context;
 						context.callback = callback;
 						context.node = node;
 						context.connection = connection;
-						Ref<AsyncSocketStream> socketStream = socket;
-						Ref<TcpClientStream> stream = new TcpClientStream(Move(socketStream), m_maximumMessageSize);
+						Ref<AsyncSocketStream> _stream = stream;
+						Ref<TcpClientSocket> socket = new TcpClientSocket(Move(_stream));
 						if (stream.isNotNull() && TimeoutMonitor::create(context.timeoutMonitor, tickEnd)) {
-							context.stream = stream;
-							m_mapTcpStreams.put(stream.get(), stream);
+							context.socket = socket;
+							m_mapTcpSockets.put(socket.get(), socket);
 							if (context.timeoutMonitor.isNotNull()) {
 								TimeoutMonitor::dispatchTimeout(context.timeoutMonitor, m_dispatchLoop, [this, context]() {
-									Ref<TcpStream> stream = context.stream;
-									if (stream.isNotNull()) {
-										m_mapTcpStreams.remove(stream.get());
+									Ref<TcpSocket> socket = context.socket;
+									if (socket.isNotNull()) {
+										m_mapTcpSockets.remove(socket.get());
 									}
 									context.callback(this, context.node.get(), context.connection.get(), sl_null);
 								}, tickEnd);
 							}
-							socket->connect(connection->m_address, [this, context](AsyncTcpSocket* socket, sl_bool flagError) {
+							stream->connect(connection->m_address, [this, context](AsyncTcpSocket* stream, sl_bool flagError) {
 								if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
 									return;
 								}
-								Ref<TcpClientStream> stream = context.stream;
-								if (stream.isNotNull()) {
+								Ref<TcpClientSocket> socket = context.socket;
+								if (socket.isNotNull()) {
 									if (!flagError) {
-										if (_sendTcpClientStream_Init(socket, context)) {
+										if (_sendTcpClient_Init(stream, context)) {
 											return;
 										}
 									}
-									m_mapTcpStreams.remove(stream.get());
+									m_mapTcpSockets.remove(socket.get());
 								}
 								if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
 									context.callback(this, context.node.get(), context.connection.get(), sl_null);
@@ -1779,49 +1634,52 @@ namespace slib
 				}
 			}
 
-			sl_bool _sendTcpClientStream_Init(AsyncTcpSocket* socket, const TcpClientStream_InitContext& context)
+			sl_bool _sendTcpClient_Init(AsyncTcpSocket* socket, const TcpClientSocket_InitContext& context)
 			{
 				sl_uint8 packet[23];
 				*packet = (sl_uint8)(TcpCommand::Init);
 				Base::copyMemory(packet + 1, context.node->m_id.data, 4);
 				Base::copyMemory(packet + 5, m_localNodeId.data, sizeof(P2PNodeId));
 				MIO::writeUint16LE(packet + 21, m_portActor);
-				return socket->send(Memory::create(packet, sizeof(packet)), [this, context](AsyncStreamResult& result) {
+				Memory mem = Memory::create(packet, sizeof(packet));
+				if (mem.isNull()) {
+					return sl_false;
+				}
+				socket->write(mem, [this, context](AsyncStreamResult& result) {
 					if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
 						return;
 					}
-					Ref<TcpClientStream> stream = context.stream;
-					if (stream.isNotNull()) {
-						if (result.isSuccess()) {
-							if (_receiveTcpClientStream_ReplyInit(result.stream, context)) {
-								return;
-							}
+					Ref<TcpClientSocket> socket = context.socket;
+					if (socket.isNotNull()) {
+						if (result.isSuccess() && result.size == result.requestSize) {
+							_receiveTcpClientStream_ReplyInit(result.stream, context);
 						}
-						m_mapTcpStreams.remove(stream.get());
+						m_mapTcpSockets.remove(socket.get());
 					}
 					if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
 						context.callback(this, context.node.get(), context.connection.get(), sl_null);
 					}
 				});
+				return sl_true;
 			}
 
-			sl_bool _receiveTcpClientStream_ReplyInit(AsyncStream* stream, const TcpClientStream_InitContext& context)
+			void _receiveTcpClientStream_ReplyInit(AsyncStream* stream, const TcpClientSocket_InitContext& context)
 			{
-				return stream->read(Memory::create(16), [this, context](AsyncStreamResult& result) {
+				stream->readFully(1, [this, context](AsyncStream* stream, Memory& mem, sl_bool flagError) {
 					if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
 						return;
 					}
-					Ref<TcpClientStream> stream = context.stream;
-					if (stream.isNotNull()) {
-						if (result.isSuccess()) {
-							if (result.size == 1 && *((sl_uint8*)(result.data)) == (sl_uint8)(TcpCommand::ReplyInit)) {
+					Ref<TcpClientSocket> socket = context.socket;
+					if (socket.isNotNull()) {
+						if (!flagError && stream->getLastResultCode() == AsyncStreamResultCode::Success && mem.getSize() == 1) {
+							if (*((sl_uint8*)(mem.getData())) == (sl_uint8)(TcpCommand::ReplyInit)) {
 								if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
-									context.callback(this, context.node.get(), context.connection.get(), stream.get());
+									context.callback(this, context.node.get(), context.connection.get(), socket.get());
 								}
 								return;
 							}
 						}
-						m_mapTcpStreams.remove(stream.get());
+						m_mapTcpSockets.remove(socket.get());
 					}
 					if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
 						context.callback(this, context.node.get(), context.connection.get(), sl_null);
@@ -1833,16 +1691,14 @@ namespace slib
 			{
 				Ref<Node> node;
 				Ref<DirectConnection> connection;
-				WeakRef<TcpClientStream> stream;
+				WeakRef<TcpClientSocket> socket;
 				Shared<TimeoutMonitor> timeoutMonitor;
 				Function<void(P2PResponse&)> callback;
 			};
 
-			sl_bool _sendTcpClientStream_Message(TcpClientStream* stream, const TcpClientStream_MessageContext& context, const MessageBody& body)
+			sl_bool _sendTcpClient_Message(TcpClientSocket* socket, const TcpClientStream_MessageContext& context, const Memory& memPacket)
 			{
-				Memory memPacket;
-				sl_uint8* packet;
-				if (body.lengthOfSize) {
+				if (memPacket.isNotNull()) {
 					memPacket = body.packet;
 					packet = (sl_uint8*)(memPacket.getData());
 					Math::randomMemory(packet + 1 + body.lengthOfSize, 12);
@@ -1853,16 +1709,10 @@ namespace slib
 					sl_uint8* content = packet + 29 + body.lengthOfSize;
 					enc.encrypt(content, content, memPacket.getSize() - 29 - body.lengthOfSize);
 					enc.finish(packet + 13 + body.lengthOfSize);
-				} else {
-					memPacket = Memory::create(2);
-					if (memPacket.isNull()) {
-						return sl_false;
-					}
-					packet = (sl_uint8*)(memPacket.getData());
-					packet[1] = 0;
 				}
+				socket->m_stream->send()
 				packet[0] = (sl_uint8)(TcpCommand::Message);
-				return stream->m_socket->send(memPacket, [this, context](AsyncStreamResult& result) {
+				return socket->m_stream->send(memPacket, [this, context](AsyncStreamResult& result) {
 					if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
 						return;
 					}
@@ -2123,20 +1973,20 @@ namespace slib
 
 			void _sendMessageDirectConnection(Node* node, DirectConnection* connection, const MessageBody& body, const Function<void(P2PResponse&)>& callback, sl_uint64 tickEnd)
 			{
-				_getTcpClientStream(node, connection, [this, body, callback, tickEnd](This* thiz, Node* node, DirectConnection* connection, TcpClientStream* stream) {
+				_getTcpClientSocket(node, connection, [this, body, callback, tickEnd](This* thiz, Node* node, DirectConnection* connection, TcpClientSocket* socket) {
 					TcpClientStream_MessageContext context;
 					context.node = node;
 					context.connection = connection;
-					context.stream = stream;
+					context.socket = socket;
 					context.callback = callback;
-					if (stream) {
+					if (socket) {
 						if (TimeoutMonitor::create(context.timeoutMonitor, tickEnd)) {
-							if (_sendTcpClientStream_Message(stream, context, body)) {
+							if (_sendTcpClient_Message(socket, context, body)) {
 								if (context.timeoutMonitor.isNotNull()) {
 									TimeoutMonitor::dispatchTimeout(context.timeoutMonitor, m_dispatchLoop, [this, context]() {
-										Ref<TcpStream> stream = context.stream;
-										if (stream.isNotNull()) {
-											m_mapTcpStreams.remove(stream.get());
+										Ref<TcpSocket> socket = context.socket;
+										if (socket.isNotNull()) {
+											m_mapTcpSockets.remove(socket.get());
 										}
 										ReplyErrorResponse(context.callback);
 									}, tickEnd);
@@ -2144,7 +1994,7 @@ namespace slib
 								return;
 							}
 						}
-						m_mapTcpStreams.remove(stream);
+						m_mapTcpSockets.remove(socket);
 					}
 					ReplyErrorResponse(callback);
 				}, tickEnd);
@@ -2200,8 +2050,8 @@ namespace slib
 					m_threadPool->release();
 				}
 
-				m_mapTcpStreams.removeAll();
-				m_mapIdleTcpSockets.removeAll();
+				m_mapTcpSockets.removeAll();
+				m_mapIdleTcpStreams.removeAll();
 				m_mapNodes.removeAll();
 
 			}
@@ -2474,7 +2324,7 @@ namespace slib
 		connectionTimeout = 60000; // 1 minutes
 		findTimeout = 10000; // 10 seconds
 		maximumMessageSize = 104857600; // 100MB
-		messageBufferSize = 0x10000;
+		messageSegmentSize = 0x10000;
 		ephemeralKeyDuration = 86400000; // 24 hours
 
 		flagAutoStart = sl_true;

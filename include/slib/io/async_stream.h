@@ -73,7 +73,7 @@ namespace slib
 	class SLIB_EXPORT AsyncStreamErrorResult : public AsyncStreamResult
 	{
 	public:
-		AsyncStreamErrorResult(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject) noexcept;
+		AsyncStreamErrorResult(AsyncStream* stream, const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject) noexcept;
 
 	};
 
@@ -173,13 +173,15 @@ namespace slib
 
 		void readFully(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 
+		void readFully(sl_size size, const Function<void(AsyncStream*, Memory&, sl_bool flagError)>& callback);
+
+		void readFully(sl_size size, const Function<void(AsyncStream*, MemoryBuffer&, sl_bool flagError)>& callback, sl_size segmentSize);
+
 		void write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
 
 		void write(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 
-		void writeFully(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
-
-		void writeFully(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
+		void createMemoryAndWrite(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback);
 
 		virtual sl_bool addTask(const Function<void()>& callback) = 0;
 
@@ -190,6 +192,13 @@ namespace slib
 		virtual sl_uint64 getPosition();
 
 		virtual sl_uint64 getSize();
+
+		AsyncStreamResultCode getLastResultCode();
+
+		void setLastResultCode(AsyncStreamResultCode code);
+
+	protected:
+		AsyncStreamResultCode m_lastResultCode;
 
 	};
 

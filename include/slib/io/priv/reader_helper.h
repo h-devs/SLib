@@ -147,7 +147,7 @@ namespace slib
 			if (!size) {
 				return sl_null;
 			}
-			if (size != SLIB_SIZE_MAX && !segmentSize) {
+			if (size != SLIB_SIZE_MAX && (!segmentSize || size < segmentSize)) {
 				Memory mem = Memory::create(size);
 				if (mem.isNotNull()) {
 					sl_reg nRead = readFully(reader, mem.getData(), size);

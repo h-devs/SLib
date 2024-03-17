@@ -31,7 +31,7 @@ int main(int argc, const char * argv[])
 			Println("Connected client: %s", address.toString());
 			clients.put(client.get(), client);
 
-			client->receive(Memory::create(100), [](AsyncStreamResult& result) {
+			client->read(Memory::create(100), [](AsyncStreamResult& result) {
 				AsyncSocketStream* client = (AsyncSocketStream*)(result.stream);
 				if (result.isError()) {
 					Println("Client Error!");
@@ -45,7 +45,7 @@ int main(int argc, const char * argv[])
 				}
 				Println("Received: %s", StringView((char*)(result.data), result.size));
 				clients.get(client);
-				client->receive(result.data, result.requestSize, result.callback, result.userObject);
+				client->read(result.data, result.requestSize, result.callback, result.userObject);
 			});
 		};
 
