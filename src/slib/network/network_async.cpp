@@ -26,28 +26,6 @@
 
 #include "slib/core/handle_ptr.h"
 
-#define PREPARE_LOOP \
-	Ref<AsyncIoLoop> loop = param.ioLoop; \
-	if (loop.isNull()) { \
-		loop = AsyncIoLoop::getDefault(); \
-		if (loop.isNull()) { \
-			return sl_null; \
-		} \
-	}
-
-#define INIT_SERVER \
-	ret->m_onAccept = param.onAccept; \
-	ret->m_onError = Function<void(AsyncSocketServer*)>::from(param.onError); \
-	instance->setObject(ret.get()); \
-	ret->setIoInstance(instance.get()); \
-	ret->setIoLoop(loop); \
-	if (loop->attachInstance(instance.get(), AsyncIoMode::In)) { \
-		if (param.flagAutoStart) { \
-			instance->start(); \
-		} \
-		return ret; \
-	}
-
 namespace slib
 {
 
@@ -141,22 +119,13 @@ namespace slib
 		}
 	}
 
-	Ref<AsyncSocketStream> AsyncSocketStream::create(Socket&& socket, const Ref<AsyncIoLoop>& _loop)
+	Ref<AsyncSocketStream> AsyncSocketStream::create(Socket&& socket, const Ref<AsyncIoLoop>& loop)
 	{
-		AsyncIoLoop* loop = _loop.get();
-		Ref<AsyncIoLoop> defaultLoop;
-		if (!loop) {
-			defaultLoop = AsyncIoLoop::getDefault();
-			if (defaultLoop.isNull()) {
-				return sl_null;
-			}
-			loop = defaultLoop.get();
-		}
 		Ref<AsyncSocketStreamInstance> instance = _createInstance(Move(socket), sl_false);
 		if (instance.isNotNull()) {
 			Ref<AsyncSocketStream> ret = new AsyncSocketStream;
 			if (ret.isNotNull()) {
-				if (ret->_initialize(instance.get(), AsyncIoMode::InOut, ToRef(&loop))) {
+				if (ret->initialize(loop, instance.get(), AsyncIoMode::InOut)) {
 					return ret;
 				}
 			}
@@ -183,11 +152,36 @@ namespace slib
 		return Ref<AsyncSocketStreamInstance>::from(AsyncStreamBase::getIoInstance());
 	}
 
+	void AsyncSocketStream::_requestConnect(AsyncSocketStreamInstance* instance, sl_int32 timeout)
+	{
+		Ref<AsyncIoLoop> loop = getIoLoop();
+		if (loop.isNotNull()) {
+			if (timeout >= 0) {
+				WeakRef<AsyncSocketStream> thiz = this;
+				if (loop->dispatch([thiz, this]() {
+					Ref<AsyncStreamRequest> ref = thiz;
+					if (ref.isNull()) {
+						return;
+					}
+					_onConnect(sl_true);
+				}, timeout)) {
+					loop->requestOrder(instance);
+					return;
+				}
+			} else {
+				loop->requestOrder(instance);
+				return;
+			}
+		}
+		_onConnect(sl_true);
+	}
+
 	void AsyncSocketStream::_onConnect(sl_bool flagError)
 	{
-		if (m_onConnect.isNotNull()) {
-			m_onConnect(this, flagError);
-			m_onConnect.setNull();
+		Function<void(AsyncSocketStream*, sl_bool flagError)> onConnect = m_onConnect.release();
+		if (onConnect.isNotNull()) {
+			onConnect(this, flagError);
+			onConnect.setNull();
 		}
 	}
 
@@ -275,16 +269,6 @@ namespace slib
 	{
 	}
 
-	void AsyncSocketServer::close()
-	{
-		closeIoInstance();
-	}
-
-	sl_bool AsyncSocketServer::isOpened()
-	{
-		return getIoInstance().isNotNull();
-	}
-
 	void AsyncSocketServer::start()
 	{
 		Ref<AsyncSocketServerInstance> instance = _getIoInstance();
@@ -366,10 +350,9 @@ namespace slib
 		}
 		Ref<AsyncSocketStreamInstance> instance = _createInstance(Move(socket), flagIPv6);
 		if (instance.isNotNull()) {
-			PREPARE_LOOP
 			Ref<AsyncTcpSocket> ret = new AsyncTcpSocket;
 			if (ret.isNotNull()) {
-				if (ret->_initialize(instance.get(), AsyncIoMode::InOut, loop)) {
+				if (ret->initialize(param.ioLoop, instance.get(), AsyncIoMode::InOut)) {
 					return ret;
 				}
 			}
@@ -405,26 +388,23 @@ namespace slib
 		return sl_false;
 	}
 
-	void AsyncTcpSocket::connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback)
+	void AsyncTcpSocket::connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback, sl_int32 timeout)
 	{
 		_onConnect(sl_true);
 		if (address.isValid()) {
-			Ref<AsyncIoLoop> loop = getIoLoop();
-			if (loop.isNotNull()) {
-				Ref<AsyncSocketStreamInstance> instance = _getIoInstance();
-				if (instance.isNotNull()) {
-					HandlePtr<Socket> socket(instance->getSocket());
-					if (socket->isOpened()) {
-						if (instance->isSupportedConnect()) {
-							m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::from(callback);
-							instance->connect(address);
-							loop->requestOrder(instance.get());
+			Ref<AsyncSocketStreamInstance> instance = _getIoInstance();
+			if (instance.isNotNull()) {
+				HandlePtr<Socket> socket(instance->getSocket());
+				if (socket->isOpened()) {
+					if (instance->isSupportedConnect()) {
+						m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::from(callback);
+						instance->connect(address);
+						_requestConnect(instance.get(), timeout);
+						return;
+					} else {
+						if (socket->connectAndWait(address, timeout)) {
+							callback(this, sl_false);
 							return;
-						} else {
-							if (socket->connectAndWait(address)) {
-								callback(this, sl_false);
-								return;
-							}
 						}
 					}
 				}
@@ -492,10 +472,16 @@ namespace slib
 		if (socket.listen()) {
 			Ref<AsyncSocketServerInstance> instance = _createInstance(Move(socket), flagIPv6, sl_false);
 			if (instance.isNotNull()) {
-				PREPARE_LOOP
 				Ref<AsyncTcpServer> ret = new AsyncTcpServer;
 				if (ret.isNotNull()) {
-					INIT_SERVER
+					ret->m_onAccept = param.onAccept;
+					ret->m_onError = Function<void(AsyncSocketServer*)>::from(param.onError);
+					if (ret->initialize(param.ioLoop, instance.get(), AsyncIoMode::In)) {
+						if (param.flagAutoStart) {
+							instance->start();
+						}
+						return ret;
+					}
 				}
 			}
 		} else {
@@ -547,10 +533,9 @@ namespace slib
 		}
 		Ref<AsyncSocketStreamInstance> instance = _createInstance(Move(socket), sl_false);
 		if (instance.isNotNull()) {
-			PREPARE_LOOP
 			Ref<AsyncDomainSocket> ret = new AsyncDomainSocket;
 			if (ret.isNotNull()) {
-				if (ret->_initialize(instance.get(), AsyncIoMode::InOut, loop)) {
+				if (ret->initialize(param.ioLoop, instance.get(), AsyncIoMode::InOut)) {
 					return ret;
 				}
 			}
@@ -583,26 +568,23 @@ namespace slib
 		return sl_false;
 	}
 
-	void AsyncDomainSocket::connect(const DomainSocketPath& path, const Function<void(AsyncDomainSocket*, sl_bool flagError)>& callback)
+	void AsyncDomainSocket::connect(const DomainSocketPath& path, const Function<void(AsyncDomainSocket*, sl_bool flagError)>& callback, sl_int32 timeout)
 	{
 		_onConnect(sl_true);
 		if (path.length) {
-			Ref<AsyncIoLoop> loop = getIoLoop();
-			if (loop.isNotNull()) {
-				Ref<AsyncSocketStreamInstance> instance = _getIoInstance();
-				if (instance.isNotNull()) {
-					HandlePtr<Socket> socket(instance->getSocket());
-					if (socket->isOpened()) {
-						if (instance->isSupportedConnect()) {
-							m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::from(callback);
-							instance->connect(path);
-							loop->requestOrder(instance.get());
+			Ref<AsyncSocketStreamInstance> instance = _getIoInstance();
+			if (instance.isNotNull()) {
+				HandlePtr<Socket> socket(instance->getSocket());
+				if (socket->isOpened()) {
+					if (instance->isSupportedConnect()) {
+						m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::from(callback);
+						instance->connect(path);
+						_requestConnect(instance.get(), timeout);
+						return;
+					} else {
+						if (socket->connectAndWait(path, timeout)) {
+							callback(this, sl_false);
 							return;
-						} else {
-							if (socket->connectAndWait(path)) {
-								callback(this, sl_false);
-								return;
-							}
 						}
 					}
 				}
@@ -652,10 +634,16 @@ namespace slib
 		if (socket.listen()) {
 			Ref<AsyncSocketServerInstance> instance = _createInstance(Move(socket), sl_false, sl_true);
 			if (instance.isNotNull()) {
-				PREPARE_LOOP
 				Ref<AsyncDomainSocketServer> ret = new AsyncDomainSocketServer;
 				if (ret.isNotNull()) {
-					INIT_SERVER
+					ret->m_onAccept = param.onAccept;
+					ret->m_onError = Function<void(AsyncSocketServer*)>::from(param.onError);
+					if (ret->initialize(param.ioLoop, instance.get(), AsyncIoMode::In)) {
+						if (param.flagAutoStart) {
+							instance->start();
+						}
+						return ret;
+					}
 				}
 			}
 		} else {
@@ -847,23 +835,13 @@ namespace slib
 
 		Ref<AsyncUdpSocketInstance> instance = _createInstance(Move(socket), param.packetSize);
 		if (instance.isNotNull()) {
-			Ref<AsyncIoLoop> loop = param.ioLoop;
-			if (loop.isNull()) {
-				loop = AsyncIoLoop::getDefault();
-				if (loop.isNull()) {
-					return sl_null;
-				}
-			}
 			Ref<AsyncUdpSocket> ret = new AsyncUdpSocket;
 			if (ret.isNotNull()) {
 				ret->m_onReceive = param.onReceive;
 				if (param.onReceive.isNull()) {
 					ret->m_onReceiveFrom = param.onReceiveFrom;
 				}
-				instance->setObject(ret.get());
-				ret->setIoInstance(instance.get());
-				ret->setIoLoop(loop);
-				if (loop->attachInstance(instance.get(), AsyncIoMode::In)) {
+				if (ret->initialize(param.ioLoop, instance.get(), AsyncIoMode::In)) {
 					if (param.flagAutoStart) {
 						ret->start();
 					}
@@ -873,16 +851,6 @@ namespace slib
 		}
 
 		return sl_null;
-	}
-
-	void AsyncUdpSocket::close()
-	{
-		closeIoInstance();
-	}
-
-	sl_bool AsyncUdpSocket::isOpened()
-	{
-		return getIoInstance().isNotNull();
 	}
 
 	void AsyncUdpSocket::start()

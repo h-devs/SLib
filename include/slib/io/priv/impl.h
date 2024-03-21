@@ -29,9 +29,9 @@
 #include "seekable_reader_helper.h"
 
 #define SLIB_DEFINE_IREADER_MEMBERS(CLASS, ATTR) \
-	sl_reg CLASS::readFully(void* buf, sl_size size) ATTR { return ReaderHelper::readFully(this, buf, size); } \
-	sl_reg CLASS::readFully(MemoryBuffer& output, sl_size size, sl_size segmentSize) ATTR { return ReaderHelper::readFully(this, output, size, segmentSize); } \
-	Memory CLASS::readFully(sl_size size, sl_size segmentSize) ATTR { return ReaderHelper::readFully(this, size, segmentSize); }
+	sl_reg CLASS::readFully(void* buf, sl_size size, sl_int32 timeout) ATTR { return ReaderHelper::readFully(this, buf, size, timeout); } \
+	sl_reg CLASS::readFully(MemoryBuffer& output, sl_size size, sl_size segmentSize, sl_int32 timeout) ATTR { return ReaderHelper::readFully(this, output, size, segmentSize, timeout); } \
+	Memory CLASS::readFully(sl_size size, sl_size segmentSize, sl_int32 timeout) ATTR { return ReaderHelper::readFully(this, size, segmentSize, timeout); }
 	sl_bool CLASS::readInt8(sl_int8* output) ATTR { return ReaderHelper::readInt8(this, output); } \
 	sl_int8 CLASS::readInt8(sl_int8 def) ATTR { return ReaderHelper::readInt8(this, def); } \
 	sl_bool CLASS::readUint8(sl_uint8* output) ATTR { return ReaderHelper::readUint8(this, output); } \
@@ -54,9 +54,9 @@
 	double CLASS::readDouble(double def, EndianType endian) ATTR { return ReaderHelper::readDouble(this, def, endian); } \
 
 #define SLIB_DEFINE_IWRITER_MEMBERS(CLASS, ATTR) \
-	sl_reg CLASS::writeFully(const void* buf, sl_size size) ATTR { return WriterHelper::writeFully(this, buf, size); } \
-	sl_reg CLASS::writeFully(const MemoryView& mem) ATTR { return WriterHelper::writeFully(this, mem.data, mem.size); } \
-	sl_reg CLASS::writeFully(const StringView& str) ATTR { return WriterHelper::writeFully(this, str.getData(), str.getLength()); } \
+	sl_reg CLASS::writeFully(const void* buf, sl_size size, sl_int32 timeout) ATTR { return WriterHelper::writeFully(this, buf, size, timeout); } \
+	sl_reg CLASS::writeFully(const MemoryView& mem, sl_int32 timeout) ATTR { return WriterHelper::writeFully(this, mem.data, mem.size, timeout); } \
+	sl_reg CLASS::writeFully(const StringView& str, sl_int32 timeout) ATTR { return WriterHelper::writeFully(this, str.getData(), str.getLength(), timeout); } \
 	sl_bool CLASS::writeInt8(sl_int8 value) ATTR { return WriterHelper::writeInt8(this, value); } \
 	sl_bool CLASS::writeUint8(sl_uint8 value) ATTR { return WriterHelper::writeInt8(this, value); } \
 	sl_bool CLASS::writeInt16(sl_int16 value, EndianType endian) ATTR { return WriterHelper::writeInt16(this, value, endian); } \
@@ -67,9 +67,9 @@
 	sl_bool CLASS::writeUint64(sl_uint64 value, EndianType endian) ATTR { return WriterHelper::writeInt64(this, value, endian); } \
 	sl_bool CLASS::writeFloat(float value, EndianType endian) ATTR { return WriterHelper::writeFloat(this, value, endian); } \
 	sl_bool CLASS::writeDouble(double value, EndianType endian) ATTR { return WriterHelper::writeDouble(this, value, endian); } \
-	sl_bool CLASS::writeAllBytes(const void* buf, sl_size size) ATTR { return WriterHelper::writeFully(this, buf, size) == (sl_reg)size; } \
-	sl_bool CLASS::writeAllBytes(const MemoryView& mem) ATTR { return WriterHelper::writeFully(this, mem.data, mem.size) == (sl_reg)(mem.size); } \
-	sl_bool CLASS::writeAllBytes(const StringView& str) ATTR { return writeAllBytes(str.getData(), str.getLength()); }
+	sl_bool CLASS::writeAllBytes(const void* buf, sl_size size, sl_int32 timeout) ATTR { return WriterHelper::writeFully(this, buf, size, timeout) == (sl_reg)size; } \
+	sl_bool CLASS::writeAllBytes(const MemoryView& mem, sl_int32 timeout) ATTR { return WriterHelper::writeFully(this, mem.data, mem.size, timeout) == (sl_reg)(mem.size); } \
+	sl_bool CLASS::writeAllBytes(const StringView& str, sl_int32 timeout) ATTR { return writeAllBytes(str.getData(), str.getLength(), timeout); }
 
 #define SLIB_DEFINE_ISTREAM_MEMBERS(CLASS, ATTR) \
 	SLIB_DEFINE_IREADER_MEMBERS(CLASS, ATTR) \
@@ -114,7 +114,7 @@
 #define SLIB_DEFINE_SEEKABLE_READER_MEMBERS(CLASS, ATTR) \
 	sl_reg CLASS::readAt(sl_uint64 offset, void* buf, sl_size size) ATTR { return (seek(offset, SeekPosition::Begin)) ? read(buf, size) : -1; } \
 	sl_int32 CLASS::readAt32(sl_uint64 offset, void* buf, sl_uint32 size) ATTR { return (seek(offset, SeekPosition::Begin)) ? read32(buf, size) : -1; } \
-	sl_reg CLASS::readFullyAt(sl_uint64 offset, void* buf, sl_size size) ATTR { return (seek(offset, SeekPosition::Begin)) ? readFully(buf, size) : -1; } \
+	sl_reg CLASS::readFullyAt(sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout) ATTR { return (seek(offset, SeekPosition::Begin)) ? readFully(buf, size, timeout) : -1; } \
 	String CLASS::readLine() ATTR { return SeekableReaderHelper::readLine(this, this); } \
 	String CLASS::readNullTerminatedString() ATTR { return SeekableReaderHelper::readNullTerminatedString(this, this); } \
 	Memory CLASS::readAllBytes(sl_size maxSize) ATTR { return SeekableReaderHelper::readAllBytes(this, this, maxSize); } \
@@ -124,7 +124,7 @@
 #define SLIB_DEFINE_SEEKABLE_WRITER_MEMBERS(CLASS, ATTR) \
 	sl_reg CLASS::writeAt(sl_uint64 offset, const void* buf, sl_size size) ATTR { return (seek(offset, SeekPosition::Begin)) ? write(buf, size) : -1; } \
 	sl_int32 CLASS::writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size) ATTR { return (seek(offset, SeekPosition::Begin)) ? write32(buf, size) : -1; } \
-	sl_reg CLASS::writeFullyAt(sl_uint64 offset, const void* buf, sl_size size) ATTR { return (seek(offset, SeekPosition::Begin)) ? writeFully(buf, size) : -1; }
+	sl_reg CLASS::writeFullyAt(sl_uint64 offset, const void* buf, sl_size size, sl_int32 timeout) ATTR { return (seek(offset, SeekPosition::Begin)) ? writeFully(buf, size, timeout) : -1; }
 
 #define SLIB_DEFINE_IO_MEMBERS(CLASS, ATTR) \
 	SLIB_DEFINE_ISTREAM_MEMBERS(CLASS, ATTR) \

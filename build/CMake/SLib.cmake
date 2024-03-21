@@ -104,6 +104,7 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/io/async.cpp"
  "${SLIB_PATH}/src/slib/io/async_epoll.cpp"
  "${SLIB_PATH}/src/slib/io/async_unix.cpp"
+ "${SLIB_PATH}/src/slib/io/chunk.cpp"
  "${SLIB_PATH}/src/slib/io/file.cpp"
  "${SLIB_PATH}/src/slib/io/file_unix.cpp"
  "${SLIB_PATH}/src/slib/io/io.cpp"

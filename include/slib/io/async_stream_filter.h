@@ -42,16 +42,23 @@ namespace slib
 		~AsyncStreamFilter();
 
 	public:
-		Ref<AsyncStream> getSourceStream() const;
+		const Ref<AsyncStream>& getSourceStream() const
+		{
+			return m_stream;
+		}
 
-		void setSourceStream(const Ref<AsyncStream>& stream);
-
+		// Set only once
+		template <class T>
+		void setSourceStream(T&& stream)
+		{
+			m_stream = Forward<T>(stream);
+		}
 
 		void close() override;
 
 		sl_bool isOpened() override;
 
-		sl_bool requestIo(const Ref<AsyncStreamRequest>& request) override;
+		sl_bool requestIo(AsyncStreamRequest* request) override;
 
 		sl_bool addTask(const Function<void()>& callback) override;
 
@@ -91,7 +98,7 @@ namespace slib
 	protected:
 		sl_bool m_flagOpened;
 
-		AtomicRef<AsyncStream> m_stream;
+		Ref<AsyncStream> m_stream;
 
 		MemoryQueue m_bufReadConverted;
 		LinkedQueue< Ref<AsyncStreamRequest> > m_requestsRead;

@@ -25,7 +25,6 @@
 
 #include "definition.h"
 
-#include "../core/thread_pool.h"
 #include "../data/data_container.h"
 #include "../io/memory_output.h"
 #include "../io/async_stream.h"
@@ -49,7 +48,9 @@ namespace slib
 		sl_int32 timeout; // In milliseconds
 		sl_bool flagSelfAlive; // default: true
 
-		sl_int32 maximumMessageSize;
+		sl_uint32 maximumMessageSize;
+		sl_uint32 messageSegmentSize;
+
 		Function<void(IPCResponseMessage&)> onResponse;
 
 	public:
@@ -71,23 +72,32 @@ namespace slib
 	public:
 		sl_bool initialize(Ref<AsyncStream>&&, const IPCRequestParam&);
 
-		static sl_uint64 getCurrentTick();
-
 	protected:
 		void onError();
 
-		void onResponse();
+		void onResponse(IPCResponseMessage& response);
+
+		void sendRequest();
+
+		void onSentRequest(AsyncStream*, sl_bool flagError);
+
+		void receiveResponse();
+
+		void onReceiveResponse(AsyncStream*, Memory& data, sl_bool flagError);
 
 	protected:
 		Ref<AsyncStream> m_stream;
 		sl_bool m_flagSelfAlive;
 		Ref<Dispatcher> m_dispatcher;
-		AtomicFunction<void(IPCResponseMessage&)> m_onResponse;
+		Function<void(IPCResponseMessage&)> m_onResponse;
 
 		Memory m_requestData;
 		Memory m_responseData;
-		sl_uint64 m_tickEnd;
+		sl_int64 m_tickEnd;
 		sl_int32 m_maximumResponseSize;
+		sl_uint32 m_messageSegmentSize;
+
+		sl_int32 m_nCountFinish;
 
 	};
 
@@ -96,13 +106,11 @@ namespace slib
 	public:
 		StringParam name;
 		Ref<AsyncIoLoop> ioLoop;
+		Ref<Dispatcher> dispatcher; // usually ThreadPool
 
-		sl_int32 maximumMessageSize;
+		sl_uint32 maximumMessageSize;
+		sl_uint32 messageSegmentSize;
 		sl_bool flagAcceptOtherUsers; // default: true
-
-		sl_uint32 minimumThreadCount;
-		sl_uint32 maximumThreadCount;
-		sl_bool flagProcessByThreads; // default: false
 
 		Function<void(IPCRequestMessage&, IPCResponseMessage&)> onReceiveMessage;
 
@@ -123,10 +131,28 @@ namespace slib
 		~IPCServer();
 
 	protected:
-		Ref<ThreadPool> m_threadPool;
+		sl_bool initialize(const IPCServerParam& param);
+
+		void startStream(AsyncStream*);
+
+		void receiveRequest(AsyncStream*);
+
+		void onReceiveRequest(AsyncStream*, Memory& data, sl_bool flagError);
+
+		void processRequest(AsyncStream*, const Memory& data);
+
+		void sendResponse(AsyncStream*, const Memory& data);
+
+		void onSentResponse(AsyncStream*, sl_bool flagError);
+
+	protected:
+		Ref<AsyncIoLoop> m_ioLoop;
+		Ref<Dispatcher> m_dispatcher;
 		sl_uint32 m_maximumMessageSize;
-		sl_bool m_flagAcceptOtherUsers;
+		sl_uint32 m_messageSegmentSize;
 		Function<void(IPCRequestMessage&, IPCResponseMessage&)> m_onReceiveMessage;
+
+		HashMap< AsyncStream*, Ref<AsyncStream> > m_streams;
 
 	};
 

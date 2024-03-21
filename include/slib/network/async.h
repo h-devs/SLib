@@ -57,6 +57,8 @@ namespace slib
 
 		static Ref<AsyncSocketStreamInstance> _createInstance(Socket&& socket, sl_bool flagIPv6);
 
+		void _requestConnect(AsyncSocketStreamInstance* instance, sl_int32 timeout);
+
 		void _onConnect(sl_bool flagError);
 
 	protected:
@@ -77,10 +79,6 @@ namespace slib
 		~AsyncSocketServer();
 
 	public:
-		void close();
-
-		sl_bool isOpened();
-
 		void start();
 
 		sl_bool isRunning();
@@ -137,7 +135,7 @@ namespace slib
 	public:
 		sl_bool connect(const SocketAddress& address, sl_int32 timeout = -1);
 
-		void connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback);
+		void connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback, sl_int32 timeout = -1);
 
 	};
 
@@ -220,7 +218,7 @@ namespace slib
 	public:
 		sl_bool connect(const DomainSocketPath& path, sl_int32 timeout = -1);
 
-		void connect(const DomainSocketPath& path, const Function<void(AsyncDomainSocket*, sl_bool flagError)>& callback);
+		void connect(const DomainSocketPath& path, const Function<void(AsyncDomainSocket*, sl_bool flagError)>& callback, sl_int32 timeout = -1);
 
 	};
 
@@ -312,10 +310,6 @@ namespace slib
 		static Ref<AsyncUdpSocket> create(AsyncUdpSocketParam& param);
 
 	public:
-		void close();
-
-		sl_bool isOpened();
-
 		void start();
 
 		sl_bool isRunning();

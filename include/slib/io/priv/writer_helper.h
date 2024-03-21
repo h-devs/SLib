@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_IO_PRIV_WRITER_HELPER
 
 #include "../../core/thread.h"
+#include "../../core/timeout.h"
 
 namespace slib
 {
@@ -43,7 +44,7 @@ namespace slib
 			}
 			sl_size nWrite = 0;
 			CurrentThread thread;
-			for (;;) {
+			do {
 				sl_size n = size;
 				if (n > 0x40000000) {
 					n = 0x40000000; // 1GB
@@ -56,30 +57,27 @@ namespace slib
 					}
 					buf += m;
 					size -= m;
-				} else if (m == SLIB_IO_WOULD_BLOCK) {
-					writer->waitWrite();
 				} else if (m == SLIB_IO_ENDED) {
 					return nWrite;
 				} else {
 					return m;
 				}
-				if (thread.isStopping()) {
-					return SLIB_IO_ERROR;
-				}
-			}
+			} while (thread.isNotStopping());
+			return SLIB_IO_ERROR;
 #endif
 		}
 
 		template <class WRITER>
-		static sl_reg writeFully(WRITER* writer, const void* _buf, sl_size size)
+		static sl_reg writeFully(WRITER* writer, const void* _buf, sl_size size, sl_int32 timeout)
 		{
 			sl_uint8* buf = (sl_uint8*)_buf;
 			if (!size) {
 				return writer->write(buf, 0);
 			}
+			sl_uint64 tickEnd = GetTickFromTimeout(timeout);
 			sl_size nWrite = 0;
 			CurrentThread thread;
-			for (;;) {
+			do {
 				sl_reg m = writer->write(buf, size);
 				if (m > 0) {
 					nWrite += m;
@@ -89,16 +87,34 @@ namespace slib
 					buf += m;
 					size -= m;
 				} else if (m == SLIB_IO_WOULD_BLOCK) {
-					writer->waitWrite();
+					if (timeout >= 0) {
+						if (!timeout) {
+							return SLIB_IO_TIMEOUT;
+						}
+						sl_uint64 tick = System::getTickCount64();
+						if (tick >= tickEnd) {
+							if (nWrite) {
+								return nWrite;
+							} else {
+								return SLIB_IO_TIMEOUT;
+							}
+						}
+						sl_uint64 t = tickEnd - tick;
+						if (t >= 1000) {
+							writer->waitWrite(1000);
+						} else {
+							writer->waitWrite((sl_uint32)t);
+						}
+					} else {
+						writer->waitWrite();
+					}
 				} else if (m == SLIB_IO_ENDED) {
 					return nWrite;
 				} else {
 					return m;
 				}
-				if (thread.isStopping()) {
-					return SLIB_IO_ERROR;
-				}
-			}
+			} while (thread.isNotStopping());
+			return SLIB_IO_ERROR;
 		}
 
 		template <class WRITER>
@@ -178,7 +194,7 @@ namespace slib
 			}
 			sl_size nWrite = 0;
 			CurrentThread thread;
-			for (;;) {
+			do {
 				sl_size n = size;
 				if (n > 0x40000000) {
 					n = 0x40000000; // 1GB
@@ -192,30 +208,27 @@ namespace slib
 					offset += m;
 					buf += m;
 					size -= m;
-				} else if (m == SLIB_IO_WOULD_BLOCK) {
-					writer->waitWrite();
 				} else if (m == SLIB_IO_ENDED) {
 					return nWrite;
 				} else {
 					return m;
 				}
-				if (thread.isStopping()) {
-					return SLIB_IO_ERROR;
-				}
-			}
+			} while (thread.isNotStopping());
+			return SLIB_IO_ERROR;
 #endif
 		}
 
 		template <class WRITER>
-		static sl_reg writeFullyAt(WRITER* writer, sl_uint64 offset, const void* _buf, sl_size size)
+		static sl_reg writeFullyAt(WRITER* writer, sl_uint64 offset, const void* _buf, sl_size size, sl_int32 timeout)
 		{
 			sl_uint8* buf = (sl_uint8*)_buf;
 			if (!size) {
 				return writer->writeAt(offset, buf, 0);
 			}
+			sl_uint64 tickEnd = GetTickFromTimeout(timeout);
 			sl_size nWrite = 0;
 			CurrentThread thread;
-			for (;;) {
+			do {
 				sl_reg m = writer->writeAt(offset, buf, size);
 				if (m > 0) {
 					nWrite += m;
@@ -226,16 +239,34 @@ namespace slib
 					buf += m;
 					size -= m;
 				} else if (m == SLIB_IO_WOULD_BLOCK) {
-					writer->waitWrite();
+					if (timeout >= 0) {
+						if (!timeout) {
+							return SLIB_IO_TIMEOUT;
+						}
+						sl_uint64 tick = System::getTickCount64();
+						if (tick >= tickEnd) {
+							if (nWrite) {
+								return nWrite;
+							} else {
+								return SLIB_IO_TIMEOUT;
+							}
+						}
+						sl_uint64 t = tickEnd - tick;
+						if (t >= 1000) {
+							writer->waitWrite(1000);
+						} else {
+							writer->waitWrite((sl_uint32)t);
+						}
+					} else {
+						writer->waitWrite();
+					}
 				} else if (m == SLIB_IO_ENDED) {
 					return nWrite;
 				} else {
 					return m;
 				}
-				if (thread.isStopping()) {
-					return SLIB_IO_ERROR;
-				}
-			}
+			} while (thread.isNotStopping());
+			return SLIB_IO_ERROR;
 		}
 
 	};

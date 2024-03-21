@@ -763,7 +763,7 @@ namespace slib
 				return m_baseStream.isNotNull();
 			}
 
-			sl_bool requestIo(const Ref<AsyncStreamRequest>& request) override
+			sl_bool requestIo(AsyncStreamRequest* request) override
 			{
 				ObjectLocker lock(this);
 				if (m_baseStream.isNull()) {

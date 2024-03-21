@@ -28,7 +28,6 @@
 #include <slib/network/event.h>
 #include <slib/network/async.h>
 #include <slib/network/os.h>
-#include <slib/core/thread_pool.h>
 #include <slib/core/dispatch_loop.h>
 #include <slib/core/system.h>
 #include <slib/core/scoped_buffer.h>
@@ -42,7 +41,6 @@
 #endif
 #include <slib/data/expiring_map.h>
 #include <slib/io/chunk.h>
-#include <slib/device/cpu.h>
 
 #ifdef SLIB_DEBUG
 #define LOG_COMMANDS
@@ -175,14 +173,12 @@ Length(B)	Type			Value
 Length(B)	Type			Value
 -----------------------------------------------
 1			Command			2 (Message)
-4			Uint32LE		Total Length (From next field)
 *			Bytes			Encryption
 
 - ReplyMessage
 Length(B)	Type			Value
 -----------------------------------------------
 1			Command			3 (ReplyMessage)
-4			Uint32LE		Total Length (From next field)
 *			Bytes			Encryption
 
 */
@@ -352,7 +348,8 @@ namespace slib
 			Ref<AsyncSocketStream> m_stream;
 
 		public:
-			TcpSocket(Ref<AsyncSocketStream>&& _stream): m_stream(Move(_stream)) {}
+			template <class STREAM>
+			TcpSocket(STREAM&& _stream): m_stream(Forward<STREAM>(_stream)) {}
 
 		};
 
@@ -364,75 +361,17 @@ namespace slib
 			sl_uint16 m_remoteActor = 0;
 
 		public:
-			TcpServerSocket(Ref<AsyncSocketStream>&& _socket, const SocketAddress& _remoteAddress): TcpSocket(Move(_socket)), m_remoteAddress(_remoteAddress) {}
+			template <class STREAM>
+			TcpServerSocket(STREAM&& stream, const SocketAddress& _remoteAddress): TcpSocket(Forward<STREAM>(stream)), m_remoteAddress(_remoteAddress) {}
 
 		};
 
 		class TcpClientSocket : public TcpSocket
 		{
 		public:
-			TcpClientSocket(Ref<AsyncSocketStream>&& stream): TcpSocket(Move(stream)) {}
+			template <class STREAM>
+			TcpClientSocket(STREAM&& stream): TcpSocket(Forward<STREAM>(stream)) {}
 
-		};
-
-		class TimeoutMonitor
-		{
-		public:
-			sl_bool tryFinish() noexcept
-			{
-				return !(Base::interlockedDecrement32(&m_counter));
-			}
-
-			sl_bool isFinished() noexcept
-			{
-				return m_counter != 1;
-			}
-
-		public:
-			static sl_bool create(Shared<TimeoutMonitor>& monitor, sl_uint64 tickEnd) noexcept
-			{
-				if (tickEnd) {
-					monitor = Shared<TimeoutMonitor>::create();
-					return monitor.isNotNull();
-				} else {
-					return sl_true;
-				}
-			}
-
-			static void dispatchTimeout(const Shared<TimeoutMonitor>& monitor, const Ref<DispatchLoop>& loop, const Function<void()>& callbackTimeout, sl_uint64 tickEnd) noexcept
-			{
-				sl_uint64 cur = GetCurrentTick();
-				if (cur < tickEnd) {
-					loop->dispatch([monitor, callbackTimeout]() {
-						if (monitor->tryFinish()) {
-							callbackTimeout();
-						}
-					}, tickEnd - cur);
-				} else {
-					if (monitor->tryFinish()) {
-						callbackTimeout();
-					}
-				}
-			}
-
-			static sl_bool isFinished(const Shared<TimeoutMonitor>& monitor) noexcept
-			{
-				if (monitor.isNull()) {
-					return sl_false;
-				}
-				return monitor->isFinished();
-			}
-
-			static sl_bool tryFinish(const Shared<TimeoutMonitor>& monitor) noexcept
-			{
-				if (monitor.isNull()) {
-					return sl_true;
-				}
-				return monitor->tryFinish();
-			}
-
-		private:
-			volatile sl_int32 m_counter = 1;
 		};
 
 		class P2PSocketImpl : public P2PSocket
@@ -481,7 +420,6 @@ namespace slib
 			ExpiringMap< TcpSocket*, Ref<TcpSocket> > m_mapTcpSockets;
 			ExpiringMap< DirectConnection*, Ref<AsyncSocketStream> > m_mapIdleTcpStreams;
 
-			Ref<ThreadPool> m_threadPool;
 			Ref<AsyncIoLoop> m_ioLoop;
 			Ref<DispatchLoop> m_dispatchLoop;
 			Ref<Timer> m_timerHello;
@@ -550,7 +488,6 @@ namespace slib
 					}
 				}
 
-				Ref<ThreadPool> threadPool = ThreadPool::create(0, Cpu::getCoreCount());
 				Ref<AsyncIoLoop> ioLoop = AsyncIoLoop::create(sl_false);
 				if (ioLoop.isNull()) {
 					SLIB_STATIC_STRING(err, "Failed to create I/O` loop")
@@ -566,7 +503,6 @@ namespace slib
 
 				Ref<This> ret = new This;
 				if (ret.isNotNull()) {
-					ret->m_threadPool = Move(threadPool);
 					ret->m_ioLoop = Move(ioLoop);
 					ret->m_dispatchLoop = Move(dispatchLoop);
 					if (!(ret->_initialize(param, socketLobby, socketUdp, socketTcp))) {
@@ -681,7 +617,7 @@ namespace slib
 					AsyncTcpServerParam serverParam;
 					serverParam.ioLoop = m_ioLoop;
 					serverParam.onAccept = [this](AsyncTcpServer*, Socket& socket, const SocketAddress& address) {
-						_onAcceptTcpServerConnection(socket, address);
+						_onAcceptTcpConnection(socket, address);
 					};
 					serverParam.socket = Move(socketTcp);
 					m_serverTcp = AsyncTcpServer::create(serverParam);
@@ -1161,9 +1097,7 @@ namespace slib
 				P2PNodeId remoteId(packet + 17);
 				Bytes<EdDH::KeySize> remoteEphemeralKey(packet + 33);
 				sl_uint32 remoteTick = MIO::readUint32LE(packet + (33 + EdDH::KeySize));
-				m_threadPool->addTask([this, address, remoteId, remoteEphemeralKey, remoteTick]() {
-					_sendReplyConnectNode(address, remoteId, remoteEphemeralKey.data, remoteTick);
-				});
+				_sendReplyConnectNode(address, remoteId, remoteEphemeralKey.data, remoteTick);
 			}
 
 			void _sendReplyConnectNode(const SocketAddress& address, const P2PNodeId& remoteId, const sl_uint8 remoteEphemeralKey[EdDH::KeySize], sl_uint32 remoteTick)
@@ -1225,13 +1159,11 @@ namespace slib
 				if (!(CheckDelay(timeOld, timeNew, m_findTimeout))) {
 					return;
 				}
-				Memory msg = Memory::create(packet + (posContent + sizeContentHeader), sizePacket - (posContent + sizeContentHeader));
-				m_threadPool->addTask([this, ifIndex, address, remoteKey, remoteEphemeralKey, signature, msg, timeOld, timeNew]() {
-					_onReceiveReplyConnectDirectConnection(ifIndex, address, remoteKey.data, remoteEphemeralKey.data, signature.data, msg, timeNew, timeNew - timeOld);
-				});
+				MemoryView msg(packet + (posContent + sizeContentHeader), sizePacket - (posContent + sizeContentHeader));
+				_onReceiveReplyConnectDirectConnection(ifIndex, address, remoteKey.data, remoteEphemeralKey.data, signature.data, msg, timeNew, timeNew - timeOld);
 			}
 
-			void _onReceiveReplyConnectDirectConnection(sl_uint32 ifIndex, const SocketAddress& address, const sl_uint8 remoteKey[EdDSA::KeySize], const sl_uint8 remoteEphemeralKey[EdDH::KeySize], const sl_uint8 signature[EdDSA::SignatureSize], const Memory& msg, sl_uint32 tick, sl_uint32 delay)
+			void _onReceiveReplyConnectDirectConnection(sl_uint32 ifIndex, const SocketAddress& address, const sl_uint8 remoteKey[EdDSA::KeySize], const sl_uint8 remoteEphemeralKey[EdDH::KeySize], const sl_uint8 signature[EdDSA::SignatureSize], const MemoryView& msg, sl_uint32 tick, sl_uint32 delay)
 			{
 				sl_uint8 sts[EdDH::KeySize * 2];
 				Base::copyMemory(sts, remoteEphemeralKey, EdDH::KeySize);
@@ -1242,7 +1174,7 @@ namespace slib
 				Ref<Node> node = _createNode(remoteKey);
 				if (node.isNotNull()) {
 					node->updateRemoteEphemeralKey(remoteEphemeralKey);
-					P2PRequest message(msg);
+					P2PRequest message(msg.data, msg.size);
 					message.senderId.setData(remoteKey);
 					message.connectionType = P2PConnectionType::Direct;
 					message.interfaceIndex = ifIndex;
@@ -1397,81 +1329,107 @@ namespace slib
 			}
 
 		public:
-			void _onAcceptTcpServerConnection(Socket& _socket, const SocketAddress& address)
+			void _onAcceptTcpConnection(Socket& _socket, const SocketAddress& address)
 			{
 				Ref<AsyncSocketStream> client = AsyncSocketStream::create(Move(_socket), m_ioLoop);
 				if (client.isNotNull()) {
 					Ref<TcpServerSocket> socket = new TcpServerSocket(Move(client), address);
 					if (socket.isNotNull()) {
 						m_mapTcpSockets.put(socket.get(), socket);
-						_receiveTcpServerCommand(socket);
+						_receiveTcpRequestPacket(socket);
 					}
 				}
 			}
 
-			void _receiveTcpServerCommand(const Ref<TcpServerSocket>& socket)
+			void _receiveTcpRequestPacket(const Ref<TcpServerSocket>& socket)
 			{
 				WeakRef<TcpServerSocket> weakSocket = socket;
-				socket->m_stream->readFully(1, [this, weakSocket](AsyncStream* stream, Memory& memCommand, sl_bool flagError) {
+				ChunkIO::readAsync(socket->m_stream.get(), [this, weakSocket](AsyncStream*, Memory& content, sl_bool flagError) {
 					Ref<TcpServerSocket> socket = weakSocket;
 					if (socket.isNull()) {
 						return;
 					}
-					if (!flagError && stream->getLastResultCode() == AsyncStreamResultCode::Success && memCommand.getSize() == 1) {
-						TcpCommand command = (TcpCommand)(*((sl_uint8*)(memCommand.getData())));
+					sl_uint8* data = (sl_uint8*)(content.getData());
+					sl_size size = content.getSize();
+					if (!flagError && size) {
+						TcpCommand command = (TcpCommand)(*data);
+						data++;
+						size--;
 						switch (command) {
 							case TcpCommand::Init:
-								_receiveTcpServer_Init(socket);
-								return;
+								if (_onReceiveTcpInit(socket, data, size)) {
+									return;
+								}
+								break;
 							case TcpCommand::Message:
-								_receiveTcpServer_Message(socket);
-								return;
+								if (_onReceiveTcpMessage(socket, content.sub(1))) {
+									return;
+								}
+								break;
 							default:
 								break;
 						}
 					}
 					m_mapTcpSockets.remove(socket.get());
-				});
+				}, m_maximumMessageSize, m_messageSegmentSize);
 			}
 
-			void _sendTcpServerReply(const Ref<TcpServerSocket>& socket, const Memory& response)
+			void _sendTcpResponsePacket(const Ref<TcpServerSocket>& socket, const Memory& response)
 			{
 				WeakRef<TcpServerSocket> weakSocket = socket;
-				socket->m_stream->write(response, [this, weakSocket](AsyncStreamResult& result) {
+				ChunkIO::writeAsync(socket->m_stream.get(), response, [this, weakSocket](AsyncStream*, sl_bool flagError) {
 					Ref<TcpServerSocket> socket = weakSocket;
 					if (socket.isNull()) {
 						return;
 					}
-					if (result.isSuccess() && result.size == result.requestSize) {
-						_receiveTcpServerCommand(socket);
+					if (!flagError) {
+						_receiveTcpRequestPacket(socket);
 						return;
 					}
 					m_mapTcpSockets.remove(socket.get());
 				});
 			}
 
-			void _receiveTcpServer_Init(const Ref<TcpServerSocket>& socket)
+			sl_bool _onReceiveTcpInit(const Ref<TcpServerSocket>& socket, sl_uint8* data, sl_size size)
 			{
-				WeakRef<TcpServerSocket> weakSocket = socket;
-				socket->m_stream->readFully(22, [this, weakSocket](AsyncStream* stream, Memory& mem, sl_bool flagError) {
-					Ref<TcpServerSocket> socket = weakSocket;
-					if (socket.isNull()) {
-						return;
-					}
-					if (!flagError && stream->getLastResultCode() == AsyncStreamResultCode::Success && mem.getSize() == 22) {
-						sl_uint8* packet = (sl_uint8*)(mem.getData());
-						if (Base::equalsMemory(m_localNodeId.data, packet, 4)) {
-							socket->m_remoteId = P2PNodeId(packet + 4);
-							socket->m_remoteActor = MIO::readUint16LE(packet + 20);
-							SocketAddress address(socket->m_remoteAddress.ip, socket->m_remoteActor);
-							_findNode(&address, socket->m_remoteId, [this, socket](Node* node, void*) {
-								if (node) {
-									if (_sendTcpServer_ReplyInit(socket)) {
-										return;
-									}
-								}
-								m_mapTcpSockets.remove(socket.get());
-							}, 0);
+				if (size != 22) {
+					return sl_false;
+				}
+				if (Base::equalsMemory(m_localNodeId.data, data, 4)) {
+					socket->m_remoteId = P2PNodeId(data + 4);
+					socket->m_remoteActor = MIO::readUint16LE(data + 20);
+					SocketAddress address(socket->m_remoteAddress.ip, socket->m_remoteActor);
+					_findNode(&address, socket->m_remoteId, [this, socket](Node* node, void*) {
+						if (node) {
+							if (_sendTcpReplyInit(socket)) {
+								return;
+							}
+						}
+						m_mapTcpSockets.remove(socket.get());
+					});
+					return;
+				}
+			}
+
+			sl_bool _sendTcpReplyInit(const Ref<TcpServerSocket>& socket)
+			{
+				sl_uint8 c = (sl_uint8)(TcpCommand::ReplyInit);
+				Memory mem = Memory::create(&c, 1);
+				if (mem.isNull()) {
+					return sl_false;
+				}
+				_sendTcpResponsePacket(socket, mem);
+				return sl_true;
+			}
+
+			sl_bool _onReceiveTcpMessage(const Ref<TcpServerSocket>& socket, const Memory& content)
+			{
+				SocketAddress address(socket->m_remoteAddress.ip, socket->m_remoteActor);
+				_findNode(&address, socket->m_remoteId, [this, socket, content](Node* node, void*) {
+					if (node) {
+						Memory response = _processTcpMessage(node, content);
+						if (response.isNotNull()) {
+							_sendTcpResponsePacket(socket, response);
 							return;
 						}
 					}
@@ -1479,63 +1437,28 @@ namespace slib
 				});
 			}
 
-			sl_bool _sendTcpServer_ReplyInit(const Ref<TcpServerSocket>& socket)
+			Memory _processTcpMessage(Node* node, const Memory& content)
 			{
-				sl_uint8 c = (sl_uint8)(TcpCommand::ReplyInit);
-				Memory mem = Memory::create(&c, 1);
-				if (mem.isNull()) {
-					return sl_false;
-				}
-				_sendTcpServerReply(socket, mem);
-				return sl_true;
-			}
-
-			void _receiveTcpServer_Message(const Ref<TcpServerSocket>& socket)
-			{
-				WeakRef<TcpServerSocket> weakSocket = socket;
-				ChunkIO::readAsync(socket->m_stream.get(), [this, weakSocket](Memory& data, sl_bool flagError) {
-					Ref<TcpServerSocket> socket = weakSocket;
-					if (socket.isNull()) {
-						return;
-					}
-					if (!flagError && socket->m_stream->getLastResultCode() == AsyncStreamResultCode::Success) {
-						SocketAddress address(socket->m_remoteAddress.ip, socket->m_remoteActor);
-						_findNode(&address, socket->m_remoteId, [this, socket, data](Node* node, void*) {
-							if (node) {
-								Memory response = _processTcpServer_Message(node, (sl_uint8*)(data.getData()), data.getSize());
-								if (response.isNotNull()) {
-									_sendTcpServerReply(socket, response);
-									return;
-								}
-							}
-							m_mapTcpSockets.remove(socket.get());
-						}, 0);
-						return;
-					}
-					m_mapTcpSockets.remove(socket.get());
-				}, m_maximumMessageSize, m_messageSegmentSize);
-			}
-
-			Memory _processTcpServer_Message(Node* node, sl_uint8* packet, sl_size sizePacket)
-			{
+				sl_size size = content.getSize();
 				node->updateEncryptionKey(m_ephemeralKey.data, m_ephemeralPublicKey.data);
 				P2PResponse response;
-				if (sizePacket > 28) {
+				if (size >= 28) {
 					AES_GCM decryptor;
 					decryptor.setKey(node->m_encryptionKey, 32);
-					decryptor.start(packet, 12);
-					packet += 28;
-					sizePacket -= 28;
-					decryptor.decrypt(packet, packet, sizePacket);
-					if (decryptor.finishAndCheckTag(packet - 16)) {
-						P2PRequest request(packet, (sl_uint32)sizePacket);
+					sl_uint8* data = (sl_uint8*)(content.getData());
+					decryptor.start(data, 12);
+					data += 28;
+					size -= 28;
+					decryptor.decrypt(data, data, size);
+					if (decryptor.finishAndCheckTag(data - 16)) {
+						P2PRequest request(data, (sl_uint32)size, content.ref.get());
 						request.senderId = node->m_id;
 						request.connectionType = P2PConnectionType::Direct;
 						m_onReceiveMessage(this, request, response);
 					} else {
 						return sl_null;
 					}
-				} else if (!sizePacket) {
+				} else if (!size) {
 					P2PRequest request;
 					request.senderId = node->m_id;
 					m_onReceiveMessage(this, request, response);
@@ -1543,98 +1466,111 @@ namespace slib
 					return sl_null;
 				}
 				if (response.size) {
-					sl_uint8 bufSize[16];
-					sl_uint32 nSize = CVLI::serialize(bufSize, response.size + 28);
-					Memory memPacket = Memory::create(29 + nSize + response.size);
-					if (memPacket.isNull()) {
+					Memory memResponse = Memory::create(29 + response.size);
+					if (memResponse.isNull()) {
 						return sl_null;
 					}
 					AES_GCM encryption;
 					encryption.setKey(node->m_encryptionKey, 32);
-					packet = (sl_uint8*)(memPacket.getData());
-					*(packet++) = (sl_uint8)(TcpCommand::ReplyMessage);
-					Base::copyMemory(packet, bufSize, nSize);
-					packet += nSize;
-					Math::randomMemory(packet, 12); // iv
-					encryption.start(packet, 12);
-					packet += 12;
-					encryption.encrypt(response.data, packet + 16, response.size);
-					encryption.finish(packet);
-					return memPacket;
+					sl_uint8* data = (sl_uint8*)(memResponse.getData());
+					*(data++) = (sl_uint8)(TcpCommand::ReplyMessage);
+					Math::randomMemory(data, 12); // iv
+					encryption.start(data, 12);
+					data += 12;
+					encryption.encrypt(response.data, data + 16, response.size);
+					encryption.finish(data);
+					return memResponse;
 				} else {
-					sl_uint8 buf[2];
-					buf[0] = (sl_uint8)(TcpCommand::ReplyMessage);
-					buf[1] = 0;
-					return Memory::create(buf, 2);
+					sl_uint8 c = (sl_uint8)(TcpCommand::ReplyMessage);
+					return Memory::create(&c, 1);
 				}
 			}
 
 		public:
-			struct TcpClientSocket_InitContext
+			sl_bool _sendTcpRequestPacket(const Ref<TcpClientSocket>& socket, const Memory& request, const Function<void(TcpCommand command, sl_uint8* data, sl_size size, CRef* refData)>& callback, sl_int64 tickEnd)
 			{
-				Ref<Node> node;
-				Ref<DirectConnection> connection;
-				WeakRef<TcpClientSocket> socket;
-				Shared<TimeoutMonitor> timeoutMonitor;
-				Function<void(This*, Node*, DirectConnection*, TcpClientSocket*)> callback;
-			};
+				WeakRef<TcpServerSocket> weakSocket = socket;
+				ChunkIO::writeAsync(socket->m_stream.get(), request, [this, weakSocket, callback, tickEnd](AsyncStream*, sl_bool flagError) {
+					Ref<TcpServerSocket> socket = weakSocket;
+					if (socket.isNotNull()) {
+						if (!flagError) {
+							_receiveTcpResponsePacket(socket, callback, tickEnd);
+							return;
+						}
+						m_mapTcpSockets.remove(socket.get());
+					}
+					callback(TcpCommand::Unknown, sl_null, 0, sl_null);
+				}, GetTimeoutFromTick(tickEnd));
+			}
+
+			void _receiveTcpResponsePacket(const Ref<TcpClientSocket>& socket, const Function<void(TcpCommand command, sl_uint8* data, sl_size size, CRef* refData)>& callback, sl_int64 tickEnd)
+			{
+				WeakRef<TcpServerSocket> weakSocket = socket;
+				ChunkIO::readAsync(socket->m_stream.get(), [this, weakSocket, callback, tickEnd](AsyncStream*, Memory& content, sl_bool flagError) {
+					Ref<TcpServerSocket> socket = weakSocket;
+					if (socket.isNotNull()) {
+						if (!flagError) {
+							sl_size size = content.getSize();
+							if (size) {
+								sl_uint8* data = (sl_uint8*)(content.getData());
+								callback((TcpCommand)*data, data + 1, size - 1, content.ref.get());
+								return;
+							}
+						}
+						m_mapTcpSockets.remove(socket.get());
+					}
+					callback(TcpCommand::Unknown, sl_null, 0, sl_null);
+				}, m_maximumMessageSize, m_messageSegmentSize, GetTimeoutFromTick(tickEnd));
+			}
 
 			void _getTcpClientSocket(Node* node, DirectConnection* connection, const Function<void(This*, Node*, DirectConnection*, TcpClientSocket*)>& callback, sl_uint64 tickEnd)
 			{
-				Ref<AsyncSocketStream> stream;
-				if (m_mapIdleTcpStreams.remove(connection, &stream)) {
-					Ref<TcpClientSocket> socket = new TcpClientSocket(Move(stream));
+				Ref<AsyncSocketStream> oldStream;
+				if (m_mapIdleTcpStreams.remove(connection, &oldStream)) {
+					Ref<TcpClientSocket> socket = new TcpClientSocket(Move(oldStream));
 					if (socket.isNotNull()) {
 						m_mapTcpSockets.put(socket.get(), socket);
 					}
 					callback(this, node, connection, socket.get());
-				} else {
-					AsyncTcpSocketParam param;
-					param.ioLoop = m_ioLoop;
-					Ref<AsyncTcpSocket> stream = AsyncTcpSocket::create(param);
+					return;
+				}
+				Ref<AsyncTcpSocket> stream = AsyncTcpSocket::create(m_ioLoop);
+				if (stream.isNotNull()) {
+					Ref<TcpClientSocket> socket = new TcpClientSocket(stream);
 					if (stream.isNotNull()) {
-						TcpClientSocket_InitContext context;
+						TcpInitContext context;
 						context.callback = callback;
 						context.node = node;
 						context.connection = connection;
-						Ref<AsyncSocketStream> _stream = stream;
-						Ref<TcpClientSocket> socket = new TcpClientSocket(Move(_stream));
-						if (stream.isNotNull() && TimeoutMonitor::create(context.timeoutMonitor, tickEnd)) {
-							context.socket = socket;
-							m_mapTcpSockets.put(socket.get(), socket);
-							if (context.timeoutMonitor.isNotNull()) {
-								TimeoutMonitor::dispatchTimeout(context.timeoutMonitor, m_dispatchLoop, [this, context]() {
-									Ref<TcpSocket> socket = context.socket;
-									if (socket.isNotNull()) {
-										m_mapTcpSockets.remove(socket.get());
+						context.socket = socket;
+						m_mapTcpSockets.put(socket.get(), socket);
+						stream->connect(connection->m_address, [this, context, tickEnd](AsyncTcpSocket*, sl_bool flagError) {
+							Ref<TcpClientSocket> socket = context.socket;
+							if (socket.isNotNull()) {
+								if (!flagError) {
+									if (_sendTcpInit(socket, context, tickEnd)) {
+										return;
 									}
-									context.callback(this, context.node.get(), context.connection.get(), sl_null);
-								}, tickEnd);
+								}
+								m_mapTcpSockets.remove(socket.get());
 							}
-							stream->connect(connection->m_address, [this, context](AsyncTcpSocket* stream, sl_bool flagError) {
-								if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
-									return;
-								}
-								Ref<TcpClientSocket> socket = context.socket;
-								if (socket.isNotNull()) {
-									if (!flagError) {
-										if (_sendTcpClient_Init(stream, context)) {
-											return;
-										}
-									}
-									m_mapTcpSockets.remove(socket.get());
-								}
-								if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
-									context.callback(this, context.node.get(), context.connection.get(), sl_null);
-								}
-							});
-						}
+							context.callback(this, context.node.get(), context.connection.get(), sl_null);
+						}, GetTimeoutFromTick(tickEnd));
+						return;
 					}
-					callback(this, node, connection, sl_null);
 				}
+				callback(this, node, connection, sl_null);
 			}
 
-			sl_bool _sendTcpClient_Init(AsyncTcpSocket* socket, const TcpClientSocket_InitContext& context)
+			struct TcpInitContext
+			{
+				Ref<Node> node;
+				Ref<DirectConnection> connection;
+				WeakRef<TcpClientSocket> socket;
+				Function<void(This*, Node*, DirectConnection*, TcpClientSocket*)> callback;
+			};
+
+			sl_bool _sendTcpInit(const Ref<TcpClientSocket>& socket, const TcpInitContext& context, sl_int64 tickEnd)
 			{
 				sl_uint8 packet[23];
 				*packet = (sl_uint8)(TcpCommand::Init);
@@ -1645,151 +1581,78 @@ namespace slib
 				if (mem.isNull()) {
 					return sl_false;
 				}
-				socket->write(mem, [this, context](AsyncStreamResult& result) {
-					if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
-						return;
-					}
+				_sendTcpRequestPacket(socket, mem, [this, context](TcpCommand command, sl_uint8* data, sl_size size, CRef* refData) {
 					Ref<TcpClientSocket> socket = context.socket;
 					if (socket.isNotNull()) {
-						if (result.isSuccess() && result.size == result.requestSize) {
-							_receiveTcpClientStream_ReplyInit(result.stream, context);
+						if (command == TcpCommand::ReplyInit && !size) {
+							context.callback(this, context.node.get(), context.connection.get(), socket.get());
+							return;
 						}
 						m_mapTcpSockets.remove(socket.get());
 					}
-					if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
-						context.callback(this, context.node.get(), context.connection.get(), sl_null);
-					}
-				});
+					context.callback(this, context.node.get(), context.connection.get(), sl_null);
+				}, tickEnd);
 				return sl_true;
 			}
 
-			void _receiveTcpClientStream_ReplyInit(AsyncStream* stream, const TcpClientSocket_InitContext& context)
-			{
-				stream->readFully(1, [this, context](AsyncStream* stream, Memory& mem, sl_bool flagError) {
-					if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
-						return;
-					}
-					Ref<TcpClientSocket> socket = context.socket;
-					if (socket.isNotNull()) {
-						if (!flagError && stream->getLastResultCode() == AsyncStreamResultCode::Success && mem.getSize() == 1) {
-							if (*((sl_uint8*)(mem.getData())) == (sl_uint8)(TcpCommand::ReplyInit)) {
-								if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
-									context.callback(this, context.node.get(), context.connection.get(), socket.get());
-								}
-								return;
-							}
-						}
-						m_mapTcpSockets.remove(socket.get());
-					}
-					if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
-						context.callback(this, context.node.get(), context.connection.get(), sl_null);
-					}
-				});
-			}
-
-			struct TcpClientStream_MessageContext
+			struct TcpMessageContext
 			{
 				Ref<Node> node;
 				Ref<DirectConnection> connection;
 				WeakRef<TcpClientSocket> socket;
-				Shared<TimeoutMonitor> timeoutMonitor;
 				Function<void(P2PResponse&)> callback;
 			};
 
-			sl_bool _sendTcpClient_Message(TcpClientSocket* socket, const TcpClientStream_MessageContext& context, const Memory& memPacket)
+			sl_bool _sendTcpMessage(const Ref<TcpClientSocket>& socket, const TcpMessageContext& context, const Memory& _memPacket, sl_int64 tickEnd)
 			{
+				Memory memPacket = _memPacket;
 				if (memPacket.isNotNull()) {
-					memPacket = body.packet;
-					packet = (sl_uint8*)(memPacket.getData());
-					Math::randomMemory(packet + 1 + body.lengthOfSize, 12);
 					context.node->updateEncryptionKey(m_ephemeralKey.data, m_ephemeralPublicKey.data);
 					AES_GCM enc;
 					enc.setKey(context.node->m_encryptionKey, 32);
-					enc.start(packet + 1 + body.lengthOfSize, 12);
-					sl_uint8* content = packet + 29 + body.lengthOfSize;
-					enc.encrypt(content, content, memPacket.getSize() - 29 - body.lengthOfSize);
-					enc.finish(packet + 13 + body.lengthOfSize);
-				}
-				socket->m_stream->send()
-				packet[0] = (sl_uint8)(TcpCommand::Message);
-				return socket->m_stream->send(memPacket, [this, context](AsyncStreamResult& result) {
-					if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
-						return;
+					sl_size size = memPacket.getSize();
+					sl_uint8* packet = (sl_uint8*)(memPacket.getData());
+					*packet = (sl_uint8)(TcpCommand::Message);
+					enc.start(packet + 1, 12);
+					sl_uint8* content = packet + 29;
+					enc.encrypt(content, content, size - 29);
+					enc.finish(packet + 13);
+				} else {
+					sl_uint8 c = (sl_uint8)(TcpCommand::Message);
+					memPacket = Memory::create(&c, 1);
+					if (memPacket.isNull()) {
+						return sl_false;
 					}
-					Ref<TcpClientStream> stream = context.stream;
-					if (stream.isNotNull()) {
-						if (result.isSuccess()) {
-							if (_receiveTcpClientStream_ReplyMessage(stream.get(), context)) {
+				}
+				_sendTcpRequestPacket(socket, memPacket, [this, context](TcpCommand command, sl_uint8* data, sl_size size, CRef* refData) {
+					Ref<TcpClientSocket> socket = context.socket;
+					if (socket.isNotNull()) {
+						if (command == TcpCommand::ReplyMessage) {
+							if (size > 28) {
+								AES_GCM enc;
+								enc.setKey(context.node->m_encryptionKey, 32);
+								enc.start(data, 12);
+								sl_uint8* content = data + 28;
+								size -= 28;
+								enc.decrypt(content, content, size);
+								if (enc.finishAndCheckTag(data + 12)) {
+									P2PResponse response(content, size, refData);
+									response.connectionType = P2PConnectionType::Direct;
+									context.callback(response);
+									return;
+								}
+							} else if (!size) {
+								P2PResponse response;
+								response.connectionType = P2PConnectionType::Direct;
+								context.callback(response);
 								return;
 							}
 						}
-						m_mapTcpStreams.remove(stream.get());
+						m_mapTcpSockets.remove(socket.get());
 					}
-					if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
-						ReplyErrorResponse(context.callback);
-					}
-				});
-			}
-
-			sl_bool _receiveTcpClientStream_ReplyMessage(TcpClientStream* stream, const TcpClientStream_MessageContext& context)
-			{
-				return stream->m_socket->receive(Memory::create(m_messageBufferSize), [this, context](AsyncStreamResult& result) {
-					if (TimeoutMonitor::isFinished(context.timeoutMonitor)) {
-						return;
-					}
-					Ref<TcpClientStream> stream = context.stream;
-					if (stream.isNotNull()) {
-						if (result.isSuccess()) {
-							sl_int32 iRet = stream->processReceivedData((sl_uint8*)(result.data), result.size);
-							if (iRet >= 0) {
-								if (iRet > 0) {
-									if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
-										if (stream->m_currentCommand == TcpCommand::ReplyMessage) {
-											sl_uint8* packet = stream->getContent();
-											sl_uint32 size = (sl_uint32)(stream->getContentSize());
-											sl_bool flagSuccess = sl_true;
-											if (size > 28) {
-												AES_GCM enc;
-												enc.setKey(context.node->m_encryptionKey, 32);
-												enc.start(packet, 12);
-												sl_uint8* content = packet + 28;
-												size -= 28;
-												enc.decrypt(content, content, size);
-												if (enc.finishAndCheckTag(packet + 12)) {
-													P2PResponse response(content, size);
-													response.connectionType = P2PConnectionType::Direct;
-													context.callback(response);
-												} else {
-													flagSuccess = sl_false;
-												}
-											} else if (!size) {
-												P2PResponse response;
-												response.connectionType = P2PConnectionType::Direct;
-												context.callback(response);
-											} else {
-												flagSuccess = sl_false;
-											}
-											stream->clear();
-											if (flagSuccess) {
-												m_mapTcpStreams.get(stream.get());
-												m_mapIdleTcpSockets.add(context.connection.get(), stream->m_socket);
-												return;
-											}
-										}
-									}
-								} else {
-									if (stream->m_socket->receive(result.data, result.requestSize, result.callback, result.userObject)) {
-										return;
-									}
-								}
-							}
-						}
-						m_mapTcpStreams.remove(stream.get());
-					}
-					if (TimeoutMonitor::tryFinish(context.timeoutMonitor)) {
-						ReplyErrorResponse(context.callback);
-					}
-				});
+					ReplyErrorResponse(context.callback);
+				}, tickEnd);
+				return sl_true;
 			}
 
 		public:
@@ -1862,7 +1725,7 @@ namespace slib
 				return CheckDelay(connection->m_timeLastPing, GetCurrentTick(), m_connectionTimeout);
 			}
 
-			void _findNode(const SocketAddress* address, const P2PNodeId& nodeId, const NodeCallback& callback, sl_uint64 tickEnd)
+			void _findNode(const SocketAddress* address, const P2PNodeId& nodeId, const NodeCallback& callback, sl_int64 tickEnd = -1)
 			{
 				Ref<Node> node = m_mapNodes.getValue(nodeId, sl_null, sl_true);
 				if (node.isNotNull()) {
@@ -1877,8 +1740,8 @@ namespace slib
 					}
 				}
 				sl_bool flagShortTimeout = sl_false;
-				sl_uint32 timeout = 0;
-				if (tickEnd) {
+				sl_uint32 nShortTimeout = 0;
+				if (tickEnd >= 0) {
 					sl_uint64 cur = GetCurrentTick();
 					if (tickEnd <= cur) {
 						callback(sl_null, sl_null);
@@ -1886,44 +1749,44 @@ namespace slib
 					}
 					if (tickEnd < cur + m_findTimeout) {
 						flagShortTimeout = sl_true;
-						timeout = (sl_uint32)(tickEnd - cur);
+						nShortTimeout = (sl_uint32)(tickEnd - cur);
 					}
 				} else {
 					tickEnd = GetCurrentTick() + 5 * m_findTimeout;
 				}
-				WeakRef<This> weakThis = this;
+				WeakRef<This> thiz = this;
 				if (flagShortTimeout) {
-					Shared<TimeoutMonitor> monitorResult = Shared<TimeoutMonitor>::create();
-					if (monitorResult.isNull()) {
+					Shared<sl_int32> counter = Shared<sl_int32>::create(0);
+					if (counter.isNull()) {
 						callback(sl_null, sl_null);
 						return;
 					}
-					m_mapFindCallbacks.add(nodeId, [weakThis, nodeId, callback, monitorResult](Node* node, void*) {
-						if (monitorResult->tryFinish()) {
-							Ref<This> thiz = weakThis;
-							callback(thiz.isNotNull() ? node : sl_null, sl_null);
+					m_mapFindCallbacks.add(nodeId, [thiz, nodeId, callback, counter](Node* node, void*) {
+						if (Base::interlockedIncrement32(counter.get()) == 1) {
+							Ref<This> ref = thiz;
+							callback(ref.isNotNull() ? node : sl_null, sl_null);
 						}
 					});
-					m_dispatchLoop->dispatch([callback, monitorResult]() {
-						if (monitorResult->tryFinish()) {
+					m_dispatchLoop->dispatch([callback, counter]() {
+						if (Base::interlockedIncrement32(counter.get()) == 1) {
 							callback(sl_null, sl_null);
 						}
-					}, timeout);
+					}, nShortTimeout);
 				} else {
 					SocketAddress rAddress;
 					if (address) {
 						rAddress = *address;
 					}
-					m_mapFindCallbacks.add(nodeId, [weakThis, address, rAddress, nodeId, callback, tickEnd](Node* node, void*) {
-						Ref<This> thiz = weakThis;
-						if (thiz.isNull()) {
+					m_mapFindCallbacks.add(nodeId, [this, thiz, address, rAddress, nodeId, callback, tickEnd](Node* node, void*) {
+						Ref<This> ref = thiz;
+						if (ref.isNull()) {
 							callback(sl_null, sl_null);
 							return;
 						}
 						if (node) {
 							callback(node, sl_null);
 						} else {
-							thiz->_findNode(address ? &rAddress : sl_null, nodeId, callback, tickEnd);
+							_findNode(address ? &rAddress : sl_null, nodeId, callback, tickEnd);
 						}
 					});
 				}
@@ -1952,7 +1815,7 @@ namespace slib
 				return sl_null;
 			}
 
-			void _sendMessage(Node* node, const SocketAddress* address, const MessageBody& body, const Function<void(P2PResponse&)>& callback, sl_uint64 tickEnd)
+			void _sendMessage(Node* node, const SocketAddress* address, const Memory& packet, const Function<void(P2PResponse&)>& callback, sl_int64 tickEnd)
 			{
 				Ref<Connection> connection;
 				if (address) {
@@ -1963,7 +1826,7 @@ namespace slib
 				if (connection.isNotNull()) {
 					if (_isValidConnection(connection.get())) {
 						if (connection->m_type == P2PConnectionType::Direct) {
-							_sendMessageDirectConnection(node, (DirectConnection*)(connection.get()), body, callback, tickEnd);
+							_sendMessageDirectConnection(node, (DirectConnection*)(connection.get()), packet, callback, tickEnd);
 							return;
 						}
 					}
@@ -1971,28 +1834,17 @@ namespace slib
 				ReplyErrorResponse(callback);
 			}
 
-			void _sendMessageDirectConnection(Node* node, DirectConnection* connection, const MessageBody& body, const Function<void(P2PResponse&)>& callback, sl_uint64 tickEnd)
+			void _sendMessageDirectConnection(Node* node, DirectConnection* connection, const Memory& packet, const Function<void(P2PResponse&)>& callback, sl_int64 tickEnd)
 			{
-				_getTcpClientSocket(node, connection, [this, body, callback, tickEnd](This* thiz, Node* node, DirectConnection* connection, TcpClientSocket* socket) {
-					TcpClientStream_MessageContext context;
-					context.node = node;
-					context.connection = connection;
-					context.socket = socket;
-					context.callback = callback;
+				_getTcpClientSocket(node, connection, [this, packet, callback, tickEnd](This* thiz, Node* node, DirectConnection* connection, TcpClientSocket* socket) {
 					if (socket) {
-						if (TimeoutMonitor::create(context.timeoutMonitor, tickEnd)) {
-							if (_sendTcpClient_Message(socket, context, body)) {
-								if (context.timeoutMonitor.isNotNull()) {
-									TimeoutMonitor::dispatchTimeout(context.timeoutMonitor, m_dispatchLoop, [this, context]() {
-										Ref<TcpSocket> socket = context.socket;
-										if (socket.isNotNull()) {
-											m_mapTcpSockets.remove(socket.get());
-										}
-										ReplyErrorResponse(context.callback);
-									}, tickEnd);
-								}
-								return;
-							}
+						TcpMessageContext context;
+						context.node = node;
+						context.connection = connection;
+						context.socket = socket;
+						context.callback = callback;
+						if (_sendTcpMessage(socket, context, packet, tickEnd)) {
+							return;
 						}
 						m_mapTcpSockets.remove(socket);
 					}
@@ -2045,9 +1897,6 @@ namespace slib
 				if (m_ioLoop.isNotNull()) {
 					m_ioLoop->release();
 					m_ioLoop.setNull();
-				}
-				if (m_threadPool.isNotNull()) {
-					m_threadPool->release();
 				}
 
 				m_mapTcpSockets.removeAll();
@@ -2151,40 +2000,33 @@ namespace slib
 				return sl_false;
 			}
 
-			void sendMessage(const P2PNodeId& nodeId, const SocketAddress* address, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis) override
+			void sendMessage(const P2PNodeId& nodeId, const SocketAddress* address, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_int32 timeout) override
 			{
 				if (m_flagClosed) {
 					ReplyErrorResponse(callback);
 					return;
 				}
-				MessageBody body;
+				Memory memPacket;
 				if (msg.size) {
-					sl_uint8 bufSize[16];
-					body.lengthOfSize = CVLI::serialize(bufSize, msg.size + 28);
-					body.packet = Memory::create(29 + body.lengthOfSize + msg.size);
-					if (body.packet.isNull()) {
+					memPacket = Memory::create(33 + msg.size);
+					if (memPacket.isNull()) {
 						ReplyErrorResponse(callback);
 						return;
 					}
-					sl_uint8* packet = (sl_uint8*)(body.packet.getData());
-					Base::copyMemory(packet + 1, bufSize, body.lengthOfSize);
-					Base::copyMemory(packet + 29 + body.lengthOfSize, msg.data, msg.size);
+					sl_uint8* packet = (sl_uint8*)(memPacket.getData());
+					MIO::writeUint32LE(packet + 1, msg.size);
+					Base::copyMemory(packet + 33, msg.data, msg.size);
 				}
-				sl_uint64 tickEnd;
-				if (timeoutMillis) {
-					tickEnd = GetCurrentTick() + timeoutMillis;
-				} else {
-					tickEnd = 0;
-				}
+				sl_int64 tickEnd = GetTickFromTimeout(timeout);
 				WeakRef<This> weakThis = this;
 				SocketAddress rAddress;
 				if (address) {
 					rAddress = *address;
 				}
-				_findNode(address, nodeId, [weakThis, address, rAddress, body, callback, tickEnd](Node* node, void*) {
+				_findNode(address, nodeId, [weakThis, address, rAddress, memPacket, callback, tickEnd](Node* node, void*) {
 					Ref<This> thiz = weakThis;
 					if (thiz.isNotNull() && node) {
-						thiz->_sendMessage(node, address ? &rAddress : sl_null, body, callback, tickEnd);
+						thiz->_sendMessage(node, address ? &rAddress : sl_null, memPacket, callback, tickEnd);
 					} else {
 						ReplyErrorResponse(callback);
 					}
@@ -2356,17 +2198,17 @@ namespace slib
 		connectNode(nodeId, sl_null);
 	}
 
-	void P2PSocket::sendMessage(const P2PNodeId& nodeId, const SocketAddress& address, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis)
+	void P2PSocket::sendMessage(const P2PNodeId& nodeId, const SocketAddress& address, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_int32 timeout)
 	{
-		sendMessage(nodeId, &address, msg, callback, timeoutMillis);
+		sendMessage(nodeId, &address, msg, callback, timeout);
 	}
 
-	void P2PSocket::sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis)
+	void P2PSocket::sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_int32 timeout)
 	{
-		sendMessage(nodeId, sl_null, msg, callback, timeoutMillis);
+		sendMessage(nodeId, sl_null, msg, callback, timeout);
 	}
 
-	void P2PSocket::sendMessage(const P2PNodeId& nodeId, const SocketAddress* address, const P2PRequest& msg, P2PResponse& response, sl_uint32 timeoutMillis)
+	void P2PSocket::sendMessage(const P2PNodeId& nodeId, const SocketAddress* address, const P2PRequest& msg, P2PResponse& response, sl_int32 timeout)
 	{
 		if (!(isOpened())) {
 			return;
@@ -2375,29 +2217,26 @@ namespace slib
 		if (ev.isNull()) {
 			return;
 		}
-		Shared<TimeoutMonitor> timeoutMonitor = Shared<TimeoutMonitor>::create();
-		if (timeoutMonitor.isNull()) {
+		Shared< Atomic<P2PResponse> > ret = Shared< Atomic<P2PResponse> >::create();
+		if (ret.isNull()) {
 			return;
 		}
-		P2PResponse* ret = &response;
-		sendMessage(nodeId, address, msg, [timeoutMonitor, ret, ev](P2PResponse& response) {
-			if (timeoutMonitor->tryFinish()) {
-				*ret = Move(response);
-				ev->set();
-			}
-		}, timeoutMillis);
+		sendMessage(nodeId, address, msg, [ret, ev](P2PResponse& response) {
+			*ret = Move(response);
+			ev->set();
+		}, timeout);
 		ev->wait();
-		timeoutMonitor->tryFinish();
+		ret->release(response);
 	}
 
-	void P2PSocket::sendMessage(const P2PNodeId& nodeId, const SocketAddress& address, const P2PRequest& msg, P2PResponse& response, sl_uint32 timeoutMillis)
+	void P2PSocket::sendMessage(const P2PNodeId& nodeId, const SocketAddress& address, const P2PRequest& msg, P2PResponse& response, sl_int32 timeout)
 	{
-		sendMessage(nodeId, &address, msg, response, timeoutMillis);
+		sendMessage(nodeId, &address, msg, response, timeout);
 	}
 
-	void P2PSocket::sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, P2PResponse& response, sl_uint32 timeoutMillis)
+	void P2PSocket::sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, P2PResponse& response, sl_int32 timeout)
 	{
-		sendMessage(nodeId, sl_null, msg, response, timeoutMillis);
+		sendMessage(nodeId, sl_null, msg, response, timeout);
 	}
 
 	void P2PSocket::sendBroadcast(const P2PRequest& msg)

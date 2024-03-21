@@ -30,11 +30,12 @@
 #define SLIB_IO_EMPTY_CONTENT 0
 #define SLIB_IO_ERROR (-1)
 #define SLIB_IO_WOULD_BLOCK (-2)
+#define SLIB_IO_TIMEOUT (-2)
 
 #define SLIB_DECLARE_IREADER_MEMBERS(...) \
-	sl_reg readFully(void* buf, sl_size size) __VA_ARGS__; \
-	sl_reg readFully(MemoryBuffer& output, sl_size size = SLIB_SIZE_MAX, sl_size segmentSize = 0) __VA_ARGS__; \
-	Memory readFully(sl_size size = SLIB_SIZE_MAX, sl_size segmentSize = 0) __VA_ARGS__; \
+	sl_reg readFully(void* buf, sl_size size, sl_int32 timeout = -1) __VA_ARGS__; \
+	sl_reg readFully(MemoryBuffer& output, sl_size size = SLIB_SIZE_MAX, sl_size segmentSize = 0, sl_int32 timeout = -1) __VA_ARGS__; \
+	Memory readFully(sl_size size = SLIB_SIZE_MAX, sl_size segmentSize = 0, sl_int32 timeout = -1) __VA_ARGS__; \
 	sl_bool readInt8(sl_int8* output) __VA_ARGS__; \
 	sl_int8 readInt8(sl_int8 def = 0) __VA_ARGS__; \
 	sl_bool readUint8(sl_uint8* output) __VA_ARGS__; \
@@ -57,9 +58,9 @@
 	double readDouble(double def = 0, EndianType endian = Endian::Little) __VA_ARGS__;
 
 #define SLIB_DECLARE_IWRITER_MEMBERS(...) \
-	sl_reg writeFully(const void* buf, sl_size size) __VA_ARGS__; \
-	sl_reg writeFully(const MemoryView& mem) __VA_ARGS__; \
-	sl_reg writeFully(const StringView& str) __VA_ARGS__; \
+	sl_reg writeFully(const void* buf, sl_size size, sl_int32 timeout = -1) __VA_ARGS__; \
+	sl_reg writeFully(const MemoryView& mem, sl_int32 timeout = -1) __VA_ARGS__; \
+	sl_reg writeFully(const StringView& str, sl_int32 timeout = -1) __VA_ARGS__; \
 	sl_bool writeInt8(sl_int8 value) __VA_ARGS__; \
 	sl_bool writeUint8(sl_uint8 value) __VA_ARGS__; \
 	sl_bool writeInt16(sl_int16 value, EndianType endian = Endian::Little) __VA_ARGS__; \
@@ -70,9 +71,9 @@
 	sl_bool writeUint64(sl_uint64 value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeFloat(float value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeDouble(double value, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool writeAllBytes(const void* buf, sl_size size) __VA_ARGS__; \
-	sl_bool writeAllBytes(const MemoryView& mem) __VA_ARGS__; \
-	sl_bool writeAllBytes(const StringView& str) __VA_ARGS__;
+	sl_bool writeAllBytes(const void* buf, sl_size size, sl_int32 timeout = -1) __VA_ARGS__; \
+	sl_bool writeAllBytes(const MemoryView& mem, sl_int32 timeout = -1) __VA_ARGS__; \
+	sl_bool writeAllBytes(const StringView& str, sl_int32 timeout = -1) __VA_ARGS__;
 
 #define SLIB_DECLARE_ISTREAM_MEMBERS(...) \
 	SLIB_DECLARE_IREADER_MEMBERS(__VA_ARGS__) \
@@ -90,7 +91,7 @@
 #define SLIB_DECLARE_SEEKABLE_READER_MEMBERS(ATTR, OVERRIDE) \
 	sl_reg readAt(sl_uint64 offset, void* buf, sl_size size) ATTR OVERRIDE; \
 	sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size) ATTR OVERRIDE; \
-	sl_reg readFullyAt(sl_uint64 offset, void* buf, sl_size size) ATTR OVERRIDE; \
+	sl_reg readFullyAt(sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout = -1) ATTR OVERRIDE; \
 	String readLine() ATTR; \
 	String readNullTerminatedString() ATTR; \
 	Memory readAllBytes(sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
@@ -100,7 +101,7 @@
 #define SLIB_DECLARE_SEEKABLE_WRITER_MEMBERS(ATTR, OVERRIDE) \
 	sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size) ATTR OVERRIDE; \
 	sl_int32 writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size) ATTR OVERRIDE; \
-	sl_reg writeFullyAt(sl_uint64 offset, const void* buf, sl_size size) ATTR OVERRIDE;
+	sl_reg writeFullyAt(sl_uint64 offset, const void* buf, sl_size size, sl_int32 timeout = -1) ATTR OVERRIDE;
 
 #define SLIB_DECLARE_IO_MEMBERS(...) \
 	SLIB_DECLARE_ISTREAM_MEMBERS(__VA_ARGS__) \

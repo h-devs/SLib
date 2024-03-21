@@ -40,7 +40,7 @@ namespace slib
 		~AsyncStreamSimulator();
 
 	public:
-		sl_bool requestIo(const Ref<AsyncStreamRequest>& request) override;
+		sl_bool requestIo(AsyncStreamRequest* request) override;
 
 		sl_bool addTask(const Function<void()>& callback) override;
 

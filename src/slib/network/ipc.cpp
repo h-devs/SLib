@@ -24,12 +24,10 @@
 
 #include "slib/network/async.h"
 #include "slib/network/event.h"
+#include "slib/io/chunk.h"
+#include "slib/io/file.h"
 #include "slib/core/system.h"
 #include "slib/core/thread.h"
-#include "slib/io/file.h"
-#include "slib/data/serialize/variable_length_integer.h"
-#include "slib/data/serialize/buffer.h"
-#include "slib/device/cpu.h"
 
 namespace slib
 {
@@ -40,7 +38,8 @@ namespace slib
 	{
 		timeout = -1;
 		flagSelfAlive = sl_true;
-		maximumMessageSize = -1;
+		maximumMessageSize = 0x7fffffff;
+		messageSegmentSize = 0;
 	}
 
 
@@ -48,6 +47,7 @@ namespace slib
 
 	IPCRequest::IPCRequest()
 	{
+		m_nCountFinish = 0;
 	}
 
 	IPCRequest::~IPCRequest()
@@ -67,30 +67,57 @@ namespace slib
 		if (param.flagSelfAlive) {
 			increaseReference();
 		}
-		sl_int32 timeout = param.timeout;
-		if (timeout >= 0) {
-			m_tickEnd = GetCurrentTick() + timeout;
-		} else {
-			m_tickEnd = 0;
-		}
+		m_tickEnd = GetTickFromTimeout(param.timeout);
 		m_maximumResponseSize = param.maximumMessageSize;
+		m_messageSegmentSize = param.messageSegmentSize;
 		m_dispatcher = param.dispatcher;
 		m_onResponse = param.onResponse;
 		return sl_true;
 	}
 
-	sl_uint64 IPCRequest::getCurrentTick()
-	{
-		return System::getTickCount64();
-	}
-
 	void IPCRequest::onError()
 	{
-		Function<void(IPCResponseMessage&)> callback = m_onResponse.release();
-		if (callback.isNotNull()) {
-			IPCResponseMessage err;
-			callback(err);
+		IPCResponseMessage err;
+		onResponse(err);
+	}
+
+	void IPCRequest::onResponse(IPCResponseMessage& response)
+	{
+		if (Base::interlockedIncrement32(&m_nCountFinish) == 1) {
+			m_onResponse(response);
+			if (m_flagSelfAlive) {
+				decreaseReference();
+			}
 		}
+	}
+
+	void IPCRequest::sendRequest()
+	{
+		ChunkIO::writeAsync(m_stream, m_requestData, SLIB_FUNCTION_WEAKREF(this, onSentRequest), GetTimeoutFromTick(m_tickEnd));
+	}
+
+	void IPCRequest::onSentRequest(AsyncStream*, sl_bool flagError)
+	{
+		if (flagError) {
+			onError();
+			return;
+		}
+		receiveResponse();
+	}
+
+	void IPCRequest::receiveResponse()
+	{
+		ChunkIO::readAsync(m_stream, SLIB_FUNCTION_WEAKREF(this, onReceiveResponse), m_maximumResponseSize, m_messageSegmentSize, GetTimeoutFromTick(m_tickEnd));
+	}
+
+	void IPCRequest::onReceiveResponse(AsyncStream*, Memory& data, sl_bool flagError)
+	{
+		if (flagError) {
+			onError();
+			return;
+		}
+		IPCResponseMessage response(data);
+		onResponse(response);
 	}
 
 
@@ -98,15 +125,9 @@ namespace slib
 
 	IPCServerParam::IPCServerParam()
 	{
-		maximumMessageSize = -1;
+		maximumMessageSize = 0x7fffffff;
+		messageSegmentSize = 0;
 		flagAcceptOtherUsers = sl_true;
-
-		maximumThreadCount = Cpu::getCoreCount();
-		if (!maximumThreadCount) {
-			maximumThreadCount = 1;
-		}
-		minimumThreadCount = maximumThreadCount / 2;
-		flagProcessByThreads = sl_false;
 	}
 
 
@@ -119,6 +140,80 @@ namespace slib
 	IPCServer::~IPCServer()
 	{
 	}
+
+	sl_bool IPCServer::initialize(const IPCServerParam& param)
+	{
+		m_ioLoop = param.ioLoop;
+		if (m_ioLoop.isNull()) {
+			m_ioLoop = AsyncIoLoop::create(sl_false);
+			if (m_ioLoop.isNull()) {
+				return sl_null;
+			}
+		}
+		m_dispatcher = param.dispatcher;
+		m_maximumMessageSize = param.maximumMessageSize;
+		m_messageSegmentSize = param.messageSegmentSize;
+		m_onReceiveMessage = param.onReceiveMessage;
+	}
+
+	void IPCServer::startStream(AsyncStream* stream)
+	{
+		m_streams.put(stream, stream);
+		receiveRequest(stream);
+	}
+
+	void IPCServer::receiveRequest(AsyncStream* stream)
+	{
+		ChunkIO::readAsync(stream, SLIB_FUNCTION_WEAKREF(this, onReceiveRequest), m_maximumMessageSize, m_messageSegmentSize);
+	}
+
+	void IPCServer::onReceiveRequest(AsyncStream* stream, Memory& data, sl_bool flagError)
+	{
+		if (flagError) {
+			if (stream) {
+				m_streams.remove(stream);
+			}
+			return;
+		}
+		if (m_dispatcher.isNotNull()) {
+			Ref<AsyncStream> refStream = stream;
+			WeakRef<IPCServer> thiz = this;
+			m_dispatcher->dispatch([this, thiz, refStream, stream, data]() {
+				Ref<IPCServer> ref = thiz;
+				if (ref.isNull()) {
+					return;
+				}
+				processRequest(stream, data);
+			});
+		} else {
+			processRequest(stream, data);
+		}
+	}
+
+	void IPCServer::processRequest(AsyncStream* stream, const Memory& data)
+	{
+		IPCRequestMessage request(data);
+		IPCResponseMessage response;
+		m_onReceiveMessage(request, response);
+		sendResponse(stream, response.getMemory());
+	}
+
+	void IPCServer::sendResponse(AsyncStream* stream, const Memory& data)
+	{
+		ChunkIO::writeAsync(stream, data, SLIB_FUNCTION_WEAKREF(this, onSentResponse));
+	}
+
+	void IPCServer::onSentResponse(AsyncStream* stream, sl_bool flagError)
+	{
+		if (flagError) {
+			if (stream) {
+				m_streams.remove(stream);
+			}
+			return;
+		}
+		receiveRequest(stream);
+	}
+
 
 #ifdef SLIB_PLATFORM_IS_UNIX
 	Ref<IPC::Request> IPC::sendMessage(const RequestParam& param)
@@ -177,160 +272,70 @@ namespace slib
 #	define DOMAIN_PATH(NAME) DomainSocketPath(GetDomainName(NAME))
 #endif
 
-		SLIB_INLINE static sl_uint64 GetCurrentTick()
-		{
-			return IPCRequest::getCurrentTick();
-		}
-
-		static sl_bool WriteDataSynchronous(Thread* thread, const Socket& socket, const Ref<SocketEvent>& event, const void* _data, sl_uint32 size, sl_uint64 tickEnd)
-		{
-			sl_uint8* data = (sl_uint8*)_data;
-			sl_uint32 nWrite = 0;
-			for (;;) {
-				if (thread) {
-					if (thread->isStopping()) {
-						return sl_false;
-					}
-				}
-				sl_int32 n = socket.send(data + nWrite, size - nWrite);
-				if (n >= 0) {
-					nWrite += n;
-					if (nWrite >= size) {
-						break;
-					}
-				} else if (n == SLIB_IO_WOULD_BLOCK) {
-					if (tickEnd) {
-						event->wait(10);
-						if (GetCurrentTick() > tickEnd) {
-							return sl_false;
-						}
-					} else {
-						event->wait();
-					}
-				} else {
-					return sl_false;
-				}
-			}
-			return sl_true;
-		}
-
-		static sl_bool WriteMessageSynchronous(Thread* thread, const Socket& socket, const void* data, sl_uint32 size, sl_uint64 tickEnd)
-		{
-			Ref<SocketEvent> event = SocketEvent::createWrite(socket);
-			if (event.isNull()) {
-				return sl_false;
-			}
-			sl_uint8 bufHeader[16];
-			sl_uint32 nHeader = CVLI::serialize(bufHeader, size);
-			if (!(WriteDataSynchronous(thread, socket, event, bufHeader, nHeader, tickEnd))) {
-				return sl_false;
-			}
-			if (!size) {
-				return sl_true;
-			}
-			return WriteDataSynchronous(thread, socket, event, data, size, tickEnd);
-		}
-
-		static sl_bool ReadMessageSynchronous(Thread* thread, const Socket& socket, IPC::ResponseMessage& response, sl_uint64 tickEnd, sl_int32 maxMessageSize)
-		{
-			Ref<SocketEvent> event = SocketEvent::createRead(socket);
-			if (event.isNull()) {
-				return sl_false;
-			}
-			sl_uint8 bufHeader[16];
-			sl_uint32 nReadHeader = 0;
-			Memory memContent;
-			sl_uint32 sizeContent = 0;
-			sl_uint8* bufContent;
-			for (;;) {
-				if (thread) {
-					if (thread->isStopping()) {
-						return sl_false;
-					}
-				}
-				sl_int32 n = socket.receive(bufHeader + nReadHeader, sizeof(bufHeader) - nReadHeader);
-				if (n > 0) {
-					nReadHeader += n;
-					sl_uint32 nSizeHeader = CVLI::deserialize(bufHeader, nReadHeader, sizeContent);
-					if (nSizeHeader) {
-						if (!sizeContent) {
-							response.clear();
-							response.data = "";
-							return sl_true;
-						}
-						if (maxMessageSize > 0 && sizeContent > (sl_uint32)maxMessageSize) {
-							return sl_false;
-						}
-						sl_uint32 nReadContent = nReadHeader - nSizeHeader;
-						if (nReadContent >= sizeContent) {
-							response.setMemory(Memory::create(bufHeader + nSizeHeader, sizeContent));
-							return response.isNotEmpty();
-						}
-						memContent = Memory::create(sizeContent);
-						if (memContent.isNull()) {
-							return sl_false;
-						}
-						bufContent = (sl_uint8*)(memContent.getData());
-						Base::copyMemory(bufContent, bufHeader + nSizeHeader, nReadContent);
-						sizeContent -= nReadContent;
-						bufContent += nReadContent;
-						break;
-					}
-					if (nReadHeader >= sizeof(bufHeader)) {
-						return sl_false;
-					}
-				} else if (n == SLIB_IO_WOULD_BLOCK) {
-					if (tickEnd) {
-						event->wait(10);
-						if (GetCurrentTick() > tickEnd) {
-							return sl_false;
-						}
-					} else {
-						event->wait();
-					}
-				} else {
-					return sl_false;
-				}
-			}
-			while (thread->isNotStopping()) {
-				sl_int32 n = socket.receive(bufContent, sizeContent);
-				if (n > 0) {
-					if ((sl_uint32)n >= sizeContent) {
-						response.setMemory(memContent);
-						return sl_true;
-					}
-					sizeContent -= n;
-					bufContent += n;
-				} else if (n == SLIB_IO_WOULD_BLOCK) {
-					if (tickEnd) {
-						event->wait(10);
-						if (GetCurrentTick() > tickEnd) {
-							return sl_false;
-						}
-					} else {
-						event->wait();
-					}
-				} else {
-					return sl_false;
-				}
-			}
-			return sl_false;
-		}
-
-		class SocketRequest : public IPC::Request
+		class SocketRequest : public IPCRequest
 		{
 		public:
-			sl_uint64 tickEnd;
-			Memory content;
+			void connect(const IPCRequestParam& param)
+			{
+				((AsyncDomainSocket*)(m_stream.get()))->connect(DOMAIN_PATH(param.targetName), SLIB_FUNCTION_WEAKREF(this, onConnect), param.timeout);
+			}
 
-		public:
 			void onConnect(AsyncDomainSocket* socket, sl_bool flagError)
 			{
 				if (flagError) {
 					onError();
 					return;
 				}
+				sendRequest();
 			}
+		};
+
+		class SocketServer : public IPCServer
+		{
+		public:
+			Ref<AsyncDomainSocketServer> m_server;
+
+		public:
+			static Ref<SocketServer> create(const IPCServerParam& param)
+			{
+				AsyncDomainSocketServerParam serverParam;
+#if defined(SLIB_PLATFORM_IS_LINUX)
+				serverParam.bindPath = AbstractDomainSocketPath(param.name);
+#else
+				String path = GetDomainName(param.name);
+				File::deleteFile(path);
+				serverParam.bindPath = DomainSocketPath(path);
+#if !defined(SLIB_PLATFORM_IS_WINDOWS)
+				if (param.flagAcceptOtherUsers) {
+					File::setAttributes(path, FileAttributes::AllAccess);
+				}
+#endif
+#endif
+				Ref<SocketServer> ret = new SocketServer;
+				if (ret.isNotNull()) {
+					if (ret->initialize(param)) {
+						serverParam.ioLoop = ret->m_ioLoop;
+						serverParam.onAccept = SLIB_FUNCTION_WEAKREF(ret, onAccept);
+						Ref<AsyncDomainSocketServer> server = AsyncDomainSocketServer::create(serverParam);
+						if (server.isNotNull()) {
+							ret->m_server = server;
+							serverParam.ioLoop->start();
+							return ret;
+						}
+					}
+				}
+				return sl_null;
+			}
+
+		public:
+			void onAccept(AsyncDomainSocketServer*, Socket& socket, DomainSocketPath& path)
+			{
+				Ref<AsyncSocketStream> stream = AsyncSocketStream::create(Move(socket), m_ioLoop);
+				if (stream.isNotNull()) {
+					startStream(stream.get());
+				}
+			}
+
 		};
 
 	}
@@ -339,10 +344,10 @@ namespace slib
 	{
 		Ref<SocketRequest> request = new SocketRequest;
 		if (request.isNotNull()) {
-			request->socket = AsyncDomainSocket::create(param.ioLoop);
-			if (request->socket.isNotNull()) {
-				if (request->initialize(param)) {
-					request->socket->connect(DOMAIN_PATH(param.targetName), SLIB_FUNCTION_WEAKREF(request, onConnect));
+			Ref<AsyncDomainSocket> socket = AsyncDomainSocket::create(param.ioLoop);
+			if (socket.isNotNull()) {
+				if (request->initialize(Move(socket), param)) {
+					request->connect(param);
 					return request;
 				}
 			}
@@ -368,31 +373,22 @@ namespace slib
 			return sl_false;
 		}
 		sl_int32 timeout = param.timeout;
-		sl_uint64 tickEnd;
-		if (timeout >= 0) {
-			tickEnd = GetCurrentTick() + timeout;
-		} else {
-			tickEnd = 0;
-		}
+		sl_int64 tickEnd = GetTickFromTimeout(timeout);
 		if (!(socket.connectAndWait(DOMAIN_PATH(param.targetName), timeout))) {
 			return sl_false;
 		}
-		if (GetCurrentTick() > tickEnd) {
+		if (!(ChunkIO::write(&socket, MemoryView(param.message.data, param.message.size), GetTimeoutFromTick(tickEnd)))) {
 			return sl_false;
 		}
-		Thread* thread = Thread::getCurrent();
-		if (!(WriteMessageSynchronous(thread, socket, param.message.data, (sl_uint32)(param.message.size), tickEnd))) {
+		CurrentThread thread;
+		if (thread.isStopping()) {
 			return sl_false;
 		}
-		if (thread) {
-			if (thread->isStopping()) {
-				return sl_false;
-			}
-		}
-		if (!(ReadMessageSynchronous(thread, socket, response, tickEnd, param.maximumMessageSize))) {
+		Nullable<Memory> ret = ChunkIO::read(&socket, param.maximumMessageSize, param.messageSegmentSize, GetTimeoutFromTick(tickEnd));
+		if (ret.isNull()) {
 			return sl_false;
 		}
-		socket.writeUint8(0); // Close Signal
+		response.setMemory(ret.value);
 		return sl_true;
 	}
 
@@ -407,219 +403,7 @@ namespace slib
 
 	Ref<SocketIPC::Server> SocketIPC::createServer(const ServerParam& param)
 	{
-	}
-
-	namespace {
-
-		class DomainSocketIPC : public IPC
-		{
-		public:
-			CList< Ref<Thread> > m_threads;
-
-		public:
-			DomainSocketIPC()
-			{
-			}
-
-			~DomainSocketIPC()
-			{
-				List< Ref<Thread> > threads = m_threads.duplicate();
-				for (auto&& item : threads) {
-					item->finish();
-				}
-				for (auto&& item : threads) {
-					item->finishAndWait();
-				}
-			}
-
-		public:
-			void sendMessage(const StringParam& _targetName, const Memory& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse) override
-			{
-				String targetName = _targetName.toString();
-				if (targetName.isNotEmpty()) {
-					if (data.isNotNull()) {
-						if (m_threads.getCount() < m_maxThreadCount) {
-							MoveT<Socket> socket = Socket::openDomainStream();
-							if (socket.isOpened()) {
-								auto thiz = ToWeakRef(this);
-								Ref<Thread> thread = Thread::create([socket, thiz, this, targetName, data, callbackResponse]() {
-									auto ref = ToRef(thiz);
-									if (ref.isNull()) {
-										callbackResponse(sl_null, 0);
-										return;
-									}
-									processSending(socket, targetName, data, callbackResponse, sl_true);
-								});
-								if (thread.isNotNull()) {
-									m_threads.add(thread);
-									thread->start();
-									return;
-								}
-							}
-						}
-					}
-				}
-				callbackResponse(sl_null, 0);
-			}
-
-			Memory processSending(const Socket& socket, const String& serverName, const MemoryView& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse, sl_bool flagAsync)
-			{
-				Thread* thread = Thread::getCurrent();
-				if (thread) {
-#ifdef SLIB_PLATFORM_IS_LINUX
-					if (socket.connectAbstractDomainAndWait(serverName)) {
-#else
-					if (socket.connectDomainAndWait(GetDomainName(serverName))) {
-#endif
-						if (writeMessage(thread, socket, data.data, (sl_uint32)(data.size))) {
-							if (thread->isNotStoppingCurrent()) {
-								Memory mem = readMessage(thread, socket);
-								writeMessage(thread, socket, sl_null, 0); // Dummy message to safely close
-								if (flagAsync) {
-									callbackResponse((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()));
-									m_threads.remove(thread);
-								}
-								return mem;
-							}
-						}
-					}
-				}
-				if (flagAsync) {
-					callbackResponse(sl_null, 0);
-					m_threads.remove(thread);
-				}
-				return sl_null;
-			}
-
-		};
-
-		class DomainSocketServer : public DomainSocketIPC
-		{
-		public:
-			Socket m_socketServer;
-			Ref<Thread> m_threadListen;
-
-		public:
-			DomainSocketServer()
-			{
-			}
-
-			~DomainSocketServer()
-			{
-				if (m_threadListen.isNotNull()) {
-					m_threadListen->finishAndWait();
-				}
-			}
-
-		public:
-			static Ref<DomainSocketServer> create(const IPCParam& param)
-			{
-				Socket socket = Socket::openDomainStream();
-				if (socket.isOpened()) {
-#ifdef SLIB_PLATFORM_IS_LINUX
-					if (socket.bindAbstractDomain(param.name)) {
-#else
-					String path = GetDomainName(param.name);
-					File::deleteFile(path);
-					if (socket.bindDomain(path)) {
-#if !defined(SLIB_PLATFORM_IS_WINDOWS)
-						if (param.flagAcceptOtherUsers) {
-							File::setAttributes(path, FileAttributes::AllAccess);
-						}
-#endif
-#endif
-						if (socket.setNonBlockingMode()) {
-							if (socket.listen()) {
-								Ref<DomainSocketServer> ret = new DomainSocketServer;
-								if (ret.isNotNull()) {
-									ret->_init(param);
-									ret->m_socketServer = Move(socket);
-									Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), runListen));
-									if (thread.isNotNull()) {
-										ret->m_threadListen = Move(thread);
-										return ret;
-									}
-								}
-							}
-						}
-					}
-				}
-				return sl_null;
-			}
-
-			void runListen()
-			{
-				Thread* thread = Thread::getCurrent();
-				if (!thread) {
-					return;
-				}
-				Ref<SocketEvent> event = SocketEvent::createRead(m_socketServer);
-				if (event.isNull()) {
-					return;
-				}
-				while (thread->isNotStopping()) {
-					if (m_threads.getCount() < m_maxThreadCount) {
-						String address;
-						MoveT<Socket> socket = m_socketServer.acceptDomain(address);
-						if (socket.isOpened()) {
-							if (m_flagReceiveOnNewThread) {
-								auto thiz = ToWeakRef(this);
-								Ref<Thread> threadNew = Thread::create([socket, thiz, this]() {
-									auto ref = ToRef(thiz);
-									if (ref.isNull()) {
-										return;
-									}
-									Thread* thread = Thread::getCurrent();
-									if (!thread) {
-										return;
-									}
-									processReceiving(socket, thread, sl_true);
-								});
-								if (threadNew.isNotNull()) {
-									m_threads.add(threadNew);
-									threadNew->start();
-								}
-							} else {
-								processReceiving(socket, thread, sl_false);
-							}
-						} else {
-							if (Socket::getLastError() == SocketError::WouldBlock) {
-								event->wait();
-							} else {
-								return;
-							}
-						}
-					} else {
-						thread->wait(10);
-					}
-				}
-			}
-
-			void processReceiving(const Socket& socket, Thread* thread, sl_bool flagAsync)
-			{
-				Memory mem = readMessage(thread, socket);
-				if (mem.isNotNull() && thread->isNotStoppingCurrent()) {
-					MemoryOutput response;
-					m_onReceiveMessage((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()), &response);
-					Memory output = response.merge();
-					writeMessage(thread, socket, output.getData(), (sl_uint32)(output.getSize()));
-					readMessage(thread, socket); // Dummy message to safely close
-				}
-				if (flagAsync) {
-					m_threads.remove(thread);
-				}
-			}
-
-		};
-	}
-
-	Ref<IPC> IPC::createDomainSocket(const IPCParam& param)
-	{
-		if (param.name.isEmpty()) {
-			return Ref<IPC>::from(DomainSocketIPC::create(param));
-		} else {
-			return Ref<IPC>::from(DomainSocketServer::create(param));
-		}
+		return Ref<SocketIPC::Server>::from(SocketServer::create(param));
 	}
 
 }

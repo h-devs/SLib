@@ -29,6 +29,7 @@
 #include "../core/nullable.h"
 #include "../core/endian.h"
 #include "../core/function.h"
+#include "../core/timeout.h"
 
 /*
 	Chunk structure
@@ -50,45 +51,56 @@ namespace slib
 	{
 	public:
 		template <class READER>
-		static Nullable<Memory> read(READER* reader, sl_size maxSize = SLIB_SIZE_MAX, sl_size segmentSize = 0)
+		static Nullable<Memory> read(READER* reader, sl_uint32 maxSize = 0xffffffff, sl_size segmentSize = 0, sl_int32 timeout = -1)
 		{
-			sl_uint32 size;
-			if (!(reader->readUint32(&size, Endian::Little))) {
+			sl_int64 tickEnd = GetTickFromTimeout(timeout);
+			sl_uint8 bufSize[4];
+			if (reader->readFully(bufSize, 4, timeout) != 4) {
 				return sl_null;
 			}
+			sl_uint32 size = MIO::readUint32LE(bufSize);
 			if (size > maxSize) {
 				return sl_null;
 			}
-			if (size) {
-				return reader->readFully(reader, size, segmentSize);
-			} else {
+			if (!size) {
 				return Memory();
 			}
+			Memory ret = reader->readFully(size, segmentSize, GetTimeoutFromTick(tickEnd));
+			if (ret.getSize() == size) {
+				return ret;
+			}
+			return sl_null;
 		}
 
 		template <class WRITER>
-		static sl_bool write(WRITER* writer, const void* data, sl_size size)
+		static sl_bool write(WRITER* writer, const void* data, sl_size size, sl_int32 timeout = -1)
 		{
 #ifdef SLIB_ARCH_IS_64BIT
 			if (size >> 32) {
 				return sl_false;
 			}
 #endif
-			if (!(writer->writeUint32((sl_uint32)size, Endian::Little))) {
+			sl_int64 tickEnd = GetTickFromTimeout(timeout);
+			sl_uint8 bufSize[4];
+			MIO::writeUint32LE(bufSize, (sl_uint32)size);
+			if (writer->writeFully(bufSize, 4, timeout) != 4) {
 				return sl_false;
 			}
-			return writer->writeAllBytes(data, size);
+			if (!size) {
+				return sl_true;
+			}
+			return writer->writeAllBytes(data, size, GetTimeoutFromTick(tickEnd));
 		}
 
 		template <class WRITER>
-		static sl_bool write(WRITER* writer, const MemoryView& mem)
+		static sl_bool write(WRITER* writer, const MemoryView& mem, sl_int32 timeout = -1)
 		{
-			return write(writer, mem.data, mem.size);
+			return write(writer, mem.data, mem.size, timeout);
 		}
 
-		static void readAsync(AsyncStream* stream, const Function<void(Memory&, sl_bool flagError)>& callback, sl_size maxSize = SLIB_SIZE_MAX, sl_size segmentSize = 0);
+		static void readAsync(AsyncStream* stream, const Function<void(AsyncStream*, Memory&, sl_bool flagError)>& callback, sl_uint32 maxSize = 0xffffffff, sl_uint32 segmentSize = 0, sl_int32 timeout = -1);
 
-		static void writeAsync(AsyncStream* stream, const Memory& data, const Function<void(sl_bool flagError)>& callback);
+		static void writeAsync(AsyncStream* stream, const Memory& data, const Function<void(AsyncStream*, sl_bool flagError)>& callback, sl_int32 timeout = -1);
 
 	};
 

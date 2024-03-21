@@ -37,6 +37,7 @@ namespace slib
 		Success = 0,
 		Ended = 1,
 		Closed = 2,
+		Timeout = 3,
 		Unknown = 100
 	};
 
@@ -73,7 +74,7 @@ namespace slib
 	class SLIB_EXPORT AsyncStreamErrorResult : public AsyncStreamResult
 	{
 	public:
-		AsyncStreamErrorResult(AsyncStream* stream, const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject) noexcept;
+		AsyncStreamErrorResult(AsyncStream* stream, const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject, AsyncStreamResultCode code = AsyncStreamResultCode::Unknown) noexcept;
 
 	};
 
@@ -88,8 +89,6 @@ namespace slib
 		Ref<CRef> userObject;
 		Function<void(AsyncStreamResult&)> callback;
 
-		sl_size sizeWritten;
-
 	public:
 		AsyncStreamRequest(sl_bool flagRead, const void* data, sl_size size, CRef* userObject, const Function<void(AsyncStreamResult&)>& callback);
 
@@ -103,6 +102,14 @@ namespace slib
 	public:
 		void runCallback(AsyncStream* stream, sl_size resultSize, AsyncStreamResultCode resultCode);
 
+		void resetPassedSize();
+
+	private:
+		sl_size m_sizePassed;
+		sl_bool m_flagFinished;
+		sl_bool m_flagFully;
+
+		friend class AsyncStream;
 	};
 
 	class SLIB_EXPORT AsyncStreamInstance : public AsyncIoInstance
@@ -115,7 +122,7 @@ namespace slib
 		~AsyncStreamInstance();
 
 	public:
-		virtual sl_bool request(const Ref<AsyncStreamRequest>& request);
+		sl_bool request(AsyncStreamRequest* request);
 
 	protected:
 		Ref<AsyncStreamRequest> getReadRequest();
@@ -159,31 +166,27 @@ namespace slib
 		static Ref<AsyncStream> create(AsyncStreamInstance* instance, AsyncIoMode mode);
 
 	public:
-		virtual void close() = 0;
+		virtual sl_bool requestIo(AsyncStreamRequest* request) = 0;
 
-		virtual sl_bool isOpened() = 0;
+		sl_bool requestIo(AsyncStreamRequest* request, sl_int32 timeout);
 
-		virtual sl_bool requestIo(const Ref<AsyncStreamRequest>& request) = 0;
+		void read(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null, sl_int32 timeout = -1);
 
-		void read(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
+		void read(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback, sl_int32 timeout = -1);
 
-		void read(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
+		void readFully(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null, sl_int32 timeout = -1);
 
-		void readFully(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
+		void readFully(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback, sl_int32 timeout = -1);
 
-		void readFully(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
+		void readFully(sl_size size, const Function<void(AsyncStream*, Memory&, sl_bool flagError)>& callback, sl_int32 timeout = -1);
 
-		void readFully(sl_size size, const Function<void(AsyncStream*, Memory&, sl_bool flagError)>& callback);
+		void readFully(sl_size size, sl_size segmentSize, const Function<void(AsyncStream*, MemoryBuffer&, sl_bool flagError)>& callback, sl_int32 timeout = -1);
 
-		void readFully(sl_size size, const Function<void(AsyncStream*, MemoryBuffer&, sl_bool flagError)>& callback, sl_size segmentSize);
+		void write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null, sl_int32 timeout = -1);
 
-		void write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
+		void write(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback, sl_int32 timeout = -1);
 
-		void write(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
-
-		void createMemoryAndWrite(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback);
-
-		virtual sl_bool addTask(const Function<void()>& callback) = 0;
+		void createMemoryAndWrite(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, sl_int32 timeout = -1);
 
 		virtual sl_bool isSeekable();
 
@@ -212,21 +215,12 @@ namespace slib
 		~AsyncStreamBase();
 
 	public:
-		void close() override;
-
-		sl_bool isOpened() override;
-
-		sl_bool requestIo(const Ref<AsyncStreamRequest>& req) override;
-
-		sl_bool addTask(const Function<void()>& callback) override;
+		sl_bool requestIo(AsyncStreamRequest* req) override;
 
 	protected:
 		Ref<AsyncStreamInstance> getIoInstance();
 
-		sl_bool _initialize(AsyncStreamInstance* instance, AsyncIoMode mode, const Ref<AsyncIoLoop>& loop);
-
 		friend class AsyncStream;
-
 	};
 
 }

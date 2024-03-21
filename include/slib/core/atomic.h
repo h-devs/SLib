@@ -89,11 +89,16 @@ namespace slib
 			return value;
 		}
 
-		T release() const
+		T release()
 		{
 			T value;
 			_retain_move(&value);
 			return value;
+		}
+
+		void release(T& ret)
+		{
+			_retain_move(&ret);
 		}
 
 	public:
@@ -111,7 +116,7 @@ namespace slib
 			m_lock.unlock();
 		}
 
-		void _retain_move(void* other) const
+		void _retain_move(void* other)
 		{
 			m_lock.lock();
 			*((T*)other) = Move(*((T*)m_value));

@@ -25,7 +25,6 @@
 #include "slib/network/url.h"
 #include "slib/core/app.h"
 #include "slib/core/asset.h"
-#include "slib/core/thread_pool.h"
 #include "slib/core/dispatch_loop.h"
 #include "slib/core/timer.h"
 #include "slib/core/content_type.h"
@@ -35,7 +34,6 @@
 #include "slib/io/file_util.h"
 #include "slib/data/json.h"
 #include "slib/data/xml.h"
-#include "slib/device/cpu.h"
 
 #define SERVER_TAG "HTTP SERVER"
 
@@ -50,7 +48,6 @@ namespace slib
 
 		m_flagProcessed = sl_false;
 		m_flagClosingConnection = sl_false;
-		m_flagProcessingByThread = sl_true;
 		m_flagKeepAlive = sl_true;
 
 		m_flagBeganProcessing = sl_false;
@@ -106,7 +103,7 @@ namespace slib
 		return getOutputLength();
 	}
 
-	Ref<HttpServer> HttpServerContext::getServer()
+	Ref<HttpServer> HttpServerContext::getServer() const
 	{
 		Ref<HttpServerConnection> connection = m_connection;
 		if (connection.isNotNull()) {
@@ -115,12 +112,12 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<HttpServerConnection> HttpServerContext::getConnection()
+	Ref<HttpServerConnection> HttpServerContext::getConnection() const
 	{
 		return m_connection;
 	}
 
-	Ref<AsyncStream> HttpServerContext::getIO()
+	Ref<AsyncStream> HttpServerContext::getIO() const
 	{
 		Ref<HttpServerConnection> connection = m_connection;
 		if (connection.isNotNull()) {
@@ -129,13 +126,23 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<AsyncIoLoop> HttpServerContext::getAsyncIoLoop()
+	Ref<AsyncIoLoop> HttpServerContext::getAsyncIoLoop() const
 	{
 		Ref<HttpServer> server = getServer();
 		if (server.isNotNull()) {
 			return server->getAsyncIoLoop();
 		}
 		return sl_null;
+	}
+
+	Ref<Dispatcher> HttpServerContext::getDispatcher() const
+	{
+		return m_dispatcher;
+	}
+
+	void HttpServerContext::setDispatcher(const Ref<Dispatcher>& dispatcher)
+	{
+		m_dispatcher = dispatcher;
 	}
 
 	const SocketAddress& HttpServerContext::getLocalAddress()
@@ -176,16 +183,6 @@ namespace slib
 	void HttpServerContext::setClosingConnection(sl_bool flag)
 	{
 		m_flagClosingConnection = flag;
-	}
-
-	sl_bool HttpServerContext::isProcessingByThread() const
-	{
-		return m_flagProcessingByThread;
-	}
-
-	void HttpServerContext::setProcessingByThread(sl_bool flag)
-	{
-		m_flagProcessingByThread = flag;
 	}
 
 	sl_bool HttpServerContext::isKeepAlive() const
@@ -368,7 +365,7 @@ namespace slib
 				return;
 			}
 			m_contextCurrent = _context;
-			_context->setProcessingByThread(param.flagProcessByThreads);
+			_context->setDispatcher(param.dispatcher);
 		}
 		HttpServerContext* context = _context.get();
 		if (context->m_requestHeader.isNull()) {
@@ -486,13 +483,9 @@ namespace slib
 							context->applyFormUrlEncoded(body.getData(), body.getSize());
 						}
 					}
-					if (context->isProcessingByThread()) {
-						Ref<ThreadPool> threadPool = server->getThreadPool();
-						if (threadPool.isNotNull()) {
-							threadPool->addTask(SLIB_BIND_WEAKREF(void(), this, _processContext, _context));
-						} else {
-							sendResponseAndClose_ServerError();
-						}
+					Ref<Dispatcher> dispatcher = context->getDispatcher();
+					if (dispatcher.isNotNull()) {
+						dispatcher->dispatch(SLIB_BIND_WEAKREF(void(), this, _processContext, _context));
 					} else {
 						_processContext(context);
 					}
@@ -1068,13 +1061,6 @@ namespace slib
 	{
 		port = 8080;
 
-		maximumThreadCount = Cpu::getCoreCount();
-		if (!maximumThreadCount) {
-			maximumThreadCount = 1;
-		}
-		minimumThreadCount = maximumThreadCount / 2;
-		flagProcessByThreads = sl_true;
-
 		flagUseWebRoot = sl_false;
 		flagUseAsset = sl_false;
 
@@ -1245,16 +1231,6 @@ namespace slib
 		if (dispatchLoop.isNull()) {
 			return sl_false;
 		}
-		if (!(m_param.maximumThreadCount)) {
-			m_param.maximumThreadCount = 1;
-		}
-		if (m_param.minimumThreadCount >= m_param.maximumThreadCount) {
-			m_param.minimumThreadCount = m_param.maximumThreadCount / 2;
-		}
-		Ref<ThreadPool> threadPool = ThreadPool::create(m_param.minimumThreadCount, m_param.maximumThreadCount);
-		if (threadPool.isNull()) {
-			return sl_false;
-		}
 
 		dispatchLoop->start();
 		ioLoop->start();
@@ -1264,7 +1240,6 @@ namespace slib
 		}
 
 		m_dispatchLoop = Move(dispatchLoop);
-		m_threadPool = Move(threadPool);
 
 		m_flagRunning = sl_true;
 
@@ -1281,12 +1256,6 @@ namespace slib
 
 		m_flagReleased = sl_true;
 		m_flagRunning = sl_false;
-
-		Ref<ThreadPool> threadPool = m_threadPool;
-		if (threadPool.isNotNull()) {
-			threadPool->release();
-			m_threadPool.setNull();
-		}
 
 		Ref<DispatchLoop> dispatchLoop = m_dispatchLoop;
 		if (dispatchLoop.isNotNull()) {
@@ -1325,11 +1294,6 @@ namespace slib
 	Ref<AsyncIoLoop> HttpServer::getAsyncIoLoop()
 	{
 		return m_ioLoop;
-	}
-
-	Ref<ThreadPool> HttpServer::getThreadPool()
-	{
-		return m_threadPool;
 	}
 
 	const HttpServerParam& HttpServer::getParam()
@@ -1532,7 +1496,7 @@ namespace slib
 				sl_uint64 start;
 				sl_uint64 len;
 				if (processRangeRequest(context, totalSize, rangeHeader, start, len)) {
-					Ref<AsyncStream> file = AsyncFile::openStream(path, FileMode::Read, m_ioLoop, m_threadPool);
+					Ref<AsyncStream> file = AsyncFile::openStream(path, FileMode::Read, m_ioLoop, m_param.dispatcher);
 					if (file.isNotNull()) {
 						if (file->seek(start)) {
 							return context->copyFrom(file.get(), len);
@@ -1543,7 +1507,7 @@ namespace slib
 				}
 			} else {
 				if (totalSize > 100000) {
-					return context->copyFromFile(path, m_ioLoop, m_threadPool);
+					return context->copyFromFile(path, m_ioLoop, m_param.dispatcher);
 				} else {
 					Memory mem = File::readAllBytes(path);
 					if (mem.isNotNull()) {

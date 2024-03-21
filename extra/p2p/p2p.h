@@ -186,17 +186,17 @@ namespace slib
 		// `outKey`: 32 Bytes
 		virtual sl_bool getEncryptionKeyForNode(const P2PNodeId& nodeId, void* outKey) = 0;
 
-		virtual void sendMessage(const P2PNodeId& nodeId, const SocketAddress* address, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis = 0) = 0;
+		virtual void sendMessage(const P2PNodeId& nodeId, const SocketAddress* address, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_int32 timeout = -1) = 0;
 
-		void sendMessage(const P2PNodeId& nodeId, const SocketAddress& address, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis = 0);
+		void sendMessage(const P2PNodeId& nodeId, const SocketAddress& address, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_int32 timeout = -1);
 
-		void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis = 0);
+		void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_int32 timeout = -1);
 
-		void sendMessage(const P2PNodeId& nodeId, const SocketAddress* address, const P2PRequest& msg, P2PResponse& response, sl_uint32 timeoutMillis = 0);
+		void sendMessage(const P2PNodeId& nodeId, const SocketAddress* address, const P2PRequest& msg, P2PResponse& response, sl_int32 timeout = -1);
 
-		void sendMessage(const P2PNodeId& nodeId, const SocketAddress& address, const P2PRequest& msg, P2PResponse& response, sl_uint32 timeoutMillis = 0);
+		void sendMessage(const P2PNodeId& nodeId, const SocketAddress& address, const P2PRequest& msg, P2PResponse& response, sl_int32 timeout = -1);
 
-		void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, P2PResponse& response, sl_uint32 timeoutMillis = 0);
+		void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, P2PResponse& response, sl_int32 timeout = -1);
 
 		virtual void sendBroadcast(sl_uint32 interfaceIndex, const P2PRequest& msg) = 0;
 
