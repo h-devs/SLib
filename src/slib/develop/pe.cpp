@@ -346,7 +346,7 @@ namespace slib
 			return sl_null;
 		}
 		sl_uint32 sizeOfRawData = section.sizeOfRawData;
-		Memory mem = reader->readToMemory(sizeOfRawData);
+		Memory mem = reader->readFully(sizeOfRawData);
 		if (mem.getSize() == sizeOfRawData) {
 			return mem;
 		}

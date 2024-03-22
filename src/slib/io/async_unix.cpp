@@ -72,7 +72,7 @@ namespace slib
 					char* data = (char*)(request->data);
 					sl_size size = request->size;
 					if (data && size) {
-						sl_reg n = file->read(data, size);
+						sl_reg n = file->read(data, size, 0);
 						if (n > 0) {
 							processStreamResult(request.get(), n, flagError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
 						} else {
@@ -116,7 +116,7 @@ namespace slib
 					if (data && size) {
 						for (;;) {
 							sl_size sizeWritten = request->sizeWritten;
-							sl_reg n = file->write(data + sizeWritten, size - sizeWritten);
+							sl_reg n = file->write(data + sizeWritten, size - sizeWritten, 0);
 							if (n >= 0) {
 								request->sizeWritten += n;
 								if (request->sizeWritten >= size) {

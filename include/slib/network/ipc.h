@@ -72,6 +72,8 @@ namespace slib
 	public:
 		sl_bool initialize(Ref<AsyncStream>&&, const IPCRequestParam&);
 
+		sl_bool initialize(Ref<AsyncStream>&&, const IPCRequestParam&, sl_int64 tickEnd);
+
 	protected:
 		void onError();
 
@@ -150,6 +152,7 @@ namespace slib
 		Ref<Dispatcher> m_dispatcher;
 		sl_uint32 m_maximumMessageSize;
 		sl_uint32 m_messageSegmentSize;
+		sl_bool m_flagAcceptOtherUsers;
 		Function<void(IPCRequestMessage&, IPCResponseMessage&)> m_onReceiveMessage;
 
 		HashMap< AsyncStream*, Ref<AsyncStream> > m_streams;

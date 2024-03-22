@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ namespace slib
 			sl_bool flagNull = sl_true;
 			CurrentThread thread;
 			for (;;) {
-				sl_reg n = reader->read(buf, sizeof(buf));
+				sl_reg n = reader->read(buf, sizeof(buf), -1);
 				if (n > 0) {
 					flagNull = sl_false;
 					for (sl_reg i = 0; i < n; i++) {
@@ -86,9 +86,7 @@ namespace slib
 					if (!(sb.add(Move(str)))) {
 						return sl_null;
 					}
-				} else if (n == SLIB_IO_WOULD_BLOCK) {
-					reader->waitRead();
-				} else if (n == SLIB_IO_ENDED) {
+				} else if (n == SLIB_IO_WOULD_BLOCK || n == SLIB_IO_ENDED) {
 					break;
 				} else {
 					return sl_null;
@@ -111,7 +109,7 @@ namespace slib
 			sl_bool flagNull = sl_true;
 			CurrentThread thread;
 			for (;;) {
-				sl_reg n = reader->read(buf, sizeof(buf));
+				sl_reg n = reader->read(buf, sizeof(buf), -1);
 				if (n > 0) {
 					flagNull = sl_false;
 					for (sl_reg i = 0; i < n; i++) {
@@ -139,9 +137,7 @@ namespace slib
 					if (!(sb.add(Move(str)))) {
 						return sl_null;
 					}
-				} else if (n == SLIB_IO_WOULD_BLOCK) {
-					reader->waitRead();
-				} else if (n == SLIB_IO_ENDED) {
+				} else if (n == SLIB_IO_WOULD_BLOCK || n == SLIB_IO_ENDED) {
 					break;
 				} else {
 					return sl_null;

@@ -91,7 +91,7 @@ int main(int argc, const char * argv[])
 			static int n = 0;
 			n++;
 			String s = String::format("Message %d", n);
-			socket->send(s.toMemory(), [](AsyncStreamResult& result) {
+			socket->write(s.toMemory(), [](AsyncStreamResult& result) {
 				if (result.isError()) {
 					Println("Server Error!");
 					return;

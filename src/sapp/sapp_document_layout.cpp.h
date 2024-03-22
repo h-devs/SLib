@@ -310,11 +310,8 @@ namespace slib
 		}
 
 		String customClassName = item->getXmlAttribute("class").trim();
-		if (customClassName.isNotNull()) {
-			item->className = customClassName;
-		}
-
 		if (customClassName.isNotEmpty()) {
+			item->className = customClassName;
 			if (!(layout->customClasses.put(customClassName, sl_true))) {
 				logError(element, g_str_error_out_of_memory);
 				return sl_false;

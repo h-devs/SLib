@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,243 +26,94 @@
 
 #include "slib/network/ipc.h"
 
+#include "slib/io/chunk.h"
+#include "slib/io/async_file_stream.h"
 #include "slib/core/thread.h"
-#include "slib/core/process.h"
 #include "slib/core/event.h"
-#include "slib/core/time_counter.h"
-#include "slib/platform.h"
+#include "slib/platform/win32/platform.h"
+#include "slib/platform/win32/async_handle.h"
+#include "slib/platform/win32/scoped_handle.h"
 
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
-		class NamedPipeIPC : public IPC
+		static HANDLE CreatePipe(const StringParam& _targetName, sl_int32 timeout)
 		{
-		public:
-			CList< Ref<Thread> > m_threads;
-
-		public:
-			NamedPipeIPC()
-			{
-			}
-
-			~NamedPipeIPC()
-			{
-				List< Ref<Thread> > threads = m_threads.duplicate();
-				for (auto&& item : threads) {
-					item->finish();
-				}
-				for (auto&& item : threads) {
-					item->finishAndWait();
-				}
-			}
-
-		public:
-			static Ref<NamedPipeIPC> create(const IPCParam& param)
-			{
-				Ref<NamedPipeIPC> ret = new NamedPipeIPC;
-				if (ret.isNotNull()) {
-					ret->_init(param);
-					return ret;
-				}
-				return sl_null;
-			}
-
-		public:
-			HANDLE createPipe(const StringParam& _targetName)
-			{
-				if (_targetName.isNotEmpty()) {
-					String16 targetName = String16::concat(L"\\\\.\\pipe\\", _targetName);
-					if (m_threads.getCount() < m_maxThreadCount) {
-						HANDLE hPipe = CreateFileW(
-							(LPCWSTR)(targetName.getData()),
-							GENERIC_READ | GENERIC_WRITE,
-							0, // No sharing 
-							NULL, // Default security attributes
-							OPEN_EXISTING,
-							FILE_FLAG_OVERLAPPED,
-							NULL // No template file
-						);
-						if (hPipe != INVALID_HANDLE_VALUE) {
-							DWORD dwMode = PIPE_READMODE_MESSAGE;
-							if (SetNamedPipeHandleState(hPipe, &dwMode, NULL, NULL)) {
-								return hPipe;
-							}
-							CloseHandle(hPipe);
-						}
-					}
-				}
+			if (_targetName.isEmpty()) {
 				return INVALID_HANDLE_VALUE;
 			}
-
-			void sendMessage(const StringParam& targetName, const Memory& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse) override
-			{
-				if (data.isNotNull()) {
-					HANDLE hPipe = createPipe(targetName);
-					if (hPipe != INVALID_HANDLE_VALUE) {
-						auto thiz = ToWeakRef(this);
-						Ref<Thread> thread = Thread::create([thiz, this, hPipe, data, callbackResponse]() {
-							auto ref = ToRef(thiz);
-							if (ref.isNull()) {
-								callbackResponse(sl_null, 0);
-								return;
-							}
-							processSending(hPipe, data, callbackResponse, sl_true);
-							CloseHandle(hPipe);
-						});
-						if (thread.isNotNull()) {
-							m_threads.add(thread);
-							thread->start();
-							return;
-						}
+			for (;;) {
+				String16 targetName = String16::concat(L"\\\\.\\pipe\\", _targetName);
+				HANDLE hPipe = CreateFileW(
+					(LPCWSTR)(targetName.getData()),
+					GENERIC_READ | GENERIC_WRITE,
+					0, // No sharing 
+					NULL, // Default security attributes
+					OPEN_EXISTING,
+					FILE_FLAG_OVERLAPPED,
+					NULL // No template file
+				);
+				if (hPipe != INVALID_HANDLE_VALUE) {
+					return hPipe;
+				}
+				if (!timeout) {
+					break;
+				}
+				if (GetLastError() == ERROR_PIPE_BUSY) {
+					if (!(WaitNamedPipeW((LPCWSTR)(targetName.getData()), timeout > 0 ? (DWORD)timeout : NMPWAIT_WAIT_FOREVER))) {
+						break;
 					}
-				}
-				callbackResponse(sl_null, 0);
-			}
-
-			Memory sendMessageSynchronous(const StringParam& targetName, const MemoryView& data) override
-			{
-				if (data.size) {
-					HANDLE hPipe = createPipe(targetName);
-					if (hPipe != INVALID_HANDLE_VALUE) {
-						Memory ret = processSending(hPipe, data, sl_null, sl_true);
-						CloseHandle(hPipe);
-						return ret;
-					}
-				}
-				return sl_null;
-			}
-
-			Memory processSending(HANDLE hPipe, const MemoryView& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse, sl_bool flagAsync)
-			{
-				Thread* thread = Thread::getCurrent();
-				if (writeMessage(hPipe, data.data, (sl_uint32)(data.size))) {
-					if (!thread || thread->isNotStoppingCurrent()) {
-						Memory mem = readMessage(thread, hPipe);
-						if (flagAsync) {
-							callbackResponse((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()));
-							m_threads.remove(thread);
-						}
-						return mem;
-					}
-				}
-				if (flagAsync) {
-					callbackResponse(sl_null, 0);
-					if (thread) {
-						m_threads.remove(thread);
-					}
-				}
-				return sl_null;
-			}
-
-			Memory readMessage(Thread* thread, HANDLE handle)
-			{
-				Ref<Event> event = Event::create();
-				if (event.isNull()) {
-					return sl_null;
-				}
-				HANDLE hEvent = Win32::getEventHandle(event.get());
-
-				TimeCounter tc;
-
-				MemoryBuffer bufRead;
-				char buf[1024];
-
-				while (!thread || thread->isNotStopping()) {
-
-					OVERLAPPED overlapped;
-					Base::zeroMemory(&overlapped, sizeof(overlapped));
-					overlapped.hEvent = hEvent;
-
-					DWORD dwRead = 0;
-					BOOL bRet = ReadFile(handle, buf, sizeof(buf), &dwRead, &overlapped);
-					if (bRet) {
-						if (dwRead) {
-							bufRead.addNew(buf, dwRead);
-						}
-						return bufRead.merge();
-					} else {
-						DWORD err = GetLastError();
-						if (err == ERROR_MORE_DATA) {
-							bufRead.addNew(buf, sizeof(buf));
-						} else {
-							if (err == ERROR_IO_PENDING) {
-								event->wait(10);
-								if (GetOverlappedResult(handle, &overlapped, &dwRead, FALSE)) {
-									if (dwRead) {
-										bufRead.addNew(buf, dwRead);
-									}
-									return bufRead.merge();
-								}
-								if (tc.getElapsedMilliseconds() > m_timeout) {
-									return sl_null;
-								}
-								err = GetLastError();
-								if (err == ERROR_MORE_DATA) {
-									if (dwRead) {
-										bufRead.addNew(buf, dwRead);
-									}
-								} else {
-									return sl_null;
-								}
-							} else {
-								return sl_null;
-							}
-						}
-					}
-				}
-				return sl_null;
-			}
-
-			sl_bool writeMessage(HANDLE handle, const void* _data, sl_uint32 size)
-			{
-				sl_uint8* data = (sl_uint8*)_data;
-				Ref<Event> event = Event::create();
-				if (event.isNull()) {
-					return sl_false;
-				}
-				HANDLE hEvent = Win32::getEventHandle(event.get());
-
-				TimeCounter tc;
-
-				OVERLAPPED overlapped;
-				Base::zeroMemory(&overlapped, sizeof(overlapped));
-				overlapped.hEvent = hEvent;
-
-				DWORD dwWritten = 0;
-				BOOL bRet = WriteFile(handle, data, (DWORD)size, &dwWritten, &overlapped);
-				if (bRet) {
-					return dwWritten == (DWORD)size;
 				} else {
-					DWORD err = GetLastError();
-					if (err == ERROR_IO_PENDING) {
-						event->wait(10);
-						if (GetOverlappedResult(handle, &overlapped, &dwWritten, FALSE)) {
-							return dwWritten == (DWORD)size;
-						}
-						if (tc.getElapsedMilliseconds() > m_timeout) {
-							return sl_false;
+					break;
+				}
+			}
+			return INVALID_HANDLE_VALUE;
+		}
+
+		class PipeRequest : public IPCRequest
+		{
+		public:
+			static Ref<PipeRequest> create(const IPCRequestParam& param)
+			{
+				Ref<PipeRequest> request = new PipeRequest;
+				if (request.isNotNull()) {
+					sl_int64 tickEnd = GetTickFromTimeout(param.timeout);
+					HANDLE hPipe = CreatePipe(param.targetName, param.timeout);
+					if (hPipe != INVALID_HANDLE_VALUE) {
+						AsyncFileStreamParam streamParam;
+						streamParam.handle = hPipe;
+						streamParam.ioLoop = param.ioLoop;
+						Ref<AsyncFileStream> stream = AsyncFileStream::create(streamParam);
+						if (stream.isNotNull()) {
+							if (request->initialize(Move(stream), param, tickEnd)) {
+								request->sendRequest();
+								return request;
+							}
 						}
 					}
-					return sl_false;
 				}
+				IPCResponseMessage errorMsg;
+				param.onResponse(errorMsg);
+				return sl_null;
 			}
 
 		};
 
-		class NamedPipeServer : public NamedPipeIPC
+		class PipeServer : public IPCServer
 		{
 		public:
-			Ref<Thread> m_threadListen;
 			String16 m_name;
+			Ref<Thread> m_threadListen;
 
 		public:
-			NamedPipeServer()
+			PipeServer()
 			{
 			}
 
-			~NamedPipeServer()
+			~PipeServer()
 			{
 				if (m_threadListen.isNotNull()) {
 					m_threadListen->finishAndWait();
@@ -270,33 +121,34 @@ namespace slib
 			}
 
 		public:
-			static Ref<NamedPipeServer> create(const IPCParam& param)
+			static Ref<PipeServer> create(const IPCServerParam& param)
 			{
-				Ref<NamedPipeServer> ret = new NamedPipeServer;
+				Ref<PipeServer> ret = new PipeServer;
 				if (ret.isNotNull()) {
-					ret->_init(param);
-					Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), runListen));
-					if (thread.isNotNull()) {
-						ret->m_name = String16::concat(L"\\\\.\\pipe\\", param.name);
-						ret->m_threadListen = Move(thread);
-						return ret;
+					if (ret->initialize(param)) {
+						Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), runListen));
+						if (thread.isNotNull()) {
+							ret->m_name = String16::concat(L"\\\\.\\pipe\\", param.name);
+							ret->m_threadListen = Move(thread);
+							ret->m_ioLoop->start();
+							return ret;
+						}
 					}
 				}
 				return sl_null;
 			}
 
+		public:
 			void runListen()
 			{
 				Thread* thread = Thread::getCurrent();
 				if (!thread) {
 					return;
 				}
-
 				Ref<Event> ev = Event::create();
 				if (ev.isNull()) {
 					return;
 				}
-				HANDLE hEvent = Win32::getEventHandle(ev);
 
 				SECURITY_ATTRIBUTES* pSA = NULL;
 				SECURITY_ATTRIBUTES sa;
@@ -313,97 +165,62 @@ namespace slib
 				}
 
 				while (thread->isNotStopping()) {
-
-					if (m_threads.getCount() < m_maxThreadCount) {
-
-						HANDLE hPipe = CreateNamedPipeW(
-							(LPCWSTR)(m_name.getData()),
-							PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
-							PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE,
-							PIPE_UNLIMITED_INSTANCES,
-							64 << 10, // output buffer size 
-							64 << 10, // input buffer size 
-							0, // client time-out 
-							pSA);
-
-						if (hPipe != INVALID_HANDLE_VALUE) {
-
-							if (pSA) {
-								ImpersonateNamedPipeClient(hPipe);
-							}
-
-							OVERLAPPED overlapped;
-							Base::zeroMemory(&overlapped, sizeof(overlapped));
-							overlapped.hEvent = hEvent;
-
-							while (thread->isNotStopping()) {
-								sl_bool flagConnected = sl_false;
-								if (ConnectNamedPipe(hPipe, &overlapped)) {
-									flagConnected = sl_true;
-								} else {
-									DWORD err = GetLastError();
-									if (err == ERROR_PIPE_CONNECTED) {
-										flagConnected = sl_true;
-									} else if (err == ERROR_IO_PENDING) {
-										ev->wait();
-										if (HasOverlappedIoCompleted(&overlapped)) {
-											flagConnected = sl_true;
-										}
-									} else {
-										CloseHandle(hPipe);
-										thread->wait(10);
-										break;
-									}
-								}
-								if (flagConnected) {
-									if (m_flagReceiveOnNewThread) {
-										auto thiz = ToWeakRef(this);
-										Ref<Thread> threadNew = Thread::create([thiz, this, hPipe]() {
-											auto ref = ToRef(thiz);
-											if (ref.isNull()) {
-												return;
-											}
-											Thread* thread = Thread::getCurrent();
-											if (!thread) {
-												return;
-											}
-											processReceiving(hPipe, thread, sl_true);
-											CloseHandle(hPipe);
-										});
-										if (threadNew.isNotNull()) {
-											m_threads.add(threadNew);
-											threadNew->start();
-										} else {
-											CloseHandle(hPipe);
-										}
-									} else {
-										processReceiving(hPipe, thread, sl_false);
-										CloseHandle(hPipe);
-									}
-									break;
-								}
-							}
-
+					HANDLE hPipe = CreateNamedPipeW(
+						(LPCWSTR)(m_name.getData()),
+						PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
+						PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_REJECT_REMOTE_CLIENTS,
+						PIPE_UNLIMITED_INSTANCES,
+						64 << 10, // output buffer size 
+						64 << 10, // input buffer size 
+						0, // client time-out 
+						pSA);
+					if (hPipe == INVALID_HANDLE_VALUE) {
+						break;
+					}
+					if (pSA) {
+						ImpersonateNamedPipeClient(hPipe);
+					}
+					OVERLAPPED overlapped;
+					Base::zeroMemory(&overlapped, sizeof(overlapped));
+					overlapped.hEvent = Win32::getEventHandle(ev);
+					while (thread->isNotStopping()) {
+						sl_bool flagConnected = sl_false;
+						if (ConnectNamedPipe(hPipe, &overlapped)) {
+							flagConnected = sl_true;
 						} else {
+							DWORD err = GetLastError();
+							if (err == ERROR_PIPE_CONNECTED) {
+								flagConnected = sl_true;
+							} else if (err == ERROR_IO_PENDING) {
+								ev->wait();
+								if (HasOverlappedIoCompleted(&overlapped)) {
+									flagConnected = sl_true;
+								}
+							} else {
+								thread->wait(10);
+								break;
+							}
+						}
+						if (flagConnected) {
+							onAccept(hPipe);
+							hPipe = INVALID_HANDLE_VALUE;
 							break;
 						}
-					} else {
-						thread->wait(10);
+					}
+					if (hPipe != INVALID_HANDLE_VALUE) {
+						CloseHandle(hPipe);
 					}
 				}
 			}
 
-			void processReceiving(HANDLE hPipe, Thread* thread, sl_bool flagAsync)
+			void onAccept(HANDLE hPipe)
 			{
-				Memory mem = readMessage(thread, hPipe);
-				if (mem.isNotNull() && thread->isNotStoppingCurrent()) {
-					MemoryOutput response;
-					m_onReceiveMessage((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()), &response);
-					Memory output = response.merge();
-					writeMessage(hPipe, output.getData(), (sl_uint32)(output.getSize()));
-				}
-				if (flagAsync) {
-					m_threads.remove(thread);
+				AsyncFileStreamParam streamParam;
+				streamParam.handle = hPipe;
+				streamParam.ioLoop = m_ioLoop;
+				Ref<AsyncFileStream> stream = AsyncFileStream::create(streamParam);
+				if (stream.isNotNull()) {
+					startStream(stream.get());
 				}
 			}
 
@@ -411,13 +228,38 @@ namespace slib
 
 	}
 
-	Ref<IPC> IPC::create(const IPCParam& param)
+	Ref<IPCRequest> IPC::sendMessage(const RequestParam& param)
 	{
-		if (param.name.isEmpty()) {
-			return Ref<IPC>::from(NamedPipeIPC::create(param));
-		} else {
-			return Ref<IPC>::from(NamedPipeServer::create(param));
+		return Ref<IPCRequest>::from(PipeRequest::create(param));
+	}
+
+	sl_bool IPC::sendMessageSynchronous(const RequestParam& param, ResponseMessage& response)
+	{
+		sl_int64 tickEnd = GetTickFromTimeout(param.timeout);
+		ScopedHandle hPipe = CreatePipe(param.targetName, param.timeout);
+		if (hPipe.isNone()) {
+			return sl_false;
 		}
+		AsyncHandleIO io;
+		io.handle = hPipe.get();
+		if (!(ChunkIO::write(&io, MemoryView(param.message.data, param.message.size), GetTimeoutFromTick(tickEnd)))) {
+			return sl_false;
+		}
+		CurrentThread thread;
+		if (thread.isStopping()) {
+			return sl_false;
+		}
+		Nullable<Memory> ret = ChunkIO::read(&io, param.maximumMessageSize, param.messageSegmentSize, GetTimeoutFromTick(tickEnd));
+		if (ret.isNull()) {
+			return sl_false;
+		}
+		response.setMemory(ret.value);
+		return sl_true;
+	}
+
+	Ref<IPCServer> IPC::createServer(const ServerParam& param)
+	{
+		return Ref<IPCServer>::from(PipeServer::create(param));
 	}
 
 }

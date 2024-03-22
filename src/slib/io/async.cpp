@@ -262,7 +262,7 @@ namespace slib
 
 	AsyncIoInstance::AsyncIoInstance()
 	{
-		m_handle = 0;
+		m_handle = SLIB_ASYNC_INVALID_HANDLE;
 		m_flagClosing = sl_false;
 		m_flagOrdering = sl_false;
 		m_mode = AsyncIoMode::InOut;
@@ -1006,6 +1006,7 @@ namespace slib
 	AsyncFileStreamInstance::AsyncFileStreamInstance()
 	{
 		m_flagCloseOnRelease = sl_false;
+		m_flagFreed = sl_false;
 	}
 
 	AsyncFileStreamInstance::~AsyncFileStreamInstance()
@@ -1021,6 +1022,12 @@ namespace slib
 
 	void AsyncFileStreamInstance::_free()
 	{
+		ObjectLocker lock(this);
+		if (m_flagFreed) {
+			return;
+		}
+		m_flagFreed = sl_true;
+		lock.unlock();
 		if (m_requestReading.isNotNull()) {
 			processStreamResult(m_requestReading.get(), 0, AsyncStreamResultCode::Closed);
 			m_requestReading.setNull();

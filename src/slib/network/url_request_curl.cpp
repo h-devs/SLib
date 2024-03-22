@@ -298,10 +298,8 @@ namespace slib
 				if (m_downloadFilePath.isNotEmpty()) {
 					File file = File::openForAppend(m_downloadFilePath);
 					if (file.isOpened()) {
-						sl_reg ret = file.write(data, size);
-						if (ret > 0) {
-							size = ret;
-						} else {
+						sl_reg ret = file.writeFully(data, size);
+						if (ret != size) {
 							size = 0;
 						}
 					}

@@ -744,6 +744,7 @@ namespace slib
 		typedef RET_TYPE ReturnType;
 		Ref< Callable<RET_TYPE(ARGS...)> > ref;
 		SLIB_REF_WRAPPER(Function, Callable<RET_TYPE(ARGS...)>)
+		SLIB_REF_WRAPPER_ALL_LRVALUES(Function, Callable<RET_TYPE(ARGS...)>)
 
 	public:
 		template <class FUNC>
@@ -1155,6 +1156,7 @@ namespace slib
 	public:
 		AtomicRef< Callable<RET_TYPE(ARGS...)> > ref;
 		SLIB_ATOMIC_REF_WRAPPER(Callable<RET_TYPE(ARGS...)>)
+		SLIB_ATOMIC_REF_WRAPPER_ALL_LRVALUES(Callable<RET_TYPE(ARGS...)>)
 
 	public:
 		template <class FUNC>

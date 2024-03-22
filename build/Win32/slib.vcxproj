@@ -281,6 +281,7 @@
     <ClCompile Include="..\..\src\slib\io\file_unix.cpp" />
     <ClCompile Include="..\..\src\slib\io\file_win32.cpp" />
     <ClCompile Include="..\..\src\slib\io\io.cpp" />
+    <ClCompile Include="..\..\src\slib\io\chunk.cpp" />
     <ClCompile Include="..\..\src\slib\io\pipe.cpp" />
     <ClCompile Include="..\..\src\slib\math\bigint.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MaxSpeed</Optimization>
@@ -349,6 +350,7 @@
     <ClCompile Include="..\..\src\slib\network\url_request_param.cpp" />
     <ClCompile Include="..\..\src\slib\network\url_request_win32.cpp" />
     <ClCompile Include="..\..\src\slib\network\web_service.cpp" />
+    <ClCompile Include="..\..\src\slib\platform\win32\async_handle.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\com.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_bcrypt.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_d3d.cpp" />

@@ -445,9 +445,7 @@ namespace slib
 					Ref<AsyncStream> file = m_fileDownload;
 					if (file.isNotNull()) {
 						m_step = STEP_FINISHED_RECEIVING;
-						if (!(file->write(sl_null, 0, SLIB_FUNCTION_WEAKREF(this, _onWriteDownloadFile)))) {
-							processError("Error on writing download file");
-						}
+						file->write(sl_null, 0, SLIB_FUNCTION_WEAKREF(this, _onWriteDownloadFile));
 					}
 				} else {
 					processComplete();
@@ -467,9 +465,7 @@ namespace slib
 							processError("Error on writing download file");
 						} else {
 							Base::interlockedAdd(&m_sizeDownloadWriting, m_offsetReceiving);
-							if (!(file->write(mem, SLIB_FUNCTION_WEAKREF(this, _onWriteDownloadFile)))) {
-								processError("Error on writing download file");
-							}
+							file->write(mem, SLIB_FUNCTION_WEAKREF(this, _onWriteDownloadFile));
 						}
 					}
 				} else {

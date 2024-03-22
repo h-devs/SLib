@@ -103,6 +103,7 @@ void SvgViewerApp::onDrawSvg(Canvas* canvas)
 {
 	if (m_svg.isNotNull()) {
 		canvas->setAntiAlias();
-		m_svg->render(canvas, m_viewer->getBounds());
+		Drawable::DrawParam param;
+		m_svg->render(canvas, m_viewer->getBounds(), param);
 	}
 }

@@ -62,17 +62,18 @@ namespace slib
 		SeekToEnd = 0x1000,
 		HintRandomAccess = 0x2000,
 
-		Device = 0x8000,
+		Overlapped = 0x10000, // Win32
+		Device = 0x80000,
 
 		ReadWrite = Read | Write,
 		Append = Write | NotTruncate | SeekToEnd,
 		RandomAccess = Read | Write | NotTruncate | HintRandomAccess,
 		RandomRead = Read | HintRandomAccess,
 
-		ShareRead = 0x10000,
-		ShareWrite = 0x20000,
+		ShareRead = 0x100000,
+		ShareWrite = 0x200000,
 		ShareReadWrite = ShareRead | ShareWrite,
-		ShareDelete = 0x40000,
+		ShareDelete = 0x400000,
 		ShareAll = ShareRead | ShareWrite | ShareDelete
 
 	})
@@ -235,17 +236,13 @@ namespace slib
 		sl_bool isEnd(sl_bool& outFlag) const noexcept;
 
 
-		sl_reg read(void* buf, sl_size size) const noexcept;
+		sl_reg read(void* buf, sl_size size, sl_int32 timeout = -1) const noexcept;
 
-		sl_int32 read32(void* buf, sl_uint32 size) const noexcept;
+		sl_int32 read32(void* buf, sl_uint32 size, sl_int32 timeout = -1) const noexcept;
 
-		sl_bool waitRead(sl_int32 timeout = -1) const noexcept;
+		sl_reg write(const void* buf, sl_size size, sl_int32 timeout = -1) const noexcept;
 
-		sl_reg write(const void* buf, sl_size size) const noexcept;
-
-		sl_int32 write32(const void* buf, sl_uint32 size) const noexcept;
-
-		sl_bool waitWrite(sl_int32 timeout = -1) const noexcept;
+		sl_int32 write32(const void* buf, sl_uint32 size, sl_int32 timeout = -1) const noexcept;
 
 		// works only if the file is already opened
 		sl_bool setSize(sl_uint64 size) const noexcept;
@@ -394,7 +391,7 @@ namespace slib
 
 		static sl_bool appendAllBytes(const StringParam& path, const MemoryView& mem) noexcept;
 
-		static sl_bool appendAllBytes(const StringParam& path, const StringView& mem) noexcept;
+		static sl_bool appendAllBytes(const StringParam& path, const StringView& str) noexcept;
 
 		static sl_bool appendAllTextUTF8(const StringParam& path, const StringView& text) noexcept;
 

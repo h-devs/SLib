@@ -34,31 +34,28 @@ namespace slib
 	{
 	public:
 		template <class READER>
-		static sl_reg readWithRead32(READER* reader, void* buf, sl_size size)
+		static sl_reg readWithRead32(READER* reader, void* buf, sl_size size, sl_int32 timeout = -1)
 		{
-#if !defined(SLIB_ARCH_IS_64BIT)
-			return reader->read32(buf, (sl_uint32)size);
-#else
+#if defined(SLIB_ARCH_IS_64BIT)
 			if (size >> 31) {
-				return reader->read32(buf, 0x40000000); // 1GB
-			} else {
-				return reader->read32(buf, (sl_uint32)size);
+				return reader->read32(buf, 0x40000000, timeout); // 1GB
 			}
 #endif
+			return reader->read32(buf, (sl_uint32)size, timeout);
 		}
 
 		template <class READER>
-		static sl_reg readFully(READER* reader, void* _buf, sl_size size, sl_int32 timeout)
+		static sl_reg readFully(READER* reader, void* _buf, sl_size size, sl_int32 timeout = -1)
 		{
 			sl_uint8* buf = (sl_uint8*)_buf;
 			if (!size) {
-				return reader->read(buf, 0);
+				return reader->read(buf, 0, timeout);
 			}
-			sl_uint64 tickEnd = GetTickFromTimeout(timeout);
+			sl_int64 tickEnd = GetTickFromTimeout(timeout);
 			sl_size nRead = 0;
 			CurrentThread thread;
 			do {
-				sl_reg m = reader->read(buf, size);
+				sl_reg m = reader->read(buf, size, timeout);
 				if (m > 0) {
 					nRead += m;
 					if (size <= (sl_size)m) {
@@ -66,30 +63,13 @@ namespace slib
 					}
 					buf += m;
 					size -= m;
-				} else if (m == SLIB_IO_WOULD_BLOCK) {
-					if (timeout >= 0) {
-						if (!timeout) {
-							return SLIB_IO_TIMEOUT;
-						}
-						sl_uint64 tick = System::getTickCount64();
-						if (tick >= tickEnd) {
-							if (nRead) {
-								return nRead;
-							} else {
-								return SLIB_IO_TIMEOUT;
-							}
-						}
-						sl_uint64 t = tickEnd - tick;
-						if (t >= 1000) {
-							reader->waitRead(1000);
-						} else {
-							reader->waitRead((sl_uint32)t);
-						}
+					timeout = GetTimeoutFromTick(tickEnd);
+				} else if (m == SLIB_IO_WOULD_BLOCK || m == SLIB_IO_ENDED) {
+					if (nRead) {
+						return nRead;
 					} else {
-						reader->waitRead();
+						return m;
 					}
-				} else if (m == SLIB_IO_ENDED) {
-					return nRead;
 				} else {
 					return m;
 				}
@@ -98,16 +78,16 @@ namespace slib
 		}
 
 		template <class READER>
-		static sl_reg readFully(READER* reader, MemoryBuffer& output, sl_size size, sl_size segmentSize, sl_int32 timeout)
+		static sl_reg readFully(READER* reader, MemoryBuffer& output, sl_size size, sl_size segmentSize, sl_int32 timeout = -1)
 		{
 			if (!size) {
 				char ch;
-				return reader->read(&ch, 0);
+				return reader->read(&ch, 0, timeout);
 			}
 			if (!segmentSize) {
 				segmentSize = 1024;
 			}
-			sl_uint64 tickEnd = GetTickFromTimeout(timeout);
+			sl_int64 tickEnd = GetTickFromTimeout(timeout);
 			CurrentThread thread;
 			do {
 				sl_size nRequest = SLIB_MIN(segmentSize, size);
@@ -118,7 +98,7 @@ namespace slib
 				sl_uint8* buf = (sl_uint8*)(segment.getData());
 				sl_size nRead = 0;
 				for (;;) {
-					sl_reg m = reader->read(buf, nRequest);
+					sl_reg m = reader->read(buf, nRequest, timeout);
 					if (m > 0) {
 						nRead += m;
 						if (nRequest <= (sl_size)m) {
@@ -126,30 +106,8 @@ namespace slib
 						}
 						buf += m;
 						nRequest -= m;
-					} else if (m == SLIB_IO_WOULD_BLOCK) {
-						if (timeout >= 0) {
-							if (!timeout) {
-								return SLIB_IO_TIMEOUT;
-							}
-							sl_uint64 tick = System::getTickCount64();
-							if (tick >= tickEnd) {
-								sl_size nOutput = output.getSize();
-								if (nOutput) {
-									return nOutput;
-								} else {
-									return SLIB_IO_TIMEOUT;
-								}
-							}
-							sl_uint64 t = tickEnd - tick;
-							if (t >= 1000) {
-								reader->waitRead(1000);
-							} else {
-								reader->waitRead((sl_uint32)t);
-							}
-						} else {
-							reader->waitRead();
-						}
-					} else if (m == SLIB_IO_ENDED) {
+						timeout = GetTimeoutFromTick(tickEnd);
+					} else if (m == SLIB_IO_ENDED || m == SLIB_IO_WOULD_BLOCK) {
 						if (nRead) {
 							if (nRead < nRequest) {
 								segment = segment.sub(0, nRead);
@@ -161,7 +119,12 @@ namespace slib
 								return SLIB_IO_ERROR;
 							}
 						}
-						return output.getSize();
+						sl_size nOutput = output.getSize();
+						if (nOutput) {
+							return nOutput;
+						} else {
+							return m;
+						}
 					} else {
 						return m;
 					}
@@ -181,7 +144,7 @@ namespace slib
 		}
 
 		template <class READER>
-		static Memory readFully(READER* reader, sl_size size, sl_size segmentSize, sl_int32 timeout)
+		static Memory readFully(READER* reader, sl_size size, sl_size segmentSize, sl_int32 timeout = -1)
 		{
 			if (!size) {
 				return sl_null;
@@ -479,31 +442,28 @@ namespace slib
 	{
 	public:
 		template <class READER>
-		static sl_reg readAtWithReadAt32(READER* reader, sl_uint64 offset, void* buf, sl_size size)
+		static sl_reg readAtWithReadAt32(READER* reader, sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout = -1)
 		{
-#if !defined(SLIB_ARCH_IS_64BIT)
-			return reader->readAt32(offset, buf, (sl_uint32)size);
-#else
+#if defined(SLIB_ARCH_IS_64BIT)
 			if (size >> 31) {
-				return reader->readAt32(offset, buf, 0x40000000);
-			} else {
-				return reader->readAt32(offset, buf, (sl_uint32)size);
+				return reader->readAt32(offset, buf, 0x40000000, timeout);
 			}
 #endif
+			return reader->readAt32(offset, buf, (sl_uint32)size, timeout);
 		}
 
 		template <class READER>
-		static sl_reg readFullyAt(READER* reader, sl_uint64 offset, void* _buf, sl_size size, sl_int32 timeout)
+		static sl_reg readFullyAt(READER* reader, sl_uint64 offset, void* _buf, sl_size size, sl_int32 timeout = -1)
 		{
 			sl_uint8* buf = (sl_uint8*)_buf;
 			if (!size) {
-				return reader->readAt(offset, buf, 0);
+				return reader->readAt(offset, buf, 0, timeout);
 			}
-			sl_uint64 tick = GetTickFromTimeout(timeout);
+			sl_int64 tickEnd = GetTickFromTimeout(timeout);
 			sl_size nRead = 0;
 			CurrentThread thread;
 			do {
-				sl_reg m = reader->readAt(offset, buf, size);
+				sl_reg m = reader->readAt(offset, buf, size, timeout);
 				if (m > 0) {
 					nRead += m;
 					if (size <= (sl_size)m) {
@@ -512,31 +472,13 @@ namespace slib
 					buf += m;
 					offset += m;
 					size -= m;
-				} else if (m == SLIB_IO_WOULD_BLOCK) {
-					if (timeout >= 0) {
-						if (!timeout) {
-							return SLIB_IO_TIMEOUT;
-						}
-						sl_uint64 tick = System::getTickCount64();
-						if (tick >= tickEnd) {
-							sl_size nOutput = output.getSize();
-							if (nOutput) {
-								return nOutput;
-							} else {
-								return SLIB_IO_TIMEOUT;
-							}
-						}
-						sl_uint64 t = tickEnd - tick;
-						if (t >= 1000) {
-							reader->waitRead(1000);
-						} else {
-							reader->waitRead((sl_uint32)t);
-						}
+					timeout = GetTimeoutFromTick(tickEnd);
+				} else if (m == SLIB_IO_WOULD_BLOCK || m == SLIB_IO_ENDED) {
+					if (nRead) {
+						return nRead;
 					} else {
-						reader->waitRead();
+						return m;
 					}
-				} else if (m == SLIB_IO_ENDED) {
-					return nRead;
 				} else {
 					return m;
 				}

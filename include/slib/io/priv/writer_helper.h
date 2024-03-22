@@ -33,52 +33,28 @@ namespace slib
 	{
 	public:
 		template <class WRITER>
-		static sl_reg writeWithWrite32(WRITER* writer, const void* _buf, sl_size size)
+		static sl_reg writeWithWrite32(WRITER* writer, const void* buf, sl_size size, sl_int32 timeout = -1)
 		{
-			sl_uint8* buf = (sl_uint8*)_buf;
-#if !defined(SLIB_ARCH_IS_64BIT)
-			return writer->write32(buf, (sl_uint32)size);
-#else
-			if (!(size >> 31)) {
-				return writer->write32(buf, (sl_uint32)size);
+#if defined(SLIB_ARCH_IS_64BIT)
+			if (size >> 31) {
+				return writer->write32(buf, 0x40000000, timeout); // 1GB
 			}
-			sl_size nWrite = 0;
-			CurrentThread thread;
-			do {
-				sl_size n = size;
-				if (n > 0x40000000) {
-					n = 0x40000000; // 1GB
-				}
-				sl_int32 m = writer->write32(buf, (sl_uint32)n);
-				if (m > 0) {
-					nWrite += m;
-					if (size <= (sl_uint32)m) {
-						return nWrite;
-					}
-					buf += m;
-					size -= m;
-				} else if (m == SLIB_IO_ENDED) {
-					return nWrite;
-				} else {
-					return m;
-				}
-			} while (thread.isNotStopping());
-			return SLIB_IO_ERROR;
 #endif
+			return writer->write32(buf, (sl_uint32)size, timeout);
 		}
 
 		template <class WRITER>
-		static sl_reg writeFully(WRITER* writer, const void* _buf, sl_size size, sl_int32 timeout)
+		static sl_reg writeFully(WRITER* writer, const void* _buf, sl_size size, sl_int32 timeout = -1)
 		{
 			sl_uint8* buf = (sl_uint8*)_buf;
 			if (!size) {
-				return writer->write(buf, 0);
+				return writer->write(buf, 0, timeout);
 			}
-			sl_uint64 tickEnd = GetTickFromTimeout(timeout);
+			sl_int64 tickEnd = GetTickFromTimeout(timeout);
 			sl_size nWrite = 0;
 			CurrentThread thread;
 			do {
-				sl_reg m = writer->write(buf, size);
+				sl_reg m = writer->write(buf, size, timeout);
 				if (m > 0) {
 					nWrite += m;
 					if (size <= (sl_uint32)m) {
@@ -86,30 +62,13 @@ namespace slib
 					}
 					buf += m;
 					size -= m;
-				} else if (m == SLIB_IO_WOULD_BLOCK) {
-					if (timeout >= 0) {
-						if (!timeout) {
-							return SLIB_IO_TIMEOUT;
-						}
-						sl_uint64 tick = System::getTickCount64();
-						if (tick >= tickEnd) {
-							if (nWrite) {
-								return nWrite;
-							} else {
-								return SLIB_IO_TIMEOUT;
-							}
-						}
-						sl_uint64 t = tickEnd - tick;
-						if (t >= 1000) {
-							writer->waitWrite(1000);
-						} else {
-							writer->waitWrite((sl_uint32)t);
-						}
+					timeout = GetTimeoutFromTick(tickEnd);
+				} else if (m == SLIB_IO_WOULD_BLOCK || m == SLIB_IO_ENDED) {
+					if (nWrite) {
+						return nWrite;
 					} else {
-						writer->waitWrite();
+						return m;
 					}
-				} else if (m == SLIB_IO_ENDED) {
-					return nWrite;
 				} else {
 					return m;
 				}
@@ -183,53 +142,28 @@ namespace slib
 	{
 	public:
 		template <class WRITER>
-		static sl_reg writeAtWithWriteAt32(WRITER* writer, sl_uint64 offset, const void* _buf, sl_size size)
+		static sl_reg writeAtWithWriteAt32(WRITER* writer, sl_uint64 offset, const void* buf, sl_size size, sl_int32 timeout = -1)
 		{
-#if !defined(SLIB_ARCH_IS_64BIT)
-			return writer->writeAt32(offset, _buf, (sl_uint32)size);
-#else
-			sl_uint8* buf = (sl_uint8*)_buf;
-			if (!(size >> 31)) {
-				return writer->writeAt32(offset, buf, (sl_uint32)size);
+#if defined(SLIB_ARCH_IS_64BIT)
+			if (size >> 31) {
+				return writer->writeAt32(offset, buf, 0x40000000, timeout);
 			}
-			sl_size nWrite = 0;
-			CurrentThread thread;
-			do {
-				sl_size n = size;
-				if (n > 0x40000000) {
-					n = 0x40000000; // 1GB
-				}
-				sl_int32 m = writer->writeAt32(offset, buf, (sl_uint32)n);
-				if (m > 0) {
-					nWrite += m;
-					if (size <= (sl_uint32)m) {
-						return nWrite;
-					}
-					offset += m;
-					buf += m;
-					size -= m;
-				} else if (m == SLIB_IO_ENDED) {
-					return nWrite;
-				} else {
-					return m;
-				}
-			} while (thread.isNotStopping());
-			return SLIB_IO_ERROR;
 #endif
+			return writer->writeAt32(offset, buf, (sl_uint32)size, timeout);
 		}
 
 		template <class WRITER>
-		static sl_reg writeFullyAt(WRITER* writer, sl_uint64 offset, const void* _buf, sl_size size, sl_int32 timeout)
+		static sl_reg writeFullyAt(WRITER* writer, sl_uint64 offset, const void* _buf, sl_size size, sl_int32 timeout = -1)
 		{
 			sl_uint8* buf = (sl_uint8*)_buf;
 			if (!size) {
-				return writer->writeAt(offset, buf, 0);
+				return writer->writeAt(offset, buf, 0, timeout);
 			}
-			sl_uint64 tickEnd = GetTickFromTimeout(timeout);
+			sl_int64 tickEnd = GetTickFromTimeout(timeout);
 			sl_size nWrite = 0;
 			CurrentThread thread;
 			do {
-				sl_reg m = writer->writeAt(offset, buf, size);
+				sl_reg m = writer->writeAt(offset, buf, size, timeout);
 				if (m > 0) {
 					nWrite += m;
 					if (size <= (sl_uint32)m) {
@@ -238,30 +172,13 @@ namespace slib
 					offset += m;
 					buf += m;
 					size -= m;
-				} else if (m == SLIB_IO_WOULD_BLOCK) {
-					if (timeout >= 0) {
-						if (!timeout) {
-							return SLIB_IO_TIMEOUT;
-						}
-						sl_uint64 tick = System::getTickCount64();
-						if (tick >= tickEnd) {
-							if (nWrite) {
-								return nWrite;
-							} else {
-								return SLIB_IO_TIMEOUT;
-							}
-						}
-						sl_uint64 t = tickEnd - tick;
-						if (t >= 1000) {
-							writer->waitWrite(1000);
-						} else {
-							writer->waitWrite((sl_uint32)t);
-						}
+					timeout = GetTimeoutFromTick(tickEnd);
+				} else if (m == SLIB_IO_WOULD_BLOCK || m == SLIB_IO_ENDED) {
+					if (nWrite) {
+						return nWrite;
 					} else {
-						writer->waitWrite();
+						return m;
 					}
-				} else if (m == SLIB_IO_ENDED) {
-					return nWrite;
 				} else {
 					return m;
 				}

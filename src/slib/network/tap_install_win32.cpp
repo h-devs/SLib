@@ -92,7 +92,7 @@ namespace slib
 		}
 		{
 			Memory data = Zstd::decompress(tap_cat_compressed_data, tap_cat_compressed_size);
-			if (File::writeAllBytes(path + "\\tap0901.cat", data))) {
+			if (!(File::writeAllBytes(path + "\\tap0901.cat", data))) {
 				return sl_false;
 			}
 		}
@@ -131,5 +131,5 @@ namespace slib
 		return win32::Setup::uninstallDriver(DRIVER_NAME);
 	}
 
-
+}
 #endif

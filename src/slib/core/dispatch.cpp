@@ -53,7 +53,6 @@ namespace slib
 		}, delayMillis);
 	}
 
-
 	sl_bool Dispatch::dispatch(const Ref<Dispatcher>& dispatcher, const Function<void()>& task)
 	{
 		if (dispatcher.isNotNull()) {

@@ -120,6 +120,8 @@ namespace slib
 
 	class SLIB_EXPORT AsyncTcpSocket : public AsyncSocketStream
 	{
+		SLIB_DECLARE_OBJECT
+
 	protected:
 		AsyncTcpSocket();
 

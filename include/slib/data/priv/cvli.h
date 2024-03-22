@@ -122,8 +122,9 @@ namespace slib
 		class EncoderBE<T, sl_false>
 		{
 		public:
-			static sl_uint8* encode(sl_uint8* output, T value)
+			static sl_uint32 encode(sl_uint8* output, T value)
 			{
+				sl_uint8* start = output;
 				sl_uint8 octets[(sizeof(T) << 3) / 7 + 1];
 				sl_uint32 pos = sizeof(octets) - 1;
 				octets[pos] = ((sl_uint8)value) & 127;
@@ -136,7 +137,7 @@ namespace slib
 				while (pos < sizeof(octets)) {
 					*(output++) = octets[pos];
 				}
-				return output;
+				return (sl_uint32)(output - start);
 			}
 
 		};

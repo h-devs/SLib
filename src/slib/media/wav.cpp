@@ -84,7 +84,7 @@ namespace slib
 			if (!file.writeUint32((sl_uint32)(data.getTotalSize()))) {
 				return sl_false;
 			}
-			if (!file.write(data.data, data.getTotalSize())) {
+			if (!file.writeFully(data.data, data.getTotalSize())) {
 				return sl_false;
 			}
 			return sl_true;
@@ -139,8 +139,11 @@ namespace slib
 			}
 			if (skipSize > 0) {
 				SLIB_SCOPED_BUFFER(sl_uint8, 1024, buf, skipSize)
-				if (buf) {
-					file.read(buf, skipSize);
+				if (!buf) {
+					return sl_false;
+				}
+				if (file.readFully(buf, skipSize) != skipSize) {
+					return sl_false;
 				}
 			}
 
@@ -153,7 +156,9 @@ namespace slib
 			
 			out.format = (AudioFormat)SLIB_DEFINE_AUDIO_FORMAT(bitsPerSample == 8 ? AudioSampleType::Int8 : AudioSampleType::Int16, bitsPerSample, 1, 0);
 			Memory mem = Memory::create(size);
-			file.read(mem.getData(), size);
+			if (file.readFully(mem.getData(), size) != size) {
+				return sl_false;
+			}
 			out.data = mem.getData();
 			out.count = size / (bitsPerSample / 8) / channels;
 			out.ref = mem.ref;

@@ -53,11 +53,9 @@ namespace slib
 
 		sl_bool peekUint8(sl_uint8* _out);
 
-		sl_reg read(void*& buf);
+		sl_reg read(void*& buf, sl_int32 timeout = -1);
 
-		sl_reg read(void* buf, sl_size size) override;
-
-		sl_bool waitRead(sl_int32 timeout = -1) override;
+		sl_reg read(void* buf, sl_size size, sl_int32 timeout = -1) override;
 
 		using ISeekable::getPosition;
 		sl_bool getPosition(sl_uint64& outPos) override;
@@ -79,13 +77,13 @@ namespace slib
 
 		sl_bool _seekInternal(sl_uint64 pos);
 
-		sl_reg _readInternal(sl_uint64 pos, void* buf, sl_size size);
+		sl_reg _readInternal(sl_uint64 pos, void* buf, sl_size size, sl_int32 timeout);
 
-		sl_reg _fillBuf(sl_uint64 pos, sl_size size);
+		sl_reg _fillBuf(sl_uint64 pos, sl_size size, sl_int32 timeout);
 
-		sl_reg _fillBuf(sl_uint64 pos);
+		sl_reg _fillBuf2(sl_uint64 pos, sl_int32 timeout);
 
-		sl_reg _readFillingBuf(sl_uint64 pos, void* buf, sl_size size);
+		sl_reg _readFillingBuf(sl_uint64 pos, void* buf, sl_size size, sl_int32 timeout);
 
 	private:
 		Ref<CRef> m_ref;

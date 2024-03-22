@@ -71,6 +71,7 @@ namespace slib
 		Ref<AsyncStreamRequest> m_requestReading;
 		Ref<AsyncStreamRequest> m_requestWriting;
 		sl_bool m_flagCloseOnRelease;
+		sl_bool m_flagFreed;
 
 	};
 

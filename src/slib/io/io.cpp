@@ -32,6 +32,7 @@
 
 #include "slib/io/priv/util.h"
 #include "slib/io/priv/impl.h"
+#include "slib/core/mio.h"
 #include "slib/data/serialize/io.h"
 
 namespace slib
@@ -61,83 +62,59 @@ namespace slib
 
 	SLIB_DEFINE_IREADER_MEMBERS(IReader,)
 
-	sl_int32 IReader::read32(void* buf, sl_uint32 size)
+	sl_int32 IReader::read32(void* buf, sl_uint32 size, sl_int32 timeout)
 	{
-		return (sl_int32)(read(buf, size));
+		return (sl_int32)(read(buf, size, timeout));
 	}
 
-	sl_reg IReader::read(void* buf, sl_size size)
+	sl_reg IReader::read(void* buf, sl_size size, sl_int32 timeout)
 	{
-		return ReaderHelper::readWithRead32(this, buf, size);
-	}
-
-	sl_bool IReader::waitRead(sl_int32 timeout)
-	{
-		Thread::sleep(1);
-		return sl_true;
+		return ReaderHelper::readWithRead32(this, buf, size, timeout);
 	}
 
 
 	SLIB_DEFINE_IWRITER_MEMBERS(IWriter,)
 
-	sl_int32 IWriter::write32(const void* buf, sl_uint32 size)
+	sl_int32 IWriter::write32(const void* buf, sl_uint32 size, sl_int32 timeout)
 	{
-		return (sl_int32)(write(buf, size));
+		return (sl_int32)(write(buf, size, timeout));
 	}
 
-	sl_reg IWriter::write(const void* buf, sl_size size)
+	sl_reg IWriter::write(const void* buf, sl_size size, sl_int32 timeout)
 	{
-		return WriterHelper::writeWithWrite32(this, buf, size);
-	}
-
-	sl_bool IWriter::waitWrite(sl_int32 timeout)
-	{
-		Thread::sleep(1);
-		return sl_true;
+		return WriterHelper::writeWithWrite32(this, buf, size, timeout);
 	}
 
 
-	sl_int32 IBlockReader::readAt32(sl_uint64 offset, void* buf, sl_uint32 size)
+	sl_int32 IBlockReader::readAt32(sl_uint64 offset, void* buf, sl_uint32 size, sl_int32 timeout)
 	{
-		return (sl_int32)(readAt(offset, buf, size));
+		return (sl_int32)(readAt(offset, buf, size, timeout));
 	}
 
-	sl_reg IBlockReader::readAt(sl_uint64 offset, void* buf, sl_size size)
+	sl_reg IBlockReader::readAt(sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout)
 	{
-		return BlockReaderHelper::readAtWithReadAt32(this, offset, buf, size);
+		return BlockReaderHelper::readAtWithReadAt32(this, offset, buf, size, timeout);
 	}
 
-	sl_reg IBlockReader::readFullyAt(sl_uint64 offset, void* buf, sl_size size)
+	sl_reg IBlockReader::readFullyAt(sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout)
 	{
-		return BlockReaderHelper::readFullyAt(this, offset, buf, size);
-	}
-
-	sl_bool IBlockReader::waitRead(sl_int32 timeout)
-	{
-		Thread::sleep(1);
-		return sl_true;
+		return BlockReaderHelper::readFullyAt(this, offset, buf, size, timeout);
 	}
 
 
-	sl_int32 IBlockWriter::writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size)
+	sl_int32 IBlockWriter::writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size, sl_int32 timeout)
 	{
-		return (sl_int32)(writeAt(offset, buf, size));
+		return (sl_int32)(writeAt(offset, buf, size, timeout));
 	}
 
-	sl_reg IBlockWriter::writeAt(sl_uint64 offset, const void* buf, sl_size size)
+	sl_reg IBlockWriter::writeAt(sl_uint64 offset, const void* buf, sl_size size, sl_int32 timeout)
 	{
-		return BlockWriterHelper::writeAtWithWriteAt32(this, offset, buf, size);
+		return BlockWriterHelper::writeAtWithWriteAt32(this, offset, buf, size, timeout);
 	}
 
-	sl_reg IBlockWriter::writeFullyAt(sl_uint64 offset, const void* buf, sl_size size)
+	sl_reg IBlockWriter::writeFullyAt(sl_uint64 offset, const void* buf, sl_size size, sl_int32 timeout)
 	{
-		return BlockWriterHelper::writeFullyAt(this, offset, buf, size);
-	}
-
-	sl_bool IBlockWriter::waitWrite(sl_int32 timeout)
-	{
-		Thread::sleep(1);
-		return sl_true;
+		return BlockWriterHelper::writeFullyAt(this, offset, buf, size, timeout);
 	}
 
 
@@ -159,24 +136,9 @@ namespace slib
 
 	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(SeekableReaderBase,)
 
-	sl_bool SeekableReaderBase::waitRead(sl_int32 timeout)
-	{
-		return IReader::waitRead(timeout);
-	}
-
 
 	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(IOBase,)
 	SLIB_DEFINE_SEEKABLE_WRITER_MEMBERS(IOBase,)
-
-	sl_bool IOBase::waitRead(sl_int32 timeout)
-	{
-		return IReader::waitRead(timeout);
-	}
-
-	sl_bool IOBase::waitWrite(sl_int32 timeout)
-	{
-		return IWriter::waitWrite(timeout);
-	}
 
 
 	MemoryIO::MemoryIO()
@@ -314,7 +276,7 @@ namespace slib
 		m_flagResizable = sl_false;
 	}
 
-	sl_reg MemoryIO::read(void* buf, sl_size size)
+	sl_reg MemoryIO::read(void* buf, sl_size size, sl_int32 timeout)
 	{
 		if (!size) {
 			return SLIB_IO_EMPTY_CONTENT;
@@ -333,7 +295,7 @@ namespace slib
 		return size;
 	}
 
-	sl_reg MemoryIO::write(const void* buf, sl_size size)
+	sl_reg MemoryIO::write(const void* buf, sl_size size, sl_int32 timeout)
 	{
 		if (!size) {
 			return SLIB_IO_EMPTY_CONTENT;
@@ -544,7 +506,7 @@ namespace slib
 		m_offset = 0;
 	}
 
-	sl_reg MemoryReader::read(void* buf, sl_size size)
+	sl_reg MemoryReader::read(void* buf, sl_size size, sl_int32 timeout)
 	{
 		if (!size) {
 			return SLIB_IO_EMPTY_CONTENT;
@@ -659,11 +621,6 @@ namespace slib
 			return p - buf;
 		}
 		return -1;
-	}
-
-	sl_bool MemoryReader::waitRead(sl_int32 timeout)
-	{
-		return sl_true;
 	}
 
 	sl_bool MemoryReader::readInt8(sl_int8* output)
@@ -979,7 +936,7 @@ namespace slib
 		m_offset = 0;
 	}
 
-	sl_reg MemoryWriter::write(const void* buf, sl_size size)
+	sl_reg MemoryWriter::write(const void* buf, sl_size size, sl_int32 timeout)
 	{
 		if (!size) {
 			return SLIB_IO_EMPTY_CONTENT;
@@ -1183,7 +1140,7 @@ namespace slib
 	{
 	}
 
-	sl_reg MemoryOutput::write(const void* buf, sl_size size)
+	sl_reg MemoryOutput::write(const void* buf, sl_size size, sl_int32 timeout)
 	{
 		if (!size) {
 			return SLIB_IO_EMPTY_CONTENT;
@@ -1378,7 +1335,7 @@ namespace slib
 		m_ref.setNull();
 	}
 
-	sl_reg BufferedReader::read(void* buf, sl_size size)
+	sl_reg BufferedReader::read(void* buf, sl_size size, sl_int32 timeout)
 	{
 		if (!size) {
 			return SLIB_IO_EMPTY_CONTENT;
@@ -1390,10 +1347,10 @@ namespace slib
 		sl_size nAvailable = m_sizeRead - m_posInBuf;
 		if (!nAvailable) {
 			if (size >= m_sizeBuf) {
-				return reader->read(buf, size);
+				return reader->read(buf, size, timeout);
 			}
 			m_posInBuf = 0;
-			sl_reg nRead = reader->read(m_dataBuf, m_sizeBuf);
+			sl_reg nRead = reader->read(m_dataBuf, m_sizeBuf, timeout);
 			if (nRead <= 0) {
 				m_sizeRead = 0;
 				return nRead;
@@ -1722,7 +1679,7 @@ namespace slib
 		m_ref.setNull();
 	}
 
-	sl_reg BufferedWriter::write(const void* buf, sl_size size)
+	sl_reg BufferedWriter::write(const void* buf, sl_size size, sl_int32 timeout)
 	{
 		if (!size) {
 			return SLIB_IO_EMPTY_CONTENT;
@@ -1736,14 +1693,15 @@ namespace slib
 			m_sizeWritten += size;
 			return size;
 		} else {
-			if (flush()) {
-				return writer->write(buf, size);
+			sl_int64 tickEnd = GetTickFromTimeout(timeout);
+			if (flush(timeout)) {
+				return writer->write(buf, size, GetTimeoutFromTick(tickEnd));
 			}
 		}
 		return SLIB_IO_ERROR;
 	}
 
-	sl_bool BufferedWriter::flush()
+	sl_bool BufferedWriter::flush(sl_int32 timeout)
 	{
 		sl_size size = m_sizeWritten;
 		if (!size) {
@@ -1753,7 +1711,7 @@ namespace slib
 		if (!writer) {
 			return sl_false;
 		}
-		sl_reg n = writer->writeFully(m_dataBuf, size);
+		sl_reg n = writer->writeFully(m_dataBuf, size, timeout);
 		if (n == size) {
 			m_sizeWritten = 0;
 			return sl_true;
@@ -1986,7 +1944,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_reg BufferedSeekableReader::_readInternal(sl_uint64 pos, void* buf, sl_size size)
+	sl_reg BufferedSeekableReader::_readInternal(sl_uint64 pos, void* buf, sl_size size, sl_int32 timeout)
 	{
 		if (_seekInternal(pos)) {
 			sl_uint64 n = m_sizeTotal - pos;
@@ -1998,7 +1956,7 @@ namespace slib
 			}
 			IReader* reader = m_reader;
 			if (reader) {
-				sl_reg nRead = reader->read(buf, size);
+				sl_reg nRead = reader->readFully(buf, size, timeout);
 				if (nRead > 0) {
 					m_posInternal += nRead;
 				}
@@ -2008,10 +1966,10 @@ namespace slib
 		return SLIB_IO_ERROR;
 	}
 
-	sl_reg BufferedSeekableReader::_fillBuf(sl_uint64 pos, sl_size size)
+	sl_reg BufferedSeekableReader::_fillBuf(sl_uint64 pos, sl_size size, sl_int32 timeout)
 	{
 		m_posBuf = pos;
-		sl_reg nRead = _readInternal(pos, m_dataBuf, size);
+		sl_reg nRead = _readInternal(pos, m_dataBuf, size, timeout);
 		if (nRead > 0) {
 			m_sizeRead = nRead;
 		} else {
@@ -2020,14 +1978,14 @@ namespace slib
 		return nRead;
 	}
 
-	sl_reg BufferedSeekableReader::_fillBuf(sl_uint64 pos)
+	sl_reg BufferedSeekableReader::_fillBuf2(sl_uint64 pos, sl_int32 timeout)
 	{
-		return _fillBuf(pos, m_sizeBuf);
+		return _fillBuf(pos, m_sizeBuf, timeout);
 	}
 
-	sl_reg BufferedSeekableReader::_readFillingBuf(sl_uint64 pos, void* buf, sl_size size)
+	sl_reg BufferedSeekableReader::_readFillingBuf(sl_uint64 pos, void* buf, sl_size size, sl_int32 timeout)
 	{
-		sl_reg nRead = _fillBuf(pos);
+		sl_reg nRead = _fillBuf2(pos, timeout);
 		if (nRead > 0) {
 			return _readInBuf(buf, size);
 		}
@@ -2074,7 +2032,7 @@ namespace slib
 		}
 	}
 
-	sl_reg BufferedSeekableReader::read(void*& buf)
+	sl_reg BufferedSeekableReader::read(void*& buf, sl_int32 timeout)
 	{
 		if (m_posCurrent >= m_sizeTotal) {
 			return SLIB_IO_ENDED;
@@ -2089,7 +2047,7 @@ namespace slib
 				return sizeRemain;
 			}
 		}
-		sl_reg nRead = _fillBuf(m_posCurrent);
+		sl_reg nRead = _fillBuf2(m_posCurrent, timeout);
 		if (nRead > 0) {
 			buf = m_dataBuf;
 			m_posCurrent += nRead;
@@ -2097,7 +2055,7 @@ namespace slib
 		return nRead;
 	}
 
-	sl_reg BufferedSeekableReader::read(void* _buf, sl_size size)
+	sl_reg BufferedSeekableReader::read(void* _buf, sl_size size, sl_int32 timeout)
 	{
 		sl_uint8* buf = (sl_uint8*)_buf;
 		if (!size) {
@@ -2107,18 +2065,18 @@ namespace slib
 			return SLIB_IO_ENDED;
 		}
 		if (!m_sizeRead) {
-			return _readFillingBuf(m_posCurrent, buf, size);
+			return _readFillingBuf(m_posCurrent, buf, size, timeout);
 		}
 		sl_reg nRead = _readInBuf(buf, size);
 		if (nRead > 0) {
 			return nRead;
 		}
 		if (m_posCurrent >= m_posBuf) {
-			return _readFillingBuf(m_posCurrent, buf, size);
+			return _readFillingBuf(m_posCurrent, buf, size, timeout);
 		}
 		sl_uint64 _offset = m_posBuf - m_posCurrent;
 		if (_offset >= m_sizeBuf) {
-			return _readFillingBuf(m_posCurrent, buf, size);
+			return _readFillingBuf(m_posCurrent, buf, size, timeout);
 		}
 		sl_size offset = (sl_size)_offset;
 		sl_size sizeTailData;
@@ -2133,7 +2091,7 @@ namespace slib
 			sizeTailData = 0;
 		}
 		if (m_posBuf >= m_sizeBuf) {
-			nRead = _fillBuf(m_posBuf - m_sizeBuf);
+			nRead = _fillBuf2(m_posBuf - m_sizeBuf, timeout);
 			if (nRead <= 0) {
 				return nRead;
 			}
@@ -2145,7 +2103,7 @@ namespace slib
 			}
 			n -= pos;
 			Base::moveMemory(m_dataBuf + pos, m_dataBuf, n);
-			nRead = _fillBuf(0, pos);
+			nRead = _fillBuf(0, pos, timeout);
 			if (nRead == pos) {
 				m_sizeRead += n;
 			}
@@ -2156,17 +2114,6 @@ namespace slib
 			return size + sizeTailData;
 		}
 		return nRead;
-	}
-
-	sl_bool BufferedSeekableReader::waitRead(sl_int32 timeout)
-	{
-		IReader* reader = m_reader;
-		if (reader) {
-			return reader->waitRead(timeout);
-		} else {
-			Thread::sleep(1);
-			return sl_true;
-		}
 	}
 
 	sl_bool BufferedSeekableReader::getPosition(sl_uint64& outPos)
@@ -2256,18 +2203,18 @@ namespace slib
 		return m_reader != sl_null;
 	}
 
-	sl_reg SkippableReader::read(void* buf, sl_size size)
+	sl_reg SkippableReader::read(void* buf, sl_size size, sl_int32 timeout)
 	{
-		sl_reg iRead = m_reader->read(buf, size);
+		sl_reg iRead = m_reader->read(buf, size, timeout);
 		if (iRead > 0) {
 			m_pos += iRead;
 		}
 		return iRead;
 	}
 
-	sl_int32 SkippableReader::read32(void* buf, sl_uint32 size)
+	sl_int32 SkippableReader::read32(void* buf, sl_uint32 size, sl_int32 timeout)
 	{
-		sl_int32 iRead = m_reader->read32(buf, size);
+		sl_int32 iRead = m_reader->read32(buf, size, timeout);
 		if (iRead > 0) {
 			m_pos += iRead;
 		}
@@ -2330,8 +2277,6 @@ namespace slib
 					sl_reg m = reader->read(buf, n);
 					if (m > 0) {
 						nRead += m;
-					} else if (m == SLIB_IO_WOULD_BLOCK && Thread::isNotStoppingCurrent()) {
-						Thread::sleep(1);
 					} else {
 						return nRead;
 					}

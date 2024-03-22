@@ -93,7 +93,8 @@ namespace slib
 								size = (DWORD)(req->size);
 							}
 							if (ReadFile((HANDLE)handle, req->data, size, NULL, &m_overlappedRead)) {
-								processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
+								m_requestReading = Move(req);
+								onEvent(&m_overlappedRead);
 							} else {
 								DWORD dwErr = ::GetLastError();
 								if (dwErr == ERROR_IO_PENDING) {
@@ -121,7 +122,8 @@ namespace slib
 								size = (DWORD)(req->size);
 							}
 							if (WriteFile((HANDLE)handle, req->data, size, NULL, &m_overlappedWrite)) {
-								processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
+								m_requestWriting = Move(req);
+								onEvent(&m_overlappedWrite);
 							} else {
 								DWORD dwErr = ::GetLastError();
 								if (dwErr == ERROR_IO_PENDING) {
@@ -139,12 +141,15 @@ namespace slib
 
 			void onEvent(EventDesc* pev) override
 			{
+				onEvent((OVERLAPPED*)(pev->pOverlapped));
+			}
+
+			void onEvent(OVERLAPPED* pOverlapped)
+			{
 				sl_file handle = getHandle();
 				if (handle == SLIB_FILE_INVALID_HANDLE) {
 					return;
 				}
-
-				OVERLAPPED* pOverlapped = (OVERLAPPED*)(pev->pOverlapped);
 				DWORD dwSize = 0;
 				DWORD dwError = ERROR_SUCCESS;
 				if (GetOverlappedResult((HANDLE)handle, pOverlapped, &dwSize, FALSE)) {
@@ -155,7 +160,6 @@ namespace slib
 					dwError = GetLastError();
 					onClose();
 				}
-
 				if (pOverlapped == &m_overlappedRead) {
 					Ref<AsyncStreamRequest> req = Move(m_requestReading);
 					if (req.isNotNull()) {

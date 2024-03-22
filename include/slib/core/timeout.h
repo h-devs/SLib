@@ -41,7 +41,7 @@ namespace slib
 	{
 		if (tick >= 0) {
 			sl_uint64 current = System::getTickCount64();
-			if ((sl_uint64)tick >= current) {
+			if ((sl_uint64)tick > current) {
 				return (sl_int32)(tick - current);
 			} else {
 				return 0;

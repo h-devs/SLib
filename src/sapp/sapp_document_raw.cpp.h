@@ -269,11 +269,11 @@ namespace slib
 		Memory mem = fileSrc.readAllBytes();
 		File fileDst = File::openForWrite(targetPath);
 		if (fileDst.isOpened()) {
-			fileDst.writeAllBytes(signature);
-			fileDst.writeAllBytes(String::format("\r\nnamespace %s {%nconst sl_uint8 bytes[] = {%n", resourceName, mem.getData()));
-			fileDst.writeAllBytes(SAppUtil::generateBytesArrayDefinition(mem.getData(), mem.getSize(), 16, 0));
+			fileDst.writeAll(signature);
+			fileDst.writeAll(String::format("\r\nnamespace %s {%nconst sl_uint8 bytes[] = {%n", resourceName));
+			fileDst.writeAll(SAppUtil::generateBytesArrayDefinition(mem.getData(), mem.getSize(), 16, 0));
 			static const sl_char8 strDataEnd[] = "};\r\n}\r\n";
-			fileDst.write(strDataEnd, sizeof(strDataEnd) - 1);
+			fileDst.writeAll(strDataEnd, sizeof(strDataEnd) - 1);
 			return sl_true;
 		}
 		logError(g_str_error_file_write_failed, targetPath);

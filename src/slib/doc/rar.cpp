@@ -42,7 +42,7 @@ namespace slib
 	{
 		if (pMemory) {
 			if (pMemory->getSize() < size) {
-				rawHeader = reader->readToMemory(size);
+				rawHeader = reader->readFully(size);
 				if (rawHeader.getSize() != size) {
 					return sl_false;
 				}
@@ -54,7 +54,7 @@ namespace slib
 				rawHeader = pMemory->sub(0, size);
 			}
 		} else {
-			rawHeader = reader->readToMemory(size);
+			rawHeader = reader->readFully(size);
 			if (rawHeader.getSize() != size) {
 				return sl_false;
 			}

@@ -106,14 +106,14 @@ namespace slib
 				_close();
 			}
 
-			sl_int32 read32(void* buf, sl_uint32 size) override
+			sl_int32 read32(void* buf, sl_uint32 size, sl_int32 timeout) override
 			{
 				HANDLE handle = m_hRead;
 				if (handle != INVALID_HANDLE_VALUE) {
 					if (!size) {
 						return SLIB_IO_EMPTY_CONTENT;
 					}
-					sl_int32 n = (HandlePtr<File>(handle))->read32(buf, size);
+					sl_int32 n = (HandlePtr<File>(handle))->read32(buf, size, timeout);
 					if (n <= 0) {
 						close();
 						n = SLIB_IO_ENDED;
@@ -123,11 +123,11 @@ namespace slib
 				return SLIB_IO_ERROR;
 			}
 
-			sl_int32 write32(const void* buf, sl_uint32 size) override
+			sl_int32 write32(const void* buf, sl_uint32 size, sl_int32 timeout) override
 			{
 				HANDLE handle = m_hWrite;
 				if (handle != INVALID_HANDLE_VALUE) {
-					sl_int32 n = (HandlePtr<File>(handle))->write32(buf, size);
+					sl_int32 n = (HandlePtr<File>(handle))->write32(buf, size, timeout);
 					if (n < 0) {
 						close();
 					}

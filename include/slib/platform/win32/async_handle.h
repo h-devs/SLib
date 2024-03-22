@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,39 +20,47 @@
  *   THE SOFTWARE.
  */
 
-#include <slib.h>
+#ifndef CHECKHEADER_SLIB_PLATFORM_WIN32_ASYNC_HANDLE
+#define CHECKHEADER_SLIB_PLATFORM_WIN32_ASYNC_HANDLE
 
-using namespace slib;
+#include "windows.h"
 
-int main(int argc, const char * argv[])
+#include "../../io/io.h"
+#include "../../core/event.h"
+
+namespace slib
 {
 
-	if (argc < 3) {
-		Println("Usage: StaticWeb <PORT> <DOCUMENT_PATH> [d]");
-		return 0;
-	}
+	class SLIB_EXPORT AsyncHandleIO
+	{
+	public:
+		HANDLE handle;
+		sl_uint64 offset;
+		Ref<Event> event;
 
-	// Set configuration
-	HttpServerParam param;
-	param.port = StringView(argv[1]).parseUint32();
-	param.flagUseWebRoot = sl_true;
-	param.webRootPath = argv[2];
-	StringView flags(argc > 3 ? argv[3] : sl_null);
-	param.flagLogDebug = flags.contains('d');
-	param.dispatcher = ThreadPool::create(0, Cpu::getCoreCount());
+	public:
+		AsyncHandleIO(): handle(INVALID_HANDLE_VALUE), offset(0) {}
 
-	Ref<HttpServer> server = HttpServer::create(param);
-	if (server.isNull()) {
-		return -1;
-	}
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AsyncHandleIO)
 
-	Console::println("Server is running on port: %d, Webroot: %s", param.port, param.webRootPath);
+		SLIB_DECLARE_ISTREAM_MEMBERS(noexcept)
 
-	for(;;) {
-		Console::println("\nPress x to exit!!!");
-		if (Console::readChar() == 'x') {
-			break;
-		}
-	}
-	return 0;
+	public:
+		sl_reg read(void* buf, sl_size size, sl_int32 timeout = -1) noexcept;
+
+		sl_int32 read32(void* buf, sl_uint32 size, sl_int32 timeout = -1) noexcept;
+
+		sl_reg write(const void* buf, sl_size size, sl_int32 timeout = -1) noexcept;
+
+		sl_int32 write32(const void* buf, sl_uint32 size, sl_int32 timeout = -1) noexcept;
+
+	private:
+		sl_bool prepareIO(OVERLAPPED& overlapped);
+
+		sl_int32 processResult(OVERLAPPED& overlapped, BOOL bRet, sl_int32 timeout);
+
+	};
+
 }
+
+#endif

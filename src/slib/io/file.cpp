@@ -138,14 +138,14 @@ namespace slib
 		_close(handle);
 	}
 
-	sl_reg File::read(void* buf, sl_size size) const noexcept
+	sl_reg File::read(void* buf, sl_size size, sl_int32 timeout) const noexcept
 	{
-		return ReaderHelper::readWithRead32(this, buf, size);
+		return ReaderHelper::readWithRead32(this, buf, size, timeout);
 	}
 
-	sl_reg File::write(const void* buf, sl_size size) const noexcept
+	sl_reg File::write(const void* buf, sl_size size, sl_int32 timeout) const noexcept
 	{
-		return WriterHelper::writeWithWrite32(this, buf, size);
+		return WriterHelper::writeWithWrite32(this, buf, size, timeout);
 	}
 
 	sl_uint64 File::getSize(const StringParam& path) noexcept
@@ -545,7 +545,7 @@ namespace slib
 		File file = openForWrite(path);
 		if (file.isNotNone()) {
 			if (size) {
-				return file.writeAllBytes(buf, size);
+				return file.writeAll(buf, size);
 			} else {
 				return sl_true;
 			}
@@ -596,7 +596,7 @@ namespace slib
 		File file = openForAppend(path);
 		if (file.isNotNone()) {
 			if (size) {
-				return file.writeAllBytes(buf, size);
+				return file.writeAll(buf, size);
 			} else {
 				return sl_true;
 			}

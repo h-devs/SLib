@@ -56,6 +56,12 @@ namespace slib
 
 	sl_bool IPCRequest::initialize(Ref<AsyncStream>&& stream, const IPCRequestParam& param)
 	{
+		sl_int64 tickEnd = GetTickFromTimeout(param.timeout);
+		return initialize(Move(stream), param, tickEnd);
+	}
+
+	sl_bool IPCRequest::initialize(Ref<AsyncStream>&& stream, const IPCRequestParam& param, sl_int64 tickEnd)
+	{
 		m_stream = Move(stream);
 		if (param.message.isNotEmpty()) {
 			Memory content = param.message.getMemory();
@@ -64,14 +70,15 @@ namespace slib
 			}
 			m_requestData = Move(content);
 		}
-		if (param.flagSelfAlive) {
-			increaseReference();
-		}
-		m_tickEnd = GetTickFromTimeout(param.timeout);
+		m_flagSelfAlive = param.flagSelfAlive;
+		m_tickEnd = tickEnd;
 		m_maximumResponseSize = param.maximumMessageSize;
 		m_messageSegmentSize = param.messageSegmentSize;
 		m_dispatcher = param.dispatcher;
 		m_onResponse = param.onResponse;
+		if (param.flagSelfAlive) {
+			increaseReference();
+		}
 		return sl_true;
 	}
 
@@ -116,8 +123,20 @@ namespace slib
 			onError();
 			return;
 		}
-		IPCResponseMessage response(data);
-		onResponse(response);
+		if (m_dispatcher.isNotNull()) {
+			WeakRef<IPCRequest> thiz = this;
+			m_dispatcher->dispatch([this, thiz, data]() {
+				Ref<IPCRequest> ref = thiz;
+				if (ref.isNull()) {
+					return;
+				}
+				IPCResponseMessage response(data);
+				onResponse(response);
+			});
+		} else {
+			IPCResponseMessage response(data);
+			onResponse(response);
+		}
 	}
 
 
@@ -147,13 +166,15 @@ namespace slib
 		if (m_ioLoop.isNull()) {
 			m_ioLoop = AsyncIoLoop::create(sl_false);
 			if (m_ioLoop.isNull()) {
-				return sl_null;
+				return sl_false;
 			}
 		}
 		m_dispatcher = param.dispatcher;
 		m_maximumMessageSize = param.maximumMessageSize;
 		m_messageSegmentSize = param.messageSegmentSize;
+		m_flagAcceptOtherUsers = param.flagAcceptOtherUsers;
 		m_onReceiveMessage = param.onReceiveMessage;
+		return sl_true;
 	}
 
 	void IPCServer::startStream(AsyncStream* stream)
@@ -319,7 +340,7 @@ namespace slib
 						Ref<AsyncDomainSocketServer> server = AsyncDomainSocketServer::create(serverParam);
 						if (server.isNotNull()) {
 							ret->m_server = server;
-							serverParam.ioLoop->start();
+							ret->m_ioLoop->start();
 							return ret;
 						}
 					}

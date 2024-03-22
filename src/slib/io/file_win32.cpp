@@ -109,6 +109,9 @@ namespace slib
 		if (mode & FileMode::Directory) {
 			dwFlags |= FILE_FLAG_BACKUP_SEMANTICS;
 		}
+		if (mode & FileMode::Overlapped) {
+			dwFlags |= FILE_FLAG_OVERLAPPED;
+		}
 
 		StringCstr16 filePath(_filePath);
 		HANDLE handle = CreateFileW(
@@ -187,7 +190,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_int32 File::read32(void* buf, sl_uint32 size) const noexcept
+	sl_int32 File::read32(void* buf, sl_uint32 size, sl_int32 timeout) const noexcept
 	{
 		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
@@ -206,13 +209,7 @@ namespace slib
 		return SLIB_IO_ERROR;
 	}
 
-	sl_bool File::waitRead(sl_int32 timeout) const noexcept
-	{
-		Thread::sleep(1);
-		return sl_true;
-	}
-
-	sl_int32 File::write32(const void* buf, sl_uint32 size) const noexcept
+	sl_int32 File::write32(const void* buf, sl_uint32 size, sl_int32 timeout) const noexcept
 	{
 		HANDLE handle = m_file;
 		if (handle != INVALID_HANDLE_VALUE) {
@@ -226,12 +223,6 @@ namespace slib
 			}
 		}
 		return SLIB_IO_ERROR;
-	}
-
-	sl_bool File::waitWrite(sl_int32 timeout) const noexcept
-	{
-		Thread::sleep(1);
-		return sl_true;
 	}
 
 	sl_bool File::setSize(sl_uint64 size) const noexcept

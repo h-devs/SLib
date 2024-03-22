@@ -84,7 +84,7 @@ namespace slib
 	public:
 		P2PRequest();
 
-		P2PRequest(const void* data, sl_uint32 size, CRef* ref = sl_null);
+		P2PRequest(const void* data, sl_size size, CRef* ref = sl_null);
 
 		template <class T>
 		P2PRequest(T&& value): P2PMessage(Forward<T>(value)) {}
@@ -98,7 +98,7 @@ namespace slib
 	public:
 		P2PResponse();
 
-		P2PResponse(const void* data, sl_uint32 size, CRef* ref = sl_null);
+		P2PResponse(const void* data, sl_size size, CRef* ref = sl_null);
 
 		template <class T>
 		P2PResponse(T&& value): P2PMessage(Forward<T>(value)) {}

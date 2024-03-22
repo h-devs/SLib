@@ -448,9 +448,9 @@ namespace slib
 							buf.addStatic(s, t - s);
 						}
 						buf.add(var);
+						p = n + 1;
+						s = p;
 					}
-					p = n + 1;
-					s = p;
 				} else if (SLIB_CHAR_IS_ALPHA(ch) || ch == '_') {
 					sl_char8* n = p + 1;
 					while (n < e) {
@@ -467,9 +467,9 @@ namespace slib
 							buf.addStatic(s, t - s);
 						}
 						buf.add(var);
+						p = n;
+						s = p;
 					}
-					p = n;
-					s = p;
 				}
 			} else {
 				p++;

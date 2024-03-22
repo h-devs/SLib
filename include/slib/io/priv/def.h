@@ -60,7 +60,6 @@
 #define SLIB_DECLARE_IWRITER_MEMBERS(...) \
 	sl_reg writeFully(const void* buf, sl_size size, sl_int32 timeout = -1) __VA_ARGS__; \
 	sl_reg writeFully(const MemoryView& mem, sl_int32 timeout = -1) __VA_ARGS__; \
-	sl_reg writeFully(const StringView& str, sl_int32 timeout = -1) __VA_ARGS__; \
 	sl_bool writeInt8(sl_int8 value) __VA_ARGS__; \
 	sl_bool writeUint8(sl_uint8 value) __VA_ARGS__; \
 	sl_bool writeInt16(sl_int16 value, EndianType endian = Endian::Little) __VA_ARGS__; \
@@ -71,9 +70,9 @@
 	sl_bool writeUint64(sl_uint64 value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeFloat(float value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeDouble(double value, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool writeAllBytes(const void* buf, sl_size size, sl_int32 timeout = -1) __VA_ARGS__; \
-	sl_bool writeAllBytes(const MemoryView& mem, sl_int32 timeout = -1) __VA_ARGS__; \
-	sl_bool writeAllBytes(const StringView& str, sl_int32 timeout = -1) __VA_ARGS__;
+	sl_bool writeAll(const void* buf, sl_size size) __VA_ARGS__; \
+	sl_bool writeAll(const MemoryView& mem) __VA_ARGS__; \
+	sl_bool writeAll(const StringView& str) __VA_ARGS__;
 
 #define SLIB_DECLARE_ISTREAM_MEMBERS(...) \
 	SLIB_DECLARE_IREADER_MEMBERS(__VA_ARGS__) \
@@ -89,8 +88,8 @@
 	sl_bool seekToEnd() __VA_ARGS__;
 
 #define SLIB_DECLARE_SEEKABLE_READER_MEMBERS(ATTR, OVERRIDE) \
-	sl_reg readAt(sl_uint64 offset, void* buf, sl_size size) ATTR OVERRIDE; \
-	sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size) ATTR OVERRIDE; \
+	sl_reg readAt(sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout = -1) ATTR OVERRIDE; \
+	sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size, sl_int32 timeout = -1) ATTR OVERRIDE; \
 	sl_reg readFullyAt(sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout = -1) ATTR OVERRIDE; \
 	String readLine() ATTR; \
 	String readNullTerminatedString() ATTR; \
@@ -99,8 +98,8 @@
 	sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_uint64 sizeFind = SLIB_UINT64_MAX) ATTR;
 
 #define SLIB_DECLARE_SEEKABLE_WRITER_MEMBERS(ATTR, OVERRIDE) \
-	sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size) ATTR OVERRIDE; \
-	sl_int32 writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size) ATTR OVERRIDE; \
+	sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size, sl_int32 timeout = -1) ATTR OVERRIDE; \
+	sl_int32 writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size, sl_int32 timeout = -1) ATTR OVERRIDE; \
 	sl_reg writeFullyAt(sl_uint64 offset, const void* buf, sl_size size, sl_int32 timeout = -1) ATTR OVERRIDE;
 
 #define SLIB_DECLARE_IO_MEMBERS(...) \
@@ -116,10 +115,7 @@ namespace slib
 	class Memory;
 	class MemoryBuffer;
 	class String;
-	class String16;
 	class StringView;
-	class StringView16;
-	class StringParam;
 
 	enum class SeekPosition
 	{

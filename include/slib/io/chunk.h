@@ -89,7 +89,7 @@ namespace slib
 			if (!size) {
 				return sl_true;
 			}
-			return writer->writeAllBytes(data, size, GetTimeoutFromTick(tickEnd));
+			return writer->writeFully(data, size, GetTimeoutFromTick(tickEnd)) == size;
 		}
 
 		template <class WRITER>

@@ -159,7 +159,7 @@ namespace slib
 			if (timeout >= 0) {
 				WeakRef<AsyncSocketStream> thiz = this;
 				if (loop->dispatch([thiz, this]() {
-					Ref<AsyncStreamRequest> ref = thiz;
+					Ref<AsyncSocketStream> ref = thiz;
 					if (ref.isNull()) {
 						return;
 					}
@@ -314,6 +314,8 @@ namespace slib
 		flagLogError = sl_true;
 	}
 
+
+	SLIB_DEFINE_OBJECT(AsyncTcpSocket, AsyncSocketStream)
 
 	AsyncTcpSocket::AsyncTcpSocket()
 	{
@@ -506,6 +508,8 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_OBJECT(AsyncDomainSocket, AsyncSocketStream)
+
 	AsyncDomainSocket::AsyncDomainSocket()
 	{
 	}
@@ -648,7 +652,7 @@ namespace slib
 			}
 		} else {
 			if (param.flagLogError) {
-				LogError(TAG, "AsyncDomainSocketServer listen error: %s, %s", param.bindPath, Socket::getLastErrorMessage());
+				LogError(TAG, "AsyncDomainSocketServer listen error: %s, %s", param.bindPath.get(), Socket::getLastErrorMessage());
 			}
 		}
 		return sl_null;

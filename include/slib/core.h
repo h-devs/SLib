@@ -60,6 +60,7 @@
 #include "core/system.h"
 #include "core/process.h"
 #include "core/thread.h"
+#include "core/thread_pool.h"
 #include "core/mutex.h"
 #include "core/event.h"
 #include "core/rw_lock.h"

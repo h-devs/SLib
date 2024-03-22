@@ -37,15 +37,13 @@ namespace slib
 
 		static void SendAgentMessage(sl_uint8 uMsg, sl_uint32 param1, sl_uint32 param2, sl_uint32 param3)
 		{
-			SLIB_SAFE_LOCAL_STATIC(Ref<IPC>, ipc, IPC::create())
-			if (ipc.isNotNull()) {
-				sl_uint8 buf[13];
-				*buf = uMsg;
-				MIO::writeUint32(buf + 1, param1);
-				MIO::writeUint32(buf + 5, param2);
-				MIO::writeUint32(buf + 9, param3);
-				ipc->sendMessageSynchronous(g_serviceName, Memory::create(buf, 13));
-			}
+			sl_uint8 buf[13];
+			*buf = uMsg;
+			MIO::writeUint32(buf + 1, param1);
+			MIO::writeUint32(buf + 5, param2);
+			MIO::writeUint32(buf + 9, param3);
+			IPCResponseMessage response;
+			IPC::sendMessageSynchronous(g_serviceName, IPCRequestMessage(buf, 13), response);
 		}
 
 		class InputService : public Service
@@ -255,33 +253,34 @@ namespace slib
 			return;
 		}
 
-		IPCParam param;
+		IPCServerParam param;
 		param.name = serviceName;
-		param.onReceiveMessage = [](sl_uint8* data, sl_uint32 size, MemoryOutput* output) {
-			if (size != 13) {
+		param.onReceiveMessage = [](IPCRequestMessage& request, IPCResponseMessage& response) {
+			if (request.size != 13) {
 				return;
 			}
 			SelectInputDesktop();
+			sl_uint8* data = (sl_uint8*)(request.data);
 			sl_uint8 cmd = *data;
 			sl_uint32 param1 = MIO::readUint32(data + 1);
 			sl_uint32 param2 = MIO::readUint32(data + 5);
 			sl_uint32 param3 = MIO::readUint32(data + 9);
 			switch (cmd) {
-			case IPC_CMD_QUIT:
-				flagQuit = sl_true;
-				break;
-			case IPC_CMD_SEND_KEY:
-				UI::sendKeyEvent((UIAction)param1, (Keycode)param2);
-				break;
-			case IPC_CMD_SEND_MOUSE_RELATIVE:
-				UI::sendMouseEvent((UIAction)param1, (sl_ui_pos)param2, (sl_ui_pos)param3, sl_false);
-				break;
-			case IPC_CMD_SEND_MOUSE_ABSOLUTE:
-				UI::sendMouseEvent((UIAction)param1, (sl_ui_pos)param2, (sl_ui_pos)param3, sl_true);
-				break;
+				case IPC_CMD_QUIT:
+					flagQuit = sl_true;
+					break;
+				case IPC_CMD_SEND_KEY:
+					UI::sendKeyEvent((UIAction)param1, (Keycode)param2);
+					break;
+				case IPC_CMD_SEND_MOUSE_RELATIVE:
+					UI::sendMouseEvent((UIAction)param1, (sl_ui_pos)param2, (sl_ui_pos)param3, sl_false);
+					break;
+				case IPC_CMD_SEND_MOUSE_ABSOLUTE:
+					UI::sendMouseEvent((UIAction)param1, (sl_ui_pos)param2, (sl_ui_pos)param3, sl_true);
+					break;
 			}
 		};
-		Ref<IPC> ipc = IPC::create(param);
+		auto ipc = IPC::createServer(param);
 		if (ipc.isNull()) {
 			return;
 		}

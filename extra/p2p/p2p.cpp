@@ -1362,9 +1362,8 @@ namespace slib
 								}
 								break;
 							case TcpCommand::Message:
-								if (_onReceiveTcpMessage(socket, content.sub(1))) {
-									return;
-								}
+								_onReceiveTcpMessage(socket, content.sub(1));
+								return;
 								break;
 							default:
 								break;
@@ -1407,8 +1406,9 @@ namespace slib
 						}
 						m_mapTcpSockets.remove(socket.get());
 					});
-					return;
+					return sl_true;
 				}
+				return sl_false;
 			}
 
 			sl_bool _sendTcpReplyInit(const Ref<TcpServerSocket>& socket)
@@ -1422,7 +1422,7 @@ namespace slib
 				return sl_true;
 			}
 
-			sl_bool _onReceiveTcpMessage(const Ref<TcpServerSocket>& socket, const Memory& content)
+			void _onReceiveTcpMessage(const Ref<TcpServerSocket>& socket, const Memory& content)
 			{
 				SocketAddress address(socket->m_remoteAddress.ip, socket->m_remoteActor);
 				_findNode(&address, socket->m_remoteId, [this, socket, content](Node* node, void*) {
@@ -1487,11 +1487,11 @@ namespace slib
 			}
 
 		public:
-			sl_bool _sendTcpRequestPacket(const Ref<TcpClientSocket>& socket, const Memory& request, const Function<void(TcpCommand command, sl_uint8* data, sl_size size, CRef* refData)>& callback, sl_int64 tickEnd)
+			void _sendTcpRequestPacket(const Ref<TcpClientSocket>& socket, const Memory& request, const Function<void(TcpCommand command, sl_uint8* data, sl_size size, CRef* refData)>& callback, sl_int64 tickEnd)
 			{
-				WeakRef<TcpServerSocket> weakSocket = socket;
+				WeakRef<TcpClientSocket> weakSocket = socket;
 				ChunkIO::writeAsync(socket->m_stream.get(), request, [this, weakSocket, callback, tickEnd](AsyncStream*, sl_bool flagError) {
-					Ref<TcpServerSocket> socket = weakSocket;
+					Ref<TcpClientSocket> socket = weakSocket;
 					if (socket.isNotNull()) {
 						if (!flagError) {
 							_receiveTcpResponsePacket(socket, callback, tickEnd);
@@ -1505,9 +1505,9 @@ namespace slib
 
 			void _receiveTcpResponsePacket(const Ref<TcpClientSocket>& socket, const Function<void(TcpCommand command, sl_uint8* data, sl_size size, CRef* refData)>& callback, sl_int64 tickEnd)
 			{
-				WeakRef<TcpServerSocket> weakSocket = socket;
+				WeakRef<TcpClientSocket> weakSocket = socket;
 				ChunkIO::readAsync(socket->m_stream.get(), [this, weakSocket, callback, tickEnd](AsyncStream*, Memory& content, sl_bool flagError) {
-					Ref<TcpServerSocket> socket = weakSocket;
+					Ref<TcpClientSocket> socket = weakSocket;
 					if (socket.isNotNull()) {
 						if (!flagError) {
 							sl_size size = content.getSize();
@@ -1743,11 +1743,11 @@ namespace slib
 				sl_uint32 nShortTimeout = 0;
 				if (tickEnd >= 0) {
 					sl_uint64 cur = GetCurrentTick();
-					if (tickEnd <= cur) {
+					if ((sl_uint32)tickEnd <= cur) {
 						callback(sl_null, sl_null);
 						return;
 					}
-					if (tickEnd < cur + m_findTimeout) {
+					if ((sl_uint32)tickEnd < cur + m_findTimeout) {
 						flagShortTimeout = sl_true;
 						nShortTimeout = (sl_uint32)(tickEnd - cur);
 					}
@@ -2136,7 +2136,7 @@ namespace slib
 	{
 	}
 
-	P2PRequest::P2PRequest(const void* data, sl_uint32 size, CRef* ref): P2PMessage(data, size, ref)
+	P2PRequest::P2PRequest(const void* data, sl_size size, CRef* ref): P2PMessage(data, size, ref)
 	{
 	}
 
@@ -2147,7 +2147,7 @@ namespace slib
 	{
 	}
 
-	P2PResponse::P2PResponse(const void* data, sl_uint32 size, CRef* ref): P2PMessage(data, size, ref)
+	P2PResponse::P2PResponse(const void* data, sl_size size, CRef* ref): P2PMessage(data, size, ref)
 	{
 	}
 

@@ -2101,17 +2101,7 @@ namespace slib
 
 			sl_reg readBuffer(sl_char8*& buf)
 			{
-				for (;;) {
-					sl_reg n = reader.read(*((void**)&buf));
-					if (n == SLIB_IO_WOULD_BLOCK) {
-						if (Thread::isStoppingCurrent()) {
-							break;
-						}
-						reader.waitRead();
-					}
-					return n;
-				}
-				return SLIB_IO_ERROR;
+				return reader.read(*((void**)&buf));
 			}
 
 			Memory readFully(sl_size size)

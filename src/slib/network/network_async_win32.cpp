@@ -126,9 +126,7 @@ namespace slib
 							} else {
 								// No Error
 								m_requestReading = Move(req);
-								EventDesc desc;
-								desc.pOverlapped = &m_overlappedRead;
-								onEvent(&desc);
+								onEvent(&m_overlappedRead);
 							}
 						} else {
 							processStreamResult(req.get(), 0, AsyncStreamResultCode::Success);
@@ -161,9 +159,7 @@ namespace slib
 							} else {
 								// No Error
 								m_requestWriting = Move(req);
-								EventDesc desc;
-								desc.pOverlapped = &m_overlappedWrite;
-								onEvent(&desc);
+								onEvent(&m_overlappedWrite);
 							}
 						} else {
 							processStreamResult(req.get(), 0, AsyncStreamResultCode::Success);
@@ -218,11 +214,15 @@ namespace slib
 
 			void onEvent(EventDesc* pev) override
 			{
+				onEvent((OVERLAPPED*)(pev->pOverlapped));
+			}
+
+			void onEvent(OVERLAPPED* pOverlapped)
+			{
 				sl_async_handle handle = getHandle();
 				if (handle == SLIB_ASYNC_INVALID_HANDLE) {
 					return;
 				}
-				OVERLAPPED* pOverlapped = (OVERLAPPED*)(pev->pOverlapped);
 				DWORD dwSize = 0;
 				DWORD dwFlags = 0;
 				sl_bool flagError = sl_false;

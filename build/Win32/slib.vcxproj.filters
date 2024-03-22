@@ -1355,5 +1355,11 @@
     <ClCompile Include="..\..\src\slib\device\printer_win32.cpp">
       <Filter>src\device</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\io\chunk.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\async_handle.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
