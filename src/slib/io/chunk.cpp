@@ -24,7 +24,6 @@
 
 #include "slib/io/async_stream.h"
 #include "slib/core/memory_buffer.h"
-#include "slib/core/mio.h"
 
 namespace slib
 {

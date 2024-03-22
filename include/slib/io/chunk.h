@@ -30,6 +30,7 @@
 #include "../core/endian.h"
 #include "../core/function.h"
 #include "../core/timeout.h"
+#include "../core/mio.h"
 
 /*
 	Chunk structure

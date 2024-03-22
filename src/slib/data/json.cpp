@@ -1345,7 +1345,7 @@ namespace slib
 		if (json.isNotNull()) {
 			return json;
 		}
-		if (((DataContainer*)this)->json.deserialize(getMemory())) {
+		if (((DataContainer*)this)->json.deserialize(data, size)) {
 			return json;
 		}
 		((DataContainer*)this)->flagNotJson = sl_true;

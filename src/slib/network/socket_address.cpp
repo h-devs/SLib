@@ -30,6 +30,7 @@
 #else
 #	include <unistd.h>
 #	include <sys/socket.h>
+#	include <sys/un.h>
 #	if defined(SLIB_PLATFORM_IS_LINUX)
 #		include <linux/tcp.h>
 #	else

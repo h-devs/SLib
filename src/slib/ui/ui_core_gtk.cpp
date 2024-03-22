@@ -327,7 +327,7 @@ namespace slib
 		class IpcContext
 		{
 		public:
-			Ref<IPC> m_ipc;
+			Ref<IPC::Server> m_ipc;
 
 		public:
 			void init(const StringParam& appId)
@@ -335,27 +335,27 @@ namespace slib
 				if (m_ipc.isNotNull()) {
 					return;
 				}
-				IPCParam param;
+				IPC::ServerParam param;
 				param.name = GetOpenIpcName(appId);
 				param.onReceiveMessage = SLIB_FUNCTION_MEMBER(this, onReceive);
-				m_ipc = IPC::create(param);
+				m_ipc = IPC::createServer(param);
 			}
 
 		private:
-			void onReceive(sl_uint8* data, sl_size size, MemoryOutput* output)
+			void onReceive(IPC::RequestMessage& request, IPC::ResponseMessage& response)
 			{
-				Json json;
-				if (json.deserialize(data, size)) {
+				Json json = request.getJson();
+				if (json.isNotNull()) {
 					String command = json["command"].getString();
 					if (command == "open") {
 						String args = json["args"].getString();
 						UIApp::Current::invokeReopen(args, sl_true);
-						Json("ok").serialize(output);
+						response.setJson("ok");
 					} else {
-						Json("unknown_command").serialize(output);
+						response.setJson("unknown_command");
 					}
 				} else {
-					Json("failed_deserialize").serialize(output);
+					response.setJson("failed_deserialize");
 				}
 			}
 
@@ -496,19 +496,12 @@ namespace slib
 		if (appId.isEmpty()) {
 			return -1;
 		}
-		Ref<IPC> ipc = IPC::create();
-		if (ipc.isNotNull()) {
-			Json json;
-			json.putItem("command", "open");
-			json.putItem("args", getCommandLine());
-			Ref<Event> ev = Event::create();
-			ipc->sendMessage(GetOpenIpcName(appId), json.serialize(), [ev](sl_uint8*, sl_uint32) {
-				ev->set();
-			});
-			ev->wait(3000);
-			return 0;
-		}
-		return -1;
+		Json json;
+		json.putItem("command", "open");
+		json.putItem("args", getCommandLine());
+		IPC::ResponseMessage response;
+		IPC::sendMessageSynchronous(GetOpenIpcName(appId), json.serialize(), response, 3000);
+		return 0;
 	}
 
 }

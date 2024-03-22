@@ -908,7 +908,8 @@ namespace slib
 		}
 		String strStyles = item->getXmlAttributeWithoutStyle("style").trim();
 		if (strStyles.isNotEmpty()) {
-			List< Ref<SAppLayoutStyle> > styles = Ref< CList< Ref<SAppLayoutStyle> > >::from(item->element->getProperty("styles").getRef());
+			Ref< CList< Ref<SAppLayoutStyle> > > _styles = Ref< CList< Ref<SAppLayoutStyle> > >::from(item->element->getProperty("styles").getRef());
+			List< Ref<SAppLayoutStyle> >& styles = *(reinterpret_cast<List< Ref<SAppLayoutStyle> >*>(&_styles));
 			if (styles.isNull()) {
 				ListElements<String> arr(strStyles.split(","));
 				for (sl_size i = 0; i < arr.count; i++) {
