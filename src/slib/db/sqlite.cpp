@@ -428,18 +428,13 @@ namespace slib
 			DatabaseImpl* db;
 		};
 
-		class EncryptionIo : public sqlite3_io_methods
+		struct EncryptionExtension
 		{
-		public:
+			sqlite3_io_methods methods;
+			const sqlite3_io_methods* original_methods;
 			DatabaseImpl* db;
-			const sqlite3_io_methods* ioOriginal;
-			Ref<FileEncryption> encryption;
 			sl_uint32 headerSize;
-		};
-
-		struct EncryptionCustomFile
-		{
-			EncryptionIo io;
+			Ref<FileEncryption> encryption;
 		};
 
 		class DatabaseImpl : public SQLite
@@ -449,8 +444,8 @@ namespace slib
 
 			EncryptionVfs m_vfs;
 			sqlite3_vfs* m_vfsOriginal;
-			int m_vfsFileCustomOffset;
-			Ref<FileEncryption> m_encryption;
+			int m_vfsExtensionOffset;
+			Function<Ref<FileEncryption>(const char* filePath)> m_encryption;
 
 		public:
 			DatabaseImpl()
@@ -496,8 +491,8 @@ namespace slib
 					m_vfs.db = this;
 					m_vfs.zName = "encryption";
 					m_vfs.xOpen = &xOpenEncryption;
-					m_vfsFileCustomOffset = ((m_vfs.szOsFile - 1) | 15) + 1;
-					m_vfs.szOsFile = m_vfsFileCustomOffset + sizeof(EncryptionCustomFile);
+					m_vfsExtensionOffset = ((m_vfs.szOsFile - 1) | 15) + 1;
+					m_vfs.szOsFile = m_vfsExtensionOffset + sizeof(EncryptionExtension);
 					m_vfsOriginal = vfsDefault;
 					SLIB_SAFE_LOCAL_STATIC(Mutex, mutex)
 					MutexLocker lock(&mutex);
@@ -522,101 +517,122 @@ namespace slib
 			int onOpenEncryption(sqlite3_vfs* vfs, const char *zName, sqlite3_file* file, int flags, int *pOutFlags)
 			{
 				int iRet = (m_vfsOriginal->xOpen)(vfs, zName, file, flags, pOutFlags);
-				if (iRet == SQLITE_OK) {
-					EncryptionCustomFile* custom = (EncryptionCustomFile*)(((char*)(void*)file) + m_vfsFileCustomOffset);
-					Base::copyMemory(&(custom->io), file->pMethods, sizeof(sqlite3_io_methods));
-					custom->io.db = this;
-					custom->io.encryption = m_encryption;
-					sl_uint32 headerSize = m_encryption->getHeaderSize();
-					custom->io.headerSize = headerSize;
-					custom->io.ioOriginal = file->pMethods;
-					custom->io.iVersion = 0;
-					custom->io.xRead = &xReadEncryption;
-					custom->io.xWrite = &xWriteEncryption;
-					custom->io.xTruncate = &xTruncateEncryption;
-					custom->io.xFileSize = &xFileSizeEncryption;
-					sqlite3_int64 size = 0;
-					(file->pMethods->xFileSize)(file, &size);
-					Memory header = Memory::create(headerSize);
-					if (header.isNull()) {
-						return SQLITE_NOMEM;
-					}
-					if (size) {
-						iRet = (file->pMethods->xRead)(file, header.getData(), headerSize, 0);
-						if (iRet != SQLITE_OK) {
-							file->pMethods = sl_null;
-							return iRet;
-						}
-						if (!(custom->io.encryption->open(header.getData()))) {
-							file->pMethods = sl_null;
-							return SQLITE_AUTH;
-						}
-					} else {
-						custom->io.encryption->generateHeader(header.getData());
-						iRet = (file->pMethods->xWrite)(file, header.getData(), headerSize, 0);
-						if (iRet != SQLITE_OK) {
-							file->pMethods = sl_null;
-							return iRet;
-						}
-					}
-					file->pMethods = &(custom->io);
+				if (iRet != SQLITE_OK) {
+					return iRet;
 				}
+				Ref<FileEncryption> encryption = m_encryption(zName);
+				if (encryption.isNull()) {
+					return iRet;
+				}
+				EncryptionExtension* ext = (EncryptionExtension*)(((char*)(void*)file) + m_vfsExtensionOffset);
+				ext->db = this;
+				sl_uint32 headerSize = encryption->getHeaderSize();
+				ext->headerSize = headerSize;
+				ext->encryption = encryption;
+				ext->original_methods = file->pMethods;
+				Base::zeroMemory(&(ext->methods), sizeof(sqlite3_io_methods));
+				ext->methods.iVersion = 1;
+				ext->methods.xClose = &xCloseEncryption;
+				ext->methods.xRead = &xReadEncryption;
+				ext->methods.xWrite = &xWriteEncryption;
+				ext->methods.xTruncate = &xTruncateEncryption;
+				ext->methods.xSync = file->pMethods->xSync;
+				ext->methods.xFileSize = &xFileSizeEncryption;
+				ext->methods.xLock = file->pMethods->xLock;
+				ext->methods.xUnlock = file->pMethods->xUnlock;
+				ext->methods.xCheckReservedLock = file->pMethods->xCheckReservedLock;
+				ext->methods.xFileControl = file->pMethods->xFileControl;
+				ext->methods.xSectorSize = file->pMethods->xSectorSize;
+				ext->methods.xDeviceCharacteristics = file->pMethods->xDeviceCharacteristics;
+				sqlite3_int64 size = 0;
+				(file->pMethods->xFileSize)(file, &size);
+				Memory header = Memory::create(headerSize);
+				if (header.isNull()) {
+					return SQLITE_NOMEM;
+				}
+				if (size) {
+					iRet = (file->pMethods->xRead)(file, header.getData(), headerSize, 0);
+					if (iRet != SQLITE_OK) {
+						file->pMethods = sl_null;
+						return iRet;
+					}
+					if (!(ext->encryption->open(header.getData()))) {
+						file->pMethods = sl_null;
+						return SQLITE_AUTH;
+					}
+				} else {
+					ext->encryption->generateHeader(header.getData());
+					iRet = (file->pMethods->xWrite)(file, header.getData(), headerSize, 0);
+					if (iRet != SQLITE_OK) {
+						file->pMethods = sl_null;
+						return iRet;
+					}
+				}
+				file->pMethods = &(ext->methods);
+				return iRet;
+			}
+
+			static int xCloseEncryption(sqlite3_file* file)
+			{
+				EncryptionExtension* ext = (EncryptionExtension*)(file->pMethods);
+				int iRet = (ext->original_methods->xClose)(file);
+				ext->encryption.setNull();
 				return iRet;
 			}
 
 			static int xReadEncryption(sqlite3_file* file, void* buf, int iAmt, sqlite3_int64 iOfst)
 			{
-				EncryptionIo* io = (EncryptionIo*)(file->pMethods);
-				int iRet = (io->ioOriginal->xRead)(file, buf, iAmt, iOfst + io->headerSize);
+				EncryptionExtension* ext = (EncryptionExtension*)(file->pMethods);
+				if (ext->encryption.isNull()) {
+					return SQLITE_IOERR_READ;
+				}
+				int iRet = (ext->original_methods->xRead)(file, buf, iAmt, iOfst + ext->headerSize);
 				if (iRet == SQLITE_OK && iAmt > 0) {
-					io->encryption->decrypt(iOfst, buf, buf, iAmt);
+					ext->encryption->decrypt(iOfst, buf, buf, iAmt);
 				}
 				return iRet;
 			}
 
-			static int xWriteEncryption(sqlite3_file* file, const void* buf, int iAmt, sqlite3_int64 iOfst)
+			static int xWriteEncryption(sqlite3_file* file, const void* _buf, int iAmt, sqlite3_int64 iOfst)
 			{
-				EncryptionIo* io = (EncryptionIo*)(file->pMethods);
-				if (iAmt > 0) {
-					int n = iAmt >> 10;
-					if (iAmt & 1023) {
-						n++;
+				EncryptionExtension* ext = (EncryptionExtension*)(file->pMethods);
+				if (ext->encryption.isNull()) {
+					return SQLITE_IOERR_WRITE;
+				}
+				int nHeader = ext->headerSize;
+				char* buf = (char*)_buf;
+				char t[16384];
+				while (iAmt > 0) {
+					int size = iAmt;
+					if (size > sizeof(t)) {
+						size = sizeof(t);
 					}
-					char* b = (char*)buf;
-					char t[1024];
-					sqlite3_int64 o = iOfst;
-					for (int i = 0; i < n; i++) {
-						int size = iAmt;
-						if (size > 1024) {
-							size = 1024;
-						}
-						Base::copyMemory(t, b, (sl_size)size);
-						io->encryption->encrypt(o, t, t, size);
-						int iRet = (io->ioOriginal->xWrite)(file, t, size, o + io->headerSize);
-						if (iRet != SQLITE_OK) {
-							return iRet;
-						}
-						o += 1024;
-						b += 1024;
-						iAmt -= 1024;
+					ext->encryption->encrypt(iOfst, buf, t, size);
+					int iRet = (ext->original_methods->xWrite)(file, t, size, iOfst + nHeader);
+					if (iRet != SQLITE_OK) {
+						return iRet;
 					}
+					buf += sizeof(t);
+					iOfst += sizeof(t);
+					iAmt -= sizeof(t);
 				}
 				return SQLITE_OK;
 			}
 
 			static int xTruncateEncryption(sqlite3_file* file, sqlite3_int64 size)
 			{
-				EncryptionIo* io = (EncryptionIo*)(file->pMethods);
-				return (io->ioOriginal->xTruncate)(file, size + io->headerSize);
+				EncryptionExtension* ext = (EncryptionExtension*)(file->pMethods);
+				return (ext->original_methods->xTruncate)(file, size + ext->headerSize);
 			}
 
 			static int xFileSizeEncryption(sqlite3_file* file, sqlite3_int64 *pSize)
 			{
-				EncryptionIo* io = (EncryptionIo*)(file->pMethods);
-				int iResult = (io->ioOriginal->xFileSize)(file, pSize);
+				EncryptionExtension* ext = (EncryptionExtension*)(file->pMethods);
+				int iResult = (ext->original_methods->xFileSize)(file, pSize);
 				if (iResult == SQLITE_OK) {
-					if (*pSize > (int)(io->headerSize)) {
-						*pSize -= io->headerSize;
+					int nHeader = ext->headerSize;
+					if (*pSize > nHeader) {
+						*pSize -= nHeader;
 					} else {
 						*pSize = 0;
 					}

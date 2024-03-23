@@ -63,7 +63,9 @@ namespace slib
 				if (ret.isNotNull()) {
 					SQLiteParam param;
 					param.path = dbPath;
-					param.encryption = new ChaChaFileEncryption(encryptionKey);
+					param.encryption = [encryptionKey](const char*) {
+						return new ChaChaFileEncryption(encryptionKey);
+					};
 					Ref<SQLite> db = SQLite::open(param);
 					if (db.isNotNull()) {
 						ret->m_db = db;

@@ -36,7 +36,7 @@ namespace slib
 		StringParam path;
 		sl_bool flagCreate;
 		sl_bool flagReadonly;
-		Ref<FileEncryption> encryption;
+		Function<Ref<FileEncryption>(const char* filePath)> encryption;
 
 	public:
 		SQLiteParam();
