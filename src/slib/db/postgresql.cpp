@@ -142,23 +142,36 @@ namespace slib
 				}
 				char* v = PQgetvalue(result, 0, index);
 				int len = PQgetlength(result, 0, index);
-				if (PQfformat(result, index) == 0) { // text format
-					if (len >= 2 && v[0] == '\\' && v[1] == 'x') {
-						Oid t = PQftype(result, index);
-						if (t == 17) { // bytea
+				int format = PQfformat(result, index);
+				if (format) {
+					// 1: binary representation
+					return Memory::create(v, len);
+				} else {
+					// 0: textual data representation
+					Oid t = PQftype(result, index);
+					if (t == 16) { // bool
+						if (len == 1) {
+							if (v[0] == 't') {
+								return sl_true;
+							} else {
+								return sl_false;
+							}
+						}
+					} else if (t == 17) { // bytea
+						if (len >= 2 && v[0] == '\\' && v[1] == 'x') {
 							sl_uint32 n = (sl_uint32)((len - 2) >> 1);
 							Memory mem = Memory::create(n);
 							if (mem.isNotNull()) {
-								if (SLIB_PARSE_ERROR != String::parseHexString(mem.getData(), v, 2, len)) {
+								sl_reg iRet = String::parseHexString(mem.getData(), v, 2, len);
+								if (iRet != SLIB_PARSE_ERROR) {
 									return mem;
 								}
 							}
 						}
 					}
 					return String::create(v, len);
-				} else {
-					return Memory::create(v, len);
 				}
+				return Variant();
 			}
 
 			Variant getValue(sl_uint32 index) override
