@@ -192,9 +192,9 @@ namespace slib
 		class SLIB_EXPORT JsonFieldContainer : public StringContainer
 		{
 		public:
-			JsonFieldContainer(sl_char8* _sz, sl_size _len)
+			JsonFieldContainer(sl_char8* _data, sl_size _len)
 			{
-				sz = _sz;
+				data = _data;
 				len = _len;
 				hash = 0;
 				type = 0;

@@ -37,7 +37,7 @@ namespace slib
 		typedef String16 StringType;
 
 	public:
-		sl_char16* sz;
+		sl_char16* data;
 		sl_size len;
 		sl_size hash;
 		sl_uint32 type;
@@ -378,7 +378,7 @@ namespace slib
 		sl_char16* getData() const noexcept
 		{
 			if (m_container) {
-				return m_container->sz;
+				return m_container->data;
 			} else {
 				return (sl_char16*)((void*)(u""));
 			}
@@ -391,7 +391,7 @@ namespace slib
 		{
 			if (m_container) {
 				outLength = m_container->len;
-				return m_container->sz;
+				return m_container->data;
 			} else {
 				outLength = 0;
 				return (sl_char16*)((void*)(u""));
@@ -1063,7 +1063,7 @@ namespace slib
 		Atomic& operator=(const Atomic& other) noexcept;
 		Atomic& operator=(const StringView16& other) noexcept;
 		Atomic& operator=(sl_null_t) noexcept;
-		Atomic& operator=(const sl_char16* str) noexcept;
+		Atomic& operator=(const sl_char16* sz) noexcept;
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Atomic& operator=(const std::u16string& other) noexcept;
 		Atomic& operator=(std::u16string&& other) noexcept;
@@ -1080,14 +1080,5 @@ namespace slib
 }
 
 /// @}
-
-
-#define SLIB_STATIC_STRING16(name, str) \
-		auto& _static_string_content_##name = SLIB_UNICODE(str); \
-		static slib::StringContainer16 _static_string_container_##name = {(sl_char16*)_static_string_content_##name, (sizeof(_static_string_content_##name)/2)-1, 0, 0, -1}; \
-		static slib::StringContainer16* _static_string_##name = &_static_string_container_##name; \
-		static const slib::String16& name = *(reinterpret_cast<slib::String16*>(&_static_string_##name));
-
-#define SLIB_RETURN_STRING16(str) { SLIB_STATIC_STRING16(strRetTemp16, str) return strRetTemp16; }
 
 #endif

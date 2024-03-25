@@ -37,7 +37,7 @@ namespace slib
 		typedef String StringType;
 
 	public:
-		sl_char8* sz;
+		sl_char8* data;
 		sl_size len;
 		sl_size hash;
 		sl_uint32 type;
@@ -377,7 +377,7 @@ namespace slib
 		sl_char8* getData() const noexcept
 		{
 			if (m_container) {
-				return m_container->sz;
+				return m_container->data;
 			} else {
 				return (sl_char8*)((void*)(""));
 			}
@@ -390,7 +390,7 @@ namespace slib
 		{
 			if (m_container) {
 				outLength = m_container->len;
-				return m_container->sz;
+				return m_container->data;
 			} else {
 				outLength = 0;
 				return (sl_char8*)((void*)(""));
@@ -1094,13 +1094,5 @@ namespace slib
 }
 
 /// @}
-
-#define SLIB_STATIC_STRING(name, str) \
-	auto& _static_string_content_##name = str; \
-	static slib::StringContainer _static_string_container_##name = {(sl_char8*)_static_string_content_##name, sizeof(_static_string_content_##name)-1, 0, 0, -1}; \
-	static slib::StringContainer* _static_string_##name = &_static_string_container_##name; \
-	static const slib::String& name = *(reinterpret_cast<slib::String*>(&_static_string_##name));
-
-#define SLIB_RETURN_STRING(str) { SLIB_STATIC_STRING(strRetTemp, str) return strRetTemp; }
 
 #endif

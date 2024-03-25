@@ -248,12 +248,12 @@ namespace slib
 			sl_uint8* buf = (sl_uint8*)(Base::createMemory(sizeof(CONTAINER) + (len + 1) * sizeof(typename CONTAINER::StringType::Char)));
 			if (buf) {
 				CONTAINER* container = reinterpret_cast<CONTAINER*>(buf);
-				container->sz = (typename CONTAINER::StringType::Char*)(buf + sizeof(CONTAINER));
+				container->data = (typename CONTAINER::StringType::Char*)(buf + sizeof(CONTAINER));
 				container->len = len;
 				container->hash = 0;
 				container->type = STRING_CONTAINER_TYPE_NORMAL;
 				container->ref = 1;
-				container->sz[len] = 0;
+				container->data[len] = 0;
 				return container;
 			}
 			return sl_null;
@@ -267,7 +267,7 @@ namespace slib
 			}
 			CONTAINER* container = (CONTAINER*)(Base::createMemory(sizeof(CONTAINER)));
 			if (container) {
-				container->sz = (typename CONTAINER::StringType::Char*)sz;
+				container->data = (typename CONTAINER::StringType::Char*)sz;
 				container->len = len;
 				container->hash = 0;
 				container->type = STRING_CONTAINER_TYPE_NORMAL;
@@ -287,14 +287,14 @@ namespace slib
 			if (len < 40) {
 				CONTAINER* container = Alloc<CONTAINER>(len);
 				if (container) {
-					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, str.c_str(), len);
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data, str.c_str(), len);
 					return container;
 				}
 			} else {
 				StdContainer<CONTAINER>* container = (StdContainer<CONTAINER>*)(Base::createMemory(sizeof(StdContainer<CONTAINER>)));
 				if (container) {
 					new (container) StdContainer<CONTAINER>(Forward<VALUE>(str));
-					container->sz = (typename CONTAINER::StringType::Char*)(container->object.c_str());
+					container->data = (typename CONTAINER::StringType::Char*)(container->object.c_str());
 					container->len = len;
 					container->hash = 0;
 					container->type = STRING_CONTAINER_TYPE_STD;
@@ -314,7 +314,7 @@ namespace slib
 			RefContainer<CONTAINER>* container = (RefContainer<CONTAINER>*)(Base::createMemory(sizeof(RefContainer<CONTAINER>)));
 			if (container) {
 				new (container) RefContainer<CONTAINER>(obj);
-				container->sz = (typename CONTAINER::StringType::Char*)(sz);
+				container->data = (typename CONTAINER::StringType::Char*)(sz);
 				container->len = len;
 				container->hash = 0;
 				container->type = STRING_CONTAINER_TYPE_REF;
@@ -333,7 +333,7 @@ namespace slib
 			SubContainer<CONTAINER>* container = (SubContainer<CONTAINER>*)(Base::createMemory(sizeof(SubContainer<CONTAINER>)));
 			if (container) {
 				new (container) SubContainer<CONTAINER>(str);
-				container->sz = (typename CONTAINER::StringType::Char*)(sz);
+				container->data = (typename CONTAINER::StringType::Char*)(sz);
 				container->len = len;
 				container->hash = 0;
 				container->type = STRING_CONTAINER_TYPE_SUB;
@@ -348,7 +348,7 @@ namespace slib
 		{
 			CONTAINER* container = Alloc<CONTAINER>(nRepeatCount);
 			if (container && nRepeatCount) {
-				MemoryTraits<typename CONTAINER::StringType::Char>::reset(container->sz, nRepeatCount, ch);
+				MemoryTraits<typename CONTAINER::StringType::Char>::reset(container->data, nRepeatCount, ch);
 			}
 			return container;
 		}
@@ -415,8 +415,8 @@ namespace slib
 					}
 					CONTAINER* container = Alloc<CONTAINER>(lenDst);
 					if (container && lenDst) {
-						ConvertCharset(src, lenSrc, container->sz);
-						container->sz[lenDst] = 0;
+						ConvertCharset(src, lenSrc, container->data);
+						container->data[lenDst] = 0;
 					}
 					return container;
 				}
@@ -436,7 +436,7 @@ namespace slib
 					}
 					CONTAINER* container = Alloc<CONTAINER>(len);
 					if (container && len > 0) {
-						MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, str, len);
+						MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data, str, len);
 					}
 					return container;
 				}
@@ -481,8 +481,8 @@ namespace slib
 					sl_size lenDst = FromUtf16(endian, src, size, (typename CONTAINER::StringType::Char*)sl_null, -1);
 					CONTAINER* container = Alloc<CONTAINER>(lenDst);
 					if (container && lenDst) {
-						FromUtf16(endian, src, size, container->sz, lenDst);
-						container->sz[lenDst] = 0;
+						FromUtf16(endian, src, size, container->data, lenDst);
+						container->data[lenDst] = 0;
 					}
 					return container;
 				}
@@ -500,8 +500,8 @@ namespace slib
 					sl_size len = size >> 1;
 					StringContainer16* container = Alloc<StringContainer16>(len);
 					if (container && len) {
-						Charsets::utf16ToUtf16(endian, src, container->sz, len);
-						container->sz[len] = 0;
+						Charsets::utf16ToUtf16(endian, src, container->data, len);
+						container->data[len] = 0;
 					}
 					return container;
 				}
@@ -549,16 +549,16 @@ namespace slib
 				sl_size len = container->len;
 				if (type == STRING_CONTAINER_TYPE_NORMAL || type == STRING_CONTAINER_TYPE_STD) {
 					outLength = len;
-					return container->sz;
+					return container->data;
 				}
-				typename STRING::Char* sz = container->sz;
-				if (sz[len]) {
-					outStringConverted = STRING(sz, len);
+				typename STRING::Char* data = container->data;
+				if (data[len]) {
+					outStringConverted = STRING(data, len);
 					outLength = len;
 					return outStringConverted.getData();
 				} else {
 					outLength = len;
-					return sz;
+					return data;
 				}
 			}
 			outLength = 0;
@@ -573,7 +573,7 @@ namespace slib
 					RefContainer<typename STRING::Container>* c = static_cast<RefContainer<typename STRING::Container>*>(container);
 					if (IsInstanceOf<CMemory>(c->object)) {
 						CMemory* mem = (CMemory*)(c->object.ptr);
-						if (mem->data == container->sz && mem->size == container->len) {
+						if (mem->data == container->data && mem->size == container->len) {
 							return mem;
 						}
 					}
@@ -696,12 +696,12 @@ namespace slib
 				CONTAINER* container = Alloc<CONTAINER>(len);
 				if (container && len) {
 					if (len1) {
-						ConvertCharset(src1, lenSrc1, container->sz);
+						ConvertCharset(src1, lenSrc1, container->data);
 					}
 					if (len2) {
-						ConvertCharset(src2, lenSrc2, container->sz + len1);
+						ConvertCharset(src2, lenSrc2, container->data + len1);
 					}
-					container->sz[len] = 0;
+					container->data[len] = 0;
 				}
 				return container;
 			}
@@ -722,9 +722,9 @@ namespace slib
 				sl_size len = len1 + len2;
 				CONTAINER* container = Alloc<CONTAINER>(len);
 				if (container && len) {
-					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, s1, len1);
-					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz + len1, s2, len2);
-					container->sz[len] = 0;
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data, s1, len1);
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data + len1, s2, len2);
+					container->data[len] = 0;
 				}
 				return container;
 			}
@@ -749,11 +749,11 @@ namespace slib
 				sl_size len = len1 + len2;
 				CONTAINER* container = Alloc<CONTAINER>(len);
 				if (container && len) {
-					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, s1, len1);
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data, s1, len1);
 					if (len2) {
-						ConvertCharset(src2, lenSrc2, container->sz + len1);
+						ConvertCharset(src2, lenSrc2, container->data + len1);
 					}
-					container->sz[len] = 0;
+					container->data[len] = 0;
 				}
 				return container;
 			}
@@ -779,10 +779,10 @@ namespace slib
 				CONTAINER* container = Alloc<CONTAINER>(len);
 				if (container && len) {
 					if (len1) {
-						ConvertCharset(src1, lenSrc1, container->sz);
+						ConvertCharset(src1, lenSrc1, container->data);
 					}
-					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz + len1, s2, len2);
-					container->sz[len] = 0;
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data + len1, s2, len2);
+					container->data[len] = 0;
 				}
 				return container;
 			}
@@ -4706,7 +4706,7 @@ namespace slib
 	{ \
 		if (m_container) { \
 			if (m_container->len) { \
-				return *(m_container->sz); \
+				return *(m_container->data); \
 			} \
 		} \
 		return 0; \
@@ -4717,7 +4717,7 @@ namespace slib
 		if (m_container) { \
 			sl_size n = m_container->len; \
 			if (n) { \
-				return m_container->sz[n - 1]; \
+				return m_container->data[n - 1]; \
 			} \
 		} \
 		return 0; \
@@ -4727,7 +4727,7 @@ namespace slib
 	{ \
 		if (m_container) { \
 			if (index >= 0 && index < (sl_reg)(m_container->len)) { \
-				return m_container->sz[index]; \
+				return m_container->data[index]; \
 			} \
 		} \
 		return 0; \
@@ -4737,7 +4737,7 @@ namespace slib
 	{ \
 		if (m_container) { \
 			if (index >= 0 && index < (sl_reg)(m_container->len)) { \
-				m_container->sz[index] = ch; \
+				m_container->data[index] = ch; \
 				return sl_true; \
 			} \
 		} \
@@ -4746,12 +4746,12 @@ namespace slib
 	\
 	typename STRING::Char STRING::operator[](sl_size index) const noexcept \
 	{ \
-		return m_container->sz[index]; \
+		return m_container->data[index]; \
 	} \
 	\
 	typename STRING::Char& STRING::operator[](sl_size index) noexcept \
 	{ \
-		return m_container->sz[index]; \
+		return m_container->data[index]; \
 	} \
 	typename STRING::StdString STRING::toStd() const noexcept \
 	{ \
@@ -4759,7 +4759,7 @@ namespace slib
 			if (m_container->type == STRING_CONTAINER_TYPE_STD) { \
 				return (static_cast<StdContainer<Container>*>(m_container))->object; \
 			} else { \
-				return StdString(m_container->sz, m_container->len); \
+				return StdString(m_container->data, m_container->len); \
 			} \
 		} \
 		return StdString(); \
@@ -4775,7 +4775,7 @@ namespace slib
 	{ \
 		Container* container = m_container; \
 		if (container) { \
-			return STRING(container->sz, container->len); \
+			return STRING(container->data, container->len); \
 		} \
 		return sl_null; \
 	} \
@@ -4787,8 +4787,8 @@ namespace slib
 			if (container->type == STRING_CONTAINER_TYPE_NORMAL || container->type == STRING_CONTAINER_TYPE_STD) { \
 				return *this; \
 			} \
-			if (container->sz[container->len]) { \
-				return STRING(container->sz, container->len); \
+			if (container->data[container->len]) { \
+				return STRING(container->data, container->len); \
 			} else { \
 				return *this; \
 			} \
@@ -4844,7 +4844,7 @@ namespace slib
 			return *this; \
 		} \
 		Container* thiz = m_container; \
-		*this = STRING(Concat<Container>(thiz->sz, thiz->len, other->sz, other->len)); \
+		*this = STRING(Concat<Container>(thiz->data, thiz->len, other->data, other->len)); \
 		return *this; \
 	} \
 	\
@@ -4861,7 +4861,7 @@ namespace slib
 			return *this; \
 		} \
 		Container* thiz = m_container; \
-		*this = STRING(Concat<Container>(thiz->sz, thiz->len, other->sz, other->len)); \
+		*this = STRING(Concat<Container>(thiz->data, thiz->len, other->data, other->len)); \
 		return *this; \
 	} \
 	\
@@ -4878,7 +4878,7 @@ namespace slib
 			return *this; \
 		} \
 		Container* thiz = m_container; \
-		return Concat<Container>(thiz->sz, thiz->len, other->sz, other->len); \
+		return Concat<Container>(thiz->data, thiz->len, other->data, other->len); \
 	} \
 	\
 	STRING STRING::operator+(typename STRING::StringViewType const& other) const noexcept \
@@ -4893,7 +4893,7 @@ namespace slib
 			return *this; \
 		} \
 		Container* thiz = m_container; \
-		return Concat<Container>(thiz->sz, thiz->len, other.getUnsafeData(), other.getUnsafeLength()); \
+		return Concat<Container>(thiz->data, thiz->len, other.getUnsafeData(), other.getUnsafeLength()); \
 	} \
 	\
 	STRING STRING::operator+(typename STRING::Char const* sz) const noexcept \
@@ -4908,7 +4908,7 @@ namespace slib
 			return *this; \
 		} \
 		Container* thiz = m_container; \
-		return Concat<Container>(thiz->sz, thiz->len, sz, -1); \
+		return Concat<Container>(thiz->data, thiz->len, sz, -1); \
 	} \
 	\
 	STRING operator+(typename STRING::Char const* sz, const STRING& str) noexcept \
@@ -4923,7 +4923,7 @@ namespace slib
 			return str; \
 		} \
 		typename STRING::Container* container = str.m_container; \
-		return Concat<typename STRING::Container>(sz, -1, container->sz, container->len); \
+		return Concat<typename STRING::Container>(sz, -1, container->data, container->len); \
 	} \
 	\
 	STRING STRING::operator+(typename STRING::StdString const& other) const noexcept \
@@ -4935,7 +4935,7 @@ namespace slib
 			return *this; \
 		} \
 		Container* thiz = m_container; \
-		return Concat<Container>(thiz->sz, thiz->len, other.data(), (sl_reg)(other.length())); \
+		return Concat<Container>(thiz->data, thiz->len, other.data(), (sl_reg)(other.length())); \
 	} \
 	\
 	STRING operator+(typename STRING::StdString const& other, const STRING& str) noexcept \
@@ -4947,7 +4947,7 @@ namespace slib
 			return str; \
 		} \
 		typename STRING::Container* container = str.m_container; \
-		return Concat<typename STRING::Container>(other.data(), (sl_reg)(other.length()), container->sz, container->len); \
+		return Concat<typename STRING::Container>(other.data(), (sl_reg)(other.length()), container->data, container->len); \
 	} \
 	\
 	STRING STRING::concat(const StringParam& s1, const StringParam& s2) noexcept \
@@ -5019,7 +5019,7 @@ namespace slib
 			if (n > 0) { \
 				sl_size hash = m_container->hash; \
 				if (!hash) { \
-					hash = GetHashCode(m_container->sz, n); \
+					hash = GetHashCode(m_container->data, n); \
 					m_container->hash = hash; \
 				} \
 				return hash; \
@@ -5036,7 +5036,7 @@ namespace slib
 	sl_size STRING::getHashCode_IgnoreCase() const noexcept \
 	{ \
 		if (m_container) { \
-			return GetHashCode_IgnoreCase(m_container->sz, m_container->len); \
+			return GetHashCode_IgnoreCase(m_container->data, m_container->len); \
 		} \
 		return 0; \
 	} \

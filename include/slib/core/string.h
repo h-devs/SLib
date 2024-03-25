@@ -70,6 +70,15 @@ namespace slib
 	struct StringTypeFromCharType<sl_char32> { typedef String32 Type; };
 
 	template <class CharType>
+	struct StringContainerTypeFromCharType;
+	template <>
+	struct StringContainerTypeFromCharType<sl_char8> { typedef StringContainer Type; };
+	template <>
+	struct StringContainerTypeFromCharType<sl_char16> { typedef StringContainer16 Type; };
+	template <>
+	struct StringContainerTypeFromCharType<sl_char32> { typedef StringContainer32 Type; };
+
+	template <class CharType>
 	struct StringViewTypeFromCharType;
 	template <>
 	struct StringViewTypeFromCharType<sl_char8> { typedef StringView Type; };
@@ -157,6 +166,8 @@ namespace slib
 #include "priv/string32.h"
 #include "priv/string_view.h"
 #include "priv/string_param.h"
+#include "priv/static_string.h"
+#include "priv/encrypt_string.h"
 
 namespace slib
 {

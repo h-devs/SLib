@@ -37,7 +37,7 @@ namespace slib
 		typedef String32 StringType;
 
 	public:
-		sl_char32* sz;
+		sl_char32* data;
 		sl_size len;
 		sl_size hash;
 		sl_uint32 type;
@@ -379,7 +379,7 @@ namespace slib
 		sl_char32* getData() const noexcept
 		{
 			if (m_container) {
-				return m_container->sz;
+				return m_container->data;
 			} else {
 				return (sl_char32*)((void*)(U""));
 			}
@@ -392,7 +392,7 @@ namespace slib
 		{
 			if (m_container) {
 				outLength = m_container->len;
-				return m_container->sz;
+				return m_container->data;
 			} else {
 				outLength = 0;
 				return (sl_char32*)((void*)(U""));
@@ -1065,7 +1065,7 @@ namespace slib
 		Atomic& operator=(const Atomic& other) noexcept;
 		Atomic& operator=(const StringView32& other) noexcept;
 		Atomic& operator=(sl_null_t) noexcept;
-		Atomic& operator=(const sl_char32* str) noexcept;
+		Atomic& operator=(const sl_char32* sz) noexcept;
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Atomic& operator=(const std::u32string& other) noexcept;
 		Atomic& operator=(std::u32string&& other) noexcept;
@@ -1082,14 +1082,5 @@ namespace slib
 }
 
 /// @}
-
-
-#define SLIB_STATIC_STRING32(name, str) \
-		auto& _static_string_content_##name = SLIB_UNICODE32(str); \
-		static slib::StringContainer32 _static_string_container_##name = {(sl_char32*)_static_string_content_##name, (sizeof(_static_string_content_##name)/2)-1, 0, 0, -1}; \
-		static slib::StringContainer32* _static_string_##name = &_static_string_container_##name; \
-		static const slib::String32& name = *(reinterpret_cast<slib::String32*>(&_static_string_##name));
-
-#define SLIB_RETURN_STRING32(str) { SLIB_STATIC_STRING32(strRetTemp32, str) return strRetTemp32; }
 
 #endif
