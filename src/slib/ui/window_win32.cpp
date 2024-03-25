@@ -189,6 +189,9 @@ namespace slib
 					hMenu, // menu
 					hInst,
 					NULL);
+				if (!hWnd) {
+					return NULL;
+				}
 
 				String iconName = window->getIconResource();
 				if (iconName.isNotNull()) {

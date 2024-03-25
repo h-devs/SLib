@@ -1059,7 +1059,7 @@ namespace slib
 		static BOOL CALLBACK EnumApplicationIcon(HMODULE hModule, LPCWSTR lpType, LPWSTR lpName, LONG_PTR lParam
 		)
 		{
-			WNDCLASSW& wc = *((WNDCLASS*)lParam);
+			WNDCLASSEXW& wc = *((WNDCLASSEXW*)lParam);
 			wc.hIcon = LoadIconW(hModule, lpName);
 			return FALSE;
 		}
