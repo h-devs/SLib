@@ -183,6 +183,17 @@ public: \
 		SLIB_JSON_ADD_MEMBERS(__VA_ARGS__) \
 	}
 
+#define SLIB_JSON_BY_SERIALIZE \
+	SLIB_JSON { \
+		{ \
+			if (isFromJson) { \
+				DeserializeFromMemory(*this, json.getMemory()); \
+			} else { \
+				json.setMemory(SerializeToMemory(*this)); \
+			} \
+		} \
+	}
+
 
 namespace slib
 {
