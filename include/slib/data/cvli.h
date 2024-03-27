@@ -184,6 +184,50 @@ namespace slib
 
 	};
 
+	template <class INT>
+	class CVLType
+	{
+	public:
+		INT value;
+
+	public:
+		CVLType() noexcept {}
+
+		SLIB_CONSTEXPR CVLType(INT _value): value(_value) {}
+
+		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(CVLType)
+
+	public:
+		CVLType& operator=(INT _value)
+		{
+			value = _value;
+			return *this;
+		}
+
+		SLIB_CONSTEXPR operator INT() const
+		{
+			return value;
+		}
+
+	public:
+		template <class OUTPUT>
+		sl_bool serialize(OUTPUT* output) const
+		{
+			return CVLI::serialize(output, value);
+		}
+
+		template <class INPUT>
+		sl_bool deserialize(INPUT* input)
+		{
+			return CVLI::deserialize(input, value);
+		}
+
+	};
+
+	typedef CVLType<sl_uint32> CVLI32;
+	typedef CVLType<sl_uint64> CVLI64;
+	typedef CVLType<sl_size> CVLSize;
+
 }
 
 #endif
