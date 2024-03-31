@@ -489,16 +489,6 @@ namespace slib
 #endif
 
 	public:
-		String32& operator+=(String32&& other) noexcept;
-		String32& operator+=(const String32& other) noexcept;
-
-		template <class T>
-		String32& operator+=(const T& other) noexcept
-		{
-			return *this = *this + other;
-		}
-
-	public:
 		PRIV_SLIB_DECLARE_STRING_OPS(String32)
 
 	public:

@@ -487,15 +487,6 @@ namespace slib
 		String16& operator=(std::u16string&& other) noexcept;
 #endif
 
-		String16& operator+=(String16&& other) noexcept;
-		String16& operator+=(const String16& other) noexcept;
-
-		template <class T>
-		String16& operator+=(const T& other) noexcept
-		{
-			return *this = *this + other;
-		}
-
 	public:
 		PRIV_SLIB_DECLARE_STRING_OPS(String16)
 

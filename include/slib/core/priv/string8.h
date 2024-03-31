@@ -486,15 +486,6 @@ namespace slib
 		String& operator=(std::string&& other) noexcept;
 #endif
 
-		String& operator+=(String&& other) noexcept;
-		String& operator+=(const String& other) noexcept;
-
-		template <class T>
-		String& operator+=(const T& other) noexcept
-		{
-			return *this = *this + other;
-		}
-
 	public:
 		PRIV_SLIB_DECLARE_STRING_OPS(String)
 

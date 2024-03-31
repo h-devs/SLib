@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -147,7 +147,7 @@ namespace slib
 		return sl_false; \
 	} \
 	\
-	sl_bool BUFFER::add(const StringStorage& data) noexcept \
+	sl_bool BUFFER::addStorage(const StringStorage& data) noexcept \
 	{ \
 		sl_size len = data.length; \
 		if (!len) { \
@@ -171,7 +171,7 @@ namespace slib
 		data.data = (typename BUFFER::Char*)buf; \
 		data.length = length; \
 		data.charSize = sizeof(typename BUFFER::Char); \
-		return add(data); \
+		return addStorage(data); \
 	} \
 	\
 	void BUFFER::link(BUFFER& buf) noexcept \

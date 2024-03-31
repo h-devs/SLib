@@ -260,6 +260,27 @@ namespace slib
 		}
 
 		template <class CONTAINER>
+		static CONTAINER* Realloc(CONTAINER* old, sl_size len) noexcept
+		{
+			if (!len) {
+				Free(old);
+				return ConstContainers<CONTAINER>::getEmpty();
+			}
+			sl_uint8* buf = (sl_uint8*)(Base::reallocMemory(old, sizeof(CONTAINER) + (len + 1) * sizeof(typename CONTAINER::StringType::Char)));
+			if (buf) {
+				CONTAINER* container = reinterpret_cast<CONTAINER*>(buf);
+				container->data = (typename CONTAINER::StringType::Char*)(buf + sizeof(CONTAINER));
+				container->len = len;
+				container->hash = 0;
+				container->data[len] = 0;
+				return container;
+			} else {
+				Free(old);
+			}
+			return sl_null;
+		}
+
+		template <class CONTAINER>
 		static CONTAINER* AllocStatic(typename CONTAINER::StringType::Char const* sz, sl_size len) noexcept
 		{
 			if (!len) {
@@ -701,7 +722,6 @@ namespace slib
 					if (len2) {
 						ConvertCharset(src2, lenSrc2, container->data + len1);
 					}
-					container->data[len] = 0;
 				}
 				return container;
 			}
@@ -724,7 +744,6 @@ namespace slib
 				if (container && len) {
 					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data, s1, len1);
 					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data + len1, s2, len2);
-					container->data[len] = 0;
 				}
 				return container;
 			}
@@ -753,7 +772,6 @@ namespace slib
 					if (len2) {
 						ConvertCharset(src2, lenSrc2, container->data + len1);
 					}
-					container->data[len] = 0;
 				}
 				return container;
 			}
@@ -782,7 +800,6 @@ namespace slib
 						ConvertCharset(src1, lenSrc1, container->data);
 					}
 					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data + len1, s2, len2);
-					container->data[len] = 0;
 				}
 				return container;
 			}
@@ -839,6 +856,65 @@ namespace slib
 				} else {
 					return Concat<typename STRING::Container>(s1.data32, s1.length, s2.data32, s2.length);
 				}
+			}
+		}
+
+		template <class CONTAINER, class CHAR>
+		class Appender
+		{
+		public:
+			static CONTAINER* append(CONTAINER* container, const CHAR* src, sl_reg lenSrc)
+			{
+				if (lenSrc < 0) {
+					lenSrc = StringTraits<CHAR>::getLength(src);
+				}
+				sl_size len2 = 0;
+				if (lenSrc) {
+					len2 = ConvertCharset(src, lenSrc, (typename CONTAINER::StringType::Char*)sl_null);
+				}
+				sl_size len1 = container->len;
+				sl_size len = len1 + len2;
+				container = Realloc<CONTAINER>(container, len);
+				if (container && len) {
+					if (len2) {
+						ConvertCharset(src, lenSrc, container->data + len1);
+					}
+				}
+				return container;
+			}
+		};
+
+		template <class CONTAINER>
+		class Appender<CONTAINER, typename CONTAINER::StringType::Char>
+		{
+		public:
+			static CONTAINER* append(CONTAINER* container, typename CONTAINER::StringType::Char const* s2, sl_reg len2)
+			{
+				if (len2 < 0) {
+					len2 = StringTraits<typename CONTAINER::StringType::Char>::getLength(s2);
+				}
+				sl_size len1 = container->len;
+				sl_size len = len1 + len2;
+				container = Realloc<CONTAINER>(container, len);
+				if (container && len) {
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data + len1, s2, len2);
+				}
+				return container;
+			}
+		};
+
+		template <class CONTAINER, class CHAR>
+		static void Append(CONTAINER*& container, const CHAR* src, sl_reg lenSrc) noexcept
+		{
+			if (!src) {
+				src = EMPTY_SZ(CHAR);
+			}
+			if (container->ref == 1) {
+				container = Appender<CONTAINER, CHAR>::append(container, src, lenSrc);
+			} else {
+				CONTAINER* old = container;
+				container = Concat<CONTAINER>(container->data, container->len, src, lenSrc);
+				old->decreaseReference();
 			}
 		}
 
@@ -3824,8 +3900,9 @@ namespace slib
 				return sl_true;
 			}
 
-			void resolveProperties(Variant& arg)
+			const Variant& resolveProperties(const Variant& _arg, Variant& varg)
 			{
+				const Variant* arg = &_arg;
 				while (pos < len) {
 					CHAR ch = format[pos];
 					if (ch != '[') {
@@ -3835,16 +3912,18 @@ namespace slib
 					sl_size posName = pos;
 					for (;;) {
 						if (!(getChar(ch))) {
-							return;
+							return *arg;
 						}
 						if (ch == ']') {
-							arg = arg.getItem(String::from(format + posName, pos - posName));
+							varg = arg->getItem(String::from(format + posName, pos - posName));
+							arg = &varg;
 							pos++;
 							break;
 						}
 						pos++;
 					}
 				}
+				return *arg;
 			}
 
 			struct ConversionFlags
@@ -4220,8 +4299,8 @@ namespace slib
 				if (!(parseArgumentIndex(ch, indexArg))) {
 					return sl_false;
 				}
-				Variant arg = params[indexArg];
-				resolveProperties(arg);
+				Variant varg;
+				const Variant& arg = resolveProperties(params[indexArg], varg);
 				if (pos >= len) {
 					return sl_false;
 				}
@@ -4327,26 +4406,23 @@ namespace slib
 	SLIB_INLINE sl_reg CONTAINER::increaseReference() noexcept \
 	{ \
 		if (ref >= 0) { \
-			return Base::interlockedIncrement(&ref); \
+			return CRef::increaseReference(ref); \
 		} \
-		return 1; \
+		return -1; \
 	} \
 	\
 	SLIB_INLINE sl_reg CONTAINER::decreaseReference() noexcept \
 	{ \
-		if (ref > 0) { \
-			sl_reg nRef = Base::interlockedDecrement(&ref); \
-			if (!nRef) { \
-				Free(this); \
-			} \
-			return nRef; \
+		sl_reg nRef = CRef::decreaseReference(ref); \
+		if (!nRef) { \
+			Free(this); \
 		} \
-		return 1; \
+		return nRef; \
 	}
 
 	DEFINE_STRING_CONTAINER_IMPL(StringContainer)
-		DEFINE_STRING_CONTAINER_IMPL(StringContainer16)
-		DEFINE_STRING_CONTAINER_IMPL(StringContainer32)
+	DEFINE_STRING_CONTAINER_IMPL(StringContainer16)
+	DEFINE_STRING_CONTAINER_IMPL(StringContainer32)
 
 
 #define DEFINE_STRING_INLINE_IMPL(STRING) \
@@ -4831,84 +4907,170 @@ namespace slib
 		return create(str); \
 	} \
 	\
-	STRING& STRING::operator+=(const STRING& _other) noexcept \
-	{ \
-		Container* other = _other.m_container; \
-		if (!other) { \
-			return *this; \
-		} \
-		if (isEmpty()) { \
-			return *this = _other; \
-		} \
-		if (!(other->len)) { \
-			return *this; \
-		} \
-		Container* thiz = m_container; \
-		*this = STRING(Concat<Container>(thiz->data, thiz->len, other->data, other->len)); \
-		return *this; \
-	} \
-	\
 	STRING& STRING::operator+=(STRING&& _other) noexcept \
 	{ \
 		Container* other = _other.m_container; \
-		if (!other) { \
-			return *this; \
+		if (other) { \
+			if (isEmpty()) { \
+				return *this = Move(_other); \
+			} \
+			if (other->len) { \
+				Append<Container>(m_container, other->data, other->len); \
+			} \
 		} \
-		if (isEmpty()) { \
-			return *this = Move(_other); \
-		} \
-		if (!(other->len)) { \
-			return *this; \
-		} \
-		Container* thiz = m_container; \
-		*this = STRING(Concat<Container>(thiz->data, thiz->len, other->data, other->len)); \
 		return *this; \
 	} \
 	\
-	STRING STRING::operator+(const STRING& _other) const noexcept \
+	STRING& STRING::operator+=(const STRING& _other) noexcept \
 	{ \
 		Container* other = _other.m_container; \
-		if (!other) { \
-			return *this; \
+		if (other) { \
+			if (isEmpty()) { \
+				return *this = _other; \
+			} \
+			if (other->len) { \
+				Append<Container>(m_container, other->data, other->len); \
+			} \
 		} \
-		if (isEmpty()) { \
-			return _other; \
-		} \
-		if (!(other->len)) { \
-			return *this; \
-		} \
-		Container* thiz = m_container; \
-		return Concat<Container>(thiz->data, thiz->len, other->data, other->len); \
+		return *this; \
 	} \
 	\
-	STRING STRING::operator+(typename STRING::StringViewType const& other) const noexcept \
+	STRING& STRING::operator+=(typename STRING::StringViewType const& other) noexcept \
 	{ \
-		if (other.isNull()) { \
-			return *this; \
+		if (other.isNotNull()) { \
+			if (isEmpty()) { \
+				return *this = other; \
+			} \
+			if (other.isNotEmpty()) { \
+				Append<Container>(m_container, other.getUnsafeData(), other.getUnsafeLength()); \
+			} \
 		} \
-		if (isEmpty()) { \
-			return other; \
-		} \
-		if (other.isEmpty()) { \
-			return *this; \
-		} \
-		Container* thiz = m_container; \
-		return Concat<Container>(thiz->data, thiz->len, other.getUnsafeData(), other.getUnsafeLength()); \
+		return *this; \
 	} \
 	\
-	STRING STRING::operator+(typename STRING::Char const* sz) const noexcept \
+	STRING& STRING::operator+=(typename STRING::Char const* sz) noexcept \
 	{ \
-		if (!sz) { \
-			return *this; \
+		if (sz) { \
+			if (isEmpty()) { \
+				return *this = sz; \
+			} \
+			if (*sz) { \
+				Append<Container>(m_container, sz, -1); \
+			} \
 		} \
-		if (isEmpty()) { \
-			return sz; \
+		return *this; \
+	} \
+	\
+	STRING STRING::operator+(STRING&& _other) const& noexcept \
+	{ \
+		Container* other = _other.m_container; \
+		if (other) { \
+			if (isEmpty()) { \
+				return Move(_other); \
+			} \
+			if (other->len) { \
+				Container* thiz = m_container; \
+				return Concat<Container>(thiz->data, thiz->len, other->data, other->len); \
+			} \
 		} \
-		if (!(*sz)) { \
-			return *this; \
+		return *this; \
+	} \
+	\
+	STRING STRING::operator+(const STRING& _other) const& noexcept \
+	{ \
+		Container* other = _other.m_container; \
+		if (other) { \
+			if (isEmpty()) { \
+				return _other; \
+			} \
+			if (other->len) { \
+				Container* thiz = m_container; \
+				return Concat<Container>(thiz->data, thiz->len, other->data, other->len); \
+			} \
 		} \
-		Container* thiz = m_container; \
-		return Concat<Container>(thiz->data, thiz->len, sz, -1); \
+		return *this; \
+	} \
+	\
+	STRING STRING::operator+(typename STRING::StringViewType const& other) const& noexcept \
+	{ \
+		if (other.isNotNull()) { \
+			if (isEmpty()) { \
+				return other; \
+			} \
+			if (other.isNotEmpty()) { \
+				Container* thiz = m_container; \
+				return Concat<Container>(thiz->data, thiz->len, other.getUnsafeData(), other.getUnsafeLength()); \
+			} \
+		} \
+		return *this; \
+	} \
+	\
+	STRING STRING::operator+(typename STRING::Char const* sz) const& noexcept \
+	{ \
+		if (sz) { \
+			if (isEmpty()) { \
+				return sz; \
+			} \
+			if (*sz) { \
+				Container* thiz = m_container; \
+				return Concat<Container>(thiz->data, thiz->len, sz, -1); \
+			} \
+		} \
+		return *this; \
+	} \
+	\
+	STRING STRING::operator+(STRING&& _other)&& noexcept \
+	{ \
+		Container* other = _other.m_container; \
+		if (other) { \
+			if (isEmpty()) { \
+				return Move(_other); \
+			} \
+			if (other->len) { \
+				Append<Container>(m_container, other->data, other->len); \
+			} \
+		} \
+		return Move(*this); \
+	} \
+	\
+	STRING STRING::operator+(const STRING& _other)&& noexcept \
+	{ \
+		Container* other = _other.m_container; \
+		if (other) { \
+			if (isEmpty()) { \
+				return _other; \
+			} \
+			if (other->len) { \
+				Append<Container>(m_container, other->data, other->len); \
+			} \
+		} \
+		return Move(*this); \
+	} \
+	\
+	STRING STRING::operator+(typename STRING::StringViewType const& other)&& noexcept \
+	{ \
+		if (other.isNotNull()) { \
+			if (isEmpty()) { \
+				return other; \
+			} \
+			if (other.isNotEmpty()) { \
+				Append<Container>(m_container, other.getUnsafeData(), other.getUnsafeLength()); \
+			} \
+		} \
+		return Move(*this); \
+	} \
+	\
+	STRING STRING::operator+(typename STRING::Char const* sz)&& noexcept \
+	{ \
+		if (sz) { \
+			if (isEmpty()) { \
+				return sz; \
+			} \
+			if (*sz) { \
+				Append<Container>(m_container, sz, -1); \
+			} \
+		} \
+		return Move(*this); \
 	} \
 	\
 	STRING operator+(typename STRING::Char const* sz, const STRING& str) noexcept \

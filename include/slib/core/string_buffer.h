@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -88,7 +88,7 @@ namespace slib
 		/**
 		 * Add string represented by StringStorage struct to the queue.
 		 */
-		sl_bool add(const StringStorage& str) noexcept;
+		sl_bool addStorage(const StringStorage& str) noexcept;
 
 		/**
 		 * Add string pointed by buf to the queue.
@@ -182,7 +182,7 @@ namespace slib
 		/**
 		 * Add string represented by StringStorage struct to the queue.
 		 */
-		sl_bool add(const StringStorage& str) noexcept;
+		sl_bool addStorage(const StringStorage& str) noexcept;
 
 		/**
 		 * Add string pointed by buf to the queue.
@@ -276,7 +276,7 @@ namespace slib
 		/**
 		 * Add string represented by StringStorage struct to the queue.
 		 */
-		sl_bool add(const StringStorage& str) noexcept;
+		sl_bool addStorage(const StringStorage& str) noexcept;
 
 		/**
 		 * Add string pointed by buf to the queue.

@@ -1102,7 +1102,7 @@ namespace slib
 					if (i > start) {
 						data.data8 = str + start;
 						data.length = i - start;
-						if (!(output.add(data))) {
+						if (!(output.addStorage(data))) {
 							return sl_false;
 						}
 						start = i + 3;
@@ -1116,7 +1116,7 @@ namespace slib
 			if (len > start) {
 				data.data8 = str + start;
 				data.length = len - start;
-				if (!(output.add(data))) {
+				if (!(output.addStorage(data))) {
 					return sl_false;
 				}
 			}
@@ -1205,7 +1205,7 @@ namespace slib
 					if (i > start) {
 						data.data8 = str + start;
 						data.length = i - start;
-						if (!(output.add(data))) {
+						if (!(output.addStorage(data))) {
 							return sl_false;
 						}
 						start = i + 2;
@@ -1216,7 +1216,7 @@ namespace slib
 			if (len > start) {
 				data.data8 = str + start;
 				data.length = len - start;
-				if (!(output.add(data))) {
+				if (!(output.addStorage(data))) {
 					return sl_false;
 				}
 			}
@@ -1297,7 +1297,7 @@ namespace slib
 					if (i > start) {
 						data.data8 = str + start;
 						data.length = i - start;
-						if (!(output.add(data))) {
+						if (!(output.addStorage(data))) {
 							return sl_false;
 						}
 						start = i + 2;
@@ -1308,7 +1308,7 @@ namespace slib
 			if (len > start) {
 				data.data8 = str + start;
 				data.length = len - start;
-				if (!(output.add(data))) {
+				if (!(output.addStorage(data))) {
 					return sl_false;
 				}
 			}
@@ -2811,12 +2811,12 @@ return;
 				if (i > start) {
 					data.data8 = sz + start;
 					data.length = i - start;
-					if (!(output.add(data))) {
+					if (!(output.addStorage(data))) {
 						return sl_false;
 					}
 				}
 				start = i + 1;
-				if (!(output.add(dataEscape))) {
+				if (!(output.addStorage(dataEscape))) {
 					return sl_false;
 				}
 			}
@@ -2824,7 +2824,7 @@ return;
 		if (len > start) {
 			data.data8 = sz + start;
 			data.length = len - start;
-			if (!(output.add(data))) {
+			if (!(output.addStorage(data))) {
 				return sl_false;
 			}
 		}
