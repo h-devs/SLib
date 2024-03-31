@@ -221,11 +221,27 @@ namespace slib
 		virtual ~CRef();
 
 	public:
-		sl_reg increaseReference() noexcept;
+		static sl_reg increaseReference(volatile sl_reg& refCount) noexcept;
 
-		sl_reg decreaseReference() noexcept;
+		static sl_reg decreaseReference(volatile sl_reg& refCount) noexcept;
 
-		sl_reg decreaseReferenceNoFree() noexcept;
+		sl_reg increaseReference() noexcept
+		{
+			sl_reg nRef = increaseReference(m_nRefCount);
+			if (nRef == 1) {
+				init();
+			}
+			return nRef;
+		}
+
+		sl_reg decreaseReference() noexcept
+		{
+			sl_reg nRef = decreaseReference(m_nRefCount);
+			if (!nRef) {
+				_free();
+			}
+			return nRef;
+		}
 
 		sl_reg getReferenceCount() noexcept;
 
@@ -253,12 +269,14 @@ namespace slib
 	private:
 		void _clearWeak() noexcept;
 
+		void _free() noexcept;
+
 	public:
 		sl_bool _isWeakRef() const noexcept;
 
 		CWeakRef* _getWeakObject() noexcept;
 
-		void _free() noexcept;
+		sl_reg _decreaseReference() noexcept;
 
 	public:
 		CRef& operator=(const CRef& other) noexcept;

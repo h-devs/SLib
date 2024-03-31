@@ -24,7 +24,7 @@
 #define CHECKHEADER_SLIB_CORE_SHARED
 
 #include "atomic.h"
-#include "base.h"
+#include "ref.h"
 #include "unique_ptr.h"
 
 #define PRIV_SLIB_DEFINE_SHARED_CLASS_MEMBERS \
@@ -346,12 +346,12 @@ namespace slib
 			public:
 				sl_reg increaseReference() noexcept
 				{
-					return Base::interlockedIncrement(&refCount);
+					return CRef::increaseReference(refCount);
 				}
 
 				sl_reg decreaseReference()
 				{
-					sl_reg nRef = Base::interlockedDecrement(&refCount);
+					sl_reg nRef = CRef::decreaseReference(refCount);
 					if (!nRef) {
 						delete this;
 					}
@@ -401,9 +401,19 @@ namespace slib
 				virtual ~PtrContainer();
 
 			public:
-				sl_reg increaseReference() noexcept;
+				sl_reg increaseReference() noexcept
+				{
+					return CRef::increaseReference(refCount);
+				}
 
-				sl_reg decreaseReference();
+				sl_reg decreaseReference()
+				{
+					sl_reg nRef = CRef::decreaseReference(refCount);
+					if (!nRef) {
+						delete this;
+					}
+					return nRef;
+				}
 
 			};
 

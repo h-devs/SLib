@@ -308,7 +308,7 @@ namespace slib
 					pcap->_onCapturePacket(packet);
 					pcap->decreaseReference();
 				} else {
-					pcap->decreaseReferenceNoFree();
+					pcap->_decreaseReference();
 				}
 			}
 
@@ -345,7 +345,7 @@ namespace slib
 								_onError();
 								decreaseReference();
 							} else {
-								decreaseReferenceNoFree();
+								_decreaseReference();
 							}
 						}
 						break;
