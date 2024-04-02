@@ -8,7 +8,8 @@
 #include <slib/core/queue.h>
 #include <slib/core/thread.h>
 #include <slib/core/safe_static.h>
-#include <slib/ui/platform.h>
+#include <slib/platform/win32/platform.h>
+#include <slib/platform/win32/com.h>
 
 #include <objbase.h>
 #include <uiautomation.h>
@@ -23,14 +24,17 @@ namespace slib
 	namespace
 	{
 
-		static IUIAutomationCondition* CreateCondition(IUIAutomation* automation, PROPERTYID propId, const VARIANT& value)
+		template <class INTERFACE>
+		using ComPtr = win32::ComPtr<INTERFACE>;
+
+		static ComPtr<IUIAutomationCondition> CreateCondition(IUIAutomation* automation, PROPERTYID propId, const VARIANT& value)
 		{
 			IUIAutomationCondition* condition = NULL;
 			automation->CreatePropertyCondition(propId, value, &condition);
 			return condition;
 		}
 
-		static IUIAutomationCondition* CreateCondition(IUIAutomation* automation, PROPERTYID propId, INT value)
+		static ComPtr<IUIAutomationCondition> CreateCondition(IUIAutomation* automation, PROPERTYID propId, INT value)
 		{
 			VARIANT var = { 0 };
 			var.vt = VT_INT;
@@ -38,79 +42,72 @@ namespace slib
 			return CreateCondition(automation, propId, var);
 		}
 
-		static IUIAutomationCondition* CreateCondition(IUIAutomation* automation, PROPERTYID propId, BSTR value)
+		static ComPtr<IUIAutomationCondition> CreateCondition(IUIAutomation* automation, PROPERTYID propId, BSTR value)
 		{
 			VARIANT var = { 0 };
 			var.vt = VT_BSTR;
 			var.bstrVal = SysAllocString(value);
-			IUIAutomationCondition* condition = CreateCondition(automation, propId, var);
+			ComPtr<IUIAutomationCondition> condition = CreateCondition(automation, propId, var);
 			VariantClear(&var);
 			return condition;
 		}
 
-		static IUIAutomationCondition* CreateOrCondition(IUIAutomation* automation, IUIAutomationCondition*&& condition1, IUIAutomationCondition*&& condition2, IUIAutomationCondition*&& condition3)
+		static ComPtr<IUIAutomationCondition> CreateOrCondition(IUIAutomation* automation, ComPtr<IUIAutomationCondition>&& condition1, ComPtr<IUIAutomationCondition>&& condition2, ComPtr<IUIAutomationCondition>&& condition3)
 		{
 			IUIAutomationCondition* condition = NULL;
-			if (condition1) {
-				if (condition2) {
-					if (condition3) {
-						IUIAutomationCondition* conditions[] = { condition1, condition2, condition3 };
+			if (condition1.isNotNull()) {
+				if (condition2.isNotNull()) {
+					if (condition3.isNotNull()) {
+						IUIAutomationCondition* conditions[] = { condition1.get(), condition2.get(), condition3.get() };
 						automation->CreateOrConditionFromNativeArray(conditions, 3, &condition);
-						condition3->Release();
-						condition3 = NULL;
+						condition3.setNull();
 					}
-					condition2->Release();
-					condition2 = NULL;
+					condition2.setNull();
 				}
-				condition1->Release();
-				condition1 = NULL;
+				condition1.setNull();
 			}
 			return condition;
 		}
 
-		static IUIAutomationCondition* CreateAndCondition(IUIAutomation* automation, IUIAutomationCondition*&& condition1, IUIAutomationCondition*&& condition2)
+		static ComPtr<IUIAutomationCondition> CreateAndCondition(IUIAutomation* automation, ComPtr<IUIAutomationCondition>&& condition1, ComPtr<IUIAutomationCondition>&& condition2)
 		{
 			IUIAutomationCondition* condition = NULL;
-			if (condition1) {
-				if (condition2) {
-					automation->CreateAndCondition(condition1, condition2, &condition);
-					condition2->Release();
-					condition2 = NULL;
+			if (condition1.isNotNull()) {
+				if (condition2.isNotNull()) {
+					automation->CreateAndCondition(condition1.get(), condition2.get(), &condition);
+					condition2.setNull();
 				}
-				condition1->Release();
-				condition1 = NULL;
+				condition1.setNull();
 			}
 			return condition;
 		}
 
-		static IUIAutomationElement* FindElement(IUIAutomationElement* parent, TreeScope scope, IUIAutomationCondition*&& condition)
+		static ComPtr<IUIAutomationElement> FindElement(IUIAutomationElement* parent, TreeScope scope, ComPtr<IUIAutomationCondition>&& condition)
 		{
 			IUIAutomationElement* ret = NULL;
-			if (condition) {
-				parent->FindFirst(scope, condition, &ret);
-				condition->Release();
-				condition = NULL;
+			if (condition.isNotNull()) {
+				parent->FindFirst(scope, condition.get(), &ret);
+				condition.setNull();
 			}
 			return ret;
 		}
 
-		static IUIAutomationElementArray* FindElements(IUIAutomationElement* parent, TreeScope scope, IUIAutomationCondition*&& condition)
+		static ComPtr<IUIAutomationElementArray> FindElements(IUIAutomationElement* parent, TreeScope scope, ComPtr<IUIAutomationCondition>&& condition)
 		{
 			IUIAutomationElementArray* ret = NULL;
-			if (condition) {
-				parent->FindAll(scope, condition, &ret);
-				condition->Release();
-				condition = NULL;
+			if (condition.isNotNull()) {
+				parent->FindAll(scope, condition.get(), &ret);
+				condition.setNull();
 			}
 			return ret;
 		}
 
-		static IUIAutomationElement* FindEditElementByName(IUIAutomation* automation, IUIAutomationElement* parent, TreeScope scope, BSTR name)
+		static ComPtr<IUIAutomationElement> FindEditElementByName(IUIAutomation* automation, IUIAutomationElement* parent, TreeScope scope, BSTR name)
 		{
 			return FindElement(parent, scope, CreateAndCondition(automation, CreateCondition(automation, UIA_ControlTypePropertyId, UIA_EditControlTypeId), CreateCondition(automation, UIA_NamePropertyId, name)));
 		}
 
-		static IUIAutomationElement* FindEditElementById(IUIAutomation* automation, IUIAutomationElement* parent, TreeScope scope, BSTR id)
+		static ComPtr<IUIAutomationElement> FindEditElementById(IUIAutomation* automation, IUIAutomationElement* parent, TreeScope scope, BSTR id)
 		{
 			return FindElement(parent, scope, CreateAndCondition(automation, CreateCondition(automation, UIA_ControlTypePropertyId, UIA_EditControlTypeId), CreateCondition(automation, UIA_AutomationIdPropertyId, id)));
 		}
@@ -127,34 +124,51 @@ namespace slib
 			return ret;
 		}
 
-		static String GetAddressBarText(IUIAutomation* automation, IUIAutomationElement* parent)
+		static ComPtr<IUIAutomationElement> FindAddressBarElement(IUIAutomation* automation, IUIAutomationElement* element)
 		{
-			IUIAutomationElement* addressBar;
-			String16 className = GetElementProperty(parent, UIA_ClassNamePropertyId).getString16();
+			String16 className = GetElementProperty(element, UIA_ClassNamePropertyId).getString16();
 			if (className == (sl_char16*)CHROME_WINDOW_CLASS) {
-				addressBar = FindEditElementByName(automation, parent, TreeScope_Subtree, L"Address and search bar");
+				return FindEditElementByName(automation, element, TreeScope_Subtree, L"Address and search bar");
 			} else if (className == (sl_char16*)FIREFOX_WINDOW_CLASS) {
-				addressBar = FindEditElementById(automation, parent, TreeScope_Subtree, L"urlbar-input");
+				return FindEditElementById(automation, element, TreeScope_Subtree, L"urlbar-input");
 			} else if (className == (sl_char16*)IE_WINDOW_CLASS) {
-				addressBar = FindEditElementByName(automation, parent, TreeScope_Subtree, L"Address");
+				return FindEditElementByName(automation, element, TreeScope_Subtree, L"Address");
 			} else {
 				return sl_null;
 			}
-			if (!addressBar) {
+		}
+
+		static String GetAddressBarText(IUIAutomation* automation, IUIAutomationElement* element)
+		{
+			ComPtr<IUIAutomationElement> addressBar = FindAddressBarElement(automation, element);
+			if (addressBar.isNull()) {
 				return sl_null;
 			}
-			String ret = GetElementProperty(addressBar, UIA_ValueValuePropertyId).getString();
-			addressBar->Release();
-			return ret;
+			return GetElementProperty(addressBar.get(), UIA_ValueValuePropertyId).getString();
 		}
 
-		static sl_bool IsBrowserElement(IUIAutomationElement* element)
+		static String GetBrowserTitle(IUIAutomation* automation, IUIAutomationElement* element)
+		{
+			ComPtr<IUIAutomationElement> pane = FindElement(element, TreeScope_Children, CreateCondition(automation, UIA_ClassNamePropertyId, L"BrowserRootView"));
+			if (pane.isNotNull()) {
+				// Edge
+				return GetElementProperty(pane.get(), UIA_NamePropertyId).getString();
+			} else {
+				return GetElementProperty(element, UIA_NamePropertyId).getString();
+			}
+		}
+
+		static sl_bool IsBrowserElement(IUIAutomation* automation, IUIAutomationElement* element)
 		{
 			String16 name = GetElementProperty(element, UIA_ClassNamePropertyId).getString16();
-			return name == (sl_char16*)CHROME_WINDOW_CLASS || name == (sl_char16*)FIREFOX_WINDOW_CLASS || name == (sl_char16*)IE_WINDOW_CLASS;
+			if (name == (sl_char16*)CHROME_WINDOW_CLASS || name == (sl_char16*)FIREFOX_WINDOW_CLASS || name == (sl_char16*)IE_WINDOW_CLASS) {
+				ComPtr<IUIAutomationElement> addressBar = FindAddressBarElement(automation, element);
+				return addressBar.isNotNull();
+			}
+			return sl_false;
 		}
 
-		static IUIAutomationElementArray* FindBrowserElements(IUIAutomation* automation, IUIAutomationElement* root)
+		static ComPtr<IUIAutomationElementArray> FindBrowserElements(IUIAutomation* automation, IUIAutomationElement* root)
 		{
 			return FindElements(root, TreeScope_Children, CreateOrCondition(automation, CreateCondition(automation, UIA_ClassNamePropertyId, CHROME_WINDOW_CLASS), CreateCondition(automation, UIA_ClassNamePropertyId, FIREFOX_WINDOW_CLASS), CreateCondition(automation, UIA_ClassNamePropertyId, IE_WINDOW_CLASS)));
 		}
@@ -226,57 +240,92 @@ namespace slib
 		public:
 			MonitorContext* context;
 
+			ComPtr<IUIAutomation> automation;
 			Ref<Event> event;
-			Queue< Pair<IUIAutomationElement*, EVENTID> > queueEvents;
+			Queue< Pair<ComPtr<IUIAutomationElement>, EVENTID> > queueEvents;
+			Queue<sl_uint64> queueRemovingWindows;
+			HashMap< sl_uint64, ComPtr<IUIAutomationElement> > watchingBrowsers;
+			HashMap<sl_uint64, String> lastTitles;
 
 		public:
-			void addEventHandler(IUIAutomation* automation, IUIAutomationElement* element)
+			void onUpdate(sl_uint64 id, String& url, String& title)
 			{
-				PROPERTYID propId = UIA_NamePropertyId;
-				automation->AddPropertyChangedEventHandlerNativeArray(element, TreeScope_Element, NULL, this, &propId, 1);
+				String lastTitle = lastTitles.getValue_NoLock(id);
+				if (lastTitle == title) {
+					return;
+				}
+				lastTitles.put_NoLock(id, title);
+				context->mergedCallback(url, title);
 			}
 
-			void addEventHandlers(IUIAutomation* automation, IUIAutomationElement* root)
+			void onUpdate(sl_uint64 id, IUIAutomationElement* element)
 			{
-				IUIAutomationElementArray* arr = FindBrowserElements(automation, root);
-				if (arr) {
+				String title = GetBrowserTitle(automation.get(), element);
+				if (title.isNotEmpty()) {
+					String url = GetAddressBarText(automation.get(), element);
+					if (url.isNotEmpty()) {
+						onUpdate(id, url, title);
+					}
+				}
+			}
+
+			void addEventHandler(IUIAutomationElement* element)
+			{
+				sl_uint64 id = GetElementProperty(element, UIA_NativeWindowHandlePropertyId).getUint64();
+				if (!id) {
+					return;
+				}
+				PROPERTYID propId = UIA_NamePropertyId;
+				automation->AddPropertyChangedEventHandlerNativeArray(element, TreeScope_Element, NULL, this, &propId, 1);
+				if (!(watchingBrowsers.find_NoLock(id))) {
+					if (watchingBrowsers.put_NoLock(id, element)) {
+						element->AddRef();
+					}
+				}
+			}
+
+			void addEventHandlers(IUIAutomationElement* root)
+			{
+				ComPtr<IUIAutomationElementArray> arr = FindBrowserElements(automation.get(), root);
+				if (arr.isNotNull()) {
 					int n = 0;
 					arr->get_Length(&n);
 					for (int i = 0; i < n; i++) {
-						IUIAutomationElement* element = NULL;
-						arr->GetElement(i, &element);
-						if (element) {
-							addEventHandler(automation, element);
-							element->Release();
+						ComPtr<IUIAutomationElement> element;
+						arr->GetElement(i, &(element.ptr));
+						if (element.isNotNull()) {
+							ComPtr<IUIAutomationElement> addressBar = FindAddressBarElement(automation, element);
+							if (addressBar.isNotNull()) {
+								addEventHandler(element.get());
+							}
 						}
 					}
-					arr->Release();
 				}
 			}
 
-			void processEvent(IUIAutomation* automation, IUIAutomationElement* element, EVENTID eventId)
+			void processEvent(IUIAutomationElement* element, EVENTID eventId)
 			{
 				if (eventId == UIA_Window_WindowOpenedEventId) {
-					addEventHandler(automation, element);
-				} else if (eventId == UIA_Window_WindowClosedEventId) {
-					automation->RemovePropertyChangedEventHandler(element, this);
+					addEventHandler(element);
 				} else if (eventId == UIA_AutomationPropertyChangedEventId) {
-					String title = GetElementProperty(element, UIA_NamePropertyId).getString();
-					if (title.isNotEmpty()) {
-						String url = GetAddressBarText(automation, element);
-						if (url.isNotEmpty()) {
-							context->mergedCallback(url, title);
-						}
+					sl_uint64 id = GetElementProperty(element, UIA_NativeWindowHandlePropertyId).getUint64();
+					if (IsWindow((HWND)((void*)((sl_size)id)))) {
+						watchingBrowsers.remove_NoLock(id);
+						onUpdate(id, element);
 					}
 				}
-				element->Release();
 			}
 
-			void processEvents(IUIAutomation* automation)
+			void processEvents()
 			{
-				Pair<IUIAutomationElement*, EVENTID> item;
+				Pair<ComPtr<IUIAutomationElement>, EVENTID> item;
 				while (queueEvents.pop(&item)) {
-					processEvent(automation, item.first, item.second);
+					processEvent(item.first, item.second);
+				}
+				sl_uint64 id;
+				while (queueRemovingWindows.pop(&id)) {
+					watchingBrowsers.remove_NoLock(id);
+					lastTitles.remove_NoLock(id);
 				}
 			}
 
@@ -287,24 +336,33 @@ namespace slib
 					return;
 				}
 				CoInitializeEx(NULL, COINIT_MULTITHREADED);
-				IUIAutomation* automation = NULL;
-				HRESULT hr = CoCreateInstance(CLSID_CUIAutomation, NULL, CLSCTX_INPROC, IID_PPV_ARGS(&automation));
-				if (automation) {
-					IUIAutomationElement* root = NULL;
-					automation->GetRootElement(&root);
-					if (root) {
-						hr = automation->AddAutomationEventHandler(UIA_Window_WindowOpenedEventId, root, TreeScope_Children, NULL, this);
-						hr = automation->AddAutomationEventHandler(UIA_Window_WindowClosedEventId, root, TreeScope_Children, NULL, this);
-						addEventHandlers(automation, root);
+				if (automation.createInstance(CLSID_CUIAutomation)) {
+					ComPtr<IUIAutomationElement> root;
+					automation->GetRootElement(&(root.ptr));
+					if (root.isNotNull()) {
+						automation->AddAutomationEventHandler(UIA_Window_WindowOpenedEventId, root.get(), TreeScope_Children, NULL, this);
+						automation->AddAutomationEventHandler(UIA_Window_WindowClosedEventId, root.get(), TreeScope_Children, NULL, this);
+						addEventHandlers(root.get());
 						CurrentThread thread;
 						while (thread.isNotStopping()) {
-							processEvents(automation);
-							event->wait();
+							processEvents();
+							if (watchingBrowsers.isNotEmpty()) {
+								for (auto&& item : watchingBrowsers) {
+									if (IsWindow((HWND)((void*)((sl_size)(item.key))))) {
+										onUpdate(item.key, item.value.get());
+									} else {
+										queueRemovingWindows.push(item.key);
+									}
+								}
+								event->wait(300);
+							} else {
+								event->wait();
+							}
 						}
+						watchingBrowsers.setNull();
 						automation->RemoveAllEventHandlers();
-						root->Release();
 					}
-					automation->Release();
+					automation.setNull();
 				}
 				CoUninitialize();
 			}
@@ -340,12 +398,16 @@ namespace slib
 			// IUIAutomationEventHandler methods
 			HRESULT STDMETHODCALLTYPE HandleAutomationEvent(IUIAutomationElement* sender, EVENTID eventId) override
 			{
-				if (eventId == UIA_Window_WindowOpenedEventId || eventId == UIA_Window_WindowClosedEventId) {
-					if (IsBrowserElement(sender)) {
+				if (eventId == UIA_Window_WindowOpenedEventId) {
+					if (IsBrowserElement(automation, sender)) {
 						sender->AddRef();
 						queueEvents.push(sender, eventId);
 						event->set();
 					}
+				} else if (eventId == UIA_Window_WindowClosedEventId) {
+					sl_uint64 id = GetElementProperty(sender, UIA_NativeWindowHandlePropertyId).getUint64();
+					queueRemovingWindows.push(id);
+					event->set();
 				}
 				return S_OK;
 			}
@@ -354,6 +416,7 @@ namespace slib
 			{
 				if (propertyId == UIA_NamePropertyId) {
 					sender->AddRef();
+					auto s = GetElementProperty(sender, UIA_NamePropertyId).getString();
 					queueEvents.push(sender, UIA_AutomationPropertyChangedEventId);
 					event->set();
 				}
@@ -377,23 +440,22 @@ namespace slib
 	{
 		List<WebBrowserMonitor::Page> ret;
 		CoInitializeEx(NULL, COINIT_MULTITHREADED);
-		IUIAutomation* automation = NULL;
-		HRESULT hr = CoCreateInstance(CLSID_CUIAutomation, NULL, CLSCTX_INPROC, IID_PPV_ARGS(&automation));
-		if (automation) {
-			IUIAutomationElement* root = NULL;
-			hr = automation->GetRootElement(&root);
-			if (root) {
-				IUIAutomationElementArray* arr = FindBrowserElements(automation, root);
-				if (arr) {
+		ComPtr<IUIAutomation> automation;
+		if (automation.createInstance(CLSID_CUIAutomation)) {
+			ComPtr<IUIAutomationElement> root;
+			automation->GetRootElement(&(root.ptr));
+			if (root.isNotNull()) {
+				ComPtr<IUIAutomationElementArray> arr = FindBrowserElements(automation.get(), root.get());
+				if (arr.isNotNull()) {
 					int n = 0;
 					arr->get_Length(&n);
 					for (int i = 0; i < n; i++) {
-						IUIAutomationElement* element = NULL;
-						arr->GetElement(i, &element);
-						if (element) {
-							String title = GetElementProperty(element, UIA_NamePropertyId).getString();
+						ComPtr<IUIAutomationElement> element;
+						arr->GetElement(i, &(element.ptr));
+						if (element.isNotNull()) {
+							String title = GetBrowserTitle(automation.get(), element.get());
 							if (title.isNotEmpty()) {
-								String url = GetAddressBarText(automation, element);
+								String url = GetAddressBarText(automation.get(), element.get());
 								if (url.isNotEmpty()) {
 									WebBrowserMonitor::Page page;
 									page.title = Move(title);
@@ -401,14 +463,10 @@ namespace slib
 									ret.add_NoLock(Move(page));
 								}
 							}
-							element->Release();
 						}
 					}
-					arr->Release();
 				}
-				root->Release();
 			}
-			automation->Release();
 		}
 		return ret;
 	}

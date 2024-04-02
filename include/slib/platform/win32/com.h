@@ -78,21 +78,24 @@ namespace slib
 		class SLIB_EXPORT ComPtr
 		{
 		public:
-			SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(ComPtr, INTERFACE*, ptr, sl_null, COM::releaseObject)
+			SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(ComPtr, INTERFACE*, ptr, COM::releaseObject)
 
 		public:
-			SLIB_CONSTEXPR sl_bool isNull() const
+			SLIB_CONSTEXPR INTERFACE* operator->() const
 			{
-				return !ptr;
+				return ptr;
 			}
 
-			SLIB_CONSTEXPR sl_bool isNotNull() const
+			sl_bool createInstance(CLSID clsid)
 			{
+				setNull();
+				CoCreateInstance(clsid, NULL, CLSCTX_INPROC, IID_PPV_ARGS(&ptr));
 				return ptr != sl_null;
 			}
 
-			SLIB_CONSTEXPR INTERFACE* operator->() const
+			ComPtr<INTERFACE> copy() const
 			{
+				ptr->AddRef();
 				return ptr;
 			}
 
