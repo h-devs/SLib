@@ -161,11 +161,7 @@ namespace slib
 		static sl_bool IsBrowserElement(IUIAutomation* automation, IUIAutomationElement* element)
 		{
 			String16 name = GetElementProperty(element, UIA_ClassNamePropertyId).getString16();
-			if (name == (sl_char16*)CHROME_WINDOW_CLASS || name == (sl_char16*)FIREFOX_WINDOW_CLASS || name == (sl_char16*)IE_WINDOW_CLASS) {
-				ComPtr<IUIAutomationElement> addressBar = FindAddressBarElement(automation, element);
-				return addressBar.isNotNull();
-			}
-			return sl_false;
+			return name == (sl_char16*)CHROME_WINDOW_CLASS || name == (sl_char16*)FIREFOX_WINDOW_CLASS || name == (sl_char16*)IE_WINDOW_CLASS;
 		}
 
 		static ComPtr<IUIAutomationElementArray> FindBrowserElements(IUIAutomation* automation, IUIAutomationElement* root)
@@ -277,9 +273,12 @@ namespace slib
 				}
 				PROPERTYID propId = UIA_NamePropertyId;
 				automation->AddPropertyChangedEventHandlerNativeArray(element, TreeScope_Element, NULL, this, &propId, 1);
-				if (!(watchingBrowsers.find_NoLock(id))) {
-					if (watchingBrowsers.put_NoLock(id, element)) {
-						element->AddRef();
+				ComPtr<IUIAutomationElement> addressBar = FindAddressBarElement(automation, element);
+				if (addressBar.isNotNull()) {
+					if (!(watchingBrowsers.find_NoLock(id))) {
+						if (watchingBrowsers.put_NoLock(id, element)) {
+							element->AddRef();
+						}
 					}
 				}
 			}
