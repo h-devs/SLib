@@ -25,15 +25,56 @@
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
 #include "slib/media/media_player.h"
+#include "slib/media/wave_player.h"
 
-#include "slib/platform.h"
+#include "slib/core/asset.h"
+#include "slib/platform/win32/windows.h"
+
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
 
 namespace slib
 {
+
 	Ref<MediaPlayer> MediaPlayer::_createNative(const MediaPlayerParam& param)
 	{
 		return sl_null;
 	}
+
+
+	sl_bool WavePlayer::play(const WavePlayerParam& param)
+	{
+		DWORD flags = param.flagSynchronous ? SND_SYNC : SND_ASYNC;
+		if (param.flagLoop) {
+			flags |= SND_LOOP;
+		}
+		if (param.content.isNotNull()) {
+			flags |= SND_MEMORY;
+			return PlaySoundW((LPCWSTR)(param.content.getData()), NULL, flags) != FALSE;
+		}
+		if (param.filePath.isNotNull()) {
+			flags |= SND_FILENAME;
+			StringCstr16 filePath(param.filePath);
+			return PlaySoundW((LPCWSTR)(filePath.getData()), NULL, flags) != FALSE;
+		}
+		if (param.resourceName.isNotNull()) {
+			flags |= SND_RESOURCE;
+			StringCstr16 resourceName(param.resourceName);
+			return PlaySoundW((LPCWSTR)(resourceName.getData()), GetModuleHandleW(NULL), flags) != FALSE;
+		}
+		if (param.assetFileName.isNotNull()) {
+			flags |= SND_FILENAME;
+			String16 filePath = String16::from(Assets::getFilePath(param.assetFileName));
+			return PlaySoundW((LPCWSTR)(filePath.getData()), NULL, flags) != FALSE;
+		}
+		return sl_false;
+	}
+
+	void WavePlayer::stopAll()
+	{
+		PlaySoundW(NULL, NULL, 0);
+	}
+
 }
 
 #endif

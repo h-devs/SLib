@@ -26,6 +26,7 @@
 #include "media/video_capture.h"
 #include "media/camera.h"
 #include "media/media_player.h"
+#include "media/wave_player.h"
 
 #include "media/audio_codec.h"
 #include "media/video_codec.h"
