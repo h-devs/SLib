@@ -35,6 +35,7 @@
     <ClInclude Include="..\..\extra\pseudo_tcp\pseudo_tcp_message.h" />
     <ClInclude Include="..\..\extra\qrcode\zxing.h" />
     <ClInclude Include="..\..\extra\qrcode\zxing_scanner.h" />
+    <ClInclude Include="..\..\extra\security\web_browser_monitor.h" />
     <ClInclude Include="..\..\extra\social\alipay.h" />
     <ClInclude Include="..\..\extra\social\ebay.h" />
     <ClInclude Include="..\..\extra\social\etsy.h" />
@@ -67,6 +68,7 @@
     <ClCompile Include="..\..\extra\qrcode\external\zxing\zxing_unity.cpp" />
     <ClCompile Include="..\..\extra\qrcode\zxing.cpp" />
     <ClCompile Include="..\..\extra\qrcode\zxing_scanner.cpp" />
+    <ClCompile Include="..\..\extra\security\web_browser_monitor_win32.cpp" />
     <ClCompile Include="..\..\extra\social\alipay.cpp" />
     <ClCompile Include="..\..\extra\social\alipay_openssl.cpp" />
     <ClCompile Include="..\..\extra\social\alipay_sdk.cpp" />
