@@ -59,9 +59,9 @@ namespace slib
 
 		static String encodeUrl(const StringView& str, sl_char8 padding = 0);
 
-		static sl_size getDecodeOutputSize(sl_size lenBase64);
+		static sl_size getMaximumDecodeOutputSize(sl_size lenBase64);
 
-		static sl_size decode(const StringParam& base64, void* output, sl_char32 padding = '=');
+		static sl_size decode(const StringParam& base64, void* output /* nullable */, sl_char32 padding = '=');
 
 		static Memory decode(const StringParam& base64, sl_char32 padding = '=');
 
