@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -436,7 +436,7 @@ namespace slib
 
 		sl_int32 getMicrosecond() const noexcept;
 
-		Time& setMicrosecond(sl_int32 micros) noexcept;
+		Time& setMicrosecond(sl_int64 micros) noexcept;
 
 		Time& addMicroseconds(sl_int64 micros) noexcept;
 

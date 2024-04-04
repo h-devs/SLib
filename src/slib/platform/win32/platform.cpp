@@ -380,7 +380,7 @@ namespace slib
 
 	sl_bool Win32::getSYSTEMTIME(SYSTEMTIME& st, const Time& time, sl_bool flagUTC)
 	{
-		sl_int64 n = (time.toInt() + SLIB_INT64(11644473600000000)) * 10;  // Convert 1970 Based (time_t mode) to 1601 Based (FILETIME mode)
+		sl_int64 n = time.toWindowsFileTime();
 		if (flagUTC) {
 			if (!(FileTimeToSystemTime((PFILETIME)&n, &st))) {
 				return sl_false;
@@ -414,7 +414,8 @@ namespace slib
 				return sl_false;
 			}
 		}
-		return n / 10 - SLIB_INT64(11644473600000000);  // Convert 1601 Based (FILETIME mode) to 1970 Based (time_t mode)
+		_out.setWindowsFileTime(n);
+		return sl_true;
 	}
 
 	HANDLE Win32::createDeviceHandle(const StringParam& _path, DWORD dwDesiredAccess, DWORD dwShareMode)
