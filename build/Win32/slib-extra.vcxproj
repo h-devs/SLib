@@ -28,7 +28,6 @@
     <ClInclude Include="..\..\extra\dbip\dbip.h" />
     <ClInclude Include="..\..\extra\file_encrypt\chacha.h" />
     <ClInclude Include="..\..\extra\input_sender\input_sender.h" />
-    <ClInclude Include="..\..\extra\keygen\keygen.h" />
     <ClInclude Include="..\..\extra\log_package\log_package.h" />
     <ClInclude Include="..\..\extra\p2p\p2p.h" />
     <ClInclude Include="..\..\extra\pseudo_tcp\pseudo_tcp.h" />
@@ -60,7 +59,6 @@
     <ClCompile Include="..\..\extra\dbip\dbip.cpp" />
     <ClCompile Include="..\..\extra\file_encrypt\chacha.cpp" />
     <ClCompile Include="..\..\extra\input_sender\input_sender.cpp" />
-    <ClCompile Include="..\..\extra\keygen\keygen.cpp" />
     <ClCompile Include="..\..\extra\log_package\log_package.cpp" />
     <ClCompile Include="..\..\extra\p2p\p2p.cpp" />
     <ClCompile Include="..\..\extra\pseudo_tcp\pseudo_tcp.cpp" />

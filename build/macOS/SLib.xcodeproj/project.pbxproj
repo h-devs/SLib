@@ -54,8 +54,6 @@
 		18BE68C02A0D316100BFABA1 /* chat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE66D52A0D315F00BFABA1 /* chat.cpp */; };
 		18BE68C12A0D316100BFABA1 /* chat_client.h in Headers */ = {isa = PBXBuildFile; fileRef = 18BE66D62A0D315F00BFABA1 /* chat_client.h */; };
 		18BE68C22A0D316100BFABA1 /* chat_view.h in Headers */ = {isa = PBXBuildFile; fileRef = 18BE66D72A0D315F00BFABA1 /* chat_view.h */; };
-		18BE68C32A0D316100BFABA1 /* keygen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE66D92A0D315F00BFABA1 /* keygen.cpp */; };
-		18BE68C42A0D316100BFABA1 /* keygen.h in Headers */ = {isa = PBXBuildFile; fileRef = 18BE66DA2A0D315F00BFABA1 /* keygen.h */; };
 		18BE68C52A0D316100BFABA1 /* captcha.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE66DC2A0D315F00BFABA1 /* captcha.cpp */; };
 		18BE68C72A0D316100BFABA1 /* zxing_scanner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE66DF2A0D315F00BFABA1 /* zxing_scanner.cpp */; };
 		18BE68C82A0D316100BFABA1 /* zxing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE66E02A0D315F00BFABA1 /* zxing.cpp */; };
@@ -548,8 +546,6 @@
 		18BE66D52A0D315F00BFABA1 /* chat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chat.cpp; sourceTree = "<group>"; };
 		18BE66D62A0D315F00BFABA1 /* chat_client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chat_client.h; sourceTree = "<group>"; };
 		18BE66D72A0D315F00BFABA1 /* chat_view.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chat_view.h; sourceTree = "<group>"; };
-		18BE66D92A0D315F00BFABA1 /* keygen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = keygen.cpp; sourceTree = "<group>"; };
-		18BE66DA2A0D315F00BFABA1 /* keygen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = keygen.h; sourceTree = "<group>"; };
 		18BE66DC2A0D315F00BFABA1 /* captcha.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = captcha.cpp; sourceTree = "<group>"; };
 		18BE66DD2A0D315F00BFABA1 /* captcha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = captcha.h; sourceTree = "<group>"; };
 		18BE66DF2A0D315F00BFABA1 /* zxing_scanner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zxing_scanner.cpp; sourceTree = "<group>"; };
@@ -1107,15 +1103,6 @@
 				18BE66D22A0D315F00BFABA1 /* chat_view.cpp */,
 			);
 			path = chat;
-			sourceTree = "<group>";
-		};
-		18BE66D82A0D315F00BFABA1 /* keygen */ = {
-			isa = PBXGroup;
-			children = (
-				18BE66DA2A0D315F00BFABA1 /* keygen.h */,
-				18BE66D92A0D315F00BFABA1 /* keygen.cpp */,
-			);
-			path = keygen;
 			sourceTree = "<group>";
 		};
 		18BE66DB2A0D315F00BFABA1 /* captcha */ = {
@@ -1845,7 +1832,6 @@
 				18BE68CA2A0D316100BFABA1 /* zxing.h in Headers */,
 				18BE69F52A0D316100BFABA1 /* facebook.h in Headers */,
 				18BE68BE2A0D316100BFABA1 /* chat.h in Headers */,
-				18BE68C42A0D316100BFABA1 /* keygen.h in Headers */,
 				18BE6A5D2A0D316100BFABA1 /* pinterest.h in Headers */,
 				18BE6A652A0D316100BFABA1 /* data_store.h in Headers */,
 				18BE69E62A0D316100BFABA1 /* alipay.h in Headers */,
@@ -2080,7 +2066,6 @@
 				18BE6A6C2A0D316100BFABA1 /* log_package.cpp in Sources */,
 				18BE6A672A0D316100BFABA1 /* pseudo_tcp.cpp in Sources */,
 				18BE69F72A0D316100BFABA1 /* linkedin.cpp in Sources */,
-				18BE68C32A0D316100BFABA1 /* keygen.cpp in Sources */,
 				18BE6A632A0D316100BFABA1 /* data_store.cpp in Sources */,
 				18BE6A012A0D316100BFABA1 /* alipay_sdk.cpp in Sources */,
 				18BE68C72A0D316100BFABA1 /* zxing_scanner.cpp in Sources */,

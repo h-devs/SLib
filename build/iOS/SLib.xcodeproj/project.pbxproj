@@ -57,7 +57,6 @@
 		1887E564202CF82400A81967 /* chat_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E498202CF82400A81967 /* chat_view.cpp */; };
 		1887E565202CF82400A81967 /* chat_sqlite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E49A202CF82400A81967 /* chat_sqlite.cpp */; };
 		1887E566202CF82400A81967 /* chat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E49B202CF82400A81967 /* chat.cpp */; };
-		1887E567202CF82400A81967 /* keygen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E49F202CF82400A81967 /* keygen.cpp */; };
 		1887E568202CF82400A81967 /* captcha.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E4A2202CF82400A81967 /* captcha.cpp */; };
 		1887E569202CF82400A81967 /* zxing_scanner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E4A5202CF82400A81967 /* zxing_scanner.cpp */; };
 		1887E56A202CF82400A81967 /* zxing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E4A6202CF82400A81967 /* zxing.cpp */; };
@@ -464,8 +463,6 @@
 		1887E49B202CF82400A81967 /* chat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chat.cpp; sourceTree = "<group>"; };
 		1887E49C202CF82400A81967 /* chat_client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chat_client.h; sourceTree = "<group>"; };
 		1887E49D202CF82400A81967 /* chat_view.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chat_view.h; sourceTree = "<group>"; };
-		1887E49F202CF82400A81967 /* keygen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = keygen.cpp; sourceTree = "<group>"; };
-		1887E4A0202CF82400A81967 /* keygen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = keygen.h; sourceTree = "<group>"; };
 		1887E4A2202CF82400A81967 /* captcha.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = captcha.cpp; sourceTree = "<group>"; };
 		1887E4A3202CF82400A81967 /* captcha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = captcha.h; sourceTree = "<group>"; };
 		1887E4A5202CF82400A81967 /* zxing_scanner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zxing_scanner.cpp; sourceTree = "<group>"; };
@@ -987,15 +984,6 @@
 				1887E498202CF82400A81967 /* chat_view.cpp */,
 			);
 			path = chat;
-			sourceTree = "<group>";
-		};
-		1887E49E202CF82400A81967 /* keygen */ = {
-			isa = PBXGroup;
-			children = (
-				1887E4A0202CF82400A81967 /* keygen.h */,
-				1887E49F202CF82400A81967 /* keygen.cpp */,
-			);
-			path = keygen;
 			sourceTree = "<group>";
 		};
 		1887E4A1202CF82400A81967 /* captcha */ = {
@@ -1639,7 +1627,6 @@
 				1887E55B202CF82400A81967 /* xgpush_ios.mm in Sources */,
 				1887E55E202CF82400A81967 /* fcm_ios.mm in Sources */,
 				1887E558202CF82400A81967 /* fcm.cpp in Sources */,
-				1887E567202CF82400A81967 /* keygen.cpp in Sources */,
 				1887E585202CF82400A81967 /* pinterest_ui.cpp in Sources */,
 				1808BCA32A0D3832005B5AC6 /* dbip.cpp in Sources */,
 				1887E57D202CF82400A81967 /* etsy.cpp in Sources */,

@@ -13,9 +13,6 @@
     <Filter Include="src\social">
       <UniqueIdentifier>{bf767bcf-a3cf-4af3-a71f-92e37bf30b53}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\keygen">
-      <UniqueIdentifier>{c9c8c9d7-4b41-4078-860f-f6fe2e358efc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\dbip">
       <UniqueIdentifier>{6e5e8620-6dc2-434b-a81e-f6ad68f08a4d}</UniqueIdentifier>
     </Filter>
@@ -65,9 +62,6 @@
     </ClInclude>
     <ClInclude Include="..\..\extra\chat\chat.h">
       <Filter>src\chat</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\extra\keygen\keygen.h">
-      <Filter>src\keygen</Filter>
     </ClInclude>
     <ClInclude Include="..\..\extra\social\alipay.h">
       <Filter>src\social</Filter>
@@ -160,9 +154,6 @@
     </ClCompile>
     <ClCompile Include="..\..\extra\chat\chat_resource.cpp">
       <Filter>src\chat</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\extra\keygen\keygen.cpp">
-      <Filter>src\keygen</Filter>
     </ClCompile>
     <ClCompile Include="..\..\extra\social\alipay.cpp">
       <Filter>src\social</Filter>
