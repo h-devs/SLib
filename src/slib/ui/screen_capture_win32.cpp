@@ -118,7 +118,7 @@ namespace slib
 
 		SLIB_SAFE_STATIC_GETTER(Helper, GetHelper)
 
-		static Ref<Image> CaptureScreen(HMONITOR hMonitor)
+		static Ref<Image> CaptureScreen(HDC hDC, HMONITOR hMonitor)
 		{
 			Helper* helper = GetHelper();
 			if (!helper) {
@@ -129,23 +129,23 @@ namespace slib
 			Base::zeroMemory(&info, sizeof(info));
 			info.cbSize = sizeof(info);
 			if (GetMonitorInfoW(hMonitor, &info)) {
-				HDC hDC = CreateDCW(L"DISPLAY", info.szDevice, NULL, NULL);
-				if (hDC) {
-					sl_uint32 width, height;
-					DEVMODEW dm;
-					Base::zeroMemory(&dm, sizeof(dm));
-					dm.dmSize = sizeof(dm);
-					if (EnumDisplaySettingsW(info.szDevice, ENUM_CURRENT_SETTINGS, &dm)) {
-						width = (sl_uint32)(dm.dmPelsWidth);
-						height = (sl_uint32)(dm.dmPelsHeight);
-					} else {
-						width = (sl_uint32)(GetDeviceCaps(hDC, HORZRES));
-						height = (sl_uint32)(GetDeviceCaps(hDC, VERTRES));
-					}
-					Ref<Image> image = helper->getImage(hDC, 0, 0, width, height);
-					DeleteDC(hDC);
-					return image;
+				sl_int32 x, y;
+				sl_uint32 width, height;
+				DEVMODEW dm;
+				Base::zeroMemory(&dm, sizeof(dm));
+				dm.dmSize = sizeof(dm);
+				if (EnumDisplaySettingsW(info.szDevice, ENUM_CURRENT_SETTINGS, &dm)) {
+					x = (sl_int32)(dm.dmPosition.x);
+					y = (sl_int32)(dm.dmPosition.y);
+					width = (sl_uint32)(dm.dmPelsWidth);
+					height = (sl_uint32)(dm.dmPelsHeight);
+				} else {
+					x = 0;
+					y = 0;
+					width = (sl_uint32)(GetDeviceCaps(hDC, HORZRES));
+					height = (sl_uint32)(GetDeviceCaps(hDC, VERTRES));
 				}
+				return helper->getImage(hDC, x, y, width, height);
 			}
 			return sl_null;
 		}
@@ -154,21 +154,29 @@ namespace slib
 
 	Ref<Image> ScreenCapture::takeScreenshot()
 	{
-		POINT pt = { 0, 0 };
-		HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
-		if (hMonitor) {
-			return CaptureScreen(hMonitor);
+		HDC hDC = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
+		if (hDC) {
+			POINT pt = { 0, 0 };
+			HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
+			if (hMonitor) {
+				return CaptureScreen(hDC, hMonitor);
+			}
+			DeleteDC(hDC);
 		}
 		return sl_null;
 	}
 
 	Ref<Image> ScreenCapture::takeScreenshotFromCurrentMonitor()
 	{
-		POINT pt;
-		GetCursorPos(&pt);
-		HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-		if (hMonitor) {
-			return CaptureScreen(hMonitor);
+		HDC hDC = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
+		if (hDC) {
+			POINT pt;
+			GetCursorPos(&pt);
+			HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+			if (hMonitor) {
+				return CaptureScreen(hDC, hMonitor);
+			}
+			DeleteDC(hDC);
 		}
 		return sl_null;
 	}
@@ -176,13 +184,14 @@ namespace slib
 	namespace {
 		struct CaptureScreensContext
 		{
+			HDC hDC;
 			List< Ref<Image> > list;
 		};
 
 		static BOOL CALLBACK EnumDisplayMonitorsCallbackForCaptureScreens(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
 		{
 			CaptureScreensContext& context = *((CaptureScreensContext*)lParam);
-			Ref<Image> image = CaptureScreen(hMonitor);
+			Ref<Image> image = CaptureScreen(context.hDC, hMonitor);
 			if (image.isNotNull()) {
 				context.list.add_NoLock(Move(image));
 			}
@@ -193,7 +202,12 @@ namespace slib
 	List< Ref<Image> > ScreenCapture::takeScreenshotsFromAllMonitors()
 	{
 		CaptureScreensContext context;
+		context.hDC = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
+		if (!(context.hDC)) {
+			return sl_null;
+		}
 		EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallbackForCaptureScreens, (LPARAM)&context);
+		DeleteDC(context.hDC);
 		return context.list;
 	}
 
