@@ -22,6 +22,8 @@
 
 #include "slib/core/stringx.h"
 
+#include "slib/core/system.h"
+#include "slib/core/string_buffer.h"
 #include "slib/core/list.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/math/math.h"
@@ -896,7 +898,6 @@ namespace slib
 	PRIV_STRINGX_MEMBERS(StringView16)
 	PRIV_STRINGX_MEMBERS(StringView32)
 
-
 	sl_bool Stringx::parseUint32Range(const StringParam& str, sl_uint32* from, sl_uint32* to)
 	{
 		if (str.isEmpty()) {
@@ -910,6 +911,73 @@ namespace slib
 			return ParseUint32Range(StringData32(str), from, to);
 		}
 		return sl_false;
+	}
+
+	namespace
+	{
+		template <class RESOLVER>
+		static String ResolveVariables(const StringParam& _str, RESOLVER&& resolver)
+		{
+			StringData str(_str);
+			StringBuffer buf;
+			sl_char8* data = str.getData();
+			sl_size n = str.getLength();
+			sl_size start = 0;
+			sl_size pos = 0;
+			for (; pos < n; pos++) {
+				sl_char8 ch = data[pos];
+				if (ch == '$') {
+					if (pos + 1 < n) {
+						ch = data[pos + 1];
+						if (ch == '{' || ch == '(') {
+							sl_char8 chEnd = ch == '{' ? '}' : ')';
+							if (pos > start) {
+								if (!(buf.addStatic(data + start, pos - start))) {
+									return sl_null;
+								}
+							}
+							pos += 2;
+							start = pos;
+							for (; pos < n; pos++) {
+								if (data[pos] == chEnd) {
+									break;
+								}
+							}
+							if (pos >= n) {
+								start = pos;
+								break;
+							}
+							if (pos > start) {
+								if (!(buf.add(resolver(StringView(data + start, pos - start))))) {
+									return sl_null;
+								}
+							}
+							pos++;
+							start = pos;
+						}
+					}
+				}
+			}
+			if (!start) {
+				return str.toString(_str);
+			}
+			if (pos > start) {
+				if (!(buf.addStatic(data + start, pos - start))) {
+					return sl_null;
+				}
+			}
+			return buf.merge();
+		}
+	}
+
+	String Stringx::resolveVariables(const StringParam& str, const Function<String(const StringView& varName)>& resolver)
+	{
+		return ResolveVariables(str, resolver);
+	}
+
+	String Stringx::resolveEnvironmentVariables(const StringParam& str)
+	{
+		return ResolveVariables(str, &(System::getEnvironmentVariable));
 	}
 
 }
