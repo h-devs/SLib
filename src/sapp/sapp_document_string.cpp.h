@@ -374,11 +374,11 @@ namespace slib
 					if (outName) {
 						*outName = String::concat(*outName, "::", value.variant);
 					}
-					if (outResource) {
-						*outResource = Move(res);
-					}
-					return sl_true;
 				}
+				if (outResource) {
+					*outResource = Move(res);
+				}
+				return sl_true;
 			}
 		} else {
 			if (getItemFromMap(m_strings, localNamespace, value.valueOrName, outName, outResource)) {

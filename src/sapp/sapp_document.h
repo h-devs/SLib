@@ -32,19 +32,23 @@
 namespace slib
 {
 
-	class SAppConfiguration
+	class SAppModuleConfiguration
 	{
 	public:
 		String app_path;
+		List<SAppModuleConfiguration> includes;
+	};
 
-		CList<String> includes;
-
+	class SAppConfiguration : public SAppModuleConfiguration
+	{
+	public:
 		String generate_cpp_target_path;
 		String generate_cpp_namespace;
-		CList<String> generate_cpp_layout_include_headers;
-		CList<String> generate_cpp_layout_include_headers_in_cpp;
+		List<String> generate_cpp_layout_include_headers;
+		List<String> generate_cpp_layout_include_headers_in_cpp;
 
 		Locale simulator_locale;
+		
 
 	public:
 		SAppConfiguration();
@@ -139,16 +143,21 @@ namespace slib
 
 	protected:
 		sl_bool _openResourcesExceptUi();
+		sl_bool _openResourcesExceptUi(const SAppModuleConfiguration& conf, HashSet<String>& includedSet);
 		sl_bool _openResourcesExceptUi(const String& pathApp);
 		sl_bool _openImageResources(const String& pathApp);
 		sl_bool _openRawResources(const String& pathApp);
 		sl_bool _openGlobalResources(const String& pathApp, const String& subdir);
 		sl_bool _openUiResources();
+		sl_bool _openUiResources(const SAppModuleConfiguration& conf, HashSet<String>& includedSet);
 		sl_bool _openUiResources(const String& pathLayouts);
 		sl_bool _openUiResource(const String& path);
 		sl_bool _openUiResourceByName(const String& name);
+		sl_bool _openUiResourceByName(const String& name, sl_bool& flagFound, const SAppModuleConfiguration& conf, HashSet<String>& includedSet);
+		String _resolvePath(const String& path, const String& currentFilePath);
 
 		// Resources Entry
+		sl_bool _parseModuleConfiguration(const String& filePath, SAppModuleConfiguration& conf, const Function<sl_bool(XmlElement* root)>& onAdditionalConfig);
 		sl_bool _parseConfiguration(const String& filePath, SAppConfiguration& conf);
 		void _freeResources();
 		sl_bool _parseResourcesXml(const String& localNamespace, const String& filePath);
@@ -312,7 +321,6 @@ namespace slib
 	private:
 		sl_bool m_flagOpened;
 		String m_pathConf;
-		String m_pathApp;
 
 		SAppConfiguration m_conf;
 

@@ -4324,7 +4324,7 @@ namespace slib
 					return sl_false;
 				}
 				if (value.startsWith("asset://")) {
-					value = String::concat(m_pathApp, "/asset/", value.substring(8));
+					value = String::concat(m_conf.app_path, "/asset/", value.substring(8));
 				}
 				view->setSource(value);
 			}

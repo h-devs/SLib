@@ -25,8 +25,7 @@
 namespace {
 
 	SLIB_STATIC_STRING(g_str_log_appconf_begin, "Opening app configuration file: %s")
-	SLIB_STATIC_STRING(g_str_log_appconf_end, "Finished app configuration")
-	SLIB_STATIC_STRING(g_str_log_open_drawables_begin, "Opening drwable resources: %s")
+	SLIB_STATIC_STRING(g_str_log_open_drawables_begin, "Opening drawable resources: %s")
 	SLIB_STATIC_STRING(g_str_log_open_raws_begin, "Opening raw resources: %s")
 	SLIB_STATIC_STRING(g_str_log_open_resource_begin, "Opening resource file: %s")
 	SLIB_STATIC_STRING(g_str_log_generate_cpp_begin, "Generating C++ files: %s")
