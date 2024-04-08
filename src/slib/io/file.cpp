@@ -831,8 +831,6 @@ namespace slib
 			sl_uint32 ch = (sl_uint8)(buf[i]);
 			if (ch < 0x20) {
 				buf[i] = '_';
-			} else if (ch >= 0x7f && ch < 0xA0) {
-				buf[i] = '_';
 			} else {
 				switch (ch) {
 					case '\\':
@@ -863,8 +861,6 @@ namespace slib
 		for (sl_size i = 0; i < len; i++) {
 			sl_uint32 ch = (sl_uint8)(buf[i]);
 			if (ch < 0x20) {
-				buf[i] = '_';
-			} else if (ch >= 0x7f && ch < 0xA0) {
 				buf[i] = '_';
 			} else {
 				switch (ch) {
