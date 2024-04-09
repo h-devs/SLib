@@ -33,6 +33,7 @@ namespace slib
 	{
 		m_nSamplesPerFrame = 50;
 		m_color = Color::Blue;
+		m_scaleAmplitude = 1.0f;
 
 		setFramesPerWindow(500);
 	}
@@ -83,6 +84,16 @@ namespace slib
 	{
 		m_color = color;
 		invalidate(mode);
+	}
+
+	float AudioView::getAmplitudeScale()
+	{
+		return m_scaleAmplitude;
+	}
+
+	void AudioView::setAmplitudeScale(float scale)
+	{
+		m_scaleAmplitude = scale;
 	}
 
 	void AudioView::pushFrames(const AudioData& data, UIUpdateMode mode)
@@ -162,8 +173,15 @@ namespace slib
 			}
 		}
 		{
+			float scale = m_scaleAmplitude;
+			sl_bool flagScale = !(Math::isAlmostZero(scale - 1.0f));
 			for (sl_uint32 i = iStart; i < nFramesPerWindow; i++) {
-				sl_int32 y = h2 - (sl_uint32)(window[i - iStart]) * height / 0x10000;
+				sl_uint16 value = window[i - iStart];
+				if (flagScale) {
+					sl_int32 s = (sl_int32)(((float)value) * scale);
+					value = (sl_uint16)(Math::clamp0_65535(s));
+				}
+				sl_int32 y = h2 - ((sl_uint32)value) * height / 0x10000;
 				pts[i].x = (sl_real)(bounds.left + i * width / nFramesPerWindow);
 				pts[i].y = (sl_real)(bounds.top + y);
 				pts[iEndPts - i].x = pts[i].x;

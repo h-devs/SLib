@@ -53,6 +53,10 @@ namespace slib
 
 		void setColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		float getAmplitudeScale();
+
+		void setAmplitudeScale(float scale);
+
 		void pushFrames(const AudioData& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
@@ -61,8 +65,8 @@ namespace slib
 	protected:
 		sl_uint32 m_nSamplesPerFrame;
 		sl_uint32 m_nFramesPerWindow;
-
 		Color m_color;
+		float m_scaleAmplitude;
 
 		LoopQueue<sl_uint16> m_queueFrames;
 		Array<sl_uint16> m_bufProcess;
