@@ -68,7 +68,20 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<DatabaseModel> DatabaseModel::create(const Ref<Database>& db, const DatabaseQuerySource& source, const DatabaseExpression& where, const ListParam<Variant>& params)
+	Ref<DatabaseModel> DatabaseModel::create(const Ref<Database>& db, const DatabaseQuerySource& source, const DatabaseExpression& where)
+	{
+		if (db.isNotNull()) {
+			Shared<Database::SelectParam> query = Shared<Database::SelectParam>::create();
+			if (query.isNotNull()) {
+				query->source = source;
+				query->where = where;
+				return new DatabaseModel(db, query, sl_null);
+			}
+		}
+		return sl_null;
+	}
+
+	Ref<DatabaseModel> DatabaseModel::createBy(const Ref<Database>& db, const DatabaseQuerySource& source, const DatabaseExpression& where, const ListParam<Variant>& params)
 	{
 		if (db.isNotNull()) {
 			Shared<Database::SelectParam> query = Shared<Database::SelectParam>::create();
@@ -81,7 +94,21 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<DatabaseModel> DatabaseModel::create(const Ref<Database>& db, const DatabaseQuerySource& source, const ListParam<DatabaseColumn>& columns, const DatabaseExpression& where, const ListParam<Variant>& params)
+	Ref<DatabaseModel> DatabaseModel::create(const Ref<Database>& db, const DatabaseQuerySource& source, const ListParam<DatabaseColumn>& columns, const DatabaseExpression& where)
+	{
+		if (db.isNotNull()) {
+			Shared<Database::SelectParam> query = Shared<Database::SelectParam>::create();
+			if (query.isNotNull()) {
+				query->source = source;
+				query->columns = columns.toList();
+				query->where = where;
+				return new DatabaseModel(db, query, sl_null);
+			}
+		}
+		return sl_null;
+	}
+
+	Ref<DatabaseModel> DatabaseModel::createBy(const Ref<Database>& db, const DatabaseQuerySource& source, const ListParam<DatabaseColumn>& columns, const DatabaseExpression& where, const ListParam<Variant>& params)
 	{
 		if (db.isNotNull()) {
 			Shared<Database::SelectParam> query = Shared<Database::SelectParam>::create();

@@ -48,9 +48,27 @@ namespace slib
 
 		static Ref<DatabaseModel> create(const Ref<Database>& db, const DatabaseQuerySource& source, const ListParam<DatabaseColumn>& columns);
 
-		static Ref<DatabaseModel> create(const Ref<Database>& db, const DatabaseQuerySource& source, const DatabaseExpression& where, const ListParam<Variant>& params);
+		static Ref<DatabaseModel> create(const Ref<Database>& db, const DatabaseQuerySource& source, const DatabaseExpression& where);
 
-		static Ref<DatabaseModel> create(const Ref<Database>& db, const DatabaseQuerySource& source, const ListParam<DatabaseColumn>& columns, const DatabaseExpression& where, const ListParam<Variant>& params);
+		template <class... ARGS>
+		static Ref<DatabaseModel> create(const Ref<Database>& db, const DatabaseQuerySource& source, const DatabaseExpression& where, ARGS&&... args)
+		{
+			Variant params[] = { Forward<ARGS>(args)... };
+			return createBy(db, source, where, List<Variant>::createByMovingElements(params, sizeof...(args)));
+		}
+
+		static Ref<DatabaseModel> createBy(const Ref<Database>& db, const DatabaseQuerySource& source, const DatabaseExpression& where, const ListParam<Variant>& params);
+
+		static Ref<DatabaseModel> create(const Ref<Database>& db, const DatabaseQuerySource& source, const ListParam<DatabaseColumn>& columns, const DatabaseExpression& where);
+
+		template <class... ARGS>
+		static Ref<DatabaseModel> create(const Ref<Database>& db, const DatabaseQuerySource& source, const ListParam<DatabaseColumn>& columns, const DatabaseExpression& where, ARGS&&... args)
+		{
+			Variant params[] = { Forward<ARGS>(args)... };
+			return createBy(db, source, columns, where, List<Variant>::createByMovingElements(params, sizeof...(args)));
+		}
+
+		static Ref<DatabaseModel> createBy(const Ref<Database>& db, const DatabaseQuerySource& source, const ListParam<DatabaseColumn>& columns, const DatabaseExpression& where, const ListParam<Variant>& params);
 
 	public:
 		VariantList getRecords(sl_uint64 index, sl_size count) override;
