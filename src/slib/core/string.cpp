@@ -4339,6 +4339,8 @@ namespace slib
 					case 'c':
 						pos++;
 						return processChar(arg, flags);
+					case 'D':
+						return processTime(arg.getTime(), flags);
 					default:
 						return sl_false;
 				}
