@@ -155,6 +155,25 @@ namespace slib
 			m_capacity = 0;
 		}
 
+		struct MoveOperation;
+		template <class VALUE>
+		CList(VALUE* values, sl_size count, MoveOperation*) noexcept
+		{
+			if (count > 0) {
+				T* data = (T*)(Base::createMemory(count * sizeof(T)));
+				if (data) {
+					ArrayTraits<T>::move_construct(data, values, count);
+					m_data = data;
+					m_count = count;
+					m_capacity = count;
+					return;
+				}
+			}
+			m_data = sl_null;
+			m_count = 0;
+			m_capacity = 0;
+		}
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		CList(const std::initializer_list<T>& l) noexcept: CList(l.begin(), l.size()) {}
 #endif
@@ -258,6 +277,23 @@ namespace slib
 		{
 			if (count > 0) {
 				CList<T>* ret = new CList<T>(values, count);
+				if (ret) {
+					if (ret->m_count > 0) {
+						return ret;
+					}
+					delete ret;
+				}
+			} else {
+				return new CList<T>;
+			}
+			return sl_null;
+		}
+
+		template <class VALUE>
+		static CList<T>* createByMovingElements(VALUE* values, sl_size count) noexcept
+		{
+			if (count > 0) {
+				CList<T>* ret = new CList<T>(values, count, (MoveOperation*)sl_null);
 				if (ret) {
 					if (ret->m_count > 0) {
 						return ret;
@@ -1429,6 +1465,12 @@ namespace slib
 		static List<T> create(const VALUE* values, sl_size count) noexcept
 		{
 			return CList<T>::create(values, count);
+		}
+
+		template <class VALUE>
+		static List<T> createByMovingElements(VALUE* values, sl_size count) noexcept
+		{
+			return CList<T>::createByMovingElements(values, count);
 		}
 
 		template <class VALUE>

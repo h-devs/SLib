@@ -31,188 +31,212 @@
 namespace slib
 {
 
-	struct SLIB_EXPORT ArrayTraits_Memory
+	namespace priv
 	{
+		namespace array_traits
+		{
 
+			class GenericImpl
+			{
+			public:
+				template <class T>
+				static void construct(T* dst, sl_reg count) noexcept
+				{
+					while (count-- > 0) {
+						new (dst++) T();
+					}
+				}
+
+				template <class T, class TYPE>
+				static void copy_construct(T* dst, const TYPE* src, sl_reg count) noexcept
+				{
+					while (count-- > 0) {
+						new (dst++) T(*(src++));
+					}
+				}
+
+				template <class T, class TYPE>
+				static void move_construct(T* dst, TYPE* src, sl_reg count) noexcept
+				{
+					while (count-- > 0) {
+						new (dst++) T(Move(*(src++)));
+					}
+				}
+
+				template <class T, class TYPE>
+				static void copy(T* dst, const TYPE* src, sl_reg count) noexcept
+				{
+					while (count-- > 0) {
+						*(dst++) = *(src++);
+					}
+				}
+
+				template <class T, class TYPE>
+				static void move(T* dst, TYPE* src, sl_reg count) noexcept
+				{
+					while (count-- > 0) {
+						*(dst++) = Move(*(src++));
+					}
+				}
+
+				template <class T>
+				static void free(T* dst, sl_reg count) noexcept
+				{
+					while (count-- > 0) {
+						(dst++)->~T();
+					}
+				}
+			};
+
+			class IndexOf_Base
+			{
+			public:
+				template <class T, class VALUE, class EQUALS>
+				static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals, sl_reg startIndex) noexcept
+				{
+					if (startIndex < 0) {
+						startIndex = 0;
+					}
+					for (sl_reg i = startIndex; i < count; i++) {
+						if (equals(data[i], value)) {
+							return i;
+						}
+					}
+					return -1;
+				}
+
+				template <class T, class VALUE, class EQUALS>
+				static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals, sl_reg startIndex) noexcept
+				{
+					if (startIndex < 0 || startIndex >= count) {
+						startIndex = count - 1;
+					}
+					for (sl_reg i = startIndex; i >= 0; i--) {
+						if (equals(data[i], value)) {
+							return i;
+						}
+					}
+					return -1;
+				}
+			};
+
+			template <class ARG, sl_bool isClass = __is_class(ARG)>
+			class IndexOf_Helper;
+
+			template <class EQUALS>
+			class IndexOf_Helper<EQUALS, sl_true>
+			{
+			public:
+				template <class T, class VALUE>
+				static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals) noexcept
+				{
+					for (sl_reg i = 0; i < count; i++) {
+						if (equals(data[i], value)) {
+							return i;
+						}
+					}
+					return -1;
+				}
+			};
+
+			template <class INDEX>
+			class IndexOf_Helper<INDEX, sl_false>
+			{
+			public:
+				template <class T, class VALUE>
+				static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, INDEX startIndex) noexcept
+				{
+					return IndexOf_Base::indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
+				}
+			};
+
+			template <class ARG, sl_bool isClass = __is_class(ARG)>
+			class LastIndexOf_Helper;
+
+			template <class EQUALS>
+			class LastIndexOf_Helper<EQUALS, sl_true>
+			{
+			public:
+				template <class T, class VALUE>
+				sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals) noexcept
+				{
+					sl_reg ret = -1;
+					for (sl_reg i = count - 1; i >= 0; i--) {
+						if (equals(data[i], value)) {
+							ret = i;
+							break;
+						}
+					}
+					return ret;
+				}
+			};
+
+			template <class INDEX>
+			class LastIndexOf_Helper<INDEX, sl_false>
+			{
+			public:
+				template <class T, class VALUE>
+				static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, INDEX startIndex) noexcept
+				{
+					return IndexOf_Base::lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
+				}
+			};
+
+			class IndexOf_Impl : public IndexOf_Base
+			{
+			public:
+				using IndexOf_Base::indexOf;
+				using IndexOf_Base::lastIndexOf;
+
+				template <class T, class VALUE, class ARG>
+				static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const ARG& arg) noexcept
+				{
+					return IndexOf_Helper<ARG>::indexOf(data, count, value, arg);
+				}
+
+				template <class T, class VALUE, class ARG>
+				static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const ARG& arg) noexcept
+				{
+					return LastIndexOf_Helper<ARG>::lastIndexOf(data, count, value, arg);
+				}
+			};
+
+			class Reverse_Impl
+			{
+			public:
+				template <class T>
+				static void reverse(T* data, sl_size count) noexcept
+				{
+					T* end = data + count;
+					sl_reg n = count >> 1;
+					while (n-- > 0) {
+						T temp(Move(*(--end)));
+						*(end) = Move(*data);
+						*(data++) = Move(temp);
+					}
+				}
+			};
+		}
+	}
+
+	template <class ELEMENT_TYPE>
+	class SLIB_EXPORT ArrayTraits : public priv::array_traits::GenericImpl, public priv::array_traits::IndexOf_Impl, public priv::array_traits::Reverse_Impl
+	{
+	};
+
+	class SLIB_EXPORT ArrayTraits_ZeroInit : public priv::array_traits::GenericImpl, public priv::array_traits::IndexOf_Impl, public priv::array_traits::Reverse_Impl
+	{
+	public:
 		template <class T>
 		static void construct(T* dst, sl_reg count) noexcept
 		{
-			while (count-- > 0) {
-				new (dst++) T();
-			}
-		}
-
-		template <class T, class TYPE>
-		static void copy_construct(T* dst, const TYPE* src, sl_reg count) noexcept
-		{
-			while (count-- > 0) {
-				new (dst++) T(*(src++));
-			}
-		}
-
-		template <class T, class TYPE>
-		static void copy(T* dst, const TYPE* src, sl_reg count) noexcept
-		{
-			while (count-- > 0) {
-				*(dst++) = *(src++);
-			}
-		}
-
-		template <class T>
-		static void free(T* dst, sl_reg count) noexcept
-		{
-			while (count-- > 0) {
-				(dst++)->~T();
-			}
-		}
-
-	};
-
-
-	struct ArrayTraits_IndexOf_Base
-	{
-
-		template <class T, class VALUE, class EQUALS>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals, sl_reg startIndex) noexcept
-		{
-			sl_reg ret = -1;
-			if (startIndex < 0) {
-				startIndex = 0;
-			}
-			for (sl_reg i = startIndex; i < count; i++) {
-				if (equals(data[i], value)) {
-					ret = i;
-					break;
-				}
-			}
-			return ret;
-		}
-
-		template <class T, class VALUE, class EQUALS>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals, sl_reg startIndex) noexcept
-		{
-			sl_reg ret = -1;
-			if (startIndex < 0 || startIndex >= count) {
-				startIndex = count - 1;
-			}
-			for (sl_reg i = startIndex; i >= 0; i--) {
-				if (equals(data[i], value)) {
-					ret = i;
-					break;
-				}
-			}
-			return ret;
-		}
-
-	};
-
-	template <class ARG, sl_bool isClass = __is_class(ARG)>
-	struct ArrayTraits_IndexOf_Helper;
-
-	template <class EQUALS>
-	struct ArrayTraits_IndexOf_Helper<EQUALS, sl_true>
-	{
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals) noexcept
-		{
-			sl_reg ret = -1;
-			for (sl_reg i = 0; i < count; i++) {
-				if (equals(data[i], value)) {
-					ret = i;
-					break;
-				}
-			}
-			return ret;
+			Base::zeroMemory(dst, ((sl_size)count) * sizeof(T));
 		}
 	};
 
-	template <class INDEX>
-	struct ArrayTraits_IndexOf_Helper<INDEX, sl_false>
+	class SLIB_EXPORT PrimitiveArrayTraits : public priv::array_traits::IndexOf_Impl
 	{
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, INDEX startIndex) noexcept
-		{
-			return ArrayTraits_IndexOf_Base::indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-	};
-
-	template <class ARG, sl_bool isClass = __is_class(ARG)>
-	struct ArrayTraits_LastIndexOf_Helper;
-
-	template <class EQUALS>
-	struct ArrayTraits_LastIndexOf_Helper<EQUALS, sl_true>
-	{
-		template <class T, class VALUE>
-		sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals) noexcept
-		{
-			sl_reg ret = -1;
-			for (sl_reg i = count - 1; i >= 0; i--) {
-				if (equals(data[i], value)) {
-					ret = i;
-					break;
-				}
-			}
-			return ret;
-		}
-	};
-
-	template <class INDEX>
-	struct ArrayTraits_LastIndexOf_Helper<INDEX, sl_false>
-	{
-		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, INDEX startIndex) noexcept
-		{
-			return ArrayTraits_IndexOf_Base::lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-	};
-
-	struct SLIB_EXPORT ArrayTraits_IndexOf : public ArrayTraits_IndexOf_Base
-	{
-
-		using ArrayTraits_IndexOf_Base::indexOf;
-		using ArrayTraits_IndexOf_Base::lastIndexOf;
-
-		template <class T, class VALUE, class ARG>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const ARG& arg) noexcept
-		{
-			return ArrayTraits_IndexOf_Helper<ARG>::indexOf(data, count, value, arg);
-		}
-
-		template <class T, class VALUE, class ARG>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const ARG& arg) noexcept
-		{
-			return ArrayTraits_LastIndexOf_Helper<ARG>::lastIndexOf(data, count, value, arg);
-		}
-
-	};
-
-
-	struct SLIB_EXPORT ArrayTraits_Reverse
-	{
-
-		template <class T>
-		static void reverse(T* data, sl_size count) noexcept
-		{
-			T* end = data + count;
-			sl_reg n = count >> 1;
-			while (n-- > 0) {
-				T temp(Move(*(--end)));
-				*(end) = Move(*data);
-				*(data++) = Move(temp);
-			}
-		}
-
-	};
-
-	template <class ELEMENT_TYPE>
-	struct SLIB_EXPORT ArrayTraits : public ArrayTraits_Memory, public ArrayTraits_IndexOf, public ArrayTraits_Reverse
-	{
-	};
-
-
-	struct SLIB_EXPORT ArrayTraits_Primitive : public ArrayTraits_IndexOf
-	{
-
+	public:
 		template <class T>
 		static void construct(T* dst, sl_reg count) noexcept
 		{
@@ -233,6 +257,20 @@ namespace slib
 		}
 
 		template <class T>
+		static void move_construct(T* dst, T* src, sl_reg count) noexcept
+		{
+			Base::copyMemory(dst, src, ((sl_size)count) * sizeof(T));
+		}
+
+		template <class T, class TYPE>
+		static void move_construct(T* dst, TYPE* src, sl_reg count) noexcept
+		{
+			while (count-- > 0) {
+				*(dst++) = *(src++);
+			}
+		}
+
+		template <class T>
 		static void copy(T* dst, const T* src, sl_reg count) noexcept
 		{
 			Base::copyMemory(dst, src, ((sl_size)count)*sizeof(T));
@@ -240,6 +278,20 @@ namespace slib
 
 		template <class T, class TYPE>
 		static void copy(T* dst, const TYPE* src, sl_reg count) noexcept
+		{
+			while (count-- > 0) {
+				*(dst++) = *(src++);
+			}
+		}
+
+		template <class T>
+		static void move(T* dst, const T* src, sl_reg count) noexcept
+		{
+			Base::copyMemory(dst, src, ((sl_size)count) * sizeof(T));
+		}
+
+		template <class T, class TYPE>
+		static void move(T* dst, TYPE* src, sl_reg count) noexcept
 		{
 			while (count-- > 0) {
 				*(dst++) = *(src++);
@@ -266,34 +318,22 @@ namespace slib
 
 	};
 
-	template <> struct ArrayTraits<char> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<signed char> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<unsigned char> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<short> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<unsigned short> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<int> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<unsigned int> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<long> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<unsigned long> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<sl_int64> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<sl_uint64> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<float> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<double> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<sl_char16> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<sl_char32> : public ArrayTraits_Primitive {};
-	template <> struct ArrayTraits<sl_bool> : public ArrayTraits_Primitive {};
-
-
-	struct SLIB_EXPORT ArrayTraits_ZeroInit : public ArrayTraits_Memory, public ArrayTraits_IndexOf, public ArrayTraits_Reverse
-	{
-
-		template <class T>
-		static void construct(T* dst, sl_reg count) noexcept
-		{
-			Base::zeroMemory(dst, ((sl_size)count) * sizeof(T));
-		}
-
-	};
+	template <> struct ArrayTraits<char> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<signed char> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<unsigned char> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<short> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<unsigned short> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<int> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<unsigned int> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<long> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<unsigned long> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<sl_int64> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<sl_uint64> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<float> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<double> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<sl_char16> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<sl_char32> : public PrimitiveArrayTraits {};
+	template <> struct ArrayTraits<sl_bool> : public PrimitiveArrayTraits {};
 
 	class String;
 	template <> struct ArrayTraits<String> : public ArrayTraits_ZeroInit {};
