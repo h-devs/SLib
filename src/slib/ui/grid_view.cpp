@@ -25,6 +25,7 @@
 #include "slib/ui/priv/view_state_map.h"
 #include "slib/ui/cursor.h"
 #include "slib/ui/clipboard.h"
+#include "slib/ui/core.h"
 #include "slib/graphics/canvas.h"
 #include "slib/core/safe_static.h"
 
@@ -2286,6 +2287,11 @@ namespace slib
 #define DEFINE_SET_DATA(DATA_TYPE) \
 	void GridView::setData(const DATA_TYPE& data, UIUpdateMode mode) \
 	{ \
+		if (data.isNull()) { \
+			clearData(mode); \
+			return; \
+		} \
+		ObjectLocker lock(this); \
 		if (!m_flagDefinedSorting) { \
 			setSorting(sl_true); \
 		} \
@@ -2318,6 +2324,49 @@ namespace slib
 	void GridView::setData(const JsonList& data, UIUpdateMode mode)
 	{
 		setData(*(reinterpret_cast<const VariantList*>(&data)), mode);
+	}
+
+	void GridView::clearData(UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		setDataGetter(sl_null, UIUpdateMode::None);
+		setRecordCount(0, UIUpdateMode::None);
+		m_cacheData.setNull();
+		setOnSort(sl_null);
+		invalidate(mode);
+	}
+
+	void GridView::setModel(const Ref<TableModel>& source, UIUpdateMode mode)
+	{
+		if (source.isNull()) {
+			clearData(mode);
+			return;
+		}
+		ObjectLocker lock(this);
+		if (source->isSortable()) {
+			if (!m_flagDefinedSorting) {
+				setSorting(sl_true);
+			}
+		}
+		sl_ui_len recordHeight = getRecordHeight();
+		if (recordHeight > 0) {
+			source->setCacheItemCount(UI::getScreenHeight() / recordHeight);
+		}
+		setDataGetter([source](sl_uint64 record) {
+			return source->getRecord(record);
+		}, UIUpdateMode::None);
+		setRecordCount(source->getRecordCount(), UIUpdateMode::None);
+		m_cacheData.setNull();
+		setOnSort([this, source](GridView*, const String& field, sl_bool flagAsc) {
+			source->sort(field, flagAsc);
+			ObjectLocker lock(this);
+			_invalidateBodyAllCells();
+			invalidate();
+		});
+		if (m_cellSort) {
+			invokeSort(m_cellSort->field, m_flagSortAsc);
+		}
+		invalidate(mode);
 	}
 
 	GridView::CellProp* GridView::_getCellProp(RecordIndex section, sl_uint32 iRow, sl_uint32 iCol)

@@ -40,7 +40,8 @@ namespace slib
 			XmlProcessingInstruction,
 			XmlComment,
 			XmlWhiteSpace,
-			XmlDocumentTypeDefinition
+			XmlDocumentTypeDefinition,
+			TableModel
 		};
 
 	}

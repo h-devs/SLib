@@ -1361,5 +1361,11 @@
     <ClCompile Include="..\..\src\slib\platform\win32\async_handle.cpp">
       <Filter>src\platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\table_model.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\database_model.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

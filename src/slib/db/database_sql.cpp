@@ -1433,11 +1433,11 @@ namespace slib
 		}
 		if (query.limit) {
 			appendStatic(" LIMIT ");
-			append(String::fromUint32(query.limit));
+			append(String::fromUint64(query.limit));
 		}
 		if (query.offset) {
 			appendStatic(" OFFSET ");
-			append(String::fromUint32(query.offset));
+			append(String::fromUint64(query.offset));
 		}
 		if (combines.count) {
 			appendStatic(")");
@@ -1478,11 +1478,11 @@ namespace slib
 			}
 			if (query.limitOfCombined) {
 				appendStatic(" LIMIT ");
-				append(String::fromUint32(query.limitOfCombined));
+				append(String::fromUint64(query.limitOfCombined));
 			}
 			if (query.offsetOfCombined) {
 				appendStatic(" OFFSET ");
-				append(String::fromUint32(query.offsetOfCombined));
+				append(String::fromUint64(query.offsetOfCombined));
 			}
 		}
 	}

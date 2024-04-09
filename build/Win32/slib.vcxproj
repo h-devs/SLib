@@ -195,12 +195,14 @@
     <ClCompile Include="..\..\src\slib\data\ini.cpp" />
     <ClCompile Include="..\..\src\slib\data\json.cpp" />
     <ClCompile Include="..\..\src\slib\data\lzw.cpp" />
+    <ClCompile Include="..\..\src\slib\data\table_model.cpp" />
     <ClCompile Include="..\..\src\slib\data\xml.cpp" />
     <ClCompile Include="..\..\src\slib\data\zlib.cpp" />
     <ClCompile Include="..\..\src\slib\data\zstd.cpp" />
     <ClCompile Include="..\..\src\slib\db\database.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_cursor.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_expression.cpp" />
+    <ClCompile Include="..\..\src\slib\db\database_model.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_sql.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_statement.cpp" />
     <ClCompile Include="..\..\src\slib\db\document_store.cpp" />

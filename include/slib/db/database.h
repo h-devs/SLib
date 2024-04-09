@@ -136,11 +136,11 @@ namespace slib
 
 		sl_bool isLoggingSQL();
 
-		void setLoggingSQL(sl_bool flag);
+		void setLoggingSQL(sl_bool flag = sl_true);
 
 		sl_bool isLoggingErrors();
 
-		void setLoggingErrors(sl_bool flag);
+		void setLoggingErrors(sl_bool flag = sl_true);
 
 
 		DatabaseDialect getDialect();

@@ -27,7 +27,7 @@
 #include "view_state_map.h"
 
 #include "../graphics/text.h"
-#include "../core/variant.h"
+#include "../data/table_model.h"
 #include "../core/shared.h"
 
 namespace slib
@@ -470,6 +470,8 @@ namespace slib
 		void setData(const JsonList& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setData(const List<VariantMap>& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setData(const Variant& data, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void clearData(UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setModel(const Ref<TableModel>& source, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		CellCreator getBodyCreator(sl_uint32 row, sl_uint32 column);
 		CellCreator getHeaderCreator(sl_uint32 row, sl_uint32 column);
