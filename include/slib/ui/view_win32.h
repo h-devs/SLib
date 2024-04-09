@@ -181,7 +181,7 @@ namespace slib
 
 		void disableIME();
 
-		void updateIME();
+		void updateIME(View* view);
 
 	public:
 		void onPaint(Canvas* canvas);

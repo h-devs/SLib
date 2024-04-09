@@ -350,7 +350,7 @@ namespace slib
 		HWND hWnd = m_handle;
 		if (hWnd) {
 			if (flag) {
-				updateIME();
+				updateIME(view);
 				m_flagSettingFocus = sl_true;
 				SetFocus(hWnd);
 				m_flagSettingFocus = sl_false;
@@ -1160,13 +1160,14 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::updateIME()
+	void Win32_ViewInstance::updateIME(View* view)
 	{
 		if (isNativeWidget()) {
-			return;
-		}
-		Ref<View> view = getView();
-		if (view.isNotNull()) {
+			if (view->isUsingIME()) {
+				enableIME();
+				return;
+			}
+		} else {
 			Ref<View> focus = view->getFocusedView();
 			if (focus.isNotNull()) {
 				if (focus->isUsingIME()) {
