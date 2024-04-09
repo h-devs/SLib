@@ -961,17 +961,25 @@ namespace slib
 				}
 			}
 			View::onKeyEvent(ev);
-			if (m_flagReadOnly) {
-				return;
-			}
 		}
 		if (ev->isAccepted()) {
 			return;
 		}
 		if (isNativeWidget()) {
 			if (action == UIAction::KeyDown) {
+#ifdef SLIB_PLATFORM_IS_WIN32
+				// On Win32, Readonly Edit Control does not support Ctrl+A
+				if (m_flagReadOnly) {
+					if (keycode == Keycode::A && ev->isControlKey()) {
+						selectAll();
+					}
+				}
+#endif
 				ev->acceptByNative();
 			}
+			return;
+		}
+		if (m_flagReadOnly) {
 			return;
 		}
 		_initTextBox();
