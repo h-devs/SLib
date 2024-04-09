@@ -2350,7 +2350,7 @@ namespace slib
 		}
 		sl_ui_len recordHeight = getRecordHeight();
 		if (recordHeight > 0) {
-			source->setCacheItemCount(UI::getScreenHeight() / recordHeight);
+			source->setCacheItemCount(UI::getScreenHeight() * 12 / recordHeight / 10 + 1);
 		}
 		setDataGetter([source](sl_uint64 record) {
 			return source->getRecord(record);
