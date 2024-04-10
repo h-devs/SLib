@@ -829,9 +829,7 @@ namespace slib
 						if (FAILED(hr)) {
 							return;
 						}
-						if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
-							_processSilent(n * nChannels);
-						} else {
+						if (!(flags & AUDCLNT_BUFFERFLAGS_SILENT)) {
 							_processFrame((sl_int16*)pData, n * nChannels);
 						}
 						m_capture->ReleaseBuffer(n);

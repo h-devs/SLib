@@ -121,8 +121,6 @@ namespace slib
 
 		void _processFrame(sl_int16* s, sl_uint32 count);
 
-		void _processSilent(sl_uint32 count);
-
 	protected:
 		AudioRecorderParam m_param;
 
@@ -135,7 +133,6 @@ namespace slib
 		AtomicArray<sl_int16> m_processData;
 		AtomicArray<sl_int16> m_bufCallback;
 		sl_uint32 m_nSamplesInCallbackBuffer;
-		sl_int16 m_lastSample;
 
 	};
 }

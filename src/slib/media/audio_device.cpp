@@ -86,7 +86,6 @@ namespace slib
 		m_volume = 256;
 		m_flagMute = sl_false;
 		m_nSamplesInCallbackBuffer = 0;
-		m_lastSample = 0;
 	}
 
 	AudioRecorder::~AudioRecorder()
@@ -243,7 +242,6 @@ namespace slib
 			return;
 		}
 
-		m_lastSample = s[count - 1];
 		sl_int32 volume = m_volume;
 		if (volume < 256) {
 			for (sl_uint32 i = 0; i < count; i++) {
@@ -317,18 +315,6 @@ namespace slib
 
 		if (m_param.event.isNotNull()) {
 			m_param.event->set();
-		}
-	}
-
-	void AudioRecorder::_processSilent(sl_uint32 count)
-	{
-		Array<sl_int16> data = _getProcessData(count);
-		if (data.isNotNull()) {
-			sl_int16* s = data.getData();
-			for (sl_uint32 i = 0; i < count; i++) {
-				s[i] = m_lastSample;
-				_processFrame(s, count);
-			}
 		}
 	}
 

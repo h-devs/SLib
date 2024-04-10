@@ -2,7 +2,6 @@
 
 #include <slib.h>
 
-#include <slib/media/audio_recorder.h>
 #include <slib/math/fft.h>
 
 using namespace slib;
