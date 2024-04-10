@@ -853,6 +853,15 @@ namespace slib
 		SAppBooleanValue swipe;
 	};
 
+	class SAppLayoutAudioAttributes : public SAppLayoutViewAttributes
+	{
+	public:
+		SAppUint32Value samplesPerFrame;
+		SAppUint32Value framesPerWindow;
+		SAppColorValue amplitudeColor;
+		SAppFloatValue amplitudeScale;
+	};
+
 	class SAppLayoutVideoAttributes : public SAppLayoutViewAttributes
 	{
 	public:
@@ -1168,6 +1177,7 @@ namespace slib
 		ComboBox = 0x0270,
 		Pdf = 0x0271,
 		Grid = 0x0272,
+		Audio = 0x0273,
 
 		NoView = 0xF000,
 		TreeItem = 0xF001
@@ -1283,6 +1293,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameDatePicker = 0;
 		sl_uint32 nAutoIncreaseNamePager = 0;
 		sl_uint32 nAutoIncreaseNameNavigation = 0;
+		sl_uint32 nAutoIncreaseNameAudio = 0;
 		sl_uint32 nAutoIncreaseNameVideo = 0;
 		sl_uint32 nAutoIncreaseNameCamera = 0;
 		sl_uint32 nAutoIncreaseNameDrawer = 0;

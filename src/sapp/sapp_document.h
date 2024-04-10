@@ -303,6 +303,7 @@ namespace slib
 		sl_bool _processLayoutResourceControl_DatePicker(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Pager(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Navigation(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_Audio(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Video(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Camera(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Drawer(LayoutControlProcessParams* params);

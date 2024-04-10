@@ -646,6 +646,10 @@ namespace slib
 				prefix = "navigation";
 				pN = &nAutoIncreaseNameNavigation;
 				break;
+			case SAppLayoutItemType::Audio:
+				prefix = "audio";
+				pN = &nAutoIncreaseNameAudio;
+				break;
 			case SAppLayoutItemType::Video:
 				prefix = "video";
 				pN = &nAutoIncreaseNameVideo;
@@ -769,6 +773,8 @@ namespace slib
 			type = SAppLayoutItemType::Pager;
 		} else if (strType == "navigation") {
 			type = SAppLayoutItemType::Navigation;
+		} else if (strType == "audio") {
+			type = SAppLayoutItemType::Audio;
 		} else if (strType == "video") {
 			type = SAppLayoutItemType::Video;
 		} else if (strType == "camera") {
