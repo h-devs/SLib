@@ -86,7 +86,7 @@ namespace slib
 			struct EncData
 			{
 				typedef CHAR CharType;
-				typedef typename EncString<CHAR, LEN, KEY> EncStringType;
+				typedef EncString<CHAR, LEN, KEY> EncStringType;
 				CHAR encData[LEN];
 			};
 

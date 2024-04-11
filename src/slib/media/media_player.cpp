@@ -189,6 +189,13 @@ namespace slib
 		flagLoop = sl_false;
 	}
 
+#ifndef SLIB_PLATFORM_IS_WIN32
+	sl_bool WavePlayer::play(const WavePlayerParam& param)
+	{
+		return sl_false;
+	}
+#endif
+
 	sl_bool WavePlayer::play(const Memory& wave)
 	{
 		WavePlayerParam param;

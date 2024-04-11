@@ -265,6 +265,7 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/geo/latlon.cpp"
  "${SLIB_PATH}/src/slib/geo/utm.cpp"
 
+ "${SLIB_PATH}/src/slib/ui/audio_view.cpp"
  "${SLIB_PATH}/src/slib/ui/button.cpp"
  "${SLIB_PATH}/src/slib/ui/camera_view.cpp"
  "${SLIB_PATH}/src/slib/ui/clipboard.cpp"
