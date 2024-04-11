@@ -48,7 +48,7 @@ namespace slib
 
 		void initialize(void* buf, sl_size size);
 
-		sl_reg write(const void* buf, sl_size size) override;
+		sl_reg write(const void* buf, sl_size size, sl_int32 timeout = -1) override;
 
 		sl_reg write(const MemoryView& mem);
 

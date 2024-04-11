@@ -60,6 +60,11 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SerializeBuffer)
 
 	public:
+		SLIB_INLINE sl_size getOffset() const noexcept
+		{
+			return current - begin;
+		}
+
 		sl_bool read(sl_uint8& _out) noexcept;
 
 		sl_bool write(sl_uint8 value) noexcept;

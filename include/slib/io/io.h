@@ -41,11 +41,9 @@ namespace slib
 	class SLIB_EXPORT IReader
 	{
 	public:
-		virtual sl_reg read(void* buf, sl_size size);
+		virtual sl_reg read(void* buf, sl_size size, sl_int32 timeout = -1);
 
-		virtual sl_int32 read32(void* buf, sl_uint32 size);
-
-		virtual sl_bool waitRead(sl_int32 timeout = -1);
+		virtual sl_int32 read32(void* buf, sl_uint32 size, sl_int32 timeout = -1);
 
 	public:
 		SLIB_DECLARE_IREADER_MEMBERS()
@@ -55,11 +53,9 @@ namespace slib
 	class SLIB_EXPORT IWriter
 	{
 	public:
-		virtual sl_reg write(const void* buf, sl_size size);
+		virtual sl_reg write(const void* buf, sl_size size, sl_int32 timeout = -1);
 
-		virtual sl_int32 write32(const void* buf, sl_uint32 size);
-
-		virtual sl_bool waitWrite(sl_int32 timeout = -1);
+		virtual sl_int32 write32(const void* buf, sl_uint32 size, sl_int32 timeout = -1);
 
 	public:
 		SLIB_DECLARE_IWRITER_MEMBERS()
@@ -69,26 +65,22 @@ namespace slib
 	class SLIB_EXPORT IBlockReader
 	{
 	public:
-		virtual sl_reg readAt(sl_uint64 offset, void* buf, sl_size size);
+		virtual sl_reg readAt(sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout = -1);
 
-		virtual sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size);
+		virtual sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size, sl_int32 timeout = -1);
 
-		virtual sl_reg readFullyAt(sl_uint64 offset, void* buf, sl_size size);
-
-		virtual sl_bool waitRead(sl_int32 timeout = -1);
+		virtual sl_reg readFullyAt(sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout = -1);
 
 	};
 
 	class SLIB_EXPORT IBlockWriter
 	{
 	public:
-		virtual sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size);
+		virtual sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size, sl_int32 timeout = -1);
 
-		virtual sl_int32 writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size);
+		virtual sl_int32 writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size, sl_int32 timeout = -1);
 
-		virtual sl_reg writeFullyAt(sl_uint64 offset, const void* buf, sl_size size);
-
-		virtual sl_bool waitWrite(sl_int32 timeout = -1);
+		virtual sl_reg writeFullyAt(sl_uint64 offset, const void* buf, sl_size size, sl_int32 timeout = -1);
 
 	};
 
@@ -140,14 +132,9 @@ namespace slib
 		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(Reader)
 
 	public:
-		sl_reg read(void* buf, sl_size size) override
+		sl_reg read(void* buf, sl_size size, sl_int32 timeout = -1) override
 		{
-			return (*base).read(buf, size);
-		}
-
-		sl_bool waitRead(sl_int32 timeout = -1) override
-		{
-			return (*base).waitRead(timeout);
+			return (*base).read(buf, size, timeout);
 		}
 
 		void close() override
@@ -163,14 +150,9 @@ namespace slib
 		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(Writer)
 
 	public:
-		sl_reg write(const void* buf, sl_size size) override
+		sl_reg write(const void* buf, sl_size size, sl_int32 timeout = -1) override
 		{
-			return (*base).write(buf, size);
-		}
-
-		sl_bool waitWrite(sl_int32 timeout = -1) override
-		{
-			return (*base).waitWrite(timeout);
+			return (*base).write(buf, size, timeout);
 		}
 
 		void close() override
@@ -186,14 +168,9 @@ namespace slib
 		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(BlockReader)
 
 	public:
-		sl_reg readAt(sl_uint64 offset, void* buf, sl_size size) override
+		sl_reg readAt(sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout = -1) override
 		{
-			return (*base).readAt(offset, buf, size);
-		}
-
-		sl_bool waitRead(sl_int32 timeout = -1) override
-		{
-			return (*base).waitRead(timeout);
+			return (*base).readAt(offset, buf, size, timeout);
 		}
 
 		void close() override
@@ -209,14 +186,9 @@ namespace slib
 		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(BlockWriter)
 
 	public:
-		sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size) override
+		sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size, sl_int32 timeout = -1) override
 		{
-			return (*base).writeAt(offset, buf, size);
-		}
-
-		sl_bool waitWrite(sl_int32 timeout = -1) override
-		{
-			return (*base).waitWrite(timeout);
+			return (*base).writeAt(offset, buf, size, timeout);
 		}
 
 		void close() override
@@ -232,24 +204,14 @@ namespace slib
 		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(Stream)
 
 	public:
-		sl_reg read(void* buf, sl_size size) override
+		sl_reg read(void* buf, sl_size size, sl_int32 timeout = -1) override
 		{
-			return (*base).read(buf, size);
+			return (*base).read(buf, size, timeout);
 		}
 
-		sl_bool waitRead(sl_int32 timeout = -1) override
+		sl_reg write(const void* buf, sl_size size, sl_int32 timeout = -1) override
 		{
-			return (*base).waitRead(timeout);
-		}
-
-		sl_reg write(const void* buf, sl_size size) override
-		{
-			return (*base).write(buf, size);
-		}
-
-		sl_bool waitWrite(sl_int32 timeout = -1) override
-		{
-			return (*base).waitWrite(timeout);
+			return (*base).write(buf, size, timeout);
 		}
 
 		void close() override
@@ -264,9 +226,6 @@ namespace slib
 	public:
 		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(, override)
 
-	public:
-		sl_bool waitRead(sl_int32 timeout = -1) override;
-
 	};
 
 	template <class T>
@@ -275,14 +234,9 @@ namespace slib
 		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(SeekableReader)
 
 	public:
-		sl_reg read(void* buf, sl_size size) override
+		sl_reg read(void* buf, sl_size size, sl_int32 timeout = -1) override
 		{
-			return (*base).read(buf, size);
-		}
-
-		sl_bool waitRead(sl_int32 timeout = -1) override
-		{
-			return (*base).waitRead(timeout);
+			return (*base).read(buf, size, timeout);
 		}
 
 		void close() override
@@ -316,11 +270,6 @@ namespace slib
 		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(,override)
 		SLIB_DECLARE_SEEKABLE_WRITER_MEMBERS(,override)
 
-	public:
-		sl_bool waitRead(sl_int32 timeout = -1) override;
-
-		sl_bool waitWrite(sl_int32 timeout = -1) override;
-
 	};
 
 	template <class T>
@@ -329,24 +278,14 @@ namespace slib
 		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(IO)
 
 	public:
-		sl_reg read(void* buf, sl_size size) override
+		sl_reg read(void* buf, sl_size size, sl_int32 timeout = -1) override
 		{
-			return (*base).read(buf, size);
+			return (*base).read(buf, size, timeout);
 		}
 
-		sl_bool waitRead(sl_int32 timeout = -1) override
+		sl_reg write(const void* buf, sl_size size, sl_int32 timeout = -1) override
 		{
-			return (*base).waitRead(timeout);
-		}
-
-		sl_reg write(const void* buf, sl_size size) override
-		{
-			return (*base).write(buf, size);
-		}
-
-		sl_bool waitWrite(sl_int32 timeout = -1) override
-		{
-			return (*base).waitWrite(timeout);
+			return (*base).write(buf, size, timeout);
 		}
 
 		void close() override

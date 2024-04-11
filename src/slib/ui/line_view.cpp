@@ -76,6 +76,12 @@ namespace slib
 	{
 	}
 
+	void LineView::init()
+	{
+		View::init();
+		setAntiAlias(sl_false, UIUpdateMode::Init);
+	}
+
 	LayoutOrientation LineView::getOrientation()
 	{
 		return m_orientation;
@@ -174,10 +180,6 @@ namespace slib
 
 	void LineView::onDraw(Canvas* canvas)
 	{
-		sl_bool flagAntiAliasOriginal = canvas->isAntiAlias();
-		if (flagAntiAliasOriginal) {
-			canvas->setAntiAlias(sl_false);
-		}
 		UIRect bounds = getBoundsInnerPadding();
 		if (m_orientation == LayoutOrientation::Horizontal) {
 			int valign = m_gravity & Alignment::VerticalMask;
@@ -229,9 +231,6 @@ namespace slib
 			}
 			x += (sl_real)(bounds.left);
 			canvas->drawLine(x, (sl_real)(bounds.top), x, (sl_real)(bounds.bottom), m_pen);
-		}
-		if (flagAntiAliasOriginal) {
-			canvas->setAntiAlias(sl_true);
 		}
 	}
 

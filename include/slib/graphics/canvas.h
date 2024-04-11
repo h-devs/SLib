@@ -410,21 +410,32 @@ namespace slib
 	class SLIB_EXPORT CanvasStateScope
 	{
 	public:
+		Canvas* canvas;
+
+	public:
 		CanvasStateScope();
 
-		CanvasStateScope(const Ref<Canvas>& canvas);
+		CanvasStateScope(Canvas* canvas);
 
 		~CanvasStateScope();
 
 	public:
-		void save(const Ref<Canvas>& canvas);
+		void save(Canvas* canvas);
 
 		void restore();
 
-		Ref<Canvas> getCanvas();
+	};
 
-	private:
-		Ref<Canvas> m_canvas;
+	class SLIB_EXPORT CanvasAntiAliasScope
+	{
+	public:
+		Canvas* canvas;
+		sl_bool flagOriginalAntiAlias;
+
+	public:
+		CanvasAntiAliasScope(Canvas* canvas, sl_bool flagAntiAlias);
+
+		~CanvasAntiAliasScope();
 
 	};
 

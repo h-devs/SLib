@@ -36,7 +36,7 @@ namespace slib
 		{
 			StringBuffer buf;
 			sl_bool flagFirst = sl_true;
-			for (auto& item : map) {
+			for (auto&& item : map) {
 				if (item.value.isNotEmpty()) {
 					if (flagFirst) {
 						flagFirst = sl_false;
@@ -280,7 +280,7 @@ namespace slib
 		rp.method = HttpMethod::POST;
 		StringBuffer buf;
 		buf.addStatic("<xml>");
-		for (auto& item : map) {
+		for (auto&& item : map) {
 			buf.addStatic("<");
 			buf.add(item.key);
 			buf.addStatic(">");

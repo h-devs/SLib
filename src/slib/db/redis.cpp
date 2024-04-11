@@ -24,7 +24,6 @@
 
 #include "slib/db/redis.h"
 
-#include "slib/core/system.h"
 #include "slib/core/variant.h"
 #include "slib/core/log.h"
 

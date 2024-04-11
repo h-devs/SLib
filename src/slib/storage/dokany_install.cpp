@@ -26,8 +26,8 @@
 
 #include "slib/storage/dokany.h"
 
-#include "slib/core/process.h"
-#include "slib/core/system.h"
+#include "slib/system/process.h"
+#include "slib/system/system.h"
 #include "slib/core/memory.h"
 #include "slib/io/file_util.h"
 #include "slib/data/zstd.h"
@@ -71,13 +71,13 @@ namespace slib
 		}
 		String pathCatalog = System::getSystemDirectory() + "\\catroot\\{F750E6C3-38EE-11D1-85E5-00C04FC295EE}\\dokan1.cat";
 		if (File::readAllBytes(pathCatalog) != dataCatalog) {
-			if (File::writeAllBytes(pathCatalog, dataCatalog) != dataCatalog.getSize()) {
+			if (!(File::writeAllBytes(pathCatalog, dataCatalog))) {
 				return sl_false;
 			}
 		}
 		String pathDriver = System::getSystemDirectory() + "\\drivers\\dokan1.sys";
 		if (File::readAllBytes(pathDriver) != dataDriver) {
-			if (File::writeAllBytes(pathDriver, dataDriver) != dataDriver.getSize()) {
+			if (!(File::writeAllBytes(pathDriver, dataDriver))) {
 				return sl_false;
 			}
 		}

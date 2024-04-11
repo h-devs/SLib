@@ -225,7 +225,7 @@ namespace slib
 			}
 			if (param.contentEntities.isNotEmpty()) {
 				Json entities;
-				for (auto& entity: param.contentEntities) {
+				for (auto&& entity: param.contentEntities) {
 					Json location;
 					location.putItem("entityLocation", entity);
 					entities.addElement(location);

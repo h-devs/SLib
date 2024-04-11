@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ namespace slib
 		typedef String16 StringType;
 
 	public:
-		sl_char16* sz;
+		sl_char16* data;
 		sl_size len;
 		sl_size hash;
 		sl_uint32 type;
@@ -85,6 +85,7 @@ namespace slib
 		}
 
 		String16(const String16& src) noexcept;
+		String16(AtomicString16&& src) noexcept;
 		String16(const AtomicString16& src) noexcept;
 		String16(const StringView16& src) noexcept;
 
@@ -377,7 +378,7 @@ namespace slib
 		sl_char16* getData() const noexcept
 		{
 			if (m_container) {
-				return m_container->sz;
+				return m_container->data;
 			} else {
 				return (sl_char16*)((void*)(u""));
 			}
@@ -390,7 +391,7 @@ namespace slib
 		{
 			if (m_container) {
 				outLength = m_container->len;
-				return m_container->sz;
+				return m_container->data;
 			} else {
 				outLength = 0;
 				return (sl_char16*)((void*)(u""));
@@ -434,6 +435,16 @@ namespace slib
 		void setHashCode(sl_size hash) noexcept;
 
 		/**
+		 * @return the first character
+		 */
+		sl_char16 getFirst() const noexcept;
+
+		/**
+		 * @return the last character
+		 */
+		sl_char16 getLast() const noexcept;
+
+		/**
 		 * @return the character at `index` in string.
 		 */
 		sl_char16 getAt(sl_reg index) const noexcept;
@@ -466,6 +477,7 @@ namespace slib
 		 */
 		String16& operator=(String16&& other) noexcept;
 		String16& operator=(const String16& other) noexcept;
+		String16& operator=(AtomicString16&& other) noexcept;
 		String16& operator=(const AtomicString16& other) noexcept;
 		String16& operator=(const StringView16& other) noexcept;
 		String16& operator=(sl_null_t) noexcept;
@@ -474,15 +486,6 @@ namespace slib
 		String16& operator=(const std::u16string& other) noexcept;
 		String16& operator=(std::u16string&& other) noexcept;
 #endif
-
-		String16& operator+=(String16&& other) noexcept;
-		String16& operator+=(const String16& other) noexcept;
-
-		template <class T>
-		String16& operator+=(const T& other) noexcept
-		{
-			return *this = *this + other;
-		}
 
 	public:
 		PRIV_SLIB_DECLARE_STRING_OPS(String16)
@@ -975,7 +978,8 @@ namespace slib
 		}
 
 		Atomic(const String16& src) noexcept;
-		Atomic(const AtomicString16& src) noexcept;
+		Atomic(Atomic&& src) noexcept;
+		Atomic(const Atomic& src) noexcept;
 		Atomic(const StringView16& src) noexcept;
 
 		/**
@@ -1035,23 +1039,30 @@ namespace slib
 		 */
 		void setEmpty() noexcept;
 
+		/**
+		 * make this string as a null and returns the original string.
+		 */
+		String16 release() noexcept;
+
 	public:
 		/**
 		 * String assignment
 		 */
-		AtomicString16& operator=(String16&& other) noexcept;
-		AtomicString16& operator=(const String16& other) noexcept;
-		AtomicString16& operator=(const AtomicString16& other) noexcept;
-		AtomicString16& operator=(const StringView16& other) noexcept;
-		AtomicString16& operator=(sl_null_t) noexcept;
-		AtomicString16& operator=(const sl_char16* str) noexcept;
+		Atomic& operator=(String16&& other) noexcept;
+		Atomic& operator=(const String16& other) noexcept;
+		Atomic& operator=(Atomic&& other) noexcept;
+		Atomic& operator=(const Atomic& other) noexcept;
+		Atomic& operator=(const StringView16& other) noexcept;
+		Atomic& operator=(sl_null_t) noexcept;
+		Atomic& operator=(const sl_char16* sz) noexcept;
 #ifdef SLIB_SUPPORT_STD_TYPES
-		AtomicString16& operator=(const std::u16string& other) noexcept;
-		AtomicString16& operator=(std::u16string&& other) noexcept;
+		Atomic& operator=(const std::u16string& other) noexcept;
+		Atomic& operator=(std::u16string&& other) noexcept;
 #endif
 
 	private:
 		Container* _retainContainer() const noexcept;
+		Container* _releaseContainer() noexcept;
 		void _replaceContainer(Container* other) noexcept;
 
 		friend class String16;
@@ -1060,14 +1071,5 @@ namespace slib
 }
 
 /// @}
-
-
-#define SLIB_STATIC_STRING16(name, str) \
-		auto& _static_string_content_##name = SLIB_UNICODE(str); \
-		static slib::StringContainer16 _static_string_container_##name = {(sl_char16*)_static_string_content_##name, (sizeof(_static_string_content_##name)/2)-1, 0, 0, -1}; \
-		static slib::StringContainer16* _static_string_##name = &_static_string_container_##name; \
-		static const slib::String16& name = *(reinterpret_cast<slib::String16*>(&_static_string_##name));
-
-#define SLIB_RETURN_STRING16(str) { SLIB_STATIC_STRING16(strRetTemp16, str) return strRetTemp16; }
 
 #endif

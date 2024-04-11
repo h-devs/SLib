@@ -253,7 +253,7 @@ namespace slib
 	{
 		sizeInputPassed = 0;
 		if (m_sizeOutput) {
-			sl_reg nWrite = writer->write(m_dataOutput, m_sizeOutput);
+			sl_reg nWrite = writer->write(m_dataOutput, m_sizeOutput, 0);
 			DataConvertResult result = _processWriteResult(nWrite);
 			if (result != DataConvertResult::Finished) {
 				return result;
@@ -280,7 +280,7 @@ namespace slib
 				}
 				if (k2) {
 					m_sizeOutput = k2;
-					sl_reg nWrite = writer->write(m_dataOutput, k2);
+					sl_reg nWrite = writer->write(m_dataOutput, k2, 0);
 					DataConvertResult result = _processWriteResult(nWrite);
 					if (result != DataConvertResult::Finished) {
 						return result;
@@ -311,7 +311,7 @@ namespace slib
 			}
 			if (k) {
 				m_sizeOutput = k;
-				sl_reg nWrite = writer->write(m_dataOutput, k);
+				sl_reg nWrite = writer->write(m_dataOutput, k, 0);
 				DataConvertResult result = _processWriteResult(nWrite);
 				if (result != DataConvertResult::Finished) {
 					return result;
@@ -347,7 +347,7 @@ namespace slib
 					return DataConvertResult::Error;
 				}
 				sl_size n = m_bufInput.getSize();
-				sl_reg nRead = reader->read(m_dataInput, n);
+				sl_reg nRead = reader->read(m_dataInput, n, 0);
 				if (nRead < 0) {
 					if (nRead == SLIB_IO_WOULD_BLOCK) {
 						return DataConvertResult::WouldBlock;
@@ -394,7 +394,7 @@ namespace slib
 					return DataConvertResult::Error;
 				}
 				sl_size n = m_bufInput.getSize();
-				sl_reg nRead = reader->read(m_dataInput, n);
+				sl_reg nRead = reader->read(m_dataInput, n, 0);
 				if (nRead < 0) {
 					if (nRead == SLIB_IO_WOULD_BLOCK) {
 						return DataConvertResult::WouldBlock;

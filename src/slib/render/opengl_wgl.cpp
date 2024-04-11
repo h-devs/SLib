@@ -28,7 +28,7 @@
 #include "slib/render/opengl.h"
 #include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
-#include "slib/platform.h"
+#include "slib/ui/platform.h"
 
 #pragma comment(lib, "opengl32.lib")
 
@@ -168,7 +168,7 @@ namespace slib
 
 			void runStep(RenderEngine* engine)
 			{
-				if (!(Win32::isWindowVisible(m_hWindow))) {
+				if (!(UIPlatform::isWindowVisible(m_hWindow))) {
 					return;
 				}
 				sl_bool flagUpdate = sl_false;

@@ -74,11 +74,23 @@ namespace slib
 				if (str.startsWith("string/")) {
 					str = str.substring(7).trim();
 				}
+				String varName;
+				sl_reg index = str.indexOf('/');
+				if (index > 0) {
+					varName = str.substring(index + 1);
+					if (varName.isNotNull()) {
+						if (!(SAppUtil::checkName(varName.getData(), varName.getLength()))) {
+							return sl_false;
+						}
+					}
+					str = str.substring(0, index);
+				}
 				if (!(SAppUtil::checkName(str.getData(), str.getLength()))) {
 					return sl_false;
 				}
 				flagReferResource = sl_true;
 				valueOrName = str;
+				variant = varName;
 				referingElement = element;
 			}
 		} else {
@@ -1091,7 +1103,6 @@ namespace slib
 	sl_bool SAppNameValue::parse(const String& _str)
 	{
 		String str = _str.trim();
-		str = str.trim();
 		if (str.isEmpty()) {
 			return sl_true;
 		}
@@ -1676,7 +1687,7 @@ namespace slib
 		{
 			SAppBorderValue* v = map.values.getItemPointer(ViewState::Default);
 			if (v) {
-				for (auto& item : map.values) {
+				for (auto&& item : map.values) {
 					if (item.key != ViewState::Default) {
 						item.value.inheritFrom(*v);
 					}
@@ -1691,16 +1702,28 @@ namespace slib
 			String attr = String::concat(name, suffix);
 			String str = item->getXmlAttribute(attr);
 			if (str.isNotEmpty()) {
-				if (str.startsWith('@')) {
-					String v = str.substring(1).trim();
-					if (v == "null") {
-						flagDefined = sl_true;
-						flagNull = sl_true;
-						return sl_true;
+				do {
+					if (str.startsWith('@')) {
+						String v = str.substring(1).trim();
+						if (v == "null") {
+							flagDefined = sl_true;
+							flagNull = sl_true;
+							return sl_true;
+						}
+					} else {
+						str = str.trim();
+						if (str.equals_IgnoreCase(StringView::literal("false"))) {
+							flagDefined = sl_true;
+							flagNull = sl_true;
+							return sl_true;
+						} else if (str.equals_IgnoreCase(StringView::literal("true"))) {
+							flagDefined = sl_true;
+							break;
+						}
 					}
-				}
-				doc->logError(item->element, g_str_error_resource_layout_attribute_invalid, attr, str);
-				return sl_false;
+					doc->logError(item->element, g_str_error_resource_layout_attribute_invalid, attr, str);
+					return sl_false;
+				} while (0);
 			}
 		}
 		const Ref<XmlElement>& xml = item->element;
@@ -1745,7 +1768,6 @@ namespace slib
 	sl_bool SAppAlignLayoutValue::parse(const String& _str)
 	{
 		String str = _str.trim();
-		str = str.trim();
 		if (str.isEmpty()) {
 			return sl_true;
 		}
@@ -2039,6 +2061,8 @@ namespace slib
 				return "slib::MultiLineMode::WordWrap";
 			case MultiLineMode::BreakWord:
 				return "slib::MultiLineMode::BreakWord";
+			case MultiLineMode::LatinWrap:
+				return "slib::MultiLineMode::LatinWrap";
 			default:
 				break;
 		}
@@ -2066,6 +2090,10 @@ namespace slib
 			return sl_true;
 		} else if (str == "break-word") {
 			value = MultiLineMode::BreakWord;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "latin-wrap") {
+			value = MultiLineMode::LatinWrap;
 			flagDefined = sl_true;
 			return sl_true;
 		}
@@ -2529,6 +2557,48 @@ namespace slib
 		} else if (str == "resize-y" || str == "resizey" || str == "resizeupdown") {
 			value = Cursor::getResizeUpDown();
 			type = RESIZE_UP_DOWN;
+			flagDefined = sl_true;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+
+	String SAppAntiAliasModeValue::getAccessString() const
+	{
+		if (!flagDefined) {
+			return "slib::AntiAliasMode::Inherit";
+		}
+		switch (value) {
+			case AntiAliasMode::Inherit:
+				return "slib::AntiAliasMode::Inherit";
+			case AntiAliasMode::True:
+				return "slib::AntiAliasMode::True";
+			case AntiAliasMode::False:
+				return "slib::AntiAliasMode::False";
+			default:
+				break;
+		}
+		return "slib::AntiAliasMode::Inherit";
+	}
+
+	sl_bool SAppAntiAliasModeValue::parse(const String& _str)
+	{
+		String str = _str.trim();
+		if (str.isEmpty()) {
+			return sl_true;
+		}
+		str = str.toLower();
+		if (str == "inherit") {
+			value = AntiAliasMode::Inherit;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "true") {
+			value = AntiAliasMode::True;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "false") {
+			value = AntiAliasMode::False;
 			flagDefined = sl_true;
 			return sl_true;
 		}

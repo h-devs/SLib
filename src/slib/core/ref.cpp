@@ -55,22 +55,27 @@ namespace slib
 		_clearWeak();
 	}
 
-	sl_reg CRef::increaseReference() noexcept
+	sl_reg CRef::increaseReference(volatile sl_reg& refCount) noexcept
 	{
-		sl_reg nRef = Base::interlockedIncrement(&m_nRefCount);
-		if (nRef == 1) {
-			init();
+		if (refCount) {
+			return Base::interlockedIncrement(&refCount);
+		} else {
+			refCount = 1;
+			return 1;
 		}
-		return nRef;
 	}
 
-	sl_reg CRef::decreaseReference() noexcept
+	sl_reg CRef::decreaseReference(volatile sl_reg& refCount) noexcept
 	{
-		sl_reg nRef = Base::interlockedDecrement(&m_nRefCount);
-		if (!nRef) {
-			_free();
+		sl_reg n = refCount;
+		if (n == 1) {
+			refCount = 0;
+			return 0;
+		} else if (n > 0) {
+			return Base::interlockedDecrement(&refCount);
+		} else {
+			return -1;
 		}
-		return nRef;
 	}
 
 	sl_reg CRef::getReferenceCount() noexcept
@@ -78,12 +83,12 @@ namespace slib
 		return m_nRefCount;
 	}
 
-	sl_reg CRef::decreaseReferenceNoFree() noexcept
+	sl_reg CRef::_decreaseReference() noexcept
 	{
 		if (m_nRefCount > 0) {
 			return Base::interlockedDecrement(&m_nRefCount);
 		}
-		return 1;
+		return -1;
 	}
 
 	void CRef::init()
@@ -130,6 +135,20 @@ namespace slib
 		return sl_false;
 	}
 
+	void CRef::_clearWeak() noexcept
+	{
+		if (m_weak) {
+			m_weak->release();
+			m_weak = sl_null;
+		}
+	}
+
+	void CRef::_free() noexcept
+	{
+		_clearWeak();
+		delete this;
+	}
+
 	sl_bool CRef::_isWeakRef() const noexcept
 	{
 		return getObjectType() == CWeakRef::ObjectType();
@@ -147,20 +166,6 @@ namespace slib
 		}
 		locker->unlock();
 		return m_weak;
-	}
-
-	void CRef::_clearWeak() noexcept
-	{
-		if (m_weak) {
-			m_weak->release();
-			m_weak = sl_null;
-		}
-	}
-
-	void CRef::_free() noexcept
-	{
-		_clearWeak();
-		delete this;
 	}
 
 	CRef& CRef::operator=(const CRef& other) noexcept
@@ -208,7 +213,7 @@ namespace slib
 			if (n > 1) {
 				ret = obj;
 			}
-			obj->decreaseReferenceNoFree();
+			obj->_decreaseReference();
 		}
 		m_lock.unlock();
 		return ret;

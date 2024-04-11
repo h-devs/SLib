@@ -107,7 +107,7 @@ namespace slib
 
 	void Canvas::setAntiAlias(sl_bool flag)
 	{
-		if (m_flagAntiAlias != flag) {
+		if (!m_flagAntiAlias != !flag) {
 			m_flagAntiAlias = flag;
 			_setAntiAlias(flag);
 		}
@@ -442,10 +442,7 @@ namespace slib
 			fillRectangle(x, y, width, height, color);
 			return;
 		}
-		sl_bool flagAntialias = isAntiAlias();
-		if (flagAntialias) {
-			setAntiAlias(sl_false);
-		}
+		CanvasAntiAliasScope scope(this, sl_false);
 		fillRectangle(x, y, width, height, color);
 		Color color0(color.r, color.g, color.b, 0);
 		fillRectangle(x - shadowRadius, y, shadowRadius, height, Brush::createLinearGradientBrush(Point(x - shadowRadius, y), Point(x, y), color0, color));
@@ -456,9 +453,6 @@ namespace slib
 		fillRectangle(x + width, y - shadowRadius, shadowRadius, shadowRadius, Brush::createRadialGradientBrush(Point(x + width, y), shadowRadius, color, color0));
 		fillRectangle(x - shadowRadius, y + height, shadowRadius, shadowRadius, Brush::createRadialGradientBrush(Point(x, y + height), shadowRadius, color, color0));
 		fillRectangle(x + width, y + height, shadowRadius, shadowRadius, Brush::createRadialGradientBrush(Point(x + width, y + height), shadowRadius, color, color0));
-		if (flagAntialias) {
-			setAntiAlias(sl_true);
-		}
 	}
 
 	void Canvas::drawShadowRoundRect(sl_real x, sl_real y, sl_real width, sl_real height, sl_real roundRadius, const Color& color, sl_real shadowRadius)
@@ -471,10 +465,7 @@ namespace slib
 			drawShadowRectangle(x, y, width, height, color, shadowRadius);
 			return;
 		}
-		sl_bool flagAntialias = isAntiAlias();
-		if (flagAntialias) {
-			setAntiAlias(sl_false);
-		}
+		CanvasAntiAliasScope scope(this, sl_false);
 		sl_real width_half = width / 2;
 		if (roundRadius > width_half) {
 			roundRadius = width_half;
@@ -500,9 +491,6 @@ namespace slib
 		fillRectangle(x + width - roundRadius, y - shadowRadius, radius, radius, Brush::createRadialGradientBrush(Point(x + width - roundRadius, y + roundRadius), radius, 3, colors, locations));
 		fillRectangle(x - shadowRadius, y + height - roundRadius, radius, radius, Brush::createRadialGradientBrush(Point(x + roundRadius, y + height - roundRadius), radius, 3, colors, locations));
 		fillRectangle(x + width - roundRadius, y + height - roundRadius, radius, radius, Brush::createRadialGradientBrush(Point(x + width - roundRadius, y + height - roundRadius), radius, 3, colors, locations));
-		if (flagAntialias) {
-			setAntiAlias(sl_true);
-		}
 	}
 
 	void Canvas::drawShadowCircle(sl_real centerX, sl_real centerY, sl_real circleRadius, const Color& color, sl_real shadowRadius)
@@ -515,10 +503,7 @@ namespace slib
 			fillEllipse(centerX - circleRadius, centerY - circleRadius, circleRadius2, circleRadius2, color);
 			return;
 		}
-		sl_bool flagAntialias = isAntiAlias();
-		if (flagAntialias) {
-			setAntiAlias(sl_false);
-		}
+		CanvasAntiAliasScope scope(this, sl_false);
 		Color colors[3];
 		colors[0] = color;
 		colors[1] = color;
@@ -528,9 +513,6 @@ namespace slib
 		sl_real radius2 = radius * 2;
 		sl_real locations[3] = {0, circleRadius / radius, 1};
 		fillEllipse(centerX - radius, centerY - radius, radius2, radius2, Brush::createRadialGradientBrush(Point(centerX, centerY), radius, 3, colors, locations));
-		if (flagAntialias) {
-			setAntiAlias(sl_true);
-		}
 	}
 
 	namespace {
@@ -587,13 +569,16 @@ namespace slib
 	}
 
 
-	CanvasStateScope::CanvasStateScope()
+	CanvasStateScope::CanvasStateScope(): canvas(sl_null)
 	{
 	}
 
-	CanvasStateScope::CanvasStateScope(const Ref<Canvas>& canvas)
+	CanvasStateScope::CanvasStateScope(Canvas* _canvas)
 	{
-		save(canvas);
+		if (_canvas) {
+			_canvas->save();
+		}
+		canvas = _canvas;
 	}
 
 	CanvasStateScope::~CanvasStateScope()
@@ -601,27 +586,33 @@ namespace slib
 		restore();
 	}
 
-	void CanvasStateScope::save(const Ref<Canvas>& canvas)
+	void CanvasStateScope::save(Canvas* _canvas)
 	{
 		restore();
-		if (canvas.isNotNull()) {
-			canvas->save();
+		if (_canvas) {
+			_canvas->save();
+			canvas = _canvas;
 		}
-		m_canvas = canvas;
 	}
 
 	void CanvasStateScope::restore()
 	{
-		Ref<Canvas> canvas = m_canvas;
-		if (canvas.isNotNull()) {
+		if (canvas) {
 			canvas->restore();
-			m_canvas.setNull();
+			canvas = sl_null;
 		}
 	}
 
-	Ref<Canvas> CanvasStateScope::getCanvas()
+
+	CanvasAntiAliasScope::CanvasAntiAliasScope(Canvas* _canvas, sl_bool flagAntiAlias): canvas(_canvas)
 	{
-		return m_canvas;
+		flagOriginalAntiAlias = _canvas->isAntiAlias();
+		_canvas->setAntiAlias(flagAntiAlias);
+	}
+
+	CanvasAntiAliasScope::~CanvasAntiAliasScope()
+	{
+		canvas->setAntiAlias(flagOriginalAntiAlias);
 	}
 
 }

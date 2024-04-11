@@ -218,11 +218,31 @@ namespace slib
 
 		void setCellSpan(sl_uint32 row, sl_uint32 col, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
+		Ref<Pen> getHorizontalGrid();
+
+		void setHorizontalGrid(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setHorizontalGrid(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<Pen> getVerticalGrid();
+
+		void setVerticalGrid(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setVerticalGrid(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setGrid(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		
+		void setGrid(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 	protected:
 		void onUpdateLayout() override;
 
-	public:
 		void onDraw(Canvas* canvas) override;
+
+	private:
+		void _applySpan(sl_uint32 row, sl_uint32 col, sl_uint32 rowspan, sl_uint32 colspan);
+
+		void _drawGrids(View*, Canvas*);
 
 	private:
 		class Cell
@@ -501,6 +521,10 @@ namespace slib
 	protected:
 		CList< Ref<Column> > m_columns;
 		CList< Ref<Row> > m_rows;
+		AtomicRef<Pen> m_penHorzGrid;
+		AtomicRef<Pen> m_penVertGrid;
+		sl_bool m_flagSetHorzGrid;
+		sl_bool m_flagSetVertGrid;
 
 	};
 

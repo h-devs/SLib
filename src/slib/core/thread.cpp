@@ -23,7 +23,7 @@
 #include "slib/core/thread.h"
 #include "slib/core/thread_pool.h"
 
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 #include "slib/core/event.h"
 #include "slib/core/safe_static.h"
 
@@ -104,7 +104,7 @@ namespace slib
 		}
 		List< Ref<Thread> > list;
 		MutexLocker lock(map.getLocker());
-		for (auto& item : map) {
+		for (auto&& item : map) {
 			Ref<Thread> thread = item.value;
 			if (thread.isNotNull()) {
 				list.add_NoLock(thread);
@@ -296,10 +296,12 @@ namespace slib
 	{
 		Thread* thread = getCurrent();
 		if (thread) {
-			thread->wait(ms);
-		} else {
-			System::sleep(ms);
+			if (!(thread->m_flagRequestStop)) {
+				thread->wait(ms);
+				return;
+			}
 		}
+		System::sleep(ms);
 	}
 
 	sl_bool Thread::isCurrentThread()

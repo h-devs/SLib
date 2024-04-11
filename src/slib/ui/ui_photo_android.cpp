@@ -203,8 +203,7 @@ namespace slib
 					String path = java::File::getAbsolutePath(dir);
 					if (path.isNotEmpty()) {
 						path += "/" + Time::now().format("%04y-%02m-%02d_%02H%02M%02S.jpg");
-						sl_size nWritten = File::writeAllBytes(path, content);
-						if (nWritten == content.getSize()) {
+						if (File::writeAllBytes(path, content)) {
 							param.onComplete(path);
 							return;
 						}

@@ -168,6 +168,8 @@ namespace slib
 
 		static Ref<UIEvent> createMouseEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, const Time& time);
 
+		static Ref<UIEvent> createMouseEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, sl_real deltaX, sl_real deltaY, const Time& time);
+
 		static Ref<UIEvent> createMouseWheelEvent(sl_ui_posf mouseX, sl_ui_posf mouseY, sl_real deltaX, sl_real deltaY, const Time& time);
 
 		static Ref<UIEvent> createTouchEvent(UIAction action, const Array<TouchPoint>& points, const Time& time);
@@ -280,9 +282,9 @@ namespace slib
 
 		const String& getToolTip() const;
 
-		View* getToolTipView() const;
+		sl_uint64 getToolTipOwnerId() const;
 
-		void setToolTip(View* view, const String& toolTip);
+		void setToolTip(sl_uint64 ownerId, const String& toolTip);
 
 		// drag & drop
 		const DragItem& getDragItem() const;

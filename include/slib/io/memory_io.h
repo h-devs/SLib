@@ -55,9 +55,9 @@ namespace slib
 
 		void close() override;
 
-		sl_reg read(void* buf, sl_size size) override;
+		sl_reg read(void* buf, sl_size size, sl_int32 timeout = -1) override;
 
-		sl_reg write(const void* buf, sl_size size) override;
+		sl_reg write(const void* buf, sl_size size, sl_int32 timeout = -1) override;
 
 		sl_bool getPosition(sl_uint64& outPos) override;
 

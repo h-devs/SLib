@@ -436,14 +436,10 @@ namespace slib
 			{
 				NSWindow* window = m_window;
 				if (window != nil) {
-					sl_bool f1 = [window isMiniaturized] ? sl_true : sl_false;
-					sl_bool f2 = flag ? sl_true : sl_false;
-					if (f1 != f2) {
-						if (f2) {
-							[window miniaturize:nil];
-						} else {
-							[window deminiaturize:nil];
-						}
+					if (flag) {
+						[window miniaturize:nil];
+					} else {
+						[window deminiaturize:nil];
 					}
 				}
 			}

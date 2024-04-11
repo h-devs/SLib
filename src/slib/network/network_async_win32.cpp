@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,16 +20,16 @@
  *   THE SOFTWARE.
  */
 
+#define _WIN32_WINNT 0x0600
+
 #include "slib/network/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
-#include <winsock2.h>
-#include <mswsock.h>
-#pragma comment(lib, "mswsock.lib")
-
 #include "slib/core/thread.h"
+#include "slib/core/handle_ptr.h"
 #include "slib/core/log.h"
+#include "slib/platform/win32/socket.h"
 
 #include "network_async.h"
 
@@ -37,7 +37,7 @@ namespace slib
 {
 
 	namespace {
-		class TcpInstance : public AsyncTcpSocketInstance
+		class StreamInstance : public AsyncSocketStreamInstance
 		{
 		public:
 			sl_bool m_flagIPv6;
@@ -53,12 +53,12 @@ namespace slib
 			LPFN_CONNECTEX m_funcConnectEx;
 
 		public:
-			static Ref<TcpInstance> create(Socket&& socket, sl_bool flagIPv6)
+			static Ref<StreamInstance> create(Socket&& socket, sl_bool flagIPv6)
 			{
 				if (socket.isOpened()) {
 					sl_async_handle handle = (sl_async_handle)(socket.get());
 					if (handle != SLIB_ASYNC_INVALID_HANDLE) {
-						Ref<TcpInstance> ret = new TcpInstance();
+						Ref<StreamInstance> ret = new StreamInstance();
 						if (ret.isNotNull()) {
 							ret->m_flagIPv6 = flagIPv6;
 							ret->setHandle(handle);
@@ -77,12 +77,12 @@ namespace slib
 				m_funcConnectEx = sl_null;
 				// ConnectEx
 				{
-					GUID Guid = WSAID_CONNECTEX;
+					GUID guidConnectEx = WSAID_CONNECTEX;
 					DWORD dwBytes = 0;
 					int ret = WSAIoctl(
 						(SOCKET)(handle),
 						SIO_GET_EXTENSION_FUNCTION_POINTER,
-						&Guid, sizeof(Guid),
+						&guidConnectEx, sizeof(guidConnectEx),
 						&m_funcConnectEx, sizeof(m_funcConnectEx),
 						&dwBytes,
 						NULL, NULL);
@@ -100,85 +100,78 @@ namespace slib
 					return;
 				}
 				if (m_requestReading.isNull()) {
-					Ref<AsyncStreamRequest> req;
-					if (popReadRequest(req)) {
-						if (req.isNotNull()) {
-							char* data = (char*)(req->data);
-							sl_size size = req->size;
-							if (data && size) {
-								Base::zeroMemory(&m_overlappedRead, sizeof(m_overlappedRead));
-								m_bufRead.buf = data;
-								if (size > 0x40000000) {
-									m_bufRead.len = 0x40000000;
-								} else {
-									m_bufRead.len = (ULONG)size;
-								}
-								m_flagsRead = 0;
-								DWORD dwRead = 0;
-								int ret = WSARecv((SOCKET)handle, &m_bufRead, 1, &dwRead, &m_flagsRead, &m_overlappedRead, NULL);
-								if (ret) {
-									// SOCKET_ERROR
-									DWORD dwErr = WSAGetLastError();
-									if (dwErr == WSA_IO_PENDING) {
-										m_requestReading = Move(req);
-									} else {
-										processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
-									}
-								} else {
-									// No Error
+					Ref<AsyncStreamRequest> req = getReadRequest();
+					if (req.isNotNull()) {
+						char* data = (char*)(req->data);
+						sl_size size = req->size;
+						if (data && size) {
+							Base::zeroMemory(&m_overlappedRead, sizeof(m_overlappedRead));
+							m_bufRead.buf = data;
+							if (size > 0x40000000) {
+								m_bufRead.len = 0x40000000;
+							} else {
+								m_bufRead.len = (ULONG)size;
+							}
+							m_flagsRead = 0;
+							DWORD dwRead = 0;
+							int ret = WSARecv((SOCKET)handle, &m_bufRead, 1, &dwRead, &m_flagsRead, &m_overlappedRead, NULL);
+							if (ret) {
+								// SOCKET_ERROR
+								DWORD dwErr = WSAGetLastError();
+								if (dwErr == WSA_IO_PENDING) {
 									m_requestReading = Move(req);
-									EventDesc desc;
-									desc.pOverlapped = &m_overlappedRead;
-									onEvent(&desc);
+								} else {
+									processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 								}
 							} else {
-								processStreamResult(req.get(), 0, AsyncStreamResultCode::Success);
+								// No Error
+								m_requestReading = Move(req);
+								onEvent(&m_overlappedRead);
 							}
+						} else {
+							processStreamResult(req.get(), 0, AsyncStreamResultCode::Success);
 						}
 					}
 				}
 				if (m_requestWriting.isNull()) {
-					Ref<AsyncStreamRequest> req;
-					if (popWriteRequest(req)) {
-						if (req.isNotNull()) {
-							char* data = (char*)(req->data);
-							sl_size size = req->size;
-							if (data && size) {
-								Base::zeroMemory(&m_overlappedWrite, sizeof(m_overlappedWrite));
-								m_bufWrite.buf = data;
-								if (size > 0x40000000) {
-									m_bufWrite.len = 0x40000000;
-								} else {
-									m_bufWrite.len = (ULONG)size;
-								}
-								DWORD dwWrite = 0;
-								int ret = WSASend((SOCKET)handle, &m_bufWrite, 1, &dwWrite, 0, &m_overlappedWrite, NULL);
-								if (ret) {
-									// SOCKET_ERROR
-									int dwErr = WSAGetLastError();
-									if (dwErr == WSA_IO_PENDING) {
-										m_requestWriting = Move(req);
-									} else {
-										processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
-									}
-								} else {
-									// No Error
+					Ref<AsyncStreamRequest> req = getWriteRequest();
+					if (req.isNotNull()) {
+						char* data = (char*)(req->data);
+						sl_size size = req->size;
+						if (data && size) {
+							Base::zeroMemory(&m_overlappedWrite, sizeof(m_overlappedWrite));
+							m_bufWrite.buf = data;
+							if (size > 0x40000000) {
+								m_bufWrite.len = 0x40000000;
+							} else {
+								m_bufWrite.len = (ULONG)size;
+							}
+							DWORD dwWrite = 0;
+							int ret = WSASend((SOCKET)handle, &m_bufWrite, 1, &dwWrite, 0, &m_overlappedWrite, NULL);
+							if (ret) {
+								// SOCKET_ERROR
+								int dwErr = WSAGetLastError();
+								if (dwErr == WSA_IO_PENDING) {
 									m_requestWriting = Move(req);
-									EventDesc desc;
-									desc.pOverlapped = &m_overlappedWrite;
-									onEvent(&desc);
+								} else {
+									processStreamResult(req.get(), 0, AsyncStreamResultCode::Unknown);
 								}
 							} else {
-								processStreamResult(req.get(), 0, AsyncStreamResultCode::Success);
+								// No Error
+								m_requestWriting = Move(req);
+								onEvent(&m_overlappedWrite);
 							}
+						} else {
+							processStreamResult(req.get(), 0, AsyncStreamResultCode::Success);
 						}
 					}
 				}
 				if (m_flagRequestConnect) {
 					m_flagRequestConnect = sl_false;
 					if (m_funcConnectEx) {
+						sl_bool flagDomain = m_addressRequestConnect.isInvalid();
 						sockaddr_storage addr;
-						sl_uint32 lenAddr = m_addressRequestConnect.getSystemSocketAddress(&addr);
+						sl_uint32 lenAddr = flagDomain ? m_pathRequestConnect.getSystemSocketAddress(&addr) : m_addressRequestConnect.getSystemSocketAddress(&addr);
 						if (lenAddr) {
 							Base::zeroMemory(&m_overlappedConnect, sizeof(m_overlappedConnect));
 							BOOL ret = m_funcConnectEx((SOCKET)handle, (sockaddr*)&addr, lenAddr, NULL, 0, NULL, &m_overlappedConnect);
@@ -188,16 +181,19 @@ namespace slib
 								int err = WSAGetLastError();
 								if (err == WSAEINVAL) {
 									// ConnectEx requires the socket to be 'initially bound'
-									sockaddr_storage saBind;
-									SocketAddress aBind;
-									aBind.port = 0;
-									if (m_flagIPv6) {
-										aBind.ip = IPv6Address::zero();
+									HandlePtr<Socket> socket((sl_socket)handle);
+									if (flagDomain) {
+										socket->bind(DomainSocketPath());
 									} else {
-										aBind.ip = IPv4Address::zero();
+										SocketAddress sa;
+										sa.port = 0;
+										if (m_flagIPv6) {
+											sa.ip = IPv6Address::zero();
+										} else {
+											sa.ip = IPv4Address::zero();
+										}
+										socket->bind(sa);
 									}
-									sl_uint32 nSaBind = aBind.getSystemSocketAddress(&saBind);
-									bind((SOCKET)handle, (SOCKADDR*)&saBind, nSaBind);
 									BOOL ret = m_funcConnectEx((SOCKET)handle, (sockaddr*)&addr, lenAddr, NULL, 0, NULL, &m_overlappedConnect);
 									if (ret) {
 										_onConnect(sl_true);
@@ -218,11 +214,15 @@ namespace slib
 
 			void onEvent(EventDesc* pev) override
 			{
+				onEvent((OVERLAPPED*)(pev->pOverlapped));
+			}
+
+			void onEvent(OVERLAPPED* pOverlapped)
+			{
 				sl_async_handle handle = getHandle();
 				if (handle == SLIB_ASYNC_INVALID_HANDLE) {
 					return;
 				}
-				OVERLAPPED* pOverlapped = (OVERLAPPED*)(pev->pOverlapped);
 				DWORD dwSize = 0;
 				DWORD dwFlags = 0;
 				sl_bool flagError = sl_false;
@@ -265,39 +265,41 @@ namespace slib
 		};
 	}
 
-	Ref<AsyncTcpSocketInstance> AsyncTcpSocket::_createInstance(Socket&& socket, sl_bool flagIPv6)
+	Ref<AsyncSocketStreamInstance> AsyncSocketStream::_createInstance(Socket&& socket, sl_bool flagIPv6)
 	{
-		return TcpInstance::create(Move(socket), flagIPv6);
+		return StreamInstance::create(Move(socket), flagIPv6);
 	}
 
 	namespace {
-		class TcpServerInstance : public AsyncTcpServerInstance
+
+		struct SOCKET_ADDRESS
+		{
+			ADDRESS_FAMILY family;
+			char data[256];
+		};
+
+		class ServerInstance : public AsyncSocketServerInstance
 		{
 		public:
+			sl_bool m_flagAccepting = sl_false;
 			sl_bool m_flagIPv6;
-			sl_bool m_flagAccepting;
 
 			WSAOVERLAPPED m_overlapped;
-			char m_bufferAccept[2 * (sizeof(SOCKADDR_IN) + 16)];
+			char m_bufferAccept[sizeof(SOCKET_ADDRESS) << 1];
 			Socket m_socketAccept;
 
 			LPFN_ACCEPTEX m_funcAcceptEx;
 			LPFN_GETACCEPTEXSOCKADDRS m_funcGetAcceptExSockaddrs;
 
 		public:
-			TcpServerInstance()
-			{
-				m_flagAccepting = sl_false;
-			}
-
-		public:
-			static Ref<TcpServerInstance> create(Socket&& socket, sl_bool flagIPv6)
+			static Ref<ServerInstance> create(Socket&& socket, sl_bool flagIPv6, sl_bool flagDomain)
 			{
 				if (socket.isOpened()) {
 					sl_async_handle handle = (sl_async_handle)(socket.get());
 					if (handle != SLIB_ASYNC_INVALID_HANDLE) {
-						Ref<TcpServerInstance> ret = new TcpServerInstance();
+						Ref<ServerInstance> ret = new ServerInstance();
 						if (ret.isNotNull()) {
+							ret->m_flagDomainSocket = flagDomain;
 							ret->m_flagIPv6 = flagIPv6;
 							ret->setHandle(handle);
 							if (ret->initialize()) {
@@ -361,7 +363,7 @@ namespace slib
 				}
 				Thread* thread = Thread::getCurrent();
 				while (!thread || thread->isNotStopping()) {
-					Socket socketAccept = Socket::open(m_flagIPv6 ? SocketType::StreamIPv6 : SocketType::Stream);
+					Socket socketAccept = Socket::open(m_flagDomainSocket ? SocketType::DomainStream : (m_flagIPv6 ? SocketType::StreamIPv6 : SocketType::Stream));
 					if (socketAccept.isOpened()) {
 						SOCKET handleAccept = socketAccept.get();
 						m_socketAccept = Move(socketAccept);
@@ -369,7 +371,7 @@ namespace slib
 						DWORD dwSize = 0;
 						BOOL ret = m_funcAcceptEx(
 							(SOCKET)(handle), handleAccept,
-							m_bufferAccept, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &dwSize,
+							m_bufferAccept, 0, sizeof(SOCKET_ADDRESS), sizeof(SOCKET_ADDRESS), &dwSize,
 							&m_overlapped);
 						if (ret) {
 							processAccept(sl_false);
@@ -421,53 +423,61 @@ namespace slib
 				if (server.isNull()) {
 					return;
 				}
-				Socket& socketAccept = m_socketAccept;
-				if (socketAccept.isNone()) {
+				Socket& client = m_socketAccept;
+				if (client.isNone()) {
 					return;
 				}
 				if (flagError) {
 					_onError();
 				} else {
-					SOCKADDR_IN *paddr_local, *paddr_remote;
-					int lenaddr_local = 0;
-					int lenaddr_remote = 0;
-					m_funcGetAcceptExSockaddrs(m_bufferAccept, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, (sockaddr**)&paddr_local, &lenaddr_local, (sockaddr**)&paddr_remote, &lenaddr_remote);
-					if (paddr_remote) {
+					SOCKET_ADDRESS* pLocalAddress;
+					SOCKET_ADDRESS* pRemoteAddress;
+					int nLocalAddress = 0;
+					int nRemoteAddress = 0;
+					m_funcGetAcceptExSockaddrs(m_bufferAccept, 0, sizeof(SOCKET_ADDRESS), sizeof(SOCKET_ADDRESS), (sockaddr**)&pLocalAddress, &nLocalAddress, (sockaddr**)&pRemoteAddress, &nRemoteAddress);
+					if (pRemoteAddress) {
 						SOCKET socketListen = (SOCKET)(getHandle());
-						setsockopt(socketAccept.get(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&socketListen, sizeof(void*));
-						SocketAddress addressRemote;
-						addressRemote.setSystemSocketAddress(paddr_remote);
-						SocketAddress addressLocal;
-						addressLocal.setSystemSocketAddress(paddr_local);
-						_onAccept(socketAccept, addressRemote);
+						setsockopt(client.get(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&socketListen, sizeof(void*));
+						if (m_flagDomainSocket) {
+							DomainSocketPath remotePath;
+							if (remotePath.setSystemSocketAddress(pRemoteAddress, nRemoteAddress)) {
+								_onAccept(client, remotePath);
+							}
+						} else {
+							SocketAddress addressRemote;
+							if (addressRemote.setSystemSocketAddress(pRemoteAddress, nRemoteAddress)) {
+								_onAccept(client, addressRemote);
+							}
+						}
 					}
 				}
 			}
 		};
 	}
 
-	Ref<AsyncTcpServerInstance> AsyncTcpServer::_createInstance(Socket&& socket, sl_bool flagIPv6)
+	Ref<AsyncSocketServerInstance> AsyncSocketServer::_createInstance(Socket&& socket, sl_bool flagIPv6, sl_bool flagDomain)
 	{
-		return TcpServerInstance::create(Move(socket), flagIPv6);
+		return ServerInstance::create(Move(socket), flagIPv6, flagDomain);
+	}
+
+	namespace winsock
+	{
+		LPFN_WSARECVMSG GetWSARecvMsg();
 	}
 
 	namespace {
 		class UdpInstance : public AsyncUdpSocketInstance
 		{
 		public:
-			sl_bool m_flagReceiving;
+			sl_bool m_flagReceiving = sl_false;
 
 			WSAOVERLAPPED m_overlappedReceive;
 			WSABUF m_bufReceive;
 			DWORD m_flagsReceive;
 			sockaddr_storage m_addrReceive;
-			int m_lenAddrReceive;
-
-		public:
-			UdpInstance()
-			{
-				m_flagReceiving = sl_false;
-			}
+			sl_uint8 m_bufControl[1024];
+			WSAMSG m_msgReceive;
+			LPFN_WSARECVMSG m_fnRecvMsg;
 
 		public:
 			static Ref<UdpInstance> create(Socket&& socket, const Memory& buffer)
@@ -478,8 +488,11 @@ namespace slib
 						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
 							Ref<UdpInstance> ret = new UdpInstance();
 							if (ret.isNotNull()) {
-								ret->setHandle(handle);
 								ret->m_buffer = buffer;
+								if (socket.isReceivingPacketInformation() || socket.isReceivingIPv6PacketInformation()) {
+									ret->m_fnRecvMsg = winsock::GetWSARecvMsg();
+								}
+								ret->setHandle(handle);
 								socket.release();
 								return ret;
 							}
@@ -506,10 +519,33 @@ namespace slib
 					DWORD dwFlags = 0;
 					if (WSAGetOverlappedResult((SOCKET)handle, pOverlapped, &dwSize, FALSE, &dwFlags)) {
 						m_flagReceiving = sl_false;
-						SocketAddress addr;
-						if (m_lenAddrReceive > 0) {
-							if (addr.setSystemSocketAddress(&m_addrReceive, m_lenAddrReceive)) {
-								_onReceive(addr, dwSize);
+						SocketAddress src;
+						if (m_msgReceive.namelen > 0) {
+							if (src.setSystemSocketAddress(&m_addrReceive, m_msgReceive.namelen)) {
+								if (m_fnRecvMsg) {
+									sl_uint32 interfaceIndex = 0;
+									IPAddress dst;
+									cmsghdr* cmsg = CMSG_FIRSTHDR(&m_msgReceive);
+									while (cmsg) {
+										if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_PKTINFO) {
+											in_pktinfo info;
+											Base::copyMemory(&info, WSA_CMSG_DATA(cmsg), sizeof(info));
+											interfaceIndex = (sl_uint32)(info.ipi_ifindex);
+											dst = IPv4Address((sl_uint8*)(&(info.ipi_addr)));
+											break;
+										} else if (cmsg->cmsg_level == IPPROTO_IPV6 && cmsg->cmsg_type == IPV6_PKTINFO) {
+											in6_pktinfo info;
+											Base::copyMemory(&info, WSA_CMSG_DATA(cmsg), sizeof(info));
+											interfaceIndex = (sl_uint32)(info.ipi6_ifindex);
+											dst = IPv6Address((sl_uint8*)(&(info.ipi6_addr)));
+											break;
+										}
+										cmsg = CMSG_NXTHDR(&m_msgReceive, cmsg);
+									}
+									_onReceive(interfaceIndex, dst, src, dwSize);
+								} else {
+									_onReceive(src, dwSize);
+								}
 							}
 						}
 					} else {
@@ -543,8 +579,19 @@ namespace slib
 				m_bufReceive.len = sizeBuf;
 				m_flagsReceive = 0;
 				DWORD dwRead = 0;
-				m_lenAddrReceive = sizeof(sockaddr_storage);
-				int ret = WSARecvFrom((SOCKET)handle, &m_bufReceive, 1, &dwRead, &m_flagsReceive, (sockaddr*)&m_addrReceive, &m_lenAddrReceive, &m_overlappedReceive, NULL);
+				m_msgReceive.namelen = sizeof(sockaddr_storage);
+				int ret;
+				if (m_fnRecvMsg) {
+					m_msgReceive.name = (sockaddr*)&m_addrReceive;
+					m_msgReceive.lpBuffers = &m_bufReceive;
+					m_msgReceive.dwBufferCount = 1;
+					m_msgReceive.Control.buf = (CHAR*)m_bufControl;
+					m_msgReceive.Control.len = sizeof(m_bufControl);
+					m_msgReceive.dwFlags = 0;
+					ret = m_fnRecvMsg((SOCKET)handle, &m_msgReceive, &dwRead, &m_overlappedReceive, NULL);
+				} else {
+					ret = WSARecvFrom((SOCKET)handle, &m_bufReceive, 1, &dwRead, &m_flagsReceive, (sockaddr*)&m_addrReceive, &(m_msgReceive.namelen), &m_overlappedReceive, NULL);
+				}
 				if (ret) {
 					// SOCKET_ERROR
 					DWORD dwErr = WSAGetLastError();

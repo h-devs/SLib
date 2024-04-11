@@ -27,6 +27,7 @@
 #include "slib/device/device.h"
 
 #include "slib/io/file.h"
+#include "slib/core/safe_static.h"
 #include "slib/dl/linux/gdk.h"
 #include "slib/dl/linux/gtk.h"
 
@@ -59,7 +60,8 @@ namespace slib
 	// Requires root privilege
 	String Device::getBoardSerialNumber() 
 	{
-		return File::readAllTextUTF8("/sys/devices/virtual/dmi/id/chassis_serial");
+        SLIB_SAFE_LOCAL_STATIC(String, ret, File::readAllTextUTF8("/sys/devices/virtual/dmi/id/chassis_serial"))
+        return ret;
 	}
 
 }

@@ -14,41 +14,38 @@ int main(int argc, const char * argv[])
 
 		Println("Binding server port %d", PORT);
 
-		ExpiringMap< AsyncTcpSocket*, Ref<AsyncTcpSocket> > sockets;
-		sockets.setExpiringMilliseconds(30000);
+		static ExpiringMap< AsyncSocketStream*, Ref<AsyncSocketStream> > clients;
+		clients.setExpiringMilliseconds(30000);
 
 		AsyncTcpServerParam param;
 		param.bindAddress.port = PORT;
 
-		param.onAccept = [&sockets](AsyncTcpServer*, Socket& socket, const SocketAddress& address) {
+		param.onAccept = [](AsyncTcpServer*, Socket& socket, const SocketAddress& address) {
 
-			AsyncTcpSocketParam param;
-			param.socket = Move(socket);
-
-			auto client = AsyncTcpSocket::create(param);
+			auto client = AsyncSocketStream::create(Move(socket));
 			if (client.isNull()) {
 				Println("Failed to create client socket!");
 				return;
 			}
 
 			Println("Connected client: %s", address.toString());
-			sockets.put(client.get(), client);
+			clients.put(client.get(), client);
 
-			client->receive(Memory::create(100), [&sockets](AsyncStreamResult& result) {
-				AsyncTcpSocket* client = (AsyncTcpSocket*)(result.stream);
+			client->read(Memory::create(100), [](AsyncStreamResult& result) {
+				AsyncSocketStream* client = (AsyncSocketStream*)(result.stream);
 				if (result.isError()) {
 					Println("Client Error!");
-					sockets.remove(client);
+					clients.remove(client);
 					return;
 				}
 				if (result.isEnded()) {
 					Println("Client Ended!");
-					sockets.remove(client);
+					clients.remove(client);
 					return;
 				}
 				Println("Received: %s", StringView((char*)(result.data), result.size));
-				sockets.get(client);
-				client->receive(result.data, result.requestSize, result.callback, result.userObject);
+				clients.get(client);
+				client->read(result.data, result.requestSize, result.callback, result.userObject);
 			});
 		};
 
@@ -70,6 +67,7 @@ int main(int argc, const char * argv[])
 			}
 			System::sleep(10);
 		}
+
 		return 0;
 
 	} else {
@@ -93,7 +91,7 @@ int main(int argc, const char * argv[])
 			static int n = 0;
 			n++;
 			String s = String::format("Message %d", n);
-			socket->send(s.toMemory(), [](AsyncStreamResult& result) {
+			socket->write(s.toMemory(), [](AsyncStreamResult& result) {
 				if (result.isError()) {
 					Println("Server Error!");
 					return;

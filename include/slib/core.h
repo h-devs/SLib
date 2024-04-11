@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_HEADER
 #define CHECKHEADER_SLIB_CORE_HEADER
 
-#include "core/definition.h"
-
 #include "core/mio.h"
 #include "core/safe_static.h"
 #include "core/singleton.h"
@@ -57,29 +55,25 @@
 #include "core/linked_list.h"
 #include "core/queue.h"
 
-#include "core/system.h"
-#include "core/process.h"
 #include "core/thread.h"
+#include "core/thread_pool.h"
 #include "core/mutex.h"
 #include "core/event.h"
 #include "core/rw_lock.h"
 #include "core/dispatch.h"
 #include "core/dispatch_loop.h"
 #include "core/timer.h"
-#include "core/dynamic_library.h"
 #include "core/console.h"
 #include "core/log.h"
 
 #include "core/app.h"
-#include "core/service.h"
 #include "core/resource.h"
-#include "core/asset.h"
-#include "core/preference.h"
 
 #include "data.h"
 #include "io.h"
 #include "network.h"
 #include "crypto.h"
 #include "math.h"
+#include "system.h"
 
 #endif

@@ -29,6 +29,7 @@
 #include "view_win32.h"
 
 #include "slib/dl/win32/dwmapi.h"
+#include "slib/dl/win32/user32.h"
 
 namespace slib
 {
@@ -36,24 +37,13 @@ namespace slib
 	namespace priv
 	{
 		void RunUiLoop(HWND hWndModalDialog);
+		void PostCustomEvent(sl_uint32 type, HWND window);
 		sl_bool IsAnyViewPainting();
 	}
 
 	using namespace priv;
 
 	namespace {
-
-		static sl_uint8 ToWindowAlpha(float alpha)
-		{
-			int a = (int)(alpha * 255);
-			if (a < 0) {
-				return 0;
-			}
-			if (a > 255) {
-				return 255;
-			}
-			return (sl_uint8)a;
-		}
 
 		static void MakeWindowStyle(Window* window, DWORD& style, DWORD& styleEx, HMENU& hMenu)
 		{
@@ -62,7 +52,7 @@ namespace slib
 
 			style = WS_CLIPCHILDREN;
 			styleEx = WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY;
-			if (window->isBorderless() || window->isFullScreen()) {
+			if (window->isBorderless() || window->isFullScreen() || window->isLayered()) {
 				style |= WS_POPUP;
 			} else {
 				if (window->isTitleBarVisible()) {
@@ -85,11 +75,14 @@ namespace slib
 					style |= WS_THICKFRAME;
 				}
 			}
-			if (window->isLayered()) {
+			if (window->isLayered() || UIPlatform::getWindowAlpha(window->getAlpha()) != 255 || window->getColorKey().isNotZero()) {
 				styleEx |= WS_EX_LAYERED;
 			}
 			if (window->isTransparent()) {
 				styleEx |= WS_EX_TRANSPARENT;
+			}
+			if (!(window->isVisibleInTaskbar())) {
+				styleEx |= WS_EX_TOOLWINDOW;
 			}
 			if (window->isAlwaysOnTop()) {
 				styleEx |= WS_EX_TOPMOST;
@@ -109,14 +102,11 @@ namespace slib
 
 			sl_bool m_flagTitleBar;
 			sl_bool m_flagResizable;
-			sl_bool m_flagLayered;
-			sl_uint8 m_alpha;
-			Color m_colorKey;
 
 			sl_bool m_flagMinimized;
 			sl_bool m_flagMaximized;
 
-			AtomicRef<ViewInstance> m_viewContent;
+			AtomicRef<Win32_ViewInstance> m_viewContent;
 			sl_bool m_flagDestroyOnRelease;
 
 			Color m_backgroundColor;
@@ -133,8 +123,6 @@ namespace slib
 
 				m_flagTitleBar = sl_false;
 				m_flagResizable = sl_false;
-				m_flagLayered = sl_false;
-				m_alpha = 255;
 
 				m_flagMinimized = sl_false;
 				m_flagMaximized = sl_false;
@@ -157,7 +145,7 @@ namespace slib
 						return ret;
 					}
 					if (flagDestroyOnRelease) {
-						PostMessageW(hWnd, SLIB_UI_MESSAGE_CLOSE, 0, 0);
+						_destroy(hWnd);
 					}
 				}
 				return sl_null;
@@ -201,12 +189,31 @@ namespace slib
 					hMenu, // menu
 					hInst,
 					NULL);
+				if (!hWnd) {
+					return NULL;
+				}
 
-				if ((style & WS_THICKFRAME) && (style & WS_CAPTION) != WS_CAPTION) {
+				String iconName = window->getIconResource();
+				if (iconName.isNotNull()) {
+					setIcon(hWnd, iconName);
+				}
+
+				if ((style & WS_THICKFRAME) && (style & WS_CAPTION) != WS_CAPTION && Win32::isWindows10OrGreater()) {
 					auto api = dwmapi::getApi_DwmExtendFrameIntoClientArea();
 					if (api) {
 						dwmapi::MARGINS m = { -1 };
 						api(hWnd, &m);
+					}
+				}
+				if (styleEx & WS_EX_LAYERED) {
+					if (!(window->isLayered())) {
+						UIPlatform::initLayeredWindowAttributes(hWnd, UIPlatform::getWindowAlpha(window->getAlpha()), window->getColorKey());
+					}
+				}
+				if (window->isExcludingFromCapture()) {
+					auto api = user32::getApi_SetWindowDisplayAffinity();
+					if (api) {
+						api(hWnd, 0x11); // WDA_EXCLUDEFROMCAPTURE
 					}
 				}
 
@@ -230,17 +237,21 @@ namespace slib
 					if (window->isDefaultBackgroundColor()) {
 						m_backgroundColor = window->getBackgroundColor();
 					}
-					m_flagLayered = window->isLayered();
-					m_alpha = ToWindowAlpha(window->getAlpha());
-					m_colorKey = window->getColorKey();
-					updateLayeredAttrs();
 				}
-				Ref<ViewInstance> content = UIPlatform::createViewInstance(hWnd, sl_false);
+				Ref<Win32_ViewInstance> content = Ref<Win32_ViewInstance>::from(UIPlatform::createViewInstance(hWnd, sl_false));
 				if (content.isNotNull()) {
 					content->setWindowContent(sl_true);
+					if (window->isLayered()) {
+						content->initNativeLayer();
+					}
 					m_viewContent = content;
 				}
 				UIPlatform::registerWindowInstance(hWnd, this);
+			}
+
+			static void _destroy(HWND hWnd)
+			{
+				PostCustomEvent(SLIB_UI_EVENT_CLOSE_WINDOW, hWnd);
 			}
 
 			void close() override
@@ -255,7 +266,7 @@ namespace slib
 					UIPlatform::removeWindowInstance(handle);
 					m_viewContent.setNull();
 					if (m_flagDestroyOnRelease) {
-						PostMessageW(handle, SLIB_UI_MESSAGE_CLOSE, 0, 0);
+						_destroy(handle);
 					}
 				}
 			}
@@ -321,6 +332,42 @@ namespace slib
 				}
 			}
 
+			static void setIcon(HWND hWnd, const String& name)
+			{
+				Win32_UI_Shared* shared = Win32_UI_Shared::get();
+				if (!shared) {
+					return;
+				}
+				HICON hIcon;
+				sl_uint32 resID;
+				if (name.parseUint32(&resID)) {
+					hIcon = LoadIconA(shared->hInstance, MAKEINTRESOURCEA(resID));
+					if (!hIcon) {
+						hIcon = LoadIconA(shared->hInstance, name.getData());
+						if (!hIcon) {
+							return;
+						}
+					}
+				} else {
+					hIcon = LoadIconA(shared->hInstance, name.getData());
+					if (!hIcon) {
+						return;
+					}
+				}
+				HICON hIconOld = (HICON)(SendMessageW(hWnd, WM_SETICON, 0, (LPARAM)hIcon));
+				if (hIconOld) {
+					DeleteObject(hIconOld);
+				}
+			}
+
+			void setIcon(const String& name) override
+			{
+				HWND hWnd = m_handle;
+				if (hWnd) {
+					setIcon(hWnd, name);
+				}
+			}
+
 			void setMenu(const Ref<Menu>& menu) override
 			{
 				HWND hWnd = m_handle;
@@ -363,7 +410,7 @@ namespace slib
 					return;
 				}
 				m_backgroundColor = color;
-				Ref<ViewInstance> content = m_viewContent;
+				Ref<Win32_ViewInstance> content = m_viewContent;
 				if (content.isNotNull()) {
 					Ref<View> view = content->getView();
 					if (view.isNotNull()) {
@@ -384,14 +431,10 @@ namespace slib
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
-					sl_bool f1 = IsIconic(hWnd) ? sl_true : sl_false;
-					sl_bool f2 = flag ? sl_true : sl_false;
-					if (f1 != f2) {
-						if (f2) {
-							ShowWindowAsync(hWnd, SW_FORCEMINIMIZE);
-						} else {
-							ShowWindowAsync(hWnd, SW_RESTORE);
-						}
+					if (flag) {
+						ShowWindowAsync(hWnd, SW_MINIMIZE);
+					} else {
+						ShowWindowAsync(hWnd, SW_RESTORE);
 					}
 				}
 			}
@@ -408,14 +451,10 @@ namespace slib
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
-					sl_bool f1 = IsZoomed(hWnd) ? sl_true : sl_false;
-					sl_bool f2 = flag ? sl_true : sl_false;
-					if (f1 != f2) {
-						if (f2) {
-							ShowWindowAsync(hWnd, SW_MAXIMIZE);
-						} else {
-							ShowWindowAsync(hWnd, SW_RESTORE);
-						}
+					if (flag) {
+						ShowWindowAsync(hWnd, SW_MAXIMIZE);
+					} else {
+						ShowWindowAsync(hWnd, SW_RESTORE);
 					}
 				}
 			}
@@ -424,14 +463,10 @@ namespace slib
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
-					sl_bool f1 = IsWindowVisible(hWnd) ? sl_true : sl_false;
-					sl_bool f2 = flag ? sl_true : sl_false;
-					if (f1 != f2) {
-						if (f2) {
-							ShowWindowAsync(hWnd, SW_SHOW);
-						} else {
-							ShowWindowAsync(hWnd, SW_HIDE);
-						}
+					if (flag) {
+						ShowWindowAsync(hWnd, SW_SHOW);
+					} else {
+						ShowWindowAsync(hWnd, SW_HIDE);
 					}
 				}
 			}
@@ -481,63 +516,50 @@ namespace slib
 				}
 			}
 
-			void setLayered(sl_bool flag) override
-			{
-				HWND hWnd = m_handle;
-				if (hWnd) {
-					if (m_flagLayered == flag) {
-						return;
-					}
-					m_flagLayered = flag;
-					UIPlatform::setWindowExStyle(hWnd, WS_EX_LAYERED, flag);
-					Ref<ViewInstance> instance = m_viewContent;
-					if (instance.isNotNull()) {
-						((Win32_ViewInstance*)(instance.get()))->setLayered(flag);
-					}
-				}
-			}
-
-			void updateLayeredAttrs()
-			{
-				if (!m_flagLayered) {
-					return;
-				}
-				HWND hWnd = m_handle;
-				if (hWnd) {
-					DWORD flags = m_alpha != 255 ? LWA_ALPHA : 0;
-					COLORREF cr = 0;
-					if (m_colorKey.isNotZero()) {
-						cr = GraphicsPlatform::getColorRef(m_colorKey);
-						flags |= LWA_COLORKEY;
-					}
-					SetLayeredWindowAttributes(hWnd, cr, m_alpha, flags);
-					RedrawWindow(hWnd,
-						NULL,
-						NULL,
-						RDW_ERASE | RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN);
-				}
-			}
-
 			void setAlpha(sl_real alpha) override
 			{
-				sl_uint8 a = ToWindowAlpha(alpha);
-				if (m_alpha != a) {
-					m_alpha = a;
-					updateLayeredAttrs();
+				Ref<Win32_ViewInstance> content = m_viewContent;
+				if (content.isNotNull()) {
+					Ref<View> view = content->getView();
+					if (view.isNotNull()) {
+						content->setAlpha(view.get(), alpha);
+					}
 				}
 			}
 
 			void setColorKey(const Color& color) override
 			{
-				if (m_colorKey != color) {
-					m_colorKey = color;
-					updateLayeredAttrs();
+				Ref<Win32_ViewInstance> content = m_viewContent;
+				if (content.isNotNull()) {
+					Ref<View> view = content->getView();
+					if (view.isNotNull()) {
+						content->setColorKey(view.get(), color);
+					}
 				}
 			}
 
 			void setTransparent(sl_bool flag) override
 			{
 				UIPlatform::setWindowExStyle(m_handle, WS_EX_TRANSPARENT, flag);
+			}
+
+			void setVisibleInTaskbar(sl_bool flag) override
+			{
+				UIPlatform::setWindowExStyle(m_handle, WS_EX_TOOLWINDOW, !flag);
+			}
+
+			void setExcludingFromCapture(sl_bool flag) override
+			{
+				HWND hWnd = m_handle;
+				if (hWnd) {
+					auto api = user32::getApi_SetWindowDisplayAffinity();
+					if (api) {
+						api(hWnd, flag ?
+							0x11 // WDA_EXCLUDEFROMCAPTURE
+							: 0
+						);
+					}
+				}
 			}
 
 			sl_bool getClientInsets(UIEdgeInsets& _out) override
@@ -669,13 +691,18 @@ namespace slib
 				if (height > 60000) {
 					height = 60000;
 				}
-				if (wParam == SIZE_MAXIMIZED) {
-					m_flagMaximized = sl_true;
-					onMaximize();
-					onResize(handle, (sl_ui_pos)width, (sl_ui_pos)height);
-				} else if (wParam == SIZE_MINIMIZED) {
+				if (wParam == SIZE_MINIMIZED) {
 					m_flagMinimized = sl_true;
 					onMinimize();
+				} else if (wParam == SIZE_MAXIMIZED) {
+					if (m_flagMinimized) {
+						m_flagMinimized = sl_false;
+						onDeminimize();
+					} else {
+						m_flagMaximized = sl_true;
+						onMaximize();
+					}
+					onResize(handle, (sl_ui_pos)width, (sl_ui_pos)height);
 				} else if (wParam == SIZE_RESTORED) {
 					if (m_flagMinimized) {
 						m_flagMinimized = sl_false;
@@ -764,19 +791,37 @@ namespace slib
 				if (!handle) {
 					return sl_false;
 				}
+				short x = (short)(lParam & 0xFFFF);
+				short y = (short)((lParam >> 16) & 0xFFFF);
+				Ref<Window> window = getWindow();
+				if (window.isNotNull()) {
+					Function<WindowPart(sl_ui_pos x, sl_ui_pos y)> tester = window->getHitTester();
+					if (tester.isNotNull()) {
+						WindowPart part = tester(x, y);
+						if (part != WindowPart::Nowhere) {
+							result = (LRESULT)part;
+							return sl_true;
+						}
+					}
+				}
 				if (m_flagTitleBar) {
 					return sl_false;
 				}
 				if (m_flagResizable) {
-					short x = (short)(lParam & 0xFFFF);
-					short y = (short)((lParam >> 16) & 0xFFFF);
 					RECT rc = { 0 };
 					GetWindowRect(handle, &rc);
 #define BORDER_SIZE 4
-					rc.left += BORDER_SIZE;
-					rc.top += BORDER_SIZE;
-					rc.right -= BORDER_SIZE;
-					rc.bottom -= BORDER_SIZE;
+					rc.left -= BORDER_SIZE;
+					rc.top -= BORDER_SIZE;
+					rc.right += BORDER_SIZE;
+					rc.bottom += BORDER_SIZE;
+					if (!(PtInRect(&rc, POINT{ x, y }))) {
+						return sl_false;
+					}
+					rc.left += BORDER_SIZE * 2;
+					rc.top += BORDER_SIZE * 2;
+					rc.right -= BORDER_SIZE * 2;
+					rc.bottom -= BORDER_SIZE * 2;
 					if (x >= rc.right) {
 						if (y >= rc.bottom) {
 							result = HTBOTTOMRIGHT;
@@ -814,11 +859,30 @@ namespace slib
 				if (m_flagTitleBar || m_flagBorderless) {
 					return sl_false;
 				}
-				if (m_flagResizable) {
+				if (m_flagResizable && Win32::isWindows10OrGreater()) {
 					if (wParam) {
 						result = 0;
 						return sl_true;
 					}
+				}
+				return sl_false;
+			}
+
+			sl_bool _onNcActivate(WPARAM wParam, LPARAM lParam, LRESULT& result)
+			{
+				HWND handle = m_handle;
+				if (!handle) {
+					return sl_false;
+				}
+				if (m_flagTitleBar || m_flagBorderless) {
+					return sl_false;
+				}
+				if (m_flagResizable && Win32::isWindows10OrGreater()) {
+					if (IsIconic(handle)) {
+						return sl_false;
+					}
+					result = 1;
+					return sl_true;
 				}
 				return sl_false;
 			}
@@ -975,6 +1039,14 @@ namespace slib
 						{
 							LRESULT result;
 							if (window->_onNcCalcSize(wParam, lParam, result)) {
+								return result;
+							}
+							break;
+						}
+					case WM_NCACTIVATE:
+						{
+							LRESULT result;
+							if (window->_onNcActivate(wParam, lParam, result)) {
 								return result;
 							}
 							break;

@@ -76,7 +76,6 @@ namespace slib
 		close();
 
 		m_pathConf = filePath;
-		m_pathApp = conf.app_path;
 
 		m_conf = Move(conf);
 
@@ -161,12 +160,22 @@ namespace slib
 
 	sl_bool SAppDocument::_openResourcesExceptUi()
 	{
-		for (auto& include : m_conf.includes) {
-			if (!(_openResourcesExceptUi(include))) {
+		HashSet<String> includedSet;
+		return _openResourcesExceptUi(m_conf, includedSet);
+	}
+
+	sl_bool SAppDocument::_openResourcesExceptUi(const SAppModuleConfiguration& conf, HashSet<String>& includedSet)
+	{
+		if (includedSet.find_NoLock(conf.app_path)) {
+			return sl_true;
+		}
+		includedSet.put_NoLock(conf.app_path);
+		for (auto&& include : conf.includes) {
+			if (!(_openResourcesExceptUi(include, includedSet))) {
 				return sl_false;
 			}
 		}
-		return _openResourcesExceptUi(m_pathApp);
+		return _openResourcesExceptUi(conf.app_path);
 	}
 
 	sl_bool SAppDocument::_openResourcesExceptUi(const String& pathApp)
@@ -190,7 +199,7 @@ namespace slib
 	{
 		List<String> fileList = File::getFiles(pathApp);
 		fileList.sort();
-		for (auto& fileName : fileList) {
+		for (auto&& fileName : fileList) {
 			if (fileName.isNotNull()) {
 				if (fileName == "image") {
 					if (!(_registerFileResources("image", pathApp + "/image", Locale::Unknown))) {
@@ -229,7 +238,7 @@ namespace slib
 	sl_bool SAppDocument::_openGlobalResources(const String& pathApp, const String& subdir)
 	{
 		String pathDir = File::concatPath(pathApp, subdir);
-		for (auto& fileName : File::getFiles(pathDir)) {
+		for (auto&& fileName : File::getFiles(pathDir)) {
 			String path = File::concatPath(pathDir, fileName);
 			if (File::exists(path)) {
 				if (!(File::isDirectory(path))) {
@@ -246,18 +255,25 @@ namespace slib
 
 	sl_bool SAppDocument::_openUiResources()
 	{
-		for (auto& include : m_conf.includes) {
-			if (!(_openUiResources(File::concatPath(include, "layout")))) {
-				return sl_false;
-			}
-			if (!(_openUiResources(File::concatPath(include, "ui")))) {
+		HashSet<String> includedSet;
+		return _openUiResources(m_conf, includedSet);
+	}
+
+	sl_bool SAppDocument::_openUiResources(const SAppModuleConfiguration& conf, HashSet<String>& includedSet)
+	{
+		if (includedSet.find_NoLock(conf.app_path)) {
+			return sl_true;
+		}
+		includedSet.put_NoLock(conf.app_path);
+		for (auto&& include : m_conf.includes) {
+			if (!(_openUiResources(include, includedSet))) {
 				return sl_false;
 			}
 		}
-		if (!(_openUiResources(File::concatPath(m_pathApp, "layout")))) {
+		if (!(_openUiResources(File::concatPath(conf.app_path, "layout")))) {
 			return sl_false;
 		}
-		if (!(_openUiResources(File::concatPath(m_pathApp, "ui")))) {
+		if (!(_openUiResources(File::concatPath(conf.app_path, "ui")))) {
 			return sl_false;
 		}
 		return sl_true;
@@ -265,7 +281,7 @@ namespace slib
 
 	sl_bool SAppDocument::_openUiResources(const String& pathLayouts)
 	{
-		for (auto& fileName : File::getFiles(pathLayouts)) {
+		for (auto&& fileName : File::getFiles(pathLayouts)) {
 			String path = File::concatPath(pathLayouts, fileName);
 			if (File::getFileExtension(fileName) == "xml" || File::getFileExtension(fileName) == "uiml") {
 				if (!(_openUiResource(path))) {
@@ -296,35 +312,53 @@ namespace slib
 
 	sl_bool SAppDocument::_openUiResourceByName(const String& name)
 	{
-		for (auto& include : m_conf.includes) {
-			String path = File::concatPath(include, "layout", name);
-			if (File::isFile(path + ".xml")) {
-				return _openUiResource(path + ".xml");
-			} else if (File::isFile(path + ".uiml")) {
-				return _openUiResource(path + ".uiml");
+		sl_bool flagFound = sl_false;
+		HashSet<String> includedSet;
+		return _openUiResourceByName(name, flagFound, m_conf, includedSet);
+	}
+
+	sl_bool SAppDocument::_openUiResourceByName(const String& name, sl_bool& flagFound, const SAppModuleConfiguration& conf, HashSet<String>& includedSet)
+	{
+		if (includedSet.find_NoLock(conf.app_path)) {
+			return sl_false;
+		}
+		includedSet.put_NoLock(conf.app_path);
+		for (auto&& include : m_conf.includes) {
+			if (_openUiResourceByName(name, flagFound, include, includedSet)) {
+				return sl_true;
 			}
-			path = File::concatPath(include, "ui", name);
-			if (File::isFile(path + ".xml")) {
-				return _openUiResource(path + ".xml");
-			} else if (File::isFile(path + ".uiml")) {
-				return _openUiResource(path + ".uiml");
+			if (flagFound) {
+				return sl_false;
 			}
 		}
-		String path = File::concatPath(m_pathApp, "layout", name);
+		String path = File::concatPath(conf.app_path, "layout", name);
 		if (File::isFile(path + ".xml")) {
+			flagFound = sl_true;
 			return _openUiResource(path + ".xml");
 		} else if (File::isFile(path + ".uiml")) {
+			flagFound = sl_true;
 			return _openUiResource(path + ".uiml");
 		} else {
-			path = File::concatPath(m_pathApp, "ui", name);
+			path = File::concatPath(conf.app_path, "ui", name);
 			if (File::isFile(path + ".xml")) {
+				flagFound = sl_true;
 				return _openUiResource(path + ".xml");
 			} else if (File::isFile(path + ".uiml")) {
+				flagFound = sl_true;
 				return _openUiResource(path + ".uiml");
 			} else {
 				return sl_false;
 			}
 		}
+	}
+
+	String SAppDocument::_resolvePath(const String& path, const String& currentFilePath)
+	{
+		String ret = Stringx::resolveEnvironmentVariables(path);
+		if (ret.startsWith('.')) {
+			ret = File::concatPath(File::getParentDirectoryPath(currentFilePath), path);
+		}
+		return ret;
 	}
 
 	sl_bool SAppDocument::generateCpp()
@@ -532,15 +566,14 @@ namespace slib
 	/***************************************************
 					Resources Entry
 	***************************************************/
-
-	sl_bool SAppDocument::_parseConfiguration(const String& filePath, SAppConfiguration& conf)
+	sl_bool SAppDocument::_parseModuleConfiguration(const String& filePath, SAppModuleConfiguration& conf, const Function<sl_bool(XmlElement* root)>& onAdditionalConfig)
 	{
-		log(g_str_log_appconf_begin, filePath);
-
 		if (!(File::exists(filePath))) {
 			logError(g_str_error_file_not_found, filePath);
 			return sl_false;
 		}
+
+		log(g_str_log_appconf_begin, filePath);
 
 		Xml::ParseParam param;
 		param.flagLogError = sl_false;
@@ -573,10 +606,7 @@ namespace slib
 		{
 			Ref<XmlElement> el_app_path = root->getFirstChildElement("app-path");
 			if (el_app_path.isNotNull()) {
-				String strPath = el_app_path->getText();
-				if (strPath.startsWith('.')) {
-					strPath = File::concatPath(File::getParentDirectoryPath(filePath), strPath);
-				}
+				String strPath = _resolvePath(el_app_path->getText(), filePath);
 				if (File::isDirectory(strPath)) {
 					conf.app_path = strPath;
 				} else {
@@ -593,85 +623,96 @@ namespace slib
 			ListElements< Ref<XmlElement> > el_includes(root->getChildElements("include"));
 			for (sl_size i = 0; i < el_includes.count; i++) {
 				Ref<XmlElement>& el_include = el_includes[i];
-				String strPath = el_include->getText();
-				if (strPath.startsWith('.')) {
-					strPath = File::concatPath(File::getParentDirectoryPath(filePath), strPath);
-				}
+				String strPath = _resolvePath(el_include->getText(), filePath);
 				if (File::isDirectory(strPath)) {
-					conf.includes.add_NoLock(Move(strPath));
+					String configPath = File::concatPath(strPath, "sapp.xml");
+					SAppModuleConfiguration include;
+					if (_parseModuleConfiguration(configPath, include, sl_null)) {
+						if (!(conf.includes.add_NoLock(Move(include)))) {
+							logError(el_include, g_str_error_out_of_memory);
+							return sl_false;
+						}
+					} else {
+						return sl_false;
+					}
 				} else {
 					logError(el_include, String::format(g_str_error_directory_not_found, strPath));
 					return sl_false;
 				}
 			}
 		}
+		if (onAdditionalConfig.isNotNull()) {
+			if (!(onAdditionalConfig(root.get()))) {
+				return sl_false;
+			}
+		}
+		return sl_true;
+	}
 
-		// generate-cpp
-		Ref<XmlElement> el_generate_cpp = root->getFirstChildElement("generate-cpp");
-		if (el_generate_cpp.isNotNull()) {
-			Ref<XmlElement> el_target_path = el_generate_cpp->getFirstChildElement("target-path");
-			if (el_target_path.isNotNull()) {
-				String strPath = el_target_path->getText();
-				if (strPath.isEmpty()) {
-					logError(el_target_path, String::format(g_str_error_configuration_value_empty, "target-path"));
-					return sl_false;
+	sl_bool SAppDocument::_parseConfiguration(const String& filePath, SAppConfiguration& conf)
+	{
+		return _parseModuleConfiguration(filePath, conf, [this, filePath, &conf](XmlElement* root) {
+			// generate-cpp
+			Ref<XmlElement> el_generate_cpp = root->getFirstChildElement("generate-cpp");
+			if (el_generate_cpp.isNotNull()) {
+				Ref<XmlElement> el_target_path = el_generate_cpp->getFirstChildElement("target-path");
+				if (el_target_path.isNotNull()) {
+					String strPath = _resolvePath(el_target_path->getText(), filePath);
+					if (strPath.isEmpty()) {
+						logError(el_target_path, String::format(g_str_error_configuration_value_empty, "target-path"));
+						return sl_false;
+					}
+					conf.generate_cpp_target_path = strPath;
 				}
-				if (strPath.startsWith('.')) {
-					strPath = File::concatPath(File::getParentDirectoryPath(filePath), strPath);
+				Ref<XmlElement> el_namespace = el_generate_cpp->getFirstChildElement("namespace");
+				if (el_namespace.isNotNull()) {
+					conf.generate_cpp_namespace = el_namespace->getText();
+					if (!(SAppUtil::checkName(conf.generate_cpp_namespace.getData(), conf.generate_cpp_namespace.getLength()))) {
+						logError(el_namespace, String::format(g_str_error_configuration_value_invalid, "namespace", conf.generate_cpp_namespace));
+						return sl_false;
+					}
 				}
-				conf.generate_cpp_target_path = strPath;
-			}
-			Ref<XmlElement> el_namespace = el_generate_cpp->getFirstChildElement("namespace");
-			if (el_namespace.isNotNull()) {
-				conf.generate_cpp_namespace = el_namespace->getText();
-				if (!(SAppUtil::checkName(conf.generate_cpp_namespace.getData(), conf.generate_cpp_namespace.getLength()))) {
-					logError(el_namespace, String::format(g_str_error_configuration_value_invalid, "namespace", conf.generate_cpp_namespace));
-					return sl_false;
-				}
-			}
-			Ref<XmlElement> el_layout = el_generate_cpp->getFirstChildElement("layout");
-			if (el_layout.isNotNull()) {
-				ListLocker< Ref<XmlElement> > children(el_layout->getChildElements());
-				for (sl_size i = 0; i < children.count; i++) {
-					Ref<XmlElement> child = children[i];
-					if (child.isNotNull()) {
-						if (child->getName() == "include-header") {
-							String str = child->getText().trim();
-							if (str.isNotEmpty()) {
-								conf.generate_cpp_layout_include_headers.add(str);
-							}
-						} else if (child->getName() == "include-header-in-cpp") {
-							String str = child->getText().trim();
-							if (str.isNotEmpty()) {
-								conf.generate_cpp_layout_include_headers_in_cpp.add(str);
+				Ref<XmlElement> el_layout = el_generate_cpp->getFirstChildElement("layout");
+				if (el_layout.isNotNull()) {
+					ListLocker< Ref<XmlElement> > children(el_layout->getChildElements());
+					for (sl_size i = 0; i < children.count; i++) {
+						Ref<XmlElement> child = children[i];
+						if (child.isNotNull()) {
+							if (child->getName() == "include-header") {
+								String str = child->getText().trim();
+								if (str.isNotEmpty()) {
+									conf.generate_cpp_layout_include_headers.add(str);
+								}
+							} else if (child->getName() == "include-header-in-cpp") {
+								String str = child->getText().trim();
+								if (str.isNotEmpty()) {
+									conf.generate_cpp_layout_include_headers_in_cpp.add(str);
+								}
 							}
 						}
 					}
 				}
 			}
-		}
 
-		// simulator
-		Ref<XmlElement> el_simulator = root->getFirstChildElement("simulator");
-		if (el_simulator.isNotNull()) {
-			Ref<XmlElement> el_locale = el_simulator->getFirstChildElement("locale");
-			if (el_locale.isNotNull()) {
-				String strLocale = el_locale->getText();
-				if (strLocale.isNotEmpty()) {
-					Locale locale;
-					if (locale.parse(strLocale)) {
-						conf.simulator_locale = locale;
-					} else {
-						logError(el_locale, String::format(g_str_error_configuration_value_invalid, "locale", strLocale));
-						return sl_false;
+			// simulator
+			Ref<XmlElement> el_simulator = root->getFirstChildElement("simulator");
+			if (el_simulator.isNotNull()) {
+				Ref<XmlElement> el_locale = el_simulator->getFirstChildElement("locale");
+				if (el_locale.isNotNull()) {
+					String strLocale = el_locale->getText();
+					if (strLocale.isNotEmpty()) {
+						Locale locale;
+						if (locale.parse(strLocale)) {
+							conf.simulator_locale = locale;
+						} else {
+							logError(el_locale, String::format(g_str_error_configuration_value_invalid, "locale", strLocale));
+							return sl_false;
+						}
 					}
 				}
 			}
-		}
-
-		log(g_str_log_appconf_end);
-
-		return sl_true;
+			return sl_true;
+		});
 	}
 
 	void SAppDocument::_freeResources()
@@ -732,13 +773,13 @@ namespace slib
 			Ref<XmlElement>& child = children[i];
 			if (child.isNotNull()) {
 				String type = child->getName().toLower();
-				if (type == "strings" || type == "string") {
+				if (type == "strings" || type == "string" || type == "vstring") {
 					if (type == "strings") {
 						if (!_parseStringResources(localNamespace, child, locale, textXML)) {
 							return sl_false;
 						}
 					} else {
-						if (!_parseStringResource(localNamespace, child, locale, textXML)) {
+						if (!_parseStringResource(localNamespace, child, locale, type == "vstring", textXML)) {
 							return sl_false;
 						}
 					}

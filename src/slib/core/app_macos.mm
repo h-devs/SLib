@@ -26,7 +26,7 @@
 
 #include "slib/core/app.h"
 
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 #include "slib/platform.h"
 
 #include <AppKit/AppKit.h>

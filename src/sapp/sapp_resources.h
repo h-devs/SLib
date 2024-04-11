@@ -43,12 +43,21 @@ namespace slib
 		SimulateLayout = 3
 	};
 
-	class SAppStringResource : public CRef
+	class SAppStringResourceItem
+	{
+	public:
+		String defaultValue;
+		HashMap<Locale, String> values;
+
+	public:
+		String get(const Locale& locale, const String& def);
+	};
+
+	class SAppStringResource : public CRef, public SAppStringResourceItem
 	{
 	public:
 		String name;
-		String defaultValue;
-		CHashMap<Locale, String> values;
+		HashMap<String, SAppStringResourceItem> variants;
 	};
 
 	class SAppColorResource : public CRef
@@ -249,12 +258,16 @@ namespace slib
 		SAppDimensionFloatValue contentRadiusX;
 		SAppDimensionFloatValue contentRadiusY;
 		SAppDimensionFloatValue contentRadius;
+		SAppStateMap<SAppColorValue> paddingColor;
 
 		SAppFontValue font;
 
 		SAppBooleanValue opaque;
 		SAppFloatValue alpha;
-		SAppBooleanValue antiAlias;
+		SAppColorValue colorKey;
+		SAppAntiAliasModeValue antiAlias;
+		SAppAntiAliasModeValue backgroundAntiAlias;
+		SAppAntiAliasModeValue contentAntiAlias;
 		SAppBooleanValue layer;
 
 		SAppFloatValue shadowOpacity;
@@ -325,6 +338,8 @@ namespace slib
 	public:
 		SAppMenuValue menu;
 		SAppStringValue title;
+		SAppDrawableValue icon;
+		SAppStringValue iconResource;
 
 		SAppDimensionValue left;
 		SAppDimensionValue top;
@@ -350,7 +365,10 @@ namespace slib
 		SAppBooleanValue resizable;
 		SAppBooleanValue layered;
 		SAppFloatValue alpha;
+		SAppColorValue colorKey;
 		SAppBooleanValue transparent;
+		SAppBooleanValue taskbar;
+		SAppBooleanValue excludeFromCapture;
 		SAppColorValue backgroundColor;
 
 		SAppBooleanValue modal;
@@ -364,6 +382,8 @@ namespace slib
 		SAppDimensionValue marginTop;
 		SAppDimensionValue marginRight;
 		SAppDimensionValue marginBottom;
+		SAppBooleanValue closeOnOK;
+		SAppBooleanValue closeOnCancel;
 	};
 
 	typedef SAppLayoutViewAttributes SAppLayoutPageAttributes;
@@ -430,14 +450,16 @@ namespace slib
 	public:
 		SAppStringValue text;
 		SAppStringValue hyperText;
-		SAppColorValue textColor;
+		SAppStateMap<SAppColorValue> textColor;
 		SAppAlignmentValue gravity;
 		SAppMultiLineModeValue multiLine;
 		SAppEllipsizeModeValue ellipsize;
 		SAppUint32Value lines;
 		SAppBooleanValue linksInText;
 		SAppColorValue linkColor;
+		SAppColorValue lineColor;
 		SAppBooleanValue mnemonic;
+		SAppBooleanValue contextMenu;
 	};
 
 	class SAppLayoutLineAttributes : public SAppLayoutViewAttributes
@@ -619,6 +641,9 @@ namespace slib
 	public:
 		CList<SAppLayoutTableColumn> columns;
 		CList<SAppLayoutTableRow> rows;
+		SAppBorderValue grid;
+		SAppBorderValue horizontalGrid;
+		SAppBorderValue verticalGrid;
 	};
 
 	struct SAppLayoutListControlColumn
@@ -659,6 +684,7 @@ namespace slib
 		SAppDrawableValue contentBackground;
 		SAppStateMap<SAppDrawableValue> tabBackground;
 		SAppStateMap<SAppColorValue> labelColor;
+		SAppFontValue labelFont;
 		SAppAlignmentValue tabAlign;
 		SAppDimensionValue tabPaddingLeft;
 		SAppDimensionValue tabPaddingTop;
@@ -673,7 +699,6 @@ namespace slib
 	public:
 		sl_bool isNotRequiredNative(sl_bool flagCheckBackgroundColor);
 	};
-
 
 	struct SAppLayoutTreeItemAttributes : public CRef
 	{
@@ -828,6 +853,15 @@ namespace slib
 		SAppBooleanValue swipe;
 	};
 
+	class SAppLayoutAudioAttributes : public SAppLayoutViewAttributes
+	{
+	public:
+		SAppUint32Value samplesPerFrame;
+		SAppUint32Value framesPerWindow;
+		SAppColorValue amplitudeColor;
+		SAppFloatValue amplitudeScale;
+	};
+
 	class SAppLayoutVideoAttributes : public SAppLayoutViewAttributes
 	{
 	public:
@@ -879,6 +913,11 @@ namespace slib
 		SAppEllipsizeModeValue ellipsize;
 		SAppMultiLineModeValue multiLine;
 
+		SAppDimensionValue itemPaddingLeft;
+		SAppDimensionValue itemPaddingTop;
+		SAppDimensionValue itemPaddingRight;
+		SAppDimensionValue itemPaddingBottom;
+
 		CList<SAppLayoutSelectItem> items;
 	};
 
@@ -902,6 +941,7 @@ namespace slib
 	public:
 		SAppStringValue label;
 		SAppColorValue labelColor;
+		SAppFontValue labelFont;
 	};
 
 	class SAppLayoutGridCellAttributes
@@ -934,6 +974,9 @@ namespace slib
 		SAppUint32Value lineCount;
 		SAppBooleanValue selectable;
 		SAppBooleanValue editable;
+		SAppBooleanValue backgroundAntiAlias;
+		SAppBooleanValue contentAntiAlias;
+		SAppBooleanValue antiAlias;
 		SAppBooleanValue defaultColorFilter;
 		SAppDimensionValue iconWidth;
 		SAppDimensionValue iconMargin;
@@ -970,7 +1013,10 @@ namespace slib
 		SAppBooleanValue fixed;
 		SAppBooleanValue visible;
 		SAppBooleanValue resizable;
-		SAppBooleanValue grid;
+		SAppBooleanValue verticalGrid;
+		SAppBooleanValue bodyVerticalGrid;
+		SAppBooleanValue headerVerticalGrid;
+		SAppBooleanValue footerVerticalGrid;
 
 		SAppLayoutGridCellAttributes bodyAttrs;
 		SAppLayoutGridCellAttributes headerAttrs;
@@ -983,6 +1029,7 @@ namespace slib
 		SAppNameValue name;
 		SAppDimensionValue height;
 		SAppBooleanValue visible;
+		SAppBooleanValue horizontalGrid;
 
 		List<SAppLayoutGridCell> cells;
 	};
@@ -994,6 +1041,8 @@ namespace slib
 		SAppDimensionValue rowHeight;
 
 		SAppBorderValue grid;
+		SAppBooleanValue verticalGrid;
+		SAppBooleanValue horizontalGrid;
 	};
 
 	class SAppLayoutGridAttributes : public SAppLayoutViewAttributes
@@ -1018,6 +1067,8 @@ namespace slib
 		SAppDrawableValue ascendingIcon;
 		SAppDrawableValue descendingIcon;
 		SAppDimensionValue sortIconSize;
+		SAppBooleanValue verticalGrid;
+		SAppBooleanValue horizontalGrid;
 
 		SAppCursorValue cellCursor;
 		SAppDimensionValue cellPadding;
@@ -1031,6 +1082,9 @@ namespace slib
 		SAppAlignmentValue cellAlign;
 		SAppBooleanValue selectable;
 		SAppBooleanValue editable;
+		SAppBooleanValue cellBackgroundAntiAlias;
+		SAppBooleanValue cellContentAntiAlias;
+		SAppBooleanValue cellAntiAlias;
 		SAppBooleanValue defaultColorFilter;
 		SAppDimensionValue iconWidth;
 		SAppDimensionValue iconMargin;
@@ -1123,6 +1177,7 @@ namespace slib
 		ComboBox = 0x0270,
 		Pdf = 0x0271,
 		Grid = 0x0272,
+		Audio = 0x0273,
 
 		NoView = 0xF000,
 		TreeItem = 0xF001
@@ -1136,13 +1191,9 @@ namespace slib
 		List< Ref<SAppLayoutStyle> > styles;
 
 	public:
-		SAppLayoutXmlItem();
-		~SAppLayoutXmlItem();
-		SAppLayoutXmlItem(const Ref<XmlElement>& _element);
+		SAppLayoutXmlItem(const Ref<XmlElement>& element);
 
 	public:
-		void init();
-
 		String getTagName()
 		{
 			return element->getName();
@@ -1184,7 +1235,7 @@ namespace slib
 		CList< Ref<SAppLayoutResourceItem> > children;
 
 	public:
-		SAppLayoutResourceItem();
+		SAppLayoutResourceItem(const Ref<XmlElement>& element);
 
 	};
 
@@ -1242,6 +1293,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameDatePicker = 0;
 		sl_uint32 nAutoIncreaseNamePager = 0;
 		sl_uint32 nAutoIncreaseNameNavigation = 0;
+		sl_uint32 nAutoIncreaseNameAudio = 0;
 		sl_uint32 nAutoIncreaseNameVideo = 0;
 		sl_uint32 nAutoIncreaseNameCamera = 0;
 		sl_uint32 nAutoIncreaseNameDrawer = 0;
@@ -1254,7 +1306,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameGrid = 0;
 
 	public:
-		SAppLayoutResource();
+		SAppLayoutResource(const Ref<XmlElement>& element);
 
 	public:
 		String getAutoIncreasingName(SAppLayoutItemType type);

@@ -241,9 +241,4 @@ namespace slib
 		return *this;
 	}
 
-	String Cast<MacAddress, String>::operator()(const MacAddress& v) const
-	{
-		return v.toString();
-	}
-
 }

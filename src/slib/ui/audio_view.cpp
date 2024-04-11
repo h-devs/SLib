@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,8 @@ namespace slib
 	AudioView::AudioView()
 	{
 		m_nSamplesPerFrame = 50;
-		m_color = Color::Blue;
+		m_colorAmplitude = Color::Blue;
+		m_scaleAmplitude = 1.0f;
 
 		setFramesPerWindow(500);
 	}
@@ -74,14 +75,25 @@ namespace slib
 		}
 	}
 
-	const Color& AudioView::getColor()
+	const Color& AudioView::getAmplitudeColor()
 	{
-		return m_color;
+		return m_colorAmplitude;
 	}
 
-	void AudioView::setColor(const Color& color, UIUpdateMode mode)
+	void AudioView::setAmplitudeColor(const Color& color, UIUpdateMode mode)
 	{
-		m_color = color;
+		m_colorAmplitude = color;
+		invalidate(mode);
+	}
+
+	float AudioView::getAmplitudeScale()
+	{
+		return m_scaleAmplitude;
+	}
+
+	void AudioView::setAmplitudeScale(float scale, UIUpdateMode mode)
+	{
+		m_scaleAmplitude = scale;
 		invalidate(mode);
 	}
 
@@ -113,14 +125,31 @@ namespace slib
 		sl_int16* samples = (sl_int16*)(dataProcess.data);
 		sl_uint32 nFrames = (sl_uint32)(data.count / nSamplesPerFrame);
 		for (sl_uint32 iFrame = 0; iFrame < nFrames; iFrame++) {
-			sl_uint32 sum = 0;
-			for (sl_uint32 i = 0; i < nSamplesPerFrame; i++) {
-				sum += (sl_uint32)(Math::abs(samples[i]));
+			sl_int32 avg = 0;
+			sl_uint32 i;
+			for (i = 0; i < nSamplesPerFrame; i++) {
+				avg += samples[i];
 			}
-			m_queueFrames.push((sl_uint16)(sum / nSamplesPerFrame));
+			avg /= (sl_int32)nSamplesPerFrame;
+			sl_uint32 sum = 0;
+			for (i = 0; i < nSamplesPerFrame; i++) {
+				sum += (sl_uint32)(Math::abs((sl_int32)(samples[i]) - avg));
+			}
+			sum /= m_nSamplesPerFrame;
+			if (sum >> 16) {
+				sum = 0xffff;
+			}
+			m_queueFrames.push(sum);
 			samples += nSamplesPerFrame;
 		}
 
+		invalidate(mode);
+	}
+
+	void AudioView::clearFrames(UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		m_queueFrames.removeAll();
 		invalidate(mode);
 	}
 
@@ -155,22 +184,37 @@ namespace slib
 
 		{
 			for (sl_uint32 i = 0; i < iStart; i++) {
-				pts[i].x = (sl_real)(bounds.left + i * width / nFramesPerWindow);
+				if (i + 1 == nFramesPerWindow) {
+					pts[i].x = (sl_real)(bounds.left + width);
+				} else {
+					pts[i].x = (sl_real)(bounds.left + i * width / nFramesPerWindow);
+				}
 				pts[i].y = (sl_real)(bounds.top + h2);
 				pts[iEndPts - i].x = pts[i].x;
 				pts[iEndPts - i].y = pts[i].y + 1;
 			}
 		}
 		{
+			float scale = m_scaleAmplitude;
+			sl_bool flagScale = !(Math::isAlmostZero(scale - 1.0f));
 			for (sl_uint32 i = iStart; i < nFramesPerWindow; i++) {
-				sl_int32 y = h2 - (sl_uint32)(window[i - iStart]) * height / 0x10000;
-				pts[i].x = (sl_real)(bounds.left + i * width / nFramesPerWindow);
+				sl_uint16 value = window[i - iStart];
+				if (flagScale) {
+					sl_int32 s = (sl_int32)(((float)value) * scale);
+					value = (sl_uint16)(Math::clamp0_65535(s));
+				}
+				sl_int32 y = h2 - ((sl_uint32)value) * h2 / 0x10000;
+				if (i + 1 == nFramesPerWindow) {
+					pts[i].x = (sl_real)(bounds.left + width);
+				} else {
+					pts[i].x = (sl_real)(bounds.left + i * width / nFramesPerWindow);
+				}
 				pts[i].y = (sl_real)(bounds.top + y);
 				pts[iEndPts - i].x = pts[i].x;
-				pts[iEndPts - i].y = (sl_real)(bounds.top + ((h2 << 1) + 1) - y);
+				pts[iEndPts - i].y = (sl_real)(bounds.bottom - y);
 			}
 		}
-		canvas->fillPolygon(pts, nFramesPerWindow << 1, m_color);
+		canvas->fillPolygon(pts, nFramesPerWindow << 1, m_colorAmplitude);
 	}
 
 }

@@ -46,7 +46,7 @@ namespace slib
 
 		void close() override;
 
-		sl_reg read(void* buf, sl_size size) override;
+		sl_reg read(void* buf, sl_size size, sl_int32 timeout = -1) override;
 
 		sl_bool readInt8(sl_int8* output);
 

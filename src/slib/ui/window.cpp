@@ -70,6 +70,8 @@ namespace slib
 		m_flagResizable = sl_false;
 		m_flagLayered = sl_false;
 		m_flagTransparent = sl_false;
+		m_flagVisibleInTaskbar = sl_true;
+		m_flagExcludingFromCapture = sl_false;
 
 		m_flagModal = sl_false;
 		m_flagSheet = sl_false;
@@ -81,6 +83,7 @@ namespace slib
 		m_flagWidthFilling = sl_false;
 		m_flagHeightFilling = sl_false;
 		m_flagCloseOnOK = sl_false;
+		m_flagCloseOnCancel = sl_true;
 
 		m_flagStateResizingWidth = sl_false;
 		m_flagStateDoModal = sl_false;
@@ -494,6 +497,23 @@ namespace slib
 		}
 	}
 
+	String Window::getIconResource()
+	{
+		return m_iconResource;
+	}
+
+	void Window::setIconResource(const String& name)
+	{
+		Ref<WindowInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setIconResource, name)
+			m_iconResource = name;
+			instance->setIcon(name);
+		} else {
+			m_iconResource = name;
+		}
+	}
+
 	Color Window::getBackgroundColor()
 	{
 		return m_backgroundColor;
@@ -733,14 +753,7 @@ namespace slib
 
 	void Window::setLayered(sl_bool flag)
 	{
-		Ref<WindowInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setLayered, flag)
-			m_flagLayered = flag;
-			instance->setLayered(flag);
-		} else {
-			m_flagLayered = flag;
-		}
+		m_flagLayered = flag;
 	}
 
 	sl_real Window::getAlpha()
@@ -791,6 +804,40 @@ namespace slib
 			instance->setTransparent(flag);
 		} else {
 			m_flagTransparent = flag;
+		}
+	}
+
+	sl_bool Window::isVisibleInTaskbar()
+	{
+		return m_flagVisibleInTaskbar;
+	}
+
+	void Window::setVisibleInTaskbar(sl_bool flag)
+	{
+		Ref<WindowInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setVisibleInTaskbar, flag)
+			m_flagVisibleInTaskbar = flag;
+			instance->setVisibleInTaskbar(flag);
+		} else {
+			m_flagVisibleInTaskbar = flag;
+		}
+	}
+
+	sl_bool Window::isExcludingFromCapture()
+	{
+		return m_flagExcludingFromCapture;
+	}
+
+	void Window::setExcludingFromCapture(sl_bool flag)
+	{
+		Ref<WindowInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setExcludingFromCapture, flag)
+			m_flagExcludingFromCapture = flag;
+			instance->setExcludingFromCapture(flag);
+		} else {
+			m_flagExcludingFromCapture = flag;
 		}
 	}
 
@@ -1230,6 +1277,16 @@ namespace slib
 		}
 	}
 
+	Function<WindowPart(sl_ui_pos x, sl_ui_pos y)> Window::getHitTester()
+	{
+		return m_hitTester;
+	}
+
+	void Window::setHitTester(const Function<WindowPart(sl_ui_pos x, sl_ui_pos y)>& tester)
+	{
+		m_hitTester = tester;
+	}
+
 	sl_bool Window::isCloseOnOK()
 	{
 		return m_flagCloseOnOK;
@@ -1238,6 +1295,16 @@ namespace slib
 	void Window::setCloseOnOK(sl_bool flag)
 	{
 		m_flagCloseOnOK = flag;
+	}
+
+	sl_bool Window::isCloseOnCancel()
+	{
+		return m_flagCloseOnCancel;
+	}
+
+	void Window::setCloseOnCancel(sl_bool flag)
+	{
+		m_flagCloseOnCancel = flag;
 	}
 
 	Variant Window::getResult()
@@ -1405,9 +1472,9 @@ namespace slib
 			}
 
 			attach(window, sl_false);
+			m_flagDispatchedDestroy = sl_false;
 
 			invokeCreate();
-
 			window->doPostCreate();
 
 			if (m_flagVisible) {
@@ -1648,7 +1715,9 @@ namespace slib
 
 	void Window::onCancel()
 	{
-		invokeClose();
+		if (m_flagCloseOnCancel) {
+			invokeClose();
+		}
 	}
 
 	void Window::_refreshClientSize(const UISize& size)
@@ -1845,6 +1914,10 @@ namespace slib
 	{
 	}
 
+	void WindowInstance::setIcon(const String& resourceName)
+	{
+	}
+
 	void WindowInstance::setMenu(const Ref<Menu>& menu)
 	{
 	}
@@ -1919,10 +1992,6 @@ namespace slib
 	{
 	}
 
-	void WindowInstance::setLayered(sl_bool flag)
-	{
-	}
-
 	void WindowInstance::setAlpha(sl_real alpha)
 	{
 	}
@@ -1932,6 +2001,14 @@ namespace slib
 	}
 
 	void WindowInstance::setTransparent(sl_bool flag)
+	{
+	}
+
+	void WindowInstance::setVisibleInTaskbar(sl_bool flag)
+	{
+	}
+
+	void WindowInstance::setExcludingFromCapture(sl_bool flag)
 	{
 	}
 

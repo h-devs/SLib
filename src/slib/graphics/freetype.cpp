@@ -25,7 +25,7 @@
 #include "slib/graphics/image.h"
 #include "slib/graphics/sfnt.h"
 #include "slib/io/file_io.h"
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 #include "slib/core/map.h"
 #include "slib/core/safe_static.h"
 

@@ -31,7 +31,7 @@
 #include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
 #include "slib/core/log.h"
-#include "slib/platform.h"
+#include "slib/ui/platform.h"
 
 namespace slib
 {
@@ -85,7 +85,7 @@ namespace slib
 
 			static sl_bool isWindowVisible(EGLNativeWindowType window)
 			{
-				return Win32::isWindowVisible((HWND)window);
+				return UIPlatform::isWindowVisible((HWND)window);
 			}
 
 			static SizeI getWindowSize(EGLNativeWindowType window)

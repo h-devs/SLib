@@ -46,6 +46,12 @@ namespace slib
 	{
 	}
 
+	void SwitchView::init()
+	{
+		View::init();
+		setContentAntiAlias(sl_true, UIUpdateMode::Init);
+	}
+
 	SwitchValue SwitchView::getValue()
 	{
 		return m_value;
@@ -315,9 +321,6 @@ namespace slib
 		sl_ui_len widthTrack = rect.getWidth();
 		sl_ui_len widthThumb = widthTrack / 2;
 
-		sl_bool flagAntialias = canvas->isAntiAlias();
-		canvas->setAntiAlias(sl_true);
-
 		drawTrack(canvas, track, rect);
 
 		if (thumb.isNotNull()) {
@@ -362,9 +365,6 @@ namespace slib
 				}
 			}
 		}
-
-		canvas->setAntiAlias(flagAntialias);
-
 	}
 
 	void SwitchView::onUpdateLayout()

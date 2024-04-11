@@ -26,7 +26,7 @@ int main(int argc, const char * argv[])
 		db->lpush("mylist", String::format("element-%d", j));
 	}
 	int i = 0;
-	for (auto& item : db->lrange("mylist")) {
+	for (auto&& item : db->lrange("mylist")) {
 		i++;
 		Println("%d) %s", i, item);
 	}

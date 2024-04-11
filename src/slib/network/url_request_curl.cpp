@@ -23,7 +23,6 @@
 #include "slib/network/curl.h"
 
 #include "slib/io/file.h"
-#include "slib/core/system.h"
 
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 #	include "slib/dl/linux/curl.h"
@@ -180,7 +179,7 @@ namespace slib
 				// HTTP headers and additional headers
 				if(m_requestHeaders.isNotEmpty())
 				{
-					for (auto& pair : m_requestHeaders) {
+					for (auto&& pair : m_requestHeaders) {
 						String s = String::concat(pair.key, ": ", pair.value);
 						headerChunk = curl_slist_append(headerChunk, s.getData());
 					}
@@ -298,10 +297,8 @@ namespace slib
 				if (m_downloadFilePath.isNotEmpty()) {
 					File file = File::openForAppend(m_downloadFilePath);
 					if (file.isOpened()) {
-						sl_reg ret = file.write(data, size);
-						if (ret > 0) {
-							size = ret;
-						} else {
+						sl_reg ret = file.writeFully(data, size);
+						if (ret != size) {
 							size = 0;
 						}
 					}

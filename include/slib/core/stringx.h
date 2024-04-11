@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_CORE_STRINGX
 
 #include "string.h"
+#include "function.h"
 
 namespace slib
 {
@@ -135,6 +136,11 @@ namespace slib
 
 
 		static sl_bool parseUint32Range(const StringParam& str, sl_uint32* from = sl_null, sl_uint32* to = sl_null);
+
+		// Resolves `${VARIABLE}`, `$(VARIABLE)` in the string
+		static String resolveVariables(const StringParam& str, const Function<String(const StringView& varName)>& resolver);
+
+		static String resolveEnvironmentVariables(const StringParam& str);
 
 	};
 

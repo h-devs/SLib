@@ -673,7 +673,7 @@ namespace slib
 		marker.size = size;
 		size -= 2;
 		if (m_flagReadFully) {
-			Memory mem = m_reader.readToMemory(size);
+			Memory mem = m_reader.readFully(size);
 			if (mem.isNull()) {
 				return sl_false;
 			}
@@ -1416,7 +1416,7 @@ namespace slib
 			file.onReachedScanData = [&file, &writer]() {
 				sl_size headerSize = (sl_size)(file.m_reader.getPosition());
 				if (file.m_reader.getSeekable()->seekToBegin()) {
-					Memory buf = file.m_reader.readToMemory(headerSize);
+					Memory buf = file.m_reader.readFully(headerSize);
 					if (buf.getSize() == headerSize) {
 						writer.write(buf);
 					}

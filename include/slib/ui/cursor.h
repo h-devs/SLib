@@ -40,6 +40,8 @@ namespace slib
 		~Cursor();
 
 	public:
+		static Ref<Cursor> getNone();
+
 		static Ref<Cursor> getArrow();
 
 		static Ref<Cursor> getIBeam();

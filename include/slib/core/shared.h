@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 #define CHECKHEADER_SLIB_CORE_SHARED
 
 #include "atomic.h"
-#include "base.h"
+#include "ref.h"
 #include "unique_ptr.h"
 
 #define PRIV_SLIB_DEFINE_SHARED_CLASS_MEMBERS \
@@ -33,6 +33,7 @@ public: \
 public: \
 	SLIB_CONSTEXPR Shared(): container(sl_null) {} \
 	SLIB_CONSTEXPR Shared(sl_null_t): container(sl_null) {} \
+	SLIB_CONSTEXPR Shared(Container* _container): container(_container) {} \
 	Shared(Shared&& other) noexcept \
 	{ \
 		container = other.container; \
@@ -120,7 +121,6 @@ public: \
 	} \
 	SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR \
 private: \
-	Shared(Container* _container) noexcept: container(_container) {} \
 	void _replace(Container* other) \
 	{ \
 		if (container) { \
@@ -137,11 +137,15 @@ private: \
 public: \
 	SLIB_CONSTEXPR Atomic(): _container(sl_null) {} \
 	SLIB_CONSTEXPR Atomic(sl_null_t): _container(sl_null) {} \
+	Atomic(Atomic&& other) noexcept \
+	{ \
+		_container = other._release(); \
+	} \
 	Atomic(const Atomic& other) noexcept \
 	{ \
 		_container = other._retain(); \
 	} \
-	Atomic(typename RemoveAtomic<Atomic>::Type && other) noexcept \
+	Atomic(typename RemoveAtomic<Atomic>::Type&& other) noexcept \
 	{ \
 		_container = other.container; \
 		other.container = sl_null; \
@@ -174,7 +178,11 @@ public: \
 	{ \
 		_replace(sl_null); \
 	} \
-	void swap(typename RemoveAtomic<Atomic>::Type& other) \
+	typename RemoveAtomic<Atomic>::Type release() noexcept \
+	{ \
+		return _release(); \
+	} \
+	void swap(typename RemoveAtomic<Atomic>::Type& other) noexcept \
 	{ \
 		m_lock.lock(); \
 		Container* before = _container; \
@@ -207,6 +215,13 @@ public: \
 		} \
 	} \
 public: \
+	Atomic& operator=(Atomic&& other) \
+	{ \
+		if (this != &other) { \
+			_replace(other._release()); \
+		} \
+		return *this; \
+	} \
 	Atomic& operator=(const Atomic& other) \
 	{ \
 		if (_container != other._container) { \
@@ -282,6 +297,17 @@ public: \
 		} \
 		m_lock.unlock(); \
 		return p; \
+	} \
+	Container* _release() noexcept \
+	{ \
+		if (!_container) { \
+			return sl_null; \
+		} \
+		m_lock.lock(); \
+		Container* p = _container; \
+		_container = sl_null; \
+		m_lock.unlock(); \
+		return p; \
 	}
 
 namespace slib
@@ -320,12 +346,12 @@ namespace slib
 			public:
 				sl_reg increaseReference() noexcept
 				{
-					return Base::interlockedIncrement(&refCount);
+					return CRef::increaseReference(refCount);
 				}
 
 				sl_reg decreaseReference()
 				{
-					sl_reg nRef = Base::interlockedDecrement(&refCount);
+					sl_reg nRef = CRef::decreaseReference(refCount);
 					if (!nRef) {
 						delete this;
 					}
@@ -375,9 +401,19 @@ namespace slib
 				virtual ~PtrContainer();
 
 			public:
-				sl_reg increaseReference() noexcept;
+				sl_reg increaseReference() noexcept
+				{
+					return CRef::increaseReference(refCount);
+				}
 
-				sl_reg decreaseReference();
+				sl_reg decreaseReference()
+				{
+					sl_reg nRef = CRef::decreaseReference(refCount);
+					if (!nRef) {
+						delete this;
+					}
+					return nRef;
+				}
 
 			};
 
@@ -462,7 +498,15 @@ namespace slib
 		PRIV_SLIB_DEFINE_SHARED_CLASS_MEMBERS
 
 	public:
-		Shared(const AtomicShared<T>& other) noexcept;
+		Shared(AtomicShared<T>&& other) noexcept
+		{
+			container = other._release();
+		}
+
+		Shared(const AtomicShared<T>& other) noexcept
+		{
+			container = other._retain();
+		}
 
 		Shared(const T& t) noexcept: container(priv::shared::ValueContainerHelper<ValueType>::create(t)) {}
 
@@ -481,7 +525,21 @@ namespace slib
 		}
 
 	public:
-		Shared& operator=(const AtomicShared<T>& other);
+		Shared& operator=(AtomicShared<T>&& other)
+		{
+			if (container != other._container) {
+				_replace(other._release());
+			}
+			return *this;
+		}
+
+		Shared& operator=(const AtomicShared<T>& other)
+		{
+			if (container != other._container) {
+				_replace(other._retain());
+			}
+			return *this;
+		}
 
 		Shared& operator=(const T& other)
 		{
@@ -549,7 +607,15 @@ namespace slib
 		PRIV_SLIB_DEFINE_SHARED_CLASS_MEMBERS
 
 	public:
-		Shared(const AtomicShared<T*>& other) noexcept;
+		Shared(AtomicShared<T*>&& other) noexcept
+		{
+			container = other._release();
+		}
+
+		Shared(const AtomicShared<T*>& other) noexcept
+		{
+			container = other._retain();
+		}
 
 		template <class OTHER>
 		Shared(OTHER* ptr) noexcept
@@ -609,7 +675,21 @@ namespace slib
 		}
 
 	public:
-		Shared& operator=(const AtomicShared<T*>& other);
+		Shared& operator=(AtomicShared<T*>&& other)
+		{
+			if (container != other._container) {
+				_replace(other._release());
+			}
+			return *this;
+		}
+
+		Shared& operator=(const AtomicShared<T*>& other)
+		{
+			if (container != other._container) {
+				_replace(other._retain());
+			}
+			return *this;
+		}
 
 		template <class OTHER>
 		Shared& operator=(OTHER* ptr) noexcept
@@ -727,38 +807,6 @@ namespace slib
 		}
 
 	};
-
-
-	template <class T>
-	Shared<T>::Shared(const AtomicShared<T>& other) noexcept
-	{
-		container = other._retain();
-	}
-
-	template <class T>
-	Shared<T>& Shared<T>::operator=(const AtomicShared<T>& other)
-	{
-		if (container != other._container) {
-			_replace(other._retain());
-		}
-		return *this;
-	}
-
-	template <class T>
-	Shared<T*>::Shared(const AtomicShared<T*>& other) noexcept
-	{
-		container = other._retain();
-	}
-
-	template <class T>
-	Shared<T*>& Shared<T*>::operator=(const AtomicShared<T*>& other)
-	{
-		if (container != other._container) {
-			_replace(other._retain());
-		}
-		return *this;
-	}
-
 
 	template <class T>
 	SLIB_INLINE static Shared<typename RemoveConstReference<T>::Type> ToShared(T&& t)

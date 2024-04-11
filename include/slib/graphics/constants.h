@@ -256,8 +256,14 @@ namespace slib
 		Single, // Single line
 		Multiple, // Break only at CR/LF
 		WordWrap, // Break at TAB, Spaces, CR/LF
-		BreakWord // Break at any position
+		BreakWord, // Break at any position
+		LatinWrap // Break at non-latin characters
 	};
+
+	SLIB_INLINE SLIB_CONSTEXPR sl_bool IsWrappingMultiLineMode(MultiLineMode mode)
+	{
+		return mode == MultiLineMode::WordWrap || mode == MultiLineMode::BreakWord || mode == MultiLineMode::LatinWrap;
+	}
 
 	enum class EllipsizeMode
 	{
@@ -274,6 +280,13 @@ namespace slib
 		Ellipse = 2,
 		RoundRect = 3,
 		Path = 10
+	};
+
+	enum class AntiAliasMode
+	{
+		False = 0,
+		True = 1,
+		Inherit = 2
 	};
 
 }

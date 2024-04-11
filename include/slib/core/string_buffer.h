@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -50,9 +50,34 @@ namespace slib
 
 	public:
 		/**
-		 * Returns total length of all string items.
+		 * @return total length of all string items.
 		 */
 		sl_size getLength() const noexcept;
+
+		/**
+		 * @return `true` if this buffer is empty.
+		 */
+		sl_bool isEmpty() const noexcept;
+
+		/**
+		 * @return `true` if this buffer is not empty.
+		 */
+		sl_bool isNotEmpty() const noexcept;
+
+		/**
+		 * @return the first character in the buffer.
+		 */
+		sl_char8 getFirstChar() const noexcept;
+
+		/**
+		 * @return the last character in the buffer.
+		 */
+		sl_char8 getLastChar() const noexcept;
+
+		/**
+		 * @return the character at `index` in string.
+		 */
+		sl_char8 getCharAt(sl_size index) const noexcept;
 
 		/**
 		 * Add string object to the queue.
@@ -63,7 +88,7 @@ namespace slib
 		/**
 		 * Add string represented by StringStorage struct to the queue.
 		 */
-		sl_bool add(const StringStorage& str) noexcept;
+		sl_bool addStorage(const StringStorage& str) noexcept;
 
 		/**
 		 * Add string pointed by buf to the queue.
@@ -119,9 +144,34 @@ namespace slib
 
 	public:
 		/**
-		 * Returns total length of all string items.
+		 * @return total length of all string items.
 		 */
 		sl_size getLength() const noexcept;
+
+		/**
+		 * @return `true` if this buffer is empty.
+		 */
+		sl_bool isEmpty() const noexcept;
+
+		/**
+		 * @return `true` if this buffer is not empty.
+		 */
+		sl_bool isNotEmpty() const noexcept;
+
+		/**
+		 * @return the first character in the buffer.
+		 */
+		sl_char16 getFirstChar() const noexcept;
+
+		/**
+		 * @return the last character in the buffer.
+		 */
+		sl_char16 getLastChar() const noexcept;
+
+		/**
+		 * @return the character at `index` in string.
+		 */
+		sl_char16 getCharAt(sl_size index) const noexcept;
 
 		/**
 		 * Add string object to the queue.
@@ -132,7 +182,7 @@ namespace slib
 		/**
 		 * Add string represented by StringStorage struct to the queue.
 		 */
-		sl_bool add(const StringStorage& str) noexcept;
+		sl_bool addStorage(const StringStorage& str) noexcept;
 
 		/**
 		 * Add string pointed by buf to the queue.
@@ -188,24 +238,49 @@ namespace slib
 
 	public:
 		/**
-		* Returns total length of all string items.
-		*/
+		 * @return total length of all string items.
+		 */
 		sl_size getLength() const noexcept;
+		
+		/**
+		 * @return `true` if this buffer is empty.
+		 */
+		sl_bool isEmpty() const noexcept;
 
 		/**
-		* Add string object to the queue.
-		*/
+		 * @return `true` if this buffer is not empty.
+		 */
+		sl_bool isNotEmpty() const noexcept;
+
+		/**
+		 * @return the first character in the buffer.
+		 */
+		sl_char32 getFirstChar() const noexcept;
+
+		/**
+		 * @return the last character in the buffer.
+		 */
+		sl_char32 getLastChar() const noexcept;
+
+		/**
+		 * @return the character at `index` in string.
+		 */
+		sl_char32 getCharAt(sl_size index) const noexcept;
+
+		/**
+		 * Add string object to the queue.
+		 */
 		sl_bool add(const String32& str) noexcept;
 		sl_bool add(String32&& str) noexcept;
 
 		/**
-		* Add string represented by StringStorage struct to the queue.
-		*/
-		sl_bool add(const StringStorage& str) noexcept;
+		 * Add string represented by StringStorage struct to the queue.
+		 */
+		sl_bool addStorage(const StringStorage& str) noexcept;
 
 		/**
-		* Add string pointed by buf to the queue.
-		*/
+		 * Add string pointed by buf to the queue.
+		 */
 		sl_bool addStatic(const sl_char32* buf, sl_size length) noexcept;
 
 		template <sl_size N>
@@ -215,23 +290,23 @@ namespace slib
 		}
 
 		/**
-		* Add all string items in buf to the current object and then clear buf.
-		*/
+		 * Add all string items in buf to the current object and then clear buf.
+		 */
 		void link(StringBuffer32& buf) noexcept;
 
 		/**
-		* Clears all items.
-		*/
+		 * Clears all items.
+		 */
 		void clear() noexcept;
 
 		/**
-		* Merge all items and returns the merged string.
-		*/
+		 * Merge all items and returns the merged string.
+		 */
 		String32 merge() const noexcept;
 
 		/**
-		* Merge all items and returns it as memory.
-		*/
+		 * Merge all items and returns it as memory.
+		 */
 		Memory mergeToMemory() const noexcept;
 
 	private:

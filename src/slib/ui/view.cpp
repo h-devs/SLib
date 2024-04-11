@@ -359,7 +359,10 @@ namespace slib
 	View::DrawAttributes::DrawAttributes():
 		flagUsingFont(sl_false),
 		flagOpaque(sl_false),
-		flagAntiAlias(sl_false),
+		flagDefinedBackgroundAntiAlias(sl_false),
+		flagBackgroundAntiAlias(sl_false),
+		flagDefinedContentAntiAlias(sl_false),
+		flagContentAntiAlias(sl_false),
 		flagLayer(sl_false),
 
 		flagForcedDraw(sl_false),
@@ -734,8 +737,8 @@ namespace slib
 		if (instance.isNotNull()) {
 			m_instance = instance;
 			instance->initialize(this);
-			_doAttach();
 			instance->setView(this);
+			_doAttach();
 		}
 		return instance;
 	}
@@ -1998,15 +2001,16 @@ namespace slib
 	// Run on UI Thread
 	void View::_setInstanceVisible(sl_bool flag)
 	{
+		flag = flag && m_visibility == Visibility::Visible;
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
-			instance->setVisible(this, flag && m_visibility == Visibility::Visible);
+			instance->setVisible(this, flag);
 		} else {
 			Ref<ChildAttributes>& attrs = m_childAttrs;
 			if (attrs.isNotNull() && attrs->flagHasInstances) {
 				ListElements< Ref<View> > children(getChildren());
 				for (sl_size i = 0; i < children.count; i++) {
-					children[i]->_setInstanceVisible(flag && m_visibility == Visibility::Visible);
+					children[i]->_setInstanceVisible(flag);
 				}
 			}
 		}
@@ -2877,14 +2881,9 @@ namespace slib
 	void View::_updateLayout()
 	{
 		Ref<LayoutAttributes>& layoutAttrs = m_layoutAttrs;
-
 		while (m_flagInvalidLayout) {
-
 			sl_int32 updateId = m_idUpdateInvalidateLayout;
-
 			UIRect frame = getLayoutFrame();
-
-			sl_size i;
 			ListElements< Ref<View> > children(getChildren());
 			for (int step = 0; step < 2; step++) {
 				sl_ui_len width = frame.getWidth();
@@ -2897,6 +2896,7 @@ namespace slib
 				if (paddingAttrs.isNotNull()) {
 					paddingAttrs->applyPaddingWeights(width, height);
 				}
+				sl_bool flagUsingRefer = sl_false;
 				if (children.count > 0 && (layoutAttrs.isNull() || !(layoutAttrs->flagCustomLayout))) {
 					UpdateLayoutFrameParam param;
 					Ref<PaddingAttributes>& paddingAttrs = m_paddingAttrs;
@@ -2914,15 +2914,27 @@ namespace slib
 					param.flagUseLayout = m_flagUsingChildLayouts;
 					param.flagHorizontal = sl_true;
 					param.flagVertical = sl_true;
-					for (i = 0; i < children.count; i++) {
-						Ref<View>& child = children[i];
-						child->setInvalidateLayoutFrameInParent();
+					{
+						for (sl_size i = 0; i < children.count; i++) {
+							Ref<View>& child = children[i];
+							child->setInvalidateLayoutFrameInParent();
+							if (!flagUsingRefer) {
+								Ref<LayoutAttributes>& attrs = child->m_layoutAttrs;
+								if (attrs.isNotNull()) {
+									if (attrs->leftReferingView.isNotNull() || attrs->rightReferingView.isNotNull() || attrs->topReferingView.isNotNull() || attrs->bottomReferingView.isNotNull()) {
+										flagUsingRefer = sl_true;
+									}
+								}
+							}
+						}
 					}
-					for (i = 0; i < children.count; i++) {
-						Ref<View>& child = children[i];
-						child->updateLayoutFrameInParent(param);
-						if (child->m_flagNeedApplyLayout) {
-							m_flagNeedApplyLayout = sl_true;
+					{
+						for (sl_size i = 0; i < children.count; i++) {
+							Ref<View>& child = children[i];
+							child->updateLayoutFrameInParent(param);
+							if (child->m_flagNeedApplyLayout) {
+								m_flagNeedApplyLayout = sl_true;
+							}
 						}
 					}
 				}
@@ -2932,7 +2944,7 @@ namespace slib
 				if (layoutAttrs->flagCustomLayout || layoutAttrs->flagLastWidthWrapping || layoutAttrs->flagLastHeightWrapping) {
 					onUpdateLayout();
 					if (!m_flagNeedApplyLayout) {
-						for (i = 0; i < children.count; i++) {
+						for (sl_size i = 0; i < children.count; i++) {
 							Ref<View>& child = children[i];
 							if (child->m_flagNeedApplyLayout) {
 								m_flagNeedApplyLayout = sl_true;
@@ -2943,20 +2955,27 @@ namespace slib
 					if (!m_flagUsingChildLayouts) {
 						break;
 					}
-					if (step != 0) {
+					if (step) {
 						break;
 					}
-					UIRect oldFrame = frame;
+					if (!(children.count)) {
+						break;
+					}
+					if (!flagUsingRefer) {
+						if (frame.isAlmostEqual(layoutAttrs->layoutFrame)) {
+							break;
+						}
+					}
 					frame = layoutAttrs->layoutFrame;
-					if (frame.isAlmostEqual(oldFrame)) {
+				} else {
+					if (!flagUsingRefer) {
 						break;
 					}
-				}
-				if (!(children.count)) {
-					break;
+					if (!(children.count)) {
+						break;
+					}
 				}
 			}
-
 			if (Base::interlockedIncrement32(&m_idUpdateInvalidateLayout) == updateId + 1) {
 				m_flagInvalidLayout = sl_false;
 				break;
@@ -2964,7 +2983,6 @@ namespace slib
 				m_flagInvalidLayout = sl_true;
 			}
 		}
-
 	}
 
 	void View::_applyLayout(UIUpdateMode mode)
@@ -3249,23 +3267,23 @@ namespace slib
 			return;
 		}
 
-		sl_ui_pos paddingHorz = getPaddingLeft() + getPaddingRight();
-		sl_ui_pos paddingVert = getPaddingTop() + getPaddingBottom();
 		UISize size;
+		sl_ui_pos paddingHorz = getPaddingLeft() + getPaddingRight();
 		if (flagHorizontalWrapping) {
 			size.x = 0;
 		} else {
 			size.x = getLayoutWidth() - paddingHorz;
 			if (size.x < 0) {
-				size.x = 0;
+				return;
 			}
 		}
+		sl_ui_pos paddingVert = getPaddingTop() + getPaddingBottom();
 		if (flagVerticalWrapping) {
 			size.y = 0;
 		} else {
 			size.y = getLayoutHeight() - paddingVert;
 			if (size.y < 0) {
-				size.y = 0;
+				return;
 			}
 		}
 		cell->onMeasure(size, flagHorizontalWrapping, flagVerticalWrapping);
@@ -5995,6 +6013,35 @@ namespace slib
 		}
 	}
 
+	Color View::getPaddingColor(ViewState state)
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->paddingColors.get(state);
+		}
+		return Color::zero();
+	}
+
+	void View::setPaddingColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->paddingColors.set(state, color);
+			invalidate(mode);
+		}
+	}
+
+	void View::setPaddingColor(const Color& color, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->paddingColors.defaultValue = color;
+			invalidate(mode);
+		}
+	}
+
 	Ref<Font> View::getFont()
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
@@ -6138,6 +6185,129 @@ namespace slib
 		}
 	}
 
+	sl_bool View::isAntiAlias()
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->flagDefinedBackgroundAntiAlias && attrs->flagBackgroundAntiAlias && attrs->flagDefinedContentAntiAlias && attrs->flagContentAntiAlias;
+		}
+		return sl_false;
+	}
+
+	void View::setAntiAlias(AntiAliasMode antiAliasMode, UIUpdateMode updateMode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			if (antiAliasMode == AntiAliasMode::Inherit) {
+				attrs->flagDefinedBackgroundAntiAlias = sl_false;
+				attrs->flagDefinedContentAntiAlias = sl_false;
+			} else {
+				sl_bool flag = antiAliasMode == AntiAliasMode::True;
+				attrs->flagBackgroundAntiAlias = flag;
+				attrs->flagDefinedBackgroundAntiAlias = sl_true;
+				attrs->flagContentAntiAlias = flag;
+				attrs->flagDefinedContentAntiAlias = sl_true;
+			}
+			invalidateBoundsInParent(updateMode);
+		}
+	}
+
+	void View::setAntiAlias(sl_bool flag, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->flagBackgroundAntiAlias = flag;
+			attrs->flagDefinedBackgroundAntiAlias = sl_true;
+			attrs->flagContentAntiAlias = flag;
+			attrs->flagDefinedContentAntiAlias = sl_true;
+			invalidateBoundsInParent(mode);
+		}
+	}
+
+	AntiAliasMode View::getBackgroundAntiAlias()
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			if (attrs->flagDefinedBackgroundAntiAlias) {
+				if (attrs->flagBackgroundAntiAlias) {
+					return AntiAliasMode::True;
+				} else {
+					return AntiAliasMode::False;
+				}
+			}
+		}
+		return AntiAliasMode::Inherit;
+	}
+
+	void View::setBackgroundAntiAlias(AntiAliasMode antiAliasMode, UIUpdateMode updateMode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			if (antiAliasMode == AntiAliasMode::Inherit) {
+				attrs->flagDefinedBackgroundAntiAlias = sl_false;
+			} else {
+				attrs->flagBackgroundAntiAlias = antiAliasMode == AntiAliasMode::True;
+				attrs->flagDefinedBackgroundAntiAlias = sl_true;
+			}
+			invalidateBoundsInParent(updateMode);
+		}
+	}
+
+	void View::setBackgroundAntiAlias(sl_bool flag, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->flagBackgroundAntiAlias = flag;
+			attrs->flagDefinedBackgroundAntiAlias = sl_true;
+			invalidateBoundsInParent(mode);
+		}
+	}
+
+	AntiAliasMode View::getContentAntiAlias()
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			if (attrs->flagDefinedContentAntiAlias) {
+				if (attrs->flagContentAntiAlias) {
+					return AntiAliasMode::True;
+				} else {
+					return AntiAliasMode::False;
+				}
+			}
+		}
+		return AntiAliasMode::Inherit;
+	}
+
+	void View::setContentAntiAlias(AntiAliasMode antiAliasMode, UIUpdateMode updateMode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			if (antiAliasMode == AntiAliasMode::Inherit) {
+				attrs->flagDefinedContentAntiAlias = sl_false;
+			} else {
+				attrs->flagContentAntiAlias = antiAliasMode == AntiAliasMode::True;
+				attrs->flagDefinedContentAntiAlias = sl_true;
+			}
+			invalidateBoundsInParent(updateMode);
+		}
+	}
+
+	void View::setContentAntiAlias(sl_bool flag, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->flagContentAntiAlias = flag;
+			attrs->flagDefinedContentAntiAlias = sl_true;
+			invalidateBoundsInParent(mode);
+		}
+	}
+
 	sl_bool View::isOpaque()
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
@@ -6190,22 +6360,29 @@ namespace slib
 		}
 	}
 
-	sl_bool View::isAntiAlias()
+	Color View::getColorKey()
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->flagAntiAlias;
+			return attrs->colorKey;
 		}
-		return sl_false;
+		return Color::zero();
 	}
 
-	void View::setAntiAlias(sl_bool flagAntiAlias, UIUpdateMode mode)
+	void View::setColorKey(const Color& color, UIUpdateMode mode)
 	{
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			attrs->flagAntiAlias = flagAntiAlias;
-			invalidateBoundsInParent(mode);
+			Ref<ViewInstance> instance = m_instance;
+			if (instance.isNotNull()) {
+				SLIB_VIEW_RUN_ON_UI_THREAD(setColorKey, color, mode)
+				attrs->colorKey = color;
+				instance->setColorKey(this, color);
+			} else {
+				attrs->colorKey = color;
+				invalidateBoundsInParent(mode);
+			}
 		}
 	}
 
@@ -8043,7 +8220,7 @@ namespace slib
 				Ref<View>& child = children[i];
 				if (child.isNotNull()) {
 					if (child->isVisible() && child->isEnabled()) {
-						if (child->isFocusable()) {
+						if (child->isFocusable() && child->isTabStopEnabled() && child->isEnabled()) {
 							return child;
 						}
 						Ref<View> v = child->getFirstFocusableDescendant();
@@ -8081,7 +8258,7 @@ namespace slib
 						if (v.isNotNull()) {
 							return v;
 						}
-						if (child->isFocusable()) {
+						if (child->isFocusable() && child->isTabStopEnabled() && child->isEnabled()) {
 							return child;
 						}
 					}
@@ -8100,7 +8277,7 @@ namespace slib
 			Ref<View>& child = children[i];
 			if (child.isNotNull()) {
 				if (child->isVisible() && child->isEnabled()) {
-					if (child->isFocusable()) {
+					if (child->isFocusable() && child->isTabStopEnabled() && child->isEnabled()) {
 						return child;
 					}
 					Ref<View> v = child->getFirstFocusableDescendant();
@@ -8124,7 +8301,7 @@ namespace slib
 					if (v.isNotNull()) {
 						return v;
 					}
-					if (child->isFocusable() && child->isEnabled()) {
+					if (child->isFocusable() && child->isTabStopEnabled() && child->isEnabled()) {
 						return child;
 					}
 				}
@@ -8573,24 +8750,28 @@ namespace slib
 			switch (getBoundShape()) {
 				case BoundShape::Rectangle:
 					{
-						if (canvas->isAntiAlias()) {
-							canvas->setAntiAlias(sl_false);
-							canvas->drawRectangle(getBounds(), pen);
-							canvas->setAntiAlias(sl_true);
-						} else {
-							canvas->drawRectangle(getBounds(), pen);
-						}
+						CanvasAntiAliasScope scope(canvas, sl_false);
+						canvas->drawRectangle(getBounds(), pen);
 						break;
 					}
 				case BoundShape::RoundRect:
-					canvas->drawRoundRect(getBounds(), getBoundRadius(), pen);
-					break;
+					{
+						CanvasAntiAliasScope scope(canvas, sl_true);
+						canvas->drawRoundRect(getBounds(), getBoundRadius(), pen);
+						break;
+					}
 				case BoundShape::Ellipse:
-					canvas->drawEllipse(getBounds(), pen);
-					break;
+					{
+						CanvasAntiAliasScope scope(canvas, sl_true);
+						canvas->drawEllipse(getBounds(), pen);
+						break;
+					}
 				case BoundShape::Path:
-					canvas->drawPath(getBoundPath(), pen);
-					break;
+					{
+						CanvasAntiAliasScope scope(canvas, sl_true);
+						canvas->drawPath(getBoundPath(), pen);
+						break;
+					}
 				default:
 					break;
 			}
@@ -8742,12 +8923,16 @@ namespace slib
 
 	void View::drawContent(Canvas* canvas)
 	{
-
 		Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
-
+		Ref<DrawAttributes>& drawAttrs = m_drawAttrs;
 		if (m_flagSavingCanvasState || (scrollAttrs.isNotNull() && scrollAttrs->flagScrollCanvas) || getContentShape() != BoundShape::None) {
 			CanvasStateScope scope(canvas);
-			onDrawBackground(canvas);
+			if (drawAttrs.isNotNull() && drawAttrs->flagDefinedBackgroundAntiAlias) {
+				CanvasAntiAliasScope scope(canvas, drawAttrs->flagBackgroundAntiAlias);
+				onDrawBackground(canvas);
+			} else {
+				onDrawBackground(canvas);
+			}
 			if (scrollAttrs.isNotNull() && scrollAttrs->flagScrollCanvas) {
 				sl_real scrollX = (sl_real)(scrollAttrs->x);
 				sl_real scrollY = (sl_real)(scrollAttrs->y);
@@ -8755,11 +8940,27 @@ namespace slib
 					canvas->translate(-scrollX, -scrollY);
 				}
 			}
-			clipContentBounds(canvas);
-			invokeDraw(canvas);
+			if (drawAttrs.isNotNull() && drawAttrs->flagDefinedContentAntiAlias) {
+				CanvasAntiAliasScope scope(canvas, drawAttrs->flagContentAntiAlias);
+				clipContentBounds(canvas);
+				invokeDraw(canvas);
+			} else {
+				clipContentBounds(canvas);
+				invokeDraw(canvas);
+			}
 		} else {
-			onDrawBackground(canvas);
-			invokeDraw(canvas);
+			if (drawAttrs.isNotNull() && drawAttrs->flagDefinedBackgroundAntiAlias) {
+				CanvasAntiAliasScope scope(canvas, drawAttrs->flagBackgroundAntiAlias);
+				onDrawBackground(canvas);
+			} else {
+				onDrawBackground(canvas);
+			}
+			if (drawAttrs.isNotNull() && drawAttrs->flagDefinedContentAntiAlias) {
+				CanvasAntiAliasScope scope(canvas, drawAttrs->flagContentAntiAlias);
+				invokeDraw(canvas);
+			} else {
+				invokeDraw(canvas);
+			}
 		}
 
 		{
@@ -9177,6 +9378,24 @@ namespace slib
 	void View::onDrawBackground(Canvas* canvas)
 	{
 		drawBackground(canvas, getCurrentBackground());
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			Color color = attrs->paddingColors.evaluate(getState());
+			if (color.isNotZero()) {
+				Ref<Brush> brush = Brush::createSolidBrush(color);
+				if (brush.isNotNull()) {
+					CanvasAntiAliasScope scope(canvas, sl_false);
+					UIEdgeInsets padding = getPadding();
+					sl_ui_len w = m_frame.getWidth();
+					sl_ui_len h = m_frame.getHeight();
+					canvas->fillRectangle(0, 0, (sl_real)w, (sl_real)(padding.top), brush);
+					sl_ui_len h2 = h - padding.bottom - padding.top;
+					canvas->fillRectangle(0, (sl_real)(padding.top), (sl_real)(padding.left), (sl_real)h2, brush);
+					canvas->fillRectangle((sl_real)(w - padding.right), (sl_real)(padding.top), (sl_real)(padding.right), (sl_real)h2, brush);
+					canvas->fillRectangle(0, (sl_real)(h - padding.bottom), (sl_real)w, (sl_real)(padding.bottom), brush);
+				}
+			}
+		}
 	}
 
 	void View::onDrawBorder(Canvas* canvas)
@@ -9230,11 +9449,6 @@ namespace slib
 				_updateAndApplyLayoutWithMode(UIUpdateMode::None);
 			}
 
-			sl_bool flagAntiAlias = isAntiAlias() && !(canvas->isAntiAlias());
-			if (flagAntiAlias) {
-				canvas->setAntiAlias();
-			}
-
 			if (m_flagDrawing) {
 
 				getOnPreDraw()(this, canvas);
@@ -9258,10 +9472,6 @@ namespace slib
 						drawChildren(canvas, children.data, children.count);
 					}
 				}
-			}
-
-			if (flagAntiAlias) {
-				canvas->setAntiAlias(sl_false);
 			}
 
 			Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
@@ -9401,13 +9611,12 @@ namespace slib
 			}
 
 			if (!(ev->isAccepted())) {
-
 				if (m_flagFocusable) {
 					if (action == UIAction::LeftButtonDown || action == UIAction::RightButtonDown || action == UIAction::MiddleButtonDown) {
 						setFocus();
+						ev->accept();
 					}
 				}
-
 				invokeMouseEvent(ev);
 			}
 		}
@@ -10066,7 +10275,7 @@ namespace slib
 		}
 		String toolTip = getToolTip();
 		if (toolTip.isNotNull()) {
-			ev->setToolTip(this, toolTip);
+			ev->setToolTip((sl_uint64)((void*)this), toolTip);
 		}
 
 		if (isNativeWidget() && !(getChildCount())) {
@@ -10414,38 +10623,38 @@ namespace slib
 			} else {
 				Keycode keycode = ev->getKeycode();
 				switch (keycode) {
-				case Keycode::Tab:
-					if (isTabStopEnabled() && !(hasFocalChild())) {
-						if (ev->isShiftKey()) {
-							Ref<View> v = getPreviousTabStop();
-							if (v.isNotNull() && v != this) {
-								v->setFocus();
-								ev->accept();
-							}
-						} else {
-							Ref<View> v = getNextTabStop();
-							if (v.isNotNull() && v != this) {
-								v->setFocus();
-								ev->accept();
+					case Keycode::Tab:
+						if (!(hasFocalChild())) {
+							if (ev->isShiftKey()) {
+								Ref<View> v = getPreviousTabStop();
+								if (v.isNotNull() && v != this) {
+									v->setFocus();
+									ev->accept();
+								}
+							} else {
+								Ref<View> v = getNextTabStop();
+								if (v.isNotNull() && v != this) {
+									v->setFocus();
+									ev->accept();
+								}
 							}
 						}
-					}
-					break;
-				case Keycode::Enter:
-				case Keycode::NumpadEnter:
-					if (m_flagOkCancelEnabled) {
-						invokeOK();
-						ev->accept();
-					}
-					break;
-				case Keycode::Escape:
-					if (m_flagOkCancelEnabled) {
-						invokeCancel();
-						ev->accept();
-					}
-					break;
-				default:
-					break;
+						break;
+					case Keycode::Enter:
+					case Keycode::NumpadEnter:
+						if (m_flagOkCancelEnabled) {
+							invokeOK();
+							ev->accept();
+						}
+						break;
+					case Keycode::Escape:
+						if (m_flagOkCancelEnabled) {
+							invokeCancel();
+							ev->accept();
+						}
+						break;
+					default:
+						break;
 				}
 			}
 		}
@@ -11170,6 +11379,10 @@ namespace slib
 	}
 
 	void ViewInstance::setShadowColor(View* view, const Color& color)
+	{
+	}
+
+	void ViewInstance::setColorKey(View* view, const Color& color)
 	{
 	}
 

@@ -66,17 +66,37 @@ namespace slib
 		invalidate(mode);
 	}
 
+	Ref<Font> GroupBox::getLabelFont()
+	{
+		Ref<Font> font = m_labelFont;
+		if (font.isNotNull()) {
+			return font;
+		}
+		return getFont();
+	}
+
+	void GroupBox::setLabelFont(const Ref<Font>& font, UIUpdateMode mode)
+	{
+		m_labelFont = font;
+		invalidate(mode);
+	}
+
+	void GroupBox::setLabelFont(const FontDesc& desc, UIUpdateMode mode)
+	{
+		setLabelFont(Font::create(desc), mode);
+	}
+
 	void GroupBox::onDrawBorder(Canvas* canvas)
 	{
+		Ref<Font> font = getLabelFont();
 		if (!m_paddingBorder) {
-			_updatePaddings(getFont());
+			_updatePaddings(font);
 		}
 		Rectangle bounds = getBounds();
 		sl_real p = (sl_real)(m_paddingBorder / 2);
 		sl_real t = (sl_real)(m_paddingTop / 2);
 		String label = m_label;
 		sl_real widthLabel = 0;
-		Ref<Font> font = getFont();
 		if (font.isNotNull()) {
 			widthLabel = font->measureText(label).x;
 			canvas->drawText(label, Rectangle(bounds.left + p + t, bounds.top, bounds.left + p + t + widthLabel, bounds.top + t * 2), font, m_labelColor, Alignment::MiddleCenter);
@@ -97,7 +117,9 @@ namespace slib
 
 	void GroupBox::onUpdateFont(const Ref<Font>& font)
 	{
-		_updatePaddings(font);
+		if (m_labelFont.isNull()) {
+			_updatePaddings(font);
+		}
 	}
 
 	void GroupBox::_updatePaddings(const Ref<Font>& font)

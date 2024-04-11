@@ -26,7 +26,7 @@
 #include "slib/crypto/sha1.h"
 #include "slib/crypto/sha2.h"
 #include "slib/data/base64.h"
-#include "slib/core/preference.h"
+#include "slib/system/preference.h"
 #include "slib/core/log.h"
 
 #define TAG "OAuth"
@@ -212,12 +212,12 @@ namespace slib
 		String url = _url;
 		sl_reg indexQuery = url.indexOf('?');
 		if (indexQuery > 0) {
-			for (auto& item : HttpRequest::parseQueryParameters(url.substring(indexQuery + 1))) {
+			for (auto&& item : HttpRequest::parseQueryParameters(url.substring(indexQuery + 1))) {
 				mapParams.add_NoLock(Pair<String, String>(Url::encodePercent(item.key), Url::encodePercent(item.value)), sl_true);
 			}
 			url = url.substring(0, indexQuery);
 		}
-		for (auto& item : parameters) {
+		for (auto&& item : parameters) {
 			mapParams.add_NoLock(Pair<String, String>(Url::encodePercent(item.key), Url::encodePercent(item.value)), sl_true);
 		}
 		mapParams.add_NoLock(Pair<String, String>("oauth_consumer_key", consumerKey), sl_true);
@@ -235,7 +235,7 @@ namespace slib
 		StringBuffer sbParams;
 		{
 			sl_bool flagFirstParam = sl_true;
-			for (auto& item : mapParams) {
+			for (auto&& item : mapParams) {
 				if (flagFirstParam) {
 					flagFirstParam = sl_false;
 				} else {
@@ -267,7 +267,7 @@ namespace slib
 		{
 			sbAuthorization.addStatic("OAuth ");
 			sl_bool flagFirstParam = sl_true;
-			for (auto& item : mapParams) {
+			for (auto&& item : mapParams) {
 				if (item.key.first.startsWith("oauth_")) {
 					if (flagFirstParam) {
 						flagFirstParam = sl_false;
@@ -292,7 +292,7 @@ namespace slib
 		sl_int64 timestamp = Time::now().toUnixTime();
 
 		HashMap<String, String> parameters;
-		for (auto& item : param.parameters) {
+		for (auto&& item : param.parameters) {
 			parameters.add_NoLock(item.key, item.value.getString());
 		}
 
@@ -304,7 +304,7 @@ namespace slib
 			}
 			if (!(type.trim().equals_IgnoreCase(ContentType::MultipartFormData))) {
 				if (param.requestBody.isNotNull()) {
-					for (auto& item : HttpRequest::parseFormUrlEncoded(param.requestBody.getData(), param.requestBody.getSize())) {
+					for (auto&& item : HttpRequest::parseFormUrlEncoded(param.requestBody.getData(), param.requestBody.getSize())) {
 						parameters.add_NoLock(item.key, item.value);
 					}
 				}
@@ -738,7 +738,7 @@ namespace slib
 		}
 		{
 			MutexLocker lock(param.customParameters.getLocker());
-			for (auto& item: param.customParameters) {
+			for (auto&& item: param.customParameters) {
 				params.put_NoLock(item.key, item.value.getString());
 			}
 		}

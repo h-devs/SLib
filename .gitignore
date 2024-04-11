@@ -3,10 +3,3 @@
 
 /lib
 /bin
-examples/Database/LevelDB/testdb/data.mdb
-build/Win32/slib.aps
-build/Win32/slib.rc
-build/Win32/resource.h
-examples/Database/LevelDB/testdb/lock.mdb
-examples/Crypt/3DES/1.txt
-examples/Crypt/3DES/2.txt

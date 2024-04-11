@@ -64,9 +64,9 @@ namespace slib
 		}
 
 	public:
-		sl_reg read(void* buf, sl_size size) override;
+		sl_reg read(void* buf, sl_size size, sl_int32 timeout = -1) override;
 
-		sl_int32 read32(void* buf, sl_uint32 size) override;
+		sl_int32 read32(void* buf, sl_uint32 size, sl_int32 timeout = -1) override;
 
 		sl_uint64 skip(sl_uint64 size);
 

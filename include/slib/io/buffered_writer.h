@@ -48,9 +48,9 @@ namespace slib
 
 		void close() override;
 
-		sl_reg write(const void* buf, sl_size size) override;
+		sl_reg write(const void* buf, sl_size size, sl_int32 timeout = -1) override;
 
-		sl_bool flush();
+		sl_bool flush(sl_int32 timeout = -1);
 
 		sl_bool writeInt8(sl_int8 value);
 

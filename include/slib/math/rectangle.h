@@ -237,7 +237,17 @@ namespace slib
 
 		SLIB_CONSTEXPR PointT<T, FT> getCenter() const
 		{
-			return { (left + right) / 2, (top + bottom) / 2 };
+			return { (T)((left + right) / 2), (T)((top + bottom) / 2) };
+		}
+
+		SLIB_CONSTEXPR T getCenterX() const
+		{
+			return (T)((left + right) / 2);
+		}
+
+		SLIB_CONSTEXPR T getCenterY() const
+		{
+			return (T)((top + bottom) / 2);
 		}
 
 		void setCenter(T _x, T _y) noexcept

@@ -32,7 +32,7 @@
 // Block Cipher
 #include "crypto/aes.h"
 #include "crypto/blowfish.h"
-#include "crypto/des.h"
+#include "crypto/3des.h"
 #include "crypto/rc2.h"
 
 // Stream Cipher

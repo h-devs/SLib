@@ -27,6 +27,7 @@
 #include "device/cpu.h"
 #include "device/physical_memory.h"
 #include "device/disk.h"
+#include "device/printer.h"
 #include "device/sensor.h"
 
 #endif

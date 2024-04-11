@@ -314,7 +314,7 @@ namespace slib
 				return (sl_real)(getWidth());
 			}
 		} else {
-			return getFontSize() * 2;
+			return getLabelFontSize() * 2;
 		}
 	}
 
@@ -340,7 +340,7 @@ namespace slib
 				return (sl_real)(getHeight());
 			}
 		} else {
-			return getFontSize() * 2;
+			return getLabelFontSize() * 2;
 		}
 	}
 
@@ -426,6 +426,36 @@ namespace slib
 	{
 		m_labelColors.defaultValue = color;
 		_invalidateTabBar(mode);
+	}
+
+	Ref<Font> TabView::getLabelFont()
+	{
+		Ref<Font> font = m_labelFont;
+		if (font.isNotNull()) {
+			return font;
+		}
+		return getFont();
+	}
+
+	void TabView::setLabelFont(const Ref<Font>& font, UIUpdateMode mode)
+	{
+		m_labelFont = font;
+		invalidate(mode);
+	}
+
+	void TabView::setLabelFont(const FontDesc& desc, UIUpdateMode mode)
+	{
+		setLabelFont(Font::create(desc), mode);
+	}
+
+	sl_real TabView::getLabelFontSize()
+	{
+		Ref<Font> font = getLabelFont();
+		if (font.isNull()) {
+			return UI::getDefaultFontSize();
+		} else {
+			return font->getSize();
+		}
 	}
 
 	Alignment TabView::getTabAlignment()
@@ -799,7 +829,7 @@ namespace slib
 		sl_ui_len heightLabel = 0;
 		Ref<Font> font;
 		if (label.isNotEmpty()) {
-			font = getFont();
+			font = getLabelFont();
 			if (font.isNotNull()) {
 				UISize size = canvas->measureText(font, label);
 				widthLabel = size.x;
@@ -826,6 +856,7 @@ namespace slib
 			canvas->draw(rcIcon, icon);
 		}
 		if (label.isNotEmpty() && labelColor.isNotZero() && font.isNotNull() && widthLabel > 0 && heightLabel > 0) {
+			CanvasAntiAliasScope scope(canvas, sl_true);
 			canvas->drawText(label, (sl_real)(pt.x + widthIcon + space), (sl_real)(pt.y + heightTotal / 2 - heightLabel / 2), font, labelColor);
 		}
 	}

@@ -1345,7 +1345,7 @@ namespace slib
 		msg.addStatic(strVersion.getData(), strVersion.getLength());
 		msg.addStatic("\r\n");
 
-		for (auto& pair : m_requestHeaders) {
+		for (auto&& pair : m_requestHeaders) {
 			msg.addStatic(pair.key.getData(), pair.key.getLength());
 			msg.addStatic(": ");
 			msg.addStatic(pair.value.getData(), pair.value.getLength());
@@ -1435,7 +1435,7 @@ namespace slib
 	{
 		Memory boundary = _boundary.toMemory();
 
-		for (auto& item: parameters) {
+		for (auto&& item: parameters) {
 
 			String& name = item.key;
 			Variant& value = item.value;
@@ -1487,7 +1487,7 @@ namespace slib
 			}
 			output.addStatic("\"\r\n");
 			if (headers) {
-				for (auto& header: *headers) {
+				for (auto&& header: *headers) {
 					if (header.key.equals_IgnoreCase(HttpHeader::ContentDisposition)) {
 						continue;
 					}
@@ -2023,7 +2023,7 @@ namespace slib
 	{
 		m_responseHeaders.removeItems_NoLock(HttpHeader::SetCookie);
 		MutexLocker lock(map.getLocker());
-		for (auto& item : map) {
+		for (auto&& item : map) {
 			m_responseHeaders.add_NoLock(HttpHeader::SetCookie, item.value.toHeaderValue());
 		}
 	}
@@ -2083,7 +2083,7 @@ namespace slib
 		msg.addStatic(strMessage.getData(), strMessage.getLength());
 		msg.addStatic("\r\n");
 
-		for (auto& pair : m_responseHeaders) {
+		for (auto&& pair : m_responseHeaders) {
 			String str = pair.key;
 			msg.addStatic(str.getData(), str.getLength());
 			msg.addStatic(": ");

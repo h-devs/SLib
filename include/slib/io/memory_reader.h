@@ -48,7 +48,7 @@ namespace slib
 
 		void initialize(const void* buf, sl_size size);
 
-		sl_reg read(void* buf, sl_size size) override;
+		sl_reg read(void* buf, sl_size size, sl_int32 timeout = -1) override;
 
 		sl_bool seek(sl_int64 offset, SeekPosition pos) override;
 
@@ -69,8 +69,6 @@ namespace slib
 		sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_int64 endPosition = -1);
 
 		sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_int64 endPosition = -1);
-
-		sl_bool waitRead(sl_int32 timeout = -1) override;
 
 	public:
 		sl_bool readInt8(sl_int8* output);

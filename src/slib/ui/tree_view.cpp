@@ -581,6 +581,7 @@ namespace slib
 			void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
 			{
 				if (m_brush.isNotNull()) {
+					CanvasAntiAliasScope scope(canvas, sl_true);
 					Point pts[3];
 					for (int i = 0; i < 3; i++) {
 						pts[i].x = rectDst.left + rectDst.getWidth() * m_pts[i].x;
@@ -612,7 +613,7 @@ namespace slib
 
 		m_itemHeight = 0;
 
-		setAntiAlias(sl_true, UIUpdateMode::Init);
+		setContentAntiAlias(sl_true, UIUpdateMode::Init);
 		ScrollView::setPadding(6, 6, 6, 6, UIUpdateMode::Init);
 		m_itemPadding = 8;
 		m_itemIndent = 16;
@@ -762,7 +763,7 @@ namespace slib
 
 	void TreeView::selectItem(const Ref<TreeViewItem>& item, UIUpdateMode mode)
 	{
-		_selectItem(item, sl_null, UIUpdateMode::None);
+		_selectItem(item.get(), sl_null, UIUpdateMode::None);
 		item->open(UIUpdateMode::Redraw);
 	}
 
@@ -1005,8 +1006,10 @@ namespace slib
 
 	void TreeView::onClickItem(TreeViewItem* item, UIEvent* ev)
 	{
-		_selectItem(ToRef(&item), ev, UIUpdateMode::None);
+		_selectItem(item, ev, UIUpdateMode::None);
 	}
+
+	SLIB_DEFINE_EVENT_HANDLER(TreeView, RightButtonClickItem, (TreeViewItem* item, UIEvent* ev), item, ev)
 
 	void TreeView::_createRootItem()
 	{
@@ -1199,12 +1202,12 @@ namespace slib
 				if (item->m_flagOpened) {
 					Ref<Drawable> icon = m_iconExpanded;
 					if (icon.isNotNull()) {
-						canvas->draw(UIRect(left - m_itemIndent, top, left, bottom), icon, ScaleMode::None, Alignment::MiddleCenter);
+						canvas->draw(UIRect(left - m_itemIndent, top, left, bottom), icon, ScaleMode::Contain, Alignment::MiddleCenter);
 					}
 				} else {
 					Ref<Drawable> icon = m_iconCollapsed;
 					if (icon.isNotNull()) {
-						canvas->draw(UIRect(left - m_itemIndent, top, left, bottom), icon, ScaleMode::None, Alignment::MiddleCenter);
+						canvas->draw(UIRect(left - m_itemIndent, top, left, bottom), icon, ScaleMode::Contain, Alignment::MiddleCenter);
 					}
 				}
 			}
@@ -1273,13 +1276,13 @@ namespace slib
 			_redrawContent(UIUpdateMode::Redraw);
 			return;
 		}
-		if (action == UIAction::LeftButtonDown || action == UIAction::TouchBegin) {
+		if (action == UIAction::LeftButtonDown || action == UIAction::RightButtonDown || action == UIAction::TouchBegin) {
 			Ref<ContentView> content = m_content;
 			if (content.isNotNull()) {
 				m_pointBeginTapping = content->convertCoordinateToParent(ev->getPoint());
 				m_flagBeginTapping = sl_true;
 			}
-		} else if (action == UIAction::LeftButtonUp || action == UIAction::TouchEnd) {
+		} else if (action == UIAction::LeftButtonUp || action == UIAction::RightButtonUp || action == UIAction::TouchEnd) {
 			if (m_flagBeginTapping) {
 				Ref<ContentView> content = m_content;
 				if (content.isNotNull()) {
@@ -1307,7 +1310,7 @@ namespace slib
 		}
 	}
 
-	void TreeView::_processMouseEventItem(UIEvent* ev, sl_bool flagClick, const Ref<TreeViewItem>& item, sl_bool flagRoot)
+	void TreeView::_processMouseEventItem(UIEvent* ev, sl_bool flagClick, TreeViewItem* item, sl_bool flagRoot)
 	{
 		sl_ui_pos y = (sl_ui_pos)(ev->getY());
 		UIAction action = ev->getAction();
@@ -1319,7 +1322,11 @@ namespace slib
 					} else {
 						item->open();
 					}
-					_clickItem(item, ev);
+					if (action == UIAction::RightButtonUp) {
+						_rightButtonClickItem(item, ev);
+					} else {
+						_clickItem(item, ev);
+					}
 					_redrawContent(UIUpdateMode::Redraw);
 				} else {
 					if (action == UIAction::MouseMove) {
@@ -1346,7 +1353,7 @@ namespace slib
 		}
 	}
 
-	void TreeView::_selectItem(const Ref<TreeViewItem>& item, UIEvent* ev, UIUpdateMode mode)
+	void TreeView::_selectItem(TreeViewItem* item, UIEvent* ev, UIUpdateMode mode)
 	{
 		ObjectLocker locker(this);
 		Ref<TreeViewItem> former = m_itemSelected;
@@ -1356,14 +1363,20 @@ namespace slib
 		m_itemSelected = item;
 		invalidate(mode);
 		locker.unlock();
-		invokeSelectItem(item.get(), former.get(), ev);
-		(item->getOnSelect())(item.get(), former.get(), ev);
+		invokeSelectItem(item, former.get(), ev);
+		(item->getOnSelect())(item, former.get(), ev);
 	}
 
-	void TreeView::_clickItem(const Ref<TreeViewItem>& item, UIEvent* ev)
+	void TreeView::_clickItem(TreeViewItem* item, UIEvent* ev)
 	{
-		invokeClickItem(item.get(), ev);
-		(item->getOnClick())(item.get(), ev);
+		invokeClickItem(item, ev);
+		(item->getOnClick())(item, ev);
+	}
+
+	void TreeView::_rightButtonClickItem(TreeViewItem* item, UIEvent* ev)
+	{
+		invokeRightButtonClickItem(item, ev);
+		(item->getOnRightButtonClick())(item, ev);
 	}
 
 }

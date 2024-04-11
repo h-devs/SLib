@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,16 @@
  */
 
 #include "slib/network/socket_address.h"
+#include "slib/network/domain_socket_path.h"
 
 #include "slib/core/stringx.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-#	include <winsock2.h>
-#	include <ws2tcpip.h>
-#	pragma comment(lib, "ws2_32.lib")
+#	include "slib/platform/win32/socket.h"
 #else
 #	include <unistd.h>
 #	include <sys/socket.h>
+#	include <sys/un.h>
 #	if defined(SLIB_PLATFORM_IS_LINUX)
 #		include <linux/tcp.h>
 #	else
@@ -268,6 +268,123 @@ namespace slib
 			setNone();
 		}
 		return *this;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DomainSocketPath)
+
+	DomainSocketPath::DomainSocketPath() noexcept: length(0), flagAbstract(sl_false)
+	{
+	}
+
+	DomainSocketPath::DomainSocketPath(const StringParam& path, sl_bool _flagAbstract) noexcept: flagAbstract(_flagAbstract)
+	{
+		set(path);
+	}
+
+	DomainSocketPath& DomainSocketPath::operator=(const StringParam& path) noexcept
+	{
+		set(path);
+		return *this;
+	}
+
+	DomainSocketPath::operator StringView() const noexcept
+	{
+		return StringView(data, length);
+	}
+
+	StringView DomainSocketPath::get() const noexcept
+	{
+		return StringView(data, length);
+	}
+
+	void DomainSocketPath::set(const StringParam& _path) noexcept
+	{
+		StringData str(_path);
+		sl_size n = str.getLength();
+		if (n > sizeof(data)) {
+			length = 0;
+		} else {
+			Base::copyMemory(data, str.getData(), n);
+			length = (sl_uint32)n;
+		}
+	}
+
+	sl_uint32 DomainSocketPath::getSystemSocketAddress(void* _addr) const noexcept
+	{
+		sockaddr_un& addr = *((sockaddr_un*)_addr);
+		sl_size offset = offsetof(sockaddr_un, sun_path);
+		char* str = addr.sun_path;
+		if (flagAbstract) {
+			if (length >= sizeof(addr.sun_path) - 2) {
+				return 0;
+			}
+			str++;
+			offset++;
+		} else {
+			if (length >= sizeof(addr.sun_path) - 1) {
+				return 0;
+			}
+		}
+		Base::zeroMemory(&addr, offset);
+		Base::copyMemory(str, data, length);
+		str[length] = 0;
+		addr.sun_family = AF_UNIX;
+		return (sl_uint32)(offset + length + 1);
+	}
+
+	sl_bool DomainSocketPath::setSystemSocketAddress(const void* _addr, sl_uint32 len) noexcept
+	{
+		sockaddr_un& addr = *((sockaddr_un*)_addr);
+		sl_uint32 offset = (sl_uint32)(offsetof(sockaddr_un, sun_path));
+		if (len >= offset) {
+			if (addr.sun_family == AF_UNIX) {
+				const char* str = addr.sun_path;
+				len -= offset;
+				flagAbstract = sl_true;
+				if (len) {
+					if (*str) {
+						flagAbstract = sl_false;
+					} else {
+						str++;
+						len--;
+					}
+					len = (sl_uint32)(Base::getStringLength(str, len));
+					if (len) {
+						if (len > sizeof(data)) {
+							return sl_false;
+						}
+						Base::copyMemory(data, str, len);
+					}
+					length = len;
+					return sl_true;
+				}
+			}
+		}
+		return sl_false;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AbstractDomainSocketPath)
+
+	AbstractDomainSocketPath::AbstractDomainSocketPath() noexcept
+	{
+		flagAbstract = sl_true;
+	}
+
+	AbstractDomainSocketPath::AbstractDomainSocketPath(const StringParam& path) noexcept : DomainSocketPath(path, sl_true)
+	{
+	}
+
+	AbstractDomainSocketPath& AbstractDomainSocketPath::operator=(const StringParam& path) noexcept
+	{
+		set(path);
+		return *this;
+	}
+
+	AbstractDomainSocketPath::operator StringView() const noexcept
+	{
+		return StringView(data, length);
 	}
 
 }

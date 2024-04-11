@@ -34,7 +34,7 @@
 namespace slib
 {
 
-	class Win32_LayeredViewContext;
+	class Win32_NativeLayerContext;
 	class Win32_ToolTipViewContext;
 
 	class Win32_ViewInstance : public ViewInstance
@@ -57,7 +57,7 @@ namespace slib
 					return ret;
 				} else {
 					if (flagDestroyOnRelease) {
-						PostMessageW(hWnd, SLIB_UI_MESSAGE_CLOSE, 0, 0);
+						_destroy(hWnd);
 					}
 				}
 			}
@@ -130,6 +130,8 @@ namespace slib
 
 		void setAlpha(View* view, sl_real alpha) override;
 
+		void setColorKey(View* view, const Color& color) override;
+
 		void setClipping(View* view, sl_bool flag) override;
 
 		void setDrawing(View* view, sl_bool flag) override;
@@ -165,28 +167,28 @@ namespace slib
 	public:
 		void setText(const StringParam& text);
 
-		void setLayered(sl_bool flagLayered);
+		void initNativeLayer();
 
-		void updateLayered();
+		void updateNativeLayer();
 
 		void releaseDragging();
 
 		sl_bool doDragging(UIAction action);
 
-		void updateToolTip(View* view, const String& toolTip);
+		void updateToolTip(sl_uint64 ownerId, const String& toolTip);
 
 		void enableIME();
 
 		void disableIME();
 
-		void updateIME();
+		void updateIME(View* view);
 
 	public:
 		void onPaint(Canvas* canvas);
 
 		void onPaint();
 
-		void onDrawLayered();
+		void onDrawNativeLayer();
 
 		sl_bool onEventKey(UIAction action, WPARAM wParam, LPARAM lParam);
 
@@ -199,6 +201,9 @@ namespace slib
 		sl_bool onEventSetCursor();
 
 		void setGenericView(sl_bool flag);
+
+	private:
+		static void _destroy(HWND hWnd);
 
 	protected:
 		HWND m_handle;
@@ -213,14 +218,14 @@ namespace slib
 		String16 m_text;
 		Ref<Font> m_font;
 
-		Ref<Win32_LayeredViewContext> m_layered;
+		Ref<Win32_NativeLayerContext> m_nativeLayer;
 		Ref<Win32_ToolTipViewContext> m_tooltip;
 		IUnknown* m_dropTarget;
 		HIMC m_imc;
 
 	};
 
-	class Win32_LayeredViewContext : public CRef
+	class Win32_NativeLayerContext : public CRef
 	{
 	public:
 		sl_bool flagInvalidated;
@@ -228,22 +233,18 @@ namespace slib
 		HDC hdcCache;
 		HBITMAP hbmCache;
 		HGDIOBJ hbmOld;
-		Gdiplus::Graphics* graphicsCache;
-		Gdiplus::Bitmap* bitmapCache;
 		sl_uint32 widthCache;
 		sl_uint32 heightCache;
 
 	public:
-		Win32_LayeredViewContext();
+		Win32_NativeLayerContext();
 
-		~Win32_LayeredViewContext();
+		~Win32_NativeLayerContext();
 
 	public:
 		sl_bool prepare(sl_uint32 width, sl_uint32 height);
 
 		void clear();
-
-		void sync(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
 
 	};
 
@@ -251,7 +252,7 @@ namespace slib
 	{
 	public:
 		HWND hWndToolTip;
-		Ref<View> viewToolTip;
+		sl_uint64 ownerId;
 		String toolTip;
 
 	public:
@@ -260,7 +261,7 @@ namespace slib
 		~Win32_ToolTipViewContext();
 
 	public:
-		void update(Win32_ViewInstance* instance, View* viewToolTip, const String& toolTip);
+		void update(Win32_ViewInstance* instance, sl_uint64 ownerId, const String& toolTip);
 
 	};
 

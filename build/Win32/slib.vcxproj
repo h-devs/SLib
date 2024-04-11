@@ -22,21 +22,20 @@
     <ClInclude Include="..\..\include\slib\core.h" />
     <ClInclude Include="..\..\include\slib\crypto.h" />
     <ClInclude Include="..\..\include\slib\db.h" />
-    <ClInclude Include="..\..\include\slib\dev.h" />
     <ClInclude Include="..\..\include\slib\device.h" />
     <ClInclude Include="..\..\include\slib\doc.h" />
     <ClInclude Include="..\..\include\slib\geo.h" />
     <ClInclude Include="..\..\include\slib\graphics.h" />
+    <ClInclude Include="..\..\include\slib\io.h" />
     <ClInclude Include="..\..\include\slib\math.h" />
     <ClInclude Include="..\..\include\slib\media.h" />
     <ClInclude Include="..\..\include\slib\network.h" />
+    <ClInclude Include="..\..\include\slib\platform.h" />
     <ClInclude Include="..\..\include\slib\render.h" />
     <ClInclude Include="..\..\include\slib\resource.h" />
-    <ClInclude Include="..\..\include\slib\serialize.h" />
-    <ClInclude Include="..\..\include\slib\service.h" />
     <ClInclude Include="..\..\include\slib\slib.h" />
-    <ClInclude Include="..\..\include\slib\social.h" />
     <ClInclude Include="..\..\include\slib\storage.h" />
+    <ClInclude Include="..\..\include\slib\system.h" />
     <ClInclude Include="..\..\include\slib\ui.h" />
     <ClInclude Include="..\..\src\slib\io\async_config.h" />
     <ClInclude Include="..\..\src\slib\network\network_async.h" />
@@ -89,8 +88,6 @@
     <ClCompile Include="..\..\src\slib\core\console.cpp" />
     <ClCompile Include="..\..\src\slib\core\content_type.cpp" />
     <ClCompile Include="..\..\src\slib\core\dispatch.cpp" />
-    <ClCompile Include="..\..\src\slib\core\dynamic_library.cpp" />
-    <ClCompile Include="..\..\src\slib\core\dynamic_library_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\event.cpp" />
     <ClCompile Include="..\..\src\slib\core\hash.cpp" />
     <ClCompile Include="..\..\src\slib\core\container.cpp" />
@@ -98,36 +95,24 @@
     <ClCompile Include="..\..\src\slib\core\log.cpp" />
     <ClCompile Include="..\..\src\slib\core\memory.cpp" />
     <ClCompile Include="..\..\src\slib\core\mutex.cpp" />
-    <ClCompile Include="..\..\src\slib\core\named_instance.cpp" />
     <ClCompile Include="..\..\src\slib\core\object.cpp" />
-    <ClCompile Include="..\..\src\slib\core\preference.cpp" />
-    <ClCompile Include="..\..\src\slib\core\preference_win32.cpp" />
-    <ClCompile Include="..\..\src\slib\core\asset.cpp" />
-    <ClCompile Include="..\..\src\slib\core\process.cpp" />
-    <ClCompile Include="..\..\src\slib\core\process_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\red_black_tree.cpp" />
     <ClCompile Include="..\..\src\slib\core\ref.cpp" />
     <ClCompile Include="..\..\src\slib\core\regular_expression.cpp" />
     <ClCompile Include="..\..\src\slib\core\resource.cpp" />
     <ClCompile Include="..\..\src\slib\core\rw_lock.cpp" />
     <ClCompile Include="..\..\src\slib\core\safe_static.cpp" />
-    <ClCompile Include="..\..\src\slib\core\service.cpp" />
-    <ClCompile Include="..\..\src\slib\core\service_manager_win32.cpp" />
-    <ClCompile Include="..\..\src\slib\core\service_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\spin_lock.cpp" />
     <ClCompile Include="..\..\src\slib\core\string.cpp" />
     <ClCompile Include="..\..\src\slib\core\stringx.cpp" />
     <ClCompile Include="..\..\src\slib\core\string_buffer.cpp" />
     <ClCompile Include="..\..\src\slib\core\string_param.cpp" />
-    <ClCompile Include="..\..\src\slib\core\system.cpp" />
-    <ClCompile Include="..\..\src\slib\core\system_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\thread.cpp" />
     <ClCompile Include="..\..\src\slib\core\thread_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\time.cpp" />
     <ClCompile Include="..\..\src\slib\core\timer.cpp" />
     <ClCompile Include="..\..\src\slib\core\time_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\variant.cpp" />
-    <ClCompile Include="..\..\src\slib\core\service_manager.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\aes.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MaxSpeed</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MaxSpeed</Optimization>
@@ -195,12 +180,14 @@
     <ClCompile Include="..\..\src\slib\data\ini.cpp" />
     <ClCompile Include="..\..\src\slib\data\json.cpp" />
     <ClCompile Include="..\..\src\slib\data\lzw.cpp" />
+    <ClCompile Include="..\..\src\slib\data\table_model.cpp" />
     <ClCompile Include="..\..\src\slib\data\xml.cpp" />
     <ClCompile Include="..\..\src\slib\data\zlib.cpp" />
     <ClCompile Include="..\..\src\slib\data\zstd.cpp" />
     <ClCompile Include="..\..\src\slib\db\database.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_cursor.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_expression.cpp" />
+    <ClCompile Include="..\..\src\slib\db\database_model.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_sql.cpp" />
     <ClCompile Include="..\..\src\slib\db\database_statement.cpp" />
     <ClCompile Include="..\..\src\slib\db\document_store.cpp" />
@@ -219,13 +206,9 @@
     <ClCompile Include="..\..\src\slib\device\disk.cpp" />
     <ClCompile Include="..\..\src\slib\device\disk_win32.cpp" />
     <ClCompile Include="..\..\src\slib\device\performance.cpp" />
+    <ClCompile Include="..\..\src\slib\device\printer.cpp" />
+    <ClCompile Include="..\..\src\slib\device\printer_win32.cpp" />
     <ClCompile Include="..\..\src\slib\device\sensor.cpp" />
-    <ClCompile Include="..\..\src\slib\develop\shell_code.cpp" />
-    <ClCompile Include="..\..\src\slib\develop\vtable.cpp" />
-    <ClCompile Include="..\..\src\slib\develop\hook.cpp" />
-    <ClCompile Include="..\..\src\slib\develop\module.cpp" />
-    <ClCompile Include="..\..\src\slib\develop\pe.cpp" />
-    <ClCompile Include="..\..\src\slib\develop\protect.cpp" />
     <ClCompile Include="..\..\src\slib\doc\pdf.cpp" />
     <ClCompile Include="..\..\src\slib\doc\rar.cpp" />
     <ClCompile Include="..\..\src\slib\doc\zip.cpp" />
@@ -279,6 +262,7 @@
     <ClCompile Include="..\..\src\slib\io\file_unix.cpp" />
     <ClCompile Include="..\..\src\slib\io\file_win32.cpp" />
     <ClCompile Include="..\..\src\slib\io\io.cpp" />
+    <ClCompile Include="..\..\src\slib\io\chunk.cpp" />
     <ClCompile Include="..\..\src\slib\io\pipe.cpp" />
     <ClCompile Include="..\..\src\slib\math\bigint.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MaxSpeed</Optimization>
@@ -347,6 +331,7 @@
     <ClCompile Include="..\..\src\slib\network\url_request_param.cpp" />
     <ClCompile Include="..\..\src\slib\network\url_request_win32.cpp" />
     <ClCompile Include="..\..\src\slib\network\web_service.cpp" />
+    <ClCompile Include="..\..\src\slib\platform\win32\async_handle.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\com.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_bcrypt.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_d3d.cpp" />
@@ -397,6 +382,20 @@
     <ClCompile Include="..\..\src\slib\storage\fuse.cpp" />
     <ClCompile Include="..\..\src\slib\storage\storage.cpp" />
     <ClCompile Include="..\..\src\slib\storage\storage_volume_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\system\asset.cpp" />
+    <ClCompile Include="..\..\src\slib\system\dynamic_library.cpp" />
+    <ClCompile Include="..\..\src\slib\system\dynamic_library_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\system\named_instance.cpp" />
+    <ClCompile Include="..\..\src\slib\system\preference.cpp" />
+    <ClCompile Include="..\..\src\slib\system\preference_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\system\process.cpp" />
+    <ClCompile Include="..\..\src\slib\system\process_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\system\service.cpp" />
+    <ClCompile Include="..\..\src\slib\system\service_manager.cpp" />
+    <ClCompile Include="..\..\src\slib\system\service_manager_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\system\service_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\system\system.cpp" />
+    <ClCompile Include="..\..\src\slib\system\system_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\audio_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button_win32.cpp" />
@@ -581,7 +580,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
       <OmitDefaultLibName>true</OmitDefaultLibName>
@@ -608,7 +607,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
       <OmitDefaultLibName>true</OmitDefaultLibName>
@@ -630,15 +629,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;SLIB_COMPILE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
       <MinimalRebuild>false</MinimalRebuild>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OmitDefaultLibName>true</OmitDefaultLibName>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -660,14 +659,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;SLIB_COMPILE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OmitDefaultLibName>true</OmitDefaultLibName>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

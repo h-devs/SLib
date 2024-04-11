@@ -83,6 +83,12 @@ namespace slib
 			void* hTouchInput // HTOUCHINPUT
 		)
 
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			SetWindowDisplayAffinity,
+			BOOL, WINAPI,
+			HWND hWnd, DWORD dwAffinity
+		)
+
 	SLIB_IMPORT_LIBRARY_END
 
 }

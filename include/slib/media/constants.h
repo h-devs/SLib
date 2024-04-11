@@ -45,6 +45,14 @@ namespace slib
 		FloatBE = 34
 	};
 
+	enum class AudioDeviceRole
+	{
+		Default = 0,
+		Console = 1,
+		Multimedia = 2,
+		Communications = 3
+	};
+
 	enum class AudioStreamType
 	{
 		Default = -1,

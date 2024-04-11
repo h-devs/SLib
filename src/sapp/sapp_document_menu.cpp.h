@@ -280,7 +280,7 @@ namespace slib
 								 , m_conf.generate_cpp_namespace));
 
 
-		for (auto& pair : m_menus) {
+		for (auto&& pair : m_menus) {
 			if (pair.value.isNotNull()) {
 
 				sbHeader.add(String::format("\t\tSLIB_DECLARE_MENU_BEGIN(%s)%n", pair.key));
@@ -480,7 +480,7 @@ namespace slib
 
 	}
 
-	sl_bool SAppDocument::_getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, String& result)
+	sl_bool SAppDocument::_getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, sl_bool flagForWindow, String& name, String& result)
 	{
 		if (!(value.flagDefined)) {
 			result = "slib::Ref<slib::Menu>::null()";
@@ -490,9 +490,8 @@ namespace slib
 			result = "slib::Ref<slib::Menu>::null()";
 			return sl_true;
 		}
-		String name;
 		if (_checkMenuName(localNamespace, value.resourceName, value.referingElement, &name)) {
-			result = String::format("menu::%s::get()->root", name);
+			result = String::format(flagForWindow ? "menu::%s::create()" : "menu::%s::get()", name);
 			return sl_true;
 		} else {
 			return sl_false;

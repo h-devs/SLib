@@ -24,7 +24,6 @@
 #define CHECKHEADER_SLIB_DATA_SERIALIZE
 
 #include "serialize/primitive.h"
-#include "serialize/variable_length_integer.h"
 #include "serialize/string.h"
 #include "serialize/time.h"
 #include "serialize/memory.h"

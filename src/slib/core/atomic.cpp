@@ -24,7 +24,7 @@
 
 #include "slib/core/base.h"
 #include "slib/core/time_counter.h"
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 
 namespace slib
 {

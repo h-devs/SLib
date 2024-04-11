@@ -42,7 +42,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
 		SLIB_STATIC_STRING(g_strDefaultDeviceId, "default")
 
@@ -153,16 +154,9 @@ namespace slib
 			return sl_false;
 		}
 
-		struct AudioDeviceInfo
+		template <class INFO>
+		static void GetAllDevices(List<INFO>& ret, sl_bool flagInput)
 		{
-			String id;
-			String name;
-			String description;
-		};
-
-		static List<AudioDeviceInfo> GetAllDevices(sl_bool flagInput)
-		{
-			List<AudioDeviceInfo> ret;
 			auto func_snd_device_name_hint = slib::alsa::getApi_snd_device_name_hint();
 			auto func_snd_device_name_get_hint = slib::alsa::getApi_snd_device_name_get_hint();
 			auto func_snd_device_name_free_hint = slib::alsa::getApi_snd_device_name_free_hint();
@@ -170,31 +164,34 @@ namespace slib
 				// version 1.0.14 or later
 				void** hints;
 				if (func_snd_device_name_hint(-1, "pcm", &hints) < 0) {
-					return sl_null;
+					return;
 				}
 				void** p = hints;
-				const char* filter;
-				if(flagInput) {
-					filter = "Input";
-				} else {
-					filter = "Output";
-				}
+				const char* filter = flagInput ? "Input" : "Output";
 				while (*p) {
 					char* name = func_snd_device_name_get_hint(*p, "NAME");
-					if (name && !(Base::equalsString(name, "null"))) {
-						char* description = func_snd_device_name_get_hint(*p, "DESC");
-						char* io = func_snd_device_name_get_hint(*p, "IOID");
-						if (description && (!io || Base::equalsString(io, filter))) {
-							AudioDeviceInfo info;
-							info.name = name;
-							info.description = description;
-							info.id = info.name;
-							ret.add_NoLock(info);
+					if (name) {
+						if (!(Base::equalsString(name, "null"))) {
+							char* io = func_snd_device_name_get_hint(*p, "IOID");
+							if (!io || Base::equalsString(io, filter)) {
+								AudioDeviceInfo info;
+								info.id = name;
+								char* desc = func_snd_device_name_get_hint(*p, "DESC");
+								if (desc) {
+									info.name = desc;
+									info.name = info.name.replaceAll('\n', ' ');
+									free(desc);
+								} else {
+									info.name = info.id;
+								}
+								ret.add_NoLock(Move(info));
+							}
+							if (io) {
+								free(io);
+							}
 						}
-						free(description);
-						free(io);
+						free(name);
 					}
-					free(name);
 					p++;
 				}
 				func_snd_device_name_free_hint(hints);
@@ -202,58 +199,38 @@ namespace slib
 				int index = 0;
 				for (;;) {
 					char* name = sl_null;
-					char* description = sl_null;
 					if (snd_card_get_name(index, &name) != 0) {
 						break;
 					}
 					if (name) {
-						snd_card_get_longname(index, &description);
 						AudioDeviceInfo info;
 						info.id = String::format("hw:%d,0", index);
 						info.name = name;
-						if (description) {
-							info.description = description;
-						} else {
-							info.description = name;
-						}
 						ret.add_NoLock(info);
 					}
 					index++;
 				}
 			}
-			return ret;
 		}
+
 	}
 
 	List<AudioRecorderDeviceInfo> AudioRecorder::getDevices()
 	{
 		List<AudioRecorderDeviceInfo> ret;
-		ListElements<AudioDeviceInfo> list(GetAllDevices(sl_true));
-		for (sl_size i = 0; i < list.count; i++) {
-			AudioRecorderDeviceInfo info;
-			info.id = list[i].id;
-			info.name = list[i].name;
-			info.description = list[i].description;
-			ret.add_NoLock(info);
-		}
+		GetAllDevices(ret, sl_true);
 		return ret;
 	}
 
 	List<AudioPlayerDeviceInfo> AudioPlayerDevice::getDevices()
 	{
-		List<AudioPlayerDeviceInfo> ret;
-		ListElements<AudioDeviceInfo> list(GetAllDevices(sl_false));
-		for (sl_size i = 0; i < list.count; i++) {
-			AudioPlayerDeviceInfo info;
-			info.id = list[i].id;
-			info.name = list[i].name;
-			info.description = list[i].description;
-			ret.add_NoLock(info);
-		}
+		List<AudioRecorderDeviceInfo> ret;
+		GetAllDevices(ret, sl_false);
 		return ret;
 	}
 
-	namespace {
+	namespace
+	{
 		class AudioRecorderImpl: public AudioRecorder
 		{
 		public:
@@ -406,7 +383,9 @@ namespace slib
 		return AudioRecorderImpl::create(param);
 	}
 
-	namespace {
+	namespace
+	{
+
 		class AudioPlayerImpl: public AudioPlayer
 		{
 		public:
@@ -562,7 +541,7 @@ namespace slib
 				String deviceId = param.deviceId;
 				if (deviceId.isNotEmpty()) {
 					sl_bool flagFound = sl_false;
-					ListElements<AudioDeviceInfo> list(GetAllDevices(sl_false));
+					ListElements<AudioPlayerDeviceInfo> list(AudioPlayerDevice::getDevices());
 					for (sl_size i = 0; i < list.count; i++) {
 						if (list[i].id == deviceId) {
 							flagFound = sl_true;
@@ -587,6 +566,7 @@ namespace slib
 			}
 
 		};
+
 	}
 
 	Ref<AudioPlayerDevice> AudioPlayerDevice::create(const AudioPlayerDeviceParam& param)

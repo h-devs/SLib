@@ -371,7 +371,7 @@ namespace slib
 	{
 		Language lang = locale.getLanguage();
 		if (lang == Language::Korean) {
-			if (locale.getCountry() == Country::NorthKorea) {
+			if (locale.getCountry() == Country::KP) {
 				SLIB_STATIC_STRING(s1, "KP CheonRiMa")
 				SLIB_STATIC_STRING(s2, "PRK P Gothic")
 				SLIB_STATIC_STRING(s3, "\xec\xb2\x9c\xeb\xa6\xac\xeb\xa7\x88")

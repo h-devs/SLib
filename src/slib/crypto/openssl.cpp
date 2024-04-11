@@ -265,7 +265,7 @@ namespace slib
 					KeyStore::applyPrivateKey(ctx, param.privateKey);
 					HashMap< String, Ref<KeyStore> > keyStores;
 					if (param.certificates.isNotEmpty() && param.privateKeys.isNotEmpty()) {
-						for (auto& item : param.certificates) {
+						for (auto&& item : param.certificates) {
 							if (item.key.isNotEmpty() && item.value.isNotNull()) {
 								Memory privateKey;
 								if (param.privateKeys.get(item.key, &privateKey)) {
@@ -763,7 +763,7 @@ namespace slib
 				return m_baseStream.isNotNull();
 			}
 
-			sl_bool requestIo(const Ref<AsyncStreamRequest>& request) override
+			sl_bool requestIo(AsyncStreamRequest* request) override
 			{
 				ObjectLocker lock(this);
 				if (m_baseStream.isNull()) {

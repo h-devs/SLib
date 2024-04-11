@@ -38,8 +38,6 @@ namespace slib
 	class HttpServer;
 	class HttpServerConnection;
 
-	class ThreadPool;
-
 	class SLIB_EXPORT HttpServerContext : public Object, public HttpRequest, public HttpResponse, public HttpOutputBuffer
 	{
 		SLIB_DECLARE_OBJECT
@@ -65,13 +63,17 @@ namespace slib
 
 		sl_uint64 getResponseContentLength() const;
 
-		Ref<HttpServer> getServer();
+		Ref<HttpServer> getServer() const;
 
-		Ref<HttpServerConnection> getConnection();
+		Ref<HttpServerConnection> getConnection() const;
 
-		Ref<AsyncStream> getIO();
+		Ref<AsyncStream> getIO() const;
 
-		Ref<AsyncIoLoop> getAsyncIoLoop();
+		Ref<AsyncIoLoop> getAsyncIoLoop() const;
+
+		Ref<Dispatcher> getDispatcher() const;
+
+		void setDispatcher(const Ref<Dispatcher>& dispatcher);
 
 		const SocketAddress& getLocalAddress();
 
@@ -85,10 +87,6 @@ namespace slib
 
 		void setClosingConnection(sl_bool flag = sl_true);
 
-		sl_bool isProcessingByThread() const;
-
-		void setProcessingByThread(sl_bool flag = sl_true);
-
 		sl_bool isKeepAlive() const;
 
 		void setKeepAlive(sl_bool flag = sl_true);
@@ -99,10 +97,10 @@ namespace slib
 		sl_uint64 m_requestContentLength;
 		MemoryQueue m_requestBodyBuffer;
 		AtomicMemory m_requestBody;
+		AtomicRef<Dispatcher> m_dispatcher;
 
 		sl_bool m_flagProcessed;
 		sl_bool m_flagClosingConnection;
-		sl_bool m_flagProcessingByThread;
 		sl_bool m_flagKeepAlive;
 
 		sl_bool m_flagBeganProcessing;
@@ -327,9 +325,7 @@ namespace slib
 		IPAddress bindAddress;
 		sl_uint16 port;
 
-		sl_uint32 minimumThreadCount;
-		sl_uint32 maximumThreadCount;
-		sl_bool flagProcessByThreads;
+		Ref<Dispatcher> dispatcher; // usually ThreadPool
 
 		sl_bool flagUseWebRoot;
 		String webRootPath;
@@ -402,8 +398,6 @@ namespace slib
 
 		Ref<AsyncIoLoop> getAsyncIoLoop();
 
-		Ref<ThreadPool> getThreadPool();
-
 		const HttpServerParam& getParam();
 
 	public:
@@ -434,7 +428,7 @@ namespace slib
 		virtual HashMap<String, WebDavItemProperty> getWebDavItems(HttpServerContext* context, const String& path);
 
 
-		virtual Ref<HttpServerConnection> addConnection(const Ref<AsyncStream>& stream, const SocketAddress& remoteAddress, const SocketAddress& localAddress);
+		virtual Ref<HttpServerConnection> addConnection(AsyncStream* stream, const SocketAddress& remoteAddress, const SocketAddress& localAddress);
 
 		virtual void closeConnection(HttpServerConnection* connection);
 
@@ -478,7 +472,6 @@ namespace slib
 	protected:
 		AtomicRef<AsyncIoLoop> m_ioLoop;
 		AtomicRef<DispatchLoop> m_dispatchLoop;
-		AtomicRef<ThreadPool> m_threadPool;
 		sl_bool m_flagReleased;
 		sl_bool m_flagRunning;
 

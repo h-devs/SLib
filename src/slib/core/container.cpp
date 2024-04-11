@@ -176,20 +176,6 @@ namespace slib
 			{
 			}
 
-			sl_reg PtrContainer::increaseReference() noexcept
-			{
-				return Base::interlockedIncrement(&refCount);
-			}
-
-			sl_reg PtrContainer::decreaseReference()
-			{
-				sl_reg nRef = Base::interlockedDecrement(&refCount);
-				if (!nRef) {
-					delete this;
-				}
-				return nRef;
-			}
-
 		}
 
 		namespace function_list

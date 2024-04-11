@@ -28,7 +28,7 @@
 #include "../io/file.h"
 #include "../core/string.h"
 #include "../core/hash_map.h"
-#include "../core/system.h"
+#include "../system/system.h"
 
 namespace slib
 {

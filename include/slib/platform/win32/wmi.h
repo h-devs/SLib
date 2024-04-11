@@ -27,7 +27,7 @@
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 
-#include "../../core/string.h"
+#include "../../core/variant.h"
 
 namespace slib 
 {
@@ -37,7 +37,27 @@ namespace slib
 		class SLIB_EXPORT Wmi
 		{
 		public:
-			static String16 executeQuery(const StringParam& query);
+			static Variant getQueryResponseValue(const StringParam& query, const StringParam& fieldName);
+
+			static VariantMap getQueryResponseRecord(const StringParam& query, const StringParam* fieldNames, sl_size nFields);
+
+			template <class... ARGS>
+			static VariantMap getQueryResponseRecord(const StringParam& query, const StringParam& fieldName, ARGS&&... args)
+			{
+				StringParam params[] = { fieldName, Forward<ARGS>(args)... };
+				return getQueryResponseRecord(query, params, 1 + sizeof...(args));
+			}
+
+			static List<VariantMap> getQueryResponseRecords(const StringParam& query, const StringParam* fieldNames, sl_size nFields);
+
+			template <class... ARGS>
+			static List<VariantMap> getQueryResponseRecords(const StringParam& query, const StringParam& fieldName, ARGS&&... args)
+			{
+				StringParam params[] = { fieldName, Forward<ARGS>(args)... };
+				return getQueryResponseRecords(query, params, 1 + sizeof...(args));
+			}
+
+			static Time getDateTime(const Variant& value);
 
 		};
 

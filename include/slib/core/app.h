@@ -26,8 +26,9 @@
 #include "object.h"
 #include "string.h"
 #include "function.h"
-#include "named_instance.h"
 #include "flags.h"
+
+#include "../system/named_instance.h"
 
 namespace slib
 {

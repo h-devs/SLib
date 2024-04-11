@@ -144,7 +144,7 @@ namespace slib
 
 		StringBuffer sbData;
 
-		for (auto& pair : m_raws) {
+		for (auto&& pair : m_raws) {
 			if (pair.value.isNotNull()) {
 				Ref<SAppRawResource> res = pair.value;
 				if (!(_generateRawCppItem(res.get(), targetPath, sl_null, sl_null, sbHeader, sbCpp, sbMap, sbData, tabCountStart, 0))) {
@@ -228,7 +228,7 @@ namespace slib
 			sbHeader.add(strNamespace);
 			sbCpp.add(strNamespace);
 			sbData.add(strNamespace);
-			for (auto& pair : res->sub) {
+			for (auto&& pair : res->sub) {
 				if (pair.value.isNotNull()) {
 					Ref<SAppRawResource> res = pair.value;
 					if (!(_generateRawCppItem(res.get(), targetPath, relativePath, namespacePath, sbHeader, sbCpp, sbMap, sbData, tabCountStart, tabCountRelative + 1))) {
@@ -269,11 +269,11 @@ namespace slib
 		Memory mem = fileSrc.readAllBytes();
 		File fileDst = File::openForWrite(targetPath);
 		if (fileDst.isOpened()) {
-			fileDst.writeTextUTF8(signature);
-			fileDst.writeTextUTF8(String::format("\r\nnamespace %s {%nconst sl_uint8 bytes[] = {%n", resourceName, mem.getData()));
-			fileDst.writeTextUTF8(SAppUtil::generateBytesArrayDefinition(mem.getData(), mem.getSize(), 16, 0));
+			fileDst.writeAll(signature);
+			fileDst.writeAll(String::format("\r\nnamespace %s {%nconst sl_uint8 bytes[] = {%n", resourceName));
+			fileDst.writeAll(SAppUtil::generateBytesArrayDefinition(mem.getData(), mem.getSize(), 16, 0));
 			static const sl_char8 strDataEnd[] = "};\r\n}\r\n";
-			fileDst.write(strDataEnd, sizeof(strDataEnd) - 1);
+			fileDst.writeAll(strDataEnd, sizeof(strDataEnd) - 1);
 			return sl_true;
 		}
 		logError(g_str_error_file_write_failed, targetPath);

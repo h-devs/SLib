@@ -23,12 +23,11 @@
 #include "slib/render/d3d.h"
 
 #include "slib/graphics/image.h"
-
 #include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/log.h"
-#include "slib/platform.h"
+#include "slib/ui/platform.h"
 #include "slib/dl/win32/d3d.h"
 
 #if D3D_VERSION_MAJOR < 11
@@ -199,7 +198,7 @@ namespace slib
 					auto funcCreateDXGIFactory = dxgi::getApi_CreateDXGIFactory();
 					if (funcCreateDXGIFactory) {
 						IDXGIFactory* pFactory = sl_null;
-						funcCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&pFactory);
+						funcCreateDXGIFactory(IID_PPV_ARGS(&pFactory));
 						if (pFactory) {
 							DXGI_SWAP_CHAIN_DESC desc;
 							Base::zeroMemory(&desc, sizeof(desc));
@@ -218,7 +217,7 @@ namespace slib
 
 						ID3DRenderTargetView* pRenderTarget = sl_null;
 						ID3DTexture2D* pBackBuffer = sl_null;
-						pSwapChain->GetBuffer(0, __uuidof(ID3DTexture2D), (void**)&pBackBuffer);
+						pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
 
 						if (pBackBuffer) {
 							device->CreateRenderTargetView(pBackBuffer, NULL, &pRenderTarget);
@@ -306,7 +305,7 @@ namespace slib
 			void runStep(RenderEngine* engine)
 			{
 				if (m_hWnd) {
-					if (!(Win32::isWindowVisible(m_hWnd))) {
+					if (!(UIPlatform::isWindowVisible(m_hWnd))) {
 						return;
 					}
 				}

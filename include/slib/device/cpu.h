@@ -28,6 +28,8 @@
 namespace slib
 {
 
+	class String;
+
 	class SLIB_EXPORT Cpu
 	{
 	public:
@@ -41,6 +43,8 @@ namespace slib
 			return sl_false;
 		}
 #endif
+
+		static String getName();
 
 	};
 

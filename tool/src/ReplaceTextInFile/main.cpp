@@ -39,8 +39,9 @@ int main(int argc, const char * argv[])
 	}
 	String str = String((sl_char8*)(mem.getData()), mem.getSize());
 	str = str.replaceAll(textFind, textReplace);
-	if (File::writeAllBytes(fileOutput, Memory::createStatic(str.getData(), str.getLength())) == 0) {
-		return -1;
+	if (File::writeAllBytes(fileOutput, Memory::createStatic(str.getData(), str.getLength()))) {
+		return 0;
+	} else {
+		return -1;		
 	}
-	return 0;
 }

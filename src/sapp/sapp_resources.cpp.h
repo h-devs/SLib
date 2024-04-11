@@ -27,6 +27,42 @@
 namespace slib
 {
 
+	String SAppStringResourceItem::get(const Locale& locale, const String& def)
+	{
+		{
+			for (auto&& item : values) {
+				if (item.key == locale) {
+					return item.value;
+				}
+			}
+		}
+		{
+			Locale localeCompare = Locale(locale.getLanguage(), locale.getCountry());
+			for (auto&& item : values) {
+				if (item.key == localeCompare) {
+					return item.value;
+				}
+			}
+		}
+		{
+			Locale localeCompare(locale.getLanguage(), locale.getScript(), Country::Unknown);
+			for (auto&& item : values) {
+				if (item.key == localeCompare) {
+					return item.value;
+				}
+			}
+		}
+		{
+			Locale localeCompare(locale.getLanguage());
+			for (auto&& item : values) {
+				if (item.key == localeCompare) {
+					return item.value;
+				}
+			}
+		}
+		return def;
+	}
+
 	Ref<Drawable> SAppDrawableResourceFileItem::load()
 	{
 		ObjectLocker lock(this);
@@ -79,7 +115,7 @@ namespace slib
 
 	sl_bool SAppLayoutViewAttributes::isNotRequiredNative(sl_bool flagCheckBackgroundColor)
 	{
-		for (auto& item : background.values) {
+		for (auto&& item : background.values) {
 			if (item.key == ViewState::Default) {
 				if (flagCheckBackgroundColor) {
 					return sl_true;
@@ -279,27 +315,8 @@ namespace slib
 		return String::null();
 	}
 
-	SAppLayoutXmlItem::SAppLayoutXmlItem()
-	{
-	}
-
-	SAppLayoutXmlItem::~SAppLayoutXmlItem()
-	{
-		if (element.isNotNull()) {
-			element->clearProperty("xml-item");
-		}
-	}
-
 	SAppLayoutXmlItem::SAppLayoutXmlItem(const Ref<XmlElement>& _element): element(_element)
 	{
-		init();
-	}
-
-	void SAppLayoutXmlItem::init()
-	{
-		if (element.isNotNull()) {
-			element->setProperty("xml-item", (void*)this);
-		}
 	}
 
 	String SAppLayoutXmlItem::getXmlAttribute(const String& name)
@@ -336,9 +353,11 @@ namespace slib
 		String vName = ":" + name;
 		Ref<XmlElement> e = element;
 		do {
-			SAppLayoutXmlItem* item = (SAppLayoutXmlItem*)(e->getProperty("xml-item").getPointer());
-			if (item) {
-				String value = item->getXmlAttribute(vName);
+			Ref<CRef> refStyles = e->getProperty("styles").getRef();
+			if (refStyles.isNotNull()) {
+				SAppLayoutXmlItem item(e);
+				item.styles = Ref< CList< Ref<SAppLayoutStyle> > >::from(refStyles);
+				String value = item.getXmlAttribute(vName);
 				if (value.isNotNull()) {
 					return value;
 				}
@@ -375,7 +394,24 @@ namespace slib
 			}
 			return value;
 		}
+		if (len == 1) {
+			return value;
+		}
 		sl_char8* data = value.getData();
+		if (*data == '$') {
+			String attr(data + 1, len - 1);
+			for (sl_size i = 0; i < 100; i++) {
+				String value = getXmlAttribute(attr);
+				if (value.isNotNull()) {
+					return value;
+				}
+				if (value.startsWith('$')) {
+					attr = value.substring(1);
+				} else {
+					break;
+				}
+			}
+		}
 		sl_char8* s = data;
 		sl_char8* e = s + len;
 		sl_char8* p = s;
@@ -393,6 +429,8 @@ namespace slib
 					buf.addStatic(s, p - s);
 					p++;
 					s = p;
+				} else if (ch == ':') {
+					p++;
 				} else if (ch == '{') {
 					p++;
 					sl_char8* n = p;
@@ -449,7 +487,7 @@ namespace slib
 	}
 
 
-	SAppLayoutResourceItem::SAppLayoutResourceItem()
+	SAppLayoutResourceItem::SAppLayoutResourceItem(const Ref<XmlElement>& _element): SAppLayoutXmlItem(_element)
 	{
 		arrayIndex = -1;
 		itemType = SAppLayoutItemType::Unknown;
@@ -459,7 +497,7 @@ namespace slib
 		flagSkipSimulateChildren = sl_false;
 	}
 
-	SAppLayoutResource::SAppLayoutResource()
+	SAppLayoutResource::SAppLayoutResource(const Ref<XmlElement>& _element): SAppLayoutResourceItem(_element)
 	{
 		layoutType = SAppLayoutType::View;
 		itemType = SAppLayoutItemType::ViewGroup;
@@ -608,6 +646,10 @@ namespace slib
 				prefix = "navigation";
 				pN = &nAutoIncreaseNameNavigation;
 				break;
+			case SAppLayoutItemType::Audio:
+				prefix = "audio";
+				pN = &nAutoIncreaseNameAudio;
+				break;
 			case SAppLayoutItemType::Video:
 				prefix = "video";
 				pN = &nAutoIncreaseNameVideo;
@@ -731,6 +773,8 @@ namespace slib
 			type = SAppLayoutItemType::Pager;
 		} else if (strType == "navigation") {
 			type = SAppLayoutItemType::Navigation;
+		} else if (strType == "audio") {
+			type = SAppLayoutItemType::Audio;
 		} else if (strType == "video") {
 			type = SAppLayoutItemType::Video;
 		} else if (strType == "camera") {

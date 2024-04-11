@@ -40,6 +40,34 @@ namespace slib
 	class WindowInstance;
 	class WindowContentView;
 
+	enum class WindowPart
+	{
+		// Equals to Win32 WM_NCHITTEST return values
+		Nowhere = 0, // screen background or dividing line between windows
+		ClientArea = 1,
+		TitleBar = 2, // caption
+		WindowMenu = 3, // system menu
+		SizeBox = 4,
+		Menu = 5,
+		HorizontalScrollBar = 6,
+		VerticalScrollBar = 7,
+		MinimizeButton = 8,
+		MaximizeButton = 9,
+		LeftBorder = 10, // left border of a resizable window
+		RightBorder = 11, // right border of a resizable window
+		TopBorder = 12, // upper-horizontal border of a resizable window
+		TopLeftBorder = 13, // upper-left border of a resizable window
+		TopRightBorder = 14, // upper-right border of a resizable window
+		BottomBorder = 15, // lower-horizontal border of a resizable window
+		BottomLeftBorder = 16, // lower-left corner of a border of a resizable window
+		BottomRightBorder = 17, // lower-right corner of a border of a resizable window
+		Border = 18, // border of a window that does not have a sizing border
+		CloseButton = 20,
+		HelpButton = 21,
+		Transparent = -1, // a window currently covered by another window
+		Error = -2 // screen background or dividing line between windows (a system beep to indicate an error)
+	};
+
 	class SLIB_EXPORT Window : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -159,6 +187,10 @@ namespace slib
 
 		void setIcon(const Ref<Drawable>& icon);
 
+		String getIconResource();
+
+		void setIconResource(const String& name);
+
 		Color getBackgroundColor();
 
 		void setBackgroundColor(const Color& color);
@@ -226,6 +258,14 @@ namespace slib
 		sl_bool isTransparent();
 
 		void setTransparent(sl_bool flag = sl_true);
+
+		sl_bool isVisibleInTaskbar();
+
+		void setVisibleInTaskbar(sl_bool flag = sl_true);
+
+		sl_bool isExcludingFromCapture();
+
+		void setExcludingFromCapture(sl_bool flag = sl_true);
 
 
 		// aspect = width / height
@@ -385,9 +425,18 @@ namespace slib
 		void setTitleBarVisible(sl_bool flag = sl_true);
 
 
+		Function<WindowPart(sl_ui_pos x, sl_ui_pos y)> getHitTester();
+
+		void setHitTester(const Function<WindowPart(sl_ui_pos x, sl_ui_pos y)>& tester);
+
+
 		sl_bool isCloseOnOK();
 
 		void setCloseOnOK(sl_bool flag = sl_true);
+
+		sl_bool isCloseOnCancel();
+
+		void setCloseOnCancel(sl_bool flag = sl_true);
 
 		Variant getResult();
 
@@ -505,6 +554,7 @@ namespace slib
 
 		AtomicString m_title;
 		AtomicRef<Drawable> m_icon;
+		AtomicString m_iconResource;
 		Color m_backgroundColor;
 		sl_bool m_flagDefaultBackgroundColor;
 
@@ -532,6 +582,8 @@ namespace slib
 		sl_bool m_flagResizable : 1;
 		sl_bool m_flagLayered: 1;
 		sl_bool m_flagTransparent : 1;
+		sl_bool m_flagVisibleInTaskbar : 1;
+		sl_bool m_flagExcludingFromCapture : 1;
 
 		sl_bool m_flagModal : 1;
 		sl_bool m_flagSheet : 1;
@@ -543,12 +595,15 @@ namespace slib
 		sl_bool m_flagWidthFilling : 1;
 		sl_bool m_flagHeightFilling : 1;
 		sl_bool m_flagCloseOnOK : 1;
+		sl_bool m_flagCloseOnCancel : 1;
 
 		sl_bool m_flagStateResizingWidth : 1;
 		sl_bool m_flagStateDoModal : 1;
 		sl_bool m_flagStateClosing : 1;
 		sl_bool m_flagRequestClose : 1;
 		sl_bool m_flagDispatchedDestroy : 1;
+
+		AtomicFunction<WindowPart(sl_ui_pos x, sl_ui_pos y)> m_hitTester;
 
 		Variant* m_result;
 		SpinLock m_lockResult;
@@ -601,6 +656,8 @@ namespace slib
 
 		virtual void setIcon(const Ref<Drawable>& icon);
 
+		virtual void setIcon(const String& resourceName);
+
 		virtual void setMenu(const Ref<Menu>& menu);
 
 		virtual sl_bool isActive();
@@ -637,13 +694,15 @@ namespace slib
 
 		virtual void setResizable(sl_bool flag);
 
-		virtual void setLayered(sl_bool flag);
-
 		virtual void setAlpha(sl_real alpha);
 
 		virtual void setColorKey(const Color& color);
 
 		virtual void setTransparent(sl_bool flag);
+
+		virtual void setVisibleInTaskbar(sl_bool flag);
+
+		virtual void setExcludingFromCapture(sl_bool flag);
 
 
 		virtual sl_bool getClientInsets(UIEdgeInsets& _out);

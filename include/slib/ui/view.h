@@ -889,6 +889,12 @@ namespace slib
 
 		void setContentBoundPath(const Ref<GraphicsPath>& path, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Color getPaddingColor(ViewState state = ViewState::Default);
+
+		void setPaddingColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setPaddingColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 
 		Ref<Font> getFont();
 
@@ -909,6 +915,24 @@ namespace slib
 		void setUsingFont(sl_bool flag = sl_true);
 
 
+		sl_bool isAntiAlias();
+
+		void setAntiAlias(AntiAliasMode antiAliasMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		void setAntiAlias(sl_bool flagAntiAlias = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		AntiAliasMode getBackgroundAntiAlias();
+
+		void setBackgroundAntiAlias(AntiAliasMode antiAliasMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		void setBackgroundAntiAlias(sl_bool flagAntiAlias = sl_true, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		AntiAliasMode getContentAntiAlias();
+
+		void setContentAntiAlias(AntiAliasMode antiAliasMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		void setContentAntiAlias(sl_bool flagAntiAlias = sl_true, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
 		sl_bool isOpaque();
 
 		void setOpaque(sl_bool flagOpaque = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -917,9 +941,9 @@ namespace slib
 
 		void setAlpha(sl_real alpha, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_bool isAntiAlias();
+		Color getColorKey();
 
-		void setAntiAlias(sl_bool flagAntiAlias = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColorKey(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isLayer();
 
@@ -1829,7 +1853,7 @@ namespace slib
 
 		virtual void bringToFront(View* view) = 0;
 
-		// extended functions for view instances
+		// extended functions
 		virtual void setShadowOpacity(View* view, float alpha);
 
 		virtual void setShadowRadius(View* view, sl_ui_posf radius);
@@ -1838,7 +1862,8 @@ namespace slib
 
 		virtual void setShadowColor(View* view, const Color& color);
 
-		// extended functions for native widgets
+		virtual void setColorKey(View* view, const Color& color);
+
 		virtual sl_bool isDrawingEnabled(View* view);
 
 		virtual void setBorder(View* view, sl_bool flag);

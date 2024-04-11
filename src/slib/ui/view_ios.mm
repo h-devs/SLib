@@ -497,7 +497,7 @@ namespace slib
 				}
 
 				if (points.isNotNull()) {
-					Ref<UIEvent> ev = UIEvent::createTouchEvent(action, points, Time::withSecondsF(event.timestamp));
+					Ref<UIEvent> ev = UIEvent::createTouchEvent(action, points, Time::fromUnixTimeF(event.timestamp));
 					if (ev.isNotNull()) {
 						UIWindow* window = handle.window;
 						UITouch* touchDown = nil;

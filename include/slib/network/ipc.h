@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,63 +25,183 @@
 
 #include "definition.h"
 
-#include "../core/object.h"
-#include "../core/function.h"
-#include "../core/string.h"
-#include "../core/default_members.h"
+#include "../data/data_container.h"
 #include "../io/memory_output.h"
+#include "../io/async_stream.h"
 
 namespace slib
 {
 
-	class SLIB_EXPORT IPCParam
+	typedef DataContainer IPCMessage;
+	typedef IPCMessage IPCRequestMessage;
+	typedef IPCMessage IPCResponseMessage;
+
+	class SLIB_EXPORT IPCRequestParam
 	{
 	public:
-		StringParam name;
+		StringParam targetName;
+		IPCRequestMessage message;
 
-		sl_uint32 maxThreadCount;
-		sl_uint32 maxReceivingMessageSize;
-		sl_uint32 timeout; // milliseconds
+		Ref<AsyncIoLoop> ioLoop;
+		Ref<Dispatcher> dispatcher;
 
-		sl_bool flagAcceptOtherUsers;
+		sl_int32 timeout; // In milliseconds
+		sl_bool flagSelfAlive; // default: true
 
-		Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)> onReceiveMessage;
+		sl_uint32 maximumMessageSize;
+		sl_uint32 messageSegmentSize;
+
+		Function<void(IPCResponseMessage&)> onResponse;
 
 	public:
-		IPCParam();
+		IPCRequestParam();
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(IPCParam)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(IPCRequestParam)
 
 	};
 
-	class SLIB_EXPORT IPC : public Object
+	class SLIB_EXPORT IPCRequest : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	protected:
+		IPCRequest();
+
+		~IPCRequest();
+
+	public:
+		sl_bool initialize(Ref<AsyncStream>&&, const IPCRequestParam&);
+
+		sl_bool initialize(Ref<AsyncStream>&&, const IPCRequestParam&, sl_int64 tickEnd);
+
+	protected:
+		void onError();
+
+		void onResponse(IPCResponseMessage& response);
+
+		void sendRequest();
+
+		void onSentRequest(AsyncStream*, sl_bool flagError);
+
+		void receiveResponse();
+
+		void onReceiveResponse(AsyncStream*, Memory& data, sl_bool flagError);
+
+	protected:
+		Ref<AsyncStream> m_stream;
+		sl_bool m_flagSelfAlive;
+		Ref<Dispatcher> m_dispatcher;
+		Function<void(IPCResponseMessage&)> m_onResponse;
+
+		Memory m_requestData;
+		Memory m_responseData;
+		sl_int64 m_tickEnd;
+		sl_int32 m_maximumResponseSize;
+		sl_uint32 m_messageSegmentSize;
+
+		sl_int32 m_nCountFinish;
+
+	};
+
+	class SLIB_EXPORT IPCServerParam
+	{
+	public:
+		StringParam name;
+		Ref<AsyncIoLoop> ioLoop;
+		Ref<Dispatcher> dispatcher; // usually ThreadPool
+
+		sl_uint32 maximumMessageSize;
+		sl_uint32 messageSegmentSize;
+		sl_bool flagAcceptOtherUsers; // default: true
+
+		Function<void(IPCRequestMessage&, IPCResponseMessage&)> onReceiveMessage;
+
+	public:
+		IPCServerParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(IPCServerParam)
+
+	};
+
+	class SLIB_EXPORT IPCServer : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		IPC();
+		IPCServer();
 
-		~IPC();
-
-	public:
-		static Ref<IPC> create();
-
-		static Ref<IPC> create(const IPCParam& param);
-
-		static Ref<IPC> createDomainSocket(const IPCParam& param);
-
-	public:
-		virtual void sendMessage(const StringParam& targetName, const Memory& data, const Function<void(sl_uint8* data, sl_uint32 size)>& callbackResponse) = 0;
+		~IPCServer();
 
 	protected:
-		void _init(const IPCParam& param) noexcept;
+		sl_bool initialize(const IPCServerParam& param);
+
+		void startStream(AsyncStream*);
+
+		void receiveRequest(AsyncStream*);
+
+		void onReceiveRequest(AsyncStream*, Memory& data, sl_bool flagError);
+
+		void processRequest(AsyncStream*, const Memory& data);
+
+		void sendResponse(AsyncStream*, const Memory& data);
+
+		void onSentResponse(AsyncStream*, sl_bool flagError);
 
 	protected:
-		sl_uint32 m_maxThreadCount;
-		sl_uint32 m_maxReceivingMessageSize;
-		sl_uint32 m_timeout;
+		Ref<AsyncIoLoop> m_ioLoop;
+		Ref<Dispatcher> m_dispatcher;
+		sl_uint32 m_maximumMessageSize;
+		sl_uint32 m_messageSegmentSize;
 		sl_bool m_flagAcceptOtherUsers;
-		Function<void(sl_uint8* data, sl_uint32 size, MemoryOutput* output)> m_onReceiveMessage;
+		Function<void(IPCRequestMessage&, IPCResponseMessage&)> m_onReceiveMessage;
+
+		HashMap< AsyncStream*, Ref<AsyncStream> > m_streams;
+
+	};
+
+	class SLIB_EXPORT IPC
+	{
+	public:
+		typedef IPCRequest Request;
+		typedef IPCRequestParam RequestParam;
+		typedef IPCRequestMessage RequestMessage;
+		typedef IPCResponseMessage ResponseMessage;
+		typedef IPCServer Server;
+		typedef IPCServerParam ServerParam;
+
+	public:
+		static Ref<Request> sendMessage(const RequestParam& param);
+
+		static Ref<Request> sendMessage(const StringParam& targetName, const RequestMessage& request, const Function<void(ResponseMessage&)>& callbackResponse);
+
+		static sl_bool sendMessageSynchronous(const RequestParam& param, ResponseMessage& response);
+
+		static sl_bool sendMessageSynchronous(const StringParam& targetName, const RequestMessage& request, ResponseMessage& response, sl_int32 timeout = -1);
+
+		static Ref<Server> createServer(const ServerParam& param);
+
+	};
+
+	class SocketIPC
+	{
+	public:
+		typedef IPCRequest Request;
+		typedef IPCRequestParam RequestParam;
+		typedef IPCRequestMessage RequestMessage;
+		typedef IPCResponseMessage ResponseMessage;
+		typedef IPCServer Server;
+		typedef IPCServerParam ServerParam;
+
+	public:
+		static Ref<Request> sendMessage(const RequestParam& param);
+
+		static Ref<Request> sendMessage(const StringParam& targetName, const RequestMessage& message, const Function<void(ResponseMessage&)>& callbackResponse);
+
+		static sl_bool sendMessageSynchronous(const RequestParam& param, ResponseMessage& response);
+
+		static sl_bool sendMessageSynchronous(const StringParam& targetName, const RequestMessage& request, ResponseMessage& response, sl_int32 timeout = -1);
+
+		static Ref<Server> createServer(const ServerParam& param);
 
 	};
 

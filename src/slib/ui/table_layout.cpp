@@ -219,8 +219,13 @@ namespace slib
 
 	TableLayout::TableLayout()
 	{
+		m_flagSetHorzGrid = sl_false;
+		m_flagSetVertGrid = sl_false;
+
 		setCustomLayout(sl_true);
 		setSavingCanvasState(sl_false);
+
+		setOnPostDraw(SLIB_FUNCTION_MEMBER(this, _drawGrids));
 	}
 
 	TableLayout::~TableLayout()
@@ -1788,6 +1793,11 @@ namespace slib
 
 	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, UIUpdateMode mode)
 	{
+		setCell(iRow, iCol, view, 0, 0, mode);
+	}
+
+	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode)
+	{
 		ObjectLocker lock(this);
 		Ref<Column> col = m_columns.getValueAt_NoLock(iCol);
 		if (col.isNull()) {
@@ -1797,29 +1807,6 @@ namespace slib
 		if (row.isNull()) {
 			return;
 		}
-		Cell* cell;
-		if (view.isNotNull()) {
-			cell = _allocCell(iRow, iCol);
-		} else {
-			cell = _getCell(iRow, iCol);
-		}
-		if (!cell) {
-			return;
-		}
-		if (cell->view.isNotNull()) {
-			removeChild(cell->view, mode == UIUpdateMode::Init ? UIUpdateMode::Init : UIUpdateMode::None);
-		}
-		cell->view = view;
-		if (view.isNotNull()) {
-			view->setVisible(col->m_flagVisible && row->m_flagVisible);
-			_initCellAlign(cell, iRow, iCol);
-			addChild(view, mode);
-		}
-	}
-
-	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode)
-	{
-		ObjectLocker lock(this);
 		Cell* cell;
 		if (view.isNotNull() || rowspan >= 2 || colspan >= 2) {
 			cell = _allocCell(iRow, iCol);
@@ -1833,9 +1820,17 @@ namespace slib
 			removeChild(cell->view, mode == UIUpdateMode::Init ? UIUpdateMode::Init : UIUpdateMode::None);
 		}
 		cell->view = view;
-		cell->rowspan = rowspan;
-		cell->colspan = colspan;
+		if (rowspan) {
+			cell->rowspan = rowspan;
+		}
+		if (colspan) {
+			cell->colspan = colspan;
+		}
+		if (rowspan || colspan) {
+			_applySpan(iRow, iCol, cell->rowspan, cell->colspan);
+		}
 		if (view.isNotNull()) {
+			view->setVisible(col->m_flagVisible && row->m_flagVisible);
 			_initCellAlign(cell, iRow, iCol);
 			addChild(view, mode);
 		}
@@ -1853,8 +1848,8 @@ namespace slib
 
 	void TableLayout::setRowspan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 rowspan, UIUpdateMode mode)
 	{
-		if (rowspan < 1) {
-			rowspan = 1;
+		if (!rowspan) {
+			return;
 		}
 		ObjectLocker lock(this);
 		Cell* cell;
@@ -1865,6 +1860,7 @@ namespace slib
 		}
 		if (cell) {
 			cell->rowspan = rowspan;
+			_applySpan(iRow, iCol, rowspan, cell->colspan);
 			invalidateLayout(mode);
 		}
 	}
@@ -1881,8 +1877,8 @@ namespace slib
 
 	void TableLayout::setColspan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 colspan, UIUpdateMode mode)
 	{
-		if (colspan < 1) {
-			colspan = 1;
+		if (!colspan) {
+			return;
 		}
 		ObjectLocker lock(this);
 		Cell* cell;
@@ -1893,14 +1889,15 @@ namespace slib
 		}
 		if (cell) {
 			cell->colspan = colspan;
+			_applySpan(iRow, iCol, cell->rowspan, colspan);
 			invalidateLayout(mode);
 		}
 	}
 
 	void TableLayout::setCellSpan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode)
 	{
-		if (colspan < 1) {
-			colspan = 1;
+		if (!rowspan && !colspan) {
+			return;
 		}
 		ObjectLocker lock(this);
 		Cell* cell;
@@ -1910,10 +1907,126 @@ namespace slib
 			cell = _getCell(iRow, iCol);
 		}
 		if (cell) {
-			cell->rowspan = rowspan;
-			cell->colspan = colspan;
+			if (rowspan) {
+				cell->rowspan = rowspan;
+			}
+			if (colspan) {
+				cell->colspan = colspan;
+			}
+			_applySpan(iRow, iCol, cell->rowspan, cell->colspan);
 			invalidateLayout(mode);
 		}
+	}
+
+	void TableLayout::_applySpan(sl_uint32 iRowStart, sl_uint32 iColStart, sl_uint32 rowspan, sl_uint32 colspan)
+	{
+		if (!rowspan || !colspan) {
+			return;
+		}
+		if (rowspan < 2 && colspan < 2) {
+			return;
+		}
+		Ref<Row>* rows = m_rows.getData();
+		sl_size nRows = iRowStart + rowspan;
+		{
+			sl_size n = m_rows.getCount();
+			if (nRows > n) {
+				nRows = n;
+			}
+		}
+		sl_size nCols = iColStart + colspan;
+		{
+			sl_size n = m_columns.getCount();
+			if (nCols > n) {
+				nCols = n;
+			}
+		}
+		for (sl_size iRow = iRowStart; iRow < nRows; iRow++) {
+			Ref<Row>& row = rows[iRow];
+			if (row.isNotNull()) {
+				if (nCols > row->m_cells.getCount()) {
+					if (!(row->m_cells.setCount_NoLock(nCols))) {
+						return;
+					}
+				}
+				Cell* cells = row->m_cells.getData();
+				for (sl_size iCol = iColStart; iCol < nCols; iCol++) {
+					Cell& cell = cells[iCol];
+					if (iRow != iRowStart) {
+						cell.rowspan = 0;
+					}
+					if (iCol != iColStart) {
+						cell.colspan = 0;
+					}
+				}
+			}
+		}
+	}
+
+	Ref<Pen> TableLayout::getHorizontalGrid()
+	{
+		if (m_flagSetHorzGrid) {
+			return m_penHorzGrid;
+		}
+		Ref<Pen> pen = m_penHorzGrid;
+		if (pen.isNotNull()) {
+			return pen;
+		}
+		return getBorder();
+	}
+
+	void TableLayout::setHorizontalGrid(const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		m_penHorzGrid = pen;
+		m_flagSetHorzGrid = sl_true;
+		invalidate(mode);
+	}
+
+	void TableLayout::setHorizontalGrid(const PenDesc& desc, UIUpdateMode mode)
+	{
+		setHorizontalGrid(Pen::create(desc, getHorizontalGrid()), mode);
+	}
+
+	Ref<Pen> TableLayout::getVerticalGrid()
+	{
+		if (m_flagSetVertGrid) {
+			return m_penVertGrid;
+		}
+		Ref<Pen> pen = m_penVertGrid;
+		if (pen.isNotNull()) {
+			return pen;
+		}
+		return getBorder();
+	}
+
+	void TableLayout::setVerticalGrid(const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		m_penVertGrid = pen;
+		m_flagSetVertGrid = sl_true;
+		invalidate(mode);
+	}
+
+	void TableLayout::setVerticalGrid(const PenDesc& desc, UIUpdateMode mode)
+	{
+		setVerticalGrid(Pen::create(desc, getVerticalGrid()), mode);
+	}
+
+	void TableLayout::setGrid(const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		m_penHorzGrid = pen;
+		m_penVertGrid = pen;
+		m_flagSetHorzGrid = sl_true;
+		m_flagSetVertGrid = sl_true;
+		invalidate(mode);
+	}
+
+	void TableLayout::setGrid(const PenDesc& desc, UIUpdateMode mode)
+	{
+		m_penHorzGrid = Pen::create(desc, getHorizontalGrid());
+		m_penVertGrid = Pen::create(desc, getVerticalGrid());
+		m_flagSetHorzGrid = sl_true;
+		m_flagSetVertGrid = sl_true;
+		invalidate(mode);
 	}
 
 	void TableLayout::onUpdateLayout()
@@ -1945,8 +2058,8 @@ namespace slib
 
 		sl_uint32 nFillRows = 0;
 		sl_uint32 nFillCols = 0;
-		sl_ui_len sumWidth = 0;
-		sl_ui_len sumHeight = 0;
+		sl_ui_len _sumWidth = 0;
+		sl_ui_len _sumHeight = 0;
 		sl_real sumRowFillWeights = 0;
 		sl_real sumColFillWeights = 0;
 		sl_bool flagWrappingRows = sl_false;
@@ -1969,7 +2082,7 @@ namespace slib
 				if (row.m_heightMode == SizeMode::Fixed) {
 					rowHeightModes[iRow] = SizeMode::Fixed;
 					row.m_heightLayout = row._getFixedHeight();
-					sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
+					_sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
 				} else {
 					rowHeightModes[iRow] = SizeMode::Wrapping;
 					row.m_heightLayout = 0;
@@ -1980,14 +2093,14 @@ namespace slib
 				switch (row.m_heightMode) {
 					case SizeMode::Fixed:
 						row.m_heightLayout = row._getFixedHeight();
-						sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
+						_sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
 						break;
 					case SizeMode::Weight:
 						row.m_heightLayout = row._getWeightHeight(heightContainer);
-						sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
+						_sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
 						break;
 					case SizeMode::Filling:
-						sumHeight += row.m_marginTop + row.m_marginBottom;
+						_sumHeight += row.m_marginTop + row.m_marginBottom;
 						nFillRows++;
 						sumRowFillWeights += row.m_heightWeight;
 						row.m_heightLayout = 0;
@@ -2010,7 +2123,7 @@ namespace slib
 				if (col.m_widthMode == SizeMode::Fixed) {
 					colWidthModes[iCol] = SizeMode::Fixed;
 					col.m_widthLayout = col._getFixedWidth();
-					sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;
+					_sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;
 				} else {
 					colWidthModes[iCol] = SizeMode::Wrapping;
 					col.m_widthLayout = 0;
@@ -2021,14 +2134,14 @@ namespace slib
 				switch (col.m_widthMode) {
 					case SizeMode::Fixed:
 						col.m_widthLayout = col._getFixedWidth();
-						sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;
+						_sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;
 						break;
 					case SizeMode::Weight:
 						col.m_widthLayout = col._getWeightWidth(widthContainer);
-						sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;
+						_sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;
 						break;
 					case SizeMode::Filling:
-						sumWidth += col.m_marginLeft + col.m_marginRight;
+						_sumWidth += col.m_marginLeft + col.m_marginRight;
 						nFillCols++;
 						sumColFillWeights += col.m_widthWeight;
 						col.m_widthLayout = 0;
@@ -2041,160 +2154,158 @@ namespace slib
 			}
 		}
 
-		if (flagWrappingCols) {
-			UpdateLayoutFrameParam updateLayoutParam;
-			updateLayoutParam.parentContentFrame.left = 0;
-			updateLayoutParam.parentContentFrame.top = 0;
-			updateLayoutParam.flagUseLayout = sl_true;
-			updateLayoutParam.flagHorizontal = sl_true;
-			updateLayoutParam.flagVertical = sl_false;
-			for (iRow = 0; iRow < nRows; iRow++) {
-				Row& row = *(rows[iRow].get());
-				if (!(row.m_flagVisible)) {
-					continue;
-				}
-				Cell* cells = row.m_cells.getData();
-				sl_uint32 nCells = Math::min((sl_uint32)(row.m_cells.getCount()), nCols);
-				for (iCol = 0; iCol < nCells; iCol++) {
-					if (!(cols[iCol]->m_flagVisible)) {
-						continue;
-					}
-					if (colWidthModes[iCol] == SizeMode::Wrapping) {
-						Cell& cell = cells[iCol];
-						Column& col = *(cols[iCol].get());
-						View* view = cell.view.get();
-						if (view && cell.colspan == 1) {
-							SizeMode mode = view->getWidthMode();
-							if (mode == SizeMode::Fixed || mode == SizeMode::Wrapping) {
-								updateLayoutParam.parentContentFrame.right = col.m_widthLayout - col.m_paddingLeft - col.m_paddingRight;
-								updateLayoutParam.parentContentFrame.bottom = row.m_heightLayout - row.m_paddingTop - row.m_paddingBottom;
-								view->setInvalidateLayoutFrameInParent();
-								view->updateLayoutFrameInParent(updateLayoutParam);
-								sl_ui_len w = col._restrictWidth(view->getLayoutWidth() + view->getMarginLeft() + view->getMarginRight() + col.m_paddingLeft + col.m_paddingRight);
-								if (w > col.m_widthLayout) {
-									col.m_widthLayout = w;
-								}
-							}
-						}
-					}
-				}
-			}
-			for (iCol = 0; iCol < nCols; iCol++) {
-				Column& col = *(cols[iCol].get());
-				if (!(col.m_flagVisible)) {
-					continue;
-				}
-				if (colWidthModes[iCol] == SizeMode::Wrapping) {
-					sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;;
-				}
-			}
-		}
-		if (nFillCols) {
-			if (sumWidth < 0) {
-				sumWidth = 0;
-			}
-			sl_ui_len widthRemain;
-			if (widthContainer > sumWidth) {
-				widthRemain = widthContainer - sumWidth;
-				if (widthRemain < 0) {
-					widthRemain = 0;
-				}
-			} else {
-				widthRemain = 0;
-			}
-			if (sumColFillWeights < SLIB_EPSILON) {
-				sumColFillWeights = 1;
-			}
-			for (iCol = 0; iCol < nCols; iCol++) {
-				Column& col = *(cols[iCol].get());
-				if (!(col.m_flagVisible)) {
-					continue;
-				}
-				if (colWidthModes[iCol] == SizeMode::Filling) {
-					col.m_widthLayout = col._restrictWidth((sl_ui_len)(widthRemain * col.m_widthWeight / sumColFillWeights));
-				}
-			}
-		}
-
-		if (flagWrappingRows) {
-			UpdateLayoutFrameParam updateLayoutParam;
-			updateLayoutParam.parentContentFrame.left = 0;
-			updateLayoutParam.parentContentFrame.top = 0;
-			updateLayoutParam.flagUseLayout = sl_true;
-			updateLayoutParam.flagHorizontal = sl_false;
-			updateLayoutParam.flagVertical = sl_true;
-			for (iRow = 0; iRow < nRows; iRow++) {
-				Row& row = *(rows[iRow].get());
-				if (!(row.m_flagVisible)) {
-					continue;
-				}
-				if (rowHeightModes[iRow] == SizeMode::Wrapping) {
-					Cell* cells = row.m_cells.getData();
-					sl_uint32 nCells = Math::min((sl_uint32)(row.m_cells.getCount()), nCols);
-					for (iCol = 0; iCol < nCells; iCol++) {
-						Cell& cell = cells[iCol];
-						Column& col = *(cols[iCol].get());
-						if (!(col.m_flagVisible)) {
-							continue;
-						}
-						View* view = cell.view.get();
-						if (view && cell.rowspan == 1) {
-							SizeMode mode = view->getHeightMode();
-							if (mode == SizeMode::Fixed || mode == SizeMode::Wrapping) {
-								updateLayoutParam.parentContentFrame.right = col.m_widthLayout - col.m_paddingLeft - col.m_paddingRight;
-								updateLayoutParam.parentContentFrame.bottom = row.m_heightLayout - row.m_paddingTop - row.m_paddingBottom;
-								view->setInvalidateLayoutFrameInParent();
-								view->updateLayoutFrameInParent(updateLayoutParam);
-								sl_ui_len h = row._restrictHeight(view->getLayoutHeight() + view->getMarginTop() + view->getMarginBottom() + row.m_paddingTop + row.m_paddingBottom);
-								if (h > row.m_heightLayout) {
-									row.m_heightLayout = h;
-								}
-							}
-						}
-					}
-				}
-			}
-			for (iRow = 0; iRow < nRows; iRow++) {
-				Row& row = *(rows[iRow].get());
-				if (!(row.m_flagVisible)) {
-					continue;
-				}
-				if (rowHeightModes[iRow] == SizeMode::Wrapping) {
-					sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
-				}
-			}
-		}
-		if (nFillRows) {
-			if (sumHeight < 0) {
-				sumHeight = 0;
-			}
-			sl_ui_len heightRemain;
-			if (heightContainer > sumHeight) {
-				heightRemain = heightContainer - sumHeight;
-				if (heightRemain < 0) {
-					heightRemain = 0;
-				}
-			} else {
-				heightRemain = 0;
-			}
-			if (sumRowFillWeights < SLIB_EPSILON) {
-				sumRowFillWeights = 1;
-			}
-			for (iRow = 0; iRow < nRows; iRow++) {
-				Row& row = *(rows[iRow].get());
-				if (!(row.m_flagVisible)) {
-					continue;
-				}
-				if (rowHeightModes[iRow] == SizeMode::Filling) {
-					row.m_heightLayout = row._restrictHeight((sl_ui_len)(heightRemain * row.m_heightWeight / sumRowFillWeights));
-				}
-			}
-		}
-
 		UpdateLayoutFrameParam updateLayoutParam;
+		updateLayoutParam.parentContentFrame.left = 0;
+		updateLayoutParam.parentContentFrame.top = 0;
 		updateLayoutParam.flagUseLayout = sl_true;
 		updateLayoutParam.flagHorizontal = sl_true;
 		updateLayoutParam.flagVertical = sl_true;
+		for (int step = 0; step < 2; step++) {
+			sl_ui_len sumWidth = _sumWidth;
+			sl_ui_len sumHeight = _sumHeight;
+			if (flagWrappingCols) {
+				for (iRow = 0; iRow < nRows; iRow++) {
+					Row& row = *(rows[iRow].get());
+					if (!(row.m_flagVisible)) {
+						continue;
+					}
+					Cell* cells = row.m_cells.getData();
+					sl_uint32 nCells = Math::min((sl_uint32)(row.m_cells.getCount()), nCols);
+					for (iCol = 0; iCol < nCells; iCol++) {
+						if (!(cols[iCol]->m_flagVisible)) {
+							continue;
+						}
+						if (colWidthModes[iCol] == SizeMode::Wrapping) {
+							Cell& cell = cells[iCol];
+							Column& col = *(cols[iCol].get());
+							View* view = cell.view.get();
+							if (view && cell.colspan == 1) {
+								SizeMode mode = view->getWidthMode();
+								if (mode == SizeMode::Fixed || mode == SizeMode::Wrapping) {
+									updateLayoutParam.parentContentFrame.right = col.m_widthLayout - col.m_paddingLeft - col.m_paddingRight;
+									updateLayoutParam.parentContentFrame.bottom = row.m_heightLayout - row.m_paddingTop - row.m_paddingBottom;
+									view->setInvalidateLayoutFrameInParent();
+									view->updateLayoutFrameInParent(updateLayoutParam);
+									sl_ui_len w = col._restrictWidth(view->getLayoutWidth() + view->getMarginLeft() + view->getMarginRight() + col.m_paddingLeft + col.m_paddingRight);
+									if (w > col.m_widthLayout) {
+										col.m_widthLayout = w;
+									}
+								}
+							}
+						}
+					}
+				}
+				for (iCol = 0; iCol < nCols; iCol++) {
+					Column& col = *(cols[iCol].get());
+					if (!(col.m_flagVisible)) {
+						continue;
+					}
+					if (colWidthModes[iCol] == SizeMode::Wrapping) {
+						sumWidth += col.m_widthLayout + col.m_marginLeft + col.m_marginRight;;
+					}
+				}
+			}
+			if (nFillCols) {
+				if (sumWidth < 0) {
+					sumWidth = 0;
+				}
+				sl_ui_len widthRemain;
+				if (widthContainer > sumWidth) {
+					widthRemain = widthContainer - sumWidth;
+					if (widthRemain < 0) {
+						widthRemain = 0;
+					}
+				} else {
+					widthRemain = 0;
+				}
+				if (sumColFillWeights < SLIB_EPSILON) {
+					sumColFillWeights = 1;
+				}
+				for (iCol = 0; iCol < nCols; iCol++) {
+					Column& col = *(cols[iCol].get());
+					if (!(col.m_flagVisible)) {
+						continue;
+					}
+					if (colWidthModes[iCol] == SizeMode::Filling) {
+						col.m_widthLayout = col._restrictWidth((sl_ui_len)(widthRemain * col.m_widthWeight / sumColFillWeights));
+					}
+				}
+			}
+			if (flagWrappingRows) {
+				for (iRow = 0; iRow < nRows; iRow++) {
+					Row& row = *(rows[iRow].get());
+					if (!(row.m_flagVisible)) {
+						continue;
+					}
+					if (rowHeightModes[iRow] == SizeMode::Wrapping) {
+						Cell* cells = row.m_cells.getData();
+						sl_uint32 nCells = Math::min((sl_uint32)(row.m_cells.getCount()), nCols);
+						for (iCol = 0; iCol < nCells; iCol++) {
+							Cell& cell = cells[iCol];
+							Column& col = *(cols[iCol].get());
+							if (!(col.m_flagVisible)) {
+								continue;
+							}
+							View* view = cell.view.get();
+							if (view && cell.rowspan == 1) {
+								SizeMode mode = view->getHeightMode();
+								if (mode == SizeMode::Fixed || mode == SizeMode::Wrapping) {
+									updateLayoutParam.parentContentFrame.right = col.m_widthLayout - col.m_paddingLeft - col.m_paddingRight;
+									updateLayoutParam.parentContentFrame.bottom = row.m_heightLayout - row.m_paddingTop - row.m_paddingBottom;
+									view->setInvalidateLayoutFrameInParent();
+									if (col.m_widthLayout == 503) {
+										col.m_widthLayout = 503;
+									}
+									view->updateLayoutFrameInParent(updateLayoutParam);
+									sl_ui_len h = row._restrictHeight(view->getLayoutHeight() + view->getMarginTop() + view->getMarginBottom() + row.m_paddingTop + row.m_paddingBottom);
+									if (h > row.m_heightLayout) {
+										row.m_heightLayout = h;
+									}
+								}
+							}
+						}
+					}
+				}
+				for (iRow = 0; iRow < nRows; iRow++) {
+					Row& row = *(rows[iRow].get());
+					if (!(row.m_flagVisible)) {
+						continue;
+					}
+					if (rowHeightModes[iRow] == SizeMode::Wrapping) {
+						sumHeight += row.m_heightLayout + row.m_marginTop + row.m_marginBottom;
+					}
+				}
+			}
+			if (nFillRows) {
+				if (sumHeight < 0) {
+					sumHeight = 0;
+				}
+				sl_ui_len heightRemain;
+				if (heightContainer > sumHeight) {
+					heightRemain = heightContainer - sumHeight;
+					if (heightRemain < 0) {
+						heightRemain = 0;
+					}
+				} else {
+					heightRemain = 0;
+				}
+				if (sumRowFillWeights < SLIB_EPSILON) {
+					sumRowFillWeights = 1;
+				}
+				for (iRow = 0; iRow < nRows; iRow++) {
+					Row& row = *(rows[iRow].get());
+					if (!(row.m_flagVisible)) {
+						continue;
+					}
+					if (rowHeightModes[iRow] == SizeMode::Filling) {
+						row.m_heightLayout = row._restrictHeight((sl_ui_len)(heightRemain * row.m_heightWeight / sumRowFillWeights));
+					}
+				}
+			}
+			if (!flagWrappingCols && !flagWrappingRows) {
+				break;
+			}
+		}
 		sl_ui_len y = paddingContainer.top;
 		for (iRow = 0; iRow < nRows; iRow++) {
 			Row& row = *(rows[iRow].get());
@@ -2298,6 +2409,112 @@ namespace slib
 				}
 				rc.left = rc.right + col.m_marginRight;
 			}
+		}
+	}
+
+	void TableLayout::_drawGrids(View*, Canvas* canvas)
+	{
+		Ref<Pen> penHorz = getHorizontalGrid();
+		Ref<Pen> penVert = getVerticalGrid();
+		if (penHorz.isNull() && penVert.isNull()) {
+			return;
+		}
+		sl_bool flagClipped = sl_false;
+		if (isClipping()) {
+			canvas->save();
+			clipBounds(canvas);
+			flagClipped = sl_true;
+		}
+		sl_ui_len paddingContainerLeft = getPaddingLeft();
+		sl_ui_len paddingContainerTop = getPaddingTop();
+		ObjectLocker lock(this);
+		Ref<Column>* columns = m_columns.getData();
+		sl_size nColumns = m_columns.getCount();
+		Ref<Row>* rows = m_rows.getData();
+		sl_size nRows = m_rows.getCount();
+		if (nColumns) {
+			if (penHorz.isNotNull()) {
+				sl_ui_pos x = paddingContainerLeft;
+				sl_ui_pos yEnd = getHeight() - getPaddingBottom();
+				for (sl_size iCol = 1; iCol < nColumns; iCol++) {
+					Ref<Column>& colPrev = columns[iCol - 1];
+					if (colPrev.isNotNull()) {
+						x += colPrev->m_marginLeft + colPrev->m_widthLayout + colPrev->m_marginRight;
+					}
+					sl_ui_pos y = paddingContainerTop;
+					sl_ui_pos start = y;
+					for (sl_size iRow = 0; iRow < nRows; iRow++) {
+						Ref<Row>& row = rows[iRow];
+						if (row.isNull()) {
+							continue;
+						}
+						sl_ui_pos y2 = y + row->m_marginTop + row->m_heightLayout + row->m_marginBottom;
+						Cell* cell = row->m_cells.getPointerAt(iCol);
+						if (cell) {
+							if (!(cell->colspan)) {
+								if (y != start) {
+									canvas->drawLine((sl_real)x, (sl_real)start, (sl_real)x, (sl_real)y, penHorz);
+								}
+								start = y2;
+							}
+						}
+						y = y2;
+					}
+					if (y < yEnd) {
+						y = yEnd;
+					}
+					if (y != start) {
+						canvas->drawLine((sl_real)x, (sl_real)start, (sl_real)x, (sl_real)y, penHorz);
+					}
+				}
+			}
+		}
+		if (nRows) {
+			if (penVert.isNotNull()) {
+				sl_ui_pos xEnd = getWidth() - getPaddingRight();
+				sl_ui_pos y = paddingContainerTop;
+				for (sl_size iRow = 1; iRow < nRows; iRow++) {
+					Ref<Row>& rowPrev = rows[iRow - 1];
+					if (rowPrev.isNotNull()) {
+						y += rowPrev->m_marginTop + rowPrev->m_heightLayout + rowPrev->m_marginBottom;
+					}
+					Ref<Row>& row = rows[iRow];
+					Cell* cells = sl_null;
+					sl_size nCells = 0;
+					if (row.isNotNull()) {
+						cells = row->m_cells.getData();
+						nCells = row->m_cells.getCount();
+					}
+					sl_ui_pos x = paddingContainerLeft;
+					sl_ui_pos start = x;
+					for (sl_size iCol = 0; iCol < nColumns; iCol++) {
+						Ref<Column>& col = columns[iCol];
+						if (col.isNull()) {
+							continue;
+						}
+						sl_ui_pos x2 = x + col->m_marginLeft + col->m_widthLayout + col->m_marginRight;
+						if (iCol < nCells) {
+							Cell& cell = cells[iCol];
+							if (!(cell.rowspan)) {
+								if (x != start) {
+									canvas->drawLine((sl_real)start, (sl_real)y, (sl_real)x, (sl_real)y, penVert);
+								}
+								start = x2;
+							}
+						}
+						x = x2;
+					}
+					if (x < xEnd) {
+						x = xEnd;
+					}
+					if (x != start) {
+						canvas->drawLine((sl_real)start, (sl_real)y, (sl_real)x, (sl_real)y, penVert);
+					}
+				}
+			}
+		}
+		if (flagClipped) {
+			canvas->restore();
 		}
 	}
 

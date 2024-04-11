@@ -26,8 +26,8 @@
 #include "slib/graphics/css.h"
 #include "slib/graphics/util.h"
 #include "slib/math/transform2d.h"
+#include "slib/system/asset.h"
 #include "slib/core/memory.h"
-#include "slib/core/asset.h"
 #include "slib/core/stringx.h"
 #include "slib/core/safe_static.h"
 #include "slib/io/file.h"
@@ -2018,15 +2018,9 @@ namespace slib
 
 	void Svg::render(Canvas* canvas, const Rectangle& rectDraw, const DrawParam& param)
 	{
-		sl_bool flagAnitiAlias = canvas->isAntiAlias();
-		if (!flagAnitiAlias) {
-			canvas->setAntiAlias();
-		}
 		ObjectLocker locker(this);
+		CanvasAntiAliasScope scope(canvas, sl_true);
 		((Document*)(m_document.get()))->render(canvas, rectDraw, param);
-		if (!flagAnitiAlias) {
-			canvas->setAntiAlias(sl_false);
-		}
 	}
 
 	Scalar Svg::getGlobalFontSize()

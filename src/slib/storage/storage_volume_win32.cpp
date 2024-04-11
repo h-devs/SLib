@@ -26,7 +26,7 @@
 
 #include "slib/storage/storage.h"
 
-#include "slib/core/service_manager.h"
+#include "slib/system/service_manager.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/platform.h"
@@ -218,16 +218,37 @@ namespace slib
 		return bRet;
 	}
 
-	namespace {
+	sl_bool Storage::getVolumnSize(const StringParam& _path, sl_uint64* pTotalSize, sl_uint64* pFreeSize)
+	{
+		StringCstr16 path(_path);
+		if (GetDiskFreeSpaceExW((LPCWSTR)(path.getData()), NULL, (ULARGE_INTEGER*)pTotalSize, (ULARGE_INTEGER*)pFreeSize)) {
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	namespace
+	{
 		static sl_bool SetUsbMassStorageEnabled(sl_bool flag)
 		{
-			return ServiceManager::setStartType(L"usbstor", flag ? ServiceStartType::Manual : ServiceStartType::Disabled);
+			ServiceStartType type = flag ? ServiceStartType::Manual : ServiceStartType::Disabled;
+			if (!(ServiceManager::setStartType(L"usbstor", type))) {
+				return sl_false;
+			}
+			return ServiceManager::setStartType(L"winusb", type);
 		}
 
 		static sl_bool IsUsbMassStorageEnabled()
 		{
 			ServiceStartType type = ServiceManager::getStartType(L"usbstor");
-			return type != ServiceStartType::Disabled && type != ServiceStartType::Unknown;
+			if (type == ServiceStartType::Disabled || type == ServiceStartType::Unknown) {
+				return sl_false;
+			}
+			type = ServiceManager::getStartType(L"winusb");
+			if (type == ServiceStartType::Disabled || type == ServiceStartType::Unknown) {
+				return sl_false;
+			}
+			return sl_true;
 		}
 	}
 
@@ -319,7 +340,7 @@ namespace slib
 				} else {
 					if (m_loop.isNull()) {
 						win32::MessageLoopParam param;
-						param.name = SLIB_UNICODE("SLibDeviceChangeMonitor");
+						param.name = SLIB_UNICODE("DeviceChangeMonitor");
 						param.onMessage = SLIB_FUNCTION_MEMBER(this, onMessage);
 						param.hWndParent = NULL;
 						m_loop = win32::MessageLoop::create(param);

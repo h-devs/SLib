@@ -29,10 +29,17 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioRecorderDeviceInfo)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioDeviceInfo)
 
-	AudioRecorderDeviceInfo::AudioRecorderDeviceInfo()
+	AudioDeviceInfo::AudioDeviceInfo()
 	{
+	}
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioDeviceParam)
+
+	AudioDeviceParam::AudioDeviceParam()
+	{
+		role = AudioDeviceRole::Default;
 	}
 
 
@@ -41,7 +48,7 @@ namespace slib
 	AudioRecorderParam::AudioRecorderParam()
 	{
 		recordingPreset = AudioRecordingPreset::None;
-
+		flagLoopback = sl_false;
 		samplesPerSecond = 16000;
 		channelCount = 1;
 		samplesPerFrame = 0;
@@ -231,6 +238,9 @@ namespace slib
 		if (m_flagMute) {
 			return;
 		}
+		if (!count) {
+			return;
+		}
 
 		sl_int32 volume = m_volume;
 		if (volume < 256) {
@@ -309,24 +319,15 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerDeviceInfo)
-
-	AudioPlayerDeviceInfo::AudioPlayerDeviceInfo()
-	{
-	}
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerParam)
 
 	AudioPlayerParam::AudioPlayerParam()
 	{
 		streamType = AudioStreamType::Default;
-
 		samplesPerSecond = 16000;
 		channelCount = 1;
 		frameLengthInMilliseconds = 50;
 		maxBufferLengthInMilliseconds = 0;
-
 		flagAutoStart = sl_false;
 	}
 
@@ -540,13 +541,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerDeviceParam)
-
-	AudioPlayerDeviceParam::AudioPlayerDeviceParam()
-	{
-	}
-
-
 	SLIB_DEFINE_OBJECT(AudioPlayerDevice, Object)
 
 	AudioPlayerDevice::AudioPlayerDevice()
@@ -576,4 +570,5 @@ namespace slib
 	{
 		return AudioPlayerDevice::getDevices();
 	}
+
 }

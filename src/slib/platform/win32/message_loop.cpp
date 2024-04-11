@@ -36,7 +36,7 @@ namespace slib
 
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MessageLoopParam)
 
-			MessageLoopParam::MessageLoopParam()
+		MessageLoopParam::MessageLoopParam()
 		{
 			flagAutoStart = sl_true;
 
@@ -95,7 +95,11 @@ namespace slib
 			}
 			m_flagRunning = sl_true;
 			m_thread = Thread::start(SLIB_FUNCTION_MEMBER(this, _run));
-			if (m_thread.isNull()) {
+			if (m_thread.isNotNull()) {
+				while (m_flagRunning && !m_hWnd) {
+					Sleep(1);
+				}
+			} else {
 				m_flagRunning = sl_false;
 			}
 		}
@@ -109,16 +113,13 @@ namespace slib
 			HWND hWnd = m_hWnd;
 			if (hWnd) {
 				PostMessageW(hWnd, WM_QUIT, 0, 0);
-				m_hWnd = sl_null;
 			}
 			m_tasks.removeAll();
-			Thread* thread = m_thread.get();
-			if (thread) {
-				m_thread.setNull();
-				if (thread->isRunning()) {
-					thread->finishAndWait();
-				}
+			Ref<Thread> thread = Move(m_thread);
+			if (thread.isNotNull()) {
+				thread->finishAndWait();
 			}
+			m_hWnd = sl_null;
 			m_flagRunning = sl_false;
 		}
 
@@ -185,8 +186,7 @@ namespace slib
 		{
 			HINSTANCE hInstance = GetModuleHandleW(NULL);
 
-			WNDCLASSEXW wc;
-			Base::zeroMemory(&wc, sizeof(wc));
+			WNDCLASSEXW wc = { 0 };
 			wc.cbSize = sizeof(wc);
 			wc.style = m_styleClass;
 			wc.lpszClassName = (LPCWSTR)(m_name.getData());
@@ -197,26 +197,22 @@ namespace slib
 			if (atom) {
 				HWND hWnd = CreateWindowExW(m_styleWindowEx, (LPCWSTR)atom, L"", m_styleWindow, 0, 0, 0, 0, m_hWndParent, 0, 0, 0);
 				if (hWnd) {
-					ObjectLocker lock(this);
-					if (Thread::isNotStoppingCurrent()) {
-						SetWindowLongPtrW(hWnd, GWLP_USERDATA, (LONG_PTR)(this));
-						m_hWnd = hWnd;
-						lock.unlock();
-						m_onCreateWindow(hWnd);
-						if (_processTasks()) {
-							MSG msg;
-							while (GetMessageW(&msg, NULL, 0, 0)) {
-								if (msg.message == WM_COMMAND) {
-									if (!(_processTasks())) {
-										break;
-									}
-								} else {
-									DispatchMessageW(&msg);
+					SetWindowLongPtrW(hWnd, GWLP_USERDATA, (LONG_PTR)(this));
+					m_hWnd = hWnd;
+					m_onCreateWindow(hWnd);
+					if (_processTasks()) {
+						MSG msg;
+						while (GetMessageW(&msg, NULL, 0, 0)) {
+							if (msg.message == WM_COMMAND) {
+								if (!(_processTasks())) {
+									break;
 								}
+							} else {
+								DispatchMessageW(&msg);
 							}
 						}
-						m_hWnd = sl_null;
 					}
+					m_hWnd = sl_null;
 					DestroyWindow(hWnd);
 				}
 				UnregisterClassW((LPCWSTR)atom, wc.hInstance);
@@ -227,7 +223,7 @@ namespace slib
 		sl_bool MessageLoop::_processTasks()
 		{
 			Function<void()> task;
-			for (;;) {
+			while (Thread::isNotStoppingCurrent()) {
 				sl_size n = m_tasks.getCount();
 				if (!n) {
 					break;

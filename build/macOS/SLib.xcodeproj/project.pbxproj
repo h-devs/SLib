@@ -54,8 +54,6 @@
 		18BE68C02A0D316100BFABA1 /* chat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE66D52A0D315F00BFABA1 /* chat.cpp */; };
 		18BE68C12A0D316100BFABA1 /* chat_client.h in Headers */ = {isa = PBXBuildFile; fileRef = 18BE66D62A0D315F00BFABA1 /* chat_client.h */; };
 		18BE68C22A0D316100BFABA1 /* chat_view.h in Headers */ = {isa = PBXBuildFile; fileRef = 18BE66D72A0D315F00BFABA1 /* chat_view.h */; };
-		18BE68C32A0D316100BFABA1 /* keygen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE66D92A0D315F00BFABA1 /* keygen.cpp */; };
-		18BE68C42A0D316100BFABA1 /* keygen.h in Headers */ = {isa = PBXBuildFile; fileRef = 18BE66DA2A0D315F00BFABA1 /* keygen.h */; };
 		18BE68C52A0D316100BFABA1 /* captcha.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE66DC2A0D315F00BFABA1 /* captcha.cpp */; };
 		18BE68C72A0D316100BFABA1 /* zxing_scanner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE66DF2A0D315F00BFABA1 /* zxing_scanner.cpp */; };
 		18BE68C82A0D316100BFABA1 /* zxing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE66E02A0D315F00BFABA1 /* zxing.cpp */; };
@@ -116,7 +114,6 @@
 		26072FFE20D97B66004EB272 /* url_request_curl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26072FFD20D97B66004EB272 /* url_request_curl.cpp */; };
 		2607300E20DCE368004EB272 /* rw_lock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2607300D20DCE367004EB272 /* rw_lock.cpp */; };
 		261180E62563BCA10082AA0A /* render_buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 261180E52563BCA10082AA0A /* render_buffer.cpp */; };
-		261782C8251C9E1200C2AAC0 /* service_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 261782C7251C9E1200C2AAC0 /* service_manager.cpp */; };
 		2628EACC21C1059800D8CD00 /* web_view_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2628EACB21C1059700D8CD00 /* web_view_apple.mm */; };
 		2628EACE21C157A800D8CD00 /* regular_expression.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2628EACD21C157A800D8CD00 /* regular_expression.cpp */; };
 		2628EAE921C410ED00D8CD00 /* jwt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2628EAE821C410ED00D8CD00 /* jwt.cpp */; };
@@ -149,12 +146,8 @@
 		26539FBB237821CA0064340D /* system_tray_icon_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26539FBA237821CA0064340D /* system_tray_icon_macos.mm */; };
 		265A93462301E42700B155A2 /* screen_capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A93452301E42700B155A2 /* screen_capture.cpp */; };
 		265A934A2301E43000B155A2 /* screen_capture_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 265A93482301E43000B155A2 /* screen_capture_macos.mm */; };
-		265A934E230428CD00B155A2 /* process.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A934D230428CD00B155A2 /* process.cpp */; };
-		265A9350230428D500B155A2 /* process_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A934F230428D400B155A2 /* process_unix.cpp */; };
-		265A93522304298600B155A2 /* named_instance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A93512304298600B155A2 /* named_instance.cpp */; };
 		265A9362230478F700B155A2 /* time_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A9361230478F700B155A2 /* time_unix.cpp */; };
 		265A936A2304832300B155A2 /* console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265A93692304832300B155A2 /* console.cpp */; };
-		265A93722304B36500B155A2 /* process_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 265A93712304B36400B155A2 /* process_macos.mm */; };
 		265A937323051C1000B155A2 /* render_canvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26CF1D0F1DBA6B1700B6B65B /* render_canvas.cpp */; };
 		265A937423051C1800B155A2 /* bitmap_ext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26C1B63820D5153500E36539 /* bitmap_ext.cpp */; };
 		265A937523051C1B00B155A2 /* bitmap_quartz.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26FBDE661DA2B48800FF1B55 /* bitmap_quartz.mm */; };
@@ -172,7 +165,6 @@
 		267464A32317189000DE8715 /* chromium_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 267464A22317189000DE8715 /* chromium_macos.mm */; settings = {COMPILER_FLAGS = "-I$(PROJECT_DIR)/../../external/src/libcef"; }; };
 		26781C1D2350F6A4002FCA2F /* brush_quartz.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26781C1C2350F6A4002FCA2F /* brush_quartz.mm */; };
 		267A25ED2553DA7C008C7757 /* fuse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 267A25EC2553DA7C008C7757 /* fuse.cpp */; };
-		267A25EF2553E1B0008C7757 /* dynamic_library_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 267A25EE2553E1AF008C7757 /* dynamic_library_unix.cpp */; };
 		26805B6723533D4300D8817C /* string_param.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26805B6623533D4300D8817C /* string_param.cpp */; };
 		26805B6923533D6B00D8817C /* string_buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26805B6823533D6A00D8817C /* string_buffer.cpp */; };
 		2682569F21E464630079600F /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2682569E21E464630079600F /* IOKit.framework */; };
@@ -213,13 +205,10 @@
 		26C795BE2215F9C70053C5A1 /* colors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26C795B82215F9C70053C5A1 /* colors.cpp */; };
 		26C795BF2215F9C70053C5A1 /* raws.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26C795B92215F9C70053C5A1 /* raws.cpp */; };
 		26C795C02215F9C70053C5A1 /* strings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26C795BA2215F9C70053C5A1 /* strings.cpp */; };
-		26D9D8F81E9645CE005F7BD3 /* service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2FB51B03A33700854DAF /* service.cpp */; };
 		26D9D8FB1E9645CE005F7BD3 /* atomic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26AFF77A1C34CE2B00AF9470 /* atomic.cpp */; };
-		26D9D8FC1E9645CE005F7BD3 /* preference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2626C1301E15AA73004E150C /* preference.cpp */; };
 		26D9D8FE1E9645CE005F7BD3 /* base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2FA41B03A33700854DAF /* base.cpp */; };
 		26D9D9001E9645CE005F7BD3 /* bigint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD49E1C1193DB00D47AB0 /* bigint.cpp */; };
 		26D9D9021E9645CE005F7BD3 /* container.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2620412C1C88AE3B00AF48F2 /* container.cpp */; };
-		26D9D9031E9645CE005F7BD3 /* system_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A2DE1D8A1B383BB000A74698 /* system_unix.cpp */; };
 		26D9D9041E9645CE005F7BD3 /* event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2FA61B03A33700854DAF /* event.cpp */; };
 		26D9D9051E9645CE005F7BD3 /* timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2609E5591E37E03A00CFBDBB /* timer.cpp */; };
 		26D9D9071E9645CE005F7BD3 /* thread_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = A25F2FBD1B03A33700854DAF /* thread_apple.mm */; };
@@ -234,14 +223,11 @@
 		26D9D9171E9645CE005F7BD3 /* collection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2626C12E1E15AA55004E150C /* collection.cpp */; };
 		26D9D91E1E9645CE005F7BD3 /* resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26D3A1A31C85894A00FB8DBD /* resource.cpp */; };
 		26D9D91F1E9645CE005F7BD3 /* ref.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2FB31B03A33700854DAF /* ref.cpp */; };
-		26D9D9201E9645CE005F7BD3 /* preference_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26BF6B541E4D97F2005D4412 /* preference_apple.mm */; };
 		26D9D9221E9645CE005F7BD3 /* variant.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2FC11B03A33700854DAF /* variant.cpp */; };
 		26D9D9241E9645CE005F7BD3 /* sha1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD45F1C11930800D47AB0 /* sha1.cpp */; };
 		26D9D9251E9645CE005F7BD3 /* sha2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4601C11930800D47AB0 /* sha2.cpp */; };
 		26D9D9281E9645CE005F7BD3 /* hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A21C166A1BA74E8F006B1FA1 /* hash.cpp */; };
 		26D9D92C1E9645CE005F7BD3 /* int128.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD4A01C1193DB00D47AB0 /* int128.cpp */; };
-		26D9D92D1E9645CE005F7BD3 /* system_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26CA8D781C23B4C90049A658 /* system_apple.mm */; };
-		26D9D9311E9645CE005F7BD3 /* asset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260272E51C81877F0079E2F2 /* asset.cpp */; };
 		26D9D9341E9645CE005F7BD3 /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD45D1C11930800D47AB0 /* md5.cpp */; };
 		26D9D9351E9645CE005F7BD3 /* rsa.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD45E1C11930800D47AB0 /* rsa.cpp */; };
 		26D9D9361E9645CE005F7BD3 /* content_type.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A234D6EA1B3F12A600ADDF4E /* content_type.cpp */; };
@@ -251,7 +237,6 @@
 		26D9D93E1E9645CE005F7BD3 /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2FAD1B03A33700854DAF /* memory.cpp */; };
 		26D9D9451E9645CE005F7BD3 /* object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2620412A1C88A95E00AF48F2 /* object.cpp */; };
 		26D9D9461E9645CE005F7BD3 /* app.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2F9C1B03A33700854DAF /* app.cpp */; };
-		26D9D94A1E9645CE005F7BD3 /* system.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A25F2FBA1B03A33700854DAF /* system.cpp */; };
 		26D9D94C1E9645CE005F7BD3 /* locale.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26D3A1A51C85940700FB8DBD /* locale.cpp */; };
 		26D9D94D1E9645CE005F7BD3 /* dispatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26BC2EC71E2E09B500D0801E /* dispatch.cpp */; };
 		26D9D9541E964659005F7BD3 /* database_cursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 265EBF1F1C23041600AD81D9 /* database_cursor.cpp */; };
@@ -406,6 +391,24 @@
 		26FE7D8D25A2F1B900B787F0 /* plot_ui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8B25A2F1B800B787F0 /* plot_ui.cpp */; };
 		26FE7D8E25A2F1B900B787F0 /* plot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8C25A2F1B800B787F0 /* plot.cpp */; };
 		26FE7D9025A2F1CB00B787F0 /* image_canvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26FE7D8F25A2F1CB00B787F0 /* image_canvas.cpp */; };
+		D70C65472BC86FD2001D670F /* process_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C65292BC86FD2001D670F /* process_unix.cpp */; };
+		D70C654A2BC86FD2001D670F /* asset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C652C2BC86FD2001D670F /* asset.cpp */; };
+		D70C654B2BC86FD2001D670F /* process.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C652D2BC86FD2001D670F /* process.cpp */; };
+		D70C654C2BC86FD2001D670F /* asset_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = D70C652E2BC86FD2001D670F /* asset_apple.mm */; };
+		D70C654D2BC86FD2001D670F /* service_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C652F2BC86FD2001D670F /* service_manager.cpp */; };
+		D70C654E2BC86FD2001D670F /* system_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C65302BC86FD2001D670F /* system_unix.cpp */; };
+		D70C654F2BC86FD2001D670F /* dynamic_library.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C65312BC86FD2001D670F /* dynamic_library.cpp */; };
+		D70C65512BC86FD2001D670F /* named_instance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C65332BC86FD2001D670F /* named_instance.cpp */; };
+		D70C65522BC86FD2001D670F /* system_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = D70C65342BC86FD2001D670F /* system_apple.mm */; };
+		D70C65552BC86FD2001D670F /* service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C65372BC86FD2001D670F /* service.cpp */; };
+		D70C65562BC86FD2001D670F /* dynamic_library_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C65382BC86FD2001D670F /* dynamic_library_unix.cpp */; };
+		D70C65582BC86FD2001D670F /* system.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C653A2BC86FD2001D670F /* system.cpp */; };
+		D70C65592BC86FD2001D670F /* service_manager_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = D70C653B2BC86FD2001D670F /* service_manager_macos.mm */; };
+		D70C655E2BC86FD2001D670F /* process_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = D70C65402BC86FD2001D670F /* process_macos.mm */; };
+		D70C65602BC86FD2001D670F /* preference_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = D70C65422BC86FD2001D670F /* preference_apple.mm */; };
+		D70C65622BC86FD2001D670F /* preference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C65442BC86FD2001D670F /* preference.cpp */; };
+		D70C65BA2BC8709E001D670F /* audio_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C65B92BC8709D001D670F /* audio_view.cpp */; };
+		D70C65C22BC874A3001D670F /* table_model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C65C12BC874A3001D670F /* table_model.cpp */; };
 		D71B3A57268A4D7400707369 /* ipc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D71B3A56268A4D7400707369 /* ipc.cpp */; };
 		D72A0871263B503300BCD333 /* rocksdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0870263B503300BCD333 /* rocksdb.cpp */; };
 		D72A0879263B503E00BCD333 /* object_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0878263B503E00BCD333 /* object_store.cpp */; };
@@ -417,7 +420,6 @@
 		D72A0897263B506000BCD333 /* leveldb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0893263B505F00BCD333 /* leveldb.cpp */; };
 		D738404B28F1A7A8005F5ED8 /* group_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D738404A28F1A7A8005F5ED8 /* group_box.cpp */; };
 		D765664A28F1B501002ED52F /* storage_volume_macos.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D765664928F1B501002ED52F /* storage_volume_macos.cpp */; };
-		D79AF2072693598300FCDE3D /* asset_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = D79AF2062693598300FCDE3D /* asset_apple.mm */; };
 		D7B1C87926453EC200E60145 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF11B21AEE6BE004E58CB /* Cocoa.framework */; };
 		D7B1C8C22645432A00E60145 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF16E21B3FFE8004E58CB /* CoreImage.framework */; };
 		D7BF609C26311E1700E0B3DD /* decimal128.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7BF609B26311E1700E0B3DD /* decimal128.cpp */; };
@@ -437,7 +439,6 @@
 		D7C3BB0226AEEEC400FD529D /* zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C3BAFF26AEEEC400FD529D /* zip.cpp */; };
 		D7C682CF2692A4F8000A85E1 /* app_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = D7C682CE2692A4F7000A85E1 /* app_macos.mm */; };
 		D7C709832645A0BB00FB3A32 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C709822645A0BB00FB3A32 /* main.cpp */; };
-		D7E978ED268DC6A7000343F8 /* service_manager_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = D7E978EC268DC6A7000343F8 /* service_manager_macos.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -545,8 +546,6 @@
 		18BE66D52A0D315F00BFABA1 /* chat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chat.cpp; sourceTree = "<group>"; };
 		18BE66D62A0D315F00BFABA1 /* chat_client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chat_client.h; sourceTree = "<group>"; };
 		18BE66D72A0D315F00BFABA1 /* chat_view.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chat_view.h; sourceTree = "<group>"; };
-		18BE66D92A0D315F00BFABA1 /* keygen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = keygen.cpp; sourceTree = "<group>"; };
-		18BE66DA2A0D315F00BFABA1 /* keygen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = keygen.h; sourceTree = "<group>"; };
 		18BE66DC2A0D315F00BFABA1 /* captcha.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = captcha.cpp; sourceTree = "<group>"; };
 		18BE66DD2A0D315F00BFABA1 /* captcha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = captcha.h; sourceTree = "<group>"; };
 		18BE66DF2A0D315F00BFABA1 /* zxing_scanner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zxing_scanner.cpp; sourceTree = "<group>"; };
@@ -604,7 +603,6 @@
 		18FF0E0C28444F5900FC8F75 /* freetype_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = freetype_unity.c; path = ../../external/src/freetype/freetype_unity.c; sourceTree = "<group>"; };
 		18FF0E0E28444FAB00FC8F75 /* sfnt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sfnt.cpp; sourceTree = "<group>"; };
 		18FF0E1028444FDC00FC8F75 /* pdf_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pdf_view.cpp; sourceTree = "<group>"; };
-		260272E51C81877F0079E2F2 /* asset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asset.cpp; sourceTree = "<group>"; };
 		26072FFD20D97B66004EB272 /* url_request_curl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = url_request_curl.cpp; sourceTree = "<group>"; };
 		2607300220D985BF004EB272 /* url_request_common.inc */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; path = url_request_common.inc; sourceTree = "<group>"; };
 		2607300D20DCE367004EB272 /* rw_lock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rw_lock.cpp; sourceTree = "<group>"; };
@@ -613,11 +611,9 @@
 		260A402F1D2AAAE3009CFCE8 /* ui_resource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ui_resource.cpp; sourceTree = "<group>"; };
 		260CB16A230F103500597B56 /* button_macos.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = button_macos.h; sourceTree = "<group>"; };
 		261180E52563BCA10082AA0A /* render_buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render_buffer.cpp; sourceTree = "<group>"; };
-		261782C7251C9E1200C2AAC0 /* service_manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = service_manager.cpp; sourceTree = "<group>"; };
 		2620412A1C88A95E00AF48F2 /* object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = object.cpp; sourceTree = "<group>"; };
 		2620412C1C88AE3B00AF48F2 /* container.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = container.cpp; sourceTree = "<group>"; };
 		2626C12E1E15AA55004E150C /* collection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = collection.cpp; sourceTree = "<group>"; };
-		2626C1301E15AA73004E150C /* preference.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = preference.cpp; sourceTree = "<group>"; };
 		2628EACB21C1059700D8CD00 /* web_view_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = web_view_apple.mm; sourceTree = "<group>"; };
 		2628EACD21C157A800D8CD00 /* regular_expression.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = regular_expression.cpp; sourceTree = "<group>"; };
 		2628EAE821C410ED00D8CD00 /* jwt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jwt.cpp; sourceTree = "<group>"; };
@@ -671,12 +667,8 @@
 		26539FBA237821CA0064340D /* system_tray_icon_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = system_tray_icon_macos.mm; sourceTree = "<group>"; };
 		265A93452301E42700B155A2 /* screen_capture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = screen_capture.cpp; sourceTree = "<group>"; };
 		265A93482301E43000B155A2 /* screen_capture_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = screen_capture_macos.mm; sourceTree = "<group>"; };
-		265A934D230428CD00B155A2 /* process.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = process.cpp; sourceTree = "<group>"; };
-		265A934F230428D400B155A2 /* process_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = process_unix.cpp; sourceTree = "<group>"; };
-		265A93512304298600B155A2 /* named_instance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = named_instance.cpp; sourceTree = "<group>"; };
 		265A9361230478F700B155A2 /* time_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = time_unix.cpp; sourceTree = "<group>"; };
 		265A93692304832300B155A2 /* console.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = console.cpp; sourceTree = "<group>"; };
-		265A93712304B36400B155A2 /* process_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = process_macos.mm; sourceTree = "<group>"; };
 		265EA9372550D48C0098721F /* file_system_logger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = file_system_logger.cpp; sourceTree = "<group>"; };
 		265EA9382550D48C0098721F /* file_system_mirror.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = file_system_mirror.cpp; sourceTree = "<group>"; };
 		265EA9392550D48C0098721F /* file_system.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = file_system.cpp; sourceTree = "<group>"; };
@@ -786,7 +778,6 @@
 		267464A22317189000DE8715 /* chromium_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = chromium_macos.mm; sourceTree = "<group>"; };
 		26781C1C2350F6A4002FCA2F /* brush_quartz.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = brush_quartz.mm; sourceTree = "<group>"; };
 		267A25EC2553DA7C008C7757 /* fuse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fuse.cpp; sourceTree = "<group>"; };
-		267A25EE2553E1AF008C7757 /* dynamic_library_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dynamic_library_unix.cpp; sourceTree = "<group>"; };
 		267C16B81CE779D8000318C2 /* scroll_bar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scroll_bar.cpp; sourceTree = "<group>"; };
 		267D008B1E32AA5A002CC949 /* render_drawable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render_drawable.cpp; sourceTree = "<group>"; };
 		26805B6623533D4300D8817C /* string_param.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = string_param.cpp; sourceTree = "<group>"; };
@@ -830,7 +821,6 @@
 		26BBBEC71D8FDF1F00735947 /* view_page.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = view_page.cpp; sourceTree = "<group>"; };
 		26BC2EC71E2E09B500D0801E /* dispatch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dispatch.cpp; sourceTree = "<group>"; };
 		26BF169B1E307DC000C9878C /* ui_animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_animation.h; sourceTree = "<group>"; };
-		26BF6B541E4D97F2005D4412 /* preference_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = preference_apple.mm; sourceTree = "<group>"; };
 		26BFCFC41E41CFC700F4493D /* graphics_text.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = graphics_text.cpp; sourceTree = "<group>"; };
 		26C13E421DDA30FD00612945 /* url.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = url.cpp; sourceTree = "<group>"; };
 		26C13E441DDA32F000612945 /* url_request.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = url_request.cpp; sourceTree = "<group>"; };
@@ -851,7 +841,6 @@
 		26C795B92215F9C70053C5A1 /* raws.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = raws.cpp; path = res/gen/raws.cpp; sourceTree = "<group>"; };
 		26C795BA2215F9C70053C5A1 /* strings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = strings.cpp; path = res/gen/strings.cpp; sourceTree = "<group>"; };
 		26C7E37D1D00097000C0A769 /* linear_layout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = linear_layout.cpp; sourceTree = "<group>"; };
-		26CA8D781C23B4C90049A658 /* system_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = system_apple.mm; sourceTree = "<group>"; };
 		26CF1D0F1DBA6B1700B6B65B /* render_canvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render_canvas.cpp; sourceTree = "<group>"; };
 		26D028641C48847E0083F1F3 /* audio_data.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_data.cpp; sourceTree = "<group>"; };
 		26D3A1A31C85894A00FB8DBD /* resource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = resource.cpp; sourceTree = "<group>"; };
@@ -906,15 +895,30 @@
 		A25F2FAD1B03A33700854DAF /* memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memory.cpp; sourceTree = "<group>"; };
 		A25F2FAE1B03A33700854DAF /* mutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mutex.cpp; sourceTree = "<group>"; };
 		A25F2FB31B03A33700854DAF /* ref.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ref.cpp; sourceTree = "<group>"; };
-		A25F2FB51B03A33700854DAF /* service.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = service.cpp; sourceTree = "<group>"; };
 		A25F2FB71B03A33700854DAF /* spin_lock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = spin_lock.cpp; sourceTree = "<group>"; };
 		A25F2FB81B03A33700854DAF /* string.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = string.cpp; sourceTree = "<group>"; };
-		A25F2FBA1B03A33700854DAF /* system.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system.cpp; sourceTree = "<group>"; };
 		A25F2FBB1B03A33700854DAF /* thread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = thread.cpp; sourceTree = "<group>"; };
 		A25F2FBD1B03A33700854DAF /* thread_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = thread_apple.mm; sourceTree = "<group>"; };
 		A25F2FC01B03A33700854DAF /* time.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = time.cpp; sourceTree = "<group>"; };
 		A25F2FC11B03A33700854DAF /* variant.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = variant.cpp; sourceTree = "<group>"; };
-		A2DE1D8A1B383BB000A74698 /* system_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system_unix.cpp; sourceTree = "<group>"; };
+		D70C65292BC86FD2001D670F /* process_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = process_unix.cpp; sourceTree = "<group>"; };
+		D70C652C2BC86FD2001D670F /* asset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asset.cpp; sourceTree = "<group>"; };
+		D70C652D2BC86FD2001D670F /* process.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = process.cpp; sourceTree = "<group>"; };
+		D70C652E2BC86FD2001D670F /* asset_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = asset_apple.mm; sourceTree = "<group>"; };
+		D70C652F2BC86FD2001D670F /* service_manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = service_manager.cpp; sourceTree = "<group>"; };
+		D70C65302BC86FD2001D670F /* system_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system_unix.cpp; sourceTree = "<group>"; };
+		D70C65312BC86FD2001D670F /* dynamic_library.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dynamic_library.cpp; sourceTree = "<group>"; };
+		D70C65332BC86FD2001D670F /* named_instance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = named_instance.cpp; sourceTree = "<group>"; };
+		D70C65342BC86FD2001D670F /* system_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = system_apple.mm; sourceTree = "<group>"; };
+		D70C65372BC86FD2001D670F /* service.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = service.cpp; sourceTree = "<group>"; };
+		D70C65382BC86FD2001D670F /* dynamic_library_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dynamic_library_unix.cpp; sourceTree = "<group>"; };
+		D70C653A2BC86FD2001D670F /* system.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system.cpp; sourceTree = "<group>"; };
+		D70C653B2BC86FD2001D670F /* service_manager_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = service_manager_macos.mm; sourceTree = "<group>"; };
+		D70C65402BC86FD2001D670F /* process_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = process_macos.mm; sourceTree = "<group>"; };
+		D70C65422BC86FD2001D670F /* preference_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = preference_apple.mm; sourceTree = "<group>"; };
+		D70C65442BC86FD2001D670F /* preference.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = preference.cpp; sourceTree = "<group>"; };
+		D70C65B92BC8709D001D670F /* audio_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_view.cpp; sourceTree = "<group>"; };
+		D70C65C12BC874A3001D670F /* table_model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = table_model.cpp; sourceTree = "<group>"; };
 		D71B3A56268A4D7400707369 /* ipc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ipc.cpp; sourceTree = "<group>"; };
 		D72A0870263B503300BCD333 /* rocksdb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rocksdb.cpp; sourceTree = "<group>"; };
 		D72A0878263B503E00BCD333 /* object_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = object_store.cpp; sourceTree = "<group>"; };
@@ -929,7 +933,6 @@
 		D738403F28F1A77E005F5ED8 /* x_edit_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = x_edit_view.cpp; sourceTree = "<group>"; };
 		D738404A28F1A7A8005F5ED8 /* group_box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = group_box.cpp; sourceTree = "<group>"; };
 		D765664928F1B501002ED52F /* storage_volume_macos.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = storage_volume_macos.cpp; sourceTree = "<group>"; };
-		D79AF2062693598300FCDE3D /* asset_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = asset_apple.mm; sourceTree = "<group>"; };
 		D7B1C87E26453EC200E60145 /* GenerateAppIcons */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenerateAppIcons; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7BF609B26311E1700E0B3DD /* decimal128.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = decimal128.cpp; sourceTree = "<group>"; };
 		D7BF60A926311E8B00E0B3DD /* zlib_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zlib_unity.c; path = ../../external/src/zlib/zlib_unity.c; sourceTree = "<group>"; };
@@ -948,7 +951,6 @@
 		D7C3BAFF26AEEEC400FD529D /* zip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zip.cpp; sourceTree = "<group>"; };
 		D7C682CE2692A4F7000A85E1 /* app_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = app_macos.mm; sourceTree = "<group>"; };
 		D7C709822645A0BB00FB3A32 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../../tool/src/GenerateAppIcons/main.cpp; sourceTree = "<group>"; };
-		D7E978EC268DC6A7000343F8 /* service_manager_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = service_manager_macos.mm; sourceTree = "<group>"; };
 		E17DADEE1E0C9A10006161F6 /* motion_tracker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = motion_tracker.cpp; sourceTree = "<group>"; };
 		E17DADF01E0C9A1E006161F6 /* gesture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gesture.cpp; sourceTree = "<group>"; };
 		E1B34E9E1E0A90C0006217F4 /* picker_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = picker_view.cpp; sourceTree = "<group>"; };
@@ -1049,6 +1051,7 @@
 				1887E13E202CCD1000A81967 /* ini.cpp */,
 				1887E13F202CCD1000A81967 /* json.cpp */,
 				1887E136202CCD1000A81967 /* lzw.cpp */,
+				D70C65C12BC874A3001D670F /* table_model.cpp */,
 				1887E137202CCD1000A81967 /* xml.cpp */,
 				1887E13C202CCD1000A81967 /* zlib.cpp */,
 				1887E138202CCD1000A81967 /* zstd.cpp */,
@@ -1077,7 +1080,6 @@
 			children = (
 				18BE66DB2A0D315F00BFABA1 /* captcha */,
 				18BE66C02A0D315F00BFABA1 /* chat */,
-				18BE66D82A0D315F00BFABA1 /* keygen */,
 				18BE66DE2A0D315F00BFABA1 /* qrcode */,
 				18BE680A2A0D316000BFABA1 /* social */,
 				18BE68902A0D316100BFABA1 /* dbip */,
@@ -1104,15 +1106,6 @@
 				18BE66D22A0D315F00BFABA1 /* chat_view.cpp */,
 			);
 			path = chat;
-			sourceTree = "<group>";
-		};
-		18BE66D82A0D315F00BFABA1 /* keygen */ = {
-			isa = PBXGroup;
-			children = (
-				18BE66DA2A0D315F00BFABA1 /* keygen.h */,
-				18BE66D92A0D315F00BFABA1 /* keygen.cpp */,
-			);
-			path = keygen;
 			sourceTree = "<group>";
 		};
 		18BE66DB2A0D315F00BFABA1 /* captcha */ = {
@@ -1440,6 +1433,7 @@
 		266DD4E91C11940A00D47AB0 /* ui */ = {
 			isa = PBXGroup;
 			children = (
+				D70C65B92BC8709D001D670F /* audio_view.cpp */,
 				266DD4EA1C11940A00D47AB0 /* button.cpp */,
 				260CB16A230F103500597B56 /* button_macos.h */,
 				266DD4ED1C11940A00D47AB0 /* button_macos.mm */,
@@ -1678,6 +1672,7 @@
 				266DD4D81C11940A00D47AB0 /* render */,
 				1887E162202CCE4900A81967 /* script */,
 				2647C96725023EE1005560C7 /* storage */,
+				D70C65282BC86FD2001D670F /* system */,
 				266DD4E91C11940A00D47AB0 /* ui */,
 			);
 			path = slib;
@@ -1688,8 +1683,6 @@
 			children = (
 				A25F2F9C1B03A33700854DAF /* app.cpp */,
 				D7C682CE2692A4F7000A85E1 /* app_macos.mm */,
-				260272E51C81877F0079E2F2 /* asset.cpp */,
-				D79AF2062693598300FCDE3D /* asset_apple.mm */,
 				26AFF77A1C34CE2B00AF9470 /* atomic.cpp */,
 				A25F2FA41B03A33700854DAF /* base.cpp */,
 				26B5737E1D1051DF00304424 /* charset.cpp */,
@@ -1699,7 +1692,6 @@
 				265A93692304832300B155A2 /* console.cpp */,
 				A234D6EA1B3F12A600ADDF4E /* content_type.cpp */,
 				26BC2EC71E2E09B500D0801E /* dispatch.cpp */,
-				267A25EE2553E1AF008C7757 /* dynamic_library_unix.cpp */,
 				A25F2FA61B03A33700854DAF /* event.cpp */,
 				A21C166A1BA74E8F006B1FA1 /* hash.cpp */,
 				2620412C1C88AE3B00AF48F2 /* container.cpp */,
@@ -1708,30 +1700,18 @@
 				A25F2FAC1B03A33700854DAF /* log.cpp */,
 				A25F2FAD1B03A33700854DAF /* memory.cpp */,
 				A25F2FAE1B03A33700854DAF /* mutex.cpp */,
-				265A93512304298600B155A2 /* named_instance.cpp */,
 				2620412A1C88A95E00AF48F2 /* object.cpp */,
-				2626C1301E15AA73004E150C /* preference.cpp */,
-				26BF6B541E4D97F2005D4412 /* preference_apple.mm */,
-				265A934D230428CD00B155A2 /* process.cpp */,
-				265A93712304B36400B155A2 /* process_macos.mm */,
-				265A934F230428D400B155A2 /* process_unix.cpp */,
 				26F2F8D81EC2E0EB0074C29E /* red_black_tree.cpp */,
 				A25F2FB31B03A33700854DAF /* ref.cpp */,
 				2628EACD21C157A800D8CD00 /* regular_expression.cpp */,
 				26D3A1A31C85894A00FB8DBD /* resource.cpp */,
 				2607300D20DCE367004EB272 /* rw_lock.cpp */,
 				2647C96C25023F22005560C7 /* safe_static.cpp */,
-				A25F2FB51B03A33700854DAF /* service.cpp */,
-				261782C7251C9E1200C2AAC0 /* service_manager.cpp */,
-				D7E978EC268DC6A7000343F8 /* service_manager_macos.mm */,
 				A25F2FB71B03A33700854DAF /* spin_lock.cpp */,
 				A25F2FB81B03A33700854DAF /* string.cpp */,
 				1887E150202CCD4300A81967 /* stringx.cpp */,
 				26805B6823533D6A00D8817C /* string_buffer.cpp */,
 				26805B6623533D4300D8817C /* string_param.cpp */,
-				A25F2FBA1B03A33700854DAF /* system.cpp */,
-				26CA8D781C23B4C90049A658 /* system_apple.mm */,
-				A2DE1D8A1B383BB000A74698 /* system_unix.cpp */,
 				A25F2FBB1B03A33700854DAF /* thread.cpp */,
 				A25F2FBD1B03A33700854DAF /* thread_apple.mm */,
 				A25F2FC01B03A33700854DAF /* time.cpp */,
@@ -1814,6 +1794,29 @@
 			path = math;
 			sourceTree = "<group>";
 		};
+		D70C65282BC86FD2001D670F /* system */ = {
+			isa = PBXGroup;
+			children = (
+				D70C652C2BC86FD2001D670F /* asset.cpp */,
+				D70C652E2BC86FD2001D670F /* asset_apple.mm */,
+				D70C65312BC86FD2001D670F /* dynamic_library.cpp */,
+				D70C65382BC86FD2001D670F /* dynamic_library_unix.cpp */,
+				D70C65332BC86FD2001D670F /* named_instance.cpp */,
+				D70C65442BC86FD2001D670F /* preference.cpp */,
+				D70C65422BC86FD2001D670F /* preference_apple.mm */,
+				D70C652D2BC86FD2001D670F /* process.cpp */,
+				D70C65402BC86FD2001D670F /* process_macos.mm */,
+				D70C65292BC86FD2001D670F /* process_unix.cpp */,
+				D70C65372BC86FD2001D670F /* service.cpp */,
+				D70C652F2BC86FD2001D670F /* service_manager.cpp */,
+				D70C653B2BC86FD2001D670F /* service_manager_macos.mm */,
+				D70C653A2BC86FD2001D670F /* system.cpp */,
+				D70C65342BC86FD2001D670F /* system_apple.mm */,
+				D70C65302BC86FD2001D670F /* system_unix.cpp */,
+			);
+			path = system;
+			sourceTree = "<group>";
+		};
 		D73E0F962AC2D6480039A9EA /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
@@ -1853,7 +1856,6 @@
 				18BE68CA2A0D316100BFABA1 /* zxing.h in Headers */,
 				18BE69F52A0D316100BFABA1 /* facebook.h in Headers */,
 				18BE68BE2A0D316100BFABA1 /* chat.h in Headers */,
-				18BE68C42A0D316100BFABA1 /* keygen.h in Headers */,
 				18BE6A5D2A0D316100BFABA1 /* pinterest.h in Headers */,
 				18BE6A652A0D316100BFABA1 /* data_store.h in Headers */,
 				18BE69E62A0D316100BFABA1 /* alipay.h in Headers */,
@@ -2088,7 +2090,6 @@
 				18BE6A6C2A0D316100BFABA1 /* log_package.cpp in Sources */,
 				18BE6A672A0D316100BFABA1 /* pseudo_tcp.cpp in Sources */,
 				18BE69F72A0D316100BFABA1 /* linkedin.cpp in Sources */,
-				18BE68C32A0D316100BFABA1 /* keygen.cpp in Sources */,
 				18BE6A632A0D316100BFABA1 /* data_store.cpp in Sources */,
 				18BE6A012A0D316100BFABA1 /* alipay_sdk.cpp in Sources */,
 				18BE68C72A0D316100BFABA1 /* zxing_scanner.cpp in Sources */,
@@ -2136,9 +2137,9 @@
 				1887E12F202CCC3B00A81967 /* async.cpp in Sources */,
 				26D9D9991E96467B005F7BD3 /* mac_address.cpp in Sources */,
 				1887E114202CCBCC00A81967 /* animation.cpp in Sources */,
-				26D9D8F81E9645CE005F7BD3 /* service.cpp in Sources */,
 				265A9362230478F700B155A2 /* time_unix.cpp in Sources */,
 				26D9D9EF1E96468D005F7BD3 /* window.cpp in Sources */,
+				D70C65522BC86FD2001D670F /* system_apple.mm in Sources */,
 				26D9D9A01E96467B005F7BD3 /* network_os.cpp in Sources */,
 				26DA4B39223980B500706393 /* media_player_ffmpeg.cpp in Sources */,
 				26FADD30215676D50057F7EA /* stun.cpp in Sources */,
@@ -2149,7 +2150,6 @@
 				26D9D9C51E96468D005F7BD3 /* list_control_macos.mm in Sources */,
 				26D9D8FB1E9645CE005F7BD3 /* atomic.cpp in Sources */,
 				26D9D9AF1E964683005F7BD3 /* render_engine.cpp in Sources */,
-				26D9D8FC1E9645CE005F7BD3 /* preference.cpp in Sources */,
 				26D9D95E1E964662005F7BD3 /* geo_rectangle.cpp in Sources */,
 				26D9D9B81E96468D005F7BD3 /* check_box_macos.mm in Sources */,
 				26DF6FBB2369E1FB009C1339 /* openssl_chacha_poly1305.cpp in Sources */,
@@ -2161,22 +2161,21 @@
 				D72A0879263B503E00BCD333 /* object_store.cpp in Sources */,
 				26C1B64220D51D1D00E36539 /* graphics_path.cpp in Sources */,
 				26D9D8FE1E9645CE005F7BD3 /* base.cpp in Sources */,
+				D70C654D2BC86FD2001D670F /* service_manager.cpp in Sources */,
 				269308662368DE7E00C9C7F9 /* openssl_crypto.cpp in Sources */,
 				1887E148202CCD1100A81967 /* zlib.cpp in Sources */,
 				26D9D9971E96467B005F7BD3 /* icmp.cpp in Sources */,
+				D70C654E2BC86FD2001D670F /* system_unix.cpp in Sources */,
 				1887E14C202CCD1100A81967 /* crc32c.cpp in Sources */,
-				267A25EF2553E1B0008C7757 /* dynamic_library_unix.cpp in Sources */,
 				26D9D9AB1E964683005F7BD3 /* opengl_gles.cpp in Sources */,
 				26D9D9001E9645CE005F7BD3 /* bigint.cpp in Sources */,
 				26D9D9A81E96467B005F7BD3 /* url_request_apple.mm in Sources */,
 				18A341EA2735775E001F7E4F /* smb.cpp in Sources */,
 				26D9D9781E96466A005F7BD3 /* image.cpp in Sources */,
-				265A93522304298600B155A2 /* named_instance.cpp in Sources */,
 				26EA207123A2BF75008218D7 /* database_sql.cpp in Sources */,
-				D7E978ED268DC6A7000343F8 /* service_manager_macos.mm in Sources */,
 				26C1B63F20D51D1D00E36539 /* font.cpp in Sources */,
+				D70C654C2BC86FD2001D670F /* asset_apple.mm in Sources */,
 				26D9D9021E9645CE005F7BD3 /* container.cpp in Sources */,
-				26D9D9031E9645CE005F7BD3 /* system_unix.cpp in Sources */,
 				26D9D9041E9645CE005F7BD3 /* event.cpp in Sources */,
 				26A3DA96228B698A0031CBDA /* ecc.cpp in Sources */,
 				26D9D9051E9645CE005F7BD3 /* timer.cpp in Sources */,
@@ -2191,6 +2190,7 @@
 				1887E14B202CCD1100A81967 /* json.cpp in Sources */,
 				1887E130202CCC3B00A81967 /* file_unix.cpp in Sources */,
 				26C1B62C20D4305100E36539 /* bitmap.cpp in Sources */,
+				D70C65622BC86FD2001D670F /* preference.cpp in Sources */,
 				2671F99321E07F8200B39842 /* drawer.cpp in Sources */,
 				26D9D9CF1E96468D005F7BD3 /* render_view_macos.mm in Sources */,
 				26D9D9CA1E96468D005F7BD3 /* picker_view.cpp in Sources */,
@@ -2218,6 +2218,7 @@
 				26D9D9C01E96468D005F7BD3 /* image_view.cpp in Sources */,
 				26D9D9E11E96468D005F7BD3 /* ui_core_common.cpp in Sources */,
 				26D9D9B71E96468D005F7BD3 /* check_box.cpp in Sources */,
+				D70C65BA2BC8709E001D670F /* audio_view.cpp in Sources */,
 				26D9D9861E964675005F7BD3 /* audio_util.cpp in Sources */,
 				26D9D9A21E96467B005F7BD3 /* socket_address.cpp in Sources */,
 				1887E161202CCE1800A81967 /* oauth_ui.cpp in Sources */,
@@ -2231,6 +2232,7 @@
 				26D9D9CC1E96468D005F7BD3 /* radio_button.cpp in Sources */,
 				1887E160202CCE1800A81967 /* oauth_server.cpp in Sources */,
 				18FF0E0F28444FAB00FC8F75 /* sfnt.cpp in Sources */,
+				D70C654B2BC86FD2001D670F /* process.cpp in Sources */,
 				26D9D9CD1E96468D005F7BD3 /* radio_button_macos.mm in Sources */,
 				1887E135202CCCF900A81967 /* platform.mm in Sources */,
 				26D9D90E1E9645CE005F7BD3 /* string.cpp in Sources */,
@@ -2253,7 +2255,6 @@
 				26D9D9561E964659005F7BD3 /* database.cpp in Sources */,
 				26D9D9D81E96468D005F7BD3 /* tab_view_macos.mm in Sources */,
 				26539FB8237821C10064340D /* system_tray_icon.cpp in Sources */,
-				D79AF2072693598300FCDE3D /* asset_apple.mm in Sources */,
 				26BAE04322267D060085B5AB /* tls.cpp in Sources */,
 				26A3DA92228AFDDE0031CBDA /* poly1305.cpp in Sources */,
 				26D9D9621E964669005F7BD3 /* bitmap_data.cpp in Sources */,
@@ -2267,9 +2268,8 @@
 				26D9D9131E9645CE005F7BD3 /* log.cpp in Sources */,
 				26BB17D421F4C7F40089C7EC /* view_page_navigation.cpp in Sources */,
 				26D9D9141E9645CE005F7BD3 /* thread.cpp in Sources */,
+				D70C65592BC86FD2001D670F /* service_manager_macos.mm in Sources */,
 				2644BD062361898E001B9842 /* table_layout.cpp in Sources */,
-				265A93722304B36500B155A2 /* process_macos.mm in Sources */,
-				265A9350230428D500B155A2 /* process_unix.cpp in Sources */,
 				26F5EA6622D6835C00CD1595 /* toast.cpp in Sources */,
 				2607300E20DCE368004EB272 /* rw_lock.cpp in Sources */,
 				1887E159202CCE0400A81967 /* web_service.cpp in Sources */,
@@ -2278,6 +2278,7 @@
 				18FF0E0D28444F5900FC8F75 /* freetype_unity.c in Sources */,
 				2628EACC21C1059800D8CD00 /* web_view_apple.mm in Sources */,
 				26D9D9151E9645CE005F7BD3 /* blowfish.cpp in Sources */,
+				D70C655E2BC86FD2001D670F /* process_macos.mm in Sources */,
 				265EA93A2550D48C0098721F /* file_system_logger.cpp in Sources */,
 				26D9D9E31E96468D005F7BD3 /* ui_event.cpp in Sources */,
 				26C7959F22154CB80053C5A1 /* clipboard.cpp in Sources */,
@@ -2305,6 +2306,7 @@
 				1887E12C202CCC3B00A81967 /* async_unix.cpp in Sources */,
 				26D9D9B21E964683005F7BD3 /* texture.cpp in Sources */,
 				26D9D9751E96466A005F7BD3 /* image_jpeg.cpp in Sources */,
+				D70C65472BC86FD2001D670F /* process_unix.cpp in Sources */,
 				26D9D9D41E96468D005F7BD3 /* select_view_macos.mm in Sources */,
 				26D9D9B01E964683005F7BD3 /* render_program.cpp in Sources */,
 				26D9D9E61E96468D005F7BD3 /* ui_menu_macos.mm in Sources */,
@@ -2315,7 +2317,6 @@
 				26BB17EB2200E20B0089C7EC /* switch_view.cpp in Sources */,
 				267464A32317189000DE8715 /* chromium_macos.mm in Sources */,
 				26C795BB2215F9C70053C5A1 /* layouts.cpp in Sources */,
-				26D9D9201E9645CE005F7BD3 /* preference_apple.mm in Sources */,
 				26D9D9D91E96468D005F7BD3 /* text_view.cpp in Sources */,
 				26D9D9AC1E964683005F7BD3 /* render_base.cpp in Sources */,
 				26D9D9EA1E96468D005F7BD3 /* view.cpp in Sources */,
@@ -2361,7 +2362,6 @@
 				26D9D95F1E964662005F7BD3 /* globe.cpp in Sources */,
 				26D9D9C81E96468D005F7BD3 /* mobile_game.cpp in Sources */,
 				1887E14D202CCD1100A81967 /* asn1.cpp in Sources */,
-				26D9D92D1E9645CE005F7BD3 /* system_apple.mm in Sources */,
 				26D9D9F01E96468D005F7BD3 /* window_macos.mm in Sources */,
 				26D9D9B11E964683005F7BD3 /* render_resource.cpp in Sources */,
 				26D9D9BD1E96468D005F7BD3 /* edit_view.cpp in Sources */,
@@ -2373,18 +2373,18 @@
 				2647C96F250241A8005560C7 /* ui_sound.cpp in Sources */,
 				2647C96525023E95005560C7 /* combo_box.cpp in Sources */,
 				26D9D9921E96467B005F7BD3 /* arp.cpp in Sources */,
-				261782C8251C9E1200C2AAC0 /* service_manager.cpp in Sources */,
 				26D9D9601E964662005F7BD3 /* latlon.cpp in Sources */,
 				26FE7D9025A2F1CB00B787F0 /* image_canvas.cpp in Sources */,
 				26D9D9E71E96468D005F7BD3 /* ui_platform.cpp in Sources */,
 				26D9D9C91E96468D005F7BD3 /* motion_tracker.cpp in Sources */,
 				26C795BF2215F9C70053C5A1 /* raws.cpp in Sources */,
 				26D9D9B51E96468D005F7BD3 /* button_macos.mm in Sources */,
+				D70C65512BC86FD2001D670F /* named_instance.cpp in Sources */,
 				26D9D9DE1E96468D005F7BD3 /* ui_app.cpp in Sources */,
 				26BAE0332223E3BC0085B5AB /* http_openssl.cpp in Sources */,
 				18A341E827357720001F7E4F /* sha3.cpp in Sources */,
-				26D9D9311E9645CE005F7BD3 /* asset.cpp in Sources */,
 				D72A0896263B506000BCD333 /* key_value_store.cpp in Sources */,
+				D70C65582BC86FD2001D670F /* system.cpp in Sources */,
 				26D9D9A51E96467B005F7BD3 /* tcpip.cpp in Sources */,
 				26D9D9EB1E96468D005F7BD3 /* view_macos.mm in Sources */,
 				265A937823051C2B00B155A2 /* drawable_ext.cpp in Sources */,
@@ -2407,6 +2407,7 @@
 				26D9D9391E9645CE005F7BD3 /* aes.cpp in Sources */,
 				D72A0889263B504D00BCD333 /* mongodb.cpp in Sources */,
 				26C795A122154CBE0053C5A1 /* clipboard_macos.mm in Sources */,
+				D70C65602BC86FD2001D670F /* preference_apple.mm in Sources */,
 				26366D43235E53DA00B97807 /* charset_apple.mm in Sources */,
 				26F2F8D91EC2E0EB0074C29E /* red_black_tree.cpp in Sources */,
 				265A937723051C2500B155A2 /* canvas_quartz.mm in Sources */,
@@ -2428,6 +2429,7 @@
 				26B92D4921D33E6E003F6F82 /* des.cpp in Sources */,
 				26D9D99B1E96467B005F7BD3 /* net_capture.cpp in Sources */,
 				1887E153202CCD7000A81967 /* disk.cpp in Sources */,
+				D70C65562BC86FD2001D670F /* dynamic_library_unix.cpp in Sources */,
 				265A937323051C1000B155A2 /* render_canvas.cpp in Sources */,
 				26D9D9A71E96467B005F7BD3 /* url_request.cpp in Sources */,
 				26C1B64320D51D1D00E36539 /* graphics_path_quartz.mm in Sources */,
@@ -2438,9 +2440,11 @@
 				26D9D9DF1E96468D005F7BD3 /* ui_core.cpp in Sources */,
 				265A937623051C2300B155A2 /* canvas_ext.cpp in Sources */,
 				26D9D9E91E96468D005F7BD3 /* video_view.cpp in Sources */,
+				D70C65C22BC874A3001D670F /* table_model.cpp in Sources */,
 				1887E142202CCD1100A81967 /* lzw.cpp in Sources */,
 				26D9D9721E96466A005F7BD3 /* graphics_resource.cpp in Sources */,
 				26D9D9BE1E96468D005F7BD3 /* edit_view_macos.mm in Sources */,
+				D70C654A2BC86FD2001D670F /* asset.cpp in Sources */,
 				26D9D95C1E964662005F7BD3 /* geo_line.cpp in Sources */,
 				D7BF609C26311E1700E0B3DD /* decimal128.cpp in Sources */,
 				26D9D9C61E96468D005F7BD3 /* list_view.cpp in Sources */,
@@ -2454,7 +2458,6 @@
 				26D9D9451E9645CE005F7BD3 /* object.cpp in Sources */,
 				26D9D9461E9645CE005F7BD3 /* app.cpp in Sources */,
 				D7C3BAD026AEEB8D00FD529D /* brotli_unity.c in Sources */,
-				265A934E230428CD00B155A2 /* process.cpp in Sources */,
 				265A93462301E42700B155A2 /* screen_capture.cpp in Sources */,
 				1887E147202CCD1100A81967 /* contact.cpp in Sources */,
 				18BE65312A0D2F4E00BFABA1 /* grid_view.cpp in Sources */,
@@ -2462,12 +2465,13 @@
 				26D9D9A11E96467B005F7BD3 /* socket.cpp in Sources */,
 				26F607B323ABE0C600DCE0C3 /* postgresql.cpp in Sources */,
 				D7BF60F126311F7600E0B3DD /* lmdb_unity.c in Sources */,
-				26D9D94A1E9645CE005F7BD3 /* system.cpp in Sources */,
 				261180E62563BCA10082AA0A /* render_buffer.cpp in Sources */,
 				26D9D9CB1E96468D005F7BD3 /* progress_bar.cpp in Sources */,
 				267206282497433C006E6347 /* label_list.cpp in Sources */,
 				26805B6923533D6B00D8817C /* string_buffer.cpp in Sources */,
 				26072FFE20D97B66004EB272 /* url_request_curl.cpp in Sources */,
+				D70C65552BC86FD2001D670F /* service.cpp in Sources */,
+				D70C654F2BC86FD2001D670F /* dynamic_library.cpp in Sources */,
 				26D9D97D1E964675005F7BD3 /* audio_format.cpp in Sources */,
 				26D9D94C1E9645CE005F7BD3 /* locale.cpp in Sources */,
 				D738404B28F1A7A8005F5ED8 /* group_box.cpp in Sources */,

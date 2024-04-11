@@ -30,41 +30,41 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
 		static LRESULT CALLBACK OwnerWndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 		{
 			switch (message) {
-			case WM_RENDERFORMAT:
-			case WM_RENDERALLFORMATS:
-			case WM_DRAWCLIPBOARD:
-			case WM_DESTROY:
-			case WM_CHANGECBCHAIN:
-				return 0;
+				case WM_RENDERFORMAT:
+				case WM_RENDERALLFORMATS:
+					break;
+				case WM_DESTROY:
+					return 0;
 			}
 			return DefWindowProcW(hwnd, message, wparam, lparam);
 		}
 
-		class ClipboardManager
+		class Context
 		{
 		public:
 			HWND owner;
 
 		public:
-			ClipboardManager()
+			Context()
 			{
-				LPCWSTR szClassName = L"SLibClipboardOwner";
+				LPCWSTR szClassName = L"ClipboardOwner";
 				WNDCLASSEXW wc;
 				Base::zeroMemory(&wc, sizeof(wc));
 				wc.cbSize = sizeof(wc);
 				wc.lpszClassName = szClassName;
 				wc.lpfnWndProc = OwnerWndProc;
-				wc.hInstance = GetModuleHandle(NULL);
+				wc.hInstance = GetModuleHandleW(NULL);
 				RegisterClassExW(&wc);
 				owner = CreateWindowW(szClassName, L"", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, 0, 0);
 			}
 
-			~ClipboardManager()
+			~Context()
 			{
 				DestroyWindow(owner);
 				owner = NULL;
@@ -72,50 +72,17 @@ namespace slib
 
 		};
 
-		SLIB_SAFE_STATIC_GETTER(ClipboardManager, GetClipboardManager)
-
-		class ClipboardScope
-		{
-		public:
-			BOOL bOpened;
-
-		public:
-			ClipboardScope()
-			{
-				bOpened = FALSE;
-				ClipboardManager* manager = GetClipboardManager();
-				if (manager) {
-					if (manager->owner) {
-						bOpened = OpenClipboard(manager->owner);
-					}
-				}
-			}
-
-			~ClipboardScope()
-			{
-				if (bOpened) {
-					ClipboardManager* manager = GetClipboardManager();
-					if (manager) {
-						if (manager->owner) {
-							CloseClipboard();
-						}
-					}
-				}
-			}
-
-		};
+		SLIB_SAFE_STATIC_GETTER(Context, GetContext)
 
 	}
 
 	sl_bool Clipboard::hasText()
 	{
-		ClipboardScope scope;
 		return IsClipboardFormatAvailable(CF_UNICODETEXT) ? sl_true : sl_false;
 	}
 
 	String Clipboard::getText()
 	{
-		ClipboardScope scope;
 		HANDLE data = GetClipboardData(CF_UNICODETEXT);
 		if (data) {
 			void* src = GlobalLock(data);
@@ -128,16 +95,28 @@ namespace slib
 		return sl_null;
 	}
 
+#define SET_CLIPBOARD_BEGIN \
+		Context* context = GetContext(); \
+		if (!context) { \
+			return; \
+		} \
+		if (!(OpenClipboard(context->owner))) { \
+			return; \
+		} \
+		EmptyClipboard();
+
+#define SET_CLIPBOARD_END \
+		CloseClipboard();
+
 	void Clipboard::setText(const StringParam& _text)
 	{
-		ClipboardScope scope;
-		EmptyClipboard();
+		SET_CLIPBOARD_BEGIN
 		StringCstr16 text(_text);
 		HGLOBAL handle = Win32::createGlobalData(text.getData(), (text.getLength() + 1) << 1);
 		if (handle) {
 			SetClipboardData(CF_UNICODETEXT, handle);
-			GlobalFree(handle);
 		}
+		SET_CLIPBOARD_END
 	}
 
 }

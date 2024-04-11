@@ -66,22 +66,7 @@ namespace slib
 	};
 
 	class TimeZone;
-
-	template <>
-	class SLIB_EXPORT Atomic<TimeZone>
-	{
-	public:
-		AtomicRef<CTimeZone> ref;
-		SLIB_ATOMIC_REF_WRAPPER(CTimeZone)
-
-	public:
-		sl_bool isLocal() const noexcept;
-
-		sl_bool isUTC() const noexcept;
-
-	};
-
-	typedef Atomic<TimeZone> AtomicTimeZone;
+	template <> class Atomic<TimeZone>;
 
 	class TimeZone
 	{
@@ -109,6 +94,22 @@ namespace slib
 		Ref<CTimeZone> ref;
 
 	};
+
+	template <>
+	class SLIB_EXPORT Atomic<TimeZone>
+	{
+	public:
+		AtomicRef<CTimeZone> ref;
+		SLIB_ATOMIC_REF_WRAPPER(CTimeZone)
+
+	public:
+		sl_bool isLocal() const noexcept;
+
+		sl_bool isUTC() const noexcept;
+
+	};
+
+	typedef Atomic<TimeZone> AtomicTimeZone;
 
 }
 

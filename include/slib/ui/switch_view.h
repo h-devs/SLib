@@ -42,6 +42,9 @@ namespace slib
 
 		~SwitchView();
 
+	protected:
+		void init() override;
+
 	public:
 		SwitchValue getValue();
 

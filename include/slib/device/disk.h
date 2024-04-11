@@ -30,16 +30,58 @@
 namespace slib
 {
 
+	enum class DiskInterface
+	{
+		Unknown = 0,
+		SCSI = 1,
+		HDC = 2,
+		IDE = 3,
+		USB = 4,
+		IEEE1394 = 5
+	};
+
+	String ToString(DiskInterface);
+
+	enum class DiskType
+	{
+		Unknown = 0,
+		Fixed = 1,
+		External = 2,
+		Removable = 3
+	};
+
+	String ToString(DiskType);
+
+#ifdef interface
+#undef interface
+#endif
+
+	class SLIB_EXPORT DiskInfo
+	{
+	public:
+		sl_uint32 index;
+		String path;
+		DiskInterface interface;
+		DiskType type;
+		String model;
+		String serialNumber;
+		sl_uint64 capacity;
+
+	public:
+		DiskInfo();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DiskInfo)
+
+	};
+
 	class SLIB_EXPORT Disk
 	{
 	public:
-		static String getSerialNumber(sl_uint32 diskNo);
+		static String getSerialNumber(sl_uint32 diskIndex);
 
-		static sl_bool getSize(const StringParam& path, sl_uint64* pTotalSize = sl_null, sl_uint64* pFreeSize = sl_null);
+		static List<DiskInfo> getDevices();
 
-		static sl_uint64 getTotalSize(const StringParam& path);
-
-		static sl_uint64 getFreeSize(const StringParam& path);
+		static String normalizeSerialNumber(const StringParam& sn);
 
 	};
 

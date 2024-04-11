@@ -37,44 +37,65 @@
 namespace slib
 {
 
-#define PRIV_SLIB_WORKSTATION_VERSION_CODE(MAJOR, MINOR, SP) ((MAJOR << 16) | (MINOR << 8) | SP)
-#define PRIV_SLIB_SERVER_VERSION_CODE(MAJOR, MINOR, SP) (0x01000000 | (MAJOR << 16) | (MINOR << 8) | SP)
+	class Variant;
 
-#define SLIB_WINDOWS_MAJOR_VERSION(v) ((((int)v) >> 16) & 255)
-#define SLIB_WINDOWS_MINOR_VERSION(v) ((((int)v) >> 8) & 255)
-#define SLIB_WINDOWS_SERVICE_PACK(v) (((int)v) & 255)
-#define SLIB_WINDOWS_IS_SERVER(v) ((((int)v) >> 24) == 1)
-
-
-	enum class WindowsVersion
+	enum class WindowsProductType
 	{
-		XP = PRIV_SLIB_WORKSTATION_VERSION_CODE(5, 1, 0),
-		XP_SP1 = PRIV_SLIB_WORKSTATION_VERSION_CODE(5, 1, 1),
-		XP_SP2 = PRIV_SLIB_WORKSTATION_VERSION_CODE(5, 1, 2),
-		XP_SP3 = PRIV_SLIB_WORKSTATION_VERSION_CODE(5, 1, 3),
-		XP_64 = PRIV_SLIB_WORKSTATION_VERSION_CODE(5, 2, 0),
-		Vista = PRIV_SLIB_WORKSTATION_VERSION_CODE(6, 0, 0),
-		Vista_SP1 = PRIV_SLIB_WORKSTATION_VERSION_CODE(6, 0, 1),
-		Vista_SP2 = PRIV_SLIB_WORKSTATION_VERSION_CODE(6, 0, 2),
-		Windows7 = PRIV_SLIB_WORKSTATION_VERSION_CODE(6, 1, 0),
-		Windows7_SP1 = PRIV_SLIB_WORKSTATION_VERSION_CODE(6, 1, 1),
-		Windows8 = PRIV_SLIB_WORKSTATION_VERSION_CODE(6, 2, 0),
-		Windows8_1 = PRIV_SLIB_WORKSTATION_VERSION_CODE(6, 3, 0),
-		Windows10 = PRIV_SLIB_WORKSTATION_VERSION_CODE(10, 0, 0),
-		Windows11 = PRIV_SLIB_WORKSTATION_VERSION_CODE(10, 0, 1),
-		Server2003 = PRIV_SLIB_SERVER_VERSION_CODE(5, 2, 0),
-		Server2008 = PRIV_SLIB_SERVER_VERSION_CODE(6, 0, 0),
-		Server2008_R2 = PRIV_SLIB_SERVER_VERSION_CODE(6, 1, 0),
-		Server2012 = PRIV_SLIB_SERVER_VERSION_CODE(6, 2, 0),
-		Server2012_R2 = PRIV_SLIB_SERVER_VERSION_CODE(6, 3, 0),
-		Server2016 = PRIV_SLIB_SERVER_VERSION_CODE(10, 0, 0)
+		Workstation = 1, // VER_NT_WORKSTATION
+		DomainController = 2, // VER_NT_DOMAIN_CONTROLLER
+		Server = 3 // VER_NT_SERVER
+	};
+
+	class WindowsVersion
+	{
+	public:
+		sl_uint32 majorVersion;
+		sl_uint32 minorVersion;
+		sl_uint16 servicePackMajorVersion;
+		sl_uint16 servicePackMinorVersion;
+		sl_uint32 buildNumber;
+		WindowsProductType productType;
+
+	public:
+		enum {
+			Win2000_MajorVersion = 5,
+			Win2000_MinorVersion = 0,
+			XP_MajorVersion = 5,
+			XP_MinorVersion = 1,
+			XP64_MajorVersion = 5,
+			XP64_MinorVersion = 2,
+			Server2003_MajorVersion = 5,
+			Server2003_MinorVersion = 2,
+			Vista_MajorVersion = 6,
+			Vista_MinorVersion = 0,
+			Server2008_MajorVersion = 6,
+			Server2008_MinorVersion = 0,
+			Win7_MajorVersion = 6,
+			Win7_MinorVersion = 1,
+			Server2008R2_MajorVersion = 6,
+			Server2008R2_MinorVersion = 1,
+			Win8_MajorVersion = 6,
+			Win8_MinorVersion = 2,
+			Server2012_MajorVersion = 6,
+			Server2012_MinorVersion = 2,
+			Win8_1_MajorVersion = 6,
+			Win8_1_MinorVersion = 3,
+			Server2012R2_MajorVersion = 6,
+			Server2012R2_MinorVersion = 3,
+			Win10_MajorVersion = 10,
+			Server2016_MajorVersion = 10,
+
+			Win11_BuildNumber = 22000,
+			Server2019_BuildNumber = 17763,
+			Server2022_BuildNumber = 20348
+		};
 	};
 
 	struct WindowsDllVersion
 	{
-		sl_uint32 major;
-		sl_uint32 minor;
-		sl_uint32 build;
+		sl_uint32 majorVersion;
+		sl_uint32 minorVersion;
+		sl_uint32 buildNumber;
 	};
 
 	class ShellExecuteParam
@@ -83,7 +104,8 @@ namespace slib
 		StringParam operation;
 		StringParam path;
 		StringParam params;
-		sl_bool runAsAdmin; // `shellExecute` returns sl_false if the user refused the elevation
+		sl_bool flagRunAsAdmin; // `shellExecute` returns sl_false if the user refused the elevation
+		sl_bool flagWait;
 		StringParam currentDirectory;
 		HWND hWndParent;
 		int nShow;
@@ -126,12 +148,13 @@ namespace slib
 		static HANDLE getEventHandle(Event* event);
 
 
-		static void setApplicationRunAtStartup(const StringParam& name, const StringParam& path, sl_bool flagRegister);
-
+		static const WindowsVersion& getVersion();
 
 		static sl_bool isWindowsServer();
 
-		static WindowsVersion getVersion();
+		static sl_bool isWindows7OrGreater();
+
+		static sl_bool isWindows10OrGreater();
 
 		static WindowsDllVersion getDllVersion(const StringParam& pathDll);
 
@@ -147,6 +170,8 @@ namespace slib
 		static sl_bool registerFileExtensions(const ListParam<StringParam>& extensions, const StringParam& progId, const StringParam& appPath);
 
 
+		static Variant getVariantFromVARIANT(const void* pVariant);
+
 		static sl_bool getSYSTEMTIME(SYSTEMTIME& _out, const Time& time, sl_bool flagUTC);
 
 		static sl_bool getTime(Time& _out, const SYSTEMTIME& st, sl_bool flagUTC);
@@ -155,14 +180,7 @@ namespace slib
 		static HANDLE createDeviceHandle(const StringParam& path, DWORD dwDesiredAccess, DWORD dwShareMode);
 
 
-		static sl_bool isWindowVisible(HWND hWnd);
-
-
-		static sl_bool registerTouchWindow(HWND hWnd);
-	
-		static void unregisterTouchWindow(HWND hWnd);
-
-		static sl_bool isCurrentMessageFromTouch();
+		static HANDLE createSystemProcess(const StringParam& commandLine);
 
 	};
 

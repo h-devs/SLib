@@ -40,7 +40,7 @@ namespace slib
 			sl_bool m_flagDestroyOnRelease;
 
 		public:
-			NativeCursorImpl()
+			NativeCursorImpl(HCURSOR hCursor, sl_bool flagFreeOnDestroy): m_hCursor(hCursor), m_flagDestroyOnRelease(flagFreeOnDestroy)
 			{
 			}
 
@@ -54,19 +54,16 @@ namespace slib
 		public:
 			static Ref<NativeCursorImpl> create(HCURSOR hCursor, sl_bool flagFreeOnDestroy)
 			{
-				Ref<NativeCursorImpl> ret;
 				if (hCursor) {
-					ret = new NativeCursorImpl;
+					Ref<NativeCursorImpl> ret = new NativeCursorImpl(hCursor, flagFreeOnDestroy);
 					if (ret.isNotNull()) {
-						ret->m_hCursor = hCursor;
-						ret->m_flagDestroyOnRelease = flagFreeOnDestroy;
 						return ret;
 					}
 					if (flagFreeOnDestroy) {
 						DestroyCursor(hCursor);
 					}
 				}
-				return ret;
+				return sl_null;
 			}
 		};
 
@@ -84,6 +81,11 @@ namespace slib
 		}
 		NativeCursorImpl* c = (NativeCursorImpl*)(cursor);
 		return c->m_hCursor;
+	}
+
+	Ref<Cursor> Cursor::getNone()
+	{
+		return new NativeCursorImpl(NULL, sl_false);
 	}
 
 	Ref<Cursor> Cursor::getArrow()
@@ -124,11 +126,12 @@ namespace slib
 
 	void Cursor::setCurrent(const Ref<Cursor>& cursor)
 	{
-		if (cursor.isNull()) {
-			return;
+		if (cursor.isNotNull()) {
+			NativeCursorImpl* c = (NativeCursorImpl*)(cursor.get());
+			SetCursor(c->m_hCursor);
+		} else {
+			SetCursor(NULL);
 		}
-		NativeCursorImpl* c = (NativeCursorImpl*)(cursor.get());
-		SetCursor(c->m_hCursor);
 	}
 
 	Ref<Cursor> Cursor::getCurrent()

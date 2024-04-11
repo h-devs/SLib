@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -49,11 +49,17 @@ namespace slib
 
 		void setFramesPerWindow(sl_uint32 n);
 
-		const Color& getColor();
+		const Color& getAmplitudeColor();
 
-		void setColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setAmplitudeColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		float getAmplitudeScale();
+
+		void setAmplitudeScale(float scale, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void pushFrames(const AudioData& data, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void clearFrames(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
 		void onDraw(Canvas* canvas) override;
@@ -61,8 +67,8 @@ namespace slib
 	protected:
 		sl_uint32 m_nSamplesPerFrame;
 		sl_uint32 m_nFramesPerWindow;
-
-		Color m_color;
+		Color m_colorAmplitude;
+		float m_scaleAmplitude;
 
 		LoopQueue<sl_uint16> m_queueFrames;
 		Array<sl_uint16> m_bufProcess;

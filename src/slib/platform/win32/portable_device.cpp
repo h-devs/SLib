@@ -30,16 +30,20 @@
 
 #include <PortableDevice.h>
 
-#pragma comment(lib, "PortableDeviceGUIDs.lib")
-
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
+
+		static void InitCOM()
+		{
+			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+		}
 
 		static void LogWpdError(const char* szErr, HRESULT hr)
 		{
-			LogError("WPD", "%s, hr=0x%lx", szErr, hr);
+			LogError("WPD", "%s, hr=0x%x", szErr, (sl_uint32)hr);
 		}
 
 		static void LogWpdError(const char* szErr)
@@ -47,9 +51,9 @@ namespace slib
 			LogError("WPD", "%s", szErr);
 		}
 
-		static void LogWpdCreateInstanceError(const char* szClsid, HRESULT hr)
+		static void LogWpdCreateInstanceError(const char* szClass, HRESULT hr)
 		{
-			LogError("WPD", "Failed to CoCreateInstance: %s, hr=0x%lx", szClsid, hr);
+			LogError("WPD", "Failed to CoCreateInstance: %s, hr=0x%x", szClass, (sl_uint32)hr);
 		}
 
 	}
@@ -61,15 +65,13 @@ namespace slib
 
 		PortableDeviceManager PortableDeviceManager::create()
 		{
+			InitCOM();
 			IPortableDeviceManager* pPortableDeviceManager = NULL;
-			HRESULT hr = CoCreateInstance(CLSID_PortableDeviceManager,
-				NULL,
-				CLSCTX_INPROC_SERVER,
-				IID_PPV_ARGS(&pPortableDeviceManager));
+			HRESULT hr = CoCreateInstance(__uuidof(::PortableDeviceManager), NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pPortableDeviceManager));
 			if (SUCCEEDED(hr)) {
 				return pPortableDeviceManager;
 			} else {
-				LogWpdCreateInstanceError("CLSID_PortableDeviceManager", hr);
+				LogWpdCreateInstanceError("PortableDeviceManager", hr);
 			}
 			return sl_null;
 		}
@@ -244,14 +246,15 @@ namespace slib
 
 		PortableDevice PortableDevice::open(const StringParam& _id)
 		{
+			InitCOM();
 			IPortableDevice* pDevice = NULL;
-			HRESULT hr = CoCreateInstance(CLSID_PortableDeviceFTM,
+			HRESULT hr = CoCreateInstance(__uuidof(PortableDeviceFTM),
 				NULL,
 				CLSCTX_INPROC_SERVER,
 				IID_PPV_ARGS(&pDevice));
 			if (SUCCEEDED(hr)) {
 				ComPtr<IPortableDeviceValues> pInfo;
-				hr = CoCreateInstance(CLSID_PortableDeviceValues,
+				hr = CoCreateInstance(__uuidof(PortableDeviceValues),
 					NULL,
 					CLSCTX_INPROC_SERVER,
 					IID_PPV_ARGS(&(pInfo.ptr)));
@@ -269,11 +272,11 @@ namespace slib
 						LogWpdError("Failed to Open the device", hr);
 					}
 				} else {
-					LogWpdCreateInstanceError("CLSID_PortableDeviceValues", hr);
+					LogWpdCreateInstanceError("PortableDeviceValues", hr);
 				}
 				pDevice->Release();
 			} else {
-				LogWpdCreateInstanceError("CLSID_PortableDeviceFTM", hr);
+				LogWpdCreateInstanceError("PortableDeviceFTM", hr);
 			}
 			return sl_null;
 		}

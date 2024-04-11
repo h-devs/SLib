@@ -6,6 +6,7 @@
 		<string name='no'>No</string>
 		<string name='open'>Open</string>
 		<string name='close'>Close</string>
+		<string name='copy'>Copy</string>
 		<string name='reply'>Reply</string>
 		<string name='open_image'>Open Image</string>
 		<string name='file_dialog_filter_image'>Image Files</string>

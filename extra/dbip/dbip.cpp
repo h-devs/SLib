@@ -225,7 +225,7 @@ namespace slib
 	{
 		List<IPv4Item> ret;
 		String code = _code.toString();
-		for (auto& item : m_listIPv4) {
+		for (auto&& item : m_listIPv4) {
 			if (code.equals(item.code)) {
 				ret.add_NoLock(item);
 			}
@@ -265,7 +265,7 @@ namespace slib
 	{
 		List<IPv6Item> ret;
 		String code = _code.toString();
-		for (auto& item : m_listIPv6) {
+		for (auto&& item : m_listIPv6) {
 			if (code.equals(item.code)) {
 				ret.add_NoLock(item);
 			}

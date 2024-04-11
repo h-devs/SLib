@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -70,6 +70,15 @@ namespace slib
 	struct StringTypeFromCharType<sl_char32> { typedef String32 Type; };
 
 	template <class CharType>
+	struct StringContainerTypeFromCharType;
+	template <>
+	struct StringContainerTypeFromCharType<sl_char8> { typedef StringContainer Type; };
+	template <>
+	struct StringContainerTypeFromCharType<sl_char16> { typedef StringContainer16 Type; };
+	template <>
+	struct StringContainerTypeFromCharType<sl_char32> { typedef StringContainer32 Type; };
+
+	template <class CharType>
 	struct StringViewTypeFromCharType;
 	template <>
 	struct StringViewTypeFromCharType<sl_char8> { typedef StringView Type; };
@@ -128,9 +137,6 @@ namespace slib
 #endif
 
 #define PRIV_SLIB_DECLARE_STRING_OPS_SUB(CLASS, STRING, VIEW) \
-	STRING operator+(const STRING& other) const noexcept; \
-	STRING operator+(const VIEW& other) const noexcept; \
-	STRING operator+(const Char* sz) const noexcept; \
 	template <class T> sl_bool operator==(const T& other) const noexcept { return equals(other); } \
 	template <class T> sl_bool operator!=(const T& other) const noexcept { return !(equals(other)); } \
 	template <class T> sl_compare_result operator>=(const T& other) const noexcept { return compare(other) >= 0; } \
@@ -147,16 +153,33 @@ namespace slib
 	PRIV_SLIB_DECLARE_STD_STRING_OPS_SUB(CLASS, STRING)
 
 #define PRIV_SLIB_DECLARE_STRING_OPS(CLASS) \
-	PRIV_SLIB_DECLARE_STRING_OPS_SUB(CLASS, CLASS, StringViewType)
+	PRIV_SLIB_DECLARE_STRING_OPS_SUB(CLASS, CLASS, StringViewType) \
+	CLASS operator+(CLASS&& other) const& noexcept; \
+	CLASS operator+(const CLASS& other) const& noexcept; \
+	CLASS operator+(const StringViewType& other) const& noexcept; \
+	CLASS operator+(const Char* sz) const& noexcept; \
+	CLASS operator+(CLASS&& other)&& noexcept; \
+	CLASS operator+(const CLASS& other)&& noexcept; \
+	CLASS operator+(const StringViewType& other)&& noexcept; \
+	CLASS operator+(const Char* sz)&& noexcept; \
+	CLASS& operator+=(CLASS&& other) noexcept; \
+	CLASS& operator+=(const CLASS& other) noexcept; \
+	CLASS& operator+=(const StringViewType& other) noexcept; \
+	CLASS& operator+=(const Char* sz) noexcept;
 
 #define PRIV_SLIB_DECLARE_STRING_VIEW_OPS(CLASS) \
-	PRIV_SLIB_DECLARE_STRING_OPS_SUB(CLASS, StringType, CLASS)
+	PRIV_SLIB_DECLARE_STRING_OPS_SUB(CLASS, StringType, CLASS) \
+	StringType operator+(const StringType& other) const noexcept; \
+	StringType operator+(const CLASS& other) const noexcept; \
+	StringType operator+(const Char* sz) const noexcept;
 
 #include "priv/string8.h"
 #include "priv/string16.h"
 #include "priv/string32.h"
 #include "priv/string_view.h"
 #include "priv/string_param.h"
+#include "priv/static_string.h"
+#include "priv/encrypt_string.h"
 
 namespace slib
 {

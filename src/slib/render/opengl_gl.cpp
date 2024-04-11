@@ -52,7 +52,7 @@ namespace slib
 
 #if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 
-#include "slib/core/dynamic_library.h"
+#include "slib/system/dynamic_library.h"
 
 namespace slib
 {

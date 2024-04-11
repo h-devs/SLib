@@ -29,6 +29,21 @@
 namespace slib
 {
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(VideoControllerInfo)
+
+	VideoControllerInfo::VideoControllerInfo()
+	{
+		memorySize = 0;
+	}
+	
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SoundDeviceInfo)
+
+	SoundDeviceInfo::SoundDeviceInfo()
+	{
+	}
+
+
 #if !defined(SLIB_PLATFORM_IS_IOS)
 	void Device::setAudioCategory(DeviceAudioCategory category)
 	{

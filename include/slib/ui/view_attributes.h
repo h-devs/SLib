@@ -164,7 +164,10 @@ namespace slib
 	public:
 		sl_bool flagUsingFont : 1;
 		sl_bool flagOpaque : 1;
-		sl_bool flagAntiAlias : 1;
+		sl_bool flagDefinedBackgroundAntiAlias : 1;
+		sl_bool flagBackgroundAntiAlias : 1;
+		sl_bool flagDefinedContentAntiAlias : 1;
+		sl_bool flagContentAntiAlias : 1;
 		sl_bool flagLayer : 1;
 
 		sl_bool flagForcedDraw : 1;
@@ -185,8 +188,11 @@ namespace slib
 		Size contentRadius;
 		AtomicRef<GraphicsPath> contentBoundPath;
 
+		ViewStateMap<Color> paddingColors;
+
 		AtomicRef<Font> font;
 		sl_real alpha;
+		Color colorKey;
 
 		AtomicRef<Bitmap> bitmapLayer;
 		AtomicRef<Canvas> canvasLayer;

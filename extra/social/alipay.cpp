@@ -90,7 +90,7 @@ namespace slib
 
 		StringBuffer buf;
 		sl_bool flagFirst = sl_true;
-		for (auto& item : info) {
+		for (auto&& item : info) {
 			if (flagFirst) {
 				flagFirst = sl_false;
 			} else {

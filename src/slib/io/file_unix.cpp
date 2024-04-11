@@ -31,7 +31,6 @@
 #include "slib/core/string.h"
 #include "slib/core/memory.h"
 #include "slib/core/hash_map.h"
-#include "slib/core/thread.h"
 #include "slib/io/pipe_event.h"
 
 #include <unistd.h>
@@ -206,79 +205,78 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_int32 File::read32(void* buf, sl_uint32 size) const noexcept
+	sl_int32 File::read32(void* buf, sl_uint32 size, sl_int32 timeout) const noexcept
 	{
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
 			if (!size) {
 				return SLIB_IO_EMPTY_CONTENT;
 			}
-			ssize_t n = ::read(fd, buf, size);
-			if (n > 0) {
-				return (sl_int32)n;
-			} else {
-				if (n) {
-					int err = errno;
-					if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
-						return SLIB_IO_WOULD_BLOCK;
-					}
-				} else {
+			for (;;) {
+				ssize_t n = ::read(fd, buf, size);
+				if (n > 0) {
+					return (sl_int32)n;
+				}
+				if (!n) {
 					return SLIB_IO_ENDED;
 				}
-			}
-		}
-		return SLIB_IO_ERROR;
-	}
-
-	sl_bool File::waitRead(sl_int32 timeout) const noexcept
-	{
-		int fd = m_file;
-		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			Ref<PipeEvent> ev = PipeEvent::create();
-			if (ev.isNotNull()) {
-				return ev->waitReadFd(fd, timeout);
-			} else {
-				Thread::sleep(1);
-				return sl_true;
-			}
-		}
-		return sl_false;
-	}
-
-	sl_int32 File::write32(const void* buf, sl_uint32 size) const noexcept
-	{
-		int fd = m_file;
-		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			ssize_t n = ::write(fd, buf, size);
-			if (n > 0) {
-				return (sl_int32)n;
-			} else {
-				if (n) {
-					int err = errno;
-					if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
+				int err = errno;
+				if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
+					if (!timeout) {
 						return SLIB_IO_WOULD_BLOCK;
 					}
+					Ref<PipeEvent> ev = PipeEvent::create();
+					if (ev.isNull()) {
+						return SLIB_IO_ERROR;
+					}
+					if (ev->waitReadFd(fd, timeout)) {
+						timeout = 0;
+					} else {
+						return SLIB_IO_TIMEOUT;
+					}
 				} else {
-					return SLIB_IO_EMPTY_CONTENT;
+					return SLIB_IO_ERROR;
 				}
 			}
 		}
 		return SLIB_IO_ERROR;
 	}
 
-	sl_bool File::waitWrite(sl_int32 timeout) const noexcept
+	sl_int32 File::write32(const void* buf, sl_uint32 size, sl_int32 timeout) const noexcept
 	{
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
-			Ref<PipeEvent> ev = PipeEvent::create();
-			if (ev.isNotNull()) {
-				return ev->waitWriteFd(fd, timeout);
-			} else {
-				Thread::sleep(1);
-				return sl_true;
+			for (;;) {
+				ssize_t n = ::write(fd, buf, size);
+				if (n > 0) {
+					return (sl_int32)n;
+				}
+				if (!n) {
+					return SLIB_IO_EMPTY_CONTENT;
+				}
+				int err = errno;
+				if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) {
+					if (!timeout) {
+						return SLIB_IO_WOULD_BLOCK;
+					}
+					Ref<PipeEvent> ev = PipeEvent::create();
+					if (ev.isNull()) {
+						return SLIB_IO_ERROR;
+					}
+					if (ev->waitWriteFd(fd, timeout)) {
+						if (!size) {
+							return SLIB_IO_EMPTY_CONTENT;
+						}
+						timeout = 0;
+					} else {
+						return SLIB_IO_TIMEOUT;
+					}
+				} else {
+					return SLIB_IO_ERROR;
+				}
 			}
 		}
-		return sl_false;
+		return SLIB_IO_ERROR;
 	}
 
 	sl_bool File::setSize(sl_uint64 newSize) const noexcept

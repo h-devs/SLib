@@ -37,6 +37,9 @@ namespace slib
 
 		~LineView();
 
+	protected:
+		void init() override;
+
 	public:
 		LayoutOrientation getOrientation();
 

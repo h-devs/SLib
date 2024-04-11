@@ -86,6 +86,14 @@ namespace slib
 #endif
 
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PhysicalMemorySlotInfo)
+
+	PhysicalMemorySlotInfo::PhysicalMemorySlotInfo()
+	{
+		capacity = 0;
+		speed = 0;
+	}
+
 	sl_bool PhysicalMemory::getStatus(PhysicalMemoryStatus& _out)
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
@@ -125,6 +133,20 @@ namespace slib
 		}
 #endif
 		return sl_false;
+	}
+
+	sl_uint64 PhysicalMemory::getTotalSize()
+	{
+		static sl_bool flagInit = sl_true;
+		static sl_uint64 total = 0;
+		if (flagInit) {
+			PhysicalMemoryStatus status;
+			if (getStatus(status)) {
+				total = status.total;
+			}
+			flagInit = sl_false;
+		}
+		return total;
 	}
 
 }

@@ -25,6 +25,7 @@
 
 #include "view.h"
 
+#include "view_state_map.h"
 #include "../graphics/text.h"
 
 namespace slib
@@ -53,6 +54,8 @@ namespace slib
 
 		void setHyperText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
+		String getPlainText();
+
 		MultiLineMode getMultiLine();
 
 		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
@@ -67,7 +70,9 @@ namespace slib
 		void setMnemonic(sl_bool flag);
 
 
-		Color getTextColor();
+		Color getTextColor(ViewState state = ViewState::Default);
+
+		void setTextColor(const Color& color, ViewState state, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
@@ -86,6 +91,15 @@ namespace slib
 		Color getLinkColor();
 
 		void setLinkColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		Color getLineColor();
+
+		void setLineColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+
+		sl_bool isUsingContextMenu();
+
+		void setUsingContextMenu(sl_bool flag = sl_true);
 
 
 		UISize measureSize();
@@ -108,6 +122,7 @@ namespace slib
 
 	protected:
 		Ref<LabelViewCell> m_cell;
+		sl_bool m_flagContextMenu;
 
 	};
 
@@ -122,11 +137,12 @@ namespace slib
 		sl_uint32 lineCount;
 		sl_bool flagMnemonic;
 
-		Color textColor;
+		ViewStateMap<Color> textColors;
 		Alignment gravity;
 		EllipsizeMode ellipsizeMode;
 		sl_bool flagEnabledHyperlinksInPlainText;
 		Color linkColor;
+		Color lineColor;
 
 		sl_real shadowOpacity;
 		sl_real shadowRadius;
@@ -144,6 +160,8 @@ namespace slib
 		~LabelViewCell();
 
 	public:
+		String getPlainText();
+
 		UISize measureSize();
 
 	public:

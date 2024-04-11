@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,7 @@
 #include "slib/core/scoped_buffer.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-#include <winsock2.h>
-#pragma comment(lib, "ws2_32.lib")
+#include "slib/platform/win32/socket.h"
 #else
 #include "slib/io/pipe_event.h"
 #include <unistd.h>
@@ -370,26 +369,10 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Socket::connectDomainAndWait(const StringParam& address, sl_int32 timeout) const noexcept
+	sl_bool Socket::connectAndWait(const DomainSocketPath& path, sl_int32 timeout) const noexcept
 	{
 		setNonBlockingMode();
-		if (connectDomain(address)) {
-			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
-			if (ev.isNotNull()) {
-				if (ev->waitEvents(timeout) & SocketEvent::Write) {
-					if (getSocketError() == 0) {
-						return sl_true;
-					}
-				}
-			}
-		}
-		return sl_false;
-	}
-
-	sl_bool Socket::connectAbstractDomainAndWait(const StringParam& address, sl_int32 timeout) const noexcept
-	{
-		setNonBlockingMode();
-		if (connectAbstractDomain(address)) {
+		if (connect(path)) {
 			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
 			if (ev.isNotNull()) {
 				if (ev->waitEvents(timeout) & SocketEvent::Write) {

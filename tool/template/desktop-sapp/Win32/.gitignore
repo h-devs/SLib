@@ -1,3 +1,4 @@
 .vs
 *.vcxproj.user
 /build
+*.aps

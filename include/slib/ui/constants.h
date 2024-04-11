@@ -87,7 +87,8 @@ namespace slib
 		SetCapture = 0x0010,
 		DispatchToParent = 0x1000,
 		NotDispatchToChildren = 0x2000,
-		KeepKeyboard = 0x4000
+		KeepKeyboard = 0x4000,
+		Injected = 0x8000
 	})
 
 	enum class TouchPhase

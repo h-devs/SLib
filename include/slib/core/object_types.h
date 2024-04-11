@@ -46,7 +46,6 @@ namespace slib
 			FunctionList,
 			CPromiseBase,
 			Application,
-			Service,
 			CTimeZone,
 			GenericTimeZone,
 			Timer,
@@ -55,7 +54,6 @@ namespace slib
 			Event,
 			Thread,
 			ThreadPool,
-			Process,
 			Logger
 		};
 

@@ -86,27 +86,27 @@ namespace slib
 
 		sl_bool isReadOnly();
 
-		void setReadOnly(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setReadOnly(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isPassword();
 
-		void setPassword(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setPassword(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isNumber();
 
-		void setNumber(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setNumber(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isLowercase();
 
-		void setLowercase(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setLowercase(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isUppercase();
 
-		void setUppercase(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setUppercase(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		MultiLineMode getMultiLine();
 
-		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
+		void setMultiLine(MultiLineMode multiLineMode = MultiLineMode::Multiple, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
 
 		UIReturnKeyType getReturnKeyType();
 
@@ -122,7 +122,7 @@ namespace slib
 
 		sl_bool isAutoDismissKeyboard();
 
-		void setAutoDismissKeyboard(sl_bool flag);
+		void setAutoDismissKeyboard(sl_bool flag = sl_true);
 
 		void setFocusNextOnReturnKey();
 

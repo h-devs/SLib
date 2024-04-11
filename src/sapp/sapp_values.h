@@ -48,7 +48,7 @@ namespace slib
 	public:
 		void mergeDefault(SAppStateMap& base)
 		{
-			for (auto& item : base.values) {
+			for (auto&& item : base.values) {
 				if (!(values.find_NoLock(item.key))) {
 					values.put_NoLock(item.key, item.value);
 				}
@@ -65,6 +65,7 @@ namespace slib
 		sl_bool flagDefined = sl_false;
 		sl_bool flagReferResource = sl_false;
 		String valueOrName;
+		String variant;
 		Ref<XmlElement> referingElement;
 
 	public:
@@ -628,6 +629,19 @@ namespace slib
 			RESIZE_UP_DOWN
 		};
 		int type = NONE;
+
+	public:
+		String getAccessString() const;
+
+		sl_bool parse(const String& str);
+
+	};
+
+	class SAppAntiAliasModeValue
+	{
+	public:
+		sl_bool flagDefined = sl_false;
+		AntiAliasMode value = AntiAliasMode::Inherit;
 
 	public:
 		String getAccessString() const;

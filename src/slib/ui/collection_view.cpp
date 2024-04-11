@@ -601,7 +601,11 @@ namespace slib
 			layoutAttrs->flagInvalidLayoutInParent = sl_true;
 			SizeMode mode = itemView->getHeightMode();
 			if (mode == SizeMode::Filling) {
-				layoutAttrs->layoutFrame.setHeight((sl_ui_len)((sl_real)heightColumn * itemView->getHeightWeight()));
+				sl_ui_len height = (sl_ui_len)((sl_real)heightColumn * itemView->getHeightWeight());
+				if (layoutAttrs->layoutFrame.getHeight() != height) {
+					itemView->_setInvalidateLayout();
+					layoutAttrs->layoutFrame.setHeight(height);
+				}
 			}
 		}
 		UpdateLayoutFrameParam param;

@@ -210,9 +210,23 @@ namespace slib
 			return hKey;
 		}
 
+		Registry Registry::open(const StringParam& path, REGSAM sam, sl_bool flagCreate)
+		{
+			HKEY hRootKey;
+			String subPath = ParseRegistryPath(path, &hRootKey);
+			return open(hRootKey, subPath, sam, flagCreate);
+		}
+
 		Registry Registry::create(HKEY hKeyParent, const StringParam& path, REGSAM sam)
 		{
 			return open(hKeyParent, path, sam, sl_true);
+		}
+
+		Registry Registry::create(const StringParam& path, REGSAM sam)
+		{
+			HKEY hRootKey;
+			String subPath = ParseRegistryPath(path, &hRootKey);
+			return open(hRootKey, subPath, sam, sl_true);
 		}
 
 		VariantMap Registry::getValues()
@@ -242,7 +256,6 @@ namespace slib
 					}
 				}
 			}
-
 			return ret;
 		}
 
@@ -266,7 +279,6 @@ namespace slib
 			if (!hKey) {
 				return sl_false;
 			}
-
 			StringCstr16 name(_name);
 			return GetRegistryValue(hKey, (LPCWSTR)(name.getData()), out);
 		}
@@ -285,15 +297,41 @@ namespace slib
 			return key.getValue(name, out);
 		}
 
+		Variant Registry::getValue(const StringParam& name)
+		{
+			Variant ret;
+			if (getValue(name, &ret)) {
+				return ret;
+			}
+			return Variant();
+		}
+
+		Variant Registry::getValue(HKEY hKeyParent, const StringParam& subPath, const StringParam& name)
+		{
+			Variant ret;
+			if (getValue(hKeyParent, subPath, name, &ret)) {
+				return ret;
+			}
+			return Variant();
+		}
+
+		Variant Registry::getValue(const StringParam& path, const StringParam& name)
+		{
+			Variant ret;
+			if (getValue(path, name, &ret)) {
+				return ret;
+			}
+			return Variant();
+		}
+
 		sl_size Registry::setValues(const VariantMap& values)
 		{
 			HKEY hKey = get();
 			if (!hKey) {
 				return sl_false;
 			}
-
 			sl_size ret = 0;
-			for (auto& item : values) {
+			for (auto&& item : values) {
 				if (setValue(item.key, item.value)) {
 					ret++;
 				}
@@ -321,7 +359,6 @@ namespace slib
 			if (!hKey) {
 				return sl_false;
 			}
-
 			StringCstr16 name(_name);
 			sl_bool flagSuccess = sl_false;
 			if (value.isNull()) {
@@ -369,7 +406,6 @@ namespace slib
 					flagSuccess = sl_true;
 				}
 			}
-
 			return flagSuccess;
 		}
 

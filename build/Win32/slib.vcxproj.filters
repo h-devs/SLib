@@ -64,8 +64,8 @@
     <Filter Include="src\script">
       <UniqueIdentifier>{91a5c757-289c-49ff-b0c7-82aca3e41059}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\develop">
-      <UniqueIdentifier>{d9e0e024-e389-4c28-a77b-711d7e4e6df3}</UniqueIdentifier>
+    <Filter Include="src\system">
+      <UniqueIdentifier>{ca889d39-c620-47b5-92d2-6c20ba709786}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -105,9 +105,6 @@
     <ClInclude Include="..\..\include\slib\db.h">
       <Filter>inc</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\slib\dev.h">
-      <Filter>inc</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\slib\device.h">
       <Filter>inc</Filter>
     </ClInclude>
@@ -135,13 +132,7 @@
     <ClInclude Include="..\..\include\slib\resource.h">
       <Filter>inc</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\slib\service.h">
-      <Filter>inc</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\slib\slib.h">
-      <Filter>inc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\slib\social.h">
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\slib\storage.h">
@@ -153,11 +144,17 @@
     <ClInclude Include="..\..\src\slib\render\d3d_impl.h">
       <Filter>src\render</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\slib\serialize.h">
-      <Filter>inc</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\slib\io\async_config.h">
       <Filter>src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\io.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\platform.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\slib\system.h">
+      <Filter>inc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -170,13 +167,7 @@
     <ClCompile Include="..\..\src\slib\core\mutex.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\service.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\string.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\system.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\thread.cpp">
@@ -227,9 +218,6 @@
     <ClCompile Include="..\..\src\slib\core\atomic.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\asset.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\resource.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -261,12 +249,6 @@
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\timer.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\preference.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\preference_win32.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\blowfish.cpp">
@@ -824,9 +806,6 @@
     <ClCompile Include="..\..\src\slib\ui\screen_capture_win32.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\process.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\console.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -896,9 +875,6 @@
     <ClCompile Include="..\..\src\slib\ui\ui_sound_win32.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dynamic_library.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\doc\rar.cpp">
       <Filter>src\doc</Filter>
     </ClCompile>
@@ -913,30 +889,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\combo_box_win32.cpp">
       <Filter>src\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\develop\pe.cpp">
-      <Filter>src\develop</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\develop\protect.cpp">
-      <Filter>src\develop</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\develop\hook.cpp">
-      <Filter>src\develop</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\develop\module.cpp">
-      <Filter>src\develop</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\develop\vtable.cpp">
-      <Filter>src\develop</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\service_manager.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\service_manager_win32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\service_win32.cpp">
-      <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\media\audio_device.cpp">
       <Filter>src\media</Filter>
@@ -1064,22 +1016,10 @@
     <ClCompile Include="..\..\src\slib\core\thread_win32.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\system_win32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\process_win32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dynamic_library_win32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\charset_win32.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\container.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\named_instance.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\app_win32.cpp">
@@ -1322,9 +1262,6 @@
     <ClCompile Include="..\..\src\slib\platform\win32\wmi.cpp">
       <Filter>src\platform</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\develop\shell_code.cpp">
-      <Filter>src\develop</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\grid_view.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
@@ -1348,6 +1285,66 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\platform\win32\dl_dwmapi.cpp">
       <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\device\printer.cpp">
+      <Filter>src\device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\device\printer_win32.cpp">
+      <Filter>src\device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\io\chunk.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\async_handle.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\table_model.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\db\database_model.cpp">
+      <Filter>src\db</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\system_win32.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\dynamic_library.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\dynamic_library_win32.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\process.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\process_win32.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\service.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\service_manager.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\service_manager_win32.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\service_win32.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\system.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\asset.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\named_instance.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\preference_win32.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\preference.cpp">
+      <Filter>src\system</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

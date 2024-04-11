@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -32,26 +32,22 @@
 namespace slib
 {
 
-	namespace {
-		class TcpInstance : public AsyncTcpSocketInstance
+	namespace
+	{
+
+		class StreamInstance : public AsyncSocketStreamInstance
 		{
 		public:
-			sl_bool m_flagConnecting;
+			sl_bool m_flagConnecting = sl_false;
 
 		public:
-			TcpInstance()
-			{
-				m_flagConnecting = sl_false;
-			}
-
-		public:
-			static Ref<TcpInstance> create(Socket&& socket)
+			static Ref<StreamInstance> create(Socket&& socket)
 			{
 				if (socket.isOpened()) {
 					if (socket.setNonBlockingMode()) {
 						sl_async_handle handle = (sl_async_handle)(socket.get());
 						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
-							Ref<TcpInstance> ret = new TcpInstance();
+							Ref<StreamInstance> ret = new StreamInstance();
 							if (ret.isNotNull()) {
 								ret->setHandle(handle);
 								socket.release();
@@ -69,47 +65,49 @@ namespace slib
 				if (socket->isNone()) {
 					return;
 				}
-
-				Ref<AsyncStreamRequest> request = Move(m_requestReading);
-				sl_size nQueue = getReadRequestCount();
-
-				Thread* thread = Thread::getCurrent();
-				while (!thread || thread->isNotStopping()) {
-					if (request.isNull()) {
-						if (nQueue > 0) {
-							nQueue--;
-							popReadRequest(request);
-							if (request.isNull()) {
-								return;
-							}
-						} else {
-							return;
-						}
-					}
+				Ref<AsyncStreamRequest> refRequest = Move(m_requestReading);
+				if (refRequest.isNull()) {
+					refRequest = getReadRequest();
+				}
+				CurrentThread thread;
+				while (refRequest.isNotNull()) {
+					AsyncStreamRequest* request = refRequest.get();
 					char* data = (char*)(request->data);
 					sl_size size = request->size;
 					if (data && size) {
-						sl_int32 n = socket->receive(data, size);
-						if (n > 0) {
-							processStreamResult(request.get(), n, flagError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
-						} else {
-							if (n == SLIB_IO_WOULD_BLOCK) {
-								if (flagError) {
-									processStreamResult(request.get(), 0, AsyncStreamResultCode::Unknown);
-								} else {
-									m_requestReading = Move(request);
+						char* current = data;
+						for (;;) {
+							sl_int32 n = socket->receive(current, size);
+							if (n > 0) {
+								current += n;
+								if ((sl_size)n >= size) {
+									processStreamResult(request, current - data, AsyncStreamResultCode::Success);
+									break;
 								}
-							} else if (n == SLIB_IO_ENDED) {
-								processStreamResult(request.get(), 0, AsyncStreamResultCode::Ended);
+								size -= n;
 							} else {
-								processStreamResult(request.get(), 0, AsyncStreamResultCode::Ended);
+								if (current > data) {
+									processStreamResult(request, current - data, AsyncStreamResultCode::Success);
+								} else if (flagError) {
+									processStreamResult(request, 0, AsyncStreamResultCode::Unknown);
+								} else if (n == SLIB_IO_WOULD_BLOCK) {
+									m_requestReading = Move(refRequest);
+									return;
+								} else if (n == SLIB_IO_ENDED) {
+									processStreamResult(request, 0, AsyncStreamResultCode::Ended);
+								} else {
+									processStreamResult(request, 0, AsyncStreamResultCode::Unknown);
+								}
+								break;
 							}
-							return;
 						}
 					} else {
-						processStreamResult(request.get(), 0, AsyncStreamResultCode::Success);
+						processStreamResult(request, 0, AsyncStreamResultCode::Success);
 					}
-					request.setNull();
+					if (thread.isStopping()) {
+						break;
+					}
+					refRequest = getReadRequest();
 				}
 			}
 
@@ -119,55 +117,47 @@ namespace slib
 				if (socket->isNone()) {
 					return;
 				}
-
-				Ref<AsyncStreamRequest> request = Move(m_requestWriting);
-				sl_size nQueue = getWriteRequestCount();
-
-				Thread* thread = Thread::getCurrent();
-				while (!thread || thread->isNotStopping()) {
-					if (request.isNull()) {
-						if (nQueue > 0) {
-							nQueue--;
-							popWriteRequest(request);
-							if (request.isNull()) {
-								return;
-							}
-						} else {
-							return;
-						}
-					}
+				Ref<AsyncStreamRequest> refRequest = Move(m_requestWriting);
+				if (refRequest.isNull()) {
+					refRequest = getWriteRequest();
+				}
+				CurrentThread thread;
+				while (refRequest.isNotNull()) {
+					AsyncStreamRequest* request = refRequest.get();
 					char* data = (char*)(request->data);
 					sl_size size = request->size;
 					if (data && size) {
+						char* current = data;
 						for (;;) {
-							sl_size sizeWritten = request->sizeWritten;
-							sl_int32 n = socket->send(data + sizeWritten, size - sizeWritten);
-							if (n >= 0) {
-								request->sizeWritten += n;
-								if (request->sizeWritten >= size) {
-									request->sizeWritten = 0;
-									processStreamResult(request.get(), size, flagError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
+							sl_int32 n = socket->send(current, size);
+							if (n > 0) {
+								current += n;
+								if ((sl_size)n >= size) {
+									processStreamResult(request, current - data, AsyncStreamResultCode::Success);
 									break;
 								}
+								size -= n;
 							} else {
-								if (n == SLIB_IO_WOULD_BLOCK) {
-									if (flagError) {
-										request->sizeWritten = 0;
-										processStreamResult(request.get(), sizeWritten, AsyncStreamResultCode::Unknown);
-									} else {
-										m_requestWriting = Move(request);
-									}
+								if (current > data) {
+									processStreamResult(request, current - data, AsyncStreamResultCode::Success);
+								} else if (flagError) {
+									processStreamResult(request, 0, AsyncStreamResultCode::Unknown);
+								} else if (n == SLIB_IO_WOULD_BLOCK) {
+									m_requestWriting = Move(refRequest);
+									return;
 								} else {
-									request->sizeWritten = 0;
-									processStreamResult(request.get(), sizeWritten, AsyncStreamResultCode::Unknown);
+									processStreamResult(request, 0, AsyncStreamResultCode::Unknown);
 								}
-								return;
+								break;
 							}
 						}
 					} else {
-						processStreamResult(request.get(), 0, AsyncStreamResultCode::Success);
+						processStreamResult(request, 0, AsyncStreamResultCode::Success);
 					}
-					request.setNull();
+					if (thread.isStopping()) {
+						break;
+					}
+					refRequest = getWriteRequest();
 				}
 			}
 
@@ -183,10 +173,18 @@ namespace slib
 				}
 				if (m_flagRequestConnect) {
 					m_flagRequestConnect = sl_false;
-					if (socket->connect(m_addressRequestConnect)) {
-						m_flagConnecting = sl_true;
+					if (m_addressRequestConnect.isValid()) {
+						if (socket->connect(m_addressRequestConnect)) {
+							m_flagConnecting = sl_true;
+						} else {
+							_onConnect(sl_true);
+						}
 					} else {
-						_onConnect(sl_true);
+						if (socket->connect(m_pathRequestConnect)) {
+							m_flagConnecting = sl_true;
+						} else {
+							_onConnect(sl_true);
+						}
 					}
 					return;
 				}
@@ -230,32 +228,27 @@ namespace slib
 		};
 	}
 
-	Ref<AsyncTcpSocketInstance> AsyncTcpSocket::_createInstance(Socket&& socket, sl_bool flagIPv6)
+	Ref<AsyncSocketStreamInstance> AsyncSocketStream::_createInstance(Socket&& socket, sl_bool flagIPv6)
 	{
-		return TcpInstance::create(Move(socket));
+		return StreamInstance::create(Move(socket));
 	}
 
 	namespace {
-		class TcpServerInstance : public AsyncTcpServerInstance
+		class ServerInstance : public AsyncSocketServerInstance
 		{
 		public:
-			sl_bool m_flagListening;
+			sl_bool m_flagListening = sl_false;
 
 		public:
-			TcpServerInstance()
-			{
-				m_flagListening = sl_false;
-			}
-
-		public:
-			static Ref<TcpServerInstance> create(Socket&& socket)
+			static Ref<ServerInstance> create(Socket&& socket, sl_bool flagDomain)
 			{
 				if (socket.isOpened()) {
 					if (socket.setNonBlockingMode()) {
 						sl_async_handle handle = (sl_async_handle)(socket.get());
 						if (handle != SLIB_ASYNC_INVALID_HANDLE) {
-							Ref<TcpServerInstance> ret = new TcpServerInstance();
+							Ref<ServerInstance> ret = new ServerInstance();
 							if (ret.isNotNull()) {
+								ret->m_flagDomainSocket = flagDomain;
 								ret->setHandle(handle);
 								socket.release();
 								return ret;
@@ -275,16 +268,29 @@ namespace slib
 
 				Thread* thread = Thread::getCurrent();
 				while (!thread || thread->isNotStopping()) {
-					SocketAddress addr;
 					Socket socketAccept;
-					if (socket->accept(socketAccept, addr)) {
-						_onAccept(socketAccept, addr);
-					} else {
-						SocketError err = Socket::getLastError();
-						if (err != SocketError::WouldBlock) {
-							_onError();
+					if (m_flagDomainSocket) {
+						DomainSocketPath path;
+						if (socket->accept(socketAccept, path)) {
+							_onAccept(socketAccept, path);
+						} else {
+							SocketError err = Socket::getLastError();
+							if (err != SocketError::WouldBlock) {
+								_onError();
+							}
+							return;
 						}
-						return;
+					} else {
+						SocketAddress addr;
+						if (socket->accept(socketAccept, addr)) {
+							_onAccept(socketAccept, addr);
+						} else {
+							SocketError err = Socket::getLastError();
+							if (err != SocketError::WouldBlock) {
+								_onError();
+							}
+							return;
+						}
 					}
 				}
 			}
@@ -301,18 +307,16 @@ namespace slib
 		};
 	}
 
-	Ref<AsyncTcpServerInstance> AsyncTcpServer::_createInstance(Socket&& socket, sl_bool flagIPv6)
+	Ref<AsyncSocketServerInstance> AsyncSocketServer::_createInstance(Socket&& socket, sl_bool flagIPv6, sl_bool flagDomain)
 	{
-		return TcpServerInstance::create(Move(socket));
+		return ServerInstance::create(Move(socket), flagDomain);
 	}
 
 	namespace {
 		class UdpInstance : public AsyncUdpSocketInstance
 		{
 		public:
-			UdpInstance()
-			{
-			}
+			sl_bool m_flagPacketInfo;
 
 		public:
 			static Ref<UdpInstance> create(Socket&& socket, const Memory& buffer)
@@ -324,6 +328,7 @@ namespace slib
 							Ref<UdpInstance> ret = new UdpInstance();
 							if (ret.isNotNull()) {
 								ret->m_buffer = buffer;
+								ret->m_flagPacketInfo = socket.isReceivingPacketInformation() || socket.isReceivingIPv6PacketInformation();
 								ret->setHandle(handle);
 								socket.release();
 								return ret;
@@ -358,16 +363,27 @@ namespace slib
 
 				Thread* thread = Thread::getCurrent();
 				while (!thread || thread->isNotStopping()) {
-					SocketAddress addr;
-					sl_int32 n = socket->receiveFrom(addr, buf, sizeBuf);
-					if (n >= 0) {
-						_onReceive(addr, n);
-					} else {
-						if (n != SLIB_IO_WOULD_BLOCK) {
-							_onError();
+					SocketAddress src;
+					sl_int32 n;
+					if (m_flagPacketInfo) {
+						sl_uint32 interfaceIndex = 0;
+						IPAddress dst;
+						n = socket->receiveFrom(interfaceIndex, dst, src, buf, sizeBuf);
+						if (n >= 0) {
+							_onReceive(interfaceIndex, dst, src, n);
+							continue;
 						}
-						break;
+					} else {
+						n = socket->receiveFrom(src, buf, sizeBuf);
+						if (n >= 0) {
+							_onReceive(src, n);
+							continue;
+						}
 					}
+					if (n != SLIB_IO_WOULD_BLOCK) {
+						_onError();
+					}
+					break;
 				}
 			}
 		};

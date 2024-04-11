@@ -31,7 +31,7 @@
 #include "slib/core/string_buffer.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 
 #include "slib/platform/win32/windows.h"
 #include <winhttp.h>
@@ -297,7 +297,7 @@ namespace slib
 					return;
 				}
 				{
-					for (auto& pair : m_requestHeaders) {
+					for (auto&& pair : m_requestHeaders) {
 						String16 line = String16::format(SLIB_UNICODE("%s: %s\r\n"), pair.key, pair.value);
 						WinHttpAddRequestHeaders(m_hRequest, (LPCWSTR)(line.getData()), (DWORD)(line.getLength()), WINHTTP_ADDREQ_FLAG_ADD);
 					}
@@ -445,9 +445,7 @@ namespace slib
 					Ref<AsyncStream> file = m_fileDownload;
 					if (file.isNotNull()) {
 						m_step = STEP_FINISHED_RECEIVING;
-						if (!(file->write(sl_null, 0, SLIB_FUNCTION_WEAKREF(this, _onWriteDownloadFile)))) {
-							processError("Error on writing download file");
-						}
+						file->write(sl_null, 0, SLIB_FUNCTION_WEAKREF(this, _onWriteDownloadFile));
 					}
 				} else {
 					processComplete();
@@ -467,9 +465,7 @@ namespace slib
 							processError("Error on writing download file");
 						} else {
 							Base::interlockedAdd(&m_sizeDownloadWriting, m_offsetReceiving);
-							if (!(file->write(mem, SLIB_FUNCTION_WEAKREF(this, _onWriteDownloadFile)))) {
-								processError("Error on writing download file");
-							}
+							file->write(mem, SLIB_FUNCTION_WEAKREF(this, _onWriteDownloadFile));
 						}
 					}
 				} else {

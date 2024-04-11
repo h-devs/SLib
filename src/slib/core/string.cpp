@@ -248,13 +248,34 @@ namespace slib
 			sl_uint8* buf = (sl_uint8*)(Base::createMemory(sizeof(CONTAINER) + (len + 1) * sizeof(typename CONTAINER::StringType::Char)));
 			if (buf) {
 				CONTAINER* container = reinterpret_cast<CONTAINER*>(buf);
-				container->sz = (typename CONTAINER::StringType::Char*)(buf + sizeof(CONTAINER));
+				container->data = (typename CONTAINER::StringType::Char*)(buf + sizeof(CONTAINER));
 				container->len = len;
 				container->hash = 0;
 				container->type = STRING_CONTAINER_TYPE_NORMAL;
 				container->ref = 1;
-				container->sz[len] = 0;
+				container->data[len] = 0;
 				return container;
+			}
+			return sl_null;
+		}
+
+		template <class CONTAINER>
+		static CONTAINER* Realloc(CONTAINER* old, sl_size len) noexcept
+		{
+			if (!len) {
+				Free(old);
+				return ConstContainers<CONTAINER>::getEmpty();
+			}
+			sl_uint8* buf = (sl_uint8*)(Base::reallocMemory(old, sizeof(CONTAINER) + (len + 1) * sizeof(typename CONTAINER::StringType::Char)));
+			if (buf) {
+				CONTAINER* container = reinterpret_cast<CONTAINER*>(buf);
+				container->data = (typename CONTAINER::StringType::Char*)(buf + sizeof(CONTAINER));
+				container->len = len;
+				container->hash = 0;
+				container->data[len] = 0;
+				return container;
+			} else {
+				Free(old);
 			}
 			return sl_null;
 		}
@@ -267,7 +288,7 @@ namespace slib
 			}
 			CONTAINER* container = (CONTAINER*)(Base::createMemory(sizeof(CONTAINER)));
 			if (container) {
-				container->sz = (typename CONTAINER::StringType::Char*)sz;
+				container->data = (typename CONTAINER::StringType::Char*)sz;
 				container->len = len;
 				container->hash = 0;
 				container->type = STRING_CONTAINER_TYPE_NORMAL;
@@ -287,14 +308,14 @@ namespace slib
 			if (len < 40) {
 				CONTAINER* container = Alloc<CONTAINER>(len);
 				if (container) {
-					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, str.c_str(), len);
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data, str.c_str(), len);
 					return container;
 				}
 			} else {
 				StdContainer<CONTAINER>* container = (StdContainer<CONTAINER>*)(Base::createMemory(sizeof(StdContainer<CONTAINER>)));
 				if (container) {
 					new (container) StdContainer<CONTAINER>(Forward<VALUE>(str));
-					container->sz = (typename CONTAINER::StringType::Char*)(container->object.c_str());
+					container->data = (typename CONTAINER::StringType::Char*)(container->object.c_str());
 					container->len = len;
 					container->hash = 0;
 					container->type = STRING_CONTAINER_TYPE_STD;
@@ -314,7 +335,7 @@ namespace slib
 			RefContainer<CONTAINER>* container = (RefContainer<CONTAINER>*)(Base::createMemory(sizeof(RefContainer<CONTAINER>)));
 			if (container) {
 				new (container) RefContainer<CONTAINER>(obj);
-				container->sz = (typename CONTAINER::StringType::Char*)(sz);
+				container->data = (typename CONTAINER::StringType::Char*)(sz);
 				container->len = len;
 				container->hash = 0;
 				container->type = STRING_CONTAINER_TYPE_REF;
@@ -333,7 +354,7 @@ namespace slib
 			SubContainer<CONTAINER>* container = (SubContainer<CONTAINER>*)(Base::createMemory(sizeof(SubContainer<CONTAINER>)));
 			if (container) {
 				new (container) SubContainer<CONTAINER>(str);
-				container->sz = (typename CONTAINER::StringType::Char*)(sz);
+				container->data = (typename CONTAINER::StringType::Char*)(sz);
 				container->len = len;
 				container->hash = 0;
 				container->type = STRING_CONTAINER_TYPE_SUB;
@@ -348,7 +369,7 @@ namespace slib
 		{
 			CONTAINER* container = Alloc<CONTAINER>(nRepeatCount);
 			if (container && nRepeatCount) {
-				MemoryTraits<typename CONTAINER::StringType::Char>::reset(container->sz, nRepeatCount, ch);
+				MemoryTraits<typename CONTAINER::StringType::Char>::reset(container->data, nRepeatCount, ch);
 			}
 			return container;
 		}
@@ -415,8 +436,8 @@ namespace slib
 					}
 					CONTAINER* container = Alloc<CONTAINER>(lenDst);
 					if (container && lenDst) {
-						ConvertCharset(src, lenSrc, container->sz);
-						container->sz[lenDst] = 0;
+						ConvertCharset(src, lenSrc, container->data);
+						container->data[lenDst] = 0;
 					}
 					return container;
 				}
@@ -436,7 +457,7 @@ namespace slib
 					}
 					CONTAINER* container = Alloc<CONTAINER>(len);
 					if (container && len > 0) {
-						MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, str, len);
+						MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data, str, len);
 					}
 					return container;
 				}
@@ -481,8 +502,8 @@ namespace slib
 					sl_size lenDst = FromUtf16(endian, src, size, (typename CONTAINER::StringType::Char*)sl_null, -1);
 					CONTAINER* container = Alloc<CONTAINER>(lenDst);
 					if (container && lenDst) {
-						FromUtf16(endian, src, size, container->sz, lenDst);
-						container->sz[lenDst] = 0;
+						FromUtf16(endian, src, size, container->data, lenDst);
+						container->data[lenDst] = 0;
 					}
 					return container;
 				}
@@ -500,8 +521,8 @@ namespace slib
 					sl_size len = size >> 1;
 					StringContainer16* container = Alloc<StringContainer16>(len);
 					if (container && len) {
-						Charsets::utf16ToUtf16(endian, src, container->sz, len);
-						container->sz[len] = 0;
+						Charsets::utf16ToUtf16(endian, src, container->data, len);
+						container->data[len] = 0;
 					}
 					return container;
 				}
@@ -549,16 +570,16 @@ namespace slib
 				sl_size len = container->len;
 				if (type == STRING_CONTAINER_TYPE_NORMAL || type == STRING_CONTAINER_TYPE_STD) {
 					outLength = len;
-					return container->sz;
+					return container->data;
 				}
-				typename STRING::Char* sz = container->sz;
-				if (sz[len]) {
-					outStringConverted = STRING(sz, len);
+				typename STRING::Char* data = container->data;
+				if (data[len]) {
+					outStringConverted = STRING(data, len);
 					outLength = len;
 					return outStringConverted.getData();
 				} else {
 					outLength = len;
-					return sz;
+					return data;
 				}
 			}
 			outLength = 0;
@@ -573,7 +594,7 @@ namespace slib
 					RefContainer<typename STRING::Container>* c = static_cast<RefContainer<typename STRING::Container>*>(container);
 					if (IsInstanceOf<CMemory>(c->object)) {
 						CMemory* mem = (CMemory*)(c->object.ptr);
-						if (mem->data == container->sz && mem->size == container->len) {
+						if (mem->data == container->data && mem->size == container->len) {
 							return mem;
 						}
 					}
@@ -696,12 +717,11 @@ namespace slib
 				CONTAINER* container = Alloc<CONTAINER>(len);
 				if (container && len) {
 					if (len1) {
-						ConvertCharset(src1, lenSrc1, container->sz);
+						ConvertCharset(src1, lenSrc1, container->data);
 					}
 					if (len2) {
-						ConvertCharset(src2, lenSrc2, container->sz + len1);
+						ConvertCharset(src2, lenSrc2, container->data + len1);
 					}
-					container->sz[len] = 0;
 				}
 				return container;
 			}
@@ -722,9 +742,8 @@ namespace slib
 				sl_size len = len1 + len2;
 				CONTAINER* container = Alloc<CONTAINER>(len);
 				if (container && len) {
-					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, s1, len1);
-					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz + len1, s2, len2);
-					container->sz[len] = 0;
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data, s1, len1);
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data + len1, s2, len2);
 				}
 				return container;
 			}
@@ -749,11 +768,10 @@ namespace slib
 				sl_size len = len1 + len2;
 				CONTAINER* container = Alloc<CONTAINER>(len);
 				if (container && len) {
-					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, s1, len1);
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data, s1, len1);
 					if (len2) {
-						ConvertCharset(src2, lenSrc2, container->sz + len1);
+						ConvertCharset(src2, lenSrc2, container->data + len1);
 					}
-					container->sz[len] = 0;
 				}
 				return container;
 			}
@@ -779,10 +797,9 @@ namespace slib
 				CONTAINER* container = Alloc<CONTAINER>(len);
 				if (container && len) {
 					if (len1) {
-						ConvertCharset(src1, lenSrc1, container->sz);
+						ConvertCharset(src1, lenSrc1, container->data);
 					}
-					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz + len1, s2, len2);
-					container->sz[len] = 0;
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data + len1, s2, len2);
 				}
 				return container;
 			}
@@ -839,6 +856,65 @@ namespace slib
 				} else {
 					return Concat<typename STRING::Container>(s1.data32, s1.length, s2.data32, s2.length);
 				}
+			}
+		}
+
+		template <class CONTAINER, class CHAR>
+		class Appender
+		{
+		public:
+			static CONTAINER* append(CONTAINER* container, const CHAR* src, sl_reg lenSrc)
+			{
+				if (lenSrc < 0) {
+					lenSrc = StringTraits<CHAR>::getLength(src);
+				}
+				sl_size len2 = 0;
+				if (lenSrc) {
+					len2 = ConvertCharset(src, lenSrc, (typename CONTAINER::StringType::Char*)sl_null);
+				}
+				sl_size len1 = container->len;
+				sl_size len = len1 + len2;
+				container = Realloc<CONTAINER>(container, len);
+				if (container && len) {
+					if (len2) {
+						ConvertCharset(src, lenSrc, container->data + len1);
+					}
+				}
+				return container;
+			}
+		};
+
+		template <class CONTAINER>
+		class Appender<CONTAINER, typename CONTAINER::StringType::Char>
+		{
+		public:
+			static CONTAINER* append(CONTAINER* container, typename CONTAINER::StringType::Char const* s2, sl_reg len2)
+			{
+				if (len2 < 0) {
+					len2 = StringTraits<typename CONTAINER::StringType::Char>::getLength(s2);
+				}
+				sl_size len1 = container->len;
+				sl_size len = len1 + len2;
+				container = Realloc<CONTAINER>(container, len);
+				if (container && len) {
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->data + len1, s2, len2);
+				}
+				return container;
+			}
+		};
+
+		template <class CONTAINER, class CHAR>
+		static void Append(CONTAINER*& container, const CHAR* src, sl_reg lenSrc) noexcept
+		{
+			if (!src) {
+				src = EMPTY_SZ(CHAR);
+			}
+			if (container->ref == 1) {
+				container = Appender<CONTAINER, CHAR>::append(container, src, lenSrc);
+			} else {
+				CONTAINER* old = container;
+				container = Concat<CONTAINER>(container->data, container->len, src, lenSrc);
+				old->decreaseReference();
 			}
 		}
 
@@ -3556,14 +3632,26 @@ namespace slib
 			FLOAT min_value;
 			if (precision < 0) {
 				if (sizeof(FLOAT) == 4) {
-					precision = 5 - nInt;
+					if (nInt >= 5) {
+						precision = 10 - nInt;
+					} else if (nInt >= 0) {
+						precision = 5;
+					} else {
+						precision = 5 - nInt;
+					}
 				} else {
-					precision = 15 - nInt;
+					if (nInt >= 5) {
+						precision = 15 - nInt;
+					} else if (nInt >= 0) {
+						precision = 10;
+					} else {
+						precision = 10 - nInt;
+					}
 				}
 				if (precision < 1) {
 					precision = 1;
-				} else if (precision > 50) {
-					precision = 50;
+				} else if (precision > 30) {
+					precision = 30;
 				}
 			}
 			min_value = Math::pow((FLOAT)10, (FLOAT)(-precision));
@@ -3686,8 +3774,14 @@ namespace slib
 
 			property:
 				[name]: `name` is element index or item name
+
+			precision:
+				-precision: tailing zeros (except first zero) are ignored
+				--precision: tailing zeros (including first zero) are ignored
+
 			`%%` -> `%`
 			`%...%` = `%...s`
+
 		*/
 
 		template <typename CHAR, typename STRING>
@@ -3806,8 +3900,9 @@ namespace slib
 				return sl_true;
 			}
 
-			void resolveProperties(Variant& arg)
+			const Variant& resolveProperties(const Variant& _arg, Variant& varg)
 			{
+				const Variant* arg = &_arg;
 				while (pos < len) {
 					CHAR ch = format[pos];
 					if (ch != '[') {
@@ -3817,16 +3912,18 @@ namespace slib
 					sl_size posName = pos;
 					for (;;) {
 						if (!(getChar(ch))) {
-							return;
+							return *arg;
 						}
 						if (ch == ']') {
-							arg = arg.getItem(String::from(format + posName, pos - posName));
+							varg = arg->getItem(String::from(format + posName, pos - posName));
+							arg = &varg;
 							pos++;
 							break;
 						}
 						pos++;
 					}
 				}
+				return *arg;
 			}
 
 			struct ConversionFlags
@@ -3841,6 +3938,8 @@ namespace slib
 				sl_uint32 minWidth = 0;
 				sl_uint32 precision = 0;
 				sl_bool flagUsePrecision = sl_false;
+				sl_bool flagZeroPaddedFraction = sl_true;
+				sl_bool flagIgnoreZeroFraction = sl_false;
 			};
 
 			sl_bool parseFlags(ConversionFlags& flags)
@@ -3886,13 +3985,27 @@ namespace slib
 					if (pos >= len) {
 						return sl_false;
 					}
-					flags.flagUsePrecision = sl_true;
+					if (format[pos] == '-') {
+						pos++;
+						if (pos >= len) {
+							return sl_false;
+						}
+						flags.flagZeroPaddedFraction = sl_false;
+						if (format[pos] == '-') {
+							pos++;
+							if (pos >= len) {
+								return sl_false;
+							}
+							flags.flagIgnoreZeroFraction = sl_true;
+						}
+					}
 					sl_reg iRet = STRING::parseUint32(10, &(flags.precision), format, pos, len);
 					if (iRet != SLIB_PARSE_ERROR) {
 						pos = iRet;
 						if (pos >= len) {
 							return sl_false;
 						}
+						flags.flagUsePrecision = sl_true;
 					}
 				}
 				return sl_true;
@@ -4021,6 +4134,7 @@ namespace slib
 						content = STRING::from(time.getMonthShort(*zone));
 						break;
 					case 's':
+					case '%':
 						content = STRING::from(time.toString(*zone));
 						break;
 					default:
@@ -4136,11 +4250,33 @@ namespace slib
 				if (flags.flagUsePrecision) {
 					precision = flags.precision;
 				}
+				sl_int32 minWidthIntegral = 1;
+				sl_bool flagZeroPaddedFraction = flags.flagZeroPaddedFraction;
+				if (flags.flagZeroPadded) {
+					if (precision > 0) {
+						minWidthIntegral = flags.minWidth - precision - 1;
+					} else {
+						minWidthIntegral = flags.minWidth;
+					}
+					if (minWidthIntegral < 1) {
+						minWidthIntegral = 1;
+					}
+					flagZeroPaddedFraction = sl_true;
+				}
 				STRING content;
 				if (arg.isFloat()) {
-					content = FromFloat<float, CHAR>(arg.getFloat(), precision, flags.flagZeroPadded, 1, ch, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
+					content = FromFloat<float, CHAR>(arg.getFloat(), precision, flagZeroPaddedFraction, minWidthIntegral, ch, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
 				} else {
-					content = FromFloat<double, CHAR>(arg.getDouble(), precision, flags.flagZeroPadded, 1, ch, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
+					content = FromFloat<double, CHAR>(arg.getDouble(), precision, flagZeroPaddedFraction, minWidthIntegral, ch, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
+				}
+				if (flags.flagIgnoreZeroFraction) {
+					sl_size len = content.getLength();
+					if (len > 2) {
+						CHAR* s = content.getData();
+						if (s[len - 2] == '.' && s[len - 1] == '0') {
+							content = content.substring(0, len - 2);
+						}
+					}
 				}
 				return append(content, flags);
 			}
@@ -4163,8 +4299,8 @@ namespace slib
 				if (!(parseArgumentIndex(ch, indexArg))) {
 					return sl_false;
 				}
-				Variant arg = params[indexArg];
-				resolveProperties(arg);
+				Variant varg;
+				const Variant& arg = resolveProperties(params[indexArg], varg);
 				if (pos >= len) {
 					return sl_false;
 				}
@@ -4203,6 +4339,8 @@ namespace slib
 					case 'c':
 						pos++;
 						return processChar(arg, flags);
+					case 'D':
+						return processTime(arg.getTime(), flags);
 					default:
 						return sl_false;
 				}
@@ -4270,21 +4408,18 @@ namespace slib
 	SLIB_INLINE sl_reg CONTAINER::increaseReference() noexcept \
 	{ \
 		if (ref >= 0) { \
-			return Base::interlockedIncrement(&ref); \
+			return CRef::increaseReference(ref); \
 		} \
-		return 1; \
+		return -1; \
 	} \
 	\
 	SLIB_INLINE sl_reg CONTAINER::decreaseReference() noexcept \
 	{ \
-		if (ref > 0) { \
-			sl_reg nRef = Base::interlockedDecrement(&ref); \
-			if (!nRef) { \
-				Free(this); \
-			} \
-			return nRef; \
+		sl_reg nRef = CRef::decreaseReference(ref); \
+		if (!nRef) { \
+			Free(this); \
 		} \
-		return 1; \
+		return nRef; \
 	}
 
 	DEFINE_STRING_CONTAINER_IMPL(StringContainer)
@@ -4324,6 +4459,18 @@ namespace slib
 		} \
 		m_lock.unlock(); \
 		return container; \
+	} \
+	\
+	SLIB_INLINE typename STRING::Container* Atomic<STRING>::_releaseContainer() noexcept \
+	{ \
+		if (!m_container) { \
+			return sl_null; \
+		} \
+		m_lock.lock(); \
+		Container* container = m_container; \
+		m_container = sl_null; \
+		m_lock.unlock(); \
+		return container; \
 	}
 
 	DEFINE_STRING_INLINE_IMPL(String)
@@ -4341,7 +4488,12 @@ namespace slib
 		m_container= container; \
 	} \
 	\
-	STRING::CONSTRUCTOR(typename AddAtomic<STRING>::Type const & src) noexcept \
+	STRING::CONSTRUCTOR(typename AddAtomic<STRING>::Type&& src) noexcept \
+	{ \
+		m_container = src._releaseContainer(); \
+	} \
+	\
+	STRING::CONSTRUCTOR(typename AddAtomic<STRING>::Type const& src) noexcept \
 	{ \
 		m_container = src._retainContainer(); \
 	} \
@@ -4559,6 +4711,11 @@ namespace slib
 		return create(str); \
 	} \
 	\
+	STRING STRING::from(const StringView32& str) noexcept \
+	{ \
+		return create(str); \
+	} \
+	\
 	STRING STRING::from(const char* str, sl_reg length) noexcept \
 	{ \
 		return create(str, length); \
@@ -4623,11 +4780,32 @@ namespace slib
 		} \
 	} \
 	\
+	typename STRING::Char STRING::getFirst() const noexcept \
+	{ \
+		if (m_container) { \
+			if (m_container->len) { \
+				return *(m_container->data); \
+			} \
+		} \
+		return 0; \
+	} \
+	\
+	typename STRING::Char STRING::getLast() const noexcept \
+	{ \
+		if (m_container) { \
+			sl_size n = m_container->len; \
+			if (n) { \
+				return m_container->data[n - 1]; \
+			} \
+		} \
+		return 0; \
+	} \
+	\
 	typename STRING::Char STRING::getAt(sl_reg index) const noexcept \
 	{ \
 		if (m_container) { \
 			if (index >= 0 && index < (sl_reg)(m_container->len)) { \
-				return m_container->sz[index]; \
+				return m_container->data[index]; \
 			} \
 		} \
 		return 0; \
@@ -4637,7 +4815,7 @@ namespace slib
 	{ \
 		if (m_container) { \
 			if (index >= 0 && index < (sl_reg)(m_container->len)) { \
-				m_container->sz[index] = ch; \
+				m_container->data[index] = ch; \
 				return sl_true; \
 			} \
 		} \
@@ -4646,12 +4824,12 @@ namespace slib
 	\
 	typename STRING::Char STRING::operator[](sl_size index) const noexcept \
 	{ \
-		return m_container->sz[index]; \
+		return m_container->data[index]; \
 	} \
 	\
 	typename STRING::Char& STRING::operator[](sl_size index) noexcept \
 	{ \
-		return m_container->sz[index]; \
+		return m_container->data[index]; \
 	} \
 	typename STRING::StdString STRING::toStd() const noexcept \
 	{ \
@@ -4659,7 +4837,7 @@ namespace slib
 			if (m_container->type == STRING_CONTAINER_TYPE_STD) { \
 				return (static_cast<StdContainer<Container>*>(m_container))->object; \
 			} else { \
-				return StdString(m_container->sz, m_container->len); \
+				return StdString(m_container->data, m_container->len); \
 			} \
 		} \
 		return StdString(); \
@@ -4675,7 +4853,7 @@ namespace slib
 	{ \
 		Container* container = m_container; \
 		if (container) { \
-			return STRING(container->sz, container->len); \
+			return STRING(container->data, container->len); \
 		} \
 		return sl_null; \
 	} \
@@ -4687,8 +4865,8 @@ namespace slib
 			if (container->type == STRING_CONTAINER_TYPE_NORMAL || container->type == STRING_CONTAINER_TYPE_STD) { \
 				return *this; \
 			} \
-			if (container->sz[container->len]) { \
-				return STRING(container->sz, container->len); \
+			if (container->data[container->len]) { \
+				return STRING(container->data, container->len); \
 			} else { \
 				return *this; \
 			} \
@@ -4731,84 +4909,170 @@ namespace slib
 		return create(str); \
 	} \
 	\
-	STRING& STRING::operator+=(const STRING& _other) noexcept \
-	{ \
-		Container* other = _other.m_container; \
-		if (!other) { \
-			return *this; \
-		} \
-		if (isEmpty()) { \
-			return *this = _other; \
-		} \
-		if (!(other->len)) { \
-			return *this; \
-		} \
-		Container* thiz = m_container; \
-		*this = STRING(Concat<Container>(thiz->sz, thiz->len, other->sz, other->len)); \
-		return *this; \
-	} \
-	\
 	STRING& STRING::operator+=(STRING&& _other) noexcept \
 	{ \
 		Container* other = _other.m_container; \
-		if (!other) { \
-			return *this; \
+		if (other) { \
+			if (isEmpty()) { \
+				return *this = Move(_other); \
+			} \
+			if (other->len) { \
+				Append<Container>(m_container, other->data, other->len); \
+			} \
 		} \
-		if (isEmpty()) { \
-			return *this = Move(_other); \
-		} \
-		if (!(other->len)) { \
-			return *this; \
-		} \
-		Container* thiz = m_container; \
-		*this = STRING(Concat<Container>(thiz->sz, thiz->len, other->sz, other->len)); \
 		return *this; \
 	} \
 	\
-	STRING STRING::operator+(const STRING& _other) const noexcept \
+	STRING& STRING::operator+=(const STRING& _other) noexcept \
 	{ \
 		Container* other = _other.m_container; \
-		if (!other) { \
-			return *this; \
+		if (other) { \
+			if (isEmpty()) { \
+				return *this = _other; \
+			} \
+			if (other->len) { \
+				Append<Container>(m_container, other->data, other->len); \
+			} \
 		} \
-		if (isEmpty()) { \
-			return _other; \
-		} \
-		if (!(other->len)) { \
-			return *this; \
-		} \
-		Container* thiz = m_container; \
-		return Concat<Container>(thiz->sz, thiz->len, other->sz, other->len); \
+		return *this; \
 	} \
 	\
-	STRING STRING::operator+(typename STRING::StringViewType const& other) const noexcept \
+	STRING& STRING::operator+=(typename STRING::StringViewType const& other) noexcept \
 	{ \
-		if (other.isNull()) { \
-			return *this; \
+		if (other.isNotNull()) { \
+			if (isEmpty()) { \
+				return *this = other; \
+			} \
+			if (other.isNotEmpty()) { \
+				Append<Container>(m_container, other.getUnsafeData(), other.getUnsafeLength()); \
+			} \
 		} \
-		if (isEmpty()) { \
-			return other; \
-		} \
-		if (other.isEmpty()) { \
-			return *this; \
-		} \
-		Container* thiz = m_container; \
-		return Concat<Container>(thiz->sz, thiz->len, other.getUnsafeData(), other.getUnsafeLength()); \
+		return *this; \
 	} \
 	\
-	STRING STRING::operator+(typename STRING::Char const* sz) const noexcept \
+	STRING& STRING::operator+=(typename STRING::Char const* sz) noexcept \
 	{ \
-		if (!sz) { \
-			return *this; \
+		if (sz) { \
+			if (isEmpty()) { \
+				return *this = sz; \
+			} \
+			if (*sz) { \
+				Append<Container>(m_container, sz, -1); \
+			} \
 		} \
-		if (isEmpty()) { \
-			return sz; \
+		return *this; \
+	} \
+	\
+	STRING STRING::operator+(STRING&& _other) const& noexcept \
+	{ \
+		Container* other = _other.m_container; \
+		if (other) { \
+			if (isEmpty()) { \
+				return Move(_other); \
+			} \
+			if (other->len) { \
+				Container* thiz = m_container; \
+				return Concat<Container>(thiz->data, thiz->len, other->data, other->len); \
+			} \
 		} \
-		if (!(*sz)) { \
-			return *this; \
+		return *this; \
+	} \
+	\
+	STRING STRING::operator+(const STRING& _other) const& noexcept \
+	{ \
+		Container* other = _other.m_container; \
+		if (other) { \
+			if (isEmpty()) { \
+				return _other; \
+			} \
+			if (other->len) { \
+				Container* thiz = m_container; \
+				return Concat<Container>(thiz->data, thiz->len, other->data, other->len); \
+			} \
 		} \
-		Container* thiz = m_container; \
-		return Concat<Container>(thiz->sz, thiz->len, sz, -1); \
+		return *this; \
+	} \
+	\
+	STRING STRING::operator+(typename STRING::StringViewType const& other) const& noexcept \
+	{ \
+		if (other.isNotNull()) { \
+			if (isEmpty()) { \
+				return other; \
+			} \
+			if (other.isNotEmpty()) { \
+				Container* thiz = m_container; \
+				return Concat<Container>(thiz->data, thiz->len, other.getUnsafeData(), other.getUnsafeLength()); \
+			} \
+		} \
+		return *this; \
+	} \
+	\
+	STRING STRING::operator+(typename STRING::Char const* sz) const& noexcept \
+	{ \
+		if (sz) { \
+			if (isEmpty()) { \
+				return sz; \
+			} \
+			if (*sz) { \
+				Container* thiz = m_container; \
+				return Concat<Container>(thiz->data, thiz->len, sz, -1); \
+			} \
+		} \
+		return *this; \
+	} \
+	\
+	STRING STRING::operator+(STRING&& _other)&& noexcept \
+	{ \
+		Container* other = _other.m_container; \
+		if (other) { \
+			if (isEmpty()) { \
+				return Move(_other); \
+			} \
+			if (other->len) { \
+				Append<Container>(m_container, other->data, other->len); \
+			} \
+		} \
+		return Move(*this); \
+	} \
+	\
+	STRING STRING::operator+(const STRING& _other)&& noexcept \
+	{ \
+		Container* other = _other.m_container; \
+		if (other) { \
+			if (isEmpty()) { \
+				return _other; \
+			} \
+			if (other->len) { \
+				Append<Container>(m_container, other->data, other->len); \
+			} \
+		} \
+		return Move(*this); \
+	} \
+	\
+	STRING STRING::operator+(typename STRING::StringViewType const& other)&& noexcept \
+	{ \
+		if (other.isNotNull()) { \
+			if (isEmpty()) { \
+				return other; \
+			} \
+			if (other.isNotEmpty()) { \
+				Append<Container>(m_container, other.getUnsafeData(), other.getUnsafeLength()); \
+			} \
+		} \
+		return Move(*this); \
+	} \
+	\
+	STRING STRING::operator+(typename STRING::Char const* sz)&& noexcept \
+	{ \
+		if (sz) { \
+			if (isEmpty()) { \
+				return sz; \
+			} \
+			if (*sz) { \
+				Append<Container>(m_container, sz, -1); \
+			} \
+		} \
+		return Move(*this); \
 	} \
 	\
 	STRING operator+(typename STRING::Char const* sz, const STRING& str) noexcept \
@@ -4823,7 +5087,7 @@ namespace slib
 			return str; \
 		} \
 		typename STRING::Container* container = str.m_container; \
-		return Concat<typename STRING::Container>(sz, -1, container->sz, container->len); \
+		return Concat<typename STRING::Container>(sz, -1, container->data, container->len); \
 	} \
 	\
 	STRING STRING::operator+(typename STRING::StdString const& other) const noexcept \
@@ -4835,7 +5099,7 @@ namespace slib
 			return *this; \
 		} \
 		Container* thiz = m_container; \
-		return Concat<Container>(thiz->sz, thiz->len, other.data(), (sl_reg)(other.length())); \
+		return Concat<Container>(thiz->data, thiz->len, other.data(), (sl_reg)(other.length())); \
 	} \
 	\
 	STRING operator+(typename STRING::StdString const& other, const STRING& str) noexcept \
@@ -4847,7 +5111,7 @@ namespace slib
 			return str; \
 		} \
 		typename STRING::Container* container = str.m_container; \
-		return Concat<typename STRING::Container>(other.data(), (sl_reg)(other.length()), container->sz, container->len); \
+		return Concat<typename STRING::Container>(other.data(), (sl_reg)(other.length()), container->data, container->len); \
 	} \
 	\
 	STRING STRING::concat(const StringParam& s1, const StringParam& s2) noexcept \
@@ -4919,7 +5183,7 @@ namespace slib
 			if (n > 0) { \
 				sl_size hash = m_container->hash; \
 				if (!hash) { \
-					hash = GetHashCode(m_container->sz, n); \
+					hash = GetHashCode(m_container->data, n); \
 					m_container->hash = hash; \
 				} \
 				return hash; \
@@ -4936,7 +5200,7 @@ namespace slib
 	sl_size STRING::getHashCode_IgnoreCase() const noexcept \
 	{ \
 		if (m_container) { \
-			return GetHashCode_IgnoreCase(m_container->sz, m_container->len); \
+			return GetHashCode_IgnoreCase(m_container->data, m_container->len); \
 		} \
 		return 0; \
 	} \
@@ -5685,6 +5949,10 @@ namespace slib
 			_replaceContainer(sl_null); \
 		} \
 	} \
+	STRING Atomic<STRING>::release() noexcept \
+	{ \
+		return _releaseContainer(); \
+	} \
 	\
 	Atomic<STRING>& Atomic<STRING>::operator=(sl_null_t) noexcept \
 	{ \
@@ -5735,6 +6003,14 @@ DEFINE_ATOMIC_STRING_FUNC_IMPL(String32)
 		return *this; \
 	} \
 	\
+	STRING& STRING::operator=(typename AddAtomic<STRING>::Type&& other) noexcept \
+	{ \
+		if (m_container != other.m_container) { \
+			_replaceContainer(other._releaseContainer()); \
+		} \
+		return *this; \
+	} \
+	\
 	STRING& STRING::operator=(typename STRING::StringViewType const& other) noexcept \
 	{ \
 		_replaceContainer(CreateFromSz<Container>(other.getUnsafeData(), other.getUnsafeLength())); \
@@ -5765,6 +6041,54 @@ DEFINE_COMMON_STRING_FUNC_IMPL(String16)
 DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String16>)
 DEFINE_COMMON_STRING_FUNC_IMPL(String32)
 DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
+
+	String ToString(const Atomic<String>& str) noexcept
+	{
+		return str;
+	}
+
+	String ToString(const StringView& str) noexcept
+	{
+		return str;
+	}
+
+#define DEFINE_TO_STRING(TYPE) \
+	String ToString(TYPE str) noexcept \
+	{ \
+		return String::from(str); \
+	}
+
+	DEFINE_TO_STRING(const String16&)
+	DEFINE_TO_STRING(const Atomic<String16>&)
+	DEFINE_TO_STRING(const String32&)
+	DEFINE_TO_STRING(const Atomic<String32>&)
+	DEFINE_TO_STRING(const StringView16&)
+	DEFINE_TO_STRING(const StringView32&)
+	DEFINE_TO_STRING(const StringParam&)
+	DEFINE_TO_STRING(const char*)
+	DEFINE_TO_STRING(const wchar_t*)
+	DEFINE_TO_STRING(const char16_t*)
+	DEFINE_TO_STRING(const char32_t*)
+	DEFINE_TO_STRING(const std::string&)
+	DEFINE_TO_STRING(const std::wstring&)
+	DEFINE_TO_STRING(const std::u16string&)
+	DEFINE_TO_STRING(const std::u32string&)
+	DEFINE_TO_STRING(signed char)
+	DEFINE_TO_STRING(unsigned char)
+	DEFINE_TO_STRING(short)
+	DEFINE_TO_STRING(unsigned short)
+	DEFINE_TO_STRING(int)
+	DEFINE_TO_STRING(unsigned int)
+	DEFINE_TO_STRING(long)
+	DEFINE_TO_STRING(unsigned long)
+	DEFINE_TO_STRING(sl_int64)
+	DEFINE_TO_STRING(sl_uint64)
+	DEFINE_TO_STRING(float)
+	DEFINE_TO_STRING(double)
+	DEFINE_TO_STRING(sl_bool)
+	DEFINE_TO_STRING(const Time&)
+	DEFINE_TO_STRING(const Variant&)
+
 
 #define DEFINE_STRING_VIEW_FUNC_IMPL(VIEW) \
 	VIEW::VIEW(typename VIEW::StringType const& value) noexcept \

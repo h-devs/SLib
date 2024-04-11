@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,7 @@
 #include "slib/io/file_io.h"
 #include "slib/io/file_util.h"
 
-#include "slib/core/string_buffer.h"
-#include "slib/core/scoped_buffer.h"
+#include "slib/io/text.h"
 #include "slib/io/priv/impl.h"
 
 namespace slib
@@ -139,14 +138,14 @@ namespace slib
 		_close(handle);
 	}
 
-	sl_reg File::read(void* buf, sl_size size) const noexcept
+	sl_reg File::read(void* buf, sl_size size, sl_int32 timeout) const noexcept
 	{
-		return ReaderHelper::readWithRead32(this, buf, size);
+		return ReaderHelper::readWithRead32(this, buf, size, timeout);
 	}
 
-	sl_reg File::write(const void* buf, sl_size size) const noexcept
+	sl_reg File::write(const void* buf, sl_size size, sl_int32 timeout) const noexcept
 	{
-		return WriterHelper::writeWithWrite32(this, buf, size);
+		return WriterHelper::writeWithWrite32(this, buf, size, timeout);
 	}
 
 	sl_uint64 File::getSize(const StringParam& path) noexcept
@@ -507,7 +506,7 @@ namespace slib
 
 	Memory File::readAllBytes(const StringParam& path, sl_size maxSize) noexcept
 	{
-		File file = File::openForRead(path);
+		File file = openForRead(path);
 		if (file.isNotNone()) {
 			return file.readAllBytes(maxSize);
 		}
@@ -516,119 +515,129 @@ namespace slib
 
 	String File::readAllTextUTF8(const StringParam& path, sl_size maxSize) noexcept
 	{
-		File file = File::openForRead(path);
+		File file = openForRead(path);
 		if (file.isNotNone()) {
-			return file.readAllTextUTF8();
+			return TextIO::readAllUTF8(&file);
 		}
 		return sl_null;
 	}
 
 	String16 File::readAllTextUTF16(const StringParam& path, EndianType endian, sl_size maxSize) noexcept
 	{
-		File file = File::openForRead(path);
+		File file = openForRead(path);
 		if (file.isNotNone()) {
-			return file.readAllTextUTF16(endian, maxSize);
+			return TextIO::readAllUTF16(&file, endian, maxSize);
 		}
 		return sl_null;
 	}
 
 	StringParam File::readAllText(const StringParam& path, sl_size maxSize) noexcept
 	{
-		File file = File::openForRead(path);
+		File file = openForRead(path);
 		if (file.isNotNone()) {
-			return file.readAllText(maxSize);
+			return TextIO::readAll(&file, maxSize);
 		}
 		return sl_null;
 	}
 
-	sl_reg File::writeAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept
+	sl_bool File::writeAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept
 	{
-		File file = File::openForWrite(path);
+		File file = openForWrite(path);
 		if (file.isNotNone()) {
 			if (size) {
-				return file.writeFully(buf, size);
+				return file.writeAll(buf, size);
 			} else {
-				return 0;
+				return sl_true;
 			}
 		} else {
-			return SLIB_IO_ERROR;
+			return sl_false;
 		}
 	}
 
-	sl_reg File::writeAllBytes(const StringParam& path, const MemoryView& mem) noexcept
+	sl_bool File::writeAllBytes(const StringParam& path, const MemoryView& mem) noexcept
 	{
-		return File::writeAllBytes(path, mem.data, mem.size);
+		return writeAllBytes(path, mem.data, mem.size);
+	}
+
+	sl_bool File::writeAllBytes(const StringParam& path, const StringView& str) noexcept
+	{
+		return writeAllBytes(path, str.getData(), str.getLength());
 	}
 
 	sl_bool File::writeAllTextUTF8(const StringParam& path, const StringView& text, sl_bool flagWriteByteOrderMark) noexcept
 	{
-		File file = File::openForWrite(path);
+		File file = openForWrite(path);
 		if (file.isNotNone()) {
-			return file.writeTextUTF8(text, flagWriteByteOrderMark);
+			return TextIO::writeUTF8(&file, text, flagWriteByteOrderMark);
 		}
 		return sl_false;
 	}
 
 	sl_bool File::writeAllTextUTF16LE(const StringParam& path, const StringView16& text, sl_bool flagWriteByteOrderMark) noexcept
 	{
-		File file = File::openForWrite(path);
+		File file = openForWrite(path);
 		if (file.isNotNone()) {
-			return file.writeTextUTF16LE(text, flagWriteByteOrderMark);
+			return TextIO::writeUTF16LE(&file, text, flagWriteByteOrderMark);
 		}
 		return sl_false;
 	}
 
 	sl_bool File::writeAllTextUTF16BE(const StringParam& path, const StringView16& text, sl_bool flagWriteByteOrderMark) noexcept
 	{
-		File file = File::openForWrite(path);
+		File file = openForWrite(path);
 		if (file.isNotNone()) {
-			return file.writeTextUTF16BE(text, flagWriteByteOrderMark);
+			return TextIO::writeUTF16BE(&file, text, flagWriteByteOrderMark);
 		}
 		return sl_false;
 	}
 
-	sl_reg File::appendAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept
+	sl_bool File::appendAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept
 	{
-		File file = File::openForAppend(path);
+		File file = openForAppend(path);
 		if (file.isNotNone()) {
 			if (size) {
-				return file.writeFully(buf, size);
+				return file.writeAll(buf, size);
 			} else {
-				return 0;
+				return sl_true;
 			}
 		} else {
-			return SLIB_IO_ERROR;
+			return sl_false;
 		}
 	}
 
-	sl_reg File::appendAllBytes(const StringParam& path, const MemoryView& mem) noexcept
+	sl_bool File::appendAllBytes(const StringParam& path, const MemoryView& mem) noexcept
 	{
-		return File::appendAllBytes(path, mem.data, mem.size);
+		return appendAllBytes(path, mem.data, mem.size);
+	}
+
+	sl_bool File::appendAllBytes(const StringParam& path, const StringView& str) noexcept
+	{
+		return appendAllBytes(path, str.getData(), str.getLength());
 	}
 
 	sl_bool File::appendAllTextUTF8(const StringParam& path, const StringView& text) noexcept
 	{
-		File file = File::openForAppend(path);
+		File file = openForAppend(path);
 		if (file.isNotNone()) {
-			return file.writeTextUTF8(text, sl_false);
+			return TextIO::writeUTF8(&file, text, sl_false);
 		}
 		return sl_false;
 	}
 
 	sl_bool File::appendAllTextUTF16LE(const StringParam& path, const StringView16& text) noexcept
 	{
-		File file = File::openForAppend(path);
+		File file = openForAppend(path);
 		if (file.isNotNone()) {
-			return file.writeTextUTF16LE(text, sl_false);
+			return TextIO::writeUTF16LE(&file, text, sl_false);
 		}
 		return sl_false;
 	}
 
 	sl_bool File::appendAllTextUTF16BE(const StringParam& path, const StringView16& text) noexcept
 	{
-		File file = File::openForAppend(path);
+		File file = openForAppend(path);
 		if (file.isNotNone()) {
-			return file.writeTextUTF16BE(text, sl_false);
+			return TextIO::writeUTF16BE(&file, text, sl_false);
 		}
 		return sl_false;
 	}
@@ -651,8 +660,8 @@ namespace slib
 			String& item = current[i];
 			ret.add_NoLock(item);
 			String dir = dirPathPrefix + item;
-			if (File::isDirectory(dir)) {
-				ListElements<String> sub(File::getAllDescendantFiles(dir));
+			if (isDirectory(dir)) {
+				ListElements<String> sub(getAllDescendantFiles(dir));
 				if (sub.count) {
 					String itemPrefix = item + "/";
 					for (sl_size j = 0; j < sub.count; j++) {
@@ -666,7 +675,7 @@ namespace slib
 
 	sl_bool File::createDirectory(const StringParam& dirPath, const FileOperationFlags& flags) noexcept
 	{
-		FileAttributes attr = File::getAttributes(dirPath);
+		FileAttributes attr = getAttributes(dirPath);
 		if (!(attr & FileAttributes::NotExist)) {
 			if (attr & FileAttributes::Directory) {
 				if (flags & FileOperationFlags::ErrorOnExisting) {
@@ -686,18 +695,18 @@ namespace slib
 		if (dirPath.isEmpty()) {
 			return sl_false;
 		}
-		if (File::isDirectory(dirPath)) {
+		if (isDirectory(dirPath)) {
 			return sl_true;
 		}
-		if (File::isFile(dirPath)) {
+		if (isFile(dirPath)) {
 			return sl_false;
 		}
-		String parent = File::getParentDirectoryPath(dirPath.toString());
+		String parent = getParentDirectoryPath(dirPath.toString());
 		if (parent.isEmpty()) {
-			return File::createDirectory(dirPath);
+			return createDirectory(dirPath);
 		} else {
-			if (File::createDirectories(parent)) {
-				return File::createDirectory(dirPath);
+			if (createDirectories(parent)) {
+				return createDirectory(dirPath);
 			}
 			return sl_false;
 		}
@@ -705,7 +714,7 @@ namespace slib
 
 	sl_bool File::remove(const StringParam& path, const FileOperationFlags& flags) noexcept
 	{
-		FileAttributes attr = File::getAttributes(path);
+		FileAttributes attr = getAttributes(path);
 		if (attr & FileAttributes::NotExist) {
 			if (flags & FileOperationFlags::ErrorOnNotExisting) {
 				return sl_false;
@@ -716,29 +725,29 @@ namespace slib
 		if (attr & FileAttributes::Directory) {
 			if (flags & FileOperationFlags::Recursive) {
 				sl_bool ret = sl_true;
-				ListElements<String> list(File::getFiles(path));
+				ListElements<String> list(getFiles(path));
 				for (sl_size i = 0; i < list.count; i++) {
-					ret = ret && File::remove(File::concatPath(path, list[i]), flags);
+					ret = ret && File::remove(concatPath(path, list[i]), flags);
 					if (!ret) {
 						if (flags & FileOperationFlags::AbortOnError) {
 							return sl_false;
 						}
 					}
 				}
-				ret = ret && File::deleteDirectory(path);
+				ret = ret && deleteDirectory(path);
 				return ret;
 			} else {
-				return File::deleteDirectory(path);
+				return deleteDirectory(path);
 			}
 		} else {
-			return File::deleteFile(path);
+			return deleteFile(path);
 		}
 	}
 
 	sl_bool File::copyFile(const StringParam& pathSource, const StringParam& pathTarget, const FileOperationFlags& flags) noexcept
 	{
 		if (flags & FileOperationFlags::NotReplace) {
-			FileAttributes attr = File::getAttributes(pathTarget);
+			FileAttributes attr = getAttributes(pathTarget);
 			if (attr & FileAttributes::NotExist) {
 				return _copyFile(pathSource, pathTarget);
 			} else {
@@ -755,21 +764,21 @@ namespace slib
 
 	sl_bool File::copy(const StringParam& pathSource, const StringParam& pathTarget, const FileOperationFlags& flags) noexcept
 	{
-		FileAttributes attr = File::getAttributes(pathSource);
+		FileAttributes attr = getAttributes(pathSource);
 		if (attr & FileAttributes::NotExist) {
 			return sl_false;
 		}
 		if (attr & FileAttributes::Directory) {
-			if (!(File::createDirectory(pathTarget))) {
+			if (!(createDirectory(pathTarget))) {
 				return sl_false;
 			}
 			sl_bool ret = sl_true;
-			ListElements<String> list(File::getFiles(pathSource));
+			ListElements<String> list(getFiles(pathSource));
 			for (sl_size i = 0; i < list.count; i++) {
 				if (flags & FileOperationFlags::Recursive) {
-					ret = ret && File::copy(concatPath(pathSource, list[i]), concatPath(pathTarget, list[i]), flags);
+					ret = ret && copy(concatPath(pathSource, list[i]), concatPath(pathTarget, list[i]), flags);
 				} else {
-					ret = ret && File::copyFile(concatPath(pathSource, list[i]), concatPath(pathTarget, list[i]), flags);
+					ret = ret && copyFile(concatPath(pathSource, list[i]), concatPath(pathTarget, list[i]), flags);
 				}
 				if (!ret) {
 					if (flags & FileOperationFlags::AbortOnError) {
@@ -779,10 +788,10 @@ namespace slib
 			}
 			return ret;
 		} else {
-			if (File::isDirectory(pathTarget)) {
-				return File::copyFile(pathSource, concatPath(pathTarget, getFileName(pathSource)), flags);
+			if (isDirectory(pathTarget)) {
+				return copyFile(pathSource, concatPath(pathTarget, getFileName(pathSource)), flags);
 			} else {
-				return File::copyFile(pathSource, pathTarget, flags);
+				return copyFile(pathSource, pathTarget, flags);
 			}
 		}
 	}
@@ -790,7 +799,7 @@ namespace slib
 	sl_bool File::move(const StringParam& pathOriginal, const StringParam& filePathNew, const FileOperationFlags& flags) noexcept
 	{
 		if (flags & FileOperationFlags::NotReplace) {
-			FileAttributes attr = File::getAttributes(filePathNew);
+			FileAttributes attr = getAttributes(filePathNew);
 			if (attr & FileAttributes::NotExist) {
 				return _move(pathOriginal, filePathNew);
 			} else {
@@ -802,8 +811,8 @@ namespace slib
 			}
 		} else {
 #ifdef SLIB_PLATFORM_IS_UNIX
-			if (File::exists(filePathNew)) {
-				File::remove(filePathNew);
+			if (exists(filePathNew)) {
+				remove(filePathNew);
 			}
 #endif
 			return _move(pathOriginal, filePathNew);
@@ -821,8 +830,6 @@ namespace slib
 		for (sl_size i = 0; i < len; i++) {
 			sl_uint32 ch = (sl_uint8)(buf[i]);
 			if (ch < 0x20) {
-				buf[i] = '_';
-			} else if (ch >= 0x7f && ch < 0xA0) {
 				buf[i] = '_';
 			} else {
 				switch (ch) {
@@ -855,8 +862,6 @@ namespace slib
 			sl_uint32 ch = (sl_uint8)(buf[i]);
 			if (ch < 0x20) {
 				buf[i] = '_';
-			} else if (ch >= 0x7f && ch < 0xA0) {
-				buf[i] = '_';
 			} else {
 				switch (ch) {
 					case ':':
@@ -884,7 +889,7 @@ namespace slib
 		}
 		for (sl_uint32 i = 0; i <= nDeep; i++) {
 			String path = segments.buildPath();
-			if (File::exists(String::concat(path, "/", filePath))) {
+			if (exists(String::concat(path, "/", filePath))) {
 				return path;
 			}
 			segments.segments.popBack();

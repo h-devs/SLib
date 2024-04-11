@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  */
 
 #include "slib/media/media_player.h"
+#include "slib/media/wave_player.h"
 
 #include "slib/core/hash_map.h"
 #include "slib/core/safe_static.h"
@@ -179,5 +180,80 @@ namespace slib
 		}
 	}
 
-}
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(WavePlayerParam)
+
+	WavePlayerParam::WavePlayerParam()
+	{
+		flagSynchronous = sl_false;
+		flagLoop = sl_false;
+	}
+
+#ifndef SLIB_PLATFORM_IS_WIN32
+	sl_bool WavePlayer::play(const WavePlayerParam& param)
+	{
+		return sl_false;
+	}
+#endif
+
+	sl_bool WavePlayer::play(const Memory& wave)
+	{
+		WavePlayerParam param;
+		param.content = wave;
+		return play(param);
+	}
+
+	sl_bool WavePlayer::playSynchronous(const Memory& wave)
+	{
+		WavePlayerParam param;
+		param.content = wave;
+		param.flagSynchronous = sl_true;
+		return play(param);
+	}
+
+	sl_bool WavePlayer::playFile(const StringParam& path)
+	{
+		WavePlayerParam param;
+		param.filePath = path;
+		return play(param);
+	}
+
+	sl_bool WavePlayer::playFileSynchronous(const StringParam& path)
+	{
+		WavePlayerParam param;
+		param.filePath = path;
+		param.flagSynchronous = sl_true;
+		return play(param);
+	}
+
+	sl_bool WavePlayer::playAsset(const StringParam& path)
+	{
+		WavePlayerParam param;
+		param.assetFileName = path;
+		return play(param);
+	}
+
+	sl_bool WavePlayer::playAssetSynchronous(const StringParam& path)
+	{
+		WavePlayerParam param;
+		param.assetFileName = path;
+		param.flagSynchronous = sl_true;
+		return play(param);
+	}
+
+	sl_bool WavePlayer::playResource(const StringParam& resourceName)
+	{
+		WavePlayerParam param;
+		param.resourceName = resourceName;
+		return play(param);
+	}
+
+	sl_bool WavePlayer::playResourceSynchronous(const StringParam& resourceName)
+	{
+		WavePlayerParam param;
+		param.resourceName = resourceName;
+		param.flagSynchronous = sl_true;
+		return play(param);
+	}
+
+}

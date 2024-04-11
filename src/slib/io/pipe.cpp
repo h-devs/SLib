@@ -96,74 +96,36 @@ namespace slib
 		return m_handle.hWrite;
 	}
 
-	sl_reg Pipe::read(void* buf, sl_size size) const noexcept
+	sl_reg Pipe::read(void* buf, sl_size size, sl_int32 timeout) const noexcept
 	{
 		if (isOpened()) {
-			return (HandlePtr<File>(m_handle.hRead))->read(buf, size);
+			return (HandlePtr<File>(m_handle.hRead))->read(buf, size, timeout);
 		}
 		return SLIB_IO_ERROR;
 	}
 
-	sl_int32 Pipe::read32(void* buf, sl_uint32 size) const noexcept
+	sl_int32 Pipe::read32(void* buf, sl_uint32 size, sl_int32 timeout) const noexcept
 	{
 		if (isOpened()) {
-			return (HandlePtr<File>(m_handle.hRead))->read32(buf, size);
+			return (HandlePtr<File>(m_handle.hRead))->read32(buf, size, timeout);
 		}
 		return SLIB_IO_ERROR;
 	}
 
-	sl_bool Pipe::waitRead(sl_int32 timeout) const noexcept
-	{
-		if (!(isOpened())) {
-			return sl_false;
-		}
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-		Thread::sleep(1);
-		return sl_true;
-#else
-		Ref<PipeEvent> ev = PipeEvent::create();
-		if (ev.isNotNull()) {
-			return ev->waitReadFd(m_handle.hRead, timeout);
-		} else {
-			Thread::sleep(1);
-			return sl_true;
-		}
-#endif
-	}
-
-	sl_reg Pipe::write(const void* buf, sl_size size) const noexcept
+	sl_reg Pipe::write(const void* buf, sl_size size, sl_int32 timeout) const noexcept
 	{
 		if (isOpened()) {
-			return (HandlePtr<File>(m_handle.hWrite))->write(buf, size);
+			return (HandlePtr<File>(m_handle.hWrite))->write(buf, size, timeout);
 		}
 		return SLIB_IO_ERROR;
 	}
 
-	sl_int32 Pipe::write32(const void* buf, sl_uint32 size) const noexcept
+	sl_int32 Pipe::write32(const void* buf, sl_uint32 size, sl_int32 timeout) const noexcept
 	{
 		if (isOpened()) {
-			return (HandlePtr<File>(m_handle.hWrite))->write32(buf, size);
+			return (HandlePtr<File>(m_handle.hWrite))->write32(buf, size, timeout);
 		}
 		return SLIB_IO_ERROR;
-	}
-
-	sl_bool Pipe::waitWrite(sl_int32 timeout) const noexcept
-	{
-		if (!(isOpened())) {
-			return sl_false;
-		}
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-		Thread::sleep(1);
-		return sl_true;
-#else
-		Ref<PipeEvent> ev = PipeEvent::create();
-		if (ev.isNotNull()) {
-			return ev->waitWriteFd(m_handle.hWrite, timeout);
-		} else {
-			Thread::sleep(1);
-			return sl_true;
-		}
-#endif
 	}
 
 	void Pipe::close() noexcept

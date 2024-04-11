@@ -647,11 +647,23 @@ namespace slib
 
 	DatabaseExpression operator&&(const DatabaseExpression& e1, const DatabaseExpression& e2)
 	{
+		if (e1.isNull()) {
+			return e2;
+		}
+		if (e2.isNull()) {
+			return e1;
+		}
 		return new BinaryOpExpression(BinaryOp::AND, e1, e2);
 	}
 
 	DatabaseExpression operator||(const DatabaseExpression& e1, const DatabaseExpression& e2)
 	{
+		if (e1.isNull()) {
+			return e2;
+		}
+		if (e2.isNull()) {
+			return e1;
+		}
 		return new BinaryOpExpression(BinaryOp::OR, e1, e2);
 	}
 

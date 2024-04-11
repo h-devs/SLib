@@ -29,8 +29,6 @@ set (EXTRA_SOURCE_FILES
 
  "${SLIB_PATH}/extra/log_package/log_package.cpp"
 
- "${SLIB_PATH}/extra/keygen/keygen.cpp"
-
  "${SLIB_PATH}/extra/p2p/p2p.cpp"
 
  "${SLIB_PATH}/extra/pseudo_tcp/pseudo_tcp.cpp"

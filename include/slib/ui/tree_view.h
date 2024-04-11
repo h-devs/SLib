@@ -155,6 +155,7 @@ namespace slib
 	public:
 		SLIB_PROPERTY_FUNCTION(void(TreeViewItem* item, TreeViewItem* former, UIEvent* /* nullable */), OnSelect)
 		SLIB_PROPERTY_FUNCTION(void(TreeViewItem* item, UIEvent*), OnClick)
+		SLIB_PROPERTY_FUNCTION(void(TreeViewItem* item, UIEvent*), OnRightButtonClick)
 
 	private:
 		void _addChild(TreeViewItem* item, UIUpdateMode mode);
@@ -309,6 +310,7 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(TreeView, SelectItem, TreeViewItem* item, TreeViewItem* former, UIEvent* ev /* nullable */)
 		SLIB_DECLARE_EVENT_HANDLER(TreeView, ClickItem, TreeViewItem* item, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(TreeView, RightButtonClickItem, TreeViewItem* item, UIEvent* ev)
 
 	public:
 		void onDraw(Canvas* canvas) override;
@@ -343,11 +345,13 @@ namespace slib
 
 		void _processMouseEvent(UIEvent* ev);
 
-		void _processMouseEventItem(UIEvent* ev, sl_bool flagClick, const Ref<TreeViewItem>& item, sl_bool flagRoot);
+		void _processMouseEventItem(UIEvent* ev, sl_bool flagClick, TreeViewItem* item, sl_bool flagRoot);
 
-		void _selectItem(const Ref<TreeViewItem>& item, UIEvent* ev, UIUpdateMode mode);
+		void _selectItem(TreeViewItem* item, UIEvent* ev, UIUpdateMode mode);
 
-		void _clickItem(const Ref<TreeViewItem>& item, UIEvent* ev);
+		void _clickItem(TreeViewItem* item, UIEvent* ev);
+
+		void _rightButtonClickItem(TreeViewItem* item, UIEvent* ev);
 
 	private:
 		class ContentView;

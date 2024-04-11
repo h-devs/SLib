@@ -30,10 +30,12 @@
 #define SLIB_IO_EMPTY_CONTENT 0
 #define SLIB_IO_ERROR (-1)
 #define SLIB_IO_WOULD_BLOCK (-2)
+#define SLIB_IO_TIMEOUT (-2)
 
 #define SLIB_DECLARE_IREADER_MEMBERS(...) \
-	sl_reg readFully(void* buf, sl_size size) __VA_ARGS__; \
-	Memory readFully() __VA_ARGS__; \
+	sl_reg readFully(void* buf, sl_size size, sl_int32 timeout = -1) __VA_ARGS__; \
+	sl_reg readFully(MemoryBuffer& output, sl_size size = SLIB_SIZE_MAX, sl_size segmentSize = 0, sl_int32 timeout = -1) __VA_ARGS__; \
+	Memory readFully(sl_size size = SLIB_SIZE_MAX, sl_size segmentSize = 0, sl_int32 timeout = -1) __VA_ARGS__; \
 	sl_bool readInt8(sl_int8* output) __VA_ARGS__; \
 	sl_int8 readInt8(sl_int8 def = 0) __VA_ARGS__; \
 	sl_bool readUint8(sl_uint8* output) __VA_ARGS__; \
@@ -53,21 +55,11 @@
 	sl_bool readFloat(float* output, EndianType endian = Endian::Little) __VA_ARGS__; \
 	float readFloat(float def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool readDouble(double* output, EndianType endian = Endian::Little) __VA_ARGS__; \
-	double readDouble(double def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool readCVLI32(sl_uint32* output, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_uint32 readCVLI32(sl_uint32 def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool readCVLI64(sl_uint64* output, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_uint64 readCVLI64(sl_uint64 def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool readCVLI(sl_size* output, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_size readCVLI(sl_size def = 0, EndianType endian = Endian::Little) __VA_ARGS__; \
-	Memory readToMemory(sl_size size) __VA_ARGS__; \
-	String readTextUTF8(sl_size size) __VA_ARGS__; \
-	String16 readTextUTF16(sl_size size, EndianType endian = Endian::Little) __VA_ARGS__; \
-	StringParam readText(sl_size size) __VA_ARGS__; \
+	double readDouble(double def = 0, EndianType endian = Endian::Little) __VA_ARGS__;
 
 #define SLIB_DECLARE_IWRITER_MEMBERS(...) \
-	sl_reg writeFully(const void* buf, sl_size size) __VA_ARGS__; \
-	sl_reg writeFully(const MemoryView& mem) __VA_ARGS__; \
+	sl_reg writeFully(const void* buf, sl_size size, sl_int32 timeout = -1) __VA_ARGS__; \
+	sl_reg writeFully(const MemoryView& mem, sl_int32 timeout = -1) __VA_ARGS__; \
 	sl_bool writeInt8(sl_int8 value) __VA_ARGS__; \
 	sl_bool writeUint8(sl_uint8 value) __VA_ARGS__; \
 	sl_bool writeInt16(sl_int16 value, EndianType endian = Endian::Little) __VA_ARGS__; \
@@ -78,12 +70,9 @@
 	sl_bool writeUint64(sl_uint64 value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeFloat(float value, EndianType endian = Endian::Little) __VA_ARGS__; \
 	sl_bool writeDouble(double value, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool writeCVLI32(sl_uint32 value, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool writeCVLI64(sl_uint64 value, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool writeCVLI(sl_size value, EndianType endian = Endian::Little) __VA_ARGS__; \
-	sl_bool writeTextUTF8(const StringView& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__; \
-	sl_bool writeTextUTF16LE(const StringView16& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__; \
-	sl_bool writeTextUTF16BE(const StringView16& text, sl_bool flagWriteByteOrderMark = sl_false) __VA_ARGS__;
+	sl_bool writeAll(const void* buf, sl_size size) __VA_ARGS__; \
+	sl_bool writeAll(const MemoryView& mem) __VA_ARGS__; \
+	sl_bool writeAll(const StringView& str) __VA_ARGS__;
 
 #define SLIB_DECLARE_ISTREAM_MEMBERS(...) \
 	SLIB_DECLARE_IREADER_MEMBERS(__VA_ARGS__) \
@@ -99,22 +88,19 @@
 	sl_bool seekToEnd() __VA_ARGS__;
 
 #define SLIB_DECLARE_SEEKABLE_READER_MEMBERS(ATTR, OVERRIDE) \
-	sl_reg readAt(sl_uint64 offset, void* buf, sl_size size) ATTR OVERRIDE; \
-	sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size) ATTR OVERRIDE; \
-	sl_reg readFullyAt(sl_uint64 offset, void* buf, sl_size size) ATTR OVERRIDE; \
+	sl_reg readAt(sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout = -1) ATTR OVERRIDE; \
+	sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size, sl_int32 timeout = -1) ATTR OVERRIDE; \
+	sl_reg readFullyAt(sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout = -1) ATTR OVERRIDE; \
 	String readLine() ATTR; \
 	String readNullTerminatedString() ATTR; \
 	Memory readAllBytes(sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
-	String readAllTextUTF8(sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
-	String16 readAllTextUTF16(EndianType endian = Endian::Little, sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
-	StringParam readAllText(sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
 	sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_uint64 sizeFind = SLIB_UINT64_MAX) ATTR; \
 	sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_uint64 sizeFind = SLIB_UINT64_MAX) ATTR;
 
 #define SLIB_DECLARE_SEEKABLE_WRITER_MEMBERS(ATTR, OVERRIDE) \
-	sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size) ATTR OVERRIDE; \
-	sl_int32 writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size) ATTR OVERRIDE; \
-	sl_reg writeFullyAt(sl_uint64 offset, const void* buf, sl_size size) ATTR OVERRIDE;
+	sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size, sl_int32 timeout = -1) ATTR OVERRIDE; \
+	sl_int32 writeAt32(sl_uint64 offset, const void* buf, sl_uint32 size, sl_int32 timeout = -1) ATTR OVERRIDE; \
+	sl_reg writeFullyAt(sl_uint64 offset, const void* buf, sl_size size, sl_int32 timeout = -1) ATTR OVERRIDE;
 
 #define SLIB_DECLARE_IO_MEMBERS(...) \
 	SLIB_DECLARE_ISTREAM_MEMBERS(__VA_ARGS__) \
@@ -127,11 +113,9 @@ namespace slib
 {
 
 	class Memory;
+	class MemoryBuffer;
 	class String;
-	class String16;
 	class StringView;
-	class StringView16;
-	class StringParam;
 
 	enum class SeekPosition
 	{

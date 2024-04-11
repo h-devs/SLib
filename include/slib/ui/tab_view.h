@@ -105,6 +105,14 @@ namespace slib
 
 		void setLabelColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Ref<Font> getLabelFont();
+
+		void setLabelFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setLabelFont(const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_real getLabelFontSize();
+
 		Alignment getTabAlignment();
 
 		virtual void setTabAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -220,6 +228,7 @@ namespace slib
 		AtomicRef<Drawable> m_contentBackground;
 		ViewStateMap< Ref<Drawable> > m_tabBackgrounds;
 		ViewStateMap<Color> m_labelColors;
+		AtomicRef<Font> m_labelFont;
 
 		Alignment m_tabAlignment;
 		sl_ui_pos m_tabPaddingLeft;

@@ -1,2 +1,5 @@
 <sapp>
+	<popupMenu name='label_view_context'>
+		<item name='copy' title='@string/copy' />
+	</popupMenu>
 </sapp>

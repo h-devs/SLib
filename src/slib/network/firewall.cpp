@@ -22,8 +22,8 @@
 
 #include "slib/network/firewall.h"
 
-#include "slib/core/system.h"
-#include "slib/core/process.h"
+#include "slib/system/system.h"
+#include "slib/system/process.h"
 #include "slib/io/file.h"
 #include "slib/data/json.h"
 #include "slib/network/socket_address.h"
@@ -37,8 +37,7 @@ namespace slib
 #ifdef SLIB_PLATFORM_IS_WIN32
 		String name = File::getFileName(path);
 		if (Process::isCurrentProcessAdmin()) {
-			String command = String::format("netsh advfirewall firewall add rule name=\"%s\" dir=in action=allow program=\"%s\"", name, path);
-			System::execute(command);
+			Process::run(System::getSystemDirectory() + "\\netsh.exe", "advfirewall", "firewall", "add", "rule", String::format("name=\"%s\"", name), "dir=in", "action=allow", String::format("program=\"%s\"", path));
 		} else {
 			Process::runAsAdmin(System::getSystemDirectory() + "\\netsh.exe", "advfirewall", "firewall", "add", "rule", String::format("name=\"%s\"", name), "dir=in", "action=allow", String::format("program=\"%s\"", path));
 		}
@@ -50,8 +49,7 @@ namespace slib
 #ifdef SLIB_PLATFORM_IS_WIN32
 		String name = File::getFileName(path);
 		if (Process::isCurrentProcessAdmin()) {
-			String command = String::format("netsh advfirewall firewall delete rule name=\"%s\" program=\"%s\"", name, path);
-			System::execute(command);
+			Process::run(System::getSystemDirectory() + "\\netsh.exe", "advfirewall", "firewall", "delete", "rule", String::format("name=\"%s\"", name), String::format("program=\"%s\"", path));
 		} else {
 			Process::runAsAdmin(System::getSystemDirectory() + "\\netsh.exe", "advfirewall", "firewall", "delete", "rule", String::format("name=\"%s\"", name), String::format("program=\"%s\"", path));
 		}
@@ -74,7 +72,7 @@ namespace slib
 				sb.addStatic("!");
 			}
 			sl_bool flagFirst = sl_true;
-			for (auto& item : mac) {
+			for (auto&& item : mac) {
 				if (flagFirst) {
 					flagFirst = sl_false;
 				} else {
@@ -90,7 +88,7 @@ namespace slib
 				sb.addStatic("!");
 			}
 			sl_bool flagFirst = sl_true;
-			for (auto& item : ip) {
+			for (auto&& item : ip) {
 				if (flagFirst) {
 					flagFirst = sl_false;
 				} else {
@@ -110,7 +108,7 @@ namespace slib
 				sb.addStatic("!");
 			}
 			sl_bool flagFirst = sl_true;
-			for (auto& item : port) {
+			for (auto&& item : port) {
 				if (flagFirst) {
 					flagFirst = sl_false;
 				} else {
@@ -142,7 +140,7 @@ namespace slib
 				flagNotMac = sl_true;
 				strMac = strMac.substring(1);
 			}
-			for (auto& item : strMac.split(",")) {
+			for (auto&& item : strMac.split(",")) {
 				mac.put_NoLock(MacAddress(item.trim()));
 			}
 		}
@@ -155,7 +153,7 @@ namespace slib
 				flagNotIp = sl_true;
 				strIp = strIp.substring(1);
 			}
-			for (auto& item : strIp.split(",")) {
+			for (auto&& item : strIp.split(",")) {
 				IPv4Address start, end;
 				if (IPv4Address::parseRange(item, &start, &end)) {
 					if (start == end) {
@@ -174,7 +172,7 @@ namespace slib
 				flagNotPort = sl_true;
 				strPort = strPort.substring(1);
 			}
-			for (auto& item : strPort.split(",")) {
+			for (auto&& item : strPort.split(",")) {
 				sl_uint16 start, end;
 				if (SocketAddress::parsePortRange(item, &start, &end)) {
 					if (start == end) {

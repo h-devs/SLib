@@ -152,7 +152,7 @@ namespace slib
 		return Encode(BASE64_CHARS_URL, str.getData(), str.getLength(), padding);
 	}
 
-	sl_size Base64::getDecodeOutputSize(sl_size len)
+	sl_size Base64::getMaximumDecodeOutputSize(sl_size len)
 	{
 		sl_size size = (len >> 2) * 3;
 		if ((len & 3) == 2) {
@@ -224,17 +224,23 @@ namespace slib
 					++posInBlock;
 					break;
 				case 1:
-					output[indexOutput] = (sl_uint8)((data[0] << 2) + ((data[1] & 0x30) >> 4));
+					if (output) {
+						output[indexOutput] = (sl_uint8)((data[0] << 2) + ((data[1] & 0x30) >> 4));
+					}
 					++indexOutput;
 					++posInBlock;
 					break;
 				case 2:
-					output[indexOutput] = (sl_uint8)(((data[1] & 0xf) << 4) + ((data[2] & 0x3c) >> 2));
+					if (output) {
+						output[indexOutput] = (sl_uint8)(((data[1] & 0xf) << 4) + ((data[2] & 0x3c) >> 2));
+					}
 					++indexOutput;
 					++posInBlock;
 					break;
 				case 3:
-					output[indexOutput] = (sl_uint8)(((data[2] & 0x3) << 6) + data[3]);
+					if (output) {
+						output[indexOutput] = (sl_uint8)(((data[2] & 0x3) << 6) + data[3]);
+					}
 					++indexOutput;
 					posInBlock = 0;
 					break;
@@ -247,7 +253,7 @@ namespace slib
 		template <class CHAR>
 		static Memory Decode(const CHAR* input, sl_size len, CHAR padding)
 		{
-			sl_size size = Base64::getDecodeOutputSize(len);
+			sl_size size = Base64::getMaximumDecodeOutputSize(len);
 			Memory mem = Memory::create(size);
 			if (mem.isNull()) {
 				return sl_null;

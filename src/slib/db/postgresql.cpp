@@ -142,23 +142,36 @@ namespace slib
 				}
 				char* v = PQgetvalue(result, 0, index);
 				int len = PQgetlength(result, 0, index);
-				if (PQfformat(result, index) == 0) { // text format
-					if (len >= 2 && v[0] == '\\' && v[1] == 'x') {
-						Oid t = PQftype(result, index);
-						if (t == 17) { // bytea
+				int format = PQfformat(result, index);
+				if (format) {
+					// 1: binary representation
+					return Memory::create(v, len);
+				} else {
+					// 0: textual data representation
+					Oid t = PQftype(result, index);
+					if (t == 16) { // bool
+						if (len == 1) {
+							if (v[0] == 't') {
+								return sl_true;
+							} else {
+								return sl_false;
+							}
+						}
+					} else if (t == 17) { // bytea
+						if (len >= 2 && v[0] == '\\' && v[1] == 'x') {
 							sl_uint32 n = (sl_uint32)((len - 2) >> 1);
 							Memory mem = Memory::create(n);
 							if (mem.isNotNull()) {
-								if (SLIB_PARSE_ERROR != String::parseHexString(mem.getData(), v, 2, len)) {
+								sl_reg iRet = String::parseHexString(mem.getData(), v, 2, len);
+								if (iRet != SLIB_PARSE_ERROR) {
 									return mem;
 								}
 							}
 						}
 					}
 					return String::create(v, len);
-				} else {
-					return Memory::create(v, len);
 				}
+				return Variant();
 			}
 
 			Variant getValue(sl_uint32 index) override
@@ -235,7 +248,7 @@ namespace slib
 				m_sql = sql.toNullTerminated();
 				char t[16];
 				Math::randomMemory(t, 16);
-				String name = "slib_temp_stmt_" + String::makeHexString(t, 16);
+				String name = "temp_stmt_" + String::makeHexString(t, 16);
 				PGresult* res = PQprepare(connection, name.getData(), m_sql.getData(), 0, sl_null);
 				if (res) {
 					if (PQresultStatus(res) == PGRES_COMMAND_OK) {
@@ -256,8 +269,9 @@ namespace slib
 				return sl_false;
 			}
 
-			sl_int64 executeBy(const Variant* params, sl_uint32 nParams) override
+			sl_int64 executeBy(const Variant* params, sl_size _nParams) override
 			{
+				sl_uint32 nParams = (sl_uint32)_nParams;
 				SLIB_SCOPED_BUFFER(String, 32, strings, nParams)
 				SLIB_SCOPED_BUFFER(const char*, 32, values, nParams)
 				SLIB_SCOPED_BUFFER(int, 32, lengths, nParams)
@@ -283,8 +297,9 @@ namespace slib
 				return -1;
 			}
 
-			Ref<DatabaseCursor> queryBy(const Variant* params, sl_uint32 nParams) override
+			Ref<DatabaseCursor> queryBy(const Variant* params, sl_size _nParams) override
 			{
+				sl_uint32 nParams = (sl_uint32)_nParams;
 				SLIB_SCOPED_BUFFER(String, 32, strings, nParams)
 				SLIB_SCOPED_BUFFER(const char*, 32, values, nParams)
 				SLIB_SCOPED_BUFFER(int, 32, lengths, nParams)
@@ -375,10 +390,10 @@ namespace slib
 				return sl_null;
 			}
 
-			sl_int64 _executeBy(const StringParam& _sql, const Variant* params, sl_uint32 nParams) override
+			sl_int64 _executeBy(const StringParam& _sql, const Variant* params, sl_size _nParams) override
 			{
 				StringCstr sql(_sql);
-
+				sl_uint32 nParams = (sl_uint32)_nParams;
 				SLIB_SCOPED_BUFFER(String, 32, strings, nParams)
 				SLIB_SCOPED_BUFFER(const char*, 32, values, nParams)
 				SLIB_SCOPED_BUFFER(int, 32, lengths, nParams)
@@ -405,10 +420,10 @@ namespace slib
 				return ret;
 			}
 
-			Ref<DatabaseCursor> _queryBy(const StringParam& _sql, const Variant* params, sl_uint32 nParams) override
+			Ref<DatabaseCursor> _queryBy(const StringParam& _sql, const Variant* params, sl_size _nParams) override
 			{
 				StringCstr sql(_sql);
-
+				sl_uint32 nParams = (sl_uint32)_nParams;
 				SLIB_SCOPED_BUFFER(String, 32, strings, nParams)
 				SLIB_SCOPED_BUFFER(const char*, 32, values, nParams)
 				SLIB_SCOPED_BUFFER(int, 32, lengths, nParams)

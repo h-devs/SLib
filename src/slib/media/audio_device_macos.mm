@@ -39,17 +39,17 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
-		struct AudioDeviceInfo
+		struct MacAudioDeviceInfo
 		{
 			AudioDeviceID id;
 			String uid;
 			String name;
-			String manufacturer;
 		};
 
-		static sl_bool GetDeviceInfo(AudioDeviceInfo& outInfo, AudioDeviceID deviceID, sl_bool flagInput)
+		static sl_bool GetDeviceInfo(MacAudioDeviceInfo& outInfo, AudioDeviceID deviceID, sl_bool flagInput)
 		{
 			AudioObjectPropertyAddress propDeviceConfig;
 			propDeviceConfig.mScope = flagInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
@@ -100,20 +100,10 @@ namespace slib
 				CFRelease(deviceName);
 			}
 
-			// Device Manufacturer
-			CFStringRef deviceManufacturer;
-			propDeviceConfig.mSelector = kAudioDevicePropertyDeviceManufacturerCFString;
-			sizeValue = sizeof(deviceManufacturer);
-			if (AudioObjectGetPropertyData(deviceID, &propDeviceConfig, 0, NULL, &sizeValue, &deviceManufacturer) == kAudioHardwareNoError) {
-				NSString* s = (__bridge NSString*)deviceManufacturer;
-				outInfo.manufacturer = Apple::getStringFromNSString(s);
-				CFRelease(deviceManufacturer);
-			}
-
 			return sl_true;
 		}
 
-		static sl_bool GetDefaultDeviceInfo(AudioDeviceInfo& outInfo, sl_bool flagInput)
+		static sl_bool GetDefaultDeviceInfo(MacAudioDeviceInfo& outInfo, sl_bool flagInput)
 		{
 			AudioObjectPropertyAddress propDeviceConfig;
 			propDeviceConfig.mSelector = flagInput ? kAudioHardwarePropertyDefaultInputDevice : kAudioHardwarePropertyDefaultOutputDevice;
@@ -133,9 +123,9 @@ namespace slib
 			return GetDeviceInfo(outInfo, dev, flagInput);
 		}
 
-		static List<AudioDeviceInfo> GetAllDevices(sl_bool flagInput)
+		static List<MacAudioDeviceInfo> GetAllDevices(sl_bool flagInput)
 		{
-			List<AudioDeviceInfo> ret;
+			List<MacAudioDeviceInfo> ret;
 
 			AudioObjectPropertyAddress propDeviceListing;
 			propDeviceListing.mSelector = kAudioHardwarePropertyDevices;
@@ -166,7 +156,7 @@ namespace slib
 			}
 
 			for (sl_uint32 i = 0; i < nCountDevices; i++) {
-				AudioDeviceInfo info;
+				MacAudioDeviceInfo info;
 				if (GetDeviceInfo(info, deviceIds[i], flagInput)) {
 					ret.add_NoLock(info);
 				}
@@ -174,14 +164,14 @@ namespace slib
 			return ret;
 		}
 
-		static sl_bool SelectDevice(AudioDeviceInfo& outInfo, sl_bool flagInput, String uid)
+		static sl_bool SelectDevice(MacAudioDeviceInfo& outInfo, sl_bool flagInput, String uid)
 		{
 			if (uid.isEmpty()) {
 				return GetDefaultDeviceInfo(outInfo, flagInput);
 			} else {
-				ListElements<AudioDeviceInfo> list(GetAllDevices(flagInput));
+				ListElements<MacAudioDeviceInfo> list(GetAllDevices(flagInput));
 				for (sl_size i = 0; i < list.count; i++) {
-					AudioDeviceInfo& element = list[i];
+					MacAudioDeviceInfo& element = list[i];
 					if (element.uid == uid) {
 						outInfo = element;
 						return sl_true;
@@ -195,13 +185,12 @@ namespace slib
 
 	List<AudioRecorderDeviceInfo> AudioRecorder::getDevices()
 	{
-		ListElements<AudioDeviceInfo> list(GetAllDevices(sl_true));
+		ListElements<MacAudioDeviceInfo> list(GetAllDevices(sl_true));
 		List<AudioRecorderDeviceInfo> ret;
 		for (sl_size i = 0; i < list.count; i++) {
 			AudioRecorderDeviceInfo info;
 			info.id = list[i].uid;
 			info.name = list[i].name;
-			info.description = list[i].manufacturer;
 			ret.add_NoLock(info);
 		}
 		return ret;
@@ -209,13 +198,12 @@ namespace slib
 
 	List<AudioPlayerDeviceInfo> AudioPlayerDevice::getDevices()
 	{
-		ListElements<AudioDeviceInfo> list(GetAllDevices(sl_false));
+		ListElements<MacAudioDeviceInfo> list(GetAllDevices(sl_false));
 		List<AudioPlayerDeviceInfo> ret;
 		for (sl_size i = 0; i < list.count; i++) {
 			AudioPlayerDeviceInfo info;
 			info.id = list[i].uid;
 			info.name = list[i].name;
-			info.description = list[i].manufacturer;
 			ret.add_NoLock(info);
 		}
 		return ret;
@@ -255,7 +243,7 @@ namespace slib
 					return sl_null;
 				}
 
-				AudioDeviceInfo deviceInfo;
+				MacAudioDeviceInfo deviceInfo;
 				if (!(SelectDevice(deviceInfo, sl_true, param.deviceId))) {
 					LOG_ERROR("Failed to find audio input device: %s", param.deviceId);
 					return sl_null;
@@ -683,7 +671,7 @@ namespace slib
 		public:
 			static Ref<AudioPlayerDeviceImpl> create(const AudioPlayerDeviceParam& param)
 			{
-				AudioDeviceInfo deviceInfo;
+				MacAudioDeviceInfo deviceInfo;
 				if (!(SelectDevice(deviceInfo, sl_false, param.deviceId))) {
 					LOG_ERROR("Failed to find audio ouptut device: %s", param.deviceId);
 					return sl_null;

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,11 +23,9 @@
 #ifndef CHECKHEADER_SLIB_IO_PRIV_READER_HELPER
 #define CHECKHEADER_SLIB_IO_PRIV_READER_HELPER
 
-#include "../../core/mio.h"
 #include "../../core/thread.h"
-#include "../../core/string.h"
+#include "../../core/timeout.h"
 #include "../../core/memory_buffer.h"
-#include "../../core/scoped_buffer.h"
 
 namespace slib
 {
@@ -36,30 +34,28 @@ namespace slib
 	{
 	public:
 		template <class READER>
-		static sl_reg readWithRead32(READER* reader, void* buf, sl_size size)
+		static sl_reg readWithRead32(READER* reader, void* buf, sl_size size, sl_int32 timeout = -1)
 		{
-#if !defined(SLIB_ARCH_IS_64BIT)
-			return reader->read32(buf, (sl_uint32)size);
-#else
+#if defined(SLIB_ARCH_IS_64BIT)
 			if (size >> 31) {
-				return reader->read32(buf, 0x40000000); // 1GB
-			} else {
-				return reader->read32(buf, (sl_uint32)size);
+				return reader->read32(buf, 0x40000000, timeout); // 1GB
 			}
 #endif
+			return reader->read32(buf, (sl_uint32)size, timeout);
 		}
 
 		template <class READER>
-		static sl_reg readFully(READER* reader, void* _buf, sl_size size)
+		static sl_reg readFully(READER* reader, void* _buf, sl_size size, sl_int32 timeout = -1)
 		{
 			sl_uint8* buf = (sl_uint8*)_buf;
 			if (!size) {
-				return reader->read(buf, 0);
+				return reader->read(buf, 0, timeout);
 			}
+			sl_int64 tickEnd = GetTickFromTimeout(timeout);
 			sl_size nRead = 0;
 			CurrentThread thread;
-			for (;;) {
-				sl_reg m = reader->read(buf, size);
+			do {
+				sl_reg m = reader->read(buf, size, timeout);
 				if (m > 0) {
 					nRead += m;
 					if (size <= (sl_size)m) {
@@ -67,41 +63,110 @@ namespace slib
 					}
 					buf += m;
 					size -= m;
-				} else if (m == SLIB_IO_WOULD_BLOCK) {
-					reader->waitRead();
-				} else if (m == SLIB_IO_ENDED) {
-					return nRead;
+					timeout = GetTimeoutFromTick(tickEnd);
+				} else if (m == SLIB_IO_WOULD_BLOCK || m == SLIB_IO_ENDED) {
+					if (nRead) {
+						return nRead;
+					} else {
+						return m;
+					}
 				} else {
 					return m;
 				}
-				if (thread.isStopping()) {
-					return SLIB_IO_ERROR;
-				}
-			}
+			} while (thread.isNotStopping());
+			return SLIB_IO_ERROR;
 		}
 
 		template <class READER>
-		static Memory readFully(READER* reader)
+		static sl_reg readFully(READER* reader, MemoryBuffer& output, sl_size size, sl_size segmentSize, sl_int32 timeout = -1)
 		{
-			MemoryBuffer mb;
-			char buf[1024];
+			if (!size) {
+				char ch;
+				return reader->read(&ch, 0, timeout);
+			}
+			if (!segmentSize) {
+				segmentSize = 1024;
+			}
+			sl_int64 tickEnd = GetTickFromTimeout(timeout);
 			CurrentThread thread;
-			for (;;) {
-				sl_reg m = reader->read(buf, sizeof(buf));
-				if (m > 0) {
-					if (!(mb.addNew(buf, m))) {
-						return sl_null;
+			do {
+				sl_size nRequest = SLIB_MIN(segmentSize, size);
+				Memory segment = Memory::create(nRequest);
+				if (segment.isNull()) {
+					return SLIB_IO_ERROR;
+				}
+				sl_uint8* buf = (sl_uint8*)(segment.getData());
+				sl_size nRead = 0;
+				for (;;) {
+					sl_reg m = reader->read(buf, nRequest, timeout);
+					if (m > 0) {
+						nRead += m;
+						if (nRequest <= (sl_size)m) {
+							break;
+						}
+						buf += m;
+						nRequest -= m;
+						timeout = GetTimeoutFromTick(tickEnd);
+					} else if (m == SLIB_IO_ENDED || m == SLIB_IO_WOULD_BLOCK) {
+						if (nRead) {
+							if (nRead < nRequest) {
+								segment = segment.sub(0, nRead);
+								if (segment.isNull()) {
+									return SLIB_IO_ERROR;
+								}
+							}
+							if (!(output.add(Move(segment)))) {
+								return SLIB_IO_ERROR;
+							}
+						}
+						sl_size nOutput = output.getSize();
+						if (nOutput) {
+							return nOutput;
+						} else {
+							return m;
+						}
+					} else {
+						return m;
 					}
-				} else if (m == SLIB_IO_ENDED) {
-					return mb.merge();
-				} else if (m == SLIB_IO_WOULD_BLOCK) {
-					reader->waitRead();
-				} else {
-					return sl_null;
+					if (thread.isStopping()) {
+						return SLIB_IO_ERROR;
+					}
 				}
-				if (thread.isStopping()) {
-					return sl_null;
+				if (!(output.add(Move(segment)))) {
+					return SLIB_IO_ERROR;
 				}
+				if (size <= nRequest) {
+					return output.getSize();
+				}
+				size -= nRequest;
+			} while (thread.isNotStopping());
+			return SLIB_IO_ERROR;
+		}
+
+		template <class READER>
+		static Memory readFully(READER* reader, sl_size size, sl_size segmentSize, sl_int32 timeout = -1)
+		{
+			if (!size) {
+				return sl_null;
+			}
+			if (size != SLIB_SIZE_MAX && (!segmentSize || size < segmentSize)) {
+				Memory mem = Memory::create(size);
+				if (mem.isNotNull()) {
+					sl_reg nRead = readFully(reader, mem.getData(), size, timeout);
+					if (nRead == size) {
+						return mem;
+					} else if (nRead > 0) {
+						return mem.sub(0, nRead);
+					}
+				}
+				return sl_null;
+			}
+			MemoryBuffer buffer;
+			sl_reg m = readFully(reader, buffer, size, segmentSize, timeout);
+			if (m > 0) {
+				return buffer.merge();
+			} else {
+				return sl_null;
 			}
 		}
 
@@ -371,277 +436,34 @@ namespace slib
 			}
 		}
 
-		template <class READER, class T>
-		static sl_bool readCVLI(READER* reader, T* output, EndianType endian)
-		{
-			T value = 0;
-			sl_uint8 n;
-			sl_uint32 m = 0;
-			while (readUint8(reader, &n)) {
-				if (endian == EndianType::Little) {
-					value |= (((T)(n & 127)) << m);
-					m += 7;
-				} else {
-					value = (value << 7) | (n & 127);
-				}
-				if (!(n & 128)) {
-					if (output) {
-						*output = value;
-					}
-					return sl_true;
-				}
-			}
-			return sl_false;
-		}
-
-		template <class READER, class T>
-		static T readCVLI(READER* reader, T def, EndianType endian)
-		{
-			T v;
-			if (readCVLI(reader, &v, endian)) {
-				return v;
-			} else {
-				return def;
-			}
-		}
-
-		template <class READER>
-		static Memory readToMemory(READER* reader, sl_size size)
-		{
-			Memory mem = Memory::create(size);
-			if (mem.isNotNull()) {
-				sl_reg nRead = readFully(reader, mem.getData(), size);
-				if (nRead == size) {
-					return mem;
-				} else if (nRead > 0) {
-					return mem.sub(0, nRead);
-				}
-			}
-			return sl_null;
-		}
-
-		template <class READER>
-		static String readTextUTF8(READER* reader, sl_size size)
-		{
-			sl_char8 sbuf[3];
-			if (size >= 3) {
-				sl_reg iRet = readFully(reader, sbuf, 3);
-				if (iRet == 3) {
-					size -= 3;
-					if ((sl_uint8)(sbuf[0]) == 0xEF && (sl_uint8)(sbuf[1]) == 0xBB && (sl_uint8)(sbuf[2]) == 0xBF) {
-						return _readText8(reader, size);
-					} else {
-						return _readText8(reader, size, sbuf, 3);
-					}
-				} else if (iRet > 0) {
-					return String(sbuf, iRet);
-				}
-			} else {
-				return _readText8(reader, size);
-			}
-			return sl_null;
-		}
-
-		template <class READER>
-		static String16 readTextUTF16(READER* reader, sl_size size, EndianType endian)
-		{
-			sl_size len = size >> 1;
-			if (!len) {
-				return String16::getEmpty();
-			}
-			sl_uint16 first;
-			if (readUint16(reader, &first, endian)) {
-				len--;
-				if (first == 0xFEFF) {
-					return _readText16(reader, len, endian);
-				} else {
-					return _readText16(reader, len, first, endian);
-				}
-			}
-			return sl_null;
-		}
-
-		template <class READER>
-		static StringParam readText(READER* reader, sl_size size)
-		{
-			if (!size) {
-				return sl_null;
-			}
-			sl_char8 sbuf[3];
-			if (size >= 2) {
-				sl_reg iRet = readFully(reader, sbuf, 2);
-				if (iRet == 2) {
-					if (!(size & 1)) {
-						sl_bool flagUTF16LE = sbuf[0] == (sl_char8)0xFF && sbuf[1] == (sl_char8)0xFE;
-						sl_bool flagUTF16BE = sbuf[0] == (sl_char8)0xFE && sbuf[1] == (sl_char8)0xFF;
-						if (flagUTF16LE || flagUTF16BE) {
-							size -= 2;
-							return _readText16(reader, size >> 1, flagUTF16LE ? EndianType::Little : EndianType::Big);
-						}
-					}
-					if (size >= 3) {
-						iRet = reader->read(sbuf + 2, 1);
-						if (iRet == 1) {
-							size -= 3;
-							if (sbuf[0] == (sl_char8)0xEF && sbuf[1] == (sl_char8)0xBB && sbuf[2] == (sl_char8)0xBF) {
-								return _readText8(reader, size);
-							} else {
-								return _readText8(reader, size, sbuf, 3);
-							}
-						} else if (!iRet) {
-							return String::fromUtf8(sbuf, 2);
-						}
-					} else {
-						return String::fromUtf8(sbuf, 2);
-					}
-					return StringParam();
-				} else if (iRet > 0) {
-					return String::fromUtf8(sbuf, iRet);
-				}
-			} else {
-				return _readText8(reader, size);
-			}
-			return StringParam();
-		}
-
-	private:
-		template <class READER>
-		static String _readText8(READER* reader, sl_size size)
-		{
-			if (!size) {
-				return String::getEmpty();
-			}
-			String ret = String::allocate(size);
-			if (ret.isNotNull()) {
-				sl_char8* buf = ret.getData();
-				sl_reg iRet = readFully(reader, buf, size);
-				if (iRet > 0) {
-					if ((sl_size)iRet < size) {
-						buf[iRet] = 0;
-						ret.setLength(iRet);
-					}
-					return ret;
-				} else if (!iRet) {
-					return String::getEmpty();
-				}
-			}
-			return sl_null;
-		}
-
-		template <class READER>
-		static String _readText8(READER* reader, sl_size size, const sl_char8* prefix, sl_size nPrefix)
-		{
-			if (!size) {
-				return String(prefix, nPrefix);
-			}
-			String ret = String::allocate(nPrefix + size);
-			if (ret.isNotNull()) {
-				sl_char8* buf = ret.getData();
-				Base::copyMemory(buf, prefix, nPrefix);
-				buf += nPrefix;
-				sl_reg iRet = readFully(reader, buf, size);
-				if (iRet >= 0) {
-					if ((sl_size)iRet < size) {
-						buf[iRet] = 0;
-						ret.setLength(nPrefix + (sl_size)iRet);
-					}
-					return ret;
-				}
-			}
-			return sl_null;
-		}
-
-		template <class READER>
-		static String16 _readText16(READER* reader, sl_size len, EndianType endian)
-		{
-			if (!len) {
-				return String16::getEmpty();
-			}
-			String16 ret = String16::allocate(len);
-			if (ret.isNotNull()) {
-				sl_char16* buf = ret.getData();
-				sl_size size = len << 1;
-				sl_reg iRet = readFully(reader, buf, size);
-				if (iRet > 0) {
-					if ((sl_size)iRet < size) {
-						len = ((sl_size)iRet) >> 1;
-						buf[len] = 0;
-						ret.setLength(len);
-					}
-					if ((endian == Endian::Big && Endian::isLE()) || (endian == Endian::Little && Endian::isBE())) {
-						for (sl_size i = 0; i < len; i++) {
-							sl_uint16 c = (sl_uint16)(buf[i]);
-							buf[i] = (sl_char16)((c >> 8) | (c << 8));
-						}
-					}
-					return ret;
-				}
-			}
-			return sl_null;
-		}
-
-		template <class READER>
-		static String16 _readText16(READER* reader, sl_size len, sl_char16 prefix, EndianType endian)
-		{
-			if (!len) {
-				return String16(&prefix, 1);
-			}
-			String16 ret = String16::allocate(1 + len);
-			if (ret.isNotNull()) {
-				sl_char16* buf = ret.getData();
-				*buf = prefix;
-				buf++;
-				len--;
-				sl_size size = len << 1;
-				sl_reg iRet = readFully(reader, buf, size);
-				if (iRet > 0) {
-					if ((sl_size)iRet < size) {
-						len = ((sl_size)iRet) >> 1;
-						buf[len] = 0;
-						ret.setLength(1 + len);
-					}
-					if ((endian == Endian::Big && Endian::isLE()) || (endian == Endian::Little && Endian::isBE())) {
-						for (sl_size i = 0; i < len; i++) {
-							sl_uint16 c = (sl_uint16)(buf[i]);
-							buf[i] = (sl_char16)((c >> 8) | (c << 8));
-						}
-					}
-					return ret;
-				}
-			}
-			return sl_null;
-		}
-
 	};
 
 	class BlockReaderHelper
 	{
 	public:
 		template <class READER>
-		static sl_reg readAtWithReadAt32(READER* reader, sl_uint64 offset, void* buf, sl_size size)
+		static sl_reg readAtWithReadAt32(READER* reader, sl_uint64 offset, void* buf, sl_size size, sl_int32 timeout = -1)
 		{
-#if !defined(SLIB_ARCH_IS_64BIT)
-			return reader->readAt32(offset, buf, (sl_uint32)size);
-#else
+#if defined(SLIB_ARCH_IS_64BIT)
 			if (size >> 31) {
-				return reader->readAt32(offset, buf, 0x40000000);
-			} else {
-				return reader->readAt32(offset, buf, (sl_uint32)size);
+				return reader->readAt32(offset, buf, 0x40000000, timeout);
 			}
 #endif
+			return reader->readAt32(offset, buf, (sl_uint32)size, timeout);
 		}
 
 		template <class READER>
-		static sl_reg readFullyAt(READER* reader, sl_uint64 offset, void* _buf, sl_size size)
+		static sl_reg readFullyAt(READER* reader, sl_uint64 offset, void* _buf, sl_size size, sl_int32 timeout = -1)
 		{
 			sl_uint8* buf = (sl_uint8*)_buf;
 			if (!size) {
-				return reader->readAt(offset, buf, 0);
+				return reader->readAt(offset, buf, 0, timeout);
 			}
+			sl_int64 tickEnd = GetTickFromTimeout(timeout);
 			sl_size nRead = 0;
 			CurrentThread thread;
-			for (;;) {
-				sl_reg m = reader->readAt(offset, buf, size);
+			do {
+				sl_reg m = reader->readAt(offset, buf, size, timeout);
 				if (m > 0) {
 					nRead += m;
 					if (size <= (sl_size)m) {
@@ -650,17 +472,18 @@ namespace slib
 					buf += m;
 					offset += m;
 					size -= m;
-				} else if (m == SLIB_IO_WOULD_BLOCK) {
-					reader->waitRead();
-				} else if (m == SLIB_IO_ENDED) {
-					return nRead;
+					timeout = GetTimeoutFromTick(tickEnd);
+				} else if (m == SLIB_IO_WOULD_BLOCK || m == SLIB_IO_ENDED) {
+					if (nRead) {
+						return nRead;
+					} else {
+						return m;
+					}
 				} else {
 					return m;
 				}
-				if (thread.isStopping()) {
-					return SLIB_IO_ERROR;
-				}
-			}
+			} while (thread.isNotStopping());
+			return SLIB_IO_ERROR;
 		}
 
 	};

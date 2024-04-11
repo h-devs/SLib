@@ -25,7 +25,7 @@
 
 #ifdef SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
-#include "../core/dynamic_library.h"
+#include "../system/dynamic_library.h"
 
 #define SLIB_IMPORT_LIBRARY_BEGIN(NAME, ...) \
 	namespace NAME { \

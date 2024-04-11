@@ -3574,7 +3574,7 @@ namespace slib
 				buf[sizePrefix] = VariantType::Memory;
 				l = sizePrefix + 1;
 			}
-			l += CVLI::serialize(buf + l, n);
+			l += CVLI::encode(buf + l, n);
 			Base::copyMemory(buf + l, m.getData(), n);
 			return l + n;
 		} else if (IsStringType(var._type)) {
@@ -3594,7 +3594,7 @@ namespace slib
 				buf[sizePrefix] = VariantType::String8;
 				l = sizePrefix + 1;
 			}
-			l += CVLI::serialize(buf + l, n);
+			l += CVLI::encode(buf + l, n);
 			Base::copyMemory(buf + l, str.getData(), n);
 			return l + n;
 		} else if (IsRef(var._type)) {
@@ -3639,7 +3639,7 @@ namespace slib
 	{
 		SerializeBuffer buf(data, size);
 		if (deserialize(&buf)) {
-			return buf.current - buf.begin;
+			return buf.getOffset();
 		} else {
 			return 0;
 		}
@@ -3649,7 +3649,7 @@ namespace slib
 	{
 		SerializeBuffer buf(mem);
 		if (deserialize(&buf)) {
-			return buf.current - buf.begin;
+			return buf.getOffset();
 		} else {
 			return 0;
 		}

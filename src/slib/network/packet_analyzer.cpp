@@ -22,8 +22,8 @@
 
 #include "slib/network/packet_analyzer.h"
 
+#include "slib/system/system.h"
 #include "slib/core/thread.h"
-#include "slib/core/system.h"
 #include "slib/core/mio.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/shared.h"
@@ -230,7 +230,7 @@ namespace slib
 								if (m_flagGatheringHostInfo) {
 									if (!(dns.flagQuestion)) {
 										WriteLocker locker(&m_lockDnsInfo);
-										for (auto& addr : dns.addresses) {
+										for (auto&& addr : dns.addresses) {
 											if (addr.address.isIPv4()) {
 												m_tableDnsInfo.put(addr.address.getIPv4(), addr.name);
 											}
@@ -447,7 +447,7 @@ namespace slib
 				}
 			} else {
 				StringBuffer buf;
-				for (auto& addr : dns->addresses) {
+				for (auto&& addr : dns->addresses) {
 					buf.add(String::format("%s(%s) ", addr.name, addr.address.toString()));
 				}
 				Log("DNS", "%s:%s->%s:%s, Response: %s", packet->getSourceAddress().toString(), udp->getSourcePort(), packet->getDestinationAddress().toString(), udp->getDestinationPort(), buf.merge());
@@ -572,7 +572,7 @@ namespace slib
 				sl_bool flagValidTable = sl_false;
 				{
 					ReadLocker lock(&m_lock);
-					for (auto& item : m_table) {
+					for (auto&& item : m_table) {
 						if (item.value->startTime + CONNECTION_TIMEOUT < now) {
 							listRemove.add_NoLock(item.key);
 						} else {

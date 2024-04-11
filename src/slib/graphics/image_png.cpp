@@ -143,7 +143,7 @@ namespace slib
 			Memory mem = savePng(image);
 			if (mem.isNotNull()) {
 				sl_reg size = mem.getSize();
-				if (file.write(mem.getData(), size) == size) {
+				if (file.writeFully(mem.getData(), size) == size) {
 					return sl_true;
 				}
 			}

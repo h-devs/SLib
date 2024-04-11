@@ -24,8 +24,8 @@
 #define CHECKHEADER_SLIB_DATA_SERIALIZE_STRING
 
 #include "primitive.h"
-#include "variable_length_integer.h"
 
+#include "../cvli.h"
 #include "../../core/string.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES

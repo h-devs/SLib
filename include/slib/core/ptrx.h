@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -32,10 +32,12 @@
 		using Ptr<T>::ptr; \
 		using Ptr<T>::ref; \
 		using Ptr<T>::lockRef; \
-		template <class... OTHERS> \
-		Ptr(const Ptr<OTHERS...>& v) noexcept: Ptr<T>(v) { _init(v); } \
+		template <class OTHER> \
+		Ptr(OTHER* v) noexcept: Ptr<T>(v) { _init(v); } \
 		template <class... OTHER> \
 		Ptr(Ptr<OTHER...>&& v) noexcept: Ptr<T>(Move(v)) { _init(v); } \
+		template <class... OTHERS> \
+		Ptr(const Ptr<OTHERS...>& v) noexcept: Ptr<T>(v) { _init(v); } \
 		template <class OTHER> \
 		Ptr(const AtomicPtr<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {} \
 		template <class... OTHERS> \
@@ -46,8 +48,6 @@
 		Ptr(const WeakRef<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {} \
 		template <class OTHER> \
 		Ptr(const AtomicWeakRef<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {} \
-		template <class OTHER> \
-		Ptr(OTHER* v) noexcept: Ptr<T>(v) { _init(v); } \
 		template <class... OTHERS> \
 		Ptr(const Pointer<OTHERS...>& v) noexcept: Ptr<T>(v) { _init(v); } \
 		static const Ptr null() noexcept { return sl_null; } \
@@ -62,9 +62,9 @@
 		template <class OTHER> \
 		void set(OTHER* v) noexcept { Ptr<T>::set(v); _init(v); } \
 		template <class... OTHERS> \
-		void set(const Ptr<OTHERS...>& v) noexcept { Ptr<T>::set(v); _init(v); } \
-		template <class... OTHERS> \
 		void set(Ptr<OTHERS...>&& v) noexcept { Ptr<T>::set(Move(v)); _init(v); } \
+		template <class... OTHERS> \
+		void set(const Ptr<OTHERS...>& v) noexcept { Ptr<T>::set(v); _init(v); } \
 		template <class OTHER> \
 		void set(const AtomicPtr<OTHER>& v) noexcept { set(Ptr<OTHER>(v)); } \
 		template <class... OTHERS> \
@@ -100,11 +100,14 @@ namespace slib
 
 		SLIB_CONSTEXPR Ptr(sl_null_t) {}
 
-		template <class... OTHERS>
-		Ptr(const Ptr<OTHERS...>& v) noexcept: Ptr<T>(_cast(v), v.ref) {}
-
+		template <class OTHER>
+		SLIB_CONSTEXPR Ptr(OTHER* v) : Ptr<T>(_cast(v)) {}
+		
 		template <class... OTHERS>
 		Ptr(Ptr<OTHERS...>&& v) noexcept: Ptr<T>(_cast(v), Move(v.ref)) {}
+
+		template <class... OTHERS>
+		Ptr(const Ptr<OTHERS...>& v) noexcept: Ptr<T>(_cast(v), v.ref) {}
 
 		template <class OTHER>
 		Ptr(const AtomicPtr<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {}
@@ -120,9 +123,6 @@ namespace slib
 
 		template <class OTHER>
 		Ptr(const AtomicWeakRef<OTHER>& v) noexcept: Ptr(Ptr<OTHER>(v)) {}
-
-		template <class OTHER>
-		SLIB_CONSTEXPR Ptr(OTHER* v): Ptr<T>(_cast(v)) {}
 
 		template <class... OTHERS>
 		Ptr(const Pointer<OTHERS...>& v) noexcept: Ptr<T>(_cast(v)) {}
@@ -162,15 +162,15 @@ namespace slib
 		}
 
 		template <class... OTHERS>
-		void set(const Ptr<OTHERS...>& v) noexcept
-		{
-			Ptr<T>::set(_cast(v), v.ref);
-		}
-
-		template <class... OTHERS>
 		void set(Ptr<OTHERS...>&& v) noexcept
 		{
 			Ptr<T>::set(_cast(v), Move(v.ref));
+		}
+
+		template <class... OTHERS>
+		void set(const Ptr<OTHERS...>& v) noexcept
+		{
+			Ptr<T>::set(_cast(v), v.ref);
 		}
 
 		template <class OTHER>
@@ -468,11 +468,11 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Ptr<T>::Ptr(const Ptr<T1, T2, TYPES...>& other) noexcept: ref(other.ref), ptr(other) {}
+	Ptr<T>::Ptr(Ptr<T1, T2, TYPES...>&& other) noexcept : ref(Move(other.ref)), ptr(other) {}
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Ptr<T>::Ptr(Ptr<T1, T2, TYPES...>&& other) noexcept: ref(Move(other.ref)), ptr(other) {}
+	Ptr<T>::Ptr(const Ptr<T1, T2, TYPES...>& other) noexcept: ref(other.ref), ptr(other) {}
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
@@ -484,17 +484,17 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	void Ptr<T>::set(const Ptr<T1, T2, TYPES...>& other) noexcept
+	void Ptr<T>::set(Ptr<T1, T2, TYPES...>&& other) noexcept
 	{
-		ref = other.ref;
+		ref = Move(other.ref);
 		ptr = other;
 	}
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	void Ptr<T>::set(Ptr<T1, T2, TYPES...>&& other) noexcept
+	void Ptr<T>::set(const Ptr<T1, T2, TYPES...>& other) noexcept
 	{
-		ref = Move(other.ref);
+		ref = other.ref;
 		ptr = other;
 	}
 
@@ -517,11 +517,11 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Atomic< Ptr<T> >::Atomic(const Ptr<T1, T2, TYPES...>& other) noexcept: _ptr(other), _ref(other.ref) {}
+	Atomic< Ptr<T> >::Atomic(Ptr<T1, T2, TYPES...>&& other) noexcept : _ptr(other), _ref(Move(other.ref)) {}
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	Atomic< Ptr<T> >::Atomic(Ptr<T1, T2, TYPES...>&& other) noexcept: _ptr(other), _ref(Move(other.ref)) {}
+	Atomic< Ptr<T> >::Atomic(const Ptr<T1, T2, TYPES...>& other) noexcept: _ptr(other), _ref(other.ref) {}
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
@@ -533,17 +533,17 @@ namespace slib
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>
-	void Atomic< Ptr<T> >::set(const Ptr<T1, T2, TYPES...>& other) noexcept
-	{
-		_replace(other, other.ref);
-	}
-
-	template <class T>
-	template <class T1, class T2, class... TYPES>
 	void Atomic< Ptr<T> >::set(Ptr<T1, T2, TYPES...>&& other) noexcept
 	{
 		_ptr = other;
 		_move_assign(&other);
+	}
+
+	template <class T>
+	template <class T1, class T2, class... TYPES>
+	void Atomic< Ptr<T> >::set(const Ptr<T1, T2, TYPES...>& other) noexcept
+	{
+		_replace(other, other.ref);
 	}
 
 	template <class T>

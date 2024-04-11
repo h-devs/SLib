@@ -360,7 +360,7 @@ namespace slib
 			if (m_flagChecked) {
 				mii.fState |= MFS_CHECKED;
 			}
-			if (!(m_flagEnabled)) {
+			if (!m_flagEnabled) {
 				mii.fState |= MFS_DISABLED;
 			}
 			SetMenuItemInfoW(hMenu, index, TRUE, &mii);

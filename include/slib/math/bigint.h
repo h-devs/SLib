@@ -441,40 +441,8 @@ namespace slib
 
 	};
 
-
 	class BigInt;
-
-	template <>
-	class SLIB_EXPORT Atomic<BigInt>
-	{
-	public:
-		AtomicRef<CBigInt> ref;
-		SLIB_ATOMIC_REF_WRAPPER_NO_OP(CBigInt)
-
-	public:
-		Atomic(sl_int32 n) noexcept;
-
-		Atomic(sl_uint32 n) noexcept;
-
-		Atomic(sl_int64 n) noexcept;
-
-		Atomic(sl_uint64 n) noexcept;
-
-		~Atomic() noexcept;
-
-	public:
-		Atomic& operator=(sl_int32 n) noexcept;
-
-		Atomic& operator=(sl_uint32 n) noexcept;
-
-		Atomic& operator=(sl_int64 n) noexcept;
-
-		Atomic& operator=(sl_uint64 n) noexcept;
-
-	};
-
-	typedef Atomic<BigInt> AtomicBigInt;
-
+	template <> class Atomic<BigInt>;
 
 	class SLIB_EXPORT BigInt
 	{
@@ -916,6 +884,38 @@ namespace slib
 		BigInt operator>>(sl_size n) const noexcept;
 
 	};
+
+	template <>
+	class SLIB_EXPORT Atomic<BigInt>
+	{
+	public:
+		AtomicRef<CBigInt> ref;
+		SLIB_ATOMIC_REF_WRAPPER_NO_OP(CBigInt)
+
+	public:
+		Atomic(sl_int32 n) noexcept;
+
+		Atomic(sl_uint32 n) noexcept;
+
+		Atomic(sl_int64 n) noexcept;
+
+		Atomic(sl_uint64 n) noexcept;
+
+		~Atomic() noexcept;
+
+	public:
+		Atomic& operator=(sl_int32 n) noexcept;
+
+		Atomic& operator=(sl_uint32 n) noexcept;
+
+		Atomic& operator=(sl_int64 n) noexcept;
+
+		Atomic& operator=(sl_uint64 n) noexcept;
+
+	};
+
+	typedef Atomic<BigInt> AtomicBigInt;
+
 
 }
 

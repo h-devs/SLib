@@ -24,8 +24,8 @@
 #define CHECKHEADER_SLIB_DATA_SERIALIZE_MAP
 
 #include "primitive.h"
-#include "variable_length_integer.h"
 
+#include "../cvli.h"
 #include "../../core/priv/map_helper.h"
 
 namespace slib
@@ -114,7 +114,7 @@ namespace slib
 			return sl_false;
 		}
 		if (count) {
-			for (auto& item : _in) {
+			for (auto&& item : _in) {
 				if (!(Serialize(output, item.first))) {
 					return sl_false;
 				}
@@ -140,7 +140,7 @@ namespace slib
 			return sl_false;
 		}
 		if (count) {
-			for (auto& item : _in) {
+			for (auto&& item : _in) {
 				if (!(Serialize(output, item.first))) {
 					return sl_false;
 				}

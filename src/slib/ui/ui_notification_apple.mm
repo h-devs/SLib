@@ -313,7 +313,7 @@ namespace slib
 					}
 					if (message.additionalActions.isNotEmpty()) {
 						NSMutableArray* arr = [NSMutableArray new];
-						for (auto& pair : message.additionalActions) {
+						for (auto&& pair : message.additionalActions) {
 							NSString* _id = Apple::getNSStringFromString(pair.key);
 							NSString* title = Apple::getNSStringFromString(pair.value);
 							NSUserNotificationAction* action = [NSUserNotificationAction actionWithIdentifier:_id title:title];

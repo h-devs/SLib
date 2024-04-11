@@ -88,7 +88,7 @@ void applyCopyrightNoticeToSourceFile(const String& pathFile, const String& copy
 
 void applyCopyrightNoticeToAllSourceFilesInPath(const String& pathDir, const String& copyrightNotice)
 {
-	for (auto& file : File::getAllDescendantFiles(pathDir)) {
+	for (auto&& file : File::getAllDescendantFiles(pathDir)) {
 		String name = File::getFileNameOnly(file);
 		if (name.isNotEmpty() && !(name.startsWith('.'))) {
 			applyCopyrightNoticeToSourceFile(pathDir + "/" + file, copyrightNotice);

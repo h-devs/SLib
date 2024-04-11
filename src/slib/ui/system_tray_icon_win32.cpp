@@ -166,7 +166,7 @@ namespace slib
 				if (!size) {
 					SLIB_STATIC_STRING16(dllName, "Shell32.dll")
 					WindowsDllVersion dllVer = Win32::getDllVersion(dllName);
-					sl_uint32 ver = (dllVer.major << 24) | (dllVer.minor << 16) | (dllVer.build);
+					sl_uint32 ver = (dllVer.majorVersion << 24) | (dllVer.minorVersion << 16) | (dllVer.buildNumber);
 					if (ver >= SLIB_MAKE_DWORD(6, 0, 0, 6)) {
 						size = sizeof(nid);
 					} else if (ver >= SLIB_MAKE_DWORD(6, 0, 0, 0)) {

@@ -323,12 +323,12 @@ namespace slib
 		DatabaseExpression where;
 		DatabaseQueryGroupBy groupBy;
 		ListParam<DatabaseQueryOrder> orders;
-		sl_uint32 limit;
-		sl_uint32 offset;
+		sl_uint64 limit;
+		sl_uint64 offset;
 		ListParam<DatabaseQueryCombine> combines;
 		ListParam<DatabaseQueryOrder> ordersOfCombined;
-		sl_uint32 limitOfCombined;
-		sl_uint32 offsetOfCombined;
+		sl_uint64 limitOfCombined;
+		sl_uint64 offsetOfCombined;
 
 	public:
 		DatabaseQuery();

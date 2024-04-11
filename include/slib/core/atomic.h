@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -89,6 +89,18 @@ namespace slib
 			return value;
 		}
 
+		T release()
+		{
+			T value;
+			_retain_move(&value);
+			return value;
+		}
+
+		void release(T& ret)
+		{
+			_retain_move(&ret);
+		}
+
 	public:
 		void _retain_construct(void* other) const
 		{
@@ -101,6 +113,13 @@ namespace slib
 		{
 			m_lock.lock();
 			*((T*)other) = *((T*)m_value);
+			m_lock.unlock();
+		}
+
+		void _retain_move(void* other)
+		{
+			m_lock.lock();
+			*((T*)other) = Move(*((T*)m_value));
 			m_lock.unlock();
 		}
 

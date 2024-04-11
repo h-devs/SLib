@@ -50,7 +50,7 @@ int main(int argc, const char * argv[])
 	param.router.GET("/", [](HttpServerContext* context) {
 		Console::println("Method: %s, Path: %s", context->getMethodText(), context->getPath());
 		Console::println("Headers:");
-		for (auto& pair : context->getRequestHeaders()) {
+		for (auto&& pair : context->getRequestHeaders()) {
 			Console::println("%s: %s", pair.key, pair.value);
 		}
 		Console::println("Cookies: %s", Json(context->getRequestCookies()));

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -34,14 +34,14 @@
 namespace slib
 {
 
-	class SLIB_EXPORT AsyncTcpSocketInstance : public AsyncStreamInstance
+	class SLIB_EXPORT AsyncSocketStreamInstance : public AsyncStreamInstance
 	{
 		SLIB_DECLARE_OBJECT
 
 	protected:
-		AsyncTcpSocketInstance();
+		AsyncSocketStreamInstance();
 
-		~AsyncTcpSocketInstance();
+		~AsyncSocketStreamInstance();
 
 	public:
 		sl_socket getSocket();
@@ -50,6 +50,8 @@ namespace slib
 
 	public:
 		sl_bool connect(const SocketAddress& address);
+
+		sl_bool connect(const DomainSocketPath& path);
 
 	protected:
 		void onClose() override;
@@ -63,19 +65,20 @@ namespace slib
 		sl_bool m_flagSupportingConnect;
 		sl_bool m_flagRequestConnect;
 		SocketAddress m_addressRequestConnect;
+		DomainSocketPath m_pathRequestConnect;
 
 		Ref<AsyncStreamRequest> m_requestReading;
 		Ref<AsyncStreamRequest> m_requestWriting;
 	};
 
-	class SLIB_EXPORT AsyncTcpServerInstance : public AsyncIoInstance
+	class SLIB_EXPORT AsyncSocketServerInstance : public AsyncIoInstance
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		AsyncTcpServerInstance();
+		AsyncSocketServerInstance();
 
-		~AsyncTcpServerInstance();
+		~AsyncSocketServerInstance();
 
 	public:
 		void start();
@@ -87,7 +90,9 @@ namespace slib
 	protected:
 		void onClose() override;
 
-		void _onAccept(Socket& socketAccept, SocketAddress& address);
+		void _onAccept(Socket& client, SocketAddress&);
+
+		void _onAccept(Socket& client, DomainSocketPath&);
 
 		void _onError();
 
@@ -95,6 +100,7 @@ namespace slib
 		void _closeHandle();
 
 	protected:
+		sl_bool m_flagDomainSocket;
 		sl_bool m_flagRunning;
 
 	};
@@ -119,6 +125,8 @@ namespace slib
 		void onClose() override;
 
 		void _onReceive(SocketAddress& address, sl_uint32 size);
+
+		void _onReceive(sl_uint32 interfaceIndex, IPAddress& dst, SocketAddress& src, sl_uint32 size);
 
 		void _onError();
 

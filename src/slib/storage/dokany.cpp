@@ -531,7 +531,7 @@ namespace slib
 			fd.cFileName[1] = '.';
 			funcFillFindData(&fd, pDokanFileInfo);
 			HashMap<String, FileInfo> files = provider->getFiles(NormalizePath(szPathName));
-			for (auto& item : files) {
+			for (auto&& item : files) {
 				FileInfo& info = item.value;
 				Base::zeroMemory(&fd, sizeof(fd));
 				fd.dwFileAttributes = info.attributes & 0x7ffff;

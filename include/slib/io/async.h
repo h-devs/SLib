@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -185,7 +185,7 @@ namespace slib
 		friend class AsyncIoLoop;
 	};
 
-	class SLIB_EXPORT AsyncIoObject : public Object
+	class SLIB_EXPORT AsyncIoObject : public Dispatcher
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -195,20 +195,29 @@ namespace slib
 		~AsyncIoObject();
 
 	public:
+		const Ref<AsyncIoInstance>& getIoInstance()
+		{
+			return m_ioInstance;
+		}
+
 		Ref<AsyncIoLoop> getIoLoop();
 
-		Ref<AsyncIoInstance> getIoInstance();
+		virtual sl_bool isOpened();
 
-		void closeIoInstance();
+		virtual void close();
+
+		virtual sl_bool addTask(const Function<void()>& callback);
+
+		sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis = 0) override;
 
 	protected:
-		void setIoLoop(const Ref<AsyncIoLoop>& loop);
+		sl_bool initialize(const Ref<AsyncIoLoop>& loop, AsyncIoInstance* instance, AsyncIoMode mode);
 
-		void setIoInstance(AsyncIoInstance* instance);
+		void closeInstance();
 
-	protected:
-		AtomicWeakRef<AsyncIoLoop> m_ioLoop;
-		AtomicRef<AsyncIoInstance> m_ioInstance;
+	private:
+		WeakRef<AsyncIoLoop> m_ioLoop;
+		Ref<AsyncIoInstance> m_ioInstance;
 
 	};
 

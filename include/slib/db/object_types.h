@@ -35,6 +35,7 @@ namespace slib
 			Database,
 			DatabaseStatement,
 			DatabaseCursor,
+			DatabaseModel,
 			CDatabaseExpression,
 			ValueExpression,
 			IdentifierExpression,

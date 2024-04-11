@@ -41,7 +41,7 @@ namespace slib
 	{
 	}
 
-	sl_int64 Database::_executeBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
+	sl_int64 Database::_executeBy(const StringParam& sql, const Variant* params, sl_size nParams)
 	{
 		Ref<DatabaseStatement> statement = prepareStatement(sql);
 		if (statement.isNotNull()) {
@@ -55,7 +55,7 @@ namespace slib
 		return _executeBy(sql, sl_null, 0);
 	}
 
-	Ref<DatabaseCursor> Database::_queryBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
+	Ref<DatabaseCursor> Database::_queryBy(const StringParam& sql, const Variant* params, sl_size nParams)
 	{
 		Ref<DatabaseStatement> statement = prepareStatement(sql);
 		if (statement.isNotNull()) {
@@ -88,7 +88,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_int64 Database::executeBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
+	sl_int64 Database::executeBy(const StringParam& sql, const Variant* params, sl_size nParams)
 	{
 		sl_int64 ret = _executeBy(sql, params, nParams);
 		if (ret < 0) {
@@ -110,7 +110,7 @@ namespace slib
 		return ret;
 	}
 
-	Ref<DatabaseCursor> Database::queryBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
+	Ref<DatabaseCursor> Database::queryBy(const StringParam& sql, const Variant* params, sl_size nParams)
 	{
 		Ref<DatabaseCursor> ret = _queryBy(sql, params, nParams);
 		if (ret.isNull()) {
@@ -132,7 +132,7 @@ namespace slib
 		return ret;
 	}
 
-	List<VariantMap> Database::getRecordsBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
+	List<VariantMap> Database::getRecordsBy(const StringParam& sql, const Variant* params, sl_size nParams)
 	{
 		Ref<DatabaseCursor> cursor = queryBy(sql, params, nParams);
 		if (cursor.isNotNull()) {
@@ -158,7 +158,7 @@ namespace slib
 		return sl_null;
 	}
 
-	VariantMap Database::getRecordBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
+	VariantMap Database::getRecordBy(const StringParam& sql, const Variant* params, sl_size nParams)
 	{
 		Ref<DatabaseCursor> cursor = queryBy(sql, params, nParams);
 		if (cursor.isNotNull()) {
@@ -180,7 +180,7 @@ namespace slib
 		return sl_null;
 	}
 
-	Variant Database::getValueBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
+	Variant Database::getValueBy(const StringParam& sql, const Variant* params, sl_size nParams)
 	{
 		Ref<DatabaseCursor> cursor = queryBy(sql, params, nParams);
 		if (cursor.isNotNull()) {
@@ -345,6 +345,15 @@ namespace slib
 		return prepareStatement(sql);
 	}
 
+	List<VariantMap> Database::findRecords(const SelectParam& query)
+	{
+		Ref<DatabaseStatement> stmt = prepareQuery(query);
+		if (stmt.isNotNull()) {
+			return stmt->getRecordsBy(sl_null, 0);
+		}
+		return sl_null;
+	}
+
 	List<VariantMap> Database::findRecords(const DatabaseIdentifier& table, const DatabaseExpression& where)
 	{
 		Ref<DatabaseStatement> stmt = prepareQuery(table, where);
@@ -354,11 +363,29 @@ namespace slib
 		return sl_null;
 	}
 
+	VariantMap Database::findRecord(const SelectParam& query)
+	{
+		Ref<DatabaseStatement> stmt = prepareQuery(query);
+		if (stmt.isNotNull()) {
+			return stmt->getRecordBy(sl_null, 0);
+		}
+		return sl_null;
+	}
+
 	VariantMap Database::findRecord(const DatabaseIdentifier& table, const DatabaseExpression& where)
 	{
 		Ref<DatabaseStatement> stmt = prepareQuery(table, where);
 		if (stmt.isNotNull()) {
 			return stmt->getRecordBy(sl_null, 0);
+		}
+		return sl_null;
+	}
+
+	Variant Database::findValue(const SelectParam& query)
+	{
+		Ref<DatabaseStatement> stmt = prepareQuery(query);
+		if (stmt.isNotNull()) {
+			return stmt->getValueBy(sl_null, 0);
 		}
 		return sl_null;
 	}
@@ -417,7 +444,7 @@ namespace slib
 		}
 	}
 
-	void Database::_logSQL(const StringParam& sql, const Variant* params, sl_uint32 nParams)
+	void Database::_logSQL(const StringParam& sql, const Variant* params, sl_size nParams)
 	{
 		if (m_flagLogSQL) {
 			Log(GetDatabaseDialectText(getDialect()), "SQL: %s Params=%s", sql, Variant(List<Variant>(params, nParams)).toJsonString());
@@ -431,7 +458,7 @@ namespace slib
 		}
 	}
 
-	void Database::_logError(const StringParam& sql, const Variant* params, sl_uint32 nParams)
+	void Database::_logError(const StringParam& sql, const Variant* params, sl_size nParams)
 	{
 		if (m_flagLogErrors) {
 			LogError(GetDatabaseDialectText(getDialect()), "Error: %s, SQL: %s Params=%s", getErrorMessage(), sql, Variant(List<Variant>(params, nParams)).toJsonString());

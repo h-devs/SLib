@@ -385,15 +385,13 @@ namespace slib
 		}
 		Color color;
 		if (ColorDrawable::check(thumb.get(), &color)) {
-			sl_bool flagAntiAlias = canvas->isAntiAlias();
-			canvas->setAntiAlias(sl_true);
+			CanvasAntiAliasScope scope(canvas, sl_true);
 			if (Math::isAlmostZero(rectDst.getWidth() - rectDst.getHeight())) {
 				canvas->fillEllipse(rectDst, color);
 			} else {
 				sl_real r = Math::min(rectDst.getWidth(), rectDst.getHeight()) / 8;
 				canvas->fillRoundRect(rectDst, Size(r, r), color);
 			}
-			canvas->setAntiAlias(flagAntiAlias);
 		} else {
 			canvas->draw(rectDst, thumb);
 		}

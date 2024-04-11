@@ -32,19 +32,23 @@
 namespace slib
 {
 
-	class SAppConfiguration
+	class SAppModuleConfiguration
 	{
 	public:
 		String app_path;
+		List<SAppModuleConfiguration> includes;
+	};
 
-		CList<String> includes;
-
+	class SAppConfiguration : public SAppModuleConfiguration
+	{
+	public:
 		String generate_cpp_target_path;
 		String generate_cpp_namespace;
-		CList<String> generate_cpp_layout_include_headers;
-		CList<String> generate_cpp_layout_include_headers_in_cpp;
+		List<String> generate_cpp_layout_include_headers;
+		List<String> generate_cpp_layout_include_headers_in_cpp;
 
 		Locale simulator_locale;
+		
 
 	public:
 		SAppConfiguration();
@@ -139,16 +143,21 @@ namespace slib
 
 	protected:
 		sl_bool _openResourcesExceptUi();
+		sl_bool _openResourcesExceptUi(const SAppModuleConfiguration& conf, HashSet<String>& includedSet);
 		sl_bool _openResourcesExceptUi(const String& pathApp);
 		sl_bool _openImageResources(const String& pathApp);
 		sl_bool _openRawResources(const String& pathApp);
 		sl_bool _openGlobalResources(const String& pathApp, const String& subdir);
 		sl_bool _openUiResources();
+		sl_bool _openUiResources(const SAppModuleConfiguration& conf, HashSet<String>& includedSet);
 		sl_bool _openUiResources(const String& pathLayouts);
 		sl_bool _openUiResource(const String& path);
 		sl_bool _openUiResourceByName(const String& name);
+		sl_bool _openUiResourceByName(const String& name, sl_bool& flagFound, const SAppModuleConfiguration& conf, HashSet<String>& includedSet);
+		String _resolvePath(const String& path, const String& currentFilePath);
 
 		// Resources Entry
+		sl_bool _parseModuleConfiguration(const String& filePath, SAppModuleConfiguration& conf, const Function<sl_bool(XmlElement* root)>& onAdditionalConfig);
 		sl_bool _parseConfiguration(const String& filePath, SAppConfiguration& conf);
 		void _freeResources();
 		sl_bool _parseResourcesXml(const String& localNamespace, const String& filePath);
@@ -164,12 +173,15 @@ namespace slib
 
 		// String Resources
 		sl_bool _parseStringResources(const String& localNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, const String16& source);
-		sl_bool _parseStringResource(const String& localNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, const String16& source);
+		sl_bool _parseStringResource(const String& localNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, sl_bool flagVariants, const String16& source);
+		Ref<SAppStringResource> _registerOrGetStringResource(const String& name, const Ref<XmlElement>& element);
+		sl_bool _registerStringResourceItem(SAppStringResourceItem& item, const Ref<XmlElement>& element, const Locale& locale, const String16& source);
 		sl_bool _generateStringsCpp(const String& targetPath);
+		void _generateStringsCpp_Item(StringBuffer& sbCpp, const String& resourceName, const String& varName, const SAppStringResourceItem& item);
 		sl_bool _getStringAccessString(const String& localNamespace, const SAppStringValue& value, String& result);
 		sl_bool _getStringValue(const String& localNamespace, const SAppStringValue& value, String& result);
 		sl_bool _checkStringValue(const String& localNamespace, const SAppStringValue& value);
-		sl_bool _checkStringName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName = sl_null, Ref<SAppStringResource>* outResource = sl_null);
+		sl_bool _checkStringResource(const String& localNamespace, const SAppStringValue& value, String* outName = sl_null, Ref<SAppStringResource>* outResource = sl_null, SAppStringResourceItem* outItem = sl_null);
 
 		// Color Resources
 		sl_bool _parseColorResource(const String& localNamespace, const Ref<XmlElement>& element);
@@ -200,7 +212,7 @@ namespace slib
 		Ref<SAppMenuResourceItem> _parseMenuResourceItem(const String& localNamespace, const Ref<XmlElement>& element, SAppMenuResource* menu, int platforms);
 		sl_bool _generateMenusCpp(const String& targetPath);
 		sl_bool _generateMenusCpp_Item(SAppMenuResource* resource, const String& parentName, int parentPlatforms, SAppMenuResourceItem* item, StringBuffer& sbHeader, StringBuffer& sbCpp, int tabLevel);
-		sl_bool _getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, String& result);
+		sl_bool _getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, sl_bool flagForWindow, String& name, String& result);
 		sl_bool _getMenuValue(const String& localNamespace, const SAppMenuValue& value, Ref<Menu>& result);
 		sl_bool _getMenuValue_Item(SAppMenuResource* resource, const Ref<Menu>& parent, SAppMenuResourceItem* item);
 		sl_bool _checkMenuValue(const String& localNamespace, const SAppMenuValue& value);
@@ -291,6 +303,7 @@ namespace slib
 		sl_bool _processLayoutResourceControl_DatePicker(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Pager(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Navigation(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_Audio(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Video(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Camera(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Drawer(LayoutControlProcessParams* params);
@@ -309,7 +322,6 @@ namespace slib
 	private:
 		sl_bool m_flagOpened;
 		String m_pathConf;
-		String m_pathApp;
 
 		SAppConfiguration m_conf;
 

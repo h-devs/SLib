@@ -34,7 +34,7 @@ namespace slib
 	sl_bool Time::_toPlatformComponents(TimeComponents& output, sl_int64 t, sl_bool flagUTC) noexcept
 	{
 		SYSTEMTIME st;
-		if (Win32::getSYSTEMTIME(st, Time::withSeconds(t), flagUTC)) {
+		if (Win32::getSYSTEMTIME(st, Time::fromUnixTime(t), flagUTC)) {
 			output.year = st.wYear;
 			output.month = (sl_uint8)(st.wMonth);
 			output.day = (sl_uint8)(st.wDay);
@@ -55,7 +55,7 @@ namespace slib
 		st.wDay = (WORD)day;
 		Time t;
 		if (Win32::getTime(t, st, flagUTC)) {
-			output = t.getSecondCount();
+			output = t.toUnixTime();
 			return sl_true;
 		}
 		return sl_false;

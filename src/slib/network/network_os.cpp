@@ -38,10 +38,17 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(NetworkAdapterInfo)
+
+	NetworkAdapterInfo::NetworkAdapterInfo(): index(0), flagPhysical(sl_false)
+	{
+	}
+
+
 	List<IPv4Address> Network::findAllIPv4Addresses()
 	{
 		List<IPv4Address> ret;
-		ListElements<NetworkInterfaceInfo> devices(Network::findAllInterfaces());
+		ListElements<NetworkInterfaceInfo> devices(Network::getInterfaces());
 		for (sl_size i = 0; i < devices.count; i++) {
 			NetworkInterfaceInfo& device = devices[i];
 			if (!(device.flagLoopback)) {
@@ -60,7 +67,7 @@ namespace slib
 	List<IPv4AddressInfo> Network::findAllIPv4AddressInfos()
 	{
 		List<IPv4AddressInfo> list;
-		ListElements<NetworkInterfaceInfo> devices(Network::findAllInterfaces());
+		ListElements<NetworkInterfaceInfo> devices(Network::getInterfaces());
 		for (sl_size i = 0; i < devices.count; i++) {
 			NetworkInterfaceInfo& device = devices[i];
 			if (!(device.flagLoopback)) {
@@ -78,7 +85,7 @@ namespace slib
 	List<IPv6Address> Network::findAllIPv6Addresses()
 	{
 		List<IPv6Address> list;
-		ListElements<NetworkInterfaceInfo> devices(Network::findAllInterfaces());
+		ListElements<NetworkInterfaceInfo> devices(Network::getInterfaces());
 		for (sl_size i = 0; i < devices.count; i++) {
 			NetworkInterfaceInfo& device = devices[i];
 			if (!(device.flagLoopback)) {
@@ -96,7 +103,7 @@ namespace slib
 	List<MacAddress> Network::findAllMacAddresses()
 	{
 		List<MacAddress> list;
-		ListElements<NetworkInterfaceInfo> devices(Network::findAllInterfaces());
+		ListElements<NetworkInterfaceInfo> devices(Network::getInterfaces());
 		for (sl_size i = 0; i < devices.count; i++) {
 			if (devices[i].macAddress.isNotZero()) {
 				list.add_NoLock(devices[i].macAddress);
@@ -109,7 +116,7 @@ namespace slib
 	sl_bool Network::findInterface(const StringParam& _name, NetworkInterfaceInfo* pInfo)
 	{
 		StringData name(_name);
-		ListElements<NetworkInterfaceInfo> devices(Network::findAllInterfaces());
+		ListElements<NetworkInterfaceInfo> devices(Network::getInterfaces());
 		for (sl_size i = 0; i < devices.count; i++) {
 			if (devices[i].name == name || devices[i].displayName == name) {
 				if(pInfo) {
@@ -133,6 +140,7 @@ namespace slib
 
 #include "slib/platform.h"
 #include "slib/dl/win32/iphlpapi.h"
+#include "slib/platform/win32/wmi.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -159,7 +167,7 @@ namespace slib
 		}
 	};
 
-	List<NetworkInterfaceInfo> Network::findAllInterfaces()
+	List<NetworkInterfaceInfo> Network::getInterfaces()
 	{
 		auto funcGetIpAddrTable = iphlpapi::getApi_GetIpAddrTable();
 		if (!funcGetIpAddrTable) {
@@ -185,7 +193,7 @@ namespace slib
 			return sl_null;
 		}
 
-		sl_bool flagVista = Win32::getVersion() >= WindowsVersion::Vista;
+		sl_bool flagVista = Win32::getVersion().majorVersion >= WindowsVersion::Vista_MajorVersion;
 		ulOutBufLen = 0;
 		if (!flagVista) {
 			if (funcGetIpAddrTable(sl_null, &ulOutBufLen, TRUE) != ERROR_INSUFFICIENT_BUFFER) {
@@ -249,6 +257,23 @@ namespace slib
 		return ret;
 	}
 
+	List<NetworkAdapterInfo> Network::getAdapters()
+	{
+		List<NetworkAdapterInfo> ret;
+		ListElements<VariantMap> items(win32::Wmi::getQueryResponseRecords(L"SELECT * FROM Win32_NetworkAdapter", L"Name", L"InterfaceIndex", L"MACAddress", L"PhysicalAdapter", L"PNPDeviceID"));
+		for (sl_size i = 0; i < items.count; i++) {
+			NetworkAdapterInfo adapter;
+			VariantMap& item = items[i];
+			adapter.index = item.getValue("InterfaceIndex").getUint32();
+			adapter.name = item.getValue("Name").getString();
+			adapter.macAddress.parse(item.getValue("MACAddress").getString());
+			adapter.flagPhysical = item.getValue("PhysicalAdapter").getBoolean();
+			adapter.pnpDeviceId = item.getValue("PNPDeviceID").getString();
+			ret.add_NoLock(Move(adapter));
+		}
+		return ret;
+	}
+
 }
 
 #	endif
@@ -278,7 +303,7 @@ namespace slib
 
 	}
 
-	List<NetworkInterfaceInfo> Network::findAllInterfaces()
+	List<NetworkInterfaceInfo> Network::getInterfaces()
 	{
 		List<NetworkInterfaceInfo> ret;
 		if (JNetworkAddress::get() && JNetworkDevice::get()) {
@@ -352,7 +377,7 @@ namespace slib
 
 namespace slib
 {
-	List<NetworkInterfaceInfo> Network::findAllInterfaces()
+	List<NetworkInterfaceInfo> Network::getInterfaces()
 	{
 		HashMap<String, NetworkInterfaceInfo> ret;
 

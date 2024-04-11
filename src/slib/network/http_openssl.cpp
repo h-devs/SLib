@@ -106,10 +106,7 @@ namespace slib
 					}
 					SocketAddress addrLocal;
 					socketAccept.getLocalAddress(addrLocal);
-					AsyncTcpSocketParam cp;
-					cp.socket = Move(socketAccept);
-					cp.ioLoop = loop;
-					Ref<AsyncTcpSocket> stream = AsyncTcpSocket::create(cp);
+					Ref<AsyncSocketStream> stream = AsyncSocketStream::create(Move(socketAccept), loop);
 					if (stream.isNotNull()) {
 						Ref<OpenSSL_AsyncStream> tlsStream = OpenSSL::acceptStream(stream, m_tlsParam);
 						if (tlsStream.isNotNull()) {
@@ -131,7 +128,7 @@ namespace slib
 					if (!(result.flagError)) {
 						Ref<HttpServer> server = getServer();
 						if (server.isNotNull()) {
-							server->addConnection(desc.stream, desc.addressRemote, desc.addressLocal);
+							server->addConnection(desc.stream.get(), desc.addressRemote, desc.addressLocal);
 						}
 					}
 				}

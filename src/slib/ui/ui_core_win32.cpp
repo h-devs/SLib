@@ -33,9 +33,12 @@
 #include "slib/ui/app.h"
 #include "slib/ui/window.h"
 #include "slib/io/file.h"
-#include "slib/core/process.h"
+#include "slib/system/process.h"
+#include "slib/core/queue.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"
+
+#include "slib/dl/win32/user32.h"
 
 #include <commctrl.h>
 #include <shobjidl.h>
@@ -54,7 +57,29 @@ namespace slib
 {
 
 	namespace {
+
 		static sl_bool g_bFlagQuit = sl_false;
+
+		struct CUSTOM_EVENT
+		{
+			sl_uint32 type;
+			HWND window;
+		};
+
+		SLIB_SAFE_STATIC_GETTER(LinkedQueue<CUSTOM_EVENT>, GetCustomEventQueue)
+
+		static sl_bool IsOwnedTo(HWND hWnd, HWND owner)
+		{
+			HWND hWndOwner = GetWindow(hWnd, GW_OWNER);
+			while (hWndOwner) {
+				if (hWndOwner == owner) {
+					return sl_true;
+				}
+				hWndOwner = GetWindow(hWndOwner, GW_OWNER);
+			}
+			return sl_false;
+		}
+
 	}
 
 	namespace priv
@@ -67,66 +92,85 @@ namespace slib
 		WNDPROC g_wndProc_CustomMsgBox = NULL;
 		WNDPROC g_wndProc_SystemTrayIcon = NULL;
 
+		void PostCustomEvent(sl_uint32 type, HWND window)
+		{
+			LinkedQueue<CUSTOM_EVENT>* queue = GetCustomEventQueue();
+			if (queue) {
+				CUSTOM_EVENT msg;
+				msg.type = type;
+				msg.window = window;
+				if (queue->getCount() < 65536) {
+					queue->push(msg);
+					PostMessageW(window, SLIB_UI_MESSAGE_CUSTOM_QUEUE, 0, 0);
+				}
+			}
+		}
+
 		void RunUiLoop(HWND hWndModalDialog)
 		{
 			if (g_bFlagQuit) {
 				return;
 			}
+			LinkedQueue<CUSTOM_EVENT>* customQueue = GetCustomEventQueue();
+			if (!customQueue) {
+				return;
+			}
 			ReleaseCapture();
 			MSG msg;
 			while (GetMessageW(&msg, NULL, 0, 0)) {
-				sl_bool flagQuitLoop = sl_false;
-				switch (msg.message) {
-					case WM_QUIT:
-						PostQuitMessage((int)(msg.wParam));
-						flagQuitLoop = sl_true;
-						break;
-					case SLIB_UI_MESSAGE_QUIT_LOOP:
-						flagQuitLoop = sl_true;
-						break;
-					case SLIB_UI_MESSAGE_DISPATCH:
-						UIDispatcher::processCallbacks();
-						break;
-					case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
-						UIDispatcher::processDelayedCallback((sl_reg)(msg.lParam));
-						break;
-					case SLIB_UI_MESSAGE_CLOSE:
-					case WM_DESTROY:
-						DestroyWindow(msg.hwnd);
+				if (msg.message == WM_QUIT) {
+					PostQuitMessage((int)(msg.wParam));
+					return;
+				} else if (msg.message == WM_MENUCOMMAND) {
+					ProcessMenuCommand(msg.wParam, msg.lParam);
+				} else {
+					do {
 						if (hWndModalDialog) {
-							if (msg.hwnd == hWndModalDialog) {
-								flagQuitLoop = sl_true;
-								break;
-							}
-						}
-						break;
-					case WM_MENUCOMMAND:
-						ProcessMenuCommand(msg.wParam, msg.lParam);
-						break;
-					default:
-						do {
-							if (ProcessMenuShortcutKey(msg)) {
-								break;
-							}
-							Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
-							if (instance.isNotNull()) {
-								Ref<View> view = instance->getView();
-								if (view.isNotNull()) {
-									if (CaptureChildInstanceEvents(view.get(), msg)) {
-										break;
-									}
+							if (msg.message == WM_KEYDOWN || msg.message == WM_SYSKEYDOWN || msg.message == WM_KEYUP || msg.message == WM_SYSKEYUP) {
+								if (hWndModalDialog != msg.hwnd && hWndModalDialog != GetAncestor(msg.hwnd, GA_ROOT)) {
+									msg.hwnd = hWndModalDialog;
+									SetFocus(hWndModalDialog);
 								}
 							}
-							TranslateMessage(&msg);
-							DispatchMessageW(&msg);
-						} while (0);
-						break;
+						}
+						if (ProcessMenuShortcutKey(msg)) {
+							break;
+						}
+						Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
+						if (instance.isNotNull()) {
+							Ref<View> view = instance->getView();
+							if (view.isNotNull()) {
+								if (CaptureChildInstanceEvents(view.get(), msg)) {
+									break;
+								}
+							}
+						}
+						TranslateMessage(&msg);
+						DispatchMessageW(&msg);
+					} while (0);
 				}
-				if (flagQuitLoop) {
-					break;
+				if (customQueue->isNotEmpty()) {
+					CUSTOM_EVENT ev;
+					while (customQueue->pop(&ev)) {
+						if (ev.type == SLIB_UI_EVENT_QUIT_LOOP) {
+							return;
+						} else if (ev.type == SLIB_UI_EVENT_CLOSE_WINDOW) {
+							if (hWndModalDialog) {
+								if (ev.window == hWndModalDialog) {
+									DestroyWindow(ev.window);
+									return;
+								}
+								if (IsOwnedTo(hWndModalDialog, ev.window)) {
+									PostCustomEvent(SLIB_UI_EVENT_CLOSE_WINDOW, ev.window);
+									return;
+								}
+							}
+							DestroyWindow(ev.window);
+						}
+					}
 				}
 				if (g_bFlagQuit) {
-					return;
+					break;
 				}
 			}
 		}
@@ -383,7 +427,7 @@ namespace slib
 
 	void UIPlatform::quitLoop()
 	{
-		PostGlobalMessage(SLIB_UI_MESSAGE_QUIT_LOOP, 0, 0);
+		PostCustomEvent(SLIB_UI_EVENT_QUIT_LOOP, NULL);
 	}
 
 	void UIPlatform::initApp()
@@ -428,7 +472,20 @@ namespace slib
 
 	sl_bool UIPlatform::isWindowVisible(HWND hWnd)
 	{
-		return Win32::isWindowVisible(hWnd);
+		if (!(IsWindow(hWnd))) {
+			return sl_false;
+		}
+		if (!(IsWindowVisible(hWnd))) {
+			return sl_false;
+		}
+		if (IsIconic(hWnd)) {
+			return sl_false;
+		}
+		hWnd = GetAncestor(hWnd, GA_PARENT);
+		if (hWnd) {
+			return isWindowVisible(hWnd);
+		}
+		return sl_true;
 	}
 
 	String UIPlatform::getWindowText(HWND hWnd)
@@ -696,6 +753,52 @@ namespace slib
 		SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
 	}
 
+	sl_bool UIPlatform::registerTouchWindow(HWND hWnd)
+	{
+		auto func = user32::getApi_RegisterTouchWindow();
+		if (func) {
+			return func(hWnd, 0) != 0;
+		}
+		return sl_false;
+	}
+
+	void UIPlatform::unregisterTouchWindow(HWND hWnd)
+	{
+		auto func = user32::getApi_UnregisterTouchWindow();
+		if (func) {
+			func(hWnd);
+		}
+	}
+
+#define MOUSEEVENTF_FROMTOUCH 0xFF515700
+
+	sl_bool UIPlatform::isCurrentMessageFromTouch()
+	{
+		return (GetMessageExtraInfo() & MOUSEEVENTF_FROMTOUCH) == MOUSEEVENTF_FROMTOUCH;
+	}
+
+	void UIPlatform::initLayeredWindowAttributes(HWND hWnd, sl_uint8 alpha, const Color& colorKey)
+	{
+		DWORD flags = alpha == 255 ? 0 : LWA_ALPHA;
+		COLORREF ck = 0;
+		if (colorKey.isNotZero()) {
+			ck = GraphicsPlatform::getColorRef(colorKey);
+			flags |= LWA_COLORKEY;
+		}
+		SetLayeredWindowAttributes(hWnd, ck, alpha, flags);
+	}
+
+	void UIPlatform::updateLayeredWindowAttributes(HWND hWnd, sl_uint8 alpha, const Color& colorKey)
+	{
+		DWORD flags = LWA_ALPHA;
+		COLORREF ck = 0;
+		if (colorKey.isNotZero()) {
+			ck = GraphicsPlatform::getColorRef(colorKey);
+			flags |= LWA_COLORKEY;
+		}
+		SetLayeredWindowAttributes(hWnd, ck, alpha, flags);
+	}
+
 	sl_int32 UIApp::onExistingInstance()
 	{
 		StringCstr16 appId = getApplicationId();
@@ -741,7 +844,7 @@ namespace slib
 				return;
 			}
 			ITaskbarList3* pList = NULL;
-			CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pList));
+			CoCreateInstance(__uuidof(TaskbarList), NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pList));
 			if (pList) {
 				HRESULT hr = pList->HrInit();
 				if (SUCCEEDED(hr)) {
@@ -811,6 +914,9 @@ namespace slib
 				case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
 					UIDispatcher::processDelayedCallback((sl_reg)lParam);
 					return 0;
+				case SLIB_UI_MESSAGE_CLOSE_VIEW:
+					DestroyWindow((HWND)lParam);
+					break;
 				case SLIB_UI_MESSAGE_CUSTOM_MSGBOX:
 					if (g_wndProc_CustomMsgBox) {
 						return g_wndProc_CustomMsgBox(hWnd, uMsg, wParam, lParam);
@@ -943,9 +1049,20 @@ namespace slib
 		wc.style = CS_DBLCLKS | CS_PARENTDC;
 		wc.lpfnWndProc = ViewInstanceProc;
 		wc.hInstance = hInstance;
-		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
 		wc.hbrBackground = NULL;
 		wc.lpszClassName = PRIV_SLIB_UI_VIEW_WINDOW_CLASS_NAME;
+	}
+
+	namespace
+	{
+		static BOOL CALLBACK EnumApplicationIcon(HMODULE hModule, LPCWSTR lpType, LPWSTR lpName, LONG_PTR lParam
+		)
+		{
+			WNDCLASSEXW& wc = *((WNDCLASSEXW*)lParam);
+			wc.hIcon = LoadIconW(hModule, lpName);
+			return FALSE;
+		}
 	}
 
 	void Win32_UI_Shared::prepareClassForWindow(WNDCLASSEXW& wc)
@@ -955,8 +1072,8 @@ namespace slib
 		wc.style = CS_DBLCLKS;
 		wc.lpfnWndProc = WindowInstanceProc;
 		wc.hInstance = hInstance;
-		wc.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
-		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+		EnumResourceNamesW(hInstance, RT_GROUP_ICON, &EnumApplicationIcon, (LONG_PTR)&wc);
+		wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
 		wc.hbrBackground = NULL;
 		wc.lpszClassName = PRIV_SLIB_UI_GENERIC_WINDOW_CLASS_NAME;
 	}

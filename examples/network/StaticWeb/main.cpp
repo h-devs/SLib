@@ -39,6 +39,7 @@ int main(int argc, const char * argv[])
 	param.webRootPath = argv[2];
 	StringView flags(argc > 3 ? argv[3] : sl_null);
 	param.flagLogDebug = flags.contains('d');
+	param.dispatcher = ThreadPool::create(0, Cpu::getCoreCount());
 
 	Ref<HttpServer> server = HttpServer::create(param);
 	if (server.isNull()) {

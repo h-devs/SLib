@@ -31,7 +31,7 @@
 #include "slib/data/base64.h"
 #include "slib/crypto/sha1.h"
 #include "slib/crypto/sha2.h"
-#include "slib/crypto/des.h"
+#include "slib/crypto/3des.h"
 #include "slib/crypto/rc2.h"
 
 #define PKCS12_DEFAULT_ITERATION 51200

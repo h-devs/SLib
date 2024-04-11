@@ -183,6 +183,17 @@ public: \
 		SLIB_JSON_ADD_MEMBERS(__VA_ARGS__) \
 	}
 
+#define SLIB_JSON_BY_SERIALIZE \
+	SLIB_JSON { \
+		{ \
+			if (isFromJson) { \
+				DeserializeFromMemory(*this, json.getMemory()); \
+			} else { \
+				json.setMemory(SerializeToMemory(*this)); \
+			} \
+		} \
+	}
+
 
 namespace slib
 {
@@ -192,9 +203,9 @@ namespace slib
 		class SLIB_EXPORT JsonFieldContainer : public StringContainer
 		{
 		public:
-			JsonFieldContainer(sl_char8* _sz, sl_size _len)
+			JsonFieldContainer(sl_char8* _data, sl_size _len)
 			{
-				sz = _sz;
+				data = _data;
 				len = _len;
 				hash = 0;
 				type = 0;

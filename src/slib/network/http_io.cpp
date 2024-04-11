@@ -203,22 +203,20 @@ namespace slib
 
 	Ref<HttpContentReader> HttpContentReader::createPersistent(const Ref<AsyncStream>& io, const HttpContentReaderOnComplete& onComplete, sl_uint64 contentLength, sl_uint32 bufferSize, sl_bool flagDecompress)
 	{
+		if (io.isNull() || !bufferSize || !contentLength) {
+			return sl_null;
+		}
 		Ref<ContentReader_Persistent> ret = new ContentReader_Persistent;
-		if (io.isNull()) {
-			return ret;
+		if (ret.isNull()) {
+			return sl_null;
 		}
-		if (!contentLength|| !bufferSize) {
-			return ret;
-		}
-		if (ret.isNotNull()) {
-			ret->m_sizeTotal = contentLength;
-			ret->m_onComplete = onComplete;
-			ret->setReadingBufferSize(bufferSize);
-			ret->setSourceStream(io);
-			if (flagDecompress) {
-				if (!(ret->setDecompressing())) {
-					ret.setNull();
-				}
+		ret->m_sizeTotal = contentLength;
+		ret->m_onComplete = onComplete;
+		ret->setReadingBufferSize(bufferSize);
+		ret->setSourceStream(io);
+		if (flagDecompress) {
+			if (!(ret->setDecompressing())) {
+				return sl_null;
 			}
 		}
 		return ret;
@@ -370,21 +368,19 @@ namespace slib
 
 	Ref<HttpContentReader> HttpContentReader::createChunked(const Ref<AsyncStream>& io, const HttpContentReaderOnComplete& onComplete, sl_uint32 bufferSize, sl_bool flagDecompress)
 	{
+		if (io.isNull() || !bufferSize) {
+			return sl_null;
+		}
 		Ref<ContentReader_Chunked> ret = new ContentReader_Chunked;
-		if (io.isNull()) {
-			return ret;
+		if (ret.isNull()) {
+			return sl_null;
 		}
-		if (bufferSize == 0) {
-			return ret;
-		}
-		if (ret.isNotNull()) {
-			ret->m_onComplete = onComplete;
-			ret->setReadingBufferSize(bufferSize);
-			ret->setSourceStream(io);
-			if (flagDecompress) {
-				if (!(ret->setDecompressing())) {
-					ret.setNull();
-				}
+		ret->m_onComplete = onComplete;
+		ret->setReadingBufferSize(bufferSize);
+		ret->setSourceStream(io);
+		if (flagDecompress) {
+			if (!(ret->setDecompressing())) {
+				return sl_null;
 			}
 		}
 		return ret;
@@ -403,21 +399,19 @@ namespace slib
 
 	Ref<HttpContentReader> HttpContentReader::createTearDown(const Ref<AsyncStream>& io, const HttpContentReaderOnComplete& onComplete, sl_uint32 bufferSize, sl_bool flagDecompress)
 	{
+		if (io.isNull() || !bufferSize) {
+			return sl_null;
+		}
 		Ref<ContentReader_TearDown> ret = new ContentReader_TearDown;
-		if (io.isNull()) {
-			return ret;
+		if (ret.isNull()) {
+			return sl_null;
 		}
-		if (bufferSize == 0) {
-			return ret;
-		}
-		if (ret.isNotNull()) {
-			ret->m_onComplete = onComplete;
-			ret->setReadingBufferSize(bufferSize);
-			ret->setSourceStream(io);
-			if (flagDecompress) {
-				if (!(ret->setDecompressing())) {
-					ret.setNull();
-				}
+		ret->m_onComplete = onComplete;
+		ret->setReadingBufferSize(bufferSize);
+		ret->setSourceStream(io);
+		if (flagDecompress) {
+			if (!(ret->setDecompressing())) {
+				return sl_null;
 			}
 		}
 		return ret;

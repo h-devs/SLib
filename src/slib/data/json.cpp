@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 #define SLIB_SUPPORT_STD_TYPES
 
 #include "slib/data/json.h"
+#include "slib/data/data_container.h"
 
 #include "slib/io/file.h"
 #include "slib/core/stringx.h"
@@ -1232,6 +1233,146 @@ namespace slib
 	sl_bool ObjectId::setJson(const Json& json) noexcept
 	{
 		return json.getObjectId(this);
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DataContainer)
+
+	DataContainer::DataContainer() noexcept: data(sl_null), size(0), flagNotJson(sl_false)
+	{
+	}
+
+	DataContainer::DataContainer(const void* _data, sl_size _size, CRef* _ref)  noexcept: data(_data), size((sl_uint32)_size), ref(_ref), flagNotJson(sl_false)
+	{
+	}
+
+	void DataContainer::clear()
+	{
+		data = sl_null;
+		size = 0;
+		ref.setNull();
+		mem.setNull();
+		string.setNull();
+		json.setNull();
+		flagNotJson = sl_false;
+	}
+
+	void DataContainer::setContent(const void* _data, sl_uint32 _size, CRef* _ref)
+	{
+		clear();
+		data = _data;
+		size = _size;
+		ref = _ref;
+	}
+
+	void DataContainer::setContent(const Variant& var)
+	{
+		clear();
+		if (var.isNotNull()) {
+			if (var.isMemory()) {
+				setMemory(var.getMemory());
+			} else if (var.isObject() || var.isCollection()) {
+				Json json(var);
+				Memory mem = json.serialize();
+				setJson(Move(json), Move(mem));
+			} else {
+				String str = var.getString();
+				setString(Move(str));
+			}
+		}
+	}
+
+	Memory DataContainer::getMemory() const noexcept
+	{
+		if (data && size) {
+			if (mem.isNotNull()) {
+				if (data == mem.getData() && size == mem.getSize()) {
+					return mem;
+				} else {
+					return Memory::createStatic(data, size, mem.ref.get());
+				}
+			} else {
+				if (ref.isNotNull()) {
+					((DataContainer*)this)->mem = Memory::createStatic(data, size, ref.get());
+				} else {
+					if (string.isNotNull() && data == string.getData() && size == string.getLength()) {
+						((DataContainer*)this)->mem = string.toMemory();
+					} else {
+						((DataContainer*)this)->mem = Memory::create(data, size);
+					}
+				}
+			}
+			return mem;
+		}
+		return sl_null;
+	}
+
+	void DataContainer::setMemory(const Memory& _mem)
+	{
+		clear();
+		data = _mem.getData();
+		size = (sl_uint32)(_mem.getSize());
+		mem = _mem;
+	}
+
+	String DataContainer::getString() const noexcept
+	{
+		if (data && size) {
+			if (string.isNotNull()) {
+				if (data == string.getData() && size == string.getLength()) {
+					return string;
+				}
+			}
+			((DataContainer*)this)->string = String::fromUtf8(data, size);
+			return string;
+		}
+		return sl_null;
+	}
+
+	void DataContainer::setString(const String& _str)
+	{
+		clear();
+		data = _str.getData();
+		size = (sl_uint32)(_str.getLength());
+		string = _str;
+	}
+
+	Json DataContainer::getJson() const noexcept
+	{
+		if (flagNotJson) {
+			return sl_null;
+		}
+		if (json.isNotNull()) {
+			return json;
+		}
+		if (((DataContainer*)this)->json.deserialize(data, size)) {
+			return json;
+		}
+		((DataContainer*)this)->flagNotJson = sl_true;
+		return sl_null;
+	}
+
+	void DataContainer::setJson(const Json& _json)
+	{
+		clear();
+		if (_json.isNotNull()) {
+			Memory _mem = _json.serialize();
+			if (_mem.isNotNull()) {
+				setMemory(_mem);
+				json = _json;
+			}
+		}
+	}
+
+	void DataContainer::setJson(const Json& _json, const Memory& _mem)
+	{
+		clear();
+		if (_json.isNotNull()) {
+			if (_mem.isNotNull()) {
+				setMemory(_mem);
+				json = _json;
+			}
+		}
 	}
 
 }

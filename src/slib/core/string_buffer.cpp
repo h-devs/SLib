@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -77,6 +77,50 @@ namespace slib
 		return m_len; \
 	} \
 	\
+	sl_bool BUFFER::isEmpty() const noexcept \
+	{ \
+		return !m_len; \
+	} \
+	\
+	sl_bool BUFFER::isNotEmpty() const noexcept \
+	{ \
+		return m_len != 0; \
+	} \
+	\
+	typename BUFFER::Char BUFFER::getFirstChar() const noexcept \
+	{ \
+		Link<StringStorage>* link = m_queue.getFront(); \
+		if (link) { \
+			StringStorage& storage = link->value; \
+			return *((typename BUFFER::Char*)(storage.data)); \
+		} \
+		return 0; \
+	} \
+	\
+	typename BUFFER::Char BUFFER::getLastChar() const noexcept \
+	{ \
+		Link<StringStorage>* link = m_queue.getBack(); \
+		if (link) { \
+			StringStorage& storage = link->value; \
+			return ((typename BUFFER::Char*)(storage.data))[storage.length - 1]; \
+		} \
+		return 0; \
+	} \
+	\
+	typename BUFFER::Char BUFFER::getCharAt(sl_size index) const noexcept \
+	{ \
+		Link<StringStorage>* link = m_queue.getFront(); \
+		while (link) { \
+			StringStorage& storage = link->value; \
+			if (index < storage.length) { \
+				return ((typename BUFFER::Char*)(storage.data))[index]; \
+			} \
+			index -= storage.length; \
+			link = link->next; \
+		} \
+		return 0; \
+	} \
+	\
 	sl_bool BUFFER::add(typename BUFFER::StringType const& str) noexcept \
 	{ \
 		sl_size len = str.getLength(); \
@@ -103,7 +147,7 @@ namespace slib
 		return sl_false; \
 	} \
 	\
-	sl_bool BUFFER::add(const StringStorage& data) noexcept \
+	sl_bool BUFFER::addStorage(const StringStorage& data) noexcept \
 	{ \
 		sl_size len = data.length; \
 		if (!len) { \
@@ -127,7 +171,7 @@ namespace slib
 		data.data = (typename BUFFER::Char*)buf; \
 		data.length = length; \
 		data.charSize = sizeof(typename BUFFER::Char); \
-		return add(data); \
+		return addStorage(data); \
 	} \
 	\
 	void BUFFER::link(BUFFER& buf) noexcept \

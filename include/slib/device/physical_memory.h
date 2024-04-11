@@ -25,6 +25,8 @@
 
 #include "definition.h"
 
+#include "../core/string.h"
+
 namespace slib
 {
 
@@ -34,10 +36,29 @@ namespace slib
 		sl_uint64 available; // in bytes
 	};
 
+	class SLIB_EXPORT PhysicalMemorySlotInfo
+	{
+	public:
+		sl_uint64 capacity;
+		sl_uint32 speed;
+		String bank;
+		String serialNumber;
+
+	public:
+		PhysicalMemorySlotInfo();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PhysicalMemorySlotInfo)
+
+	};
+
 	class SLIB_EXPORT PhysicalMemory
 	{
 	public:
 		static sl_bool getStatus(PhysicalMemoryStatus& _out);
+
+		static sl_uint64 getTotalSize();
+
+		static List<PhysicalMemorySlotInfo> getSlots();
 
 	};
 

@@ -32,10 +32,14 @@ namespace slib
 
 		enum {
 			Package_Network = packages::Network,
+			AsyncSocketStream,
+			AsyncSocketStreamInstance,
+			AsyncSocketServer,
+			AsyncSocketServerInstance,
 			AsyncTcpSocket,
-			AsyncTcpSocketInstance,
 			AsyncTcpServer,
-			AsyncTcpServerInstance,
+			AsyncDomainSocket,
+			AsyncDomainSocketServer,
 			AsyncUdpSocket,
 			AsyncUdpSocketInstance,
 			UrlRequest,
@@ -57,7 +61,8 @@ namespace slib
 			Tap,
 			Pcap,
 			AnyDevicePcap,
-			IPC,
+			IPCRequest,
+			IPCServer,
 			SmbServer
 		};
 

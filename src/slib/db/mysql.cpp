@@ -798,10 +798,10 @@ namespace slib
 				}
 			}
 
-			sl_bool _bind(const Variant* params, sl_uint32 nParams)
+			sl_bool _bind(const Variant* params, sl_size nParams)
 			{
 				sl_uint32 n = (sl_uint32)(mysql_stmt_param_count(m_statement));
-				if (n == nParams) {
+				if (n == (sl_uint32)nParams) {
 					if (n > 0) {
 						SLIB_SCOPED_BUFFER(MYSQL_BIND, 32, bind, n);
 						SLIB_SCOPED_BUFFER(FieldDesc, 32, fds, n);
@@ -901,7 +901,7 @@ namespace slib
 				return sl_false;
 			}
 
-			sl_bool _execute(const Variant* params, sl_uint32 nParams)
+			sl_bool _execute(const Variant* params, sl_size nParams)
 			{
 				if (!m_statement) {
 					if (!(prepare())) {
@@ -933,7 +933,7 @@ namespace slib
 				return sl_false;
 			}
 
-			sl_int64 executeBy(const Variant* params, sl_uint32 nParams) override
+			sl_int64 executeBy(const Variant* params, sl_size nParams) override
 			{
 				MySQL::initThread();
 				ObjectLocker lock(m_db.get());
@@ -943,7 +943,7 @@ namespace slib
 				return -1;
 			}
 
-			Ref<DatabaseCursor> queryBy(const Variant* params, sl_uint32 nParams) override
+			Ref<DatabaseCursor> queryBy(const Variant* params, sl_size nParams) override
 			{
 				MySQL::initThread();
 				ObjectLocker lock(m_db.get());

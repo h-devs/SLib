@@ -33,7 +33,7 @@ int main(int argc, const char * argv[])
 
 		Println("List Original (Count: %d)", list.getCount());
 		i = 0;
-		for (auto& item : list) {
+		for (auto&& item : list) {
 			Println("[%d]=%s", i++, item);
 		}
 
@@ -46,7 +46,7 @@ int main(int argc, const char * argv[])
 		}
 		Println("List after insertion (Count: %d)", list.getCount());
 		i = 0;
-		for (auto& item : list) {
+		for (auto&& item : list) {
 			Println("[%d]=%s", i++, item);
 		}
 
@@ -56,7 +56,7 @@ int main(int argc, const char * argv[])
 		list.removeValues("b");
 		Println("List after removal (Count: %d)", list.getCount());
 		i = 0;
-		for (auto& item : list) {
+		for (auto&& item : list) {
 			Println("[%d]=%s", i++, item);
 		}
 
@@ -68,7 +68,7 @@ int main(int argc, const char * argv[])
 		HashMap<String, int> map = {{"a", 1}, {"b", 2}, {"c", 3}, {"ab", 11}, {"cd", 34}};
 
 		Println("HashMap Original (Count: %d)", map.getCount());
-		for (auto& item : map) {
+		for (auto&& item : map) {
 			Println("[%s]=%d", item.key, item.value);
 		}
 
@@ -82,7 +82,7 @@ int main(int argc, const char * argv[])
 		map.put("baa", 211);
 		map.put("bac", 213);
 		Println("HashMap after insertion (Count: %d)", map.getCount());
-		for (auto& item : map) {
+		for (auto&& item : map) {
 			Println("[%s]=%d", item.key, item.value);
 		}
 
@@ -90,7 +90,7 @@ int main(int argc, const char * argv[])
 		map.remove("ab");
 		map.remove("cd");
 		Println("HashMap after removal (Count: %d)", map.getCount());
-		for (auto& item : map) {
+		for (auto&& item : map) {
 			Println("[%s]=%d", item.key, item.value);
 		}
 
@@ -98,7 +98,7 @@ int main(int argc, const char * argv[])
 		Map<String, int> tree;
 		tree.putAll(map);
 		Println("Ordered Map (Count: %d)", tree.getCount());
-		for (auto& item : tree) {
+		for (auto&& item : tree) {
 			Println("[%s]=%d", item.key, item.value);
 		}
 

@@ -155,14 +155,13 @@ namespace slib
 			return sl_false;
 		}
 
-		Ref<SAppLayoutResource> layout = new SAppLayoutResource;
+		Ref<SAppLayoutResource> layout = new SAppLayoutResource(element);
 		if (layout.isNull()) {
 			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
 
 		layout->filePath = filePath;
-		layout->element = element;
 
 		if (m_layouts.find(localNamespace)) {
 			logError(element, g_str_error_resource_layout_name_redefined, localNamespace);
@@ -246,9 +245,19 @@ namespace slib
 			}
 			SAppLayoutItemType type = SAppLayoutResource::getTypeFromName(strType);
 			if (type == SAppLayoutItemType::Unknown && parent) {
-				if (parent->itemType == SAppLayoutItemType::Tree || parent->itemType == SAppLayoutItemType::TreeItem) {
-					if (strType == "item") {
-						type = SAppLayoutItemType::TreeItem;
+				if (strType == "item") {
+					switch (parent->itemType) {
+						case SAppLayoutItemType::Tree:
+						case SAppLayoutItemType::TreeItem:
+							type = SAppLayoutItemType::TreeItem;
+							break;
+						case SAppLayoutItemType::Tab:
+						case SAppLayoutItemType::Split:
+						case SAppLayoutItemType::Pager:
+							type = SAppLayoutItemType::ViewGroup;
+							break;
+						default:
+							break;
 					}
 				}
 			}
@@ -301,11 +310,8 @@ namespace slib
 		}
 
 		String customClassName = item->getXmlAttribute("class").trim();
-		if (customClassName.isNotNull()) {
-			item->className = customClassName;
-		}
-
 		if (customClassName.isNotEmpty()) {
+			item->className = customClassName;
 			if (!(layout->customClasses.put(customClassName, sl_true))) {
 				logError(element, g_str_error_out_of_memory);
 				return sl_false;
@@ -346,18 +352,14 @@ namespace slib
 
 	Ref<SAppLayoutResourceItem> SAppDocument::_parseLayoutResourceItemChild(SAppLayoutResource* layout, SAppLayoutResourceItem* parentItem, const Ref<XmlElement>& element, const String16& source)
 	{
-		Ref<SAppLayoutResourceItem> childItem = new SAppLayoutResourceItem;
+		Ref<SAppLayoutResourceItem> childItem = new SAppLayoutResourceItem(element);
 		if (childItem.isNull()) {
 			logError(element, g_str_error_out_of_memory);
 			return sl_null;
 		}
-
-		childItem->element = element;
-
 		if (!(_parseLayoutResourceItem(layout, childItem.get(), parentItem, source))) {
 			return sl_null;
 		}
-
 		return childItem;
 	}
 
@@ -374,7 +376,7 @@ namespace slib
 		}
 
 		StringBuffer sbHeader, sbHeaderBase, sbCpp;
-		sbHeaderBase.add("#pragma once\r\n\r\n#include <slib/ui/resource.h>\r\n\r\n");
+		sbHeaderBase.add("#pragma once\r\n\r\n#include <slib/ui/resource.h>\r\n#include \"menus.h\"\r\n");
 		sbHeader.add("#pragma once\r\n\r\n");
 
 		{
@@ -392,7 +394,6 @@ namespace slib
 								 "#include \"strings.h\"%n"
 								 "#include \"colors.h\"%n"
 								 "#include \"drawables.h\"%n"
-								 "#include \"menus.h\"%n%n"
 								 , m_conf.generate_cpp_namespace));
 
 		{
@@ -406,7 +407,7 @@ namespace slib
 
 		sbHeaderBase.add(String::format("%n" "namespace %s%n" "{%n\tnamespace ui%n\t{%n", m_conf.generate_cpp_namespace));
 		{
-			for (auto& pair : m_layouts) {
+			for (auto&& pair : m_layouts) {
 				if (pair.value.isNotNull()) {
 					Ref<SAppLayoutResource> layout = pair.value;
 					sbHeaderBase.add(String::format("\t\tclass %s;%n", pair.key));
@@ -416,7 +417,7 @@ namespace slib
 		sbHeaderBase.add("\t}\r\n}\r\n");
 
 		{
-			for (auto& pair : m_layouts) {
+			for (auto&& pair : m_layouts) {
 				if (pair.value.isNotNull()) {
 					sbHeader.add(String::format("#include \"ui/%s.h\"%n", pair.key));
 					sbCpp.add(String::format("#include \"ui/%s.cpp.inc\"%n", pair.key));
@@ -503,7 +504,7 @@ namespace slib
 		}
 		{
 			ObjectLocker lock(&(layout->itemArrays));
-			for (auto& item : layout->itemArrays) {
+			for (auto&& item : layout->itemArrays) {
 				sbHeader.add(String::format("\t\t\tslib::Ref<%s> %s[%d];%n", item.value.className, item.key, item.value.itemCount));
 			}
 			if (layout->itemArrays.isNotEmpty()) {
@@ -907,22 +908,27 @@ namespace slib
 		}
 		String strStyles = item->getXmlAttributeWithoutStyle("style").trim();
 		if (strStyles.isNotEmpty()) {
-			item->init();
-			ListElements<String> arr(strStyles.split(","));
-			for (sl_size i = 0; i < arr.count; i++) {
-				String s = arr[i].trim();
-				Ref<SAppLayoutStyle> style;
-				getItemFromMap(m_layoutStyles, localNamespace, s, sl_null, &style);
-				if (style.isNotNull()) {
-					if (!(item->styles.add_NoLock(Move(style)))) {
-						logError(item->element, g_str_error_out_of_memory);
+			Ref< CList< Ref<SAppLayoutStyle> > > _styles = Ref< CList< Ref<SAppLayoutStyle> > >::from(item->element->getProperty("styles").getRef());
+			List< Ref<SAppLayoutStyle> >& styles = *(reinterpret_cast<List< Ref<SAppLayoutStyle> >*>(&_styles));
+			if (styles.isNull()) {
+				ListElements<String> arr(strStyles.split(","));
+				for (sl_size i = 0; i < arr.count; i++) {
+					String s = arr[i].trim();
+					Ref<SAppLayoutStyle> style;
+					getItemFromMap(m_layoutStyles, localNamespace, s, sl_null, &style);
+					if (style.isNotNull()) {
+						if (!(styles.add_NoLock(Move(style)))) {
+							logError(item->element, g_str_error_out_of_memory);
+							return sl_false;
+						}
+					} else {
+						logError(item->element, g_str_error_layout_style_not_found, s);
 						return sl_false;
 					}
-				} else {
-					logError(item->element, g_str_error_layout_style_not_found, s);
-					return sl_false;
 				}
+				item->element->setProperty("styles", styles.ref);
 			}
+			item->styles = Move(styles);
 		}
 		return sl_true;
 	}
@@ -1118,6 +1124,7 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(DatePicker)
 			PROCESS_CONTROL_SWITCH(Pager)
 			PROCESS_CONTROL_SWITCH(Navigation)
+			PROCESS_CONTROL_SWITCH(Audio)
 			PROCESS_CONTROL_SWITCH(Video)
 			PROCESS_CONTROL_SWITCH(Camera)
 			PROCESS_CONTROL_SWITCH(Drawer)
@@ -1621,8 +1628,8 @@ namespace slib
 #define LAYOUT_CONTROL_PARSE_MENU(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, SUFFIX, VAR)
 #define LAYOUT_CONTROL_GENERATE_MENU(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
-		String value; \
-		if (!(_getMenuAccessString(resource->name, VAR, value))) { \
+		String name, value; \
+		if (!(_getMenuAccessString(resource->name, VAR, sl_false, name, value))) { \
 			return sl_false; \
 		} \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
@@ -1736,14 +1743,14 @@ namespace slib
 #define LAYOUT_CONTROL_PARSE_STATE_MAP_ATTR(TYPE, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_STATE_MAP_XML(TYPE, *resourceItem, ATTR, NAME, ##__VA_ARGS__)
 #define LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	{ \
-		for (auto& item : VAR.values) { \
+		for (auto&& item : VAR.values) { \
 			const char* state = GetViewStateAcessString(item.key); \
 			LAYOUT_CONTROL_GENERATE_##TYPE(item.value, SETFUNC, CATEGORY, ARG_FORMAT ", %s", ##__VA_ARGS__, state) \
 		} \
 	}
 #define LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, VAR, SETFUNC, CATEGORY, ...) \
 	{ \
-		for (auto& item : VAR.values) { \
+		for (auto&& item : VAR.values) { \
 			LAYOUT_CONTROL_SIMULATE_##TYPE(item.value, SETFUNC, CATEGORY, ##__VA_ARGS__, item.key) \
 		} \
 	}
@@ -2199,7 +2206,7 @@ namespace slib
 				}
 			}
 		}
-			
+
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, background, setBackground)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, backgroundScale, setBackgroundScaleMode)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, backgroundAlign, setBackgroundAlignment)
@@ -2232,6 +2239,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, contentRadiusX, setContentRadiusX, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, contentRadiusY, setContentRadiusY, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, contentShape, setContentShape)
+		LAYOUT_CONTROL_STATE_MAP(COLOR, paddingColor, setPaddingColor)
 
 		LAYOUT_CONTROL_UI_ATTR(FONT, font, setFont)
 		if (op == SAppLayoutOperation::Parse) {
@@ -2244,7 +2252,10 @@ namespace slib
 
 		if (flagView) {
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, alpha, setAlpha)
+			LAYOUT_CONTROL_UI_ATTR(COLOR, colorKey, setColorKey)
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, antiAlias, setAntiAlias)
+			LAYOUT_CONTROL_UI_ATTR(GENERIC, backgroundAntiAlias, setBackgroundAntiAlias)
+			LAYOUT_CONTROL_UI_ATTR(GENERIC, contentAntiAlias, setContentAntiAlias)
 		}
 
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, opaque, setOpaque)
@@ -2399,6 +2410,29 @@ namespace slib
 	{
 		Window* view = params->window;
 
+		if (op == SAppLayoutOperation::Parse) {
+			LAYOUT_CONTROL_PARSE_ATTR(MENU, attr->, menu)
+		} else if (op == SAppLayoutOperation::Generate) {
+			if (attr->menu.flagDefined) {
+				String menuName, value;
+				if (!(_getMenuAccessString(resource->name, attr->menu, sl_true, menuName, value))) {
+					return sl_false;
+				}
+				params->sbDeclare->add(String::format("\t\t\tslib::Ref<menu::%s> menu;%n", menuName));
+				params->sbDefineInit->add(String::format("%smenu = %s;%n%s%s->setMenu(menu->root);%n", strTab, value, strTab, name));
+			}
+		} else if (op == SAppLayoutOperation::SimulateInit) {
+			if (attr->menu.flagDefined) {
+				Ref<Menu> value;
+				if (!(_getMenuValue(resource->name, attr->menu, value))) {
+					return sl_false;
+				}
+				if (value.isNotNull()) {
+					view->setMenu(value);
+				}
+			}
+		}
+
 		LAYOUT_CONTROL_ATTR(DIMENSION, minWidth, setMinimumWidth, checkForWindow)
 		LAYOUT_CONTROL_ATTR(DIMENSION, maxWidth, setMaximumWidth, checkForWindow)
 		LAYOUT_CONTROL_ATTR(DIMENSION, minHeight, setMinimumHeight, checkForWindow)
@@ -2418,7 +2452,10 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, resizable, setResizable)
 		LAYOUT_CONTROL_ATTR(GENERIC, layered, setLayered)
 		LAYOUT_CONTROL_ATTR(GENERIC, alpha, setAlpha)
+		LAYOUT_CONTROL_ATTR(COLOR, colorKey, setColorKey)
 		LAYOUT_CONTROL_ATTR(GENERIC, transparent, setTransparent)
+		LAYOUT_CONTROL_ATTR(GENERIC, taskbar, setVisibleInTaskbar)
+		LAYOUT_CONTROL_ATTR(GENERIC, excludeFromCapture, setExcludingFromCapture)
 		LAYOUT_CONTROL_ATTR(COLOR, backgroundColor, setBackgroundColor)
 
 		LAYOUT_CONTROL_ATTR(GENERIC, modal, setModal)
@@ -2451,8 +2488,9 @@ namespace slib
 			}
 		}
 
-		LAYOUT_CONTROL_ATTR(MENU, menu, setMenu)
 		LAYOUT_CONTROL_ATTR(STRING, title, setTitle)
+		LAYOUT_CONTROL_ATTR(DRAWABLE, icon, setIcon)
+		LAYOUT_CONTROL_ATTR(STRING, iconResource, setIconResource)
 		LAYOUT_CONTROL_ATTR(DIMENSION, left, setLeft, checkForWindow)
 		LAYOUT_CONTROL_ATTR(DIMENSION, top, setTop, checkForWindow)
 		if (op == SAppLayoutOperation::Parse) {
@@ -2497,6 +2535,8 @@ namespace slib
 				}
 			}
 		}
+		LAYOUT_CONTROL_ATTR(GENERIC, closeOnOK, setCloseOnOK)
+		LAYOUT_CONTROL_ATTR(GENERIC, closeOnCancel, setCloseOnCancel)
 
 		params->name = "m_contentView";
 		if (!(_processLayoutResourceControl_View(params))) {
@@ -2733,14 +2773,16 @@ namespace slib
 
 		LAYOUT_CONTROL_UI_ATTR(STRING, text, setText)
 		LAYOUT_CONTROL_UI_ATTR(STRING, hyperText, setHyperText)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, textColor, setTextColor)
+		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setTextColor)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, gravity, setGravity)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setMultiLine)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, ellipsize, setEllipsize)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, lines, setLineCount)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, linksInText, setDetectingHyperlinksInPlainText);
 		LAYOUT_CONTROL_UI_ATTR(COLOR, linkColor, setLinkColor)
+		LAYOUT_CONTROL_UI_ATTR(COLOR, lineColor, setLineColor)
 		LAYOUT_CONTROL_ATTR(GENERIC, mnemonic, setMnemonic)
+		LAYOUT_CONTROL_ATTR(GENERIC, contextMenu, setUsingContextMenu)
 
 		if (op == SAppLayoutOperation::Parse) {
 			if (!(attr->text.flagDefined) && !(attr->hyperText.flagDefined)) {
@@ -3262,6 +3304,10 @@ namespace slib
 
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
+		LAYOUT_CONTROL_UI_ATTR(BORDER, grid, setGrid)
+		LAYOUT_CONTROL_UI_ATTR(BORDER, horizontalGrid, setHorizontalGrid)
+		LAYOUT_CONTROL_UI_ATTR(BORDER, verticalGrid, setVerticalGrid)
+
 		if (op == SAppLayoutOperation::Parse) {
 			{
 				LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(columnXmls, "column")
@@ -3579,6 +3625,12 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, contentBackground, setContentBackground)
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, tabBackground, setTabBackground)
 		LAYOUT_CONTROL_STATE_MAP(COLOR, labelColor, setLabelColor)
+		LAYOUT_CONTROL_UI_ATTR(FONT, labelFont, setLabelFont)
+		if (op == SAppLayoutOperation::Parse) {
+			if (attr->labelFont.flagDefined) {
+				attr->labelFont.inheritFrom(attr->font);
+			}
+		}
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, tabAlign, setTabAlignment)
 
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, tabPaddingLeft, setTabPaddingLeft, checkPosition)
@@ -3631,11 +3683,7 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, itemXml, subItem., selected)
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, itemXml, sl_null)
 				if (childXmls.count > 0) {
-					if (childXmls.count != 1) {
-						logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
-						return sl_false;
-					}
-					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
+					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, itemXml.element, params->source);
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
@@ -3902,22 +3950,14 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(COLOR, itemXml, subItem., dividerColor)
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, itemXml, sl_null)
 				if (childXmls.count > 0) {
-					if (childXmls.count != 1) {
-						logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
-						return sl_false;
-					}
-					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
+					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, itemXml.element, params->source);
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
 					if (IsNoView(subItemView->itemType)) {
 						return sl_false;
 					}
-					SAppLayoutViewAttributes* subAttrs = (SAppLayoutViewAttributes*)(subItemView->attrs.get());
-					subAttrs->width.flagDefined = sl_false;
-					subAttrs->height.flagDefined = sl_false;
-					subAttrs->leftMode = PositionMode::Free;
-					subAttrs->topMode = PositionMode::Free;
+					((SAppLayoutViewAttributes*)(subItemView->attrs.get()))->resetLayout();
 					subItem.view = subItemView;
 				}
 				if (!(attr->items.add_NoLock(Move(subItem)))) {
@@ -4185,11 +4225,7 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, itemXml, subItem., selected)
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, itemXml, sl_null)
 				if (childXmls.count > 0) {
-					if (childXmls.count != 1) {
-						logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
-						return sl_false;
-					}
-					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
+					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, itemXml.element, params->source);
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
@@ -4268,6 +4304,19 @@ namespace slib
 
 	}
 	END_PROCESS_LAYOUT_CONTROL
+		
+	BEGIN_PROCESS_LAYOUT_CONTROL(Audio, AudioView)
+	{
+		LAYOUT_CONTROL_PROCESS_SUPER(View)
+
+		LAYOUT_CONTROL_ATTR(GENERIC, samplesPerFrame, setSamplesPerFrame)
+		LAYOUT_CONTROL_ATTR(GENERIC, framesPerWindow, setFramesPerWindow)
+		LAYOUT_CONTROL_UI_ATTR(COLOR, amplitudeColor, setAmplitudeColor)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, amplitudeScale, setAmplitudeScale)
+
+		LAYOUT_CONTROL_ADD_STATEMENT
+	}
+	END_PROCESS_LAYOUT_CONTROL
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Video, VideoView)
 	{
@@ -4289,14 +4338,13 @@ namespace slib
 					return sl_false;
 				}
 				if (value.startsWith("asset://")) {
-					value = String::concat(m_pathApp, "/asset/", value.substring(8));
+					value = String::concat(m_conf.app_path, "/asset/", value.substring(8));
 				}
 				view->setSource(value);
 			}
 		}
 
 		LAYOUT_CONTROL_ADD_STATEMENT
-
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
@@ -4370,6 +4418,29 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, ellipsize, setEllipsize)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setMultiLine)
 
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemPaddingLeft, setItemPaddingLeft, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemPaddingTop, setItemPaddingTop, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemPaddingRight, setItemPaddingRight, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemPaddingBottom, setItemPaddingBottom, checkPosition)
+		if (op == SAppLayoutOperation::Parse) {
+			SAppDimensionValue itemPadding;
+			LAYOUT_CONTROL_PARSE_ATTR(DIMENSION, , itemPadding, checkPosition)
+			if (itemPadding.flagDefined) {
+				if (!(attr->itemPaddingLeft.flagDefined)) {
+					attr->itemPaddingLeft = itemPadding;
+				}
+				if (!(attr->itemPaddingTop.flagDefined)) {
+					attr->itemPaddingTop = itemPadding;
+				}
+				if (!(attr->itemPaddingRight.flagDefined)) {
+					attr->itemPaddingRight = itemPadding;
+				}
+				if (!(attr->itemPaddingBottom.flagDefined)) {
+					attr->itemPaddingBottom = itemPadding;
+				}
+			}
+		}
+
 		LAYOUT_CONTROL_PROCESS_SELECT_ITEMS
 
 		LAYOUT_CONTROL_ADD_STATEMENT
@@ -4408,6 +4479,12 @@ namespace slib
 
 		LAYOUT_CONTROL_UI_ATTR(STRING, label, setLabel)
 		LAYOUT_CONTROL_UI_ATTR(COLOR, labelColor, setLabelColor)
+		LAYOUT_CONTROL_UI_ATTR(FONT, labelFont, setLabelFont)
+		if (op == SAppLayoutOperation::Parse) {
+			if (attr->labelFont.flagDefined) {
+				attr->labelFont.inheritFrom(attr->font);
+			}
+		}
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
@@ -4503,12 +4580,16 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, resizableColumn, setColumnResizable)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setRowHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(BORDER, grid, setGrid)
+		LAYOUT_CONTROL_UI_ATTR(BORDER, leftGrid, setLeftGrid)
+		LAYOUT_CONTROL_UI_ATTR(BORDER, rightGrid, setRightGrid)
 		LAYOUT_CONTROL_ATTR(GENERIC, sort, setSorting)
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, ascendingIcon, setAscendingIcon)
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, descendingIcon, setDescendingIcon)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, sortIconSize, setSortIconSize, checkScalarSize)
 		LAYOUT_CONTROL_ATTR(GENERIC, selection, setSelectionMode)
 		LAYOUT_CONTROL_UI_ATTR(BORDER, selectionBorder, setSelectionBorder)
+		LAYOUT_CONTROL_ATTR(GENERIC, verticalGrid, setVerticalGrid)
+		LAYOUT_CONTROL_ATTR(GENERIC, horizontalGrid, setHorizontalGrid)
 		LAYOUT_CONTROL_ATTR(GENERIC, cellCursor, setCellCursor)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, cellPadding, setCellPadding, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, cellPaddingLeft, setCellPaddingLeft, checkPosition)
@@ -4521,6 +4602,9 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellAlign, setCellAlignment)
 		LAYOUT_CONTROL_ATTR(GENERIC, selectable, setCellSelectable)
 		LAYOUT_CONTROL_ATTR(GENERIC, editable, setCellEditable)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellAntiAlias, setCellAntiAlias)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellBackgroundAntiAlias, setCellBackgroundAntiAlias)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellContentAntiAlias, setCellContentAntiAlias)
 		LAYOUT_CONTROL_ATTR(GENERIC, defaultColorFilter, setCellUsingDefaultColorFilter)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconWidth, setCellIconWidth, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMargin, setCellIconMargin, checkPosition)
@@ -4552,6 +4636,9 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., lineCount) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., selectable) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., editable) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., antiAlias) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., backgroundAntiAlias) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., contentAntiAlias) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., defaultColorFilter) \
 				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., iconWidth, checkScalarSize) \
 				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, ATTR., iconMargin, checkPosition) \
@@ -4582,6 +4669,9 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "LineCount", , ATTR.lineCount) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Selectable", , ATTR.selectable) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "Editable", , ATTR.editable) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "AntiAlias", , ATTR.antiAlias) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "BackgroundAntiAlias", , ATTR.backgroundAntiAlias) \
+				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "ContentAntiAlias", , ATTR.contentAntiAlias) \
 				LAYOUT_CONTROL_PARSE_GENERIC(XML, #SECTION "DefaultColorFilter", , ATTR.defaultColorFilter) \
 				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "IconWidth", , ATTR.iconWidth, checkScalarSize) \
 				LAYOUT_CONTROL_PARSE_DIMENSION(XML, #SECTION "IconMargin", , ATTR.iconMargin, checkPosition) \
@@ -4613,7 +4703,10 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., fixed)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., visible)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., resizable)
-					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., grid)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., verticalGrid)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., bodyVerticalGrid)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., headerVerticalGrid)
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., footerVerticalGrid)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column, columnXml)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.bodyAttrs, columnXml, body)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(column.headerAttrs, columnXml, header)
@@ -4672,6 +4765,7 @@ namespace slib
 					row.font.inheritFrom(attr->SECTION.font); \
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., height, checkScalarSize) \
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml, row., visible) \
+					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml, row., horizontalGrid) \
 					sl_uint32 iCell = 0; \
 					LAYOUT_CONTROL_DEFINE_XML_CHILDREN(cellXmls, rowXml, sl_null) \
 					for (sl_size k = 0; k < cellXmls.count; k++) { \
@@ -4738,10 +4832,14 @@ namespace slib
 			LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES_OF_SECTION(attr->SECTION, *resourceItem, SECTION) \
 			LAYOUT_CONTROL_PARSE_DIMENSION(*resourceItem, #SECTION "RowHeight", , attr->SECTION.rowHeight, checkScalarSize) \
 			LAYOUT_CONTROL_PARSE_BORDER(*resourceItem, #SECTION "Grid", , attr->SECTION.grid) \
+			LAYOUT_CONTROL_PARSE_GENERIC(*resourceItem, #SECTION "VerticalGrid", , attr->SECTION.verticalGrid) \
+			LAYOUT_CONTROL_PARSE_GENERIC(*resourceItem, #SECTION "HorizontalGrid", , attr->SECTION.horizontalGrid) \
 			if (XML.element.isNotNull()) { \
 				LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(attr->SECTION, XML) \
 				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, attr->SECTION., rowHeight, checkScalarSize) \
 				LAYOUT_CONTROL_PARSE_XML(BORDER, XML, attr->SECTION., grid) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, attr->SECTION., verticalGrid) \
+				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, attr->SECTION., horizontalGrid) \
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(rowXmls, XML, "row") \
 				LAYOUT_CONTROL_PARSE_GRID_ROWS(SECTION) \
 				attr->SECTION.font.inheritFrom(attr->font); \
@@ -4824,6 +4922,9 @@ namespace slib
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.selectable, set##PREFIX##Selectable, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.editable, set##PREFIX##Editable, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.antiAlias, set##PREFIX##AntiAlias, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.backgroundAntiAlias, set##PREFIX##BackgroundAntiAlias, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.contentAntiAlias, set##PREFIX##ContentAntiAlias, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.defaultColorFilter, set##PREFIX##UsingDefaultColorFilter, BASIC, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.iconWidth, set##PREFIX##IconWidth, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_DIMENSION(ATTR.iconMargin, set##PREFIX##IconMargin, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
@@ -4838,6 +4939,20 @@ namespace slib
 				LAYOUT_CONTROL_GENERATE_STATE_MAP(DRAWABLE, ATTR.icon, set##PREFIX##Icon, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 			}
 
+#define LAYOUT_CONTROL_GENERATE_GRID_SECTION(SECTION, PREFIX) \
+			{ \
+				auto& section = attr->SECTION; \
+				LAYOUT_CONTROL_GENERATE_UI_ATTR(DIMENSION, section.rowHeight, set##PREFIX##RowHeight) \
+				LAYOUT_CONTROL_GENERATE_UI_ATTR(BORDER, section.grid, set##PREFIX##Grid) \
+				LAYOUT_CONTROL_GENERATE_UI_ATTR(GENERIC, section.verticalGrid, set##PREFIX##VerticalGrid) \
+				LAYOUT_CONTROL_GENERATE_UI_ATTR(GENERIC, section.horizontalGrid, set##PREFIX##VerticalGrid) \
+				LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, section, "-1, -1, %s", value) \
+			}
+
+			LAYOUT_CONTROL_GENERATE_GRID_SECTION(body, Body)
+			LAYOUT_CONTROL_GENERATE_GRID_SECTION(header, Header)
+			LAYOUT_CONTROL_GENERATE_GRID_SECTION(footer, Footer)
+
 			{
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) {
 					SAppLayoutGridColumn& column = columns[iCol];
@@ -4850,21 +4965,23 @@ namespace slib
 					LAYOUT_CONTROL_GENERATE_DIMENSION(column.width, setColumnWidth, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GENERIC(column.visible, setColumnVisible, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GENERIC(column.resizable, setColumnResizable, BASIC, "%d, %s", iCol, value)
-					LAYOUT_CONTROL_GENERATE_GENERIC(column.grid, setColumnGrid, ITEM, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(column.verticalGrid, setVerticalGrid, ITEM, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(column.bodyVerticalGrid, setBodyVerticalGrid, ITEM, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(column.headerVerticalGrid, setHeaderVerticalGrid, ITEM, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(column.footerVerticalGrid, setFooterVerticalGrid, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Column, column, "%d, %s", iCol, value)
 				}
 			}
 
-#define LAYOUT_CONTROL_GENERATE_GRID_SECTION(SECTION, PREFIX) \
+#define LAYOUT_CONTROL_GENERATE_GRID_ROWS(SECTION, PREFIX) \
 			{ \
-				auto& section = attr->SECTION; \
-				LAYOUT_CONTROL_GENERATE_UI_ATTR(DIMENSION, section.rowHeight, set##PREFIX##RowHeight) \
-				LAYOUT_CONTROL_GENERATE_UI_ATTR(BORDER, section.grid, set##PREFIX##Grid) \
-				LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, section, "-1, -1, %s", value) \
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) { \
 					SAppLayoutGridColumn& column = columns[iCol]; \
 					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, column.SECTION##Attrs, "-1, %d, %s", iCol, value) \
 				} \
+			} \
+			{ \
+				auto& section = attr->SECTION; \
 				ListElements<SAppLayoutGridRow> rows(section.rows); \
 				for (sl_size iRow = 0; iRow < rows.count; iRow++) { \
 					SAppLayoutGridRow& row = rows[iRow]; \
@@ -4874,6 +4991,7 @@ namespace slib
 					} \
 					LAYOUT_CONTROL_GENERATE_DIMENSION(row.height, set##PREFIX##RowHeight, ITEM, "%d, %s", iRow, value) \
 					LAYOUT_CONTROL_GENERATE_GENERIC(row.visible, set##PREFIX##RowVisible, ITEM, "%d, %s", iRow, value) \
+					LAYOUT_CONTROL_GENERATE_GENERIC(row.horizontalGrid, set##PREFIX##HorizontalGrid, ITEM, "%d, %s", iRow, value) \
 					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, row, "%d, -1, %s", iRow, value) \
 					ListElements<SAppLayoutGridCell> cells(row.cells); \
 					for (sl_size iCell = 0; iCell < cells.count; iCell++) { \
@@ -4890,9 +5008,9 @@ namespace slib
 				} \
 			}
 
-			LAYOUT_CONTROL_GENERATE_GRID_SECTION(body, Body)
-			LAYOUT_CONTROL_GENERATE_GRID_SECTION(header, Header)
-			LAYOUT_CONTROL_GENERATE_GRID_SECTION(footer, Footer)
+			LAYOUT_CONTROL_GENERATE_GRID_ROWS(body, Body)
+			LAYOUT_CONTROL_GENERATE_GRID_ROWS(header, Header)
+			LAYOUT_CONTROL_GENERATE_GRID_ROWS(footer, Footer)
 
 		} else if (IsSimulateOp(op)) {
 
@@ -4930,6 +5048,9 @@ namespace slib
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.selectable, set##PREFIX##Selectable, BASIC, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.editable, set##PREFIX##Editable, BASIC, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.antiAlias, set##PREFIX##AntiAlias, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.backgroundAntiAlias, set##PREFIX##BackgroundAntiAlias, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.contentAntiAlias, set##PREFIX##ContentAntiAlias, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.defaultColorFilter, set##PREFIX##UsingDefaultColorFilter, BASIC, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.iconWidth, set##PREFIX##IconWidth, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_DIMENSION(ATTR.iconMargin, set##PREFIX##IconMargin, ITEM, ##__VA_ARGS__, value) \
@@ -4943,6 +5064,20 @@ namespace slib
 				LAYOUT_CONTROL_SIMULATE_STATE_MAP(COLOR, ATTR.textColor, set##PREFIX##TextColor, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_STATE_MAP(DRAWABLE, ATTR.icon, set##PREFIX##Icon, ITEM, ##__VA_ARGS__, value) \
 			}
+			
+#define LAYOUT_CONTROL_SIMULATE_GRID_SECTION(SECTION, PREFIX) \
+			{ \
+				auto& section = attr->SECTION; \
+				LAYOUT_CONTROL_SIMULATE_UI_ATTR(DIMENSION, section.rowHeight, set##PREFIX##RowHeight) \
+				LAYOUT_CONTROL_SIMULATE_UI_ATTR(BORDER, section.grid, set##PREFIX##Grid) \
+				LAYOUT_CONTROL_SIMULATE_UI_ATTR(GENERIC, section.verticalGrid, set##PREFIX##VerticalGrid) \
+				LAYOUT_CONTROL_SIMULATE_UI_ATTR(GENERIC, section.horizontalGrid, set##PREFIX##HorizontalGrid) \
+				LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, section, -1, -1) \
+			}
+
+			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(body, Body)
+			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(header, Header)
+			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(footer, Footer)
 
 			{
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) {
@@ -4952,26 +5087,29 @@ namespace slib
 					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.width, setColumnWidth, ITEM, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_GENERIC(column.visible, setColumnVisible, ITEM, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_GENERIC(column.resizable, setColumnResizable, BASIC, (sl_uint32)iCol, value)
-					LAYOUT_CONTROL_SIMULATE_GENERIC(column.grid, setColumnGrid, ITEM, (sl_uint32)iCol, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(column.verticalGrid, setVerticalGrid, ITEM, (sl_uint32)iCol, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(column.bodyVerticalGrid, setBodyVerticalGrid, ITEM, (sl_uint32)iCol, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(column.headerVerticalGrid, setHeaderVerticalGrid, ITEM, (sl_uint32)iCol, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(column.footerVerticalGrid, setFooterVerticalGrid, ITEM, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Column, column, (sl_uint32)iCol)
 				}
 			}
 
-#define LAYOUT_CONTROL_SIMULATE_GRID_SECTION(SECTION, PREFIX) \
+#define LAYOUT_CONTROL_SIMULATE_GRID_ROWS(SECTION, PREFIX) \
 			{ \
-				auto& section = attr->SECTION; \
-				LAYOUT_CONTROL_SIMULATE_UI_ATTR(DIMENSION, section.rowHeight, set##PREFIX##RowHeight) \
-				LAYOUT_CONTROL_SIMULATE_UI_ATTR(BORDER, section.grid, set##PREFIX##Grid) \
-				LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, section, -1, -1) \
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) { \
 					SAppLayoutGridColumn& column = columns[iCol]; \
 					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, column.SECTION##Attrs, -1, (sl_uint32)iCol) \
 				} \
+			} \
+			{ \
+				auto& section = attr->SECTION; \
 				ListElements<SAppLayoutGridRow> rows(section.rows); \
 				for (sl_size iRow = 0; iRow < rows.count; iRow++) { \
 					SAppLayoutGridRow& row = rows[iRow]; \
 					LAYOUT_CONTROL_SIMULATE_DIMENSION(row.height, set##PREFIX##RowHeight, ITEM, (sl_uint32)iRow, value) \
 					LAYOUT_CONTROL_SIMULATE_GENERIC(row.visible, set##PREFIX##RowVisible, ITEM, (sl_uint32)iRow, value) \
+					LAYOUT_CONTROL_SIMULATE_GENERIC(row.horizontalGrid, set##PREFIX##HorizontalGrid, ITEM, (sl_uint32)iRow, value) \
 					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, row, (sl_uint32)iRow, -1) \
 					ListElements<SAppLayoutGridCell> cells(row.cells); \
 					for (sl_size iCell = 0; iCell < cells.count; iCell++) { \
@@ -4989,9 +5127,9 @@ namespace slib
 				} \
 			}
 
-			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(body, Body)
-			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(header, Header)
-			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(footer, Footer)
+			LAYOUT_CONTROL_SIMULATE_GRID_ROWS(body, Body)
+			LAYOUT_CONTROL_SIMULATE_GRID_ROWS(header, Header)
+			LAYOUT_CONTROL_SIMULATE_GRID_ROWS(footer, Footer)
 
 			if (op == SAppLayoutOperation::SimulateInit) {
 				if (!(attr->recordCount.flagDefined)) {
@@ -5000,8 +5138,6 @@ namespace slib
 			}
 		}
 
-		LAYOUT_CONTROL_UI_ATTR(BORDER, leftGrid, setLeftGrid)
-		LAYOUT_CONTROL_UI_ATTR(BORDER, rightGrid, setRightGrid)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, recordCount, setRecordCount)
 
 		LAYOUT_CONTROL_ADD_STATEMENT

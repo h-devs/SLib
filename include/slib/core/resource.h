@@ -51,21 +51,33 @@ namespace slib
 		slib::String get(); \
 	} \
 
+#define PRIV_SLIB_DEFINE_STRING_RESOURCE_BEGIN_PREFIX \
+			slib::Locale localeSource; \
+			SLIB_UNUSED(localeSource) \
+			slib::Locale localeLang(locale.getLanguage()); \
+			SLIB_UNUSED(localeLang) \
+			slib::Locale localeLangCountry(locale.getLanguage(), locale.getCountry()); \
+			SLIB_UNUSED(localeLangCountry) \
+			slib::Locale localeDetail(locale.getLanguage(), locale.getScript(), slib::Country::Unknown); \
+			SLIB_UNUSED(localeDetail)
+
 #define SLIB_DEFINE_STRING_RESOURCE_BEGIN(NAME, DEFAULT) \
 	namespace NAME { \
-		SLIB_STATIC_STRING(def, DEFAULT); \
-		slib::String get(const slib::Locale& locale) { \
-			slib::Locale localeSource; \
-			SLIB_UNUSED(localeSource)
+		SLIB_STATIC_STRING(def, DEFAULT) \
+		static slib::String _get(const slib::Locale& locale, const slib::String& _def) { \
+			PRIV_SLIB_DEFINE_STRING_RESOURCE_BEGIN_PREFIX
 
 #define SLIB_DEFINE_STRING_RESOURCE_VALUE(LOCALE, VALUE) \
 			localeSource = slib::Locale(#LOCALE); \
-if (locale == localeSource || slib::Locale(locale.getLanguage()) == localeSource || slib::Locale(locale.getLanguage(), locale.getCountry()) == localeSource || slib::Locale(locale.getLanguage(), locale.getScript(), slib::Country::Unknown) == localeSource) { \
+			if (locale == localeSource || localeLang == localeSource || localeLangCountry == localeSource || localeDetail == localeSource) { \
 				SLIB_RETURN_STRING(VALUE); \
 			}
 
 #define SLIB_DEFINE_STRING_RESOURCE_END \
-			return def; \
+			return _def; \
+		} \
+		slib::String get(const slib::Locale& locale) { \
+			return _get(locale, def); \
 		} \
 		slib::String get() { return get(slib::Resources::getCurrentLocale()); } \
 	} \
@@ -73,8 +85,39 @@ if (locale == localeSource || slib::Locale(locale.getLanguage()) == localeSource
 #define SLIB_DEFINE_STRING_RESOURCE_SIMPLE(NAME, VALUE) \
 	namespace NAME { \
 		SLIB_STATIC_STRING(def, VALUE) \
+		static slib::String _get(const slib::Locale& locale, const slib::String& _def) { return _def; } \
 		slib::String get(const slib::Locale& locale) { return def; } \
 		slib::String get() { return def; } \
+	}
+
+#define SLIB_DECLARE_STRING_VARIANT(NAME, VARIANT) \
+	namespace NAME { \
+		SLIB_DECLARE_STRING_RESOURCE(VARIANT) \
+	}
+
+#define SLIB_DEFINE_STRING_VARIANT_BEGIN(NAME, VARIANT, DEFAULT) \
+	namespace NAME { \
+		namespace VARIANT { \
+			SLIB_STATIC_STRING(def, DEFAULT) \
+			slib::String get(const slib::Locale& locale) { \
+				PRIV_SLIB_DEFINE_STRING_RESOURCE_BEGIN_PREFIX
+
+#define SLIB_DEFINE_STRING_VARIANT_BEGIN_NODEF(NAME, VARIANT) \
+	namespace NAME { \
+		namespace VARIANT { \
+			slib::String get(const slib::Locale& locale) { \
+				PRIV_SLIB_DEFINE_STRING_RESOURCE_BEGIN_PREFIX
+
+#define SLIB_DEFINE_STRING_VARIANT_END \
+				return _get(locale, def); \
+			} \
+			slib::String get() { return get(slib::Resources::getCurrentLocale()); } \
+		} \
+	} \
+
+#define SLIB_DEFINE_STRING_VARIANT_SIMPLE(NAME, VARIANT, VALUE) \
+	namespace NAME { \
+		SLIB_DEFINE_STRING_RESOURCE_SIMPLE(VARIANT, VALUE) \
 	}
 
 
@@ -99,7 +142,7 @@ if (locale == localeSource || slib::Locale(locale.getLanguage()) == localeSource
 
 #define SLIB_DEFINE_RESOURCE_MAP_BEGIN(TYPE) \
 	typedef TYPE (*GETTER_TYPE)(); \
-	class  ResourceMap { \
+	class ResourceMap { \
 	public: \
 		slib::CHashMap< slib::String, GETTER_TYPE > map; \
 	public: \
@@ -107,9 +150,9 @@ if (locale == localeSource || slib::Locale(locale.getLanguage()) == localeSource
 
 #define SLIB_DEFINE_RESOURCE_MAP_ITEM(NAME) \
 			{ \
-				SLIB_STATIC_STRING(_key_##NAME, #NAME); \
+				SLIB_STATIC_STRING(_key, #NAME) \
 				GETTER_TYPE f = &(NAME::get); \
-				map.put_NoLock(_key_##NAME, f); \
+				map.put_NoLock(_key, f); \
 			}
 
 #define SLIB_DEFINE_RESOURCE_MAP_END(TYPE, DEFAULT_VALUE) \
@@ -151,11 +194,11 @@ if (locale == localeSource || slib::Locale(locale.getLanguage()) == localeSource
 
 #define SLIB_DEFINE_LOCALIZED_RESOURCE_MAP_ITEM(NAME) \
 			{ \
-				SLIB_STATIC_STRING(_key_##NAME, #NAME); \
+				SLIB_STATIC_STRING(_key, #NAME) \
 				GETTER_TYPE f1 = &(NAME::get); \
-				map.put_NoLock(_key_##NAME, f1); \
+				map.put_NoLock(_key, f1); \
 				GETTER_LOCALE_TYPE f2 = &(NAME::get); \
-				map_locale.put_NoLock(_key_##NAME, f2); \
+				map_locale.put_NoLock(_key, f2); \
 			}
 
 #define SLIB_DEFINE_LOCALIZED_RESOURCE_MAP_END(TYPE, DEFAULT_VALUE) \
@@ -194,13 +237,21 @@ if (locale == localeSource || slib::Locale(locale.getLanguage()) == localeSource
 #define SLIB_DEFINE_STRING_RESOURCE_MAP_BEGIN SLIB_DEFINE_LOCALIZED_RESOURCE_MAP_BEGIN(slib::String)
 #define SLIB_DEFINE_STRING_RESOURCE_MAP_ITEM(NAME) SLIB_DEFINE_LOCALIZED_RESOURCE_MAP_ITEM(NAME)
 #define SLIB_DEFINE_STRING_RESOURCE_MAP_END SLIB_DEFINE_LOCALIZED_RESOURCE_MAP_END(slib::String, sl_null)
+#define SLIB_DEFINE_STRING_VARIANT_MAP_ITEM(NAME, VARIANT) \
+			{ \
+				SLIB_STATIC_STRING(_key, #NAME "/" #VARIANT) \
+				GETTER_TYPE f1 = &(NAME::VARIANT::get); \
+				map.put_NoLock(_key, f1); \
+				GETTER_LOCALE_TYPE f2 = &(NAME::VARIANT::get); \
+				map_locale.put_NoLock(_key, f2); \
+			}
 
 #define SLIB_DECLARE_RAW_RESOURCE_MAP SLIB_DECLARE_RESOURCE_MAP(slib::Memory)
 #define SLIB_DEFINE_RAW_RESOURCE_MAP_BEGIN SLIB_DEFINE_RESOURCE_MAP_BEGIN(slib::Memory)
 #define SLIB_DEFINE_RAW_RESOURCE_MAP_ITEM(NAME) SLIB_DEFINE_RESOURCE_MAP_ITEM(NAME)
 #define SLIB_DEFINE_RAW_RESOURCE_MAP_PATH(PATH, NAMESPACE_AND_NAME) \
 		{ \
-			SLIB_STATIC_STRING(_key, PATH); \
+			SLIB_STATIC_STRING(_key, PATH) \
 			GETTER_TYPE f = &(NAMESPACE_AND_NAME::get); \
 			map.put_NoLock(_key, f); \
 		}
