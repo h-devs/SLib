@@ -22,8 +22,6 @@
 
 #include "slib/device/sensor.h"
 
-#include "slib/core/system.h"
-
 namespace slib
 {
 

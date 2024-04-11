@@ -72,9 +72,9 @@ namespace slib
 #include "slib/network/socket_address.h"
 
 #include "slib/io/file.h"
+#include "slib/system/process.h"
+#include "slib/system/system.h"
 #include "slib/core/timer.h"
-#include "slib/core/process.h"
-#include "slib/core/system.h"
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
 

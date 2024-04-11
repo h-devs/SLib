@@ -33,7 +33,7 @@
 #include "slib/ui/app.h"
 #include "slib/ui/window.h"
 #include "slib/io/file.h"
-#include "slib/core/process.h"
+#include "slib/system/process.h"
 #include "slib/core/queue.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"

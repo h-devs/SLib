@@ -23,7 +23,6 @@
 #include "slib/network/curl.h"
 
 #include "slib/io/file.h"
-#include "slib/core/system.h"
 
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 #	include "slib/dl/linux/curl.h"

@@ -28,8 +28,8 @@
 #include <slib/network/event.h>
 #include <slib/network/async.h>
 #include <slib/network/os.h>
+#include <slib/system/system.h>
 #include <slib/core/dispatch_loop.h>
-#include <slib/core/system.h>
 #include <slib/core/scoped_buffer.h>
 #include <slib/core/log.h>
 #include <slib/crypto/aes.h>

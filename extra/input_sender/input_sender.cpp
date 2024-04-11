@@ -1,10 +1,10 @@
 #include "input_sender.h"
 
-#include <slib/core/service.h>
-#include <slib/core/service_manager.h>
+#include <slib/system/service.h>
+#include <slib/system/service_manager.h>
+#include <slib/system/process.h>
+#include <slib/system/system.h>
 #include <slib/core/thread.h>
-#include <slib/core/process.h>
-#include <slib/core/system.h>
 #include <slib/core/mio.h>
 #include <slib/core/command_line.h>
 #include <slib/core/safe_static.h>

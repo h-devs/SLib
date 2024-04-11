@@ -43,10 +43,10 @@ namespace slib
 		ObjectLocker lock(this);
 		sl_uint64 endCacheDown = m_indexCacheDown + m_cacheDown.getCount();
 		if (index >= m_indexCacheDown && index < endCacheDown) {
-			return m_cacheDown.getValueAt_NoLock(index - m_indexCacheDown);
+			return m_cacheDown.getValueAt_NoLock((sl_size)(index - m_indexCacheDown));
 		}
 		if (index >= m_indexCacheUp && index < m_indexCacheUp + m_cacheUp.getCount()) {
-			return m_cacheUp.getValueAt_NoLock(index - m_indexCacheUp);
+			return m_cacheUp.getValueAt_NoLock((sl_size)(index - m_indexCacheUp));
 		}
 		if (index == endCacheDown) {
 			m_cacheUp = Move(m_cacheDown);
@@ -59,9 +59,9 @@ namespace slib
 			m_cacheDown = Move(m_cacheUp);
 			m_indexCacheDown = m_indexCacheUp;
 			sl_uint64 start = m_indexCacheUp < m_nCache ? 0 : m_indexCacheUp - m_nCache;
-			m_cacheUp = getRecords(start, m_indexCacheUp - start);
+			m_cacheUp = getRecords(start, (sl_size)(m_indexCacheUp - start));
 			m_indexCacheUp = start;
-			return m_cacheUp.getValueAt_NoLock(index - start);
+			return m_cacheUp.getValueAt_NoLock((sl_size)(index - start));
 		}
 		m_indexCacheDown = index;
 		m_cacheDown = getRecords(index, m_nCache);
@@ -72,7 +72,7 @@ namespace slib
 	{
 		VariantList ret;
 		sl_uint64 end = index + count;
-		for (sl_size i = index; i < end; i++) {
+		for (sl_uint64 i = index; i < end; i++) {
 			Variant record = getRecord(i);
 			if (record.isUndefined()) {
 				break;

@@ -22,7 +22,7 @@
 
 #include "slib/core/spin_lock.h"
 
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 #include "slib/core/swap.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)

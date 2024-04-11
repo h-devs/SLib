@@ -24,7 +24,7 @@
 
 #include "slib/graphics/image.h"
 #include "slib/io/file.h"
-#include "slib/core/asset.h"
+#include "slib/system/asset.h"
 #include "slib/graphics/platform.h"
 
 namespace slib

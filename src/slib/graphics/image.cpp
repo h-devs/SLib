@@ -24,7 +24,7 @@
 
 #include "slib/graphics/cmyk.h"
 #include "slib/io/file.h"
-#include "slib/core/asset.h"
+#include "slib/system/asset.h"
 #include "slib/core/scoped_buffer.h"
 
 namespace slib

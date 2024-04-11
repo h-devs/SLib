@@ -25,7 +25,6 @@
 #include <slib/core/thread.h>
 #include <slib/core/event.h>
 #include <slib/core/time.h>
-#include <slib/core/system.h>
 #include <slib/core/mio.h>
 #include <slib/core/shared.h>
 

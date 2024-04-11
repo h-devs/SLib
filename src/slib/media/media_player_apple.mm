@@ -26,7 +26,7 @@
 
 #include "slib/media/media_player.h"
 
-#include "slib/core/asset.h"
+#include "slib/system/asset.h"
 #include "slib/core/endian.h"
 #include "slib/platform.h"
 

@@ -25,8 +25,8 @@
 #define TAG "FuseHost"
 #include "slib/storage/file_system_internal.h"
 
-#include "slib/core/system.h"
-#include "slib/core/dynamic_library.h"
+#include "slib/system/system.h"
+#include "slib/system/dynamic_library.h"
 
 #define FUSE_USE_VERSION 27
 #ifndef _MSC_VER

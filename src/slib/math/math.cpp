@@ -22,8 +22,8 @@
 
 #include "slib/math/math.h"
 
-#include "slib/core/system.h"
-#include "slib/core/process.h"
+#include "slib/system/system.h"
+#include "slib/system/process.h"
 #include "slib/core/thread.h"
 #include "slib/io/file.h"
 #include "slib/crypto/sha2.h"

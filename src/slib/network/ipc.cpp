@@ -26,7 +26,7 @@
 #include "slib/network/event.h"
 #include "slib/io/chunk.h"
 #include "slib/io/file.h"
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 #include "slib/core/thread.h"
 
 namespace slib

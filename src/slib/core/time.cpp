@@ -25,8 +25,8 @@
 #include "slib/core/time_keeper.h"
 #include "slib/core/time_zone.h"
 
+#include "slib/system/system.h"
 #include "slib/core/locale.h"
-#include "slib/core/system.h"
 #include "slib/core/variant.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/safe_static.h"

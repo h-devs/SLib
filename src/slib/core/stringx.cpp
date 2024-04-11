@@ -22,7 +22,7 @@
 
 #include "slib/core/stringx.h"
 
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/list.h"
 #include "slib/core/scoped_buffer.h"

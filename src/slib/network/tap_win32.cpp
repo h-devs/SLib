@@ -27,7 +27,7 @@
 #include "slib/network/tap.h"
 
 #include "slib/core/thread.h"
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 #include "slib/io/priv/def.h"
 #include "slib/platform/win32/windows.h"
 

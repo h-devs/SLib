@@ -26,7 +26,7 @@
 #include "slib/crypto/sha1.h"
 #include "slib/crypto/sha2.h"
 #include "slib/data/base64.h"
-#include "slib/core/preference.h"
+#include "slib/system/preference.h"
 #include "slib/core/log.h"
 
 #define TAG "OAuth"

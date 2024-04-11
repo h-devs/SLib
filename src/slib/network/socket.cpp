@@ -29,8 +29,8 @@
 #include "slib/network/event.h"
 #include "slib/core/log.h"
 #include "slib/core/event.h"
-#include "slib/core/system.h"
 #include "slib/core/handle_ptr.h"
+#include "slib/system/system.h"
 #include "slib/io/file.h"
 #include "slib/io/priv/impl.h"
 

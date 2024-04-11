@@ -27,7 +27,6 @@
 #include "slib/io/async.h"
 
 #include "slib/io/pipe_event.h"
-#include "slib/core/system.h"
 
 #include <sys/types.h>
 #include <sys/event.h>

@@ -23,7 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_TIMEOUT
 #define CHECKHEADER_SLIB_CORE_TIMEOUT
 
-#include "system.h"
+#include "definition.h"
+
+#include "../system/system.h"
 
 namespace slib
 {

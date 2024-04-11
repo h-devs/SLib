@@ -23,7 +23,7 @@
 #include "slib/core/thread.h"
 #include "slib/core/thread_pool.h"
 
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 #include "slib/core/event.h"
 #include "slib/core/safe_static.h"
 

@@ -22,8 +22,8 @@
 
 #include "slib/network/capture.h"
 
+#include "slib/system/system.h"
 #include "slib/core/thread.h"
-#include "slib/core/system.h"
 #include "slib/core/mio.h"
 #include "slib/core/log.h"
 #include "slib/network/os.h"

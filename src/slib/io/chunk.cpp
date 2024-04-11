@@ -30,7 +30,7 @@ namespace slib
 
 	void ChunkIO::readAsync(AsyncStream* stream, const Function<void(AsyncStream*, Memory&, sl_bool flagError)>& callback, sl_uint32 maxSize, sl_uint32 segmentSize, sl_int32 timeout)
 	{
-		if (maxSize == SLIB_SIZE_MAX) {
+		if (maxSize == SLIB_UINT32_MAX) {
 			if (!segmentSize) {
 				segmentSize = 1024;
 			}

@@ -22,7 +22,7 @@
 
 #include "slib/storage/file_system_internal.h"
 
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 #include "slib/core/safe_static.h"
 
 //#define WIN32_USE_FUSE

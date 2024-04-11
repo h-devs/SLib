@@ -30,8 +30,8 @@
 #include "slib/data/asn1.h"
 #include "slib/io/memory_reader.h"
 #include "slib/io/memory_output.h"
-#include "slib/core/process.h"
-#include "slib/core/service_manager.h"
+#include "slib/system/process.h"
+#include "slib/system/service_manager.h"
 
 #define SERVER_TAG "SMB SERVER"
 

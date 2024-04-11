@@ -2,8 +2,8 @@
 
 #include <slib/core/string.h>
 #include <slib/core/safe_static.h>
-#include <slib/core/system.h>
-#include <slib/core/dynamic_library.h>
+#include <slib/system/system.h>
+#include <slib/system/dynamic_library.h>
 #include <slib/io/file.h>
 
 #include "input_dll/api.h"

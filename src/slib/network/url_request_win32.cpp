@@ -31,7 +31,7 @@
 #include "slib/core/string_buffer.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 
 #include "slib/platform/win32/windows.h"
 #include <winhttp.h>

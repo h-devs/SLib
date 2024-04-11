@@ -28,7 +28,6 @@
 #include "slib/core/endian.h"
 #include "slib/core/log.h"
 #include "slib/core/thread.h"
-#include "slib/core/system.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/graphics/image.h"
 

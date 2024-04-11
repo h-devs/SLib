@@ -26,7 +26,7 @@
 #include "socket_address.h"
 
 #include "../core/object.h"
-#include "../core/service_manager.h"
+#include "../system/service_manager.h"
 
 namespace slib
 {

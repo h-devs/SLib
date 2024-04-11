@@ -24,7 +24,7 @@
 #include "slib/storage/file_system_internal.h"
 
 #include "slib/storage/file_system_logger.h"
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 
 #define PATH_LOG(path) (m_flags & FileSystemLogFlags::FileName ? path : "")
 #define ADDR_LOG(ptr) ("0x" + String::fromUint64((sl_uint64)(sl_ptr)(ptr), 16, 8, sl_true))

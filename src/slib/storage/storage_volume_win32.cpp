@@ -26,7 +26,7 @@
 
 #include "slib/storage/storage.h"
 
-#include "slib/core/service_manager.h"
+#include "slib/system/service_manager.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/platform.h"

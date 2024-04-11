@@ -24,7 +24,6 @@ tap-windows 9.24
 
 # Header-File Library
 stb_image 2.19
-ginger
 
 # Binaries
 OpenSSL 1.1.1a

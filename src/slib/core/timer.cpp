@@ -23,7 +23,7 @@
 #include "slib/core/timer.h"
 
 #include "slib/core/dispatch_loop.h"
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 
 namespace slib
 {

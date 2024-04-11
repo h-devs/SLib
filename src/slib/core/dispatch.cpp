@@ -25,7 +25,6 @@
 
 #include "slib/core/timer.h"
 #include "slib/core/thread.h"
-#include "slib/core/system.h"
 #include "slib/core/safe_static.h"
 
 namespace slib

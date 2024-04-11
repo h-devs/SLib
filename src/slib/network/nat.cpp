@@ -22,7 +22,7 @@
 
 #include "slib/network/nat.h"
 
-#include "slib/core/system.h"
+#include "slib/system/system.h"
 #include "slib/core/new_helper.h"
 
 namespace slib

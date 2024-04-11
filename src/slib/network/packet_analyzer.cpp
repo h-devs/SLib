@@ -22,8 +22,8 @@
 
 #include "slib/network/packet_analyzer.h"
 
+#include "slib/system/system.h"
 #include "slib/core/thread.h"
-#include "slib/core/system.h"
 #include "slib/core/mio.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/shared.h"

@@ -27,7 +27,7 @@
 #include "slib/media/media_player.h"
 #include "slib/media/wave_player.h"
 
-#include "slib/core/asset.h"
+#include "slib/system/asset.h"
 #include "slib/platform/win32/windows.h"
 
 #include <mmsystem.h>

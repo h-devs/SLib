@@ -26,8 +26,8 @@
 
 #include "slib/storage/dokany.h"
 
-#include "slib/core/process.h"
-#include "slib/core/system.h"
+#include "slib/system/process.h"
+#include "slib/system/system.h"
 #include "slib/core/memory.h"
 #include "slib/io/file_util.h"
 #include "slib/data/zstd.h"
