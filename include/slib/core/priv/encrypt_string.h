@@ -23,19 +23,21 @@
 #ifndef CHECKHEADER_SLIB_CORE_ENCRYPT_STRING
 #define CHECKHEADER_SLIB_CORE_ENCRYPT_STRING
 
-#if __cpp_constexpr	>= 201304
-#define SLIB_SUPPORT_ENCRYPT_STRING
+#ifdef __cpp_constexpr
+#	if __cpp_constexpr	>= 201304
+#		define SLIB_SUPPORT_ENCRYPT_STRING
+#	endif
 #endif
 
 #if defined(SLIB_SUPPORT_ENCRYPT_STRING)
 
-#ifdef _MSC_VER
-#define PRIV_SLIB_ENCRYPT_STRING_CAT(X,Y) PRIV_SLIB_ENCRYPT_STRING_CAT2(X,Y)
-#define PRIV_SLIB_ENCRYPT_STRING_CAT2(X,Y) X##Y
-#define PRIV_SLIB_ENCRYPT_STRING_LINE (sl_size)(PRIV_SLIB_ENCRYPT_STRING_CAT(__LINE__,U))
-#else
-#define PRIV_SLIB_ENCRYPT_STRING_LINE __LINE__
-#endif
+#	ifdef _MSC_VER
+#		define PRIV_SLIB_ENCRYPT_STRING_CAT(X,Y) PRIV_SLIB_ENCRYPT_STRING_CAT2(X,Y)
+#		define PRIV_SLIB_ENCRYPT_STRING_CAT2(X,Y) X##Y
+#		define PRIV_SLIB_ENCRYPT_STRING_LINE (sl_size)(PRIV_SLIB_ENCRYPT_STRING_CAT(__LINE__,U))
+#	else
+#		define PRIV_SLIB_ENCRYPT_STRING_LINE __LINE__
+#	endif
 
 namespace slib
 {
@@ -114,7 +116,7 @@ namespace slib
 
 }
 
-#define SLIB_ENCRYPT_STRING(str) ([]() { \
+#	define SLIB_ENCRYPT_STRING(str) ([]() { \
 		constexpr static auto encData = slib::priv::string::EncryptData(str); \
 		typedef typename decltype(encData)::CharType CharType; \
 		static CharType data[sizeof(str) / sizeof(CharType)]; \
@@ -122,19 +124,12 @@ namespace slib
 		static typename decltype(encData)::EncStringType encStr = {&container, encData.encData}; \
 		return slib::priv::string::Decrypt(encStr); \
 	})()
-
-#define SLIB_ENCRYPT_STRING16(str) SLIB_ENCRYPT_STRING(SLIB_UNICODE(str))
-
-#define SLIB_ENCRYPT_STRING32(str) SLIB_ENCRYPT_STRING(SLIB_UNICODE32(str))
-
+#	define SLIB_ENCRYPT_STRING16(str) SLIB_ENCRYPT_STRING(SLIB_UNICODE(str))
+#	define SLIB_ENCRYPT_STRING32(str) SLIB_ENCRYPT_STRING(SLIB_UNICODE32(str))
 #else
-
-#define SLIB_ENCRYPT_STRING(str) str
-
-#define SLIB_ENCRYPT_STRING16(str) SLIB_UNICODE(str)
-
-#define SLIB_ENCRYPT_STRING32(str) SLIB_UNICODE32(str)
-
+#	define SLIB_ENCRYPT_STRING(str) str
+#	define SLIB_ENCRYPT_STRING16(str) SLIB_UNICODE(str)
+#	define SLIB_ENCRYPT_STRING32(str) SLIB_UNICODE32(str)
 #endif
 
 #endif
