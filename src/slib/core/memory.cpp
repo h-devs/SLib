@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
 		static CMemory* Create(sl_size size) noexcept
 		{
@@ -68,9 +69,7 @@ namespace slib
 
 			~ResizableMemory() noexcept
 			{
-				if (data) {
-					Base::freeMemory(data);
-				}
+				Base::freeMemory(data);
 			}
 
 		public:
@@ -82,18 +81,11 @@ namespace slib
 			sl_bool setSize(sl_size sizeNew) noexcept override
 			{
 				void* p = data;
-				if (p) {
-					if (sizeNew) {
-						p = Base::reallocMemory(p, sizeNew);
-						if (p) {
-							data = p;
-							size = sizeNew;
-							return sl_true;
-						}
-					} else {
-						Base::freeMemory(p);
-						data = sl_null;
-						size = 0;
+				if (p && sizeNew) {
+					p = Base::reallocMemory(p, sizeNew);
+					if (p) {
+						data = p;
+						size = sizeNew;
 						return sl_true;
 					}
 				}
@@ -129,22 +121,10 @@ namespace slib
 			return sl_null;
 		}
 
-		class HeapMemory : public CMemory
-		{
-		public:
-			HeapMemory(const void* _data, sl_size _size) noexcept: CMemory(_data, _size) {}
-
-			~HeapMemory() noexcept
-			{
-				Base::freeMemory(data);
-			}
-
-		};
-
 		static CMemory* CreateNoCopy(const void* data, sl_size size) noexcept
 		{
 			if (data && size) {
-				CMemory* ret = new HeapMemory((void*)data, size);
+				CMemory* ret = new ResizableMemory((void*)data, size);
 				if (ret) {
 					return ret;
 				}
@@ -158,7 +138,7 @@ namespace slib
 			StaticMemory(const void* _data, sl_size _size) noexcept: CMemory(_data, _size) {}
 
 		public:
-			CRef * getRef() noexcept override
+			CRef* getRef() noexcept override
 			{
 				return sl_null;
 			}
@@ -195,6 +175,43 @@ namespace slib
 		{
 			if (data && size) {
 				return new MemoryWithRef(data, size, Forward<REF>(ref));
+			}
+			return sl_null;
+		}
+
+		template <class STRING>
+		class MemoryWithString : public CMemory
+		{
+		public:
+			STRING str;
+
+		public:
+			template <class TYPE>
+			MemoryWithString(const void* _data, sl_size _size, TYPE&& _str) noexcept: CMemory(_data, _size), str(Forward<TYPE>(_str)) {}
+
+		};
+
+		template <class STRING>
+		static CMemory* CreateWithString(STRING&& str) noexcept
+		{
+			auto data = str.getData();
+			if (data) {
+				sl_size size = str.getLength() * sizeof(decltype(*data));
+				if (size) {
+					return new MemoryWithString<STRING>(data, size, Forward<STRING>(str));
+				}
+			}
+			return sl_null;
+		}
+
+		static CMemory* Concat(const MemoryView& m1, const MemoryView& m2)
+		{
+			CMemory* ret = Create(m1.size + m2.size);
+			if (ret) {
+				sl_uint8* data = (sl_uint8*)(ret->data);
+				Base::copyMemory(data, m1.data, m1.size);
+				Base::copyMemory(data + m1.size, m2.data, m2.size);
+				return ret;
 			}
 			return sl_null;
 		}
@@ -429,19 +446,19 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_size CMemory::read(sl_size offsetSource, sl_size sizeRead, void* dst) noexcept
+	sl_size CMemory::read(sl_size offset, void* dst, sl_size sizeRead) noexcept
 	{
-		sl_uint8* pSrc = (sl_uint8*)data;
+		const sl_uint8* pSrc = (const sl_uint8*)data;
 		sl_uint8* pDst = (sl_uint8*)dst;
 		if (pDst && pSrc) {
 			sl_size sizeSrc = size;
-			if (offsetSource < sizeSrc) {
-				sl_size n = sizeSrc - offsetSource;
+			if (offset < sizeSrc) {
+				sl_size n = sizeSrc - offset;
 				if (sizeRead > n) {
 					sizeRead = n;
 				}
 				if (sizeRead) {
-					Base::copyMemory(pDst, pSrc + offsetSource, sizeRead);
+					Base::copyMemory(pDst, pSrc + offset, sizeRead);
 					return sizeRead;
 				}
 			}
@@ -449,19 +466,19 @@ namespace slib
 		return 0;
 	}
 
-	sl_size CMemory::write(sl_size offsetTarget, sl_size sizeWrite, const void* src) noexcept
+	sl_size CMemory::write(sl_size offset, const void* src, sl_size sizeWrite) noexcept
 	{
 		sl_uint8* pDst = (sl_uint8*)data;
-		sl_uint8* pSrc = (sl_uint8*)src;
+		const sl_uint8* pSrc = (const sl_uint8*)src;
 		if (pSrc && pDst && sizeWrite) {
 			sl_size sizeTarget = size;
-			if (offsetTarget < sizeTarget) {
-				sl_size n = sizeTarget - offsetTarget;
+			if (offset < sizeTarget) {
+				sl_size n = sizeTarget - offset;
 				if (sizeWrite > n) {
 					sizeWrite = n;
 				}
 				if (sizeWrite) {
-					Base::copyMemory(pDst + offsetTarget, pSrc, sizeWrite);
+					Base::copyMemory(pDst + offset, pSrc, sizeWrite);
 					return sizeWrite;
 				}
 			}
@@ -469,22 +486,9 @@ namespace slib
 		return 0;
 	}
 
-	sl_size CMemory::copy(sl_size offsetTarget, const CMemory* source, sl_size offsetSource, sl_size sizeCopy) noexcept
+	sl_size CMemory::write(sl_size offset, const MemoryView& src) noexcept
 	{
-		if (source) {
-			sl_uint8* pSrc = (sl_uint8*)(source->data);
-			if (pSrc) {
-				sl_size sizeSrc = source->size;
-				if (offsetSource < sizeSrc) {
-					sl_size n = sizeSrc - offsetSource;
-					if (sizeCopy > n) {
-						sizeCopy = n;
-					}
-					return write(offsetSource, sizeCopy, pSrc + offsetSource);
-				}
-			}
-		}
-		return 0;
+		return write(offset, src.data, src.size);
 	}
 
 	CMemory* CMemory::duplicate() noexcept
@@ -549,124 +553,34 @@ namespace slib
 		return CreateStatic(buf, size, Move(*((Ref<CRef>*)pRef)));
 	}
 
-	namespace {
-		class MemoryWithString : public CMemory
-		{
-		public:
-			String str;
-
-		public:
-			template <class STRING>
-			MemoryWithString(const void* _data, sl_size _size, STRING&& _str) noexcept : CMemory(_data, _size), str(Forward<STRING>(_str)) {}
-
-		public:
-			String getString() noexcept override
-			{
-				return str;
-			}
-		};
-	}
-
 	Memory Memory::createFromString(const String& str) noexcept
 	{
-		sl_char8* data = str.getData();
-		sl_size size = str.getLength();
-		if (data && size) {
-			return new MemoryWithString(data, size, str);
-		} else {
-			return sl_null;
-		}
+		return CreateWithString(str);
 	}
 
 	Memory Memory::createFromString(String&& str) noexcept
 	{
-		sl_char8* data = str.getData();
-		sl_size size = str.getLength();
-		if (data && size) {
-			return new MemoryWithString(data, size, Move(str));
-		} else {
-			return sl_null;
-		}
-	}
-
-	namespace {
-		class MemoryWithString16 : public CMemory
-		{
-		public:
-			String16 str;
-
-		public:
-			template <class STRING>
-			MemoryWithString16(const void* _data, sl_size _size, STRING&& _str) noexcept : CMemory(_data, _size), str(Forward<STRING>(_str)) {}
-
-		public:
-			String16 getString16() noexcept override
-			{
-				return str;
-			}
-		};
+		return CreateWithString(Move(str));
 	}
 
 	Memory Memory::createFromString(const String16& str) noexcept
 	{
-		sl_char16* data = str.getData();
-		sl_size size = str.getLength() << 1;
-		if (data && size) {
-			return new MemoryWithString16(data, size, str);
-		} else {
-			return sl_null;
-		}
+		return CreateWithString(str);
 	}
 
 	Memory Memory::createFromString(String16&& str) noexcept
 	{
-		sl_char16* data = str.getData();
-		sl_size size = str.getLength() << 1;
-		if (data && size) {
-			return new MemoryWithString16(data, size, Move(str));
-		} else {
-			return sl_null;
-		}
-	}
-
-	namespace {
-		class MemoryWithString32 : public CMemory
-		{
-		public:
-			String32 str;
-
-		public:
-			template <class STRING>
-			MemoryWithString32(const void* _data, sl_size _size, STRING&& _str) noexcept : CMemory(_data, _size), str(Forward<STRING>(_str)) {}
-
-		public:
-			String32 getString32() noexcept override
-			{
-				return str;
-			}
-		};
+		return CreateWithString(Move(str));
 	}
 
 	Memory Memory::createFromString(const String32& str) noexcept
 	{
-		sl_char32* data = str.getData();
-		sl_size size = str.getLength() << 2;
-		if (data && size) {
-			return new MemoryWithString32(data, size, str);
-		} else {
-			return sl_null;
-		}
+		return CreateWithString(str);
 	}
 
 	Memory Memory::createFromString(String32&& str) noexcept
 	{
-		sl_char32* data = str.getData();
-		sl_size size = str.getLength() << 2;
-		if (data && size) {
-			return new MemoryWithString32(data, size, Move(str));
-		} else {
-			return sl_null;
-		}
+		return CreateWithString(Move(str));
 	}
 
 	Memory Memory::createFromExtendedJson(const Json& json, sl_uint32* pOutSubType)
@@ -755,36 +669,31 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_size Memory::read(sl_size offsetSource, sl_size size, void* bufDst) const noexcept
+	sl_size Memory::read(sl_size offset, void* dst, sl_size size) const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->read(offsetSource, size, (sl_uint8*)bufDst);
+			return obj->read(offset, dst, size);
 		}
 		return 0;
 	}
 
-	sl_size Memory::write(sl_size offsetTarget, sl_size size, const void* bufSrc) const noexcept
+	sl_size Memory::write(sl_size offset, const void* src, sl_size size) const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->write(offsetTarget, size, (const sl_uint8*)bufSrc);
+			return obj->write(offset, src, size);
 		}
 		return 0;
 	}
 
-	sl_size Memory::copy(sl_size offsetTarget, const Memory& source, sl_size offsetSource, sl_size size) const noexcept
+	sl_size Memory::write(sl_size offset, const MemoryView& src) const noexcept
 	{
 		CMemory* obj = ref.ptr;
 		if (obj) {
-			return obj->copy(offsetTarget, source.ref.ptr, offsetSource, size);
+			return obj->write(offset, src);
 		}
 		return 0;
-	}
-
-	sl_size Memory::copy(const Memory& source, sl_size offset, sl_size size) const noexcept
-	{
-		return copy(0, source, offset, size);
 	}
 
 	Memory Memory::duplicate() const noexcept
@@ -865,7 +774,23 @@ namespace slib
 		return 0;
 	}
 
-	Memory Memory::operator+(const Memory& other) const noexcept
+	Memory Memory::operator+(const MemoryView& other) const& noexcept
+	{
+		if (!(other.size)) {
+			return *this;
+		}
+		return Concat(*this, other);
+	}
+
+	Memory Memory::operator+(const MemoryView& other) && noexcept
+	{
+		if (!(other.size)) {
+			return Move(*this);
+		}
+		return Concat(*this, other);
+	}
+
+	Memory Memory::operator+(const Memory& other) const& noexcept
 	{
 		if (isNull()) {
 			return other;
@@ -873,16 +798,40 @@ namespace slib
 		if (other.isNull()) {
 			return *this;
 		}
-		sl_size n1 = getSize();
-		sl_size n2 = other.getSize();
-		Memory ret = Memory::create(n1 + n2);
-		if (ret.isNotNull()) {
-			sl_uint8* data = (sl_uint8*)(ret.getData());
-			Base::copyMemory(data, getData(), n1);
-			Base::copyMemory(data + n1, other.getData(), n2);
-			return ret;
+		return Concat(*this, other);
+	}
+
+	Memory Memory::operator+(const Memory& other) && noexcept
+	{
+		if (isNull()) {
+			return other;
 		}
-		return sl_null;
+		if (other.isNull()) {
+			return Move(*this);
+		}
+		return Concat(*this, other);
+	}
+
+	Memory Memory::operator+(Memory&& other) const& noexcept
+	{
+		if (isNull()) {
+			return Move(other);
+		}
+		if (other.isNull()) {
+			return *this;
+		}
+		return Concat(*this, other);
+	}
+
+	Memory Memory::operator+(Memory&& other) && noexcept
+	{
+		if (isNull()) {
+			return Move(other);
+		}
+		if (other.isNull()) {
+			return Move(*this);
+		}
+		return Concat(*this, other);
 	}
 
 	sl_bool Memory::serialize(MemoryBuffer* output) const
@@ -956,11 +905,44 @@ namespace slib
 	{
 	}
 
+	MemoryView MemoryView::sub(sl_size offset, sl_size sizeSub) const noexcept
+	{
+		if (offset >= size) {
+			return MemoryView();
+		}
+		sl_size limit = size - offset;
+		if (sizeSub > limit) {
+			sizeSub = limit;
+		}
+		return MemoryView((sl_uint8*)data + offset, sizeSub);
+	}
+
 	MemoryView& MemoryView::operator=(const Memory& mem) noexcept
 	{
 		data = mem.getData();
 		size = mem.getSize();
 		return *this;
+	}
+
+	Memory MemoryView::operator+(const MemoryView& other) const noexcept
+	{
+		return Concat(*this, other);
+	}
+
+	Memory MemoryView::operator+(const Memory& other) const noexcept
+	{
+		if (!size) {
+			return other;
+		}
+		return Concat(*this, other);
+	}
+
+	Memory MemoryView::operator+(Memory&& other) const noexcept
+	{
+		if (!size) {
+			return Move(other);
+		}
+		return Concat(*this, other);
 	}
 
 

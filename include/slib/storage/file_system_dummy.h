@@ -44,6 +44,11 @@ namespace slib
 		}
 
 	public:
+		class DummyFileContext : public FileContext
+		{
+		public:
+			DummyFileContext(const String& path): FileContext(path) {}
+		};
 
 		sl_bool getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize = sl_null) override
 		{
@@ -64,18 +69,24 @@ namespace slib
 				FileSystem::setLastError(FileSystemError::NotFound);
 				return sl_null;
 			}
-
-			return new FileContext();
+			return new DummyFileContext(path);
 		}
 
 		sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override
 		{
-			return Memory::createStatic(buf, size).copy(String("dummy").toMemory(), (sl_size)offset, size);
+			if (size && offset < 5) {
+				if (offset + size > 5) {
+					size = 5 - (sl_uint32)offset;
+				}
+				Base::copyMemory((sl_uint8*)buf, "dummy" + offset, size);
+				return size;
+			}
+			return 0;
 		}
 
-		sl_bool getFileInfo(const StringParam& _path, FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override
+		sl_bool getFileInfo(FileContext* context, FileInfo& outInfo, const FileInfoMask& mask) override
 		{
-			String path = _path.toString();
+			String& path = context->path;
 			outInfo.createdAt = outInfo.modifiedAt = outInfo.accessedAt = m_fsInfo.creationTime;
 			if (path.endsWith("/") || path.endsWith("/dummy")) {
 				outInfo.attributes = FileAttributes::Directory;
@@ -86,7 +97,6 @@ namespace slib
 				FileSystem::setLastError(FileSystemError::NotFound);
 				return sl_false;
 			}
-
 			return sl_true;
 		}
 

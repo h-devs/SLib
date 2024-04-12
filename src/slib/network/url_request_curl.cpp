@@ -271,7 +271,7 @@ namespace slib
 					}
 				}
 				if (size > 0) {
-					body.read((sl_size)m_sizeBodySent, size, data);
+					body.read((sl_size)m_sizeBodySent, data, size);
 					m_sizeBodySent += size;
 					onUploadBody(size);
 				}

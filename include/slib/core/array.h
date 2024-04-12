@@ -348,7 +348,7 @@ namespace slib
 		}
 
 		template <class VALUE>
-		sl_size read(sl_size startSource, sl_size len, VALUE* pDst) const noexcept
+		sl_size read(sl_size startSource, VALUE* pDst, sl_size len) const noexcept
 		{
 			T* pSrc = m_data;
 			if (pDst && pSrc) {
@@ -366,7 +366,7 @@ namespace slib
 		}
 
 		template <class VALUE>
-		sl_size write(sl_size startTarget, sl_size len, const VALUE* pSrc) const noexcept
+		sl_size write(sl_size startTarget, const VALUE* pSrc, sl_size len) const noexcept
 		{
 			T* pDst = m_data;
 			if (pSrc && pDst) {
@@ -381,31 +381,6 @@ namespace slib
 				}
 			}
 			return 0;
-		}
-
-		template <class VALUE>
-		sl_size copy(sl_size startTarget, const CArray<VALUE>* source, sl_size startSource = 0, sl_size len = SLIB_SIZE_MAX) const noexcept
-		{
-			if (source) {
-				VALUE* pSrc = source->getData();
-				if (pSrc) {
-					sl_size countSrc = source->getCount();
-					if (startSource < countSrc) {
-						sl_size lenSrc = countSrc - startSource;
-						if (len > lenSrc) {
-							len = lenSrc;
-						}
-						return write<VALUE>(startTarget, len, pSrc + startSource);
-					}
-				}
-			}
-			return 0;
-		}
-
-		template <class VALUE>
-		sl_size copy(const CArray<VALUE>* source, sl_size start = 0, sl_size len = SLIB_SIZE_MAX) const noexcept
-		{
-			return copy(0, source, start, len);
 		}
 
 		CArray<T>* duplicate() const noexcept
@@ -708,39 +683,23 @@ namespace slib
 		}
 
 		template <class VALUE>
-		sl_size read(sl_size startSource, sl_size len, VALUE* dataDst) const noexcept
+		sl_size read(sl_size startSource, VALUE* dataDst, sl_size len) const noexcept
 		{
 			CArray<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->read(startSource, len, dataDst);
+				return obj->read(startSource, dataDst, len);
 			}
 			return 0;
 		}
 
 		template <class VALUE>
-		sl_size write(sl_size startTarget, sl_size len, const VALUE* dataSrc) const noexcept
+		sl_size write(sl_size startTarget, const VALUE* dataSrc, sl_size len) const noexcept
 		{
 			CArray<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->write(startTarget, len, dataSrc);
+				return obj->write(startTarget, dataSrc, len);
 			}
 			return 0;
-		}
-
-		template <class VALUE>
-		sl_size copy(sl_size startTarget, const Array<VALUE>& source, sl_size startSource = 0, sl_size len = SLIB_SIZE_MAX) const noexcept
-		{
-			CArray<T>* obj = ref.ptr;
-			if (obj) {
-				return obj->copy(startTarget, source.ref.ptr, startSource, len);
-			}
-			return 0;
-		}
-
-		template <class VALUE>
-		sl_size copy(const Array<VALUE>& source, sl_size start = 0, sl_size len = SLIB_SIZE_MAX) const noexcept
-		{
-			return copy(0, source, start, len);
 		}
 
 		Array<T> duplicate() const noexcept

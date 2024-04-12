@@ -109,8 +109,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(FileContext, Object)
 
-	FileContext::FileContext(const String& path)
-		: path(path)
+	FileContext::FileContext(const String& path): path(path)
 	{
 	}
 

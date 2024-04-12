@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,8 @@ namespace slib
 	public:
 		SLIB_CONSTEXPR MemoryView(): data(sl_null), size(0) {}
 
+		SLIB_CONSTEXPR MemoryView(sl_null_t): data(sl_null), size(0) {}
+
 		SLIB_CONSTEXPR MemoryView(const void* _data, sl_size _size): data((void*)_data), size(_size) {}
 
 		MemoryView(const Memory& mem) noexcept;
@@ -52,8 +54,16 @@ namespace slib
 			return MemoryView(s, N - 1);
 		}
 
+		MemoryView sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) const noexcept;
+
 	public:
 		MemoryView& operator=(const Memory& mem) noexcept;
+	
+		Memory operator+(const MemoryView& other) const noexcept;
+
+		Memory operator+(const Memory& other) const noexcept;
+
+		Memory operator+(Memory&& other) const noexcept;
 
 		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{

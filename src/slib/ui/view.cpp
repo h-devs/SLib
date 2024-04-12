@@ -9936,7 +9936,7 @@ namespace slib
 				TouchPoint ptsCheck[MAX_TOUCH];
 				TouchPoint ptsOutside[MAX_TOUCH];
 
-				ptsOriginal.read(0, nTouch, ptsCheck);
+				ptsOriginal.read(0, ptsCheck, nTouch);
 
 				Array<TouchPoint> arrInside = Array<TouchPoint>::create(nTouch);
 				TouchPoint* ptsInside = arrInside.getData();

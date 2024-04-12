@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -119,11 +119,11 @@ namespace slib
 	public:
 		CMemory* sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) noexcept;
 
-		sl_size read(sl_size offsetSource, sl_size size, void* dst) noexcept;
+		sl_size read(sl_size offset, void* dst, sl_size size) noexcept;
 
-		sl_size write(sl_size offsetTarget, sl_size size, const void* src) noexcept;
+		sl_size write(sl_size offset, const void* src, sl_size size) noexcept;
 
-		sl_size copy(sl_size offsetTarget, const CMemory* source, sl_size offsetSource = 0, sl_size size = SLIB_SIZE_MAX) noexcept;
+		sl_size write(sl_size offset, const MemoryView& src) noexcept;
 
 		CMemory* duplicate() noexcept;
 
@@ -199,20 +199,23 @@ namespace slib
 	public:
 		Memory sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) const noexcept;
 
-		sl_size read(sl_size offsetSource, sl_size size, void* bufDst) const noexcept;
+		sl_size read(sl_size offset, void* dst, sl_size size) const noexcept;
 
-		sl_size write(sl_size offsetTarget, sl_size size, const void* bufSrc) const noexcept;
+		sl_size write(sl_size offset, const void* src, sl_size size) const noexcept;
 
-		sl_size copy(sl_size offsetTarget, const Memory& source, sl_size offsetSource = 0, sl_size size = SLIB_SIZE_MAX) const noexcept;
-
-		sl_size copy(const Memory& source, sl_size offset = 0, sl_size size = SLIB_SIZE_MAX) const noexcept;
+		sl_size write(sl_size offset, const MemoryView& src) const noexcept;
 
 		Memory duplicate() const noexcept;
 
 		sl_bool getData(MemoryData& data) const noexcept;
 
 	public:
-		Memory operator+(const Memory& other) const noexcept;
+		Memory operator+(const MemoryView& other) const& noexcept;
+		Memory operator+(const MemoryView& other) && noexcept;
+		Memory operator+(const Memory& other) const& noexcept;
+		Memory operator+(const Memory& other) && noexcept;
+		Memory operator+(Memory&& other) const& noexcept;
+		Memory operator+(Memory&& other) && noexcept;
 
 		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{

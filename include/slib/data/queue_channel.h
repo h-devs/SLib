@@ -59,7 +59,8 @@ namespace slib
 		{
 			Array<Channel> arr = Array<Channel>::create(n);
 			if (arr.isNotNull()) {
-				arr.copy(m_arr);
+				Array<Channel> orig = m_arr;
+				arr.write(0, orig.getData(), orig.getCount());
 				m_arr = arr;
 				return sl_true;
 			}
