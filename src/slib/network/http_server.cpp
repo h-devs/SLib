@@ -37,6 +37,8 @@
 
 #define SERVER_TAG "HTTP SERVER"
 
+#define VAR_TAG_FILE_PATH 0xC1
+
 namespace slib
 {
 
@@ -1339,7 +1341,12 @@ namespace slib
 
 	void HttpServer::processRequest(HttpServerContext* context, HttpServerConnection* connection, const Variant& response)
 	{
-		if (response.isFalse()) {
+		sl_uint8 tag = response.getTag();
+		if (tag == VAR_TAG_FILE_PATH) {
+			if (processFile(context, response.getString())) {
+				context->setProcessed();
+			}
+		} else if (response.isFalse()) {
 			HttpMethod method = context->getMethod();
 			if (method == HttpMethod::GET) {
 				if (m_param.flagUseWebRoot || m_param.flagUseAsset) {
@@ -1881,6 +1888,11 @@ namespace slib
 	sl_bool HttpServer::addHttpBinding(const IPAddress& addr, sl_uint16 port)
 	{
 		return addHttpBinding(SocketAddress(addr, port));
+	}
+
+	Variant HttpServer::fileResponse(const String& path)
+	{
+		return Variant(path, VAR_TAG_FILE_PATH);
 	}
 
 }

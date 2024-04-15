@@ -460,6 +460,8 @@ namespace slib
 		sl_bool addHttpsBinding(const TlsAcceptStreamParam& param, const IPAddress& addr, sl_uint16 port = 443);
 
 
+		static Variant fileResponse(const String& path);
+
 	protected:
 		sl_bool _init(const HttpServerParam& param);
 
