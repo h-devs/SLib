@@ -38,13 +38,14 @@ namespace slib
 		public:
 			String url;
 			String title;
+			sl_size windowHandle;
 		};
 
 		static List<Page> getCurrentPages();
 
-		static void addMonitor(const Function<void(String& url, String& title)>& callback);
+		static void addMonitor(const Function<void(Page&)>& callback);
 
-		static void removeMonitor(const Function<void(String& url, String& title)>& callback);
+		static void removeMonitor(const Function<void(Page&)>& callback);
 
 	};
 

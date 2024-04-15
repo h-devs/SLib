@@ -124,9 +124,38 @@ namespace slib
 			return ret;
 		}
 
+		static sl_size GetElementWindowHandle(IUIAutomationElement* element)
+		{
+			UIA_HWND hWnd = NULL;
+			element->get_CurrentNativeWindowHandle(&hWnd);
+			return (sl_size)hWnd;
+		}
+
+		static String16 GetElementClassName(IUIAutomationElement* element)
+		{
+			BSTR str = NULL;
+			element->get_CurrentClassName(&str);
+			String16 ret = String16::from(str);
+			if (str) {
+				SysFreeString(str);
+			}
+			return ret;
+		}
+
+		static String GetElementName(IUIAutomationElement* element)
+		{
+			BSTR str = NULL;
+			element->get_CurrentName(&str);
+			String ret = String::from(str);
+			if (str) {
+				SysFreeString(str);
+			}
+			return ret;
+		}
+
 		static ComPtr<IUIAutomationElement> FindAddressBarElement(IUIAutomation* automation, IUIAutomationElement* element)
 		{
-			String16 className = GetElementProperty(element, UIA_ClassNamePropertyId).getString16();
+			String16 className = GetElementClassName(element);
 			if (className == (sl_char16*)CHROME_WINDOW_CLASS) {
 				return FindEditElementByName(automation, element, TreeScope_Subtree, L"Address and search bar");
 			} else if (className == (sl_char16*)FIREFOX_WINDOW_CLASS) {
@@ -152,15 +181,15 @@ namespace slib
 			ComPtr<IUIAutomationElement> pane = FindElement(element, TreeScope_Children, CreateCondition(automation, UIA_ClassNamePropertyId, L"BrowserRootView"));
 			if (pane.isNotNull()) {
 				// Edge
-				return GetElementProperty(pane.get(), UIA_NamePropertyId).getString();
+				return GetElementName(pane.get());
 			} else {
-				return GetElementProperty(element, UIA_NamePropertyId).getString();
+				return GetElementName(element);
 			}
 		}
 
 		static sl_bool IsBrowserElement(IUIAutomation* automation, IUIAutomationElement* element)
 		{
-			String16 name = GetElementProperty(element, UIA_ClassNamePropertyId).getString16();
+			String16 name = GetElementClassName(element);
 			return name == (sl_char16*)CHROME_WINDOW_CLASS || name == (sl_char16*)FIREFOX_WINDOW_CLASS || name == (sl_char16*)IE_WINDOW_CLASS;
 		}
 
@@ -175,8 +204,8 @@ namespace slib
 			Mutex lock;
 			Ref<Thread> thread;
 
-			CList< Function<void(String& url, String& title)> > callbacks;
-			AtomicFunction<void(String& url, String& title)> mergedCallback;
+			CList< Function<void(WebBrowserMonitor::Page&)> > callbacks;
+			AtomicFunction<void(WebBrowserMonitor::Page&)> mergedCallback;
 
 		public:
 			MonitorContext()
@@ -191,7 +220,7 @@ namespace slib
 			}
 
 		public:
-			void addCallback(const Function<void(String& url, String& title)>& callback)
+			void addCallback(const Function<void(WebBrowserMonitor::Page&)>& callback)
 			{
 				MutexLocker locker(&lock);
 				callbacks.addIfNotExist_NoLock(callback);
@@ -201,7 +230,7 @@ namespace slib
 				}
 			}
 
-			void removeCallback(const Function<void(String& url, String& title)>& callback)
+			void removeCallback(const Function<void(WebBrowserMonitor::Page&)>& callback)
 			{
 				MutexLocker locker(&lock);
 				callbacks.remove_NoLock(callback);
@@ -215,11 +244,11 @@ namespace slib
 
 			void updateCallback()
 			{
-				ListLocker< Function<void(String& url, String& title)> > list(callbacks);
+				ListLocker< Function<void(WebBrowserMonitor::Page&)> > list(callbacks);
 				if (list.count == 1) {
 					mergedCallback = list[0];
 				} else {
-					Function<void(String& url, String& title)> callback;
+					Function<void(WebBrowserMonitor::Page&)> callback;
 					for (sl_size i = 0; i < list.count; i++) {
 						callback.add(list[i]);
 					}
@@ -239,22 +268,26 @@ namespace slib
 			ComPtr<IUIAutomation> automation;
 			Ref<Event> event;
 			Queue< Pair<ComPtr<IUIAutomationElement>, EVENTID> > queueEvents;
-			Queue<sl_uint64> queueRemovingWindows;
-			HashMap< sl_uint64, ComPtr<IUIAutomationElement> > watchingBrowsers;
-			HashMap<sl_uint64, String> lastTitles;
+			Queue<sl_size> queueRemovingWindows;
+			HashMap< sl_size, ComPtr<IUIAutomationElement> > watchingBrowsers;
+			HashMap<sl_size, String> lastTitles;
 
 		public:
-			void onUpdate(sl_uint64 id, String& url, String& title)
+			void onUpdate(sl_size id, String& url, String& title)
 			{
 				String lastTitle = lastTitles.getValue_NoLock(id);
 				if (lastTitle == title) {
 					return;
 				}
 				lastTitles.put_NoLock(id, title);
-				context->mergedCallback(url, title);
+				WebBrowserMonitor::Page page;
+				page.title = title;
+				page.url = url;
+				page.windowHandle = id;
+				context->mergedCallback(page);
 			}
 
-			void onUpdate(sl_uint64 id, IUIAutomationElement* element)
+			void onUpdate(sl_size id, IUIAutomationElement* element)
 			{
 				String title = GetBrowserTitle(automation.get(), element);
 				if (title.isNotEmpty()) {
@@ -267,7 +300,7 @@ namespace slib
 
 			void addEventHandler(IUIAutomationElement* element)
 			{
-				sl_uint64 id = GetElementProperty(element, UIA_NativeWindowHandlePropertyId).getUint64();
+				sl_size id = GetElementWindowHandle(element);
 				if (!id) {
 					return;
 				}
@@ -307,8 +340,8 @@ namespace slib
 				if (eventId == UIA_Window_WindowOpenedEventId) {
 					addEventHandler(element);
 				} else if (eventId == UIA_AutomationPropertyChangedEventId) {
-					sl_uint64 id = GetElementProperty(element, UIA_NativeWindowHandlePropertyId).getUint64();
-					if (IsWindow((HWND)((void*)((sl_size)id)))) {
+					sl_size id = GetElementWindowHandle(element);
+					if (IsWindow((HWND)id)) {
 						watchingBrowsers.remove_NoLock(id);
 						onUpdate(id, element);
 					}
@@ -404,7 +437,7 @@ namespace slib
 						event->set();
 					}
 				} else if (eventId == UIA_Window_WindowClosedEventId) {
-					sl_uint64 id = GetElementProperty(sender, UIA_NativeWindowHandlePropertyId).getUint64();
+					sl_size id = GetElementWindowHandle(sender);
 					queueRemovingWindows.push(id);
 					event->set();
 				}
@@ -415,7 +448,7 @@ namespace slib
 			{
 				if (propertyId == UIA_NamePropertyId) {
 					sender->AddRef();
-					auto s = GetElementProperty(sender, UIA_NamePropertyId).getString();
+					String s = GetElementName(sender);
 					queueEvents.push(sender, UIA_AutomationPropertyChangedEventId);
 					event->set();
 				}
@@ -459,6 +492,7 @@ namespace slib
 									WebBrowserMonitor::Page page;
 									page.title = Move(title);
 									page.url = Move(url);
+									page.windowHandle = GetElementWindowHandle(element);
 									ret.add_NoLock(Move(page));
 								}
 							}
@@ -470,7 +504,7 @@ namespace slib
 		return ret;
 	}
 
-	void WebBrowserMonitor::addMonitor(const Function<void(String& url, String& title)>& callback)
+	void WebBrowserMonitor::addMonitor(const Function<void(Page&)>& callback)
 	{
 		MonitorContext* context = GetMonitorContext();
 		if (!context) {
@@ -479,7 +513,7 @@ namespace slib
 		context->addCallback(callback);
 	}
 
-	void WebBrowserMonitor::removeMonitor(const Function<void(String& url, String& title)>& callback)
+	void WebBrowserMonitor::removeMonitor(const Function<void(Page&)>& callback)
 	{
 		MonitorContext* context = GetMonitorContext();
 		if (!context) {
