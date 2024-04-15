@@ -29,6 +29,7 @@
 #include "slib/core/app.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/command_line.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/platform.h"
 
 namespace slib
@@ -115,8 +116,7 @@ namespace slib
 	{
 		ListElements<String> args(CommandLine::parse(commandLine));
 		if (!(args.count)) {
-			runAsAdminBy(pathExecutable, sl_null, 0);
-			return;
+			return runBy(pathExecutable, sl_null, 0);
 		}
 		SLIB_SCOPED_BUFFER(StringParam, 64, params, args.count)
 		for (sl_size i = 0; i < args.count; i++) {
