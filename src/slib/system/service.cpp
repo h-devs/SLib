@@ -226,7 +226,7 @@ namespace slib
 				if (arguments.contains("admin")) {
 					List<StringParam> args;
 					args.addAll_NoLock(getArguments());
-					Process::runAsAdmin(getApplicationPath(), args.getData(), args.getCount());
+					Process::runAsAdminBy(getApplicationPath(), args.getData(), args.getCount());
 					return 0;
 				} else {
 					Log(TAG, "RUN AS ADMIN!");

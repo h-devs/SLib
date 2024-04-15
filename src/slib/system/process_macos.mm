@@ -28,6 +28,7 @@
 
 #include "slib/core/app.h"
 #include "slib/core/string_buffer.h"
+#include "slib/core/command_line.h"
 #include "slib/platform.h"
 
 namespace slib
@@ -110,7 +111,21 @@ namespace slib
         
 	}
 
-	Ref<Process> Process::run(const StringParam& pathExecutable, const StringParam* strArguments, sl_size nArguments)
+	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	{
+		ListElements<String> args(CommandLine::parse(commandLine));
+		if (!(args.count)) {
+			runAsAdminBy(pathExecutable, sl_null, 0);
+			return;
+		}
+		SLIB_SCOPED_BUFFER(StringParam, 64, params, args.count)
+		for (sl_size i = 0; i < args.count; i++) {
+			params[i] = args[i];
+		}
+		return runBy(pathExecutable, params, args.count);
+	}
+
+	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam* strArguments, sl_size nArguments)
 	{
 		@try {
 			NSMutableArray* arguments = [NSMutableArray array];
@@ -133,7 +148,14 @@ namespace slib
 		return sl_null;
 	}
 
-	void Process::runAsAdmin(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	{
+		String source = String::concat("do shell script \"", FixArgument(pathExecutable.toString()), " ", commandLine, "\" with administrator privileges");
+		NSAppleScript* script = [[NSAppleScript alloc] initWithSource:(Apple::getNSStringFromString(source))];
+		[script executeAndReturnError:nil];
+	}
+
+	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		String command = BuildCommand(pathExecutable, arguments, nArguments);
 		String source = String::concat("do shell script \"", command, "\" with administrator privileges");

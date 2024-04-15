@@ -22,9 +22,12 @@
 
 #include "slib/system/process.h"
 
+#include "slib/io/io.h"
+#include "slib/system/system.h"
 #include "slib/core/list.h"
 #include "slib/core/memory.h"
-#include "slib/io/io.h"
+#include "slib/core/command_line.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {
@@ -51,49 +54,24 @@ namespace slib
 		return m_exitStatus;
 	}
 
-#if defined(SLIB_PLATFORM_IS_MOBILE)
-
-	Ref<Process> Process::open(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+	Ref<Process> Process::open(const StringParam& pathExecutable)
 	{
-		return sl_null;
+		return openBy(pathExecutable, sl_null);
 	}
 
-	Ref<Process> Process::run(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+	Ref<Process> Process::run(const StringParam& pathExecutable)
 	{
-		return sl_null;
+		return runBy(pathExecutable, sl_null);
 	}
 
-	void Process::runAsAdmin(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+	void Process::runAsAdmin(const StringParam& pathExecutable)
 	{
+		runAsAdminBy(pathExecutable, sl_null);
 	}
 
-	sl_bool Process::isCurrentProcessAdmin()
+	String Process::getOutputBy(const StringParam& pathExecutable, const StringParam& commandLine)
 	{
-		return sl_false;
-	}
-
-	void Process::exec(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
-	{
-	}
-
-	void Process::abort()
-	{
-	}
-
-	void Process::exit(int code)
-	{
-	}
-
-	String Process::getOutput(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs)
-	{
-		return sl_null;
-	}
-
-#else
-
-	String Process::getOutput(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs)
-	{
-		Ref<Process> process = open(pathExecutable, args, nArgs);
+		Ref<Process> process = openBy(pathExecutable, commandLine);
 		if (process.isNotNull()) {
 			IStream* stream = process->getStream();
 			if (stream) {
@@ -104,9 +82,53 @@ namespace slib
 		return sl_null;
 	}
 
-#endif
+	String Process::getOutputBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs)
+	{
+		Ref<Process> process = openBy(pathExecutable, args, nArgs);
+		if (process.isNotNull()) {
+			IStream* stream = process->getStream();
+			if (stream) {
+				Memory mem = stream->readFully();
+				return String::fromMemory(mem);
+			}
+		}
+		return sl_null;
+	}
 
-#if !defined(SLIB_UI_IS_MACOS)
+	String Process::getOutput(const StringParam& pathExecutable)
+	{
+		return getOutputBy(pathExecutable, sl_null);
+	}
+
+	void Process::runCommand(const StringParam& command)
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		runBy(System::getSystemDirectory() + "\\cmd.exe", String::concat("/C ", command));
+#else
+		run("/bin/sh", "-c", command);
+#endif
+	}
+
+	void Process::execBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	{
+		ListElements<String> args(CommandLine::parse(commandLine));
+		if (!(args.count)) {
+			execBy(pathExecutable, sl_null, 0);
+			return;
+		}
+		SLIB_SCOPED_BUFFER(StringParam, 64, params, args.count)
+		for (sl_size i = 0; i < args.count; i++) {
+			params[i] = args[i];
+		}
+		execBy(pathExecutable, params, args.count);
+	}
+
+	void Process::exec(const StringParam& pathExecutable)
+	{
+		execBy(pathExecutable, sl_null);
+	}
+
+#if !defined(SLIB_PLATFORM_IS_MACOS)
 	void Process::setAppNapEnabled(sl_bool flag)
 	{
 	}

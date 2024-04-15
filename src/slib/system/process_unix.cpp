@@ -28,8 +28,10 @@
 
 #include "slib/system/system.h"
 #include "slib/io/file.h"
+#include "slib/core/command_line.h"
 #include "slib/core/list.h"
 #include "slib/core/handle_ptr.h"
+#include "slib/core/scoped_buffer.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -43,9 +45,8 @@
 namespace slib
 {
 
-	namespace {
-
-#if !defined(SLIB_PLATFORM_IS_MOBILE)
+	namespace
+	{
 
 		static void Exec(const StringParam& _pathExecutable, const StringParam* arguments, sl_size nArguments)
 		{
@@ -271,8 +272,6 @@ namespace slib
 
 		};
 
-#endif
-
 	}
 
 	sl_uint32 Process::getCurrentProcessId()
@@ -280,15 +279,39 @@ namespace slib
 		return getpid();
 	}
 
-#if !defined(SLIB_PLATFORM_IS_MOBILE)
-	Ref<Process> Process::open(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	{
+		ListElements<String> args(CommandLine::parse(commandLine));
+		if (!(args.count)) {
+			return openBy(pathExecutable, sl_null, 0);
+		}
+		SLIB_SCOPED_BUFFER(StringParam, 64, params, args.count)
+		for (sl_size i = 0; i < args.count; i++) {
+			params[i] = args[i];
+		}
+		return openBy(pathExecutable, params, args.count);
+	}
+
+	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		return Ref<Process>::from(ProcessImpl::create(pathExecutable, arguments, nArguments));
 	}
-#endif
 
-#if !defined(SLIB_PLATFORM_IS_MOBILE) && !defined(SLIB_PLATFORM_IS_MACOS)
-	Ref<Process> Process::run(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+#if !defined(SLIB_PLATFORM_IS_MACOS)
+	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	{
+		ListElements<String> args(CommandLine::parse(commandLine));
+		if (!(args.count)) {
+			return runBy(pathExecutable, sl_null, 0);
+		}
+		SLIB_SCOPED_BUFFER(StringParam, 64, params, args.count)
+		for (sl_size i = 0; i < args.count; i++) {
+			params[i] = args[i];
+		}
+		return runBy(pathExecutable, params, args.count);
+	}
+
+	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		pid_t pid = fork();
 		if (!pid) {
@@ -322,7 +345,21 @@ namespace slib
 		return sl_null;
 	}
 
-	void Process::runAsAdmin(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	{
+		ListElements<String> args(CommandLine::parse(commandLine));
+		if (!(args.count)) {
+			runAsAdminBy(pathExecutable, sl_null, 0);
+			return;
+		}
+		SLIB_SCOPED_BUFFER(StringParam, 64, params, args.count)
+		for (sl_size i = 0; i < args.count; i++) {
+			params[i] = args[i];
+		}
+		runAsAdminBy(pathExecutable, params, args.count);
+	}
+
+	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		String command;
 		if (File::isFile("/usr/bin/pkexec")) {
@@ -340,22 +377,19 @@ namespace slib
 		list.add_NoLock(String::concat("XAUTHORITY=", System::getEnvironmentVariable("XAUTHORITY")));
 		list.add_NoLock(pathExecutable.toString());
 		list.addElements_NoLock(arguments, nArguments);
-		Ref<Process> process = open(command, list.getData(), list.getCount());
+		Ref<Process> process = openBy(command, list.getData(), list.getCount());
 		if (process.isNotNull()) {
 			process->wait();
 		}
 	}
 #endif
 
-#if !defined(SLIB_PLATFORM_IS_MOBILE)
 	sl_bool Process::isCurrentProcessAdmin()
 	{
 		return !(geteuid());
 	}
-#endif
 
-#if !defined(SLIB_PLATFORM_IS_MOBILE)
-	void Process::exec(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+	void Process::execBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		Exec(pathExecutable, arguments, nArguments);
 	}
@@ -369,7 +403,6 @@ namespace slib
 	{
 		::exit(code);
 	}
-#endif
 
 }
 

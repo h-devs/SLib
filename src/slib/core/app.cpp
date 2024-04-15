@@ -162,7 +162,7 @@ namespace slib
 				List<StringParam> args;
 				args.addAll_NoLock(app->getArguments());
 				if (args.isNotEmpty()) {
-					Process::exec(app->getExecutablePath(), args.getData() + 1, args.getCount() - 1);
+					Process::execBy(app->getExecutablePath(), args.getData() + 1, args.getCount() - 1);
 				} else {
 					Process::exec(app->getExecutablePath());
 				}
@@ -398,6 +398,9 @@ Microsoft Specific
 	namespace {
 		static List<String> ParseCommandLine(const StringParam& _commandLine, sl_bool flagWin32)
 		{
+			if (_commandLine.isEmpty()) {
+				return sl_null;
+			}
 			StringCstr commandLine(_commandLine);
 			List<String> ret;
 			sl_char8* sz = commandLine.getData();
