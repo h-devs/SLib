@@ -347,6 +347,7 @@ namespace slib
 
 	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam& commandLine)
 	{
+#if !defined(SLIB_PLATFORM_IS_MOBILE)
 		ListElements<String> args(CommandLine::parse(commandLine));
 		if (!(args.count)) {
 			runAsAdminBy(pathExecutable, sl_null, 0);
@@ -357,10 +358,12 @@ namespace slib
 			params[i] = args[i];
 		}
 		runAsAdminBy(pathExecutable, params, args.count);
+#endif
 	}
 
 	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
+#if !defined(SLIB_PLATFORM_IS_MOBILE)
 		String command;
 		if (File::isFile("/usr/bin/pkexec")) {
 			command = "/usr/bin/pkexec";
@@ -381,6 +384,7 @@ namespace slib
 		if (process.isNotNull()) {
 			process->wait();
 		}
+#endif
 	}
 #endif
 

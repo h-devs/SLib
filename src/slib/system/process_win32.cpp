@@ -59,10 +59,9 @@ namespace slib
 			StringCstr16 cmd;
 			if (_commandLine.isNotNull()) {
 				StringBuffer16 sb;
-				//sb.addStatic(SLIB_UNICODE("\""));
-				//sb.addStatic(pathExecutable.getData(), pathExecutable.getLength());
-				//sb.addStatic(SLIB_UNICODE("\""));
-				//sb.addStatic(SLIB_UNICODE(" "));
+				sb.addStatic(SLIB_UNICODE("\""));
+				sb.addStatic(pathExecutable.getData(), pathExecutable.getLength());
+				sb.addStatic(SLIB_UNICODE("\" "));
 				StringData16 commandLine(_commandLine);
 				sb.addStatic(commandLine.getData(), commandLine.getLength());
 				cmd = sb.merge();
