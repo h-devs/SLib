@@ -1,0 +1,29 @@
+CURRENT_PATH=`pwd`
+if [ -z $SLIB_PATH ]; then
+ bash $(dirname $0)/../../setup-path
+fi
+cd $CURRENT_PATH
+APP_NAME=$1
+if [ -z $APP_NAME ]; then
+ echo "Please input the service name:"
+ read APP_NAME
+ APP_NAME=`echo $APP_NAME | sed 's/[^a-zA-Z0-9_]//g'`
+ if [ -z $APP_NAME ]; then
+  exit
+ fi
+fi
+
+echo "New SLib Service: $APP_NAME"
+
+cp -R "$SLIB_PATH/tool/template/service" "$CURRENT_PATH"
+sed -i '' "s/SLIB_TEMPLATE_APP_NAME/$APP_NAME/g" "$CURRENT_PATH/main.cpp"
+sed -i '' "s/SLIB_TEMPLATE_APP_NAME/$APP_NAME/g" "$CURRENT_PATH/app.h"
+sed -i '' "s/SLIB_TEMPLATE_APP_NAME/$APP_NAME/g" "$CURRENT_PATH/app.cpp"
+
+mv "$CURRENT_PATH/Win32/SLIB_TEMPLATE_APP_NAME.sln" "$CURRENT_PATH/Win32/$APP_NAME.sln"
+sed -i '' "s/SLIB_TEMPLATE_APP_NAME/$APP_NAME/g" "$CURRENT_PATH/Win32/$APP_NAME.sln"
+mv "$CURRENT_PATH/Win32/SLIB_TEMPLATE_APP_NAME.vcxproj" "$CURRENT_PATH/Win32/$APP_NAME.vcxproj"
+sed -i '' "s/SLIB_TEMPLATE_APP_NAME/$APP_NAME/g" "$CURRENT_PATH/Win32/$APP_NAME.vcxproj"
+mv "$CURRENT_PATH/Win32/SLIB_TEMPLATE_APP_NAME.vcxproj.filters" "$CURRENT_PATH/Win32/$APP_NAME.vcxproj.filters"
+
+sed -i '' "s/SLIB_TEMPLATE_APP_NAME/$APP_NAME/g" "$CURRENT_PATH/Linux/CMakeLists.txt"
