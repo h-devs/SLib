@@ -742,6 +742,8 @@ namespace slib
 		flagIPv6 = sl_false;
 		flagSendingBroadcast = sl_false;
 		flagMulticastLoop = sl_false;
+		flagReusingAddress = sl_false;
+		flagReusingPort = sl_false;
 		flagAutoStart = sl_true;
 		flagLogError = sl_false;
 		packetSize = 65536;
@@ -785,8 +787,15 @@ namespace slib
 			 *
 			 * http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t
 			 */
-			socket.setReusingAddress(sl_true);
+			socket.setReusingAddress();
+#else
+			if (param.flagReusingAddress) {
+				socket.setReusingAddress();
+			}
 #endif
+			if (param.flagReusingPort) {
+				socket.setReusingPort();
+			}
 			if (param.bindAddress.ip.isNotNone() || param.bindAddress.port != 0) {
 				if (!(socket.bind(param.bindAddress))) {
 					if (param.flagLogError) {

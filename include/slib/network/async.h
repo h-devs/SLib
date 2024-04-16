@@ -281,6 +281,8 @@ namespace slib
 		sl_bool flagIPv6; // default: false
 		sl_bool flagSendingBroadcast; // default: false
 		sl_bool flagMulticastLoop; // default: false
+		sl_bool flagReusingAddress; // default: false
+		sl_bool flagReusingPort; // default: false
 		List< Pair<IPAddress, sl_uint32> > multicastGroups; // {multicastAddress, interfaceIndex} pairs
 
 		sl_bool flagAutoStart; // default: true
