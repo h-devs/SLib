@@ -1549,13 +1549,17 @@ namespace slib
 	void Window::show()
 	{
 		setVisible(sl_true);
-		create();
+		if (m_instance.isNull()) {
+			create();
+		}
 	}
 
 	void Window::showAndKeep()
 	{
 		setVisible(sl_true);
-		createAndKeep();
+		if (m_instance.isNull()) {
+			createAndKeep();
+		}
 	}
 
 	void Window::hide()
