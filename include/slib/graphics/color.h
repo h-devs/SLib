@@ -401,6 +401,11 @@ namespace slib
 			return Color4F((sl_real)(r) / 255, (sl_real)(g) / 255, (sl_real)(b) / 255, (sl_real)(a) / 255);
 		}
 
+		SLIB_CONSTEXPR operator sl_uint32() const
+		{
+			return getARGB();
+		}
+
 	private:
 		static sl_uint8 _zero[4];
 
