@@ -100,14 +100,14 @@ namespace slib
 					if (view.isNotNull()) {
 						view->setFrame(rc);
 						if (i == sel) {
-							if (!(view->isInstance())) {
-								view->setVisible(sl_true, UIUpdateMode::None);
-								view->attachToNewInstance(instance);
+							if (view->isInstance()) {
+								view->setVisibility(Visibility::Visible);
 							} else {
-								view->setVisible(sl_true);
+								view->setVisibility(Visibility::Visible, UIUpdateMode::None);
+								view->attachToNewInstance(instance);
 							}
 						} else {
-							view->setVisible(sl_false);
+							view->setVisibility(Visibility::Hidden);
 						}
 					}
 				}

@@ -8,9 +8,9 @@ void MainPage::initPage()
 {
 	Device::addOnIncomingCall([this](String callId, String phoneNumber) {
 		Println("Incoming: %s, %s", callId, phoneNumber);
-		groupCall->setVisible(sl_true);
+		groupCall->setVisibility(Visibility::Visible);
 		lblCallInfo->setText("In: " + phoneNumber);
-		btnAnswer->setVisible(sl_true);
+		btnAnswer->setVisibility(Visibility::Visible);
 		btnAnswer->setOnClick([this, callId](View*) {
 			Device::answerCall(callId);
 			btnAnswer->setVisibility(Visibility::Gone);
@@ -22,7 +22,7 @@ void MainPage::initPage()
 	});
 	Device::addOnOutgoingCall([this](String callId, String phoneNumber) {
 		Println("Outgoing: %s, %s", callId, phoneNumber);
-		groupCall->setVisible(sl_true);
+		groupCall->setVisibility(Visibility::Visible);
 		lblCallInfo->setText("Out: " + phoneNumber);
 		btnAnswer->setVisibility(Visibility::Gone);
 		btnEndCall->setOnClick([callId](View*) {
@@ -32,7 +32,7 @@ void MainPage::initPage()
 	});
 	Device::addOnEndCall([this](String callId, String phoneNumber) {
 		Println("End: %s, %s", callId, phoneNumber);
-		groupCall->setVisible(sl_false);
+		groupCall->setVisibility(Visibility::Hidden);
 		stopRecording();
 	});
 
@@ -171,7 +171,7 @@ void MainPage::stopRecording()
 		return;
 	}
 
-	btnPlay->setVisible(sl_true);
+	btnPlay->setVisibility(Visibility::Visible);
 	btnPlay->setOnClick([this](View*) {
 		if (m_player.isNull()) {
 			AudioPlayerParam param;

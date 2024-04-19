@@ -81,7 +81,7 @@ namespace slib
 		if (animation.isNotNull()) {
 			animation->stop();
 		}
-		setVisible(sl_true);
+		setVisibility(Visibility::Visible);
 		sl_real w = (sl_real)(getDrawerSize());
 		m_animation = content->startTranslateAnimationTo(_makeContentTranslation(w), (w - _getContentTranslation()) / w * 0.5f, SLIB_FUNCTION_WEAKREF(this, _onEndOpenAnimation), AnimationCurve::EaseOut, AnimationFlags::NotSelfAlive);
 	}
@@ -116,7 +116,7 @@ namespace slib
 	void Drawer::_onEndCloseAnimation()
 	{
 		m_animation.setNull();
-		setVisible(sl_false);
+		setVisibility(Visibility::Hidden);
 	}
 
 	Ref<View> Drawer::getContent()
@@ -258,7 +258,7 @@ namespace slib
 			if (!m_flagMouseDown) {
 				if (pos < getDragEdgeSize()) {
 					_setContentTranslation(0);
-					setVisible(sl_true);
+					setVisibility(Visibility::Visible);
 					m_motionTracker.clearMovements();
 					m_flagMouseDown = sl_true;
 					m_posMouseDown = pos;

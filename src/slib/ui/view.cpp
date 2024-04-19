@@ -1994,7 +1994,7 @@ namespace slib
 		if (flag) {
 			setVisibility(Visibility::Visible, mode);
 		} else {
-			setVisibility(Visibility::Hidden, mode);
+			setVisibility(Visibility::Gone, mode);
 		}
 	}
 
