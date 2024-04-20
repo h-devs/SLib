@@ -29,8 +29,11 @@
 namespace slib
 {
 
-	template <class T> struct PropertyTypeHelper { typedef T const& ArgType; typedef T const& RetType; };
-
+	template <class T> struct PropertyTypeHelper
+	{
+		typedef T const& ArgType;
+		typedef T const& RetType;
+	};
 
 	template <class T>
 	class Atomic;
