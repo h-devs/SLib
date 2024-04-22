@@ -588,12 +588,14 @@ namespace slib
 				pN = &nAutoIncreaseNameScroll;
 				break;
 			case SAppLayoutItemType::Linear:
+			case SAppLayoutItemType::LinearIterate:
 				prefix = "linear";
 				pN = &nAutoIncreaseNameLinear;
 				break;
-			case SAppLayoutItemType::Iterate:
-				prefix = "iterate";
-				pN = &nAutoIncreaseNameIterate;
+			case SAppLayoutItemType::TileLayout:
+			case SAppLayoutItemType::TileIterate:
+				prefix = "tileLayout";
+				pN = &nAutoIncreaseNameTileLayout;
 				break;
 			case SAppLayoutItemType::List:
 				prefix = "list";
@@ -691,10 +693,6 @@ namespace slib
 				prefix = "labelList";
 				pN = &nAutoIncreaseNameLabelList;
 				break;
-			case SAppLayoutItemType::TileLayout:
-				prefix = "tileLayout";
-				pN = &nAutoIncreaseNameTileLayout;
-				break;
 			case SAppLayoutItemType::Pdf:
 				prefix = "tileLayout";
 				pN = &nAutoIncreaseNamePdf;
@@ -758,8 +756,12 @@ namespace slib
 			type = SAppLayoutItemType::Scroll;
 		} else if (strType == "linear" || strType == "hlinear" || strType == "vlinear") {
 			type = SAppLayoutItemType::Linear;
-		} else if (strType == "iterate" || strType == "hiterate" || strType == "viterate") {
-			type = SAppLayoutItemType::Iterate;
+		} else if (strType == "linear-iterate" || strType == "hlinear-iterate" || strType == "vlinear-iterate") {
+			type = SAppLayoutItemType::LinearIterate;
+		} else if (strType == "tile") {
+			type = SAppLayoutItemType::TileLayout;
+		} else if (strType == "tile-iterate") {
+			type = SAppLayoutItemType::TileIterate;
 		} else if (strType == "list") {
 			type = SAppLayoutItemType::List;
 		} else if (strType == "collection") {
@@ -806,8 +808,6 @@ namespace slib
 			type = SAppLayoutItemType::ListBox;
 		} else if (strType == "labellist" || strType == "label-list") {
 			type = SAppLayoutItemType::LabelList;
-		} else if (strType == "tile") {
-			type = SAppLayoutItemType::TileLayout;
 		} else if (strType == "pdf") {
 			type = SAppLayoutItemType::Pdf;
 		} else if (strType == "groupbox" || strType == "group-box") {

@@ -100,6 +100,16 @@ namespace slib
 		invalidateLayout(mode);
 	}
 
+	void TileLayout::onAddChild(View* child)
+	{
+		if (child->isTopFree() && child->isBottomFree()) {
+			child->setAlignParentTop(UIUpdateMode::Init);
+		}
+		if (child->isLeftFree() && child->isRightFree()) {
+			child->setAlignParentLeft(UIUpdateMode::Init);
+		}
+	}
+
 	void TileLayout::onUpdateLayout()
 	{
 		ListElements< Ref<View> > children(getChildren());
@@ -131,35 +141,19 @@ namespace slib
 		sl_bool flagWrapCellY = sl_false;
 
 		if (widthCol <= 0) {
-			if (!nCols) {
-				nCols = 1;
-			}
-			if (flagWrapX) {
-				flagWrapCellX = sl_true;
-			} else {
+			if (nCols && !flagWrapX) {
 				widthCol = (sl_uint32)widthContainer / nCols;
-			}
-		} else {
-			if (flagWrapX) {
-				nCols = 1;
 			} else {
-				nCols = widthContainer / widthCol;
-				if (nCols <= 0) {
-					nCols = 1;
-				}
+				flagWrapCellX = sl_true;
 			}
 		}
 		if (heightRow <= 0) {
-			if (!nRows) {
-				nRows = 1;
-			}
-			if (flagWrapY) {
-				flagWrapCellY = sl_true;
-			} else {
+			if (nRows && !flagWrapY) {
 				heightRow = (sl_uint32)heightContainer / nRows;
+			} else {
+				flagWrapCellY = sl_true;
 			}
 		}
-
 		float ratio = m_ratioCell;
 		if (ratio < 0.0001f) {
 			ratio = 0.0001f;
@@ -174,6 +168,15 @@ namespace slib
 		} else {
 			if (flagWrapCellY) {
 				heightRow = (sl_ui_len)(widthCol / ratio);
+			}
+		}
+
+		if (nCols < 1) {
+			if (!flagWrapX) {
+				nCols = widthContainer / widthCol;
+			}
+			if (nCols < 1) {
+				nCols = 1;
 			}
 		}
 
@@ -199,7 +202,7 @@ namespace slib
 					if (n % nCols) {
 						x += widthCol;
 					} else {
-						x = 0;
+						x = getPaddingLeft();
 						y += heightRow;
 					}
 				}

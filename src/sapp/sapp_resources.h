@@ -588,10 +588,25 @@ namespace slib
 		HashMap<String, String> eventMappings;
 	};
 
-	class SAppLayoutIterateAttributes : public SAppLayoutViewAttributes
+	class SAppLayoutLinearIterateAttributes : public SAppLayoutLinearAttributes
 	{
 	public:
-		SAppLayoutOrientationValue orientation;
+		SAppChildLayoutValue layout;
+	};
+
+	class SAppLayoutTileLayoutAttributes : public SAppLayoutViewAttributes
+	{
+	public:
+		SAppUint32Value columns;
+		SAppUint32Value rows;
+		SAppDimensionValue columnWidth;
+		SAppDimensionValue rowHeight;
+		SAppFloatValue cellRatio;
+	};
+
+	class SAppLayoutTileIterateAttributes : public SAppLayoutTileLayoutAttributes
+	{
+	public:
 		SAppChildLayoutValue layout;
 	};
 
@@ -938,16 +953,6 @@ namespace slib
 		CList<SAppLayoutSelectItem> items;
 	};
 
-	class SAppLayoutTileLayoutAttributes : public SAppLayoutViewAttributes
-	{
-	public:
-		SAppUint32Value columns;
-		SAppUint32Value rows;
-		SAppDimensionValue columnWidth;
-		SAppDimensionValue rowHeight;
-		SAppFloatValue cellRatio;
-	};
-
 	class SAppLayoutPdfAttributes : public SAppLayoutViewAttributes
 	{
 	public:
@@ -1192,7 +1197,8 @@ namespace slib
 		LabelList = 0x023D,
 		TileLayout = 0x023E,
 		GroupBox = 0x023F,
-		Iterate = 0x0240,
+		LinearIterate = 0x0240,
+		TileIterate = 0x0241,
 
 		Progress = 0x0260,
 		Slider = 0x0261,
@@ -1315,7 +1321,6 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameComboBox = 0;
 		sl_uint32 nAutoIncreaseNameScroll = 0;
 		sl_uint32 nAutoIncreaseNameLinear = 0;
-		sl_uint32 nAutoIncreaseNameIterate = 0;
 		sl_uint32 nAutoIncreaseNameList = 0;
 		sl_uint32 nAutoIncreaseNameCollection = 0;
 		sl_uint32 nAutoIncreaseNameTable = 0;

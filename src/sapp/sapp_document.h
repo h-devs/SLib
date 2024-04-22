@@ -290,7 +290,9 @@ namespace slib
 		sl_bool _processLayoutResourceControl_ComboBox(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Scroll(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Linear(LayoutControlProcessParams* params);
-		sl_bool _processLayoutResourceControl_Iterate(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_LinearIterate(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_TileLayout(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_TileIterate(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_List(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Collection(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Table(LayoutControlProcessParams* params);
@@ -316,7 +318,6 @@ namespace slib
 		sl_bool _processLayoutResourceControl_Refresh(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_ListBox(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_LabelList(LayoutControlProcessParams* params);
-		sl_bool _processLayoutResourceControl_TileLayout(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Pdf(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_GroupBox(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Grid(LayoutControlProcessParams* params);

@@ -59,6 +59,8 @@ namespace slib
 		void setCellRatio(float ratio, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 	protected:
+		void onAddChild(View* child) override;
+
 		void onUpdateLayout() override;
 
 	private:

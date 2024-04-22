@@ -1205,7 +1205,9 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(ComboBox)
 			PROCESS_CONTROL_SWITCH(Scroll)
 			PROCESS_CONTROL_SWITCH(Linear)
-			PROCESS_CONTROL_SWITCH(Iterate)
+			PROCESS_CONTROL_SWITCH(LinearIterate)
+			PROCESS_CONTROL_SWITCH(TileLayout)
+			PROCESS_CONTROL_SWITCH(TileIterate)
 			PROCESS_CONTROL_SWITCH(List)
 			PROCESS_CONTROL_SWITCH(Collection)
 			PROCESS_CONTROL_SWITCH(Table)
@@ -1230,7 +1232,6 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(Refresh)
 			PROCESS_CONTROL_SWITCH(ListBox)
 			PROCESS_CONTROL_SWITCH(LabelList)
-			PROCESS_CONTROL_SWITCH(TileLayout)
 			PROCESS_CONTROL_SWITCH(Pdf)
 			PROCESS_CONTROL_SWITCH(GroupBox)
 			PROCESS_CONTROL_SWITCH(Grid)
@@ -1247,7 +1248,7 @@ namespace slib
 				const Ref<XmlElement>& child = children[i];
 				String tagName = child->getName();
 				if (tagName == "layout") {
-					if (resourceType != SAppLayoutItemType::Iterate && resourceType != SAppLayoutItemType::List && resourceType != SAppLayoutItemType::Collection) {
+					if (resourceType != SAppLayoutItemType::LinearIterate && resourceType != SAppLayoutItemType::TileIterate && resourceType != SAppLayoutItemType::List && resourceType != SAppLayoutItemType::Collection) {
 						Ref<SAppLayoutResource> childLayout = _parseLayoutResource(params->resource->filePath, params->resource->name, child, params->source, params->resource, sl_null);
 						if (childLayout.isNull()) {
 							return sl_false;
@@ -3316,10 +3317,10 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, orientation, setOrientation)
 		if (!(attr->orientation.flagDefined)) {
 			if (op == SAppLayoutOperation::Parse) {
-				if (resourceItem->itemTypeName == "hlinear") {
+				if (resourceItem->itemTypeName == "hlinear" || resourceItem->itemTypeName == "hlinear-iterate") {
 					attr->orientation.flagDefined = sl_true;
 					attr->orientation.value = LayoutOrientation::Horizontal;
-				} else if (resourceItem->itemTypeName == "vlinear") {
+				} else if (resourceItem->itemTypeName == "vlinear" || resourceItem->itemTypeName == "vlinear-iterate") {
 					attr->orientation.flagDefined = sl_true;
 					attr->orientation.value = LayoutOrientation::Vertical;
 				}
@@ -3334,129 +3335,146 @@ namespace slib
 	END_PROCESS_LAYOUT_CONTROL
 
 #define LAYOUT_CONTROL_PARSE_CHILD_LAYOUT(XML_ATTR_NAME, FLAG_ITERATE) \
-	attr->layout.name = resourceItem->getXmlAttribute(XML_ATTR_NAME); \
-	LAYOUT_CONTROL_PARSE_ATTR(GENERIC, attr->layout., data) \
-	LAYOUT_CONTROL_PARSE_ATTR(GENERIC, attr->layout., simulationCount) \
-	if (attr->layout.simulationCount.flagDefined) { \
-		if (attr->layout.simulationCount.value > 100) { \
-			attr->layout.simulationCount.value = 100; \
-		} \
-	} \
-	if (FLAG_ITERATE && attr->layout.name.isNotEmpty()) { \
-		resourceItem->getEventMapping(XML_ATTR_NAME ":on", attr->layout.eventMappings); \
-		for (auto&& mapping : attr->layout.eventMappings) { \
-			if (!(mapping.value.startsWith(StringView::literal("on")))) { \
-				logError(resourceItem->element, g_str_error_event_invalid_prefix, mapping.value); \
-				return sl_false; \
+		attr->layout.name = resourceItem->getXmlAttribute(XML_ATTR_NAME); \
+		LAYOUT_CONTROL_PARSE_ATTR(GENERIC, attr->layout., data) \
+		LAYOUT_CONTROL_PARSE_ATTR(GENERIC, attr->layout., simulationCount) \
+		if (attr->layout.simulationCount.flagDefined) { \
+			if (attr->layout.simulationCount.value > 100) { \
+				attr->layout.simulationCount.value = 100; \
 			} \
-			_registerLayoutCustomEvent(resource, mapping.value, name, mapping.key, sl_true); \
 		} \
-	} \
-	LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(childXmls, sl_null) \
-	if (childXmls.count > 0) { \
-		if (attr->layout.name.isNotEmpty()) { \
-			logError(element, g_str_error_resource_layout_child_layout_already_specified); \
-			return sl_false; \
-		} \
-		if (childXmls.count != 1) { \
-			logError(element, g_str_error_resource_layout_must_contain_one_child); \
-			return sl_false; \
-		} \
-		Ref<XmlElement>& childXml = childXmls[0]; \
-		if (childXml->getName() == "layout") { \
-			sl_bool flagGeneratedName; \
-			Ref<SAppLayoutResource> childLayout = _parseLayoutResource(resource->filePath, resource->name, childXml, params->source, resource, &(attr->layout.name), &flagGeneratedName); \
-			if (childLayout.isNull()) { \
-				return sl_false; \
-			} \
-			if (FLAG_ITERATE && flagGeneratedName) { \
-				for (auto&& item : childLayout->customEvents) { \
-					_registerLayoutCustomEvent(resource, item.key, name, item.key.substring(2), sl_true); \
+		if (FLAG_ITERATE && attr->layout.name.isNotEmpty()) { \
+			resourceItem->getEventMapping(XML_ATTR_NAME ":on", attr->layout.eventMappings); \
+			for (auto&& mapping : attr->layout.eventMappings) { \
+				if (!(mapping.value.startsWith(StringView::literal("on")))) { \
+					logError(resourceItem->element, g_str_error_event_invalid_prefix, mapping.value); \
+					return sl_false; \
 				} \
+				_registerLayoutCustomEvent(resource, mapping.value, name, mapping.key, sl_true); \
+			} \
+		} \
+		LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(childXmls, sl_null) \
+		if (childXmls.count > 0) { \
+			if (attr->layout.name.isNotEmpty()) { \
+				logError(element, g_str_error_resource_layout_child_layout_already_specified); \
+				return sl_false; \
+			} \
+			if (childXmls.count != 1) { \
+				logError(element, g_str_error_resource_layout_must_contain_one_child); \
+				return sl_false; \
+			} \
+			Ref<XmlElement>& childXml = childXmls[0]; \
+			if (childXml->getName() == "layout") { \
+				sl_bool flagGeneratedName; \
+				Ref<SAppLayoutResource> childLayout = _parseLayoutResource(resource->filePath, resource->name, childXml, params->source, resource, &(attr->layout.name), &flagGeneratedName); \
+				if (childLayout.isNull()) { \
+					return sl_false; \
+				} \
+				if (FLAG_ITERATE && flagGeneratedName) { \
+					for (auto&& item : childLayout->customEvents) { \
+						_registerLayoutCustomEvent(resource, item.key, name, item.key.substring(2), sl_true); \
+					} \
+				} \
+			} else { \
+				logError(childXml, g_str_error_resource_layout_type_invalid, childXml->getName()); \
+				return sl_false; \
+			} \
+		}
+
+#define LAYOUT_CONTROL_DEFINE_ITERATE_BODY(SUPER_VIEW) \
+		Ref<SAppLayoutResource> childLayout; \
+		if (op == SAppLayoutOperation::Parse) { \
+			LAYOUT_CONTROL_PARSE_CHILD_LAYOUT("item", sl_true) \
+			if (attr->layout.name.isEmpty()) { \
+				LOG_ERROR_LAYOUT_CONTROL_ATTR("item"); \
+				return sl_false; \
+			} \
+			if (resourceItem->className == "slib::" #SUPER_VIEW) { \
+				resourceItem->className = String::concat("slib::IterateLayout<slib::" #SUPER_VIEW ", ", attr->layout.name, ">"); \
+			} \
+			if (!(attr->layout.simulationCount.flagDefined)) { \
+				attr->layout.simulationCount.value = 3; \
 			} \
 		} else { \
-			logError(childXml, g_str_error_resource_layout_type_invalid, childXml->getName()); \
-			return sl_false; \
+			childLayout = _openLayoutResource(resource, attr->layout.name); \
+			if (childLayout.isNull()) { \
+				logError(element, g_str_error_layout_not_found, attr->layout.name); \
+				return sl_false; \
+			} \
 		} \
-	}
-
-	BEGIN_PROCESS_LAYOUT_CONTROL(Iterate, LinearLayout)
-	{
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, orientation, setOrientation)
-		if (!(attr->orientation.flagDefined)) {
-			if (op == SAppLayoutOperation::Parse) {
-				if (resourceItem->itemTypeName == "hiterate") {
-					attr->orientation.flagDefined = sl_true;
-					attr->orientation.value = LayoutOrientation::Horizontal;
-				} else if (resourceItem->itemTypeName == "viterate") {
-					attr->orientation.flagDefined = sl_true;
-					attr->orientation.value = LayoutOrientation::Vertical;
-				}
-			}
+		if (op == SAppLayoutOperation::Parse) { \
+			if (resourceItem->getXmlAttribute("item").isEmpty()) { \
+				childLayout = _openLayoutResource(resource, attr->layout.name); \
+				if (childLayout.isNull()) { \
+					logError(element, g_str_error_layout_not_found, attr->layout.name); \
+					return sl_false; \
+				} \
+				if (childLayout->layoutType == SAppLayoutType::View) { \
+					SAppLayoutViewAttributes* childAttrs = (SAppLayoutViewAttributes*)(childLayout->attrs.get()); \
+					if (!(childAttrs->left.flagDefined)) { \
+						if (childAttrs->leftMode == PositionMode::Free && childAttrs->rightMode == PositionMode::Free) { \
+							childAttrs->leftMode = PositionMode::ParentEdge; \
+						} \
+					} \
+					if (!(childAttrs->top.flagDefined)) { \
+						if (childAttrs->topMode == PositionMode::Free && childAttrs->bottomMode == PositionMode::Free) { \
+							childAttrs->topMode = PositionMode::ParentEdge; \
+						} \
+					} \
+				} \
+			} \
+		} else if (op == SAppLayoutOperation::Generate) { \
+			if (attr->layout.data.isDefinedDataAccess()) { \
+				params->sbDefineSetData->add(String::format("%sSLIB_UILAYOUT_ITERATE_VIEWS(%s, %s, %s, mode)%n", strTab, name, attr->layout.name, attr->layout.data.getDataAccessString())); \
+			} \
+		} else if (IsSimulateOp(op)) { \
+			if (!(view->getProperty("setChildren").getBoolean())) { \
+				for (sl_uint32 i = 0; i < attr->layout.simulationCount.value; i++) { \
+					Ref<SAppLayoutImportView> child = new SAppLayoutImportView; \
+					if (child.isNotNull()) { \
+						child->initialize(params->simulator, childLayout.get()); \
+						view->addChild(child); \
+					} \
+				} \
+				view->setProperty("setChildren", sl_true); \
+			} \
 		}
+
+
+	BEGIN_PROCESS_LAYOUT_CONTROL(LinearIterate, LinearLayout)
+	{
+
+		LAYOUT_CONTROL_PROCESS_SUPER(Linear)
+
+		LAYOUT_CONTROL_DEFINE_ITERATE_BODY(LinearLayout)
+
+		LAYOUT_CONTROL_ADD_STATEMENT
+
+	}
+	END_PROCESS_LAYOUT_CONTROL
+
+	BEGIN_PROCESS_LAYOUT_CONTROL(TileLayout, TileLayout)
+	{
 
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		Ref<SAppLayoutResource> childLayout;
-		if (op == SAppLayoutOperation::Parse) {
-			LAYOUT_CONTROL_PARSE_CHILD_LAYOUT("item", sl_true)
-			if (attr->layout.name.isEmpty()) {
-				LOG_ERROR_LAYOUT_CONTROL_ATTR("item");
-				return sl_false;
-			}
-			if (resourceItem->className == "slib::LinearLayout") {
-				resourceItem->className = String::concat("slib::IterateLayout<slib::LinearLayout, ", attr->layout.name, ">");
-			}
-			if (!(attr->layout.simulationCount.flagDefined)) {
-				attr->layout.simulationCount.value = 3;
-			}
-		} else {
-			childLayout = _openLayoutResource(resource, attr->layout.name);
-			if (childLayout.isNull()) {
-				logError(element, g_str_error_layout_not_found, attr->layout.name);
-				return sl_false;
-			}
-		}
-		if (op == SAppLayoutOperation::Parse) {
-			if (resourceItem->getXmlAttribute("item").isEmpty()) {
-				childLayout = _openLayoutResource(resource, attr->layout.name);
-				if (childLayout.isNull()) {
-					logError(element, g_str_error_layout_not_found, attr->layout.name);
-					return sl_false;
-				}
-				if (childLayout->layoutType == SAppLayoutType::View) {
-					SAppLayoutViewAttributes* childAttrs = (SAppLayoutViewAttributes*)(childLayout->attrs.get());
-					if (!(attr->orientation.flagDefined) || attr->orientation.value == LayoutOrientation::Vertical) {
-						if (!(childAttrs->left.flagDefined)) {
-							if (childAttrs->leftMode == PositionMode::Free && childAttrs->rightMode == PositionMode::Free) {
-								childAttrs->leftMode = PositionMode::ParentEdge;
-							}
-						}
-					} else {
-						if (!(childAttrs->top.flagDefined)) {
-							if (childAttrs->topMode == PositionMode::Free && childAttrs->bottomMode == PositionMode::Free) {
-								childAttrs->topMode = PositionMode::ParentEdge;
-							}
-						}
-					}
-				}
-			}
-		} else if (op == SAppLayoutOperation::Generate) {
-			if (attr->layout.data.isDefinedDataAccess()) {
-				params->sbDefineSetData->add(String::format("%sSLIB_UILAYOUT_ITERATE_VIEWS(%s, %s, %s, mode)%n", strTab, name, attr->layout.name, attr->layout.data.getDataAccessString()));
-			}
-		} else if (IsSimulateOp(op)) {
-			if (!(view->getProperty("setChildren").getBoolean())) {
-				for (sl_uint32 i = 0; i < attr->layout.simulationCount.value; i++) {
-					Ref<SAppLayoutImportView> child = new SAppLayoutImportView;
-					if (child.isNotNull()) {
-						child->initialize(params->simulator, childLayout.get());
-						view->addChild(child);
-					}
-				}
-				view->setProperty("setChildren", sl_true);
-			}
-		}
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, columns, setColumnCount)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, rows, setRowCount)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, columnWidth, setColumnWidth, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setRowHeight, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellRatio, setCellRatio)
+
+		LAYOUT_CONTROL_ADD_STATEMENT
+
+	}
+	END_PROCESS_LAYOUT_CONTROL
+
+	BEGIN_PROCESS_LAYOUT_CONTROL(TileIterate, TileLayout)
+	{
+
+		LAYOUT_CONTROL_PROCESS_SUPER(TileLayout)
+
+		LAYOUT_CONTROL_DEFINE_ITERATE_BODY(TileLayout)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
@@ -4717,22 +4735,6 @@ namespace slib
 		}
 
 		LAYOUT_CONTROL_PROCESS_SELECT_ITEMS
-
-		LAYOUT_CONTROL_ADD_STATEMENT
-
-	}
-	END_PROCESS_LAYOUT_CONTROL
-
-	BEGIN_PROCESS_LAYOUT_CONTROL(TileLayout, TileLayout)
-	{
-
-		LAYOUT_CONTROL_PROCESS_SUPER(View)
-
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, columns, setColumnCount)
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, rows, setRowCount)
-		LAYOUT_CONTROL_UI_ATTR(DIMENSION, columnWidth, setColumnWidth, checkScalarSize)
-		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setRowHeight, checkScalarSize)
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellRatio, setCellRatio)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
