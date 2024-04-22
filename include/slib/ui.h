@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -63,6 +63,7 @@
 #include "ui/grid_view.h"
 
 #include "ui/linear_layout.h"
+#include "ui/iterate_layout.h"
 #include "ui/table_layout.h"
 #include "ui/tile_layout.h"
 #include "ui/list_view.h"

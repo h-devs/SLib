@@ -150,6 +150,16 @@ namespace slib
 		}
 	}
 
+	sl_bool SAppDocument::_getColorDataAccessString(const String& localNamespace, const SAppColorValue& value, String& result)
+	{
+		String def;
+		if (_getColorAccessString(localNamespace, value, def)) {
+			result = String::format("data%s.getUint32(%s)", value.dataAccess, def);
+			return sl_true;
+		}
+		return sl_false;
+	}
+
 	sl_bool SAppDocument::_getColorValue(const String& localNamespace, const SAppColorValue& value, Color& result)
 	{
 		if (!(value.flagDefined)) {

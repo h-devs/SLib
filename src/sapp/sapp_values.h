@@ -35,8 +35,34 @@
 #include "slib/ui/cursor.h"
 #include "slib/data/xml.h"
 
+#define PRIV_SAPP_DECLARE_VALUE_NO_SETDATA \
+public: \
+	sl_bool isUsingData() const { return sl_false; } \
+	sl_bool isDefinedDataAccess() const { return sl_false; } \
+	sl_bool parseDataAccess(const String& str) { return sl_false; } \
+	String getDataAccessString() const { return sl_null; }
+
+#define PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA \
+public: \
+	String dataAccess; \
+	sl_bool isUsingData() const { return sl_true; } \
+	sl_bool isDefinedDataAccess() const { return dataAccess.isNotNull(); }
+
+#define PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_PARSE \
+	PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA \
+	sl_bool parseDataAccess(const String& str) { return priv::parseDataAccess(str, dataAccess); } \
+
+#define PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_GENERIC(VARIANT_FUNC_NAME) \
+	PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_PARSE \
+	String getDataAccessString() const { return String::format("data%s." VARIANT_FUNC_NAME "(%s)", dataAccess, getAccessString()); }
+
 namespace slib
 {
+
+	namespace priv
+	{
+		sl_bool parseDataAccess(const String& str, String& dataAccess);
+	}
 
 	template <class T>
 	class SAppStateMap
@@ -61,20 +87,27 @@ namespace slib
 
 	class SAppStringValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		sl_bool flagReferResource = sl_false;
 		String valueOrName;
 		String variant;
 		Ref<XmlElement> referingElement;
+		sl_bool flagFormattingDataValue = sl_false;
 
 	public:
 		sl_bool parse(const String& str, const Ref<XmlElement>& element);
+
+		sl_bool parseDataAccess(const String& str);
 
 	};
 
 	class SAppDimensionBaseValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		enum {
@@ -135,8 +168,26 @@ namespace slib
 		String getAccessString() const;
 	};
 
+	class SAppVariantValue
+	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_PARSE
+
+	public:
+		sl_bool flagDefined = sl_false;
+		Variant value;
+
+	public:
+		String getAccessString() const { return sl_null;  }
+
+		sl_bool parse(const String& str) { return str.isEmpty(); }
+
+		String getDataAccessString() const { return String::concat("data", dataAccess); }
+	};
+
 	class SAppBooleanValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_GENERIC("getBoolean")
+
 	public:
 		sl_bool flagDefined = sl_false;
 		sl_bool value = sl_false;
@@ -150,6 +201,8 @@ namespace slib
 
 	class SAppFloatValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_GENERIC("getFloat")
+
 	public:
 		sl_bool flagDefined = sl_false;
 		float value = 0;
@@ -163,6 +216,8 @@ namespace slib
 
 	class SAppInt32Value
 	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_GENERIC("getInt32")
+
 	public:
 		sl_bool flagDefined = sl_false;
 		sl_int32 value = 0;
@@ -176,6 +231,8 @@ namespace slib
 
 	class SAppUint32Value
 	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_GENERIC("getUint32")
+
 	public:
 		sl_bool flagDefined = sl_false;
 		sl_uint32 value = 0;
@@ -189,6 +246,8 @@ namespace slib
 
 	class SAppInt64Value
 	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_GENERIC("getInt64")
+
 	public:
 		sl_bool flagDefined = sl_false;
 		sl_int64 value = 0;
@@ -202,6 +261,8 @@ namespace slib
 
 	class SAppUint64Value
 	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_GENERIC("getUint64")
+
 	public:
 		sl_bool flagDefined = sl_false;
 		sl_uint64 value = 0;
@@ -215,6 +276,8 @@ namespace slib
 
 	class SAppChar8Value
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		sl_char8 value = 0;
@@ -228,6 +291,8 @@ namespace slib
 
 	class SAppVector2Value
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		Vector2 value;
@@ -241,6 +306,8 @@ namespace slib
 
 	class SAppVector3Value
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+	
 	public:
 		sl_bool flagDefined = sl_false;
 		Vector3 value;
@@ -254,6 +321,8 @@ namespace slib
 
 	class SAppVector4Value
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+	
 	public:
 		sl_bool flagDefined = sl_false;
 		Vector4 value;
@@ -267,6 +336,8 @@ namespace slib
 
 	class SAppVisibilityValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		Visibility value = Visibility::Visible;
@@ -280,6 +351,8 @@ namespace slib
 
 	class SAppPenStyleValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+	
 	public:
 		sl_bool flagDefined = sl_false;
 		PenStyle value = PenStyle::Solid;
@@ -294,6 +367,8 @@ namespace slib
 	// scrollBars (none, horizontal, vertical, both)
 	class SAppScrollBarsValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+	
 	public:
 		sl_bool flagDefined = sl_false;
 		sl_bool horizontalScrollBar = sl_false;
@@ -306,6 +381,8 @@ namespace slib
 
 	class SAppNameValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		String value;
@@ -319,6 +396,8 @@ namespace slib
 
 	class SAppColorValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_PARSE
+
 	public:
 		sl_bool flagDefined = sl_false;
 
@@ -333,6 +412,8 @@ namespace slib
 
 	class SAppTimeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_GENERIC("getTime")
+
 	public:
 		sl_bool flagDefined = sl_false;
 		Time value;
@@ -346,6 +427,8 @@ namespace slib
 
 	class SAppDrawableValue : public SAppColorValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_PARSE
+
 	public:
 		sl_bool flagNull = sl_false;
 		sl_bool flagColor = sl_false;
@@ -384,6 +467,8 @@ namespace slib
 
 	class SAppFontValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		SAppStringValue family;
@@ -401,6 +486,8 @@ namespace slib
 
 	class SAppBorderValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		sl_bool flagNull = sl_false;
@@ -419,6 +506,8 @@ namespace slib
 
 	class SAppMenuValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		sl_bool flagNull = sl_false;
@@ -433,6 +522,8 @@ namespace slib
 
 	class SAppAlignLayoutValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		sl_bool flagAlignParent = sl_false;
@@ -446,6 +537,8 @@ namespace slib
 	// Scrolling (horizontal, vertical, both)
 	class SAppScrollingValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		sl_bool horizontal = sl_false;
@@ -458,6 +551,8 @@ namespace slib
 
 	class SAppLayoutOrientationValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		LayoutOrientation value = LayoutOrientation::Vertical;
@@ -471,6 +566,8 @@ namespace slib
 
 	class SAppAlignmentValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		Alignment value = Alignment::Default;
@@ -484,6 +581,8 @@ namespace slib
 
 	class SAppScaleModeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		ScaleMode value = ScaleMode::None;
@@ -497,6 +596,8 @@ namespace slib
 
 	class SAppBoundShapeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		BoundShape value = BoundShape::None;
@@ -510,6 +611,8 @@ namespace slib
 
 	class SAppRedrawModeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		RedrawMode value = RedrawMode::Continuously;
@@ -523,6 +626,8 @@ namespace slib
 
 	class SAppMultiLineModeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		MultiLineMode value = MultiLineMode::Single;
@@ -536,6 +641,8 @@ namespace slib
 
 	class SAppUIReturnKeyTypeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		UIReturnKeyType value = UIReturnKeyType::Default;
@@ -549,6 +656,8 @@ namespace slib
 
 	class SAppUIKeyboardTypeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		UIKeyboardType value = UIKeyboardType::Default;
@@ -562,6 +671,8 @@ namespace slib
 
 	class SAppUIAutoCapitalizationTypeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		UIAutoCapitalizationType value = UIAutoCapitalizationType::None;
@@ -575,6 +686,8 @@ namespace slib
 
 	class SAppRotationModeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		RotationMode value = RotationMode::Rotate0;
@@ -588,6 +701,8 @@ namespace slib
 
 	class SAppFlipModeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		FlipMode value = FlipMode::None;
@@ -601,6 +716,8 @@ namespace slib
 
 	class SAppEllipsizeModeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		EllipsizeMode value = EllipsizeMode::None;
@@ -614,6 +731,8 @@ namespace slib
 
 	class SAppCursorValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_GENERIC("getRef")
+
 	public:
 		sl_bool flagDefined = sl_false;
 		Ref<Cursor> value;
@@ -639,6 +758,8 @@ namespace slib
 
 	class SAppAntiAliasModeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		AntiAliasMode value = AntiAliasMode::Inherit;
@@ -652,6 +773,8 @@ namespace slib
 
 	class SAppGridSelectionModeValue
 	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
 	public:
 		sl_bool flagDefined = sl_false;
 		GridView::SelectionMode value = GridView::SelectionMode::Cell;

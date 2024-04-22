@@ -46,6 +46,41 @@ namespace slib
 
 	}
 
+	namespace priv
+	{
+		sl_bool parseDataAccess(const String& str, String& dataAccess)
+		{
+			if (str.isEmpty()) {
+				return sl_true;
+			}
+			if (str == "%" || str == "%%") {
+				dataAccess = String::getEmpty();
+				return sl_true;
+			}
+			if (!(str.startsWith("%[") && str.endsWith("]%"))) {
+				return sl_false;
+			}
+			sl_char8* data = str.getData();
+			StringBuffer buf;
+			sl_size start = 2;
+			for (;;) {
+				sl_reg index = str.indexOf("][", start);
+				if (index < 0) {
+					break;
+				}
+				buf.addStatic("[");
+				buf.add(Stringx::applyBackslashEscapes(StringView(data + start, index - start)));
+				buf.addStatic("]");
+				start = index + 2;
+			}
+			buf.addStatic("[");
+			buf.add(Stringx::applyBackslashEscapes(StringView(data + start, str.getLength() - 2 - start)));
+			buf.addStatic("]");
+			dataAccess = buf.merge();
+			return sl_true;
+		}
+	}
+
 	sl_bool SAppStringValue::parse(const String& _str, const Ref<XmlElement>& element)
 	{
 		String str = _str;
@@ -98,6 +133,16 @@ namespace slib
 			valueOrName = str;
 		}
 		flagDefined = sl_true;
+		return sl_true;
+	}
+
+	sl_bool SAppStringValue::parseDataAccess(const String& str)
+	{
+		if (priv::parseDataAccess(str, dataAccess)) {
+			return sl_true;
+		}
+		flagFormattingDataValue = sl_true;
+		dataAccess = str;
 		return sl_true;
 	}
 
@@ -2496,7 +2541,7 @@ namespace slib
 	String SAppCursorValue::getAccessString() const
 	{
 		if (!flagDefined) {
-			return "sl_null";
+			return "slib::Ref<slib::Cursor>::null()";
 		}
 		switch (type) {
 			case ARROW:
@@ -2514,7 +2559,7 @@ namespace slib
 			default:
 				break;
 		}
-		return "sl_null";
+		return "slib::Ref<slib::Cursor>::null()";
 	}
 
 	sl_bool SAppCursorValue::parse(const String& _str)

@@ -323,6 +323,20 @@ namespace slib
 		}
 	}
 
+	sl_bool SAppDocument::_getStringDataAccessString(const String& localNamespace, const SAppStringValue& value, String& result)
+	{
+		if (value.flagFormattingDataValue) {
+			result = String::format("slib::String::format(%s, data)", Stringx::applyBackslashEscapes(value.dataAccess));
+		} else {
+			String def;
+			if (!(_getStringAccessString(localNamespace, value, def))) {
+				return sl_false;
+			}
+			result = String::format("data%s.getString(%s)", value.dataAccess, def);
+		}
+		return sl_true;
+	}
+
 	sl_bool SAppDocument::_getStringValue(const String& localNamespace, const SAppStringValue& value, String& result)
 	{
 		Locale locale = getCurrentSimulatorLocale();

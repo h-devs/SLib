@@ -394,6 +394,7 @@ namespace slib
 	{
 	public:
 		String layout;
+		SAppVariantValue data;
 	};
 
 	class SAppLayoutButtonCategory
@@ -578,16 +579,32 @@ namespace slib
 		SAppLayoutOrientationValue orientation;
 	};
 
+	class SAppChildLayoutValue
+	{
+	public:
+		String name;
+		SAppUint32Value simulationCount;
+		SAppVariantValue data;
+		HashMap<String, String> eventMappings;
+	};
+
+	class SAppLayoutIterateAttributes : public SAppLayoutViewAttributes
+	{
+	public:
+		SAppLayoutOrientationValue orientation;
+		SAppChildLayoutValue layout;
+	};
+
 	class SAppLayoutListAttributes : public SAppLayoutViewAttributes
 	{
 	public:
-		String itemLayout;
+		SAppChildLayoutValue layout;
 	};
 
 	class SAppLayoutCollectionAttributes : public SAppLayoutViewAttributes
 	{
 	public:
-		String itemLayout;
+		SAppChildLayoutValue layout;
 	};
 
 	class SAppLayoutTableColumn
@@ -1100,17 +1117,32 @@ namespace slib
 		SAppLayoutGridSection body;
 		SAppLayoutGridSection header;
 		SAppLayoutGridSection footer;
+
+		SAppVariantValue data;
 	};
 
-	class SAppLayoutStyle : public CRef
+	class SAppLayoutStyle;
+
+	class SAppLayoutStyledElement
 	{
 	public:
 		Ref<XmlElement> element;
-		String name;
-		List< Ref<SAppLayoutStyle> > inherit;
+		List< Ref<SAppLayoutStyle> > styles; // inherit
 
 	public:
 		String getXmlAttribute(const String& name);
+
+		void getEventMapping(const StringView& prefix, HashMap<String, String>& mapping);
+
+		void getEventMapping(HashMap<String, String>& mapping);
+
+	};
+
+	class SAppLayoutStyle : public CRef, public SAppLayoutStyledElement
+	{
+	public:
+		String name;
+
 	};
 
 	class SAppLayoutInclude : public CRef
@@ -1160,6 +1192,7 @@ namespace slib
 		LabelList = 0x023D,
 		TileLayout = 0x023E,
 		GroupBox = 0x023F,
+		Iterate = 0x0240,
 
 		Progress = 0x0260,
 		Slider = 0x0261,
@@ -1184,12 +1217,8 @@ namespace slib
 
 	};
 
-	class SAppLayoutXmlItem
+	class SAppLayoutXmlItem : public SAppLayoutStyledElement
 	{
-	public:
-		Ref<XmlElement> element;
-		List< Ref<SAppLayoutStyle> > styles;
-
 	public:
 		SAppLayoutXmlItem(const Ref<XmlElement>& element);
 
@@ -1234,6 +1263,8 @@ namespace slib
 		Ref<CRef> attrs;
 		CList< Ref<SAppLayoutResourceItem> > children;
 
+		HashMap<String, String> eventMappings;
+
 	public:
 		SAppLayoutResourceItem(const Ref<XmlElement>& element);
 
@@ -1259,6 +1290,14 @@ namespace slib
 		};
 		CMap<String, ItemArrayDesc> itemArrays;
 
+		struct ItemEvent
+		{
+			String name;
+			String event;
+			sl_bool flagIterate;
+		};
+		CHashMap< String, List<ItemEvent> > customEvents;
+
 		sl_uint32 nAutoIncreaseNameView = 0;
 		sl_uint32 nAutoIncreaseNameViewGroup = 0;
 		sl_uint32 nAutoIncreaseNameImport = 0;
@@ -1276,6 +1315,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameComboBox = 0;
 		sl_uint32 nAutoIncreaseNameScroll = 0;
 		sl_uint32 nAutoIncreaseNameLinear = 0;
+		sl_uint32 nAutoIncreaseNameIterate = 0;
 		sl_uint32 nAutoIncreaseNameList = 0;
 		sl_uint32 nAutoIncreaseNameCollection = 0;
 		sl_uint32 nAutoIncreaseNameTable = 0;
@@ -1304,6 +1344,8 @@ namespace slib
 		sl_uint32 nAutoIncreaseNamePdf = 0;
 		sl_uint32 nAutoIncreaseNameGroupBox = 0;
 		sl_uint32 nAutoIncreaseNameGrid = 0;
+
+		sl_uint32 nAutoIncreaseNameChildLayout = 0;
 
 	public:
 		SAppLayoutResource(const Ref<XmlElement>& element);
@@ -1390,6 +1432,9 @@ namespace slib
 
 	protected:
 		void init() override;
+
+	public:
+		void setData(const Variant& data, UIUpdateMode mode) {}
 
 	public:
 		void initialize(SAppLayoutSimulator* simulator, SAppLayoutResource* layout);

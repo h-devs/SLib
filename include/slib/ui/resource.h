@@ -31,6 +31,139 @@
 
 #include "../core/resource.h"
 
+#define SLIB_DECLARE_MENU_BEGIN(NAME) \
+	class NAME : public slib::CRef { \
+	public: \
+		static const NAME* get(); \
+		static slib::Ref<NAME> create(); \
+		NAME(); \
+		slib::Ref<slib::Menu> root; \
+		slib::Ref<slib::Menu> root_menu;
+
+#define SLIB_DECLARE_SUBMENU(NAME) \
+		slib::Ref<slib::Menu> NAME##_menu; \
+		slib::Ref<slib::MenuItem> NAME;
+
+#define SLIB_DECLARE_MENU_ITEM(NAME) \
+		slib::Ref<slib::MenuItem> NAME;
+
+#define SLIB_DECLARE_MENU_SEPARATOR(NAME) \
+		slib::Ref<slib::MenuItem> NAME;
+
+#define SLIB_DECLARE_MENU_END };
+
+
+#define SLIB_DEFINE_MENU_BEGIN(NAME, ...) \
+	const NAME* NAME::get() { \
+		SLIB_SAFE_LOCAL_STATIC(NAME, ret); \
+		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) { \
+			return sl_null; \
+		} \
+		return &ret; \
+	} \
+	slib::Ref<NAME> NAME::create() { \
+		return new NAME; \
+	} \
+	NAME::NAME() { \
+		root = root_menu = slib::Menu::create(__VA_ARGS__); \
+		if (root.isNull()) return;
+
+#define SLIB_DEFINE_SUBMENU(PARENT, NAME, ...) \
+	NAME##_menu = slib::Menu::createPopup(); \
+	if (NAME##_menu.isNull()) return; \
+	NAME = PARENT##_menu->addSubmenu(NAME##_menu, __VA_ARGS__);
+
+#define SLIB_DEFINE_MENU_ITEM(PARENT, NAME, ...) \
+	NAME = PARENT##_menu->addMenuItem(__VA_ARGS__);
+
+#define SLIB_DEFINE_MENU_SEPARATOR(PARENT, NAME) \
+	NAME = PARENT##_menu->addSeparator();
+
+#define SLIB_DEFINE_MENU_SEPARATOR_NONAME(PARENT) \
+	PARENT##_menu->addSeparator();
+
+#define SLIB_DEFINE_MENU_END }
+
+
+#define SLIB_DECLARE_UILAYOUT_BEGIN(NAME, BASE_CLASS) \
+	class NAME : public BASE_CLASS \
+	{ \
+	public: \
+		NAME(); \
+	protected: \
+		void init() override; \
+		void initialize(); \
+		void layoutViews(sl_ui_len width, sl_ui_len height) override; \
+	public: \
+		void setData(const slib::Variant& data, slib::UIUpdateMode mode = slib::UIUpdateMode::UpdateLayout);
+
+#define SLIB_DECLARE_UILAYOUT_END \
+	};
+
+#define SLIB_DEFINE_UILAYOUT(NAME, BASE_CLASS) \
+	NAME::NAME() {} \
+	void NAME::init() \
+	{ \
+		BASE_CLASS::init(); \
+		initialize(); \
+		setInitialized(); \
+		slib::UISize size = getContentSize(); \
+		if (size.x > 0 && size.y > 0) { \
+			layoutViews(size.x, size.y); \
+		} \
+	}
+
+
+#define SLIB_DECLARE_WINDOW_LAYOUT_BEGIN(NAME) \
+	SLIB_DECLARE_UILAYOUT_BEGIN(NAME, slib::WindowLayout)
+
+#define SLIB_DECLARE_WINDOW_LAYOUT_END \
+	SLIB_DECLARE_UILAYOUT_END
+
+#define SLIB_DEFINE_WINDOW_LAYOUT(NAME) \
+	SLIB_DEFINE_UILAYOUT(NAME, slib::WindowLayout)
+
+
+#define SLIB_DECLARE_VIEW_LAYOUT_BEGIN(NAME) \
+	SLIB_DECLARE_UILAYOUT_BEGIN(NAME, slib::ViewLayout)
+
+#define SLIB_DECLARE_VIEW_LAYOUT_END \
+	SLIB_DECLARE_UILAYOUT_END
+
+#define SLIB_DEFINE_VIEW_LAYOUT(NAME) \
+	SLIB_DEFINE_UILAYOUT(NAME, slib::ViewLayout)
+
+
+#define SLIB_DECLARE_PAGE_LAYOUT_BEGIN(NAME) \
+	SLIB_DECLARE_UILAYOUT_BEGIN(NAME, slib::PageLayout)
+
+#define SLIB_DECLARE_PAGE_LAYOUT_END \
+	SLIB_DECLARE_UILAYOUT_END
+
+#define SLIB_DEFINE_PAGE_LAYOUT(NAME) \
+	SLIB_DEFINE_UILAYOUT(NAME, slib::PageLayout)
+
+
+#define SLIB_UILAYOUT_EVENT(NAME)  template <class CALLBACK> void setOn##NAME(CALLBACK&& callback)
+
+#define SLIB_UILAYOUT_FORWARD_EVENT(CONTROL, EVENT) CONTROL->setOn##EVENT(slib::Forward<CALLBACK>(callback));
+
+#define SLIB_UILAYOUT_ITERATE_VIEWS(PARENT, CHILD_LAYOUT, DATA, MODE) \
+	{ \
+		if (MODE != slib::UIUpdateMode::Init) { \
+			PARENT->removeAllChildren(); \
+		} \
+		const slib::Variant& varData = DATA; \
+		sl_size childCount = (sl_size)(varData.getElementCount()); \
+		for (sl_size childIndex = 0; childIndex < childCount; childIndex++) { \
+			auto child = slib::New<CHILD_LAYOUT>(); \
+			child->setData(varData.getElement(childIndex), slib::UIUpdateMode::Init); \
+			PARENT->addChild(Move(child), MODE); \
+		} \
+	}
+
+#define SLIB_UILAYOUT_FORWARD_ITERATE_EVENT(ITERATE, EVENT) { for (auto&& child : ITERATE->getChildren()) { child->setOn##EVENT(slib::Forward<CALLBACK>(callback)); } }
+
 namespace slib
 {
 
@@ -111,86 +244,6 @@ namespace slib
 
 	};
 
-#define SLIB_DECLARE_MENU_BEGIN(NAME) \
-	class NAME : public slib::CRef { \
-	public: \
-		static const NAME* get(); \
-		static slib::Ref<NAME> create(); \
-		NAME(); \
-		slib::Ref<slib::Menu> root; \
-		slib::Ref<slib::Menu> root_menu;
-
-#define SLIB_DECLARE_SUBMENU(NAME) \
-	slib::Ref<slib::Menu> NAME##_menu; \
-	slib::Ref<slib::MenuItem> NAME;
-
-#define SLIB_DECLARE_MENU_ITEM(NAME) \
-		slib::Ref<slib::MenuItem> NAME;
-
-#define SLIB_DECLARE_MENU_SEPARATOR(NAME) \
-		slib::Ref<slib::MenuItem> NAME;
-
-#define SLIB_DECLARE_MENU_END };
-
-
-#define SLIB_DEFINE_MENU_BEGIN(NAME, ...) \
-	const NAME* NAME::get() { \
-		SLIB_SAFE_LOCAL_STATIC(NAME, ret); \
-		if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) { \
-			return sl_null; \
-		} \
-		return &ret; \
-	} \
-	slib::Ref<NAME> NAME::create() { \
-		return new NAME; \
-	} \
-	NAME::NAME() { \
-		root = root_menu = slib::Menu::create(__VA_ARGS__); \
-		if (root.isNull()) return;
-
-#define SLIB_DEFINE_SUBMENU(PARENT, NAME, ...) \
-	NAME##_menu = slib::Menu::createPopup(); \
-	if (NAME##_menu.isNull()) return; \
-	NAME = PARENT##_menu->addSubmenu(NAME##_menu, __VA_ARGS__);
-
-#define SLIB_DEFINE_MENU_ITEM(PARENT, NAME, ...) \
-	NAME = PARENT##_menu->addMenuItem(__VA_ARGS__);
-
-#define SLIB_DEFINE_MENU_SEPARATOR(PARENT, NAME) \
-	NAME = PARENT##_menu->addSeparator();
-
-#define SLIB_DEFINE_MENU_SEPARATOR_NONAME(PARENT) \
-	PARENT##_menu->addSeparator();
-
-#define SLIB_DEFINE_MENU_END }
-
-#define SLIB_DECLARE_UILAYOUT_BEGIN(NAME, BASE_CLASS) \
-	class NAME : public BASE_CLASS \
-	{ \
-	public: \
-		NAME(); \
-	protected: \
-		void init() override; \
-		void initialize(); \
-		void layoutViews(sl_ui_len width, sl_ui_len height) override; \
-	public:
-
-#define SLIB_DECLARE_UILAYOUT_END \
-	};
-
-#define SLIB_DEFINE_UILAYOUT(NAME, BASE_CLASS) \
-	NAME::NAME() {} \
-	void NAME::init() \
-	{ \
-		BASE_CLASS::init(); \
-		initialize(); \
-		setInitialized(); \
-		slib::UISize size = getContentSize(); \
-		if (size.x > 0 && size.y > 0) { \
-			layoutViews(size.x, size.y); \
-		} \
-	}
-
 	class UILayoutResource
 	{
 	public:
@@ -228,16 +281,6 @@ namespace slib
 
 	};
 
-#define SLIB_DECLARE_WINDOW_LAYOUT_BEGIN(NAME) \
-	SLIB_DECLARE_UILAYOUT_BEGIN(NAME, slib::WindowLayout)
-
-#define SLIB_DECLARE_WINDOW_LAYOUT_END \
-	SLIB_DECLARE_UILAYOUT_END
-
-#define SLIB_DEFINE_WINDOW_LAYOUT(NAME) \
-	SLIB_DEFINE_UILAYOUT(NAME, slib::WindowLayout)
-
-
 	class WindowLayout : public Window, public UILayoutResource
 	{
 		SLIB_DECLARE_OBJECT
@@ -259,15 +302,6 @@ namespace slib
 
 	};
 
-#define SLIB_DECLARE_VIEW_LAYOUT_BEGIN(NAME) \
-	SLIB_DECLARE_UILAYOUT_BEGIN(NAME, slib::ViewLayout)
-
-#define SLIB_DECLARE_VIEW_LAYOUT_END \
-	SLIB_DECLARE_UILAYOUT_END
-
-#define SLIB_DEFINE_VIEW_LAYOUT(NAME) \
-	SLIB_DEFINE_UILAYOUT(NAME, slib::ViewLayout)
-
 	class ViewLayout : public ViewGroup, public UILayoutResource
 	{
 		SLIB_DECLARE_OBJECT
@@ -286,16 +320,6 @@ namespace slib
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 	};
-
-
-#define SLIB_DECLARE_PAGE_LAYOUT_BEGIN(NAME) \
-	SLIB_DECLARE_UILAYOUT_BEGIN(NAME, slib::PageLayout)
-
-#define SLIB_DECLARE_PAGE_LAYOUT_END \
-	SLIB_DECLARE_UILAYOUT_END
-
-#define SLIB_DEFINE_PAGE_LAYOUT(NAME) \
-	SLIB_DEFINE_UILAYOUT(NAME, slib::PageLayout)
 
 	class PageLayout : public ViewPage, public UILayoutResource
 	{
@@ -317,7 +341,6 @@ namespace slib
 
 	};
 
-
 	class Button;
 	class LabelView;
 	class LineView;
@@ -333,6 +356,7 @@ namespace slib
 	class ComboBox;
 	class ScrollView;
 	class LinearLayout;
+	template <class PARENT, class CHILD_LAYOUT> class IterateLayout;
 	class ListView;
 	class ListControl;
 	class RenderView;
@@ -359,6 +383,7 @@ namespace slib
 	class TileLayout;
 	class GridView;
 	class PdfView;
+	class AudioView;
 
 }
 

@@ -145,9 +145,17 @@ namespace slib
 		}
 
 		result = str;
-
 		return sl_true;
+	}
 
+	sl_bool SAppDocument::_getDrawableDataAccessString(const String& localNamespace, const SAppDrawableValue& value, String& result)
+	{
+		String def;
+		if (_getDrawableAccessString(localNamespace, value, def)) {
+			result = String::format("data%s.getRef(%s)", value.dataAccess, def);
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 	sl_bool SAppDocument::_getDrawableValue(const String& localNamespace, const SAppDrawableValue& value, Ref<Drawable>& result)

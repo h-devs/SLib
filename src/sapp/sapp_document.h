@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,6 @@ namespace slib
 		List<String> generate_cpp_layout_include_headers_in_cpp;
 
 		Locale simulator_locale;
-		
 
 	public:
 		SAppConfiguration();
@@ -179,6 +178,7 @@ namespace slib
 		sl_bool _generateStringsCpp(const String& targetPath);
 		void _generateStringsCpp_Item(StringBuffer& sbCpp, const String& resourceName, const String& varName, const SAppStringResourceItem& item);
 		sl_bool _getStringAccessString(const String& localNamespace, const SAppStringValue& value, String& result);
+		sl_bool _getStringDataAccessString(const String& localNamespace, const SAppStringValue& value, String& result);
 		sl_bool _getStringValue(const String& localNamespace, const SAppStringValue& value, String& result);
 		sl_bool _checkStringValue(const String& localNamespace, const SAppStringValue& value);
 		sl_bool _checkStringResource(const String& localNamespace, const SAppStringValue& value, String* outName = sl_null, Ref<SAppStringResource>* outResource = sl_null, SAppStringResourceItem* outItem = sl_null);
@@ -187,6 +187,7 @@ namespace slib
 		sl_bool _parseColorResource(const String& localNamespace, const Ref<XmlElement>& element);
 		sl_bool _generateColorsCpp(const String& targetPath);
 		sl_bool _getColorAccessString(const String& localNamespace, const SAppColorValue& value, String& result);
+		sl_bool _getColorDataAccessString(const String& localNamespace, const SAppColorValue& value, String& result);
 		sl_bool _getColorValue(const String& localNamespace, const SAppColorValue& value, Color& result);
 		sl_bool _checkColorValue(const String& localNamespace, const SAppColorValue& value);
 		sl_bool _checkColorName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName = sl_null, Ref<SAppColorResource>* outResource = sl_null);
@@ -194,6 +195,7 @@ namespace slib
 		// Drawable Resources
 		sl_bool _generateDrawablesCpp(const String& targetPath);
 		sl_bool _getDrawableAccessString(const String& localNamespace, const SAppDrawableValue& value, String& result);
+		sl_bool _getDrawableDataAccessString(const String& localNamespace, const SAppDrawableValue& value, String& result);
 		sl_bool _getDrawableValue(const String& localNamespace, const SAppDrawableValue& value, Ref<Drawable>& result);
 		sl_bool _checkDrawableValue(const String& localNamespace, const SAppDrawableValue& value);
 		sl_bool _checkDrawableName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName = sl_null, Ref<SAppDrawableResource>* outResource = sl_null);
@@ -222,10 +224,11 @@ namespace slib
 		sl_bool _parseLayoutStyle(const String& localNamespace, const Ref<XmlElement>& element);
 		sl_bool _parseLayoutInclude(const String& localNamespace, const Ref<XmlElement>& element);
 		sl_bool _parseLayoutUnit(const String& localNamespace, const Ref<XmlElement>& element);
-		sl_bool _parseLayoutResource(const String& filePath, const String& localNamespace, const Ref<XmlElement>& element, const String16& source);
-		void _openLayoutResource(SAppLayoutResource* layout, const String& name);
+		Ref<SAppLayoutResource> _parseLayoutResource(const String& filePath, const String& localNamespace, const Ref<XmlElement>& element, const String16& source, SAppLayoutResource* parent = sl_null, String* outChildLayoutName = sl_null, sl_bool* outFlagGeneratedName = sl_null);
+		Ref<SAppLayoutResource> _openLayoutResource(SAppLayoutResource* parent, const String& name);
 		sl_bool _checkLayoutResourceItemName(SAppLayoutResource* layout, const String& name, const Ref<XmlElement>& element, sl_bool flagRadioGroup = sl_false);
 		sl_bool _parseLayoutResourceItem(SAppLayoutResource* layout, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, const String16& source);
+		void _registerLayoutCustomEvent(SAppLayoutResource* layout, const String& customEvent, const String& itemName, const String& itemEvent, sl_bool flagIterate);
 		Ref<SAppLayoutResourceItem> _parseLayoutResourceItemChild(SAppLayoutResource* layout, SAppLayoutResourceItem* parentItem, const Ref<XmlElement>& element, const String16& source);
 		sl_bool _generateLayoutsCpp(const String& targetPath);
 		sl_bool _generateLayoutsCpp_Layout(const String& targetPath, SAppLayoutResource* layout);
@@ -235,6 +238,7 @@ namespace slib
 			StringBuffer* sbDefineInit;
 			StringBuffer* sbDefineInitDelayed;
 			StringBuffer* sbDefineLayout;
+			StringBuffer* sbDefineSetData;
 		};
 		sl_bool _generateLayoutsCpp_Item(SAppLayoutResource* layout, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, LayoutControlGenerateParams* params, const String& addStatement);
 		sl_bool _simulateLayoutInWindow(SAppLayoutResource* layout, SAppSimulateLayoutParam& param);
@@ -286,6 +290,7 @@ namespace slib
 		sl_bool _processLayoutResourceControl_ComboBox(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Scroll(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Linear(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_Iterate(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_List(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Collection(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Table(LayoutControlProcessParams* params);

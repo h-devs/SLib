@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -822,7 +822,8 @@ namespace slib
 			Ref<XmlElement>& child = children[i];
 			if (child.isNotNull()) {
 				if (child->getName() == "layout") {
-					if (!_parseLayoutResource(filePath, localNamespace, child, textXML)) {
+					Ref<SAppLayoutResource> layout = _parseLayoutResource(filePath, localNamespace, child, textXML);
+					if (layout.isNull()) {
 						return sl_false;
 					}
 				}

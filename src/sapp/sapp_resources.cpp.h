@@ -296,40 +296,7 @@ namespace slib
 		return SAppLayoutViewAttributes::isNotRequiredNative(flagCheckBackgroundColor);
 	}
 
-	String SAppLayoutStyle::getXmlAttribute(const String& name)
-	{
-		String value = element->getAttribute(name);
-		if (value.isNotNull()) {
-			return value;
-		}
-		ListLocker< Ref<SAppLayoutStyle> > _styles(inherit);
-		for (sl_size i = 0; i < _styles.count; i++) {
-			Ref<SAppLayoutStyle> style = _styles[_styles.count - 1 - i];
-			if (style.isNotNull()) {
-				value = style->getXmlAttribute(name);
-				if (value.isNotNull()) {
-					return value;
-				}
-			}
-		}
-		return String::null();
-	}
-
-	SAppLayoutXmlItem::SAppLayoutXmlItem(const Ref<XmlElement>& _element): element(_element)
-	{
-	}
-
-	String SAppLayoutXmlItem::getXmlAttribute(const String& name)
-	{
-		return _resolveVariables(name, _getXmlAttribute(name));
-	}
-
-	String SAppLayoutXmlItem::getXmlAttributeWithoutStyle(const String& name)
-	{
-		return _resolveVariables(name, element->getAttribute(name));
-	}
-
-	String SAppLayoutXmlItem::_getXmlAttribute(const String& name)
+	String SAppLayoutStyledElement::getXmlAttribute(const String& name)
 	{
 		String value = element->getAttribute(name);
 		if (value.isNotNull()) {
@@ -346,6 +313,52 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+
+	void SAppLayoutStyledElement::getEventMapping(const StringView& prefix, HashMap<String, String>& mapping)
+	{
+		ListLocker< Ref<SAppLayoutStyle> > _styles(styles);
+		for (sl_size i = 0; i < _styles.count; i++) {
+			Ref<SAppLayoutStyle> style = _styles[i];
+			if (style.isNotNull()) {
+				style->getEventMapping(mapping);
+			}
+		}
+		sl_size n = element->getAttributeCount();
+		for (sl_size i = 0; i < n; i++) {
+			XmlAttribute attr;
+			if (element->getAttribute(i, &attr)) {
+				if (attr.name.startsWith(prefix)) {
+					mapping.put_NoLock(attr.name.substring(prefix.getLength()), attr.value);
+				}
+			}
+		}
+	}
+
+	void SAppLayoutStyledElement::getEventMapping(HashMap<String, String>& mapping)
+	{
+		getEventMapping(StringView::literal("on"), mapping);
+	}
+
+
+	SAppLayoutXmlItem::SAppLayoutXmlItem(const Ref<XmlElement>& _element)
+	{
+		element = _element;
+	}
+
+	String SAppLayoutXmlItem::getXmlAttribute(const String& name)
+	{
+		return _resolveVariables(name, _getXmlAttribute(name));
+	}
+
+	String SAppLayoutXmlItem::getXmlAttributeWithoutStyle(const String& name)
+	{
+		return _resolveVariables(name, element->getAttribute(name));
+	}
+
+	String SAppLayoutXmlItem::_getXmlAttribute(const String& name)
+	{
+		return SAppLayoutStyledElement::getXmlAttribute(name);
 	}
 
 	String SAppLayoutXmlItem::getVariableValue(const String& name)
@@ -578,6 +591,10 @@ namespace slib
 				prefix = "linear";
 				pN = &nAutoIncreaseNameLinear;
 				break;
+			case SAppLayoutItemType::Iterate:
+				prefix = "iterate";
+				pN = &nAutoIncreaseNameIterate;
+				break;
 			case SAppLayoutItemType::List:
 				prefix = "list";
 				pN = &nAutoIncreaseNameList;
@@ -741,6 +758,8 @@ namespace slib
 			type = SAppLayoutItemType::Scroll;
 		} else if (strType == "linear" || strType == "hlinear" || strType == "vlinear") {
 			type = SAppLayoutItemType::Linear;
+		} else if (strType == "iterate" || strType == "hiterate" || strType == "viterate") {
+			type = SAppLayoutItemType::Iterate;
 		} else if (strType == "list") {
 			type = SAppLayoutItemType::List;
 		} else if (strType == "collection") {
