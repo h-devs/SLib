@@ -1246,34 +1246,34 @@ namespace slib
 		sl_ui_pos heightText = 0;
 		if (flagUseText) {
 			sl_ui_len widthTextLayout = widthFrame;
-			sl_bool flagWrapping = sl_false;
+			sl_bool flagWrappingText = sl_false;
 			if (widthFrame <= 0) {
-				flagWrapping = sl_true;
 				widthFrame = 0;
-			}
-			if (flagWrapping && maxWidth) {
-				flagWrapping = sl_false;
-				widthTextLayout = maxWidth;
-			}
-			if (!flagWrapping && flagUseIcon && layoutOrientation == LayoutOrientation::Horizontal) {
-				if (widthIcon <= 0) {
-					Ref<Font> font = getFont();
-					if (font.isNotNull()) {
-						widthIcon = (sl_ui_len)(font->getFontHeight());
-					} else {
-						widthIcon = 20;
-					}
-					heightIcon = widthIcon;
+				if (maxWidth) {
+					widthTextLayout = maxWidth;
+				} else {
+					flagWrappingText = sl_true;
 				}
-				widthTextLayout -= widthIcon + iconMarginLeft + iconMarginRight;
 			}
-			if (!flagWrapping) {
+			if (!flagWrappingText) {
+				if (flagUseIcon && layoutOrientation == LayoutOrientation::Horizontal) {
+					if (widthIcon <= 0) {
+						Ref<Font> font = getFont();
+						if (font.isNotNull()) {
+							widthIcon = (sl_ui_len)(font->getFontHeight());
+						} else {
+							widthIcon = 20;
+						}
+						heightIcon = widthIcon;
+					}
+					widthTextLayout -= widthIcon + iconMarginLeft + iconMarginRight;
+				}
 				if (widthTextLayout < 1) {
 					widthTextLayout = 1;
 				}
 			}
-			_updateTextBox(flagWrapping, widthTextLayout, textMarginLeft + textMarginRight, textAlignment);
-			if (flagWrapping || !flagExtendTextFrame) {
+			_updateTextBox(flagWrappingText, widthTextLayout, textMarginLeft + textMarginRight, textAlignment);
+			if (flagWrappingText || !flagExtendTextFrame) {
 				widthText = (sl_ui_len)(m_textBox.getContentWidth()) + textMarginLeft + textMarginRight;
 			} else {
 				widthText = widthTextLayout;
@@ -1292,18 +1292,27 @@ namespace slib
 			sl_ui_len marginHeight = iconMarginTop + iconMarginBottom;
 			if (widthIcon <= 0 && heightIcon <= 0) {
 				if (flagUseText) {
-					sl_ui_len defaultHeight = heightText;
-					if (defaultHeight <= 0) {
-						Ref<Font> font = getFont();
-						if (font.isNotNull()) {
-							defaultHeight = (sl_ui_len)(font->getFontHeight());
+					if (layoutOrientation == LayoutOrientation::Vertical && heightFrame > 0) {
+						heightIcon = heightFrame - heightText;
+						if (widthFrame > 0) {
+							widthIcon = widthFrame;
 						} else {
-							defaultHeight = 20;
+							widthIcon = heightIcon;
 						}
+					} else {
+						sl_ui_len defaultHeight = heightText;
+						if (defaultHeight <= 0) {
+							Ref<Font> font = getFont();
+							if (font.isNotNull()) {
+								defaultHeight = (sl_ui_len)(font->getFontHeight());
+							} else {
+								defaultHeight = 20;
+							}
+						}
+						defaultHeight = (sl_ui_len)(defaultHeight * 0.9f);
+						widthIcon = defaultHeight;
+						heightIcon = defaultHeight;
 					}
-					defaultHeight = (sl_ui_len)(defaultHeight * 0.9f);
-					widthIcon = defaultHeight;
-					heightIcon = defaultHeight;
 				} else {
 					if (widthFrame <= 0) {
 						if (heightFrame <= 0) {
@@ -1330,8 +1339,6 @@ namespace slib
 				}
 				widthIcon -= marginWidth;
 				heightIcon -= marginHeight;
-				widthIcon = Math::min(widthIcon, heightIcon);
-				heightIcon = widthIcon;
 			}
 			widthIcon += marginWidth;
 			if (widthIcon < 0) {
