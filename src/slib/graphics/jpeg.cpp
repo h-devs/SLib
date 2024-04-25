@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -1054,9 +1054,9 @@ namespace slib
 							if (result == Result::Finish) {
 								return sl_true;
 							} else if (result == Result::OK) {
-								dequantizeBlock(data, quantization_table[comp.quant_table_no]);
-								dezigzag(data, dataz);
-								idctBlock(dataz, colors);
+								Jpeg::dequantizeBlock(data, quantization_table[comp.quant_table_no]);
+								Jpeg::dezigzag(data, dataz);
+								Jpeg::idctBlock(dataz, colors);
 								onLoadBlock(tx0 + tx, ty0 + ty, iComp, colors);
 							}
 						}
@@ -1103,142 +1103,6 @@ namespace slib
 		m_nRestartCountDown = restart_interval ? restart_interval : 0x7fffffff;
 		if (!onDecodeRestartControl.isNull()) {
 			onDecodeRestartControl(m_nRestartCountDown);
-		}
-	}
-
-	void JpegFile::zigzag(sl_int16 input[64], sl_int16 output[64])
-	{
-		static const sl_uint8 table[64] = {
-			0,  1,  5,  6,  14, 15, 27, 28,
-			2,  4,  7,  13, 16, 26, 29, 42,
-			3,  8,  12, 17, 25, 30, 41, 43,
-			9,  11, 18, 24, 31, 40, 44, 53,
-			10, 19, 23, 32, 39, 45, 52, 54,
-			20, 22, 33, 38, 46, 51, 55, 60,
-			21, 34, 37, 47, 50, 56, 59, 61,
-			35, 36, 48, 49, 57, 58, 62, 63
-		};
-		for (sl_uint32 i = 0; i < 64; i++) {
-			output[table[i]] = input[i];
-		}
-	}
-
-	void JpegFile::dezigzag(sl_int16 input[64], sl_int16 output[64])
-	{
-		static const sl_uint8 table[64 + 15] = {
-			0,  1,  8, 16,  9,  2,  3, 10,
-			17, 24, 32, 25, 18, 11,  4,  5,
-			12, 19, 26, 33, 40, 48, 41, 34,
-			27, 20, 13,  6,  7, 14, 21, 28,
-			35, 42, 49, 56, 57, 50, 43, 36,
-			29, 22, 15, 23, 30, 37, 44, 51,
-			58, 59, 52, 45, 38, 31, 39, 46,
-			53, 60, 61, 54, 47, 55, 62, 63,
-			// let corrupt input sample past end
-			63, 63, 63, 63, 63, 63, 63, 63,
-			63, 63, 63, 63, 63, 63, 63
-		};
-		for (sl_uint32 i = 0; i < 64; i++) {
-			output[table[i]] = input[i];
-		}
-	}
-
-	void JpegFile::quantizeBlock(sl_int16 data[64], JpegQuantizationTable& table)
-	{
-		for (sl_uint32 i = 0; i < 64; i++) {
-			data[i] /= (sl_int16)(table.quant[i]);
-		}
-	}
-
-	void JpegFile::dequantizeBlock(sl_int16 data[64], JpegQuantizationTable& table)
-	{
-		for (sl_uint32 i = 0; i < 64; i++) {
-			data[i] *= (sl_int16)(table.quant[i]);
-		}
-	}
-
-#define F2I_ROUND(x)  ((sl_int32)(((x) * 4096 + 0.5)))
-#define FSH(x)  ((sl_int32)((x) * 4096))
-
-#define IDCT_1D(s0,s1,s2,s3,s4,s5,s6,s7) \
-		sl_int32 t0,t1,t2,t3,p1,p2,p3,p4,p5,x0,x1,x2,x3; \
-		p2 = s2; \
-		p3 = s6; \
-		p1 = (p2+p3) * F2I_ROUND(0.5411961f); \
-		t2 = p1 + p3*F2I_ROUND(-1.847759065f); \
-		t3 = p1 + p2*F2I_ROUND( 0.765366865f); \
-		p2 = s0; \
-		p3 = s4; \
-		t0 = FSH(p2+p3); \
-		t1 = FSH(p2-p3); \
-		x0 = t0+t3; \
-		x3 = t0-t3; \
-		x1 = t1+t2; \
-		x2 = t1-t2; \
-		t0 = s7; \
-		t1 = s5; \
-		t2 = s3; \
-		t3 = s1; \
-		p3 = t0+t2; \
-		p4 = t1+t3; \
-		p1 = t0+t3; \
-		p2 = t1+t2; \
-		p5 = (p3+p4)*F2I_ROUND( 1.175875602f); \
-		t0 = t0*F2I_ROUND( 0.298631336f); \
-		t1 = t1*F2I_ROUND( 2.053119869f); \
-		t2 = t2*F2I_ROUND( 3.072711026f); \
-		t3 = t3*F2I_ROUND( 1.501321110f); \
-		p1 = p5 + p1*F2I_ROUND(-0.899976223f); \
-		p2 = p5 + p2*F2I_ROUND(-2.562915447f); \
-		p3 = p3*F2I_ROUND(-1.961570560f); \
-		p4 = p4*F2I_ROUND(-0.390180644f); \
-		t3 += p1+p4; \
-		t2 += p2+p3; \
-		t1 += p2+p4; \
-		t0 += p1+p3;
-
-	void JpegFile::idctBlock(sl_int16 d[64], sl_uint8 _out[64])
-	{
-		sl_int32 val[64];
-		sl_uint32 i;
-		sl_uint8 *o = _out;
-		sl_int32* v = val;
-
-		for (i = 0; i < 8; i++) {
-			if (!(d[8]) && !(d[16]) && !(d[24]) && !(d[32]) && !(d[40]) && !(d[48]) && !(d[56])) {
-				v[0] = v[8] = v[16] = v[24] = v[32] = v[40] = v[48] = v[56] = (sl_uint32)(d[0]) << 2;
-			} else {
-				IDCT_1D(d[0], d[8], d[16], d[24], d[32], d[40], d[48], d[56])
-				x0 += 512; x1 += 512; x2 += 512; x3 += 512;
-				v[0] = (x0 + t3) >> 10;
-				v[56] = (x0 - t3) >> 10;
-				v[8] = (x1 + t2) >> 10;
-				v[48] = (x1 - t2) >> 10;
-				v[16] = (x2 + t1) >> 10;
-				v[40] = (x2 - t1) >> 10;
-				v[24] = (x3 + t0) >> 10;
-				v[32] = (x3 - t0) >> 10;
-			}
-			d++;
-			v++;
-		}
-		v = val;
-		for (i = 0; i < 8; i++) {
-			IDCT_1D(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7])
-			x0 += 65536 + (128 << 17);
-			x1 += 65536 + (128 << 17);
-			x2 += 65536 + (128 << 17);
-			x3 += 65536 + (128 << 17);
-			o[0] = Math::clamp0_255((x0 + t3) >> 17);
-			o[7] = Math::clamp0_255((x0 - t3) >> 17);
-			o[1] = Math::clamp0_255((x1 + t2) >> 17);
-			o[6] = Math::clamp0_255((x1 - t2) >> 17);
-			o[2] = Math::clamp0_255((x2 + t1) >> 17);
-			o[5] = Math::clamp0_255((x2 - t1) >> 17);
-			o[3] = Math::clamp0_255((x3 + t0) >> 17);
-			o[4] = Math::clamp0_255((x3 - t0) >> 17);
-			v += 8;
-			o += 8;
 		}
 	}
 
@@ -1431,6 +1295,232 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+	
+	void Jpeg::zigzag(const sl_int16 input[64], sl_int16 output[64])
+	{
+		static const sl_uint8 table[64] = {
+			0,  1,  5,  6,  14, 15, 27, 28,
+			2,  4,  7,  13, 16, 26, 29, 42,
+			3,  8,  12, 17, 25, 30, 41, 43,
+			9,  11, 18, 24, 31, 40, 44, 53,
+			10, 19, 23, 32, 39, 45, 52, 54,
+			20, 22, 33, 38, 46, 51, 55, 60,
+			21, 34, 37, 47, 50, 56, 59, 61,
+			35, 36, 48, 49, 57, 58, 62, 63
+		};
+		for (sl_uint32 i = 0; i < 64; i++) {
+			output[table[i]] = input[i];
+		}
+	}
+
+	void Jpeg::dezigzag(const sl_int16 input[64], sl_int16 output[64])
+	{
+		static const sl_uint8 table[64 + 15] = {
+			0,  1,  8, 16,  9,  2,  3, 10,
+			17, 24, 32, 25, 18, 11,  4,  5,
+			12, 19, 26, 33, 40, 48, 41, 34,
+			27, 20, 13,  6,  7, 14, 21, 28,
+			35, 42, 49, 56, 57, 50, 43, 36,
+			29, 22, 15, 23, 30, 37, 44, 51,
+			58, 59, 52, 45, 38, 31, 39, 46,
+			53, 60, 61, 54, 47, 55, 62, 63,
+			// let corrupt input sample past end
+			63, 63, 63, 63, 63, 63, 63, 63,
+			63, 63, 63, 63, 63, 63, 63
+		};
+		for (sl_uint32 i = 0; i < 64; i++) {
+			output[table[i]] = input[i];
+		}
+	}
+
+	void Jpeg::quantizeBlock(sl_int16 data[64], JpegQuantizationTable& table)
+	{
+		for (sl_uint32 i = 0; i < 64; i++) {
+			data[i] /= (sl_int16)(table.quant[i]);
+		}
+	}
+
+	void Jpeg::dequantizeBlock(sl_int16 data[64], JpegQuantizationTable& table)
+	{
+		for (sl_uint32 i = 0; i < 64; i++) {
+			data[i] *= (sl_int16)(table.quant[i]);
+		}
+	}
+
+	#define MULTIPLY(var, CONST) ((int)((var) * (CONST)) >> 8)
+	#define FIX_0_382683433 ((int)98)
+	#undef FIX_0_541196100
+	#define FIX_0_541196100 ((int)139)
+	#define FIX_0_707106781 ((int)181)
+	#define FIX_1_306562965 ((int)334)
+
+	void Jpeg::dctBlock(const sl_uint8 input[64], sl_int16 output[64])
+	{
+		int tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
+		int tmp10, tmp11, tmp12, tmp13;
+		int z1, z2, z3, z4, z5, z11, z13;
+		int w[64];
+		{
+			const sl_uint8* src = input;
+			int* dst = w;
+			for (int iRow = 0; iRow < 8; iRow++) {
+				tmp0 = (int)(src[0]) + (int)(src[7]);
+				tmp7 = (int)(src[0]) - (int)(src[7]);
+				tmp1 = (int)(src[1]) + (int)(src[6]);
+				tmp6 = (int)(src[1]) - (int)(src[6]);
+				tmp2 = (int)(src[2]) + (int)(src[5]);
+				tmp5 = (int)(src[2]) - (int)(src[5]);
+				tmp3 = (int)(src[3]) + (int)(src[4]);
+				tmp4 = (int)(src[3]) - (int)(src[4]);
+				tmp10 = tmp0 + tmp3;
+				tmp13 = tmp0 - tmp3;
+				tmp11 = tmp1 + tmp2;
+				tmp12 = tmp1 - tmp2;
+				dst[0] = tmp10 + tmp11 - 1024;
+				dst[4] = tmp10 - tmp11;
+				z1 = MULTIPLY(tmp12 + tmp13, FIX_0_707106781);
+				dst[2] = tmp13 + z1;
+				dst[6] = tmp13 - z1;
+				tmp10 = tmp4 + tmp5;
+				tmp11 = tmp5 + tmp6;
+				tmp12 = tmp6 + tmp7;
+				z5 = MULTIPLY(tmp10 - tmp12, FIX_0_382683433);
+				z2 = MULTIPLY(tmp10, FIX_0_541196100) + z5;
+				z4 = MULTIPLY(tmp12, FIX_1_306562965) + z5;
+				z3 = MULTIPLY(tmp11, FIX_0_707106781);
+				z11 = tmp7 + z3;
+				z13 = tmp7 - z3;
+				dst[5] = z13 + z2;
+				dst[3] = z13 - z2;
+				dst[1] = z11 + z4;
+				dst[7] = z11 - z4;
+				dst += 8;
+				src += 8;
+			}
+		}
+		{
+			const int* src = w;
+			sl_int16* dst = output;
+			for (int iCol = 7; iCol >= 0; iCol--) {
+				tmp0 = src[0] + src[56];
+				tmp7 = src[0] - src[56];
+				tmp1 = src[8] + src[48];
+				tmp6 = src[8] - src[48];
+				tmp2 = src[16] + src[40];
+				tmp5 = src[16] - src[40];
+				tmp3 = src[24] + src[32];
+				tmp4 = src[24] - src[32];
+				tmp10 = tmp0 + tmp3;
+				tmp13 = tmp0 - tmp3;
+				tmp11 = tmp1 + tmp2;
+				tmp12 = tmp1 - tmp2;
+				dst[0] = (sl_int16)(tmp10 + tmp11);
+				dst[32] = (sl_int16)(tmp10 - tmp11);
+				z1 = MULTIPLY(tmp12 + tmp13, FIX_0_707106781);
+				dst[16] = (sl_int16)(tmp13 + z1);
+				dst[48] = (sl_int16)(tmp13 - z1);
+				tmp10 = tmp4 + tmp5;
+				tmp11 = tmp5 + tmp6;
+				tmp12 = tmp6 + tmp7;
+				z5 = MULTIPLY(tmp10 - tmp12, FIX_0_382683433);
+				z2 = MULTIPLY(tmp10, FIX_0_541196100) + z5;
+				z4 = MULTIPLY(tmp12, FIX_1_306562965) + z5;
+				z3 = MULTIPLY(tmp11, FIX_0_707106781);
+				z11 = tmp7 + z3;
+				z13 = tmp7 - z3;
+				dst[40] = (sl_int16)(z13 + z2);
+				dst[24] = (sl_int16)(z13 - z2);
+				dst[8] = (sl_int16)(z11 + z4);
+				dst[56] = (sl_int16)(z11 - z4);
+				src++;
+				dst++;
+			}
+		}
+	}
+
+	#define F2I_ROUND(x) ((sl_int32)(((x) * 4096 + 0.5)))
+	#define FSH(x)  ((sl_int32)((x) * 4096))
+	#define IDCT_1D(s0,s1,s2,s3,s4,s5,s6,s7) \
+		sl_int32 t0,t1,t2,t3,p1,p2,p3,p4,p5,x0,x1,x2,x3; \
+		p2 = s2; \
+		p3 = s6; \
+		p1 = (p2+p3) * F2I_ROUND(0.5411961f); \
+		t2 = p1 + p3*F2I_ROUND(-1.847759065f); \
+		t3 = p1 + p2*F2I_ROUND( 0.765366865f); \
+		p2 = s0; \
+		p3 = s4; \
+		t0 = FSH(p2+p3); \
+		t1 = FSH(p2-p3); \
+		x0 = t0+t3; \
+		x3 = t0-t3; \
+		x1 = t1+t2; \
+		x2 = t1-t2; \
+		t0 = s7; \
+		t1 = s5; \
+		t2 = s3; \
+		t3 = s1; \
+		p3 = t0+t2; \
+		p4 = t1+t3; \
+		p1 = t0+t3; \
+		p2 = t1+t2; \
+		p5 = (p3+p4)*F2I_ROUND( 1.175875602f); \
+		t0 = t0*F2I_ROUND( 0.298631336f); \
+		t1 = t1*F2I_ROUND( 2.053119869f); \
+		t2 = t2*F2I_ROUND( 3.072711026f); \
+		t3 = t3*F2I_ROUND( 1.501321110f); \
+		p1 = p5 + p1*F2I_ROUND(-0.899976223f); \
+		p2 = p5 + p2*F2I_ROUND(-2.562915447f); \
+		p3 = p3*F2I_ROUND(-1.961570560f); \
+		p4 = p4*F2I_ROUND(-0.390180644f); \
+		t3 += p1+p4; \
+		t2 += p2+p3; \
+		t1 += p2+p4; \
+		t0 += p1+p3;
+
+	void Jpeg::idctBlock(const sl_int16 d[64], sl_uint8 _out[64])
+	{
+		sl_int32 val[64];
+		sl_uint32 i;
+		sl_uint8 *o = _out;
+		sl_int32* v = val;
+
+		for (i = 0; i < 8; i++) {
+			if (!(d[8]) && !(d[16]) && !(d[24]) && !(d[32]) && !(d[40]) && !(d[48]) && !(d[56])) {
+				v[0] = v[8] = v[16] = v[24] = v[32] = v[40] = v[48] = v[56] = (sl_uint32)(d[0]) << 2;
+			} else {
+				IDCT_1D(d[0], d[8], d[16], d[24], d[32], d[40], d[48], d[56])
+				x0 += 512; x1 += 512; x2 += 512; x3 += 512;
+				v[0] = (x0 + t3) >> 10;
+				v[56] = (x0 - t3) >> 10;
+				v[8] = (x1 + t2) >> 10;
+				v[48] = (x1 - t2) >> 10;
+				v[16] = (x2 + t1) >> 10;
+				v[40] = (x2 - t1) >> 10;
+				v[24] = (x3 + t0) >> 10;
+				v[32] = (x3 - t0) >> 10;
+			}
+			d++;
+			v++;
+		}
+		v = val;
+		for (i = 0; i < 8; i++) {
+			IDCT_1D(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7])
+			x0 += 65536 + (128 << 17);
+			x1 += 65536 + (128 << 17);
+			x2 += 65536 + (128 << 17);
+			x3 += 65536 + (128 << 17);
+			o[0] = (sl_uint8)(Math::clamp0_255((x0 + t3) >> 17));
+			o[7] = (sl_uint8)(Math::clamp0_255((x0 - t3) >> 17));
+			o[1] = (sl_uint8)(Math::clamp0_255((x1 + t2) >> 17));
+			o[6] = (sl_uint8)(Math::clamp0_255((x1 - t2) >> 17));
+			o[2] = (sl_uint8)(Math::clamp0_255((x2 + t1) >> 17));
+			o[5] = (sl_uint8)(Math::clamp0_255((x2 - t1) >> 17));
+			o[3] = (sl_uint8)(Math::clamp0_255((x3 + t0) >> 17));
+			o[4] = (sl_uint8)(Math::clamp0_255((x3 - t0) >> 17));
+			v += 8;
+			o += 8;
+		}
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -423,16 +423,6 @@ namespace slib
 
 		void restartDecoder(JpegHuffmanReader* reader);
 
-		static void zigzag(sl_int16 input[64], sl_int16 output[64]);
-
-		static void dezigzag(sl_int16 input[64], sl_int16 output[64]);
-
-		static void quantizeBlock(sl_int16 data[64], JpegQuantizationTable& table);
-
-		static void dequantizeBlock(sl_int16 data[64], JpegQuantizationTable& table);
-
-		static void idctBlock(sl_int16 input[64], sl_uint8 output[64]);
-
 	private:
 		sl_bool m_flagReadFully;
 
@@ -461,6 +451,19 @@ namespace slib
 		static sl_bool loadHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<void(sl_uint32 colorIndex, sl_int16 data[64], sl_bool& outFlagFinish)>& onLoadBlock);
 
 		static Memory modifyHuffmanBlocks(const Ptr<IReader, ISeekable>& reader, const Function<void(sl_uint32 colorIndex, sl_int16 data[64])>& onLoadBlock);
+
+	public:
+		static void zigzag(const sl_int16 input[64], sl_int16 output[64]);
+
+		static void dezigzag(const sl_int16 input[64], sl_int16 output[64]);
+
+		static void quantizeBlock(sl_int16 data[64], JpegQuantizationTable& table);
+
+		static void dequantizeBlock(sl_int16 data[64], JpegQuantizationTable& table);
+
+		static void dctBlock(const sl_uint8 input[64], sl_int16 output[64]);
+
+		static void idctBlock(const sl_int16 input[64], sl_uint8 output[64]);
 
 	};
 
