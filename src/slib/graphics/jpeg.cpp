@@ -1347,179 +1347,261 @@ namespace slib
 			data[i] *= (sl_int16)(table.quant[i]);
 		}
 	}
-
-	#define MULTIPLY(var, CONST) ((int)((var) * (CONST)) >> 8)
-	#define FIX_0_382683433 ((int)98)
-	#undef FIX_0_541196100
-	#define FIX_0_541196100 ((int)139)
-	#define FIX_0_707106781 ((int)181)
-	#define FIX_1_306562965 ((int)334)
+	
+	#define MULTIPLY(VAR, CONST) ((int)(VAR) * (CONST))
+	#define FIX_0_298631336 ((int)2446)
+	#define FIX_0_390180644 ((int)3196)
+	#define FIX_0_541196100 ((int)4433)
+	#define FIX_0_765366865 ((int)6270)
+	#define FIX_0_899976223 ((int)7373)
+	#define FIX_1_175875602 ((int)9633)
+	#define FIX_1_501321110 ((int)12299)
+	#define FIX_1_847759065 ((int)15137)
+	#define FIX_1_961570560 ((int)16069)
+	#define FIX_2_053119869 ((int)16819)
+	#define FIX_2_562915447 ((int)20995)
+	#define FIX_3_072711026 ((int)25172)
 
 	void Jpeg::dctBlock(const sl_uint8 input[64], sl_int16 output[64])
 	{
-		int tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
-		int tmp10, tmp11, tmp12, tmp13;
-		int z1, z2, z3, z4, z5, z11, z13;
+		int tmp0, tmp1, tmp2, tmp3, tmp10, tmp11, tmp12, tmp13;
+		int z1;
 		int w[64];
 		{
 			const sl_uint8* src = input;
 			int* dst = w;
 			for (int iRow = 0; iRow < 8; iRow++) {
 				tmp0 = (int)(src[0]) + (int)(src[7]);
-				tmp7 = (int)(src[0]) - (int)(src[7]);
 				tmp1 = (int)(src[1]) + (int)(src[6]);
-				tmp6 = (int)(src[1]) - (int)(src[6]);
 				tmp2 = (int)(src[2]) + (int)(src[5]);
-				tmp5 = (int)(src[2]) - (int)(src[5]);
 				tmp3 = (int)(src[3]) + (int)(src[4]);
-				tmp4 = (int)(src[3]) - (int)(src[4]);
 				tmp10 = tmp0 + tmp3;
-				tmp13 = tmp0 - tmp3;
+				tmp12 = tmp0 - tmp3;
 				tmp11 = tmp1 + tmp2;
-				tmp12 = tmp1 - tmp2;
-				dst[0] = tmp10 + tmp11 - 1024;
-				dst[4] = tmp10 - tmp11;
-				z1 = MULTIPLY(tmp12 + tmp13, FIX_0_707106781);
-				dst[2] = tmp13 + z1;
-				dst[6] = tmp13 - z1;
-				tmp10 = tmp4 + tmp5;
-				tmp11 = tmp5 + tmp6;
-				tmp12 = tmp6 + tmp7;
-				z5 = MULTIPLY(tmp10 - tmp12, FIX_0_382683433);
-				z2 = MULTIPLY(tmp10, FIX_0_541196100) + z5;
-				z4 = MULTIPLY(tmp12, FIX_1_306562965) + z5;
-				z3 = MULTIPLY(tmp11, FIX_0_707106781);
-				z11 = tmp7 + z3;
-				z13 = tmp7 - z3;
-				dst[5] = z13 + z2;
-				dst[3] = z13 - z2;
-				dst[1] = z11 + z4;
-				dst[7] = z11 - z4;
-				dst += 8;
+				tmp13 = tmp1 - tmp2;
+				tmp0 = (int)(src[0]) - (int)(src[7]);
+				tmp1 = (int)(src[1]) - (int)(src[6]);
+				tmp2 = (int)(src[2]) - (int)(src[5]);
+				tmp3 = (int)(src[3]) - (int)(src[4]);
+				dst[0] = (tmp10 + tmp11 - 1024) << 2;
+				dst[4] = (tmp10 - tmp11) << 2;
+				z1 = MULTIPLY(tmp12 + tmp13, FIX_0_541196100);
+				z1 += 1024;
+				dst[2] = (z1 + MULTIPLY(tmp12, FIX_0_765366865)) >> 11;
+				dst[6] = (z1 - MULTIPLY(tmp13, FIX_1_847759065)) >> 11;
+				tmp12 = tmp0 + tmp2;
+				tmp13 = tmp1 + tmp3;
+				z1 = MULTIPLY(tmp12 + tmp13, FIX_1_175875602);
+				z1 += 1024;
+				tmp12 = MULTIPLY(tmp12, -FIX_0_390180644);
+				tmp13 = MULTIPLY(tmp13, -FIX_1_961570560);
+				tmp12 += z1;
+				tmp13 += z1;
+				z1 = MULTIPLY(tmp0 + tmp3, -FIX_0_899976223);
+				tmp0 = MULTIPLY(tmp0, FIX_1_501321110);
+				tmp3 = MULTIPLY(tmp3, FIX_0_298631336);
+				tmp0 += z1 + tmp12;
+				tmp3 += z1 + tmp13;
+				z1 = MULTIPLY(tmp1 + tmp2, -FIX_2_562915447);
+				tmp1 = MULTIPLY(tmp1, FIX_3_072711026);
+				tmp2 = MULTIPLY(tmp2, FIX_2_053119869);
+				tmp1 += z1 + tmp13;
+				tmp2 += z1 + tmp12;
+				dst[1] = tmp0 >> 11;
+				dst[3] = tmp1 >> 11;
+				dst[5] = tmp2 >> 11;
+				dst[7] = tmp3 >> 11;
 				src += 8;
+				dst += 8;
 			}
 		}
 		{
 			const int* src = w;
 			sl_int16* dst = output;
-			for (int iCol = 7; iCol >= 0; iCol--) {
+			for (int iCol = 0; iCol < 8; iCol++) {
 				tmp0 = src[0] + src[56];
-				tmp7 = src[0] - src[56];
 				tmp1 = src[8] + src[48];
-				tmp6 = src[8] - src[48];
 				tmp2 = src[16] + src[40];
-				tmp5 = src[16] - src[40];
 				tmp3 = src[24] + src[32];
-				tmp4 = src[24] - src[32];
-				tmp10 = tmp0 + tmp3;
-				tmp13 = tmp0 - tmp3;
+				tmp10 = tmp0 + tmp3 + 2;
+				tmp12 = tmp0 - tmp3;
 				tmp11 = tmp1 + tmp2;
-				tmp12 = tmp1 - tmp2;
-				dst[0] = (sl_int16)(tmp10 + tmp11);
-				dst[32] = (sl_int16)(tmp10 - tmp11);
-				z1 = MULTIPLY(tmp12 + tmp13, FIX_0_707106781);
-				dst[16] = (sl_int16)(tmp13 + z1);
-				dst[48] = (sl_int16)(tmp13 - z1);
-				tmp10 = tmp4 + tmp5;
-				tmp11 = tmp5 + tmp6;
-				tmp12 = tmp6 + tmp7;
-				z5 = MULTIPLY(tmp10 - tmp12, FIX_0_382683433);
-				z2 = MULTIPLY(tmp10, FIX_0_541196100) + z5;
-				z4 = MULTIPLY(tmp12, FIX_1_306562965) + z5;
-				z3 = MULTIPLY(tmp11, FIX_0_707106781);
-				z11 = tmp7 + z3;
-				z13 = tmp7 - z3;
-				dst[40] = (sl_int16)(z13 + z2);
-				dst[24] = (sl_int16)(z13 - z2);
-				dst[8] = (sl_int16)(z11 + z4);
-				dst[56] = (sl_int16)(z11 - z4);
+				tmp13 = tmp1 - tmp2;
+				tmp0 = src[0] - src[56];
+				tmp1 = src[8] - src[48];
+				tmp2 = src[16] - src[40];
+				tmp3 = src[24] - src[32];
+				dst[0] = (sl_int16)((tmp10 + tmp11) >> 2);
+				dst[32] = (sl_int16)((tmp10 - tmp11) >> 2);
+				z1 = MULTIPLY(tmp12 + tmp13, FIX_0_541196100);
+				z1 += 16384;
+				dst[16] = (sl_int16)((z1 + MULTIPLY(tmp12, FIX_0_765366865)) >> 15);
+				dst[48] = (sl_int16)((z1 - MULTIPLY(tmp13, FIX_1_847759065)) >> 15);
+				tmp12 = tmp0 + tmp2;
+				tmp13 = tmp1 + tmp3;
+				z1 = MULTIPLY(tmp12 + tmp13, FIX_1_175875602);
+				z1 += 16384;
+				tmp12 = MULTIPLY(tmp12, -FIX_0_390180644);
+				tmp13 = MULTIPLY(tmp13, -FIX_1_961570560);
+				tmp12 += z1;
+				tmp13 += z1;
+				z1 = MULTIPLY(tmp0 + tmp3, -FIX_0_899976223);
+				tmp0 = MULTIPLY(tmp0, FIX_1_501321110);
+				tmp3 = MULTIPLY(tmp3, FIX_0_298631336);
+				tmp0 += z1 + tmp12;
+				tmp3 += z1 + tmp13;
+				z1 = MULTIPLY(tmp1 + tmp2, -FIX_2_562915447);
+				tmp1 = MULTIPLY(tmp1, FIX_3_072711026);
+				tmp2 = MULTIPLY(tmp2, FIX_2_053119869);
+				tmp1 += z1 + tmp13;
+				tmp2 += z1 + tmp12;
+				dst[8] = (sl_int16)(tmp0 >> 15);
+				dst[24] = (sl_int16)(tmp1 >> 15);
+				dst[40] = (sl_int16)(tmp2 >> 15);
+				dst[56] = (sl_int16)(tmp3 >> 15);
 				src++;
 				dst++;
 			}
 		}
 	}
 
-	#define F2I_ROUND(x) ((sl_int32)(((x) * 4096 + 0.5)))
-	#define FSH(x)  ((sl_int32)((x) * 4096))
-	#define IDCT_1D(s0,s1,s2,s3,s4,s5,s6,s7) \
-		sl_int32 t0,t1,t2,t3,p1,p2,p3,p4,p5,x0,x1,x2,x3; \
-		p2 = s2; \
-		p3 = s6; \
-		p1 = (p2+p3) * F2I_ROUND(0.5411961f); \
-		t2 = p1 + p3*F2I_ROUND(-1.847759065f); \
-		t3 = p1 + p2*F2I_ROUND( 0.765366865f); \
-		p2 = s0; \
-		p3 = s4; \
-		t0 = FSH(p2+p3); \
-		t1 = FSH(p2-p3); \
-		x0 = t0+t3; \
-		x3 = t0-t3; \
-		x1 = t1+t2; \
-		x2 = t1-t2; \
-		t0 = s7; \
-		t1 = s5; \
-		t2 = s3; \
-		t3 = s1; \
-		p3 = t0+t2; \
-		p4 = t1+t3; \
-		p1 = t0+t3; \
-		p2 = t1+t2; \
-		p5 = (p3+p4)*F2I_ROUND( 1.175875602f); \
-		t0 = t0*F2I_ROUND( 0.298631336f); \
-		t1 = t1*F2I_ROUND( 2.053119869f); \
-		t2 = t2*F2I_ROUND( 3.072711026f); \
-		t3 = t3*F2I_ROUND( 1.501321110f); \
-		p1 = p5 + p1*F2I_ROUND(-0.899976223f); \
-		p2 = p5 + p2*F2I_ROUND(-2.562915447f); \
-		p3 = p3*F2I_ROUND(-1.961570560f); \
-		p4 = p4*F2I_ROUND(-0.390180644f); \
-		t3 += p1+p4; \
-		t2 += p2+p3; \
-		t1 += p2+p4; \
-		t0 += p1+p3;
+	#define GET_IDCT_OUTPUT(x) (sl_uint8)(Math::clamp0_255((x) - 384))
 
-	void Jpeg::idctBlock(const sl_int16 d[64], sl_uint8 _out[64])
+	void Jpeg::idctBlock(const sl_int16 input[64], sl_uint8 output[64])
 	{
-		sl_int32 val[64];
-		sl_uint32 i;
-		sl_uint8 *o = _out;
-		sl_int32* v = val;
-
-		for (i = 0; i < 8; i++) {
-			if (!(d[8]) && !(d[16]) && !(d[24]) && !(d[32]) && !(d[40]) && !(d[48]) && !(d[56])) {
-				v[0] = v[8] = v[16] = v[24] = v[32] = v[40] = v[48] = v[56] = (sl_uint32)(d[0]) << 2;
-			} else {
-				IDCT_1D(d[0], d[8], d[16], d[24], d[32], d[40], d[48], d[56])
-				x0 += 512; x1 += 512; x2 += 512; x3 += 512;
-				v[0] = (x0 + t3) >> 10;
-				v[56] = (x0 - t3) >> 10;
-				v[8] = (x1 + t2) >> 10;
-				v[48] = (x1 - t2) >> 10;
-				v[16] = (x2 + t1) >> 10;
-				v[40] = (x2 - t1) >> 10;
-				v[24] = (x3 + t0) >> 10;
-				v[32] = (x3 - t0) >> 10;
+		int tmp0, tmp1, tmp2, tmp3, tmp10, tmp11, tmp12, tmp13;
+		int z1, z2, z3;
+		int w[64];
+		{
+			const sl_int16* src = input;
+			int* dst = w;
+			for (int iCol = 0; iCol < 8; iCol++) {
+				if (!(src[8]) && !(src[16]) && !(src[24]) && !(src[32]) && !(src[40]) && !(src[48]) && !(src[56])) {
+					int dc = src[0] << 2;
+					dst[0] = dc;
+					dst[8] = dc;
+					dst[16] = dc;
+					dst[24] = dc;
+					dst[32] = dc;
+					dst[40] = dc;
+					dst[48] = dc;
+					dst[56] = dc;
+					src++;
+					dst++;
+					continue;
+				}
+				z2 = src[0];
+				z3 = src[32];
+				z2 <<= 13;
+				z3 <<= 13;
+				z2 += 1024;
+				tmp0 = z2 + z3;
+				tmp1 = z2 - z3;
+				z2 = src[16];
+				z3 = src[48];
+				z1 = MULTIPLY(z2 + z3, FIX_0_541196100);
+				tmp2 = z1 + MULTIPLY(z2, FIX_0_765366865);
+				tmp3 = z1 - MULTIPLY(z3, FIX_1_847759065);
+				tmp10 = tmp0 + tmp2;
+				tmp13 = tmp0 - tmp2;
+				tmp11 = tmp1 + tmp3;
+				tmp12 = tmp1 - tmp3;
+				tmp0 = src[56];
+				tmp1 = src[40];
+				tmp2 = src[24];
+				tmp3 = src[8];
+				z2 = tmp0 + tmp2;
+				z3 = tmp1 + tmp3;
+				z1 = MULTIPLY(z2 + z3, FIX_1_175875602);
+				z2 = MULTIPLY(z2, -FIX_1_961570560);
+				z3 = MULTIPLY(z3, -FIX_0_390180644);
+				z2 += z1;
+				z3 += z1;
+				z1 = MULTIPLY(tmp0 + tmp3, -FIX_0_899976223);
+				tmp0 = MULTIPLY(tmp0, FIX_0_298631336);
+				tmp3 = MULTIPLY(tmp3, FIX_1_501321110);
+				tmp0 += z1 + z2;
+				tmp3 += z1 + z3;
+				z1 = MULTIPLY(tmp1 + tmp2, -FIX_2_562915447);
+				tmp1 = MULTIPLY(tmp1, FIX_2_053119869);
+				tmp2 = MULTIPLY(tmp2, FIX_3_072711026);
+				tmp1 += z1 + z3;
+				tmp2 += z1 + z2;
+				dst[0] = (tmp10 + tmp3) >> 11;
+				dst[56] = (tmp10 - tmp3) >> 11;
+				dst[8] = (tmp11 + tmp2) >> 11;
+				dst[48] = (tmp11 - tmp2) >> 11;
+				dst[16] = (tmp12 + tmp1) >> 11;
+				dst[40] = (tmp12 - tmp1) >> 11;
+				dst[24] = (tmp13 + tmp0) >> 11;
+				dst[32] = (tmp13 - tmp0) >> 11;
+				src++;
+				dst++;
 			}
-			d++;
-			v++;
 		}
-		v = val;
-		for (i = 0; i < 8; i++) {
-			IDCT_1D(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7])
-			x0 += 65536 + (128 << 17);
-			x1 += 65536 + (128 << 17);
-			x2 += 65536 + (128 << 17);
-			x3 += 65536 + (128 << 17);
-			o[0] = (sl_uint8)(Math::clamp0_255((x0 + t3) >> 17));
-			o[7] = (sl_uint8)(Math::clamp0_255((x0 - t3) >> 17));
-			o[1] = (sl_uint8)(Math::clamp0_255((x1 + t2) >> 17));
-			o[6] = (sl_uint8)(Math::clamp0_255((x1 - t2) >> 17));
-			o[2] = (sl_uint8)(Math::clamp0_255((x2 + t1) >> 17));
-			o[5] = (sl_uint8)(Math::clamp0_255((x2 - t1) >> 17));
-			o[3] = (sl_uint8)(Math::clamp0_255((x3 + t0) >> 17));
-			o[4] = (sl_uint8)(Math::clamp0_255((x3 - t0) >> 17));
-			v += 8;
-			o += 8;
+		{
+			const int* src = w;
+			sl_uint8* dst = output;
+			for (int iRow = 0; iRow < 8; iRow++) {
+				z2 = src[0] + (16384 + 16);
+				if (!(src[1]) && !(src[2]) && !(src[3]) && !(src[4]) && !(src[5]) && !(src[6]) && !(src[7])) {
+					sl_uint8 dc = GET_IDCT_OUTPUT(z2 >> 5);
+					dst[0] = dc;
+					dst[1] = dc;
+					dst[2] = dc;
+					dst[3] = dc;
+					dst[4] = dc;
+					dst[5] = dc;
+					dst[6] = dc;
+					dst[7] = dc;
+					src += 8;
+					dst += 8;
+					continue;
+				}
+				z3 = src[4];
+				tmp0 = (z2 + z3) << 13;
+				tmp1 = (z2 - z3) << 13;
+				z2 = src[2];
+				z3 = src[6];
+				z1 = MULTIPLY(z2 + z3, FIX_0_541196100);
+				tmp2 = z1 + MULTIPLY(z2, FIX_0_765366865);
+				tmp3 = z1 - MULTIPLY(z3, FIX_1_847759065);
+				tmp10 = tmp0 + tmp2;
+				tmp13 = tmp0 - tmp2;
+				tmp11 = tmp1 + tmp3;
+				tmp12 = tmp1 - tmp3;
+				tmp0 = src[7];
+				tmp1 = src[5];
+				tmp2 = src[3];
+				tmp3 = src[1];
+				z2 = tmp0 + tmp2;
+				z3 = tmp1 + tmp3;
+				z1 = MULTIPLY(z2 + z3, FIX_1_175875602);
+				z2 = MULTIPLY(z2, -FIX_1_961570560);
+				z3 = MULTIPLY(z3, -FIX_0_390180644);
+				z2 += z1;
+				z3 += z1;
+				z1 = MULTIPLY(tmp0 + tmp3, -FIX_0_899976223);
+				tmp0 = MULTIPLY(tmp0, FIX_0_298631336);
+				tmp3 = MULTIPLY(tmp3, FIX_1_501321110);
+				tmp0 += z1 + z2;
+				tmp3 += z1 + z3;
+				z1 = MULTIPLY(tmp1 + tmp2, -FIX_2_562915447);
+				tmp1 = MULTIPLY(tmp1, FIX_2_053119869);
+				tmp2 = MULTIPLY(tmp2, FIX_3_072711026);
+				tmp1 += z1 + z3;
+				tmp2 += z1 + z2;
+				dst[0] = GET_IDCT_OUTPUT((tmp10 + tmp3) >> 18);
+				dst[7] = GET_IDCT_OUTPUT((tmp10 - tmp3) >> 18);
+				dst[1] = GET_IDCT_OUTPUT((tmp11 + tmp2) >> 18);
+				dst[6] = GET_IDCT_OUTPUT((tmp11 - tmp2) >> 18);
+				dst[2] = GET_IDCT_OUTPUT((tmp12 + tmp1) >> 18);
+				dst[5] = GET_IDCT_OUTPUT((tmp12 - tmp1) >> 18);
+				dst[3] = GET_IDCT_OUTPUT((tmp13 + tmp0) >> 18);
+				dst[4] = GET_IDCT_OUTPUT((tmp13 - tmp0) >> 18);
+				src += 8;
+				dst += 8;
+			}
 		}
 	}
 
