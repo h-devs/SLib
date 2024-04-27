@@ -2575,6 +2575,10 @@ namespace slib
 	sl_bool SerializeOutput::_growSize(sl_size newSize) noexcept
 	{
 		if (begin) {
+			sl_size n = size + (size >> 4);
+			if (newSize < n) {
+				newSize = n;
+			}
 			sl_uint8* data = (sl_uint8*)(Base::reallocMemory(begin, newSize));
 			if (data) {
 				begin = data;
