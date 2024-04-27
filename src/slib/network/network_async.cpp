@@ -742,7 +742,17 @@ namespace slib
 		flagIPv6 = sl_false;
 		flagSendingBroadcast = sl_false;
 		flagMulticastLoop = sl_false;
+#if defined(SLIB_PLATFORM_IS_UNIX)
+		/*
+		 * SO_REUSEADDR option allows the server applications to listen on the port that is still
+		 * bound by some TIME_WAIT sockets.
+		 *
+		 * http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t
+		 */
+		flagReusingAddress = sl_true;
+#else
 		flagReusingAddress = sl_false;
+#endif
 		flagReusingPort = sl_false;
 		flagAutoStart = sl_true;
 		flagLogError = sl_false;
@@ -780,19 +790,9 @@ namespace slib
 			if (socket.isNone()) {
 				return sl_null;
 			}
-#if defined(SLIB_PLATFORM_IS_UNIX)
-			/*
-			 * SO_REUSEADDR option allows the server applications to listen on the port that is still
-			 * bound by some TIME_WAIT sockets.
-			 *
-			 * http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t
-			 */
-			socket.setReusingAddress();
-#else
 			if (param.flagReusingAddress) {
 				socket.setReusingAddress();
 			}
-#endif
 			if (param.flagReusingPort) {
 				socket.setReusingPort();
 			}
