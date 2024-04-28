@@ -168,4 +168,8 @@ namespace slib
 		clearCache();
 	}
 
+	void DatabaseModel::filter(const Variant& filter)
+	{
+	}
+
 }

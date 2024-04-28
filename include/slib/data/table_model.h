@@ -50,6 +50,8 @@ namespace slib
 
 		virtual void sort(const String& field, sl_bool flagAsc) = 0;
 
+		virtual void filter(const Variant& filter) = 0;
+
 		sl_size getCacheItemCount();
 
 		void setCacheItemCount(sl_size count);

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -472,6 +472,8 @@ namespace slib
 		void setData(const Variant& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void clearData(UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setModel(const Ref<TableModel>& source, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setDataFilter(const Variant& filter, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		CellCreator getBodyCreator(sl_uint32 row, sl_uint32 column);
 		CellCreator getHeaderCreator(sl_uint32 row, sl_uint32 column);
@@ -1202,7 +1204,12 @@ namespace slib
 
 		typedef Function<Variant(sl_uint64 record)> DataGetter;
 		Atomic<DataGetter> m_recordData;
-		AtomicList<Variant> m_cacheData;
+		Atomic<Variant> m_dataFilter;
+
+		AtomicFunction<void(const Variant& filter, UIUpdateMode mode)> m_onChangeDataFilter;
+		AtomicFunction<void(const String& field, sl_bool flagAscending, UIUpdateMode mode)> m_onSort;
+		AtomicList<Variant> m_filteredData;
+		AtomicList<Variant> m_sortedData;
 
 		SelectionMode m_selectionMode;
 		Selection m_hover;

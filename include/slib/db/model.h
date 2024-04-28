@@ -79,6 +79,8 @@ namespace slib
 
 		void sort(const String& field, sl_bool flagAsc) override;
 
+		void filter(const Variant& filter) override;
+
 	protected:
 		Ref<Database> m_db;
 		Shared<Database::SelectParam> m_query;

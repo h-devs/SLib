@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -2255,9 +2255,96 @@ namespace slib
 
 	namespace
 	{
+		static sl_bool IsMatched(const Variant& var, const String& filter);
+
+		static sl_bool IsMapMatched(const VariantMap& map, const String& filter)
+		{
+			for (auto&& item : map) {
+				if (IsMatched(item.value, filter)) {
+					return sl_true;
+				}
+			}
+			return sl_false;
+		}
+
+		static sl_bool IsListMatched(const VariantList& list, const String& filter)
+		{
+			for (auto&& item : list) {
+				if (IsMatched(item, filter)) {
+					return sl_true;
+				}
+			}
+			return sl_false;
+		}
+
+		static sl_bool IsMatched(const Variant& var, const String& filter)
+		{
+			if (var.isVariantMap()) {
+				return IsMapMatched(var.getVariantMap(), filter);
+			} else if (var.isVariantList()) {
+				return IsListMatched(var.getVariantList(), filter);
+			} else {
+				return var.getString().contains_IgnoreCase(filter);
+			}
+		}
+
+		static sl_bool IsFilterMatched(const Variant& var, const VariantMap& filter)
+		{
+			for (auto&& item : filter) {
+				if (!(IsMatched(var[item.key], item.value.getString()))) {
+					return sl_false;
+				}
+			}
+			return sl_true;
+		}
+
+		static sl_bool IsFilterMapMatched(const VariantMap& map, const VariantMap& filter)
+		{
+			for (auto&& item : filter) {
+				if (!(IsMatched(map.getValue(item.key), item.value.getString()))) {
+					return sl_false;
+				}
+			}
+			return sl_true;
+		}
+
 		static VariantList DuplicateData(const VariantList& list)
 		{
 			return list.duplicate();
+		}
+
+		static VariantList FilterData(const VariantList& list, const Variant& filter)
+		{
+			if (filter.isNull()) {
+				return sl_null;
+			}
+			if (filter.isStringType()) {
+				String strFilter = filter.getString().trim();
+				if (strFilter.isEmpty()) {
+					return sl_null;
+				}
+				VariantList ret;
+				for (auto& item : list) {
+					if (IsMatched(item, strFilter)) {
+						ret.add_NoLock(item);
+					}
+				}
+				return ret;
+			} else if (filter.isVariantMap()) {
+				VariantMap mapFilter = filter.getVariantMap();
+				if (mapFilter.isEmpty()) {
+					return sl_null;
+				}
+				VariantList ret;
+				for (auto& item : list) {
+					if (IsFilterMatched(item, mapFilter)) {
+						ret.add_NoLock(item);
+					}
+				}
+				return ret;
+			} else {
+				return sl_null;
+			}
 		}
 
 		static VariantList DuplicateData(const List<VariantMap>& list)
@@ -2270,8 +2357,45 @@ namespace slib
 			return ret;
 		}
 
+		static VariantList FilterData(const List<VariantMap>& list, const Variant& filter)
+		{
+			if (filter.isNull()) {
+				return sl_null;
+			}
+			if (filter.isStringType()) {
+				String strFilter = filter.getString().trim();
+				if (strFilter.isEmpty()) {
+					return sl_null;
+				}
+				VariantList ret;
+				for (auto& item : list) {
+					if (IsMapMatched(item, strFilter)) {
+						ret.add_NoLock(item);
+					}
+				}
+				return ret;
+			} else if (filter.isVariantMap()) {
+				VariantMap mapFilter = filter.getVariantMap();
+				if (mapFilter.isEmpty()) {
+					return sl_null;
+				}
+				VariantList ret;
+				for (auto& item : list) {
+					if (IsFilterMapMatched(item, mapFilter)) {
+						ret.add_NoLock(item);
+					}
+				}
+				return ret;
+			} else {
+				return sl_null;
+			}
+		}
+
 		static VariantList DuplicateData(const Variant& data)
 		{
+			if (data.isVariantList()) {
+				return data.getVariantList().duplicate();
+			}
 			VariantList ret;
 			Ref<Collection> collection = data.getCollection();
 			if (collection.isNotNull()) {
@@ -2281,6 +2405,53 @@ namespace slib
 				}
 			}
 			return ret;
+		}
+
+		static VariantList FilterData(const Variant& data, const Variant& filter)
+		{
+			if (filter.isNull()) {
+				return sl_null;
+			}
+			if (data.isVariantList()) {
+				return FilterData(data.getVariantList(), filter);
+			}
+			if (filter.isStringType()) {
+				String strFilter = filter.getString().trim();
+				if (strFilter.isEmpty()) {
+					return sl_null;
+				}
+				VariantList ret;
+				Ref<Collection> collection = data.getCollection();
+				if (collection.isNotNull()) {
+					sl_size n = (sl_size)(collection->getElementCount());
+					for (sl_size i = 0; i < n; i++) {
+						Variant item = collection->getElement(i);
+						if (IsMatched(item, strFilter)) {
+							ret.add_NoLock(item);
+						}
+					}
+				}
+				return ret;
+			} else if (filter.isVariantMap()) {
+				VariantMap mapFilter = filter.getVariantMap();
+				if (mapFilter.isEmpty()) {
+					return sl_null;
+				}
+				VariantList ret;
+				Ref<Collection> collection = data.getCollection();
+				if (collection.isNotNull()) {
+					sl_size n = (sl_size)(collection->getElementCount());
+					for (sl_size i = 0; i < n; i++) {
+						Variant item = collection->getElement(i);
+						if (IsFilterMatched(item, mapFilter)) {
+							ret.add_NoLock(item);
+						}
+					}
+				}
+				return ret;
+			} else {
+				return sl_null;
+			}
 		}
 	}
 
@@ -2295,26 +2466,39 @@ namespace slib
 		if (!m_flagDefinedSorting) { \
 			setSorting(sl_true); \
 		} \
-		_setData(data); \
-		m_cacheData.setNull(); \
-		setOnSort([this, data](GridView*, const String& field, sl_bool flagAsc) { \
+		m_filteredData.setNull(); \
+		m_onChangeDataFilter = [this, data](const Variant& filter, UIUpdateMode mode) { \
+			m_filteredData = FilterData(data, filter); \
+			if (m_cellSort) { \
+				m_onSort(m_cellSort->field, m_flagSortAsc, mode); \
+			} else { \
+				m_onSort(sl_null, sl_false, mode); \
+			} \
+		}; \
+		m_sortedData.setNull(); \
+		m_onSort = [this, data](const String& field, sl_bool flagAsc, UIUpdateMode mode) { \
 			if (field.isNotEmpty()) { \
-				VariantList cache = m_cacheData; \
+				VariantList cache = m_sortedData; \
 				if (cache.isNull()) { \
-					cache = DuplicateData(data); \
-					m_cacheData = cache; \
+					if (m_filteredData.isNotNull()) { \
+						cache = DuplicateData(VariantList(m_filteredData)); \
+					} else { \
+						cache = DuplicateData(data); \
+					} \
+					m_sortedData = cache; \
 				} \
 				cache.sort_NoLock(CompareRecord(field, flagAsc)); \
 				_setData(cache); \
 			} else { \
-				_setData(data); \
+				if (m_filteredData.isNotNull()) { \
+					_setData(VariantList(m_filteredData)); \
+				} else { \
+					_setData(data); \
+				} \
 			} \
-			invalidate(); \
-		}); \
-		if (m_cellSort) { \
-			invokeSort(m_cellSort->field, m_flagSortAsc); \
-		} \
-		invalidate(mode); \
+			invalidate(mode); \
+		}; \
+		m_onChangeDataFilter(Variant(m_dataFilter), mode); \
 	}
 
 	DEFINE_SET_DATA(VariantList)
@@ -2331,8 +2515,10 @@ namespace slib
 		ObjectLocker lock(this);
 		setDataGetter(sl_null, UIUpdateMode::None);
 		setRecordCount(0, UIUpdateMode::None);
-		m_cacheData.setNull();
-		setOnSort(sl_null);
+		m_filteredData.setNull();
+		m_onChangeDataFilter.setNull();
+		m_sortedData.setNull();
+		m_onSort.setNull();
 		invalidate(mode);
 	}
 
@@ -2356,17 +2542,40 @@ namespace slib
 			return source->getRecord(record);
 		}, UIUpdateMode::None);
 		setRecordCount(source->getRecordCount(), UIUpdateMode::None);
-		m_cacheData.setNull();
-		setOnSort([this, source](GridView*, const String& field, sl_bool flagAsc) {
+		m_filteredData.setNull();
+		m_onChangeDataFilter = [this, source](const Variant& filter, UIUpdateMode mode) {
+			source->filter(filter);
+			ObjectLocker lock(this);
+			_invalidateBodyAllCells();
+			invalidate(mode);
+		};
+		m_sortedData.setNull();
+		m_onSort = [this, source](const String& field, sl_bool flagAsc, UIUpdateMode mode) {
 			source->sort(field, flagAsc);
 			ObjectLocker lock(this);
 			_invalidateBodyAllCells();
-			invalidate();
-		});
-		if (m_cellSort) {
-			invokeSort(m_cellSort->field, m_flagSortAsc);
+			invalidate(mode);
+		};
+		Variant filter = m_dataFilter;
+		if (filter.isNotNull()) {
+			source->filter(filter);
+			if (m_cellSort) {
+				source->sort(m_cellSort->field, m_flagSortAsc);
+			}
+			_invalidateBodyAllCells();
+		} else {
+			if (m_cellSort) {
+				source->sort(m_cellSort->field, m_flagSortAsc);
+				_invalidateBodyAllCells();
+			}
 		}
 		invalidate(mode);
+	}
+
+	void GridView::setDataFilter(const Variant& filter, UIUpdateMode mode)
+	{
+		m_dataFilter = filter;
+		m_onChangeDataFilter(filter, mode);
 	}
 
 	GridView::CellProp* GridView::_getCellProp(RecordIndex section, sl_uint32 iRow, sl_uint32 iCol)
@@ -3465,14 +3674,17 @@ namespace slib
 		if (m_cellSort == cell->attr) {
 			if (m_flagSortAsc) {
 				m_flagSortAsc = sl_false;
+				m_onSort(cell->attr->field, sl_false, UIUpdateMode::Redraw);
 				invokeSort(cell->attr->field, sl_false);
 			} else {
 				m_cellSort = sl_null;
+				m_onSort(sl_null, sl_false, UIUpdateMode::Redraw);
 				invokeSort(sl_null, sl_false);
 			}
 		} else {
 			m_cellSort = cell->attr;
 			m_flagSortAsc = sl_true;
+			m_onSort(cell->attr->field, sl_true, UIUpdateMode::Redraw);
 			invokeSort(cell->attr->field, sl_true);
 		}
 		invalidate();
