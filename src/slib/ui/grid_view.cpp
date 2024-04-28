@@ -2323,7 +2323,7 @@ namespace slib
 				if (strFilter.isEmpty()) {
 					return sl_null;
 				}
-				VariantList ret;
+				VariantList ret = VariantList::create();
 				for (auto& item : list) {
 					if (IsMatched(item, strFilter)) {
 						ret.add_NoLock(item);
@@ -2335,7 +2335,7 @@ namespace slib
 				if (mapFilter.isEmpty()) {
 					return sl_null;
 				}
-				VariantList ret;
+				VariantList ret = VariantList::create();
 				for (auto& item : list) {
 					if (IsFilterMatched(item, mapFilter)) {
 						ret.add_NoLock(item);
@@ -2367,7 +2367,7 @@ namespace slib
 				if (strFilter.isEmpty()) {
 					return sl_null;
 				}
-				VariantList ret;
+				VariantList ret = VariantList::create();
 				for (auto& item : list) {
 					if (IsMapMatched(item, strFilter)) {
 						ret.add_NoLock(item);
@@ -2379,7 +2379,7 @@ namespace slib
 				if (mapFilter.isEmpty()) {
 					return sl_null;
 				}
-				VariantList ret;
+				VariantList ret = VariantList::create();
 				for (auto& item : list) {
 					if (IsFilterMapMatched(item, mapFilter)) {
 						ret.add_NoLock(item);
@@ -2420,7 +2420,7 @@ namespace slib
 				if (strFilter.isEmpty()) {
 					return sl_null;
 				}
-				VariantList ret;
+				VariantList ret = VariantList::create();
 				Ref<Collection> collection = data.getCollection();
 				if (collection.isNotNull()) {
 					sl_size n = (sl_size)(collection->getElementCount());
@@ -2437,7 +2437,7 @@ namespace slib
 				if (mapFilter.isEmpty()) {
 					return sl_null;
 				}
-				VariantList ret;
+				VariantList ret = VariantList::create();
 				Ref<Collection> collection = data.getCollection();
 				if (collection.isNotNull()) {
 					sl_size n = (sl_size)(collection->getElementCount());
