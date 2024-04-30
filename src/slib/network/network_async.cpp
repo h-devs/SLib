@@ -369,9 +369,10 @@ namespace slib
 		return create(param);
 	}
 
-	Ref<AsyncTcpSocket> AsyncTcpSocket::create()
+	Ref<AsyncTcpSocket> AsyncTcpSocket::create(sl_bool flagIPv6)
 	{
 		AsyncTcpSocketParam param;
+		param.flagIPv6 = flagIPv6;
 		return create(param);
 	}
 

@@ -132,7 +132,7 @@ namespace slib
 
 		static Ref<AsyncTcpSocket> create(const Ref<AsyncIoLoop>& loop);
 
-		static Ref<AsyncTcpSocket> create();
+		static Ref<AsyncTcpSocket> create(sl_bool flagIPv6 = sl_false);
 
 	public:
 		sl_bool connect(const SocketAddress& address, sl_int32 timeout = -1);
