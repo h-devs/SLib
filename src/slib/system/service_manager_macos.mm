@@ -109,6 +109,12 @@ namespace slib
 		return ServiceStartType::Unknown;
 	}
 
+	String ServiceManager::getCommandPath(const StringParam& serviceName)
+	{
+		// Not supported
+		return sl_null;
+	}
+
 }
 
 #endif
