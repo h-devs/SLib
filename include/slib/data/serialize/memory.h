@@ -99,11 +99,8 @@ namespace slib
 	template <class T>
 	static sl_bool DeserializeFromMemory(T& t, const void* data, sl_size size)
 	{
-		if (data && size) {
-			SerializeBuffer buf(data, size);
-			return Deserialize(&buf, t);
-		}
-		return sl_false;
+		SerializeBuffer buf(data, size);
+		return Deserialize(&buf, t);
 	}
 
 	template <class T>
