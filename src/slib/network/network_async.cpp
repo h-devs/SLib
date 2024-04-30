@@ -422,6 +422,19 @@ namespace slib
 	AsyncTcpServerParam::AsyncTcpServerParam()
 	{
 		flagIPv6 = sl_false;
+#if defined(SLIB_PLATFORM_IS_UNIX)
+		/*
+		* SO_REUSEADDR option allows the server applications to listen on the port that is still
+		* bound by some TIME_WAIT sockets.
+		*
+		* http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t
+		*/
+		socket.setReusingAddress(sl_true);
+		flagReusingAddress = sl_true;
+#else
+		flagReusingAddress = sl_false;
+#endif
+		flagReusingPort = sl_false;
 		flagAutoStart = sl_true;
 		flagLogError = sl_true;
 	}
@@ -456,15 +469,12 @@ namespace slib
 			if (socket.isNone()) {
 				return sl_null;
 			}
-#if defined(SLIB_PLATFORM_IS_UNIX)
-			/*
-			 * SO_REUSEADDR option allows the server applications to listen on the port that is still
-			 * bound by some TIME_WAIT sockets.
-			 *
-			 * http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t
-			 */
-			socket.setReusingAddress(sl_true);
-#endif
+			if (param.flagReusingAddress) {
+				socket.setReusingAddress();
+			}
+			if (param.flagReusingPort) {
+				socket.setReusingPort();
+			}
 			if (!(socket.bind(param.bindAddress))) {
 				if (param.flagLogError) {
 					LogError(TAG, "AsyncTcpServer bind error: %s, %s", param.bindAddress.toString(), Socket::getLastErrorMessage());

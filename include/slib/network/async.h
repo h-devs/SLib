@@ -150,6 +150,8 @@ namespace slib
 		SocketAddress bindAddress;
 
 		sl_bool flagIPv6; // default: false
+		sl_bool flagReusingAddress;
+		sl_bool flagReusingPort; // default: false
 		sl_bool flagAutoStart; // default: true
 		sl_bool flagLogError; // default: true
 		Ref<AsyncIoLoop> ioLoop;
@@ -281,7 +283,7 @@ namespace slib
 		sl_bool flagIPv6; // default: false
 		sl_bool flagSendingBroadcast; // default: false
 		sl_bool flagMulticastLoop; // default: false
-		sl_bool flagReusingAddress; // default: false
+		sl_bool flagReusingAddress;
 		sl_bool flagReusingPort; // default: false
 		List< Pair<IPAddress, sl_uint32> > multicastGroups; // {multicastAddress, interfaceIndex} pairs
 
