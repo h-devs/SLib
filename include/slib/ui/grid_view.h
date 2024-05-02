@@ -35,6 +35,9 @@ namespace slib
 
 	class Cursor;
 
+	class GridViewColumn;
+	class GridViewRow;
+
 	class SLIB_EXPORT GridView : public View
 	{
 		SLIB_DECLARE_OBJECT
@@ -308,8 +311,8 @@ namespace slib
 		void init() override;
 
 	public:
-		class Column;
-		class Row;
+		typedef GridViewColumn Column;
+		typedef GridViewRow Row;
 
 	public:
 		sl_uint32 getColumnCount();
@@ -954,123 +957,6 @@ namespace slib
 		typedef FixedCellProp HeaderCellProp;
 		typedef FixedCellProp FooterCellProp;
 
-	public:
-		class Column : public CRef
-		{
-		public:
-			Column(GridView* view);
-
-			~Column();
-
-		public:
-			Ref<GridView> getView();
-			sl_uint32 getIndex();
-
-			sl_bool remove(UIUpdateMode mode = UIUpdateMode::Redraw);
-
-			sl_ui_len getWidth();
-			void setWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
-			void setDefaultWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-			sl_ui_len getMinimumWidth();
-			void setMinimumWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-			sl_ui_len getMaximumWidth();
-			void setMaximumWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-			sl_bool isVisible();
-			void setVisible(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-			sl_bool isResizable();
-			void setResizable(sl_bool flag = sl_true);
-
-			sl_bool isBodyVerticalGrid();
-			sl_bool isHeaderVerticalGrid();
-			sl_bool isFooterVerticalGrid();
-
-			void setBodyVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-			void setHeaderVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-			void setFooterVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-			void setVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		private:
-			void _invalidate(UIUpdateMode mode);
-			
-			void _invalidateLayout(UIUpdateMode mode);
-
-		private:
-			WeakRef<GridView> m_view;
-			sl_int32 m_index;
-
-			sl_ui_len m_width;
-			sl_ui_len m_fixedWidth;
-			sl_bool m_flagDefaultWidth;
-			sl_ui_len m_minWidth;
-			sl_ui_len m_maxWidth;
-			sl_bool m_flagVisible;
-			sl_bool m_flagResizable;
-			sl_bool m_flagBodyVerticalGrid;
-			sl_bool m_flagHeaderVerticalGrid;
-			sl_bool m_flagFooterVerticalGrid;
-
-			List<BodyCellProp> m_listBodyCell;
-			List<HeaderCellProp> m_listHeaderCell;
-			List<FooterCellProp> m_listFooterCell;
-
-			CellProp m_defaultBodyProps;
-			CellProp m_defaultHeaderProps;
-			CellProp m_defaultFooterProps;
-
-			friend class GridView;
-		};
-
-		class Row : public CRef
-		{
-		public:
-			Row(GridView* view);
-
-			~Row();
-
-		public:
-			Ref<GridView> getView();
-
-			sl_bool isBody();
-			sl_bool isHeader();
-			sl_bool isFooter();
-
-			sl_uint32 getIndex();
-
-			sl_bool remove(UIUpdateMode mode = UIUpdateMode::Redraw);
-
-			sl_ui_len getHeight();
-			void setHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-			sl_bool isVisible();
-			void setVisible(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-			sl_bool isHorizontalGrid();
-			void setHorizontalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		private:
-			void _invalidate(UIUpdateMode mode);
-
-			void _invalidateLayout(UIUpdateMode mode);
-
-		public:
-			WeakRef<GridView> m_view;
-			RecordIndex m_section;
-			sl_int32 m_index;
-
-			sl_ui_len m_height;
-			sl_ui_len m_fixedHeight;
-			sl_bool m_flagVisible;
-			sl_bool m_flagHorizontalGrid;
-
-			CellProp m_defaultProps;
-
-			friend class GridView;
-		};
-
 	private:
 		sl_bool _inheritColumn(Column* col);
 
@@ -1233,6 +1119,125 @@ namespace slib
 
 		CellAttribute* m_cellSort;
 		sl_bool m_flagSortAsc;
+
+		friend class GridViewColumn;
+		friend class GridViewRow;
+	};
+
+	class GridViewColumn : public CRef
+	{
+	public:
+		GridViewColumn(GridView* view);
+
+		~GridViewColumn();
+
+	public:
+		Ref<GridView> getView();
+		sl_uint32 getIndex();
+
+		sl_bool remove(UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getWidth();
+		void setWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setDefaultWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getMinimumWidth();
+		void setMinimumWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getMaximumWidth();
+		void setMaximumWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isVisible();
+		void setVisible(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isResizable();
+		void setResizable(sl_bool flag = sl_true);
+
+		sl_bool isBodyVerticalGrid();
+		sl_bool isHeaderVerticalGrid();
+		sl_bool isFooterVerticalGrid();
+
+		void setBodyVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setVerticalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+	private:
+		void _invalidate(UIUpdateMode mode);
+
+		void _invalidateLayout(UIUpdateMode mode);
+
+	private:
+		WeakRef<GridView> m_view;
+		sl_int32 m_index;
+
+		sl_ui_len m_width;
+		sl_ui_len m_fixedWidth;
+		sl_bool m_flagDefaultWidth;
+		sl_ui_len m_minWidth;
+		sl_ui_len m_maxWidth;
+		sl_bool m_flagVisible;
+		sl_bool m_flagResizable;
+		sl_bool m_flagBodyVerticalGrid;
+		sl_bool m_flagHeaderVerticalGrid;
+		sl_bool m_flagFooterVerticalGrid;
+
+		List<GridView::BodyCellProp> m_listBodyCell;
+		List<GridView::HeaderCellProp> m_listHeaderCell;
+		List<GridView::FooterCellProp> m_listFooterCell;
+
+		GridView::CellProp m_defaultBodyProps;
+		GridView::CellProp m_defaultHeaderProps;
+		GridView::CellProp m_defaultFooterProps;
+
+		friend class GridView;
+	};
+
+	class GridViewRow : public CRef
+	{
+	public:
+		GridViewRow(GridView* view);
+
+		~GridViewRow();
+
+	public:
+		Ref<GridView> getView();
+
+		sl_bool isBody();
+		sl_bool isHeader();
+		sl_bool isFooter();
+
+		sl_uint32 getIndex();
+
+		sl_bool remove(UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getHeight();
+		void setHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isVisible();
+		void setVisible(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isHorizontalGrid();
+		void setHorizontalGrid(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+	private:
+		void _invalidate(UIUpdateMode mode);
+
+		void _invalidateLayout(UIUpdateMode mode);
+
+	public:
+		WeakRef<GridView> m_view;
+		GridView::RecordIndex m_section;
+		sl_int32 m_index;
+
+		sl_ui_len m_height;
+		sl_ui_len m_fixedHeight;
+		sl_bool m_flagVisible;
+		sl_bool m_flagHorizontalGrid;
+
+		GridView::CellProp m_defaultProps;
+
+		friend class GridView;
 	};
 
 }

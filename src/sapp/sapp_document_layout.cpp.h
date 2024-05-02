@@ -5235,7 +5235,7 @@ namespace slib
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) {
 					SAppLayoutGridColumn& column = columns[iCol];
 					if (column.name.flagDefined) {
-						params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::GridView::Column> %s;%n", column.name.value));
+						params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::GridViewColumn> %s;%n", column.name.value));
 						params->sbDefineInit->add(String::format("\t\t\t%s = %s->getColumn(%d);%n", column.name.value, resourceItem->name, iCol));
 					}
 					LAYOUT_CONTROL_GENERATE_DIMENSION(column.maxWidth, setMaximumColumnWidth, ITEM, "%d, %s", iCol, value)
@@ -5264,7 +5264,7 @@ namespace slib
 				for (sl_size iRow = 0; iRow < rows.count; iRow++) { \
 					SAppLayoutGridRow& row = rows[iRow]; \
 					if (row.name.flagDefined) { \
-						params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::GridView::Row> %s;%n", row.name.value)); \
+						params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::GridViewRow> %s;%n", row.name.value)); \
 						params->sbDefineInit->add(String::format("\t\t\t%s = %s->get" #PREFIX "Row(%d);%n", row.name.value, resourceItem->name, iRow)); \
 					} \
 					LAYOUT_CONTROL_GENERATE_DIMENSION(row.height, set##PREFIX##RowHeight, ITEM, "%d, %s", iRow, value) \

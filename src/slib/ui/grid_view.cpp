@@ -652,7 +652,7 @@ namespace slib
 	}
 
 
-	GridView::Column::Column(GridView* view): m_view(view)
+	GridViewColumn::GridViewColumn(GridView* view): m_view(view)
 	{
 		m_index = -1;
 		m_width = 0;
@@ -665,21 +665,21 @@ namespace slib
 		m_flagFooterVerticalGrid = sl_true;
 	}
 
-	GridView::Column::~Column()
+	GridViewColumn::~GridViewColumn()
 	{
 	}
 
-	Ref<GridView> GridView::Column::getView()
+	Ref<GridView> GridViewColumn::getView()
 	{
 		return m_view;
 	}
 
-	sl_uint32 GridView::Column::getIndex()
+	sl_uint32 GridViewColumn::getIndex()
 	{
 		return m_index;
 	}
 
-	void GridView::Column::_invalidate(UIUpdateMode mode)
+	void GridViewColumn::_invalidate(UIUpdateMode mode)
 	{
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			return;
@@ -694,7 +694,7 @@ namespace slib
 		view->invalidate(mode);
 	}
 
-	void GridView::Column::_invalidateLayout(UIUpdateMode mode)
+	void GridViewColumn::_invalidateLayout(UIUpdateMode mode)
 	{
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			return;
@@ -712,9 +712,9 @@ namespace slib
 	}
 
 
-	GridView::Row::Row(GridView* view): m_view(view)
+	GridViewRow::GridViewRow(GridView* view): m_view(view)
 	{
-		m_section = OUTSIDE;
+		m_section = GridView::OUTSIDE;
 		m_height = -1;
 		m_index = -1;
 		m_fixedHeight = 0;
@@ -722,36 +722,36 @@ namespace slib
 		m_flagHorizontalGrid = sl_true;
 	}
 
-	GridView::Row::~Row()
+	GridViewRow::~GridViewRow()
 	{
 	}
 
-	Ref<GridView> GridView::Row::getView()
+	Ref<GridView> GridViewRow::getView()
 	{
 		return m_view;
 	}
 
-	sl_bool GridView::Row::isBody()
+	sl_bool GridViewRow::isBody()
 	{
-		return m_section == BODY;
+		return m_section == GridView::BODY;
 	}
 
-	sl_bool GridView::Row::isHeader()
+	sl_bool GridViewRow::isHeader()
 	{
-		return m_section == HEADER;
+		return m_section == GridView::HEADER;
 	}
 
-	sl_bool GridView::Row::isFooter()
+	sl_bool GridViewRow::isFooter()
 	{
-		return m_section == FOOTER;
+		return m_section == GridView::FOOTER;
 	}
 
-	sl_uint32 GridView::Row::getIndex()
+	sl_uint32 GridViewRow::getIndex()
 	{
 		return m_index;
 	}
 
-	void GridView::Row::_invalidate(UIUpdateMode mode)
+	void GridViewRow::_invalidate(UIUpdateMode mode)
 	{
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			return;
@@ -766,7 +766,7 @@ namespace slib
 		view->invalidate(mode);
 	}
 
-	void GridView::Row::_invalidateLayout(UIUpdateMode mode)
+	void GridViewRow::_invalidateLayout(UIUpdateMode mode)
 	{
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			return;
@@ -779,9 +779,9 @@ namespace slib
 			return;
 		}
 		ObjectLocker lock(view.get());
-		if (m_section == HEADER) {
+		if (m_section == GridView::HEADER) {
 			view->m_flagInvalidateHeaderLayout = sl_true;
-		} else if (m_section == FOOTER) {
+		} else if (m_section == GridView::FOOTER) {
 			view->m_flagInvalidateFooterLayout = sl_true;
 		} else {
 			view->m_flagInvalidateBodyLayout = sl_true;
@@ -1033,13 +1033,13 @@ namespace slib
 		invalidate(mode);
 	}
 
-	Ref<GridView::Column> GridView::getColumn(sl_uint32 index)
+	Ref<GridViewColumn> GridView::getColumn(sl_uint32 index)
 	{
 		ObjectLocker lock(this);
 		return m_columns.getValueAt_NoLock(index);
 	}
 
-	Ref<GridView::Column> GridView::addColumn(UIUpdateMode mode)
+	Ref<GridViewColumn> GridView::addColumn(UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		sl_uint32 nColumns = (sl_uint32)(m_columns.getCount());
@@ -1055,7 +1055,7 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<GridView::Column> GridView::insertColumn(sl_uint32 index, UIUpdateMode mode)
+	Ref<GridViewColumn> GridView::insertColumn(sl_uint32 index, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		sl_uint32 nColumns = (sl_uint32)(m_columns.getCount());
@@ -1098,7 +1098,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool GridView::Column::remove(UIUpdateMode mode)
+	sl_bool GridViewColumn::remove(UIUpdateMode mode)
 	{
 		if (m_index >= 0) {
 			Ref<GridView> view = m_view;
@@ -1119,7 +1119,7 @@ namespace slib
 		return 0;
 	}
 
-	sl_ui_len GridView::Column::getWidth()
+	sl_ui_len GridViewColumn::getWidth()
 	{
 		return m_width;
 	}
@@ -1139,7 +1139,7 @@ namespace slib
 		}
 	}
 
-	void GridView::Column::setWidth(sl_ui_len width, UIUpdateMode mode)
+	void GridViewColumn::setWidth(sl_ui_len width, UIUpdateMode mode)
 	{
 		if (m_maxWidth >= 0 && width > m_maxWidth) {
 			width = m_maxWidth;
@@ -1152,7 +1152,7 @@ namespace slib
 		_invalidateLayout(mode);
 	}
 
-	void GridView::Column::setDefaultWidth(sl_ui_len width, UIUpdateMode mode)
+	void GridViewColumn::setDefaultWidth(sl_ui_len width, UIUpdateMode mode)
 	{
 		if (m_maxWidth >= 0 && width > m_maxWidth) {
 			width = m_maxWidth;
@@ -1193,7 +1193,7 @@ namespace slib
 		return 0;
 	}
 
-	sl_ui_len GridView::Column::getMinimumWidth()
+	sl_ui_len GridViewColumn::getMinimumWidth()
 	{
 		return m_minWidth;
 	}
@@ -1215,7 +1215,7 @@ namespace slib
 		}
 	}
 
-	void GridView::Column::setMinimumWidth(sl_ui_len width, UIUpdateMode mode)
+	void GridViewColumn::setMinimumWidth(sl_ui_len width, UIUpdateMode mode)
 	{
 		if (width < 0) {
 			width = 0;
@@ -1263,7 +1263,7 @@ namespace slib
 		return 0;
 	}
 
-	sl_ui_len GridView::Column::getMaximumWidth()
+	sl_ui_len GridViewColumn::getMaximumWidth()
 	{
 		return m_maxWidth;
 	}
@@ -1282,7 +1282,7 @@ namespace slib
 		}
 	}
 
-	void GridView::Column::setMaximumWidth(sl_ui_len width, UIUpdateMode mode)
+	void GridViewColumn::setMaximumWidth(sl_ui_len width, UIUpdateMode mode)
 	{
 		m_maxWidth = width;
 		if (width >= 0 && m_width > width) {
@@ -1325,7 +1325,7 @@ namespace slib
 		}
 	}
 
-	sl_bool GridView::Column::isVisible()
+	sl_bool GridViewColumn::isVisible()
 	{
 		return m_flagVisible;
 	}
@@ -1341,7 +1341,7 @@ namespace slib
 		}
 	}
 
-	void GridView::Column::setVisible(sl_bool flag, UIUpdateMode mode)
+	void GridViewColumn::setVisible(sl_bool flag, UIUpdateMode mode)
 	{
 		m_flagVisible = flag;
 		_invalidateLayout(mode);
@@ -1358,7 +1358,7 @@ namespace slib
 		}
 	}
 
-	sl_bool GridView::Column::isResizable()
+	sl_bool GridViewColumn::isResizable()
 	{
 		return m_flagResizable;
 	}
@@ -1372,7 +1372,7 @@ namespace slib
 		}
 	}
 
-	void GridView::Column::setResizable(sl_bool flag)
+	void GridViewColumn::setResizable(sl_bool flag)
 	{
 		m_flagResizable = flag;
 	}
@@ -1398,7 +1398,7 @@ namespace slib
 			return sl_false; \
 		} \
 	} \
-	sl_bool GridView::Column::is##SECTION##VerticalGrid() \
+	sl_bool GridViewColumn::is##SECTION##VerticalGrid() \
 	{ \
 		return m_flag##SECTION##VerticalGrid; \
 	} \
@@ -1411,7 +1411,7 @@ namespace slib
 			invalidate(mode); \
 		} \
 	} \
-	void GridView::Column::set##SECTION##VerticalGrid(sl_bool flag, UIUpdateMode mode) \
+	void GridViewColumn::set##SECTION##VerticalGrid(sl_bool flag, UIUpdateMode mode) \
 	{ \
 		m_flag##SECTION##VerticalGrid = flag; \
 		_invalidate(mode); \
@@ -1444,7 +1444,7 @@ namespace slib
 		}
 	}
 
-	void GridView::Column::setVerticalGrid(sl_bool flag, UIUpdateMode mode)
+	void GridViewColumn::setVerticalGrid(sl_bool flag, UIUpdateMode mode)
 	{
 		m_flagBodyVerticalGrid = flag;
 		m_flagHeaderVerticalGrid = flag;
@@ -1558,7 +1558,7 @@ namespace slib
 	DEFINE_SET_ROW_COUNT(Footer, FOOTER)
 
 #define DEFINE_GET_ROW(SECTION) \
-	Ref<GridView::Row> GridView::get##SECTION##Row(sl_uint32 index) \
+	Ref<GridViewRow> GridView::get##SECTION##Row(sl_uint32 index) \
 	{ \
 		ObjectLocker lock(this); \
 		return m_list##SECTION##Row.getValueAt_NoLock(index); \
@@ -1569,7 +1569,7 @@ namespace slib
 	DEFINE_GET_ROW(Footer)
 
 #define DEFINE_ADD_ROW(SECTION, SECTION_VALUE) \
-	Ref<GridView::Row> GridView::add##SECTION##Row(UIUpdateMode mode) \
+	Ref<GridViewRow> GridView::add##SECTION##Row(UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
 		sl_uint32 nRows = (sl_uint32)(m_list##SECTION##Row.getCount()); \
@@ -1605,7 +1605,7 @@ namespace slib
 	DEFINE_ADD_ROW(Footer, FOOTER)
 
 #define DEFINE_INSERT_ROW(SECTION, SECTION_VALUE) \
-	Ref<GridView::Row> GridView::insert##SECTION##Row(sl_uint32 index, UIUpdateMode mode) \
+	Ref<GridViewRow> GridView::insert##SECTION##Row(sl_uint32 index, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
 		sl_uint32 nRows = (sl_uint32)(m_list##SECTION##Row.getCount()); \
@@ -1677,14 +1677,14 @@ namespace slib
 	DEFINE_REMOVE_ROW(Header)
 	DEFINE_REMOVE_ROW(Footer)
 
-	sl_bool GridView::Row::remove(UIUpdateMode mode)
+	sl_bool GridViewRow::remove(UIUpdateMode mode)
 	{
 		if (m_index >= 0) {
 			Ref<GridView> view = m_view;
 			if (view.isNotNull()) {
-				if (m_section == HEADER) {
+				if (m_section == GridView::HEADER) {
 					return view->removeHeaderRow(m_index, mode);
-				} else if (m_section == FOOTER) {
+				} else if (m_section == GridView::FOOTER) {
 					return view->removeFooterRow(m_index, mode);
 				} else {
 					return view->removeBodyRow(m_index, mode);
@@ -1769,7 +1769,7 @@ namespace slib
 	DEFINE_GET_SET_ROW_HEIGHT(Header)
 	DEFINE_GET_SET_ROW_HEIGHT(Footer)
 
-	sl_ui_len GridView::Row::getHeight()
+	sl_ui_len GridViewRow::getHeight()
 	{
 		if (m_height >= 0) {
 			return m_height;
@@ -1783,7 +1783,7 @@ namespace slib
 		return 0;
 	}
 
-	void GridView::Row::setHeight(sl_ui_len height, UIUpdateMode mode)
+	void GridViewRow::setHeight(sl_ui_len height, UIUpdateMode mode)
 	{
 		if (height < 0) {
 			height = 0;
@@ -1871,12 +1871,12 @@ namespace slib
 	DEFINE_GET_SET_ROW_VISIBLE(Header)
 	DEFINE_GET_SET_ROW_VISIBLE(Footer)
 
-	sl_bool GridView::Row::isVisible()
+	sl_bool GridViewRow::isVisible()
 	{
 		return m_flagVisible;
 	}
 
-	void GridView::Row::setVisible(sl_bool flag, UIUpdateMode mode)
+	void GridViewRow::setVisible(sl_bool flag, UIUpdateMode mode)
 	{
 		if (m_flagVisible != flag) {
 			m_flagVisible = flag;
@@ -1946,12 +1946,12 @@ namespace slib
 		invalidate(mode);
 	}
 
-	sl_bool GridView::Row::isHorizontalGrid()
+	sl_bool GridViewRow::isHorizontalGrid()
 	{
 		return m_flagHorizontalGrid;
 	}
 
-	void GridView::Row::setHorizontalGrid(sl_bool flag, UIUpdateMode mode)
+	void GridViewRow::setHorizontalGrid(sl_bool flag, UIUpdateMode mode)
 	{
 		m_flagHorizontalGrid = flag;
 		_invalidate(mode);

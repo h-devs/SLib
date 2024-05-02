@@ -390,6 +390,8 @@ namespace slib
 	class LabelList;
 	class TileLayout;
 	class GridView;
+	class GridViewColumn;
+	class GridViewRow;
 	class PdfView;
 	class AudioView;
 
