@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -78,6 +78,26 @@ namespace slib
 		}
 	}
 
+	sl_reg CRef::increaseReference() noexcept
+	{
+		if (m_nRefCount) {
+			return Base::interlockedIncrement(&m_nRefCount);
+		} else {
+			m_nRefCount = 1;
+			init();
+			return 1;
+		}
+	}
+
+	sl_reg CRef::decreaseReference() noexcept
+	{
+		sl_reg nRef = Base::interlockedDecrement(&m_nRefCount);
+		if (!nRef) {
+			free();
+		}
+		return nRef;
+	}
+
 	sl_reg CRef::getReferenceCount() noexcept
 	{
 		return m_nRefCount;
@@ -85,14 +105,17 @@ namespace slib
 
 	sl_reg CRef::_decreaseReference() noexcept
 	{
-		if (m_nRefCount > 0) {
-			return Base::interlockedDecrement(&m_nRefCount);
-		}
-		return -1;
+		return Base::interlockedDecrement(&m_nRefCount);
 	}
 
 	void CRef::init()
 	{
+	}
+
+	void CRef::free()
+	{
+		_clearWeak();
+		delete this;
 	}
 
 	sl_object_type CRef::ObjectType() noexcept
@@ -135,20 +158,6 @@ namespace slib
 		return sl_false;
 	}
 
-	void CRef::_clearWeak() noexcept
-	{
-		if (m_weak) {
-			m_weak->release();
-			m_weak = sl_null;
-		}
-	}
-
-	void CRef::_free() noexcept
-	{
-		_clearWeak();
-		delete this;
-	}
-
 	sl_bool CRef::_isWeakRef() const noexcept
 	{
 		return getObjectType() == CWeakRef::ObjectType();
@@ -166,6 +175,14 @@ namespace slib
 		}
 		locker->unlock();
 		return m_weak;
+	}
+
+	void CRef::_clearWeak() noexcept
+	{
+		if (m_weak) {
+			m_weak->release();
+			m_weak = sl_null;
+		}
 	}
 
 	CRef& CRef::operator=(const CRef& other) noexcept
@@ -211,9 +228,10 @@ namespace slib
 		if (obj) {
 			sl_reg n = obj->increaseReference();
 			if (n > 1) {
-				ret = obj;
+				ret.ptr = obj;
+			} else {
+				obj->_decreaseReference();
 			}
-			obj->_decreaseReference();
 		}
 		m_lock.unlock();
 		return ret;

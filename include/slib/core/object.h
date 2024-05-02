@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -54,6 +54,11 @@ namespace slib
 		~Object() noexcept;
 
 	public:
+		const Function<void()>& getOnFree();
+
+		// Not thread safe
+		void setOnFree(const Function<void()>& callback);
+
 		virtual Variant getProperty(const String& name);
 
 		virtual sl_bool setProperty(const String& name, const Variant& value);
@@ -72,7 +77,11 @@ namespace slib
 
 		Object& operator=(Object&& other) = delete;
 
+	protected:
+		void free() override;
+
 	private:
+		void* m_onFree;
 		void* m_properties;
 
 	};

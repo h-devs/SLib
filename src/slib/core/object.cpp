@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -62,15 +62,37 @@ namespace slib
 
 	SLIB_DEFINE_ROOT_OBJECT(Object)
 
-	Object::Object() noexcept: m_properties(sl_null)
+	Object::Object() noexcept: m_onFree(sl_null), m_properties(sl_null)
 	{
 	}
 
 	Object::~Object() noexcept
 	{
-		if (m_properties) {
-			delete ((CHashMap<String, Variant>*)(m_properties));
+		if (m_onFree) {
+			((Callable<void()>*)m_onFree)->decreaseReference();
 		}
+		if (m_properties) {
+			delete (CHashMap<String, Variant>*)m_properties;
+		}
+	}
+
+	void Object::free()
+	{
+		if (m_onFree) {
+			((Callable<void()>*)m_onFree)->invoke();
+		}
+		CRef::free();
+	}
+
+	const Function<void()>& Object::getOnFree()
+	{
+		return *((Function<void()>*)((void*)&m_onFree));
+	}
+
+	void Object::setOnFree(const Function<void()>& callback)
+	{
+		m_onFree = callback.ref.ptr;
+		((Callable<void()>*)m_onFree)->increaseReference();
 	}
 
 	Variant Object::getProperty(const String& name)

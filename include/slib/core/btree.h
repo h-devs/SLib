@@ -1458,12 +1458,12 @@ namespace slib
 		NodeData* m_rootNode;
 
 	protected:
-		virtual void initialize()
+		virtual void initTree()
 		{
 			m_rootNode = _createNodeData();
 		}
 
-		virtual void free()
+		virtual void freeTree()
 		{
 			_removeNode(getRootNode(), sl_false);
 		}

@@ -225,28 +225,16 @@ namespace slib
 
 		static sl_reg decreaseReference(volatile sl_reg& refCount) noexcept;
 
-		sl_reg increaseReference() noexcept
-		{
-			sl_reg nRef = increaseReference(m_nRefCount);
-			if (nRef == 1) {
-				init();
-			}
-			return nRef;
-		}
+		sl_reg increaseReference() noexcept;
 
-		sl_reg decreaseReference() noexcept
-		{
-			sl_reg nRef = decreaseReference(m_nRefCount);
-			if (!nRef) {
-				_free();
-			}
-			return nRef;
-		}
+		sl_reg decreaseReference() noexcept;
 
 		sl_reg getReferenceCount() noexcept;
 
 	protected:
 		virtual void init();
+
+		virtual void free();
 
 	public:
 		static sl_object_type ObjectType() noexcept;
@@ -266,15 +254,12 @@ namespace slib
 
 		virtual sl_bool runOperator(sl_uint32 op, Variant& result, const Variant& secondOperand, sl_bool flagThisOnLeft);
 
-	private:
-		void _clearWeak() noexcept;
-
-		void _free() noexcept;
-
 	public:
 		sl_bool _isWeakRef() const noexcept;
 
 		CWeakRef* _getWeakObject() noexcept;
+
+		void _clearWeak() noexcept;
 
 		sl_reg _decreaseReference() noexcept;
 
