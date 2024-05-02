@@ -67,6 +67,13 @@ namespace slib
 			PIP_ADAPTER_INFO AdapterInfo,
 			PULONG SizePointer
 		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			GetIpNetTable,
+			DWORD, WINAPI,
+			PMIB_IPNETTABLE pIpNetTable,
+			PULONG pdwSize,
+			BOOL bOrder
+		)
 	SLIB_IMPORT_LIBRARY_END
 
 }

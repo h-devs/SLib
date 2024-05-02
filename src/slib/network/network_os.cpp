@@ -669,4 +669,36 @@ namespace slib
 		return IPv4Address::zero();
 	}
 
+	HashMap<IPv4Address, MacAddress> Network::getArpTable()
+	{
+		HashMap<IPv4Address, MacAddress> ret;
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		auto funcGetIpNetTable = iphlpapi::getApi_GetIpNetTable();
+		if (!funcGetIpNetTable) {
+			return ret;
+		}
+		MIB_IPNETTABLE _table = { 0 };
+		DWORD size = 0;
+		funcGetIpNetTable(&_table, &size, FALSE);
+		if (size) {
+			MIB_IPNETTABLE* table = (MIB_IPNETTABLE*)(Base::createMemory(size));
+			if (!table) {
+				return ret;
+			}
+			if (funcGetIpNetTable(table, &size, FALSE) == NO_ERROR) {
+				for (DWORD i = 0; i < table->dwNumEntries; i++) {
+					MIB_IPNETROW& row = table->table[i];
+					if (row.dwType == MIB_IPNET_TYPE_DYNAMIC && row.dwPhysAddrLen == 6) {
+						IPv4Address ip((sl_uint32)(Endian::swap32(row.dwAddr)));
+						MacAddress mac(row.bPhysAddr);
+						ret.add_NoLock(ip, mac);
+					}
+				}
+			}
+			Base::freeMemory(table);
+		}
+#endif
+		return ret;
+	}
+
 }

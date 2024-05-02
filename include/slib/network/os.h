@@ -28,6 +28,7 @@
 
 #include "../core/string.h"
 #include "../core/list.h"
+#include "../core/hash_map.h"
 
 namespace slib
 {
@@ -104,6 +105,9 @@ namespace slib
 
 
 		static IPv4Address getDefaultGateway(const StringParam& interfaceName);
+
+
+		static HashMap<IPv4Address, MacAddress> getArpTable();
 
 	};
 
