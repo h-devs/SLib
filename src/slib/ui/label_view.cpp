@@ -260,7 +260,7 @@ namespace slib
 				menu->copy->setAction([label]() {
 					Clipboard::setText(label->getPlainText());
 				});
-				menu->root->show(convertCoordinateToScreen(ev->getPoint()));
+				menu->show(convertCoordinateToScreen(ev->getPoint()));
 			}
 		}
 	}

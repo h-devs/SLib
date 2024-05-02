@@ -38,7 +38,9 @@
 		static slib::Ref<NAME> create(); \
 		NAME(); \
 		slib::Ref<slib::Menu> root; \
-		slib::Ref<slib::Menu> root_menu;
+		slib::Ref<slib::Menu> root_menu; \
+		void show(sl_ui_pos x, sl_ui_pos y) const; \
+		void show(const slib::UIPoint& pt) const;
 
 #define SLIB_DECLARE_SUBMENU(NAME) \
 		slib::Ref<slib::Menu> NAME##_menu; \
@@ -63,6 +65,12 @@
 	} \
 	slib::Ref<NAME> NAME::create() { \
 		return new NAME; \
+	} \
+	void NAME::show(sl_ui_pos x, sl_ui_pos y) const { \
+		root->show(x, y); \
+	} \
+	void NAME::show(const slib::UIPoint& pt) const { \
+		root->show(pt); \
 	} \
 	NAME::NAME() { \
 		root = root_menu = slib::Menu::create(__VA_ARGS__); \

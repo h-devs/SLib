@@ -348,7 +348,7 @@ namespace slib
 			popup->remove->setAction([chatView, itemId]() {
 				chatView->_onRemoveItem(itemId);
 			});
-			popup->root->show(pt);
+			popup->show(pt);
 		}
 
 	};
