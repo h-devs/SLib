@@ -252,6 +252,17 @@ namespace slib
 
 	};
 
+	template <class LAYOUT>
+	class UILayoutController : public Object
+	{
+	public:
+		LAYOUT * ui;
+
+	public:
+		virtual void onInit() {}
+
+	};
+
 	class UILayoutResource
 	{
 	public:
@@ -265,6 +276,14 @@ namespace slib
 		sl_real getScaledPixel();
 
 		void setScaledPixel(sl_real sp);
+
+		template <class LAYOUT>
+		void setController(UILayoutController<LAYOUT>* controller)
+		{
+			m_controller = controller;
+			controller->ui = (LAYOUT*)this;
+			controller->onInit();
+		}
 
 	protected:
 		virtual void layoutViews(sl_ui_len width, sl_ui_len height) = 0;
@@ -281,6 +300,7 @@ namespace slib
 	protected:
 		View* m_contentView;
 		Ref<View> m_contentViewRef;
+		Ref<CRef> m_controller;
 
 		sl_real m_sp;
 

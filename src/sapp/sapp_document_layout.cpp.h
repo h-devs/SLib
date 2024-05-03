@@ -281,11 +281,6 @@ namespace slib
 						case SAppLayoutItemType::TreeItem:
 							type = SAppLayoutItemType::TreeItem;
 							break;
-						case SAppLayoutItemType::Tab:
-						case SAppLayoutItemType::Split:
-						case SAppLayoutItemType::Pager:
-							type = SAppLayoutItemType::ViewGroup;
-							break;
 						default:
 							break;
 					}
@@ -3976,7 +3971,11 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, itemXml, subItem., selected)
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, itemXml, sl_null)
 				if (childXmls.count > 0) {
-					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, itemXml.element, params->source);
+					if (childXmls.count != 1) {
+						logError(itemXml.element, g_str_error_resource_layout_must_contain_one_child);
+						return sl_false;
+					}
+					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
@@ -4243,7 +4242,11 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(COLOR, itemXml, subItem., dividerColor)
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, itemXml, sl_null)
 				if (childXmls.count > 0) {
-					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, itemXml.element, params->source);
+					if (childXmls.count != 1) {
+						logError(itemXml.element, g_str_error_resource_layout_must_contain_one_child);
+						return sl_false;
+					}
+					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
@@ -4518,7 +4521,11 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, itemXml, subItem., selected)
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, itemXml, sl_null)
 				if (childXmls.count > 0) {
-					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, itemXml.element, params->source);
+					if (childXmls.count != 1) {
+						logError(itemXml.element, g_str_error_resource_layout_must_contain_one_child);
+						return sl_false;
+					}
+					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(resource, resourceItem, childXmls[0], params->source);
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
@@ -4597,7 +4604,7 @@ namespace slib
 
 	}
 	END_PROCESS_LAYOUT_CONTROL
-		
+
 	BEGIN_PROCESS_LAYOUT_CONTROL(Audio, AudioView)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)

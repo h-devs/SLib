@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 #include "slib/ui/priv/view_state_map.h"
 #include "slib/ui/core.h"
 #include "slib/ui/cursor.h"
+#include "slib/ui/view_page.h"
 #include "slib/graphics/canvas.h"
 #include "slib/graphics/util.h"
 
@@ -257,9 +258,17 @@ namespace slib
 				Ref<View>& view = items[i].contentView;
 				if (view.isNotNull()) {
 					if (i == index) {
+						if (ViewPage* page = CastInstance<ViewPage>(view.get())) {
+							page->invokeResume();
+						}
 						view->setVisible(sl_true, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
 					} else {
 						view->setVisible(sl_false, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
+						if (i == former) {
+							if (ViewPage* page = CastInstance<ViewPage>(view.get())) {
+								page->invokePause();
+							}
+						}
 					}
 				}
 			}
