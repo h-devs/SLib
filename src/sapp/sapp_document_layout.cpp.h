@@ -1026,24 +1026,23 @@ namespace slib
 		return sl_true;
 	}
 
-	List< Ref<XmlElement> > SAppDocument::_getXmlChildElements(const String& localNamespace, SAppLayoutXmlItem* item, const String& tagName)
+	sl_bool SAppDocument::_getXmlChildElements(List< Ref<XmlElement> >& ret, const String& localNamespace, SAppLayoutXmlItem* item, const String& tagName)
 	{
-		List< Ref<XmlElement> > ret;
 		if (!_addXmlChildElements(ret, item->element, sl_null, localNamespace, tagName)) {
-			return sl_null;
+			return sl_false;
 		}
 		{
 			ListElements< Ref<SAppLayoutStyle> > _styles(item->styles);
 			for (sl_size i = 0; i < _styles.count; i++) {
 				Ref<SAppLayoutStyle> style = _styles[i];
 				if (style.isNotNull()) {
-					if (!_addXmlChildElements(ret, style.get(), localNamespace, tagName)) {
-						return sl_null;
+					if (!(_addXmlChildElements(ret, style.get(), localNamespace, tagName))) {
+						return sl_false;
 					}
 				}
 			}
 		}
-		return ret;
+		return sl_true;
 	}
 
 	sl_bool SAppDocument::_addXmlChildElements(List< Ref<XmlElement> >& list, SAppLayoutStyle* style, const String& localNamespace, const String& tagName)
@@ -1238,9 +1237,11 @@ namespace slib
 			if (resourceItem->flagSkipParseChildren) {
 				return sl_true;
 			}
-			ListElements< Ref<XmlElement> > children(_getXmlChildElements(params->resource->name, resourceItem, sl_null));
-			for (sl_size i = 0; i < children.count; i++) {
-				const Ref<XmlElement>& child = children[i];
+			List< Ref<XmlElement> > children;
+			if (!(_getXmlChildElements(children, params->resource->name, resourceItem, sl_null))) {
+				return sl_false;
+			}
+			for (auto&& child : children) {
 				String tagName = child->getName();
 				if (tagName == "layout") {
 					if (resourceType != SAppLayoutItemType::LinearIterate && resourceType != SAppLayoutItemType::TileIterate && resourceType != SAppLayoutItemType::List && resourceType != SAppLayoutItemType::Collection) {
@@ -1413,13 +1414,14 @@ namespace slib
 		return sl_false; \
 	}
 
-#define LAYOUT_CONTROL_GET_XML_CHILDREN(XML, TAG) _getXmlChildElements(resource->name, &XML, TAG)
-#define LAYOUT_CONTROL_DEFINE_XML_CHILDREN(NAME, XML, TAG) \
-	ListElements< Ref<XmlElement> > NAME(LAYOUT_CONTROL_GET_XML_CHILDREN(XML, TAG));
+#define LAYOUT_CONTROL_DEFINE_XML_CHILDREN(NAME, XML, TAG_NAME) \
+	List< Ref<XmlElement> > _##NAME; \
+	if (!(_getXmlChildElements(_##NAME, resource->name, &XML, TAG_NAME))) { \
+		return sl_false; \
+	} \
+	ListElements< Ref<XmlElement> > NAME(_##NAME);
 
-#define LAYOUT_CONTROL_GET_ITEM_CHILDREN(TAG) _getXmlChildElements(resource->name, resourceItem, TAG)
-#define LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(NAME, TAG) \
-	ListElements< Ref<XmlElement> > NAME(LAYOUT_CONTROL_GET_ITEM_CHILDREN(TAG));
+#define LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(NAME, TAG_NAME) LAYOUT_CONTROL_DEFINE_XML_CHILDREN(NAME, *resourceItem, TAG_NAME)
 
 	namespace {
 		static const Ref<XmlElement>& GetXmlElement(SAppLayoutXmlItem& item)
@@ -5130,27 +5132,44 @@ namespace slib
 				attr->SECTION.font.inheritFrom(attr->font); \
 			}
 
-			LAYOUT_CONTROL_DEFINE_XML(body, LAYOUT_CONTROL_GET_ITEM_CHILDREN("body").getFirstValue_NoLock())
+			LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(bodyList, "body")
+			LAYOUT_CONTROL_DEFINE_XML(body, bodyList.count ? bodyList[0] : Ref<XmlElement>::null())
 			LAYOUT_CONTROL_PARSE_GRID_SECTION(body, body)
-			if (body.element.isNull()) {
+			if (bodyList.count) {
+				if (bodyList.count != 1) {
+					logError(bodyList[1], g_str_error_resource_layout_tag_redefined);
+					return sl_false;
+				}
+			} else {
 				LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(rowXmls, "row")
 				LAYOUT_CONTROL_PARSE_GRID_ROWS(body)
 				if (attr->body.rows.isEmpty()) {
 					attr->body.rows.setCount_NoLock(1);
 				}
 			}
-
-			LAYOUT_CONTROL_DEFINE_XML(header, LAYOUT_CONTROL_GET_ITEM_CHILDREN("header").getFirstValue_NoLock())
-			if (header.element.isNull()) {
+			
+			LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(headerList, "header")
+			LAYOUT_CONTROL_DEFINE_XML(header, headerList.count ? headerList[0] : Ref<XmlElement>::null())
+			LAYOUT_CONTROL_PARSE_GRID_SECTION(header, header)
+			if (headerList.count) {
+				if (headerList.count != 1) {
+					logError(headerList[1], g_str_error_resource_layout_tag_redefined);
+					return sl_false;
+				}
+			} else {
 				if (attr->header.rows.isEmpty()) {
 					attr->header.rows.setCount_NoLock(1);
 				}
 			}
-			LAYOUT_CONTROL_PARSE_GRID_SECTION(header, header)
 
-			LAYOUT_CONTROL_DEFINE_XML(footer, LAYOUT_CONTROL_GET_ITEM_CHILDREN("footer").getFirstValue_NoLock())
-			if (footer.element.isNotNull()) {
-				LAYOUT_CONTROL_PARSE_GRID_SECTION(footer, footer)
+			LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(footerList, "footer")
+			LAYOUT_CONTROL_DEFINE_XML(footer, footerList.count ? footerList[0] : Ref<XmlElement>::null())
+			LAYOUT_CONTROL_PARSE_GRID_SECTION(footer, footer)
+			if (footerList.count) {
+				if (footerList.count != 1) {
+					logError(footerList[1], g_str_error_resource_layout_tag_redefined);
+					return sl_false;
+				}
 			}
 
 			{

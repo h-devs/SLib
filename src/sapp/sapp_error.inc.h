@@ -114,6 +114,7 @@ namespace {
 	SLIB_STATIC_STRING(g_str_error_resource_layout_failed_load_reference_view, "Layout Resource: Failed to load reference view: %s")
 	SLIB_STATIC_STRING(g_str_error_resource_layout_child_layout_already_specified, "Layout Resource: Child Layout is already defined in `item` attribute")
 	SLIB_STATIC_STRING(g_str_error_resource_layout_must_contain_one_child, "Layout Resource: The element can contain only one child")
+	SLIB_STATIC_STRING(g_str_error_resource_layout_tag_redefined, "Layout Resource: Same tag is already defined")
 	SLIB_STATIC_STRING(g_str_error_resource_layout_gridview_unknown_cell_creator, "Layout Resource: Unknown grid cell tag: %s")
 	SLIB_STATIC_STRING(g_str_log_generate_cpp_layouts_begin, "Generating: layouts.h, layouts.cpp")
 	SLIB_STATIC_STRING(g_str_error_event_invalid_prefix, "Event name have to start with `on`")
