@@ -272,7 +272,7 @@ namespace slib
 	public:
 		static sl_size encrypt(const CLASS* crypto, const void* _input, sl_size _size, void* _output, void* _counter, sl_uint32 offset)
 		{
-			if (_size == 0) {
+			if (!_size) {
 				return 0;
 			}
 			sl_uint8 mask[CLASS::BlockSize];

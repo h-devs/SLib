@@ -106,18 +106,12 @@ namespace slib
 				case VariantType::String32:
 					new PTR_VAR(String32, dst._value) String32(REF_VAR(String32, src._value));
 					break;
-				case VariantType::ObjectId:
-				case VariantType::StringData8:
-				case VariantType::StringData16:
-				case VariantType::StringData32:
-					dst._value = src._value;
-					dst._value2 = src._value2;
-					break;
 				default:
 					if (IsRef(type)) {
 						new PTR_VAR(Ref<CRef>, dst._value) Ref<CRef>(REF_VAR(Ref<CRef>, src._value));
 					} else {
 						dst._value = src._value;
+						dst._size = src._size;
 					}
 					break;
 			}
@@ -240,42 +234,49 @@ namespace slib
 	{
 		Init(*this, VariantType::Int32);
 		REF_VAR(sl_int32, _value) = value;
+		_size = 1;
 	}
 
 	Variant::Variant(unsigned char value) noexcept
 	{
 		Init(*this, VariantType::Uint32);
 		REF_VAR(sl_uint32, _value) = value;
+		_size = 1;
 	}
 
 	Variant::Variant(char value) noexcept
 	{
 		Init(*this, VariantType::Int32);
 		REF_VAR(sl_int32, _value) = (sl_int32)value;
+		_size = 1;
 	}
 
 	Variant::Variant(short value) noexcept
 	{
 		Init(*this, VariantType::Int32);
 		REF_VAR(sl_int32, _value) = value;
+		_size = 2;
 	}
 
 	Variant::Variant(unsigned short value) noexcept
 	{
 		Init(*this, VariantType::Uint32);
 		REF_VAR(sl_uint32, _value) = value;
+		_size = 2;
 	}
 
 	Variant::Variant(int value) noexcept
 	{
 		Init(*this, VariantType::Int32);
 		REF_VAR(sl_int32, _value) = (sl_int32)value;
+		_size = 4;
 	}
 
 	Variant::Variant(unsigned int value) noexcept
 	{
 		Init(*this, VariantType::Uint32);
 		REF_VAR(sl_uint32, _value) = (sl_uint32)value;
+		_size = 4;
 	}
 
 	Variant::Variant(long value) noexcept
@@ -283,9 +284,11 @@ namespace slib
 #if SLIB_LONG_SIZE == 8
 		Init(*this, VariantType::Int64);
 		REF_VAR(sl_int64, _value) = (sl_int64)value;
+		_size = 8;
 #else
 		Init(*this, VariantType::Int32);
 		REF_VAR(sl_int32, _value) = (sl_int32)value;
+		_size = 4;
 #endif
 	}
 
@@ -294,9 +297,11 @@ namespace slib
 #if SLIB_LONG_SIZE == 8
 		Init(*this, VariantType::Uint64);
 		REF_VAR(sl_uint64, _value) = (sl_uint64)value;
+		_size = 8;
 #else
 		Init(*this, VariantType::Uint32);
 		REF_VAR(sl_uint32, _value) = (sl_uint32)value;
+		_size = 4;
 #endif
 	}
 
@@ -304,24 +309,28 @@ namespace slib
 	{
 		Init(*this, VariantType::Int64);
 		REF_VAR(sl_int64, _value) = value;
+		_size = 8;
 	}
 
 	Variant::Variant(sl_uint64 value) noexcept
 	{
 		Init(*this, VariantType::Uint64);
 		REF_VAR(sl_uint64, _value) = value;
+		_size = 8;
 	}
 
 	Variant::Variant(sl_char16 value) noexcept
 	{
 		Init(*this, VariantType::Uint32);
 		REF_VAR(sl_uint32, _value) = (sl_uint32)value;
+		_size = 2;
 	}
 
 	Variant::Variant(sl_char32 value) noexcept
 	{
 		Init(*this, VariantType::Uint32);
 		REF_VAR(sl_uint32, _value) = (sl_uint32)value;
+		_size = 4;
 	}
 
 	Variant::Variant(float value) noexcept
@@ -414,7 +423,7 @@ namespace slib
 			sl_reg len = value.getUnsafeLength();
 			if (len >= 0) {
 				Init(*this, VariantType::StringData8);
-				_value2 = (sl_uint32)len;
+				_size = (sl_uint32)len;
 				REF_VAR(const sl_char8*, _value) = value.getUnsafeData();
 			} else {
 				Init(*this, VariantType::Sz8);
@@ -432,7 +441,7 @@ namespace slib
 			sl_reg len = value.getUnsafeLength();
 			if (len >= 0) {
 				Init(*this, VariantType::StringData16);
-				_value2 = (sl_uint32)len;
+				_size = (sl_uint32)len;
 				REF_VAR(const sl_char16*, _value) = value.getUnsafeData();
 			} else {
 				Init(*this, VariantType::Sz16);
@@ -450,7 +459,7 @@ namespace slib
 			sl_reg len = value.getUnsafeLength();
 			if (len >= 0) {
 				Init(*this, VariantType::StringData32);
-				_value2 = (sl_uint32)len;
+				_size = (sl_uint32)len;
 				REF_VAR(const sl_char32*, _value) = value.getUnsafeData();
 			} else {
 				Init(*this, VariantType::Sz32);
@@ -737,11 +746,11 @@ namespace slib
 				case VariantType::Sz32:
 					return StringView32(REF_VAR(sl_char32 const* const, _value)) + StringView32(REF_VAR(sl_char32 const* const, other._value));
 				case VariantType::StringData8:
-					return StringView(REF_VAR(sl_char8 const* const, _value), _value2) + StringView(REF_VAR(sl_char8 const* const, other._value), other._value2);
+					return StringView(REF_VAR(sl_char8 const* const, _value), _size) + StringView(REF_VAR(sl_char8 const* const, other._value), other._size);
 				case VariantType::StringData16:
-					return StringView16(REF_VAR(sl_char16 const* const, _value), _value2) + StringView16(REF_VAR(sl_char16 const* const, other._value), other._value2);
+					return StringView16(REF_VAR(sl_char16 const* const, _value), _size) + StringView16(REF_VAR(sl_char16 const* const, other._value), other._size);
 				case VariantType::StringData32:
-					return StringView32(REF_VAR(sl_char32 const* const, _value), _value2) + StringView32(REF_VAR(sl_char32 const* const, other._value), other._value2);
+					return StringView32(REF_VAR(sl_char32 const* const, _value), _size) + StringView32(REF_VAR(sl_char32 const* const, other._value), other._size);
 				case VariantType::BigInt:
 					return REF_VAR(BigInt const, _value) + REF_VAR(BigInt const, other._value);
 				default:
@@ -1517,11 +1526,11 @@ namespace slib
 				case VariantType::Sz32:
 					return ParseNumber(StringView32(REF_VAR(sl_char32 const* const, var._value)), _out);
 				case VariantType::StringData8:
-					return ParseNumber(StringView(REF_VAR(sl_char8 const* const, var._value), var._value2), _out);
+					return ParseNumber(StringView(REF_VAR(sl_char8 const* const, var._value), var._size), _out);
 				case VariantType::StringData16:
-					return ParseNumber(StringView16(REF_VAR(sl_char16 const* const, var._value), var._value2), _out);
+					return ParseNumber(StringView16(REF_VAR(sl_char16 const* const, var._value), var._size), _out);
 				case VariantType::StringData32:
-					return ParseNumber(StringView32(REF_VAR(sl_char32 const* const, var._value), var._value2), _out);
+					return ParseNumber(StringView32(REF_VAR(sl_char32 const* const, var._value), var._size), _out);
 				case VariantType::Pointer:
 					if (_out) {
 						*_out = (NUMBER)(REF_VAR(const sl_size, var._value));
@@ -1569,6 +1578,57 @@ namespace slib
 		Free(_type, _value);
 		Init(*this, VariantType::Int32);
 		REF_VAR(sl_int32, _value) = value;
+		_size = 4;
+	}
+
+	sl_bool Variant::getInt8(sl_int8* _out) const noexcept
+	{
+		sl_int32 n;
+		if (getInt32(&n)) {
+			if (_out) {
+				*_out = (sl_int8)n;
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_int8 Variant::getInt8(sl_int8 def) const noexcept
+	{
+		return (sl_int8)(getInt32(def));
+	}
+
+	void Variant::setInt8(sl_int8 value) noexcept
+	{
+		Free(_type, _value);
+		Init(*this, VariantType::Int32);
+		REF_VAR(sl_int32, _value) = value;
+		_size = 1;
+	}
+
+	sl_bool Variant::getInt16(sl_int16* _out) const noexcept
+	{
+		sl_int32 n;
+		if (getInt32(&n)) {
+			if (_out) {
+				*_out = (sl_int16)n;
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_int16 Variant::getInt16(sl_int16 def) const noexcept
+	{
+		return (sl_int16)(getInt32(def));
+	}
+
+	void Variant::setInt16(sl_int16 value) noexcept
+	{
+		Free(_type, _value);
+		Init(*this, VariantType::Int32);
+		REF_VAR(sl_int32, _value) = value;
+		_size = 2;
 	}
 
 	sl_bool Variant::isUint32() const noexcept
@@ -1595,6 +1655,57 @@ namespace slib
 		Free(_type, _value);
 		Init(*this, VariantType::Uint32);
 		REF_VAR(sl_uint32, _value) = value;
+		_size = 4;
+	}
+
+	sl_bool Variant::getUint8(sl_uint8* _out) const noexcept
+	{
+		sl_uint32 n;
+		if (getUint32(&n)) {
+			if (_out) {
+				*_out = (sl_uint8)n;
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_uint8 Variant::getUint8(sl_uint8 def) const noexcept
+	{
+		return (sl_uint8)(getUint32(def));
+	}
+
+	void Variant::setUint8(sl_uint8 value) noexcept
+	{
+		Free(_type, _value);
+		Init(*this, VariantType::Uint32);
+		REF_VAR(sl_uint32, _value) = value;
+		_size = 1;
+	}
+
+	sl_bool Variant::getUint16(sl_uint16* _out) const noexcept
+	{
+		sl_uint32 n;
+		if (getUint32(&n)) {
+			if (_out) {
+				*_out = (sl_uint16)n;
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_uint16 Variant::getUint16(sl_uint16 def) const noexcept
+	{
+		return (sl_uint16)(getUint32(def));
+	}
+
+	void Variant::setUint16(sl_uint16 value) noexcept
+	{
+		Free(_type, _value);
+		Init(*this, VariantType::Uint32);
+		REF_VAR(sl_uint32, _value) = value;
+		_size = 2;
 	}
 
 	sl_bool Variant::isInt64() const noexcept
@@ -1621,6 +1732,7 @@ namespace slib
 		Free(_type, _value);
 		Init(*this, VariantType::Int64);
 		REF_VAR(sl_int64, _value) = value;
+		_size = 8;
 	}
 
 	sl_bool Variant::isUint64() const noexcept
@@ -1647,6 +1759,7 @@ namespace slib
 		Free(_type, _value);
 		Init(*this, VariantType::Uint64);
 		REF_VAR(sl_uint64, _value) = value;
+		_size = 8;
 	}
 
 	sl_bool Variant::isIntegerType() const noexcept
@@ -1662,6 +1775,11 @@ namespace slib
 	sl_bool Variant::isUnsignedIntegerType() const noexcept
 	{
 		return _type == VariantType::Uint32 || _type == VariantType::Uint64;
+	}
+
+	sl_uint32 Variant::getIntegerSize() const noexcept
+	{
+		return isIntegerType() ? _size : 0;
 	}
 
 	sl_bool Variant::isFloat() const noexcept
@@ -1800,11 +1918,11 @@ namespace slib
 			case VariantType::Sz32:
 				return StringView32(REF_VAR(sl_char32 const* const, _value)).parseBoolean(def);
 			case VariantType::StringData8:
-				return StringView(REF_VAR(sl_char8 const* const, _value), _value2).parseBoolean(def);
+				return StringView(REF_VAR(sl_char8 const* const, _value), _size).parseBoolean(def);
 			case VariantType::StringData16:
-				return StringView16(REF_VAR(sl_char16 const* const, _value), _value2).parseBoolean(def);
+				return StringView16(REF_VAR(sl_char16 const* const, _value), _size).parseBoolean(def);
 			case VariantType::StringData32:
-				return StringView32(REF_VAR(sl_char32 const* const, _value), _value2).parseBoolean(def);
+				return StringView32(REF_VAR(sl_char32 const* const, _value), _size).parseBoolean(def);
 			default:
 				break;
 		}
@@ -1951,11 +2069,11 @@ namespace slib
 				case VariantType::Sz32:
 					return STRING::create(REF_VAR(sl_char32 const* const, var._value));
 				case VariantType::StringData8:
-					return STRING::create(REF_VAR(sl_char8 const* const, var._value), var._value2);
+					return STRING::create(REF_VAR(sl_char8 const* const, var._value), var._size);
 				case VariantType::StringData16:
-					return STRING::create(REF_VAR(sl_char16 const* const, var._value), var._value2);
+					return STRING::create(REF_VAR(sl_char16 const* const, var._value), var._size);
 				case VariantType::StringData32:
-					return STRING::create(REF_VAR(sl_char32 const* const, var._value), var._value2);
+					return STRING::create(REF_VAR(sl_char32 const* const, var._value), var._size);
 				case VariantType::Pointer:
 					{
 						typename STRING::Char ch = '#';
@@ -2029,7 +2147,7 @@ namespace slib
 		case VariantType::String##BITS: \
 			return REF_VAR(typename StringTypeFromCharType<sl_char##BITS>::Type, _value); \
 		case VariantType::StringData##BITS: \
-			return typename StringViewTypeFromCharType<sl_char##BITS>::Type(REF_VAR(sl_char##BITS const* const, _value), _value2); \
+			return typename StringViewTypeFromCharType<sl_char##BITS>::Type(REF_VAR(sl_char##BITS const* const, _value), _size); \
 		default: \
 			break; \
 	} \
@@ -2114,11 +2232,11 @@ namespace slib
 			case VariantType::Sz32:
 				return REF_VAR(sl_char32 const* const, _value);
 			case VariantType::StringData8:
-				return StringParam(REF_VAR(sl_char8 const* const, _value), _value2);
+				return StringParam(REF_VAR(sl_char8 const* const, _value), _size);
 			case VariantType::StringData16:
-				return StringParam(REF_VAR(sl_char16 const* const, _value), _value2);
+				return StringParam(REF_VAR(sl_char16 const* const, _value), _size);
 			case VariantType::StringData32:
-				return StringParam(REF_VAR(sl_char32 const* const, _value), _value2);
+				return StringParam(REF_VAR(sl_char32 const* const, _value), _size);
 			case VariantType::Null:
 				break;
 			default:
@@ -2175,17 +2293,17 @@ namespace slib
 			case VariantType::StringData8:
 				data.charSize = 1;
 				data.data8 = REF_VAR(sl_char8*, _value);
-				data.length = _value2;
+				data.length = _size;
 				return sl_true;
 			case VariantType::StringData16:
 				data.charSize = 2;
 				data.data16 = REF_VAR(sl_char16*, _value);
-				data.length = _value2;
+				data.length = _size;
 				return sl_true;
 			case VariantType::StringData32:
 				data.charSize = 4;
 				data.data32 = REF_VAR(sl_char32*, _value);
-				data.length = _value2;
+				data.length = _size;
 				return sl_true;
 			default:
 				break;
@@ -2305,7 +2423,7 @@ namespace slib
 				Init(*this, VariantType::Sz8);
 			} else {
 				Init(*this, VariantType::StringData8);
-				_value2 = (sl_uint32)len;
+				_size = (sl_uint32)len;
 			}
 		} else {
 			setNull();
@@ -2322,7 +2440,7 @@ namespace slib
 				Init(*this, VariantType::Sz16);
 			} else {
 				Init(*this, VariantType::StringData16);
-				_value2 = (sl_uint32)len;
+				_size = (sl_uint32)len;
 			}
 		} else {
 			setNull();
@@ -2339,7 +2457,7 @@ namespace slib
 				Init(*this, VariantType::Sz32);
 			} else {
 				Init(*this, VariantType::StringData32);
-				_value2 = (sl_uint32)len;
+				_size = (sl_uint32)len;
 			}
 		} else {
 			setNull();
@@ -2501,24 +2619,24 @@ namespace slib
 				}
 			case VariantType::StringData8:
 				if (_out) {
-					return _out->parse(StringParam(REF_VAR(sl_char8 const* const, _value), _value2));
+					return _out->parse(StringParam(REF_VAR(sl_char8 const* const, _value), _size));
 				} else {
 					Time t;
-					return t.parse(StringParam(REF_VAR(sl_char8 const* const, _value), _value2));
+					return t.parse(StringParam(REF_VAR(sl_char8 const* const, _value), _size));
 				}
 			case VariantType::StringData16:
 				if (_out) {
-					return _out->parse(StringParam(REF_VAR(sl_char16 const* const, _value), _value2));
+					return _out->parse(StringParam(REF_VAR(sl_char16 const* const, _value), _size));
 				} else {
 					Time t;
-					return t.parse(StringParam(REF_VAR(sl_char16 const* const, _value), _value2));
+					return t.parse(StringParam(REF_VAR(sl_char16 const* const, _value), _size));
 				}
 			case VariantType::StringData32:
 				if (_out) {
-					return _out->parse(StringParam(REF_VAR(sl_char32 const* const, _value), _value2));
+					return _out->parse(StringParam(REF_VAR(sl_char32 const* const, _value), _size));
 				} else {
 					Time t;
-					return t.parse(StringParam(REF_VAR(sl_char32 const* const, _value), _value2));
+					return t.parse(StringParam(REF_VAR(sl_char32 const* const, _value), _size));
 				}
 			default:
 				break;
@@ -2826,7 +2944,7 @@ namespace slib
 			case VariantType::StringData8:
 			case VariantType::StringData16:
 			case VariantType::StringData32:
-				return _value2;
+				return _size;
 			case VariantType::Sz8:
 				return Base::getStringLength(REF_VAR(sl_char8*, _value));
 			case VariantType::Sz16:
@@ -3471,6 +3589,7 @@ namespace slib
 
 	sl_size SerializeVariantPrimitive(const Variant& var, void* _buf, sl_size size)
 	{
+		sl_uint8 type = var._type;
 		sl_uint8* buf = (sl_uint8*)_buf;
 		sl_size nPrefix;
 		if (var._tag) {
@@ -3478,14 +3597,58 @@ namespace slib
 		} else {
 			nPrefix = 1;
 		}
-		switch (var._type) {
+		switch (type) {
 			case VariantType::Int32:
+				if (var._size == 1) {
+					if (size < nPrefix + 1) {
+						return 0;
+					}
+					type = VariantType::SerializeInt8;
+					buf[nPrefix] = (sl_int8)(REF_VAR(sl_int32, var._value));
+					size = nPrefix + 1;
+				} else if (var._size == 2) {
+					if (size < nPrefix + 2) {
+						return 0;
+					}
+					type = VariantType::SerializeInt16;
+					MIO::writeInt16LE(buf + nPrefix, (sl_int16)(REF_VAR(sl_int32, var._value)));
+					size = nPrefix + 2;
+				} else {
+					if (size < nPrefix + 4) {
+						return 0;
+					}
+					MIO::writeInt32LE(buf + nPrefix, REF_VAR(sl_int32, var._value));
+					size = nPrefix + 4;
+				}
+				break;
 			case VariantType::Uint32:
+				if (var._size == 1) {
+					if (size < nPrefix + 1) {
+						return 0;
+					}
+					type = VariantType::SerializeUint8;
+					buf[nPrefix] = (sl_uint8)(REF_VAR(sl_uint32, var._value));
+					size = nPrefix + 1;
+				} else if (var._size == 2) {
+					if (size < nPrefix + 2) {
+						return 0;
+					}
+					type = VariantType::SerializeUint16;
+					MIO::writeUint16LE(buf + nPrefix, (sl_uint16)(REF_VAR(sl_uint32, var._value)));
+					size = nPrefix + 2;
+				} else {
+					if (size < nPrefix + 4) {
+						return 0;
+					}
+					MIO::writeUint32LE(buf + nPrefix, REF_VAR(sl_uint32, var._value));
+					size = nPrefix + 4;
+				}
+				break;
 			case VariantType::Float:
 				if (size < nPrefix + 4) {
 					return 0;
 				}
-				MIO::writeUint32LE(buf + nPrefix, *((sl_uint32*)((void*)&(var._value))));
+				MIO::writeUint32LE(buf + nPrefix, REF_VAR(sl_uint32, var._value));
 				size = nPrefix + 4;
 				break;
 			case VariantType::Int64:
@@ -3509,7 +3672,7 @@ namespace slib
 				if (size < nPrefix + 1) {
 					return 0;
 				}
-				buf[nPrefix] = *((bool*)((void*)&(var._value))) ? 1 : 0;
+				buf[nPrefix] = REF_VAR(bool, var._value) ? 1 : 0;
 				size = nPrefix + 1;
 				break;
 			case VariantType::Null:
@@ -3522,10 +3685,10 @@ namespace slib
 				return 0;
 		}
 		if (var._tag) {
-			buf[0] = var._type | 0x80;
+			buf[0] = type | 0x80;
 			buf[1] = var._tag;
 		} else {
-			buf[0] = var._type;
+			buf[0] = type;
 		}
 		return size;
 	}
@@ -3689,11 +3852,11 @@ namespace slib
 				case VariantType::Sz32:
 					return Base::compareString4(REF_VAR(sl_char32 const* const, _value), REF_VAR(sl_char32 const* const, other._value));
 				case VariantType::StringData8:
-					return StringView(REF_VAR(sl_char8 const* const, _value), _value2).compare(StringView(REF_VAR(sl_char8 const* const, other._value), other._value2));
+					return StringView(REF_VAR(sl_char8 const* const, _value), _size).compare(StringView(REF_VAR(sl_char8 const* const, other._value), other._size));
 				case VariantType::StringData16:
-					return StringView16(REF_VAR(sl_char16 const* const, _value), _value2).compare(StringView16(REF_VAR(sl_char16 const* const, other._value), other._value2));
+					return StringView16(REF_VAR(sl_char16 const* const, _value), _size).compare(StringView16(REF_VAR(sl_char16 const* const, other._value), other._size));
 				case VariantType::StringData32:
-					return StringView32(REF_VAR(sl_char32 const* const, _value), _value2).compare(StringView32(REF_VAR(sl_char32 const* const, other._value), other._value2));
+					return StringView32(REF_VAR(sl_char32 const* const, _value), _size).compare(StringView32(REF_VAR(sl_char32 const* const, other._value), other._size));
 				case VariantType::Pointer:
 					return ComparePrimitiveValues(REF_VAR(sl_size const, _value), REF_VAR(sl_size const, other._value));
 				case VariantType::ObjectId:
@@ -3834,11 +3997,11 @@ namespace slib
 				case VariantType::Sz32:
 					return Base::equalsString4(REF_VAR(sl_char32 const* const, _value), REF_VAR(sl_char32 const* const, other._value));
 				case VariantType::StringData8:
-					return StringView(REF_VAR(sl_char8 const* const, _value), _value2) == StringView(REF_VAR(sl_char8 const* const, other._value), other._value2);
+					return StringView(REF_VAR(sl_char8 const* const, _value), _size) == StringView(REF_VAR(sl_char8 const* const, other._value), other._size);
 				case VariantType::StringData16:
-					return StringView16(REF_VAR(sl_char16 const* const, _value), _value2) == StringView16(REF_VAR(sl_char16 const* const, other._value), other._value2);
+					return StringView16(REF_VAR(sl_char16 const* const, _value), _size) == StringView16(REF_VAR(sl_char16 const* const, other._value), other._size);
 				case VariantType::StringData32:
-					return StringView32(REF_VAR(sl_char32 const* const, _value), _value2) == StringView32(REF_VAR(sl_char32 const* const, other._value), other._value2);
+					return StringView32(REF_VAR(sl_char32 const* const, _value), _size) == StringView32(REF_VAR(sl_char32 const* const, other._value), other._size);
 				case VariantType::Pointer:
 					return REF_VAR(void const* const, _value) == REF_VAR(void const* const, other._value);
 				case VariantType::ObjectId:
@@ -3972,11 +4135,11 @@ namespace slib
 			case VariantType::Sz32:
 				return String32::getHashCode(REF_VAR(sl_char32 const* const, _value));
 			case VariantType::StringData8:
-				return String::getHashCode(REF_VAR(sl_char8 const* const, _value), _value2);
+				return String::getHashCode(REF_VAR(sl_char8 const* const, _value), _size);
 			case VariantType::StringData16:
-				return String16::getHashCode(REF_VAR(sl_char16 const* const, _value), _value2);
+				return String16::getHashCode(REF_VAR(sl_char16 const* const, _value), _size);
 			case VariantType::StringData32:
-				return String32::getHashCode(REF_VAR(sl_char32 const* const, _value), _value2);
+				return String32::getHashCode(REF_VAR(sl_char32 const* const, _value), _size);
 			case VariantType::Pointer:
 			case VariantType::Object:
 				return Rehash(REF_VAR(sl_size const, _value));

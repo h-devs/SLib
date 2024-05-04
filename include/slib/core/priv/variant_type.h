@@ -62,7 +62,11 @@ namespace slib
 			Memory = Ref + 6,
 			BigInt = Ref + 7,
 			Promise = Ref + 8,
-			Function = Ref + 9
+			Function = Ref + 9,
+			SerializeUint16 = 124,
+			SerializeInt16 = 125,
+			SerializeUint8 = 126,
+			SerializeInt8 = 127
 		};
 
 	};

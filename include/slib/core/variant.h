@@ -104,6 +104,7 @@ namespace slib
 		union {
 			sl_uint32 _value2;
 			sl_uint8 _m2[4];
+			sl_uint32 _size;
 		};
 		union {
 			sl_uint16 _value3;
@@ -454,6 +455,18 @@ namespace slib
 
 		void setInt32(sl_int32 value) noexcept;
 
+		sl_bool getInt8(sl_int8* _out) const noexcept;
+
+		sl_int8 getInt8(sl_int8 def = 0) const noexcept;
+
+		void setInt8(sl_int8 value) noexcept;
+
+		sl_bool getInt16(sl_int16* _out) const noexcept;
+
+		sl_int16 getInt16(sl_int16 def = 0) const noexcept;
+
+		void setInt16(sl_int16 value) noexcept;
+
 		sl_bool isUint32() const noexcept;
 
 		sl_bool getUint32(sl_uint32* _out) const noexcept;
@@ -461,6 +474,18 @@ namespace slib
 		sl_uint32 getUint32(sl_uint32 def = 0) const noexcept;
 
 		void setUint32(sl_uint32 value) noexcept;
+
+		sl_bool getUint8(sl_uint8* _out) const noexcept;
+
+		sl_uint8 getUint8(sl_uint8 def = 0) const noexcept;
+
+		void setUint8(sl_uint8 value) noexcept;
+
+		sl_bool getUint16(sl_uint16* _out) const noexcept;
+
+		sl_uint16 getUint16(sl_uint16 def = 0) const noexcept;
+
+		void setUint16(sl_uint16 value) noexcept;
 
 		sl_bool isInt64() const noexcept;
 
@@ -483,6 +508,8 @@ namespace slib
 		sl_bool isSignedIntegerType() const noexcept;
 
 		sl_bool isUnsignedIntegerType() const noexcept;
+
+		sl_uint32 getIntegerSize() const noexcept;
 
 		sl_bool isFloat() const noexcept;
 

@@ -51,7 +51,7 @@ namespace slib
 
 	sl_bool DbIp::parse(const void* _data, sl_size _size)
 	{
-		if (_size == 0 || _size >= 0x80000000) {
+		if (!_size || _size >= 0x80000000) {
 			return sl_false;
 		}
 		char* sz = (char*)_data;

@@ -163,6 +163,47 @@ namespace slib
 						_free(_type, _value);
 						_type = type;
 						*((sl_uint32*)((void*)&_value)) = MIO::readUint32LE(buf);
+						_size = 4;
+					} else {
+						return sl_false;
+					}
+					break;
+				}
+			case VariantType::SerializeInt8:
+				{
+					sl_uint8 v;
+					if (DeserializeByte(input, v)) {
+						setInt8((sl_int8)v);
+					} else {
+						return sl_false;
+					}
+					break;
+				}
+			case VariantType::SerializeUint8:
+				{
+					sl_uint8 v;
+					if (DeserializeByte(input, v)) {
+						setUint8(v);
+					} else {
+						return sl_false;
+					}
+					break;
+				}
+			case VariantType::SerializeInt16:
+				{
+					sl_uint8 buf[2];
+					if (DeserializeRaw(input, buf, 2)) {
+						setInt16(MIO::readInt16LE(buf));
+					} else {
+						return sl_false;
+					}
+					break;
+				}
+			case VariantType::SerializeUint16:
+				{
+					sl_uint8 buf[2];
+					if (DeserializeRaw(input, buf, 2)) {
+						setUint16(MIO::readUint16LE(buf));
 					} else {
 						return sl_false;
 					}
@@ -178,6 +219,7 @@ namespace slib
 						_free(_type, _value);
 						_type = type;
 						_value = MIO::readUint64LE(buf);
+						_size = 8;
 					} else {
 						return sl_false;
 					}
