@@ -127,9 +127,19 @@ namespace slib
 					do {
 						if (hWndModalDialog) {
 							if (msg.message == WM_KEYDOWN || msg.message == WM_SYSKEYDOWN || msg.message == WM_KEYUP || msg.message == WM_SYSKEYUP) {
-								if (hWndModalDialog != msg.hwnd && hWndModalDialog != GetAncestor(msg.hwnd, GA_ROOT)) {
-									msg.hwnd = hWndModalDialog;
-									SetFocus(hWndModalDialog);
+								if (hWndModalDialog != msg.hwnd) {
+									HWND hWndInput = GetAncestor(msg.hwnd, GA_ROOT);
+									if (hWndModalDialog != hWndInput) {
+										HWND hWnd = GetWindow(hWndModalDialog, GW_OWNER);
+										while (hWnd) {
+											if (hWnd == hWndInput) {
+												msg.hwnd = hWndModalDialog;
+												SetFocus(hWndModalDialog);
+												break;
+											}
+											hWnd = GetWindow(hWnd, GW_OWNER);
+										}
+									}
 								}
 							}
 						}
