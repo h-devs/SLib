@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,21 +20,41 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DATA_JSON
-#define CHECKHEADER_SLIB_DATA_JSON
+#ifndef CHECKHEADER_SLIB_DATA_JSON_CVLI
+#define CHECKHEADER_SLIB_DATA_JSON_CVLI
 
-#include "json/core.h"
-#include "json/macro.h"
-#include "json/conv.h"
-#include "json/generic.h"
-#include "json/ref.h"
-#include "json/shared.h"
-#include "json/list.h"
-#include "json/map.h"
-#include "json/set.h"
-#include "json/nullable.h"
-#include "json/atomic.h"
-#include "json/bytes.h"
-#include "json/cvli.h"
+#include "core.h"
+
+#include "../cvli.h"
+
+namespace slib
+{
+
+	template <class T>
+	static void FromJson(const Json& json, CVLType<T>& _out)
+	{
+		FromJson(json, _out.value);
+	}
+
+	template <class T>
+	static Json ToJson(const CVLType<T>& _in)
+	{
+		T n = _in.value;
+		sl_uint8 n8 = (sl_uint8)n;
+		if (n == n8) {
+			return n8;
+		}
+		sl_uint16 n16 = (sl_uint16)n;
+		if (n == n16) {
+			return n16;
+		}
+		sl_uint32 n32 = (sl_uint32)n;
+		if (n == n32) {
+			return n32;
+		}
+		return n;
+	}
+
+}
 
 #endif
