@@ -37,6 +37,9 @@ namespace slib
 				logError(element, g_str_error_resource_string_locale_invalid, strLocale);
 				return sl_false;
 			}
+			if (_isExcludedLocale(locale)) {
+				return sl_true;
+			}
 		}
 		if (locale == Locale::Unknown) {
 			locale = localeDefault;
@@ -74,6 +77,9 @@ namespace slib
 			if (locale.isInvalid()) {
 				logError(element, g_str_error_resource_string_locale_invalid, strLocale);
 				return sl_false;
+			}
+			if (_isExcludedLocale(locale)) {
+				return sl_true;
 			}
 		}
 		if (locale == Locale::Unknown) {

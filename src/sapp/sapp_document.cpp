@@ -215,8 +215,10 @@ namespace slib
 						logError(g_str_error_resource_drawable_locale_invalid, fileName);
 						return sl_false;
 					}
-					if (!(_registerFileResources(fileName, File::concatPath(pathApp, fileName), locale))) {
-						return sl_false;
+					if (!(_isExcludedLocale(locale))) {
+						if (!(_registerFileResources(fileName, File::concatPath(pathApp, fileName), locale))) {
+							return sl_false;
+						}
 					}
 				}
 			}
@@ -359,6 +361,21 @@ namespace slib
 			ret = File::concatPath(File::getParentDirectoryPath(currentFilePath), path);
 		}
 		return ret;
+	}
+
+	sl_bool SAppDocument::_isExcludedLocale(const Locale& locale)
+	{
+		slib::Locale localeLang(locale.getLanguage());
+		slib::Locale localeLangCountry(locale.getLanguage(), locale.getCountry());
+		slib::Locale localeDetail(locale.getLanguage(), locale.getScript(), slib::Country::Unknown);
+		ListLocker<Locale> excludes(m_conf.locale_excludes);
+		for (sl_size i = 0; i < excludes.count; i++) {
+			Locale& localeSource = excludes[i];
+			if (locale == localeSource || localeLang == localeSource || localeLangCountry == localeSource || localeDetail == localeSource) {
+				return sl_true;
+			}
+		}
+		return sl_false;
 	}
 
 	sl_bool SAppDocument::generateCpp()
@@ -711,6 +728,31 @@ namespace slib
 					}
 				}
 			}
+
+			// locale
+			{
+				Ref<XmlElement> el_locale = root->getFirstChildElement("locale");
+				if (el_locale.isNotNull()) {
+					// exclude
+					{
+						ListElements< Ref<XmlElement> > el_excludes(el_locale->getChildElements("exclude"));
+						for (sl_size i = 0; i < el_excludes.count; i++) {
+							Ref<XmlElement>& el_exclude = el_excludes[i];
+							String exclude = el_exclude->getText();
+							Locale locale;
+							if (locale.parse(exclude)) {
+								if (!(conf.locale_excludes.add_NoLock(locale))) {
+									logError(el_exclude, g_str_error_out_of_memory);
+									return sl_false;
+								}
+							} else {
+								logError(el_exclude, String::format(g_str_error_configuration_value_invalid, "exclude", exclude));
+								return sl_false;
+							}
+						}
+					}
+				}
+			}
 			return sl_true;
 		});
 	}
@@ -718,7 +760,6 @@ namespace slib
 	void SAppDocument::_freeResources()
 	{
 		clearAllResources();
-
 		{
 			ListLocker< Ref<SAppLayoutSimulationWindow> > windows(m_layoutSimulationWindows);
 			for (sl_size i = 0; i < windows.count; i++) {
@@ -764,6 +805,10 @@ namespace slib
 			locale = Locale(fileName.substring(8));
 			if (locale.isInvalid()) {
 				locale = Locale::Unknown;
+			} else {
+				if (_isExcludedLocale(locale)) {
+					return sl_true;
+				}
 			}
 		}
 

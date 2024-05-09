@@ -48,6 +48,7 @@ namespace slib
 		List<String> generate_cpp_layout_include_headers_in_cpp;
 
 		Locale simulator_locale;
+		List<Locale> locale_excludes;
 
 	public:
 		SAppConfiguration();
@@ -154,6 +155,7 @@ namespace slib
 		sl_bool _openUiResourceByName(const String& name);
 		sl_bool _openUiResourceByName(const String& name, sl_bool& flagFound, const SAppModuleConfiguration& conf, HashSet<String>& includedSet);
 		String _resolvePath(const String& path, const String& currentFilePath);
+		sl_bool _isExcludedLocale(const Locale& locale);
 
 		// Resources Entry
 		sl_bool _parseModuleConfiguration(const String& filePath, SAppModuleConfiguration& conf, const Function<sl_bool(XmlElement* root)>& onAdditionalConfig);
