@@ -21,7 +21,6 @@
  */
 
 #include "slib/crypto/aes.h"
-#include "slib/crypto/3aes.h"
 
 #include "slib/crypto/sha2.h"
 
@@ -606,84 +605,6 @@ Roundn (Last):
 			}
 		}
 		return sl_null;
-	}
-
-
-	TripleAES::TripleAES()
-	{
-	}
-
-	TripleAES::~TripleAES()
-	{
-	}
-
-	void TripleAES::setKey(const void* key1, const void* key2, const void* key3)
-	{
-		m_aes1.setKey(key1, 32);
-		m_aes2.setKey(key2, 32);
-		m_aes3.setKey(key3, 32);
-	}
-
-	void TripleAES::setKey(const void* _key)
-	{
-		char* key = (char*)(_key);
-		m_aes1.setKey(key, 32);
-		m_aes2.setKey(key + 32, 32);
-		m_aes3.setKey(key + 64, 32);
-	}
-
-	void TripleAES::encrypt(sl_uint32& d0, sl_uint32& d1, sl_uint32& d2, sl_uint32& d3) const
-	{
-		m_aes1.encrypt(d0, d1, d2, d3);
-		m_aes2.decrypt(d0, d1, d2, d3);
-		m_aes3.encrypt(d0, d1, d2, d3);
-	}
-
-	void TripleAES::decrypt(sl_uint32& d0, sl_uint32& d1, sl_uint32& d2, sl_uint32& d3) const
-	{
-		m_aes3.decrypt(d0, d1, d2, d3);
-		m_aes2.encrypt(d0, d1, d2, d3);
-		m_aes1.decrypt(d0, d1, d2, d3);
-	}
-
-	void TripleAES::encryptBlock(const void* _src, void* _dst) const
-	{
-		const sl_uint8* src = (const sl_uint8*)_src;
-		sl_uint8* dst = (sl_uint8*)_dst;
-
-		sl_uint32 d0 = MIO::readUint32BE(src);
-		sl_uint32 d1 = MIO::readUint32BE(src + 4);
-		sl_uint32 d2 = MIO::readUint32BE(src + 8);
-		sl_uint32 d3 = MIO::readUint32BE(src + 12);
-
-		m_aes3.decrypt(d0, d1, d2, d3);
-		m_aes2.encrypt(d0, d1, d2, d3);
-		m_aes1.decrypt(d0, d1, d2, d3);
-
-		MIO::writeUint32BE(dst, d0);
-		MIO::writeUint32BE(dst + 4, d1);
-		MIO::writeUint32BE(dst + 8, d2);
-		MIO::writeUint32BE(dst + 12, d3);
-	}
-
-	void TripleAES::decryptBlock(const void* _src, void* _dst) const
-	{
-		const sl_uint8* src = (const sl_uint8*)_src;
-		sl_uint8* dst = (sl_uint8*)_dst;
-
-		sl_uint32 d0 = MIO::readUint32BE(src);
-		sl_uint32 d1 = MIO::readUint32BE(src + 4);
-		sl_uint32 d2 = MIO::readUint32BE(src + 8);
-		sl_uint32 d3 = MIO::readUint32BE(src + 12);
-
-		m_aes1.encrypt(d0, d1, d2, d3);
-		m_aes2.decrypt(d0, d1, d2, d3);
-		m_aes3.encrypt(d0, d1, d2, d3);
-
-		MIO::writeUint32BE(dst, d0);
-		MIO::writeUint32BE(dst + 4, d1);
-		MIO::writeUint32BE(dst + 8, d2);
-		MIO::writeUint32BE(dst + 12, d3);
 	}
 
 }
