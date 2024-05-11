@@ -198,7 +198,7 @@ namespace slib
 			if (data) {
 				sl_size size = str.getLength() * sizeof(decltype(*data));
 				if (size) {
-					return new MemoryWithString<STRING>(data, size, Forward<STRING>(str));
+					return new MemoryWithString<typename RemoveConstReference<STRING>::Type>(data, size, Forward<STRING>(str));
 				}
 			}
 			return sl_null;
