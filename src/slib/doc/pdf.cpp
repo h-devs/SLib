@@ -84,6 +84,7 @@ namespace slib
 			DEFINE_PDF_NAME(Bounds)
 			DEFINE_PDF_NAME(Encrypt);
 			DEFINE_PDF_NAME(Root)
+			DEFINE_PDF_NAME(Info)
 			DEFINE_PDF_NAME(Catalog)
 			DEFINE_PDF_NAME(Pages)
 			DEFINE_PDF_NAME(Count)
@@ -1583,7 +1584,7 @@ namespace slib
 						return sl_false;
 					}
 					char buf[1024];
-					const char* hex = "0123456789abcdef";
+					const char* hex = "0123456789ABCDEF";
 					sl_uint32 m = sizeof(buf) >> 1;
 					do {
 						sl_size n = len;
@@ -1595,7 +1596,7 @@ namespace slib
 							buf[i << 1] =  hex[h >> 4];
 							buf[(i << 1) | 1] = hex[h & 15];
 						}
-						if (!(writeText(writer, StringView(buf, n), offset))) {
+						if (!(writeText(writer, StringView(buf, n << 1), offset))) {
 							return sl_false;
 						}
 						data += n;
@@ -1654,7 +1655,35 @@ namespace slib
 				if (!(writeChar(writer, '/', offset))) {
 					return sl_false;
 				}
-				return writeText(writer, str, offset);
+				sl_char8* data = str.getData();
+				sl_size len = str.getLength();
+				sl_size start = 0;
+				sl_size pos = 0;
+				while (pos < len) {
+					sl_char8 ch = data[pos];
+					if (ch == '#' || IsWhitespace(ch) || IsDelimiter(ch)) {
+						if (start < pos) {
+							if (!(writeText(writer, StringView(data + start, pos - start), offset))) {
+								return sl_false;
+							}
+						}
+						const char* hex = "0123456789ABCDEF";
+						sl_char8 t[3];
+						t[0] = '#';
+						t[1] = hex[((sl_uint8)ch) >> 4];
+						t[2] = hex[((sl_uint8)ch) & 15];
+						if (!(writeText(writer, StringView(t, 3), offset))) {
+							return sl_false;
+						}
+						start = pos + 1;
+					}
+					pos++;
+				}
+				if (start < len) {
+					return writeText(writer, StringView(data + start, len - start), offset);
+				} else {
+					return sl_true;
+				}
 			}
 
 			sl_bool writeArray(IWriter* writer, PdfArray* arr, sl_uint32& offset)
@@ -1664,12 +1693,7 @@ namespace slib
 				}
 				sl_size n = arr->getCount();
 				for (sl_size i = 0; i < n; i++) {
-					if (i) {
-						if (!(writeChar(writer, ' ', offset))) {
-							return sl_false;
-						}
-					}
-					if (!(writeValue(writer, arr->getValueAt_NoLock(i), offset))) {
+					if (!(writeValue(writer, arr->getValueAt_NoLock(i), offset, i != 0))) {
 						return sl_false;
 					}
 				}
@@ -1683,18 +1707,17 @@ namespace slib
 				}
 				auto node = dict->getFirstNode();
 				while (node) {
-					if (!(writeName(writer, node->key, offset))) {
-						return sl_false;
-					}
-					if (!(writeChar(writer, ' ', offset))) {
-						return sl_false;
-					}
-					if (!(writeValue(writer, node->value, offset))) {
-						return sl_false;
+					if (node->value.isNotUndefined()) {
+						if (!(writeName(writer, node->key, offset))) {
+							return sl_false;
+						}
+						if (!(writeValue(writer, node->value, offset, sl_true))) {
+							return sl_false;
+						}
 					}
 					node = node->next;
 				}
-				return writeText(writer, StringView::literal(" >>"), offset);
+				return writeText(writer, StringView::literal(">>"), offset);
 			}
 
 			sl_bool writeReference(IWriter* writer, const PdfReference& ref, sl_uint32& offset)
@@ -1711,14 +1734,24 @@ namespace slib
 				return writeText(writer, StringView::literal(" R"), offset);
 			}
 
-			sl_bool writeValue(IWriter* writer, const PdfValue& value, sl_uint32& offset)
+			sl_bool writeValue(IWriter* writer, const PdfValue& value, sl_uint32& offset, sl_bool flagSeparate)
 			{
 				const Variant& var = value.getVariant();
 				PdfValueType type = value.getType();
 				switch (type) {
 					case PdfValueType::Null:
+						if (flagSeparate) {
+							if (!(writeChar(writer, ' ', offset))) {
+								return sl_false;
+							}
+						}
 						return writeText(writer, StringView::literal("null"), offset);
 					case PdfValueType::Boolean:
+						if (flagSeparate) {
+							if (!(writeChar(writer, ' ', offset))) {
+								return sl_false;
+							}
+						}
 						if (var._m_boolean) {
 							return writeText(writer, StringView::literal("true"), offset);
 						} else {
@@ -1726,10 +1759,25 @@ namespace slib
 						}
 						break;
 					case PdfValueType::Uint:
+						if (flagSeparate) {
+							if (!(writeChar(writer, ' ', offset))) {
+								return sl_false;
+							}
+						}
 						return writeText(writer, String::fromUint32(var._m_uint32), offset);
 					case PdfValueType::Int:
+						if (flagSeparate) {
+							if (!(writeChar(writer, ' ', offset))) {
+								return sl_false;
+							}
+						}
 						return writeText(writer, String::fromInt32(var._m_int32), offset);
 					case PdfValueType::Float:
+						if (flagSeparate) {
+							if (!(writeChar(writer, ' ', offset))) {
+								return sl_false;
+							}
+						}
 						return writeFloat(writer, var._m_float, offset);
 					case PdfValueType::String:
 						return writeString(writer, CAST_VAR(String, var._value), offset);
@@ -1740,6 +1788,11 @@ namespace slib
 					case PdfValueType::Dictionary:
 						return writeDictionary(writer, CAST_VAR(PdfDictionary*, var._value), offset);
 					case PdfValueType::Reference:
+						if (flagSeparate) {
+							if (!(writeChar(writer, ' ', offset))) {
+								return sl_false;
+							}
+						}
 						return writeReference(writer, PdfReference(SLIB_GET_DWORD0(var._value), SLIB_GET_DWORD1(var._value)), offset);
 					default:
 						break;
@@ -1794,7 +1847,7 @@ namespace slib
 						return sl_false;
 					}
 				} else {
-					if (!(writeValue(writer, obj, offset))) {
+					if (!(writeValue(writer, obj, offset, sl_false))) {
 						return sl_false;
 					}
 				}
@@ -1804,18 +1857,12 @@ namespace slib
 			sl_bool save(IWriter* writer)
 			{
 				sl_uint32 nObjects = m_maxObjectNumber + 1;
-				Array<sl_uint32> arrObjectOffsets = Array<sl_uint32>::create(nObjects);
-				if (arrObjectOffsets.isNull()) {
+				Array<CrossReferenceEntry> arrReferenceEntries = Array<CrossReferenceEntry>::create(nObjects);
+				if (arrReferenceEntries.isNull()) {
 					return sl_false;
 				}
-				Array<sl_uint16> arrGenerations = Array<sl_uint16>::create(nObjects);
-				if (arrGenerations.isNull()) {
-					return sl_false;
-				}
-				sl_uint32* objectOffsets = arrObjectOffsets.getData();
-				Base::zeroMemory(objectOffsets, nObjects << 2);
-				sl_uint16* generations = arrGenerations.getData();
-				Base::zeroMemory(generations, nObjects << 1);
+				CrossReferenceEntry* referenceEntries = arrReferenceEntries.getData();
+				Base::zeroMemory(referenceEntries, sizeof(CrossReferenceEntry) * nObjects);
 
 				sl_uint32 offsetCurrent = 0;
 
@@ -1823,41 +1870,46 @@ namespace slib
 					return sl_false;
 				}
 
-				for (sl_uint32 iObj = 1; iObj < nObjects; iObj++) {
-					sl_int32 generation = -1;
-					PdfValue obj;
-					Pair<PdfValue, sl_uint32>* pItem = m_objectsUpdate.getItemPointer(iObj);
-					if (pItem) {
-						obj = pItem->first;
-						generation = pItem->second;
-					} else {
-						obj = readObject(iObj, generation);
-					}
-					sl_bool flagWriteObject;
-					if (obj.isNotUndefined()) {
-						flagWriteObject = sl_true;
-						const Ref<PdfStream>& stream = obj.getStream();
-						if (stream.isNotNull()) {
-							PdfValue type = stream->getProperty(name::Type);
-							if (type.equalsName(name::ObjStm) || type.equalsName(name::XRef)) {
-								flagWriteObject = sl_false;
-							}
+				{
+					for (sl_uint32 iObj = 1; iObj < nObjects; iObj++) {
+						CrossReferenceEntry& refEntry = referenceEntries[iObj];
+						sl_int32 generation = -1;
+						PdfValue obj;
+						Pair<PdfValue, sl_uint32>* pItem = m_objectsUpdate.getItemPointer(iObj);
+						if (pItem) {
+							obj = pItem->first;
+							generation = pItem->second;
+						} else {
+							obj = readObject(iObj, generation);
 						}
-						if (flagWriteObject) {
-							objectOffsets[iObj] = offsetCurrent;
-							if (!(writeObject(writer, PdfReference(iObj, generation), obj, offsetCurrent))) {
-								return sl_false;
+						sl_bool flagWriteObject;
+						if (obj.isNotUndefined()) {
+							flagWriteObject = sl_true;
+							const Ref<PdfStream>& stream = obj.getStream();
+							if (stream.isNotNull()) {
+								PdfValue type = stream->getProperty(name::Type);
+								if (type.equalsName(name::ObjStm) || type.equalsName(name::XRef)) {
+									flagWriteObject = sl_false;
+								}
 							}
+							if (flagWriteObject) {
+								refEntry.offset = offsetCurrent;
+								refEntry.type = (sl_uint32)(CrossReferenceEntryType::Normal);
+								refEntry.generation = generation > 0 ? generation : 0;
+								if (!(writeObject(writer, PdfReference(iObj, generation), obj, offsetCurrent))) {
+									return sl_false;
+								}
+							}
+						} else {
+							flagWriteObject = sl_false;
 						}
-					} else {
-						flagWriteObject = sl_false;
-					}
-					if (!flagWriteObject) {
-						if (generation < 0) {
-							CrossReferenceEntry* entry = m_references.getPointerAt(iObj);
-							if (entry) {
-								if (entry->generation) {
-									generations[iObj] = (sl_uint16)(entry->generation);
+						if (!flagWriteObject) {
+							if (generation < 0) {
+								CrossReferenceEntry* entry = m_references.getPointerAt(iObj);
+								if (entry) {
+									if (entry->generation) {
+										refEntry.generation = (sl_uint16)(entry->generation);
+									}
 								}
 							}
 						}
@@ -1871,51 +1923,49 @@ namespace slib
 				if (!(writeText(writer, StringView::literal("xref\n"), offsetCurrent))) {
 					return sl_false;
 				}
-				generations[0] = 65535;
-				sl_uint32 start = 0;
-				sl_uint32 end;
-				do {
-					end = nObjects;
-					{
-						for (sl_uint32 i = start; i < nObjects; i++) {
-							if (!(objectOffsets[i] || generations[i])) {
-								end = i;
-								break;
-							}
+				if (!(writeText(writer, String::format("%d %d\n", 0, nObjects), offsetCurrent))) {
+					return sl_false;
+				}
+				referenceEntries[0].generation = 65535;
+				{
+					sl_uint32 iObj = nObjects - 1;
+					sl_uint32 nextFreeObj = 0;
+					do {
+						CrossReferenceEntry& refEntry = referenceEntries[iObj];
+						if (refEntry.type != (sl_uint32)(CrossReferenceEntryType::Normal)) {
+							refEntry.nextFreeObject = nextFreeObj;
+							nextFreeObj = iObj;
+						}
+						iObj--;
+					} while (iObj);
+					referenceEntries[0].nextFreeObject = nextFreeObj;
+				}
+				{
+					for (sl_uint32 iObj = 0; iObj < nObjects; iObj++) {
+						CrossReferenceEntry& refEntry = referenceEntries[iObj];
+						String s;
+						if (refEntry.type == (sl_uint32)(CrossReferenceEntryType::Normal)) {
+							s = String::format("%010d %05d n\n", refEntry.offset, (sl_uint32)(refEntry.generation));
+						} else {
+							s = String::format("%010d 65535 f\n", refEntry.nextFreeObject);
+						}
+						if (!(writeText(writer, s, offsetCurrent))) {
+							return sl_false;
 						}
 					}
-					if (!(writeText(writer, String::format("%d %d\n", start, end - start), offsetCurrent))) {
-						return sl_false;
-					}
-					{
-						for (sl_uint32 i = start; i < end; i++) {
-							if (!(writeText(writer, String::format("%010d %05d %c\n", objectOffsets[i], generations[i], objectOffsets[i] ? 'n' : 'f'), offsetCurrent))) {
-								return sl_false;
-							}
-						}
-					}
-					start = nObjects;
-					{
-						for (sl_uint32 i = end; i < nObjects; i++) {
-							if (objectOffsets[i] || generations[i]) {
-								start = i;
-								break;
-							}
-						}
-					}
-				} while (start < nObjects);
-
+				}
+							
 				if (!(writeText(writer, StringView::literal("trailer\n"), offsetCurrent))) {
 					return sl_false;
 				}
-				lastTrailer->remove_NoLock(name::Prev);
-				lastTrailer->remove_NoLock(name::XRefStm);
-				lastTrailer->remove_NoLock(name::Encrypt);
-				lastTrailer->put_NoLock(name::Size, end);
-				if (!(writeDictionary(writer, lastTrailer.get(), offsetCurrent))) {
+				Ref<PdfDictionary> trailer = new PdfDictionary(this);
+				trailer->put_NoLock(name::Size, nObjects);
+				trailer->put_NoLock(name::Root, lastTrailer->getValue_NoLock(name::Root));
+				trailer->put_NoLock(name::Info, lastTrailer->getValue_NoLock(name::Info));
+				trailer->put_NoLock(name::ID, lastTrailer->getValue_NoLock(name::ID));
+				if (!(writeDictionary(writer, trailer.get(), offsetCurrent))) {
 					return sl_false;
 				}
-
 				if (!(writeText(writer, String::format("\nstartxref\n%d\n", offsetXref), offsetCurrent))) {
 					return sl_false;
 				}
@@ -2408,7 +2458,7 @@ namespace slib
 									if (lenName >= sizeof(name)) {
 										return sl_null;
 									}
-									name[lenName++] = (sl_char8)hex;;
+									name[lenName++] = (sl_char8)hex;
 									flagReadHex = sl_false;
 								}
 							} else {
@@ -3479,19 +3529,19 @@ namespace slib
 
 	PdfValue::PdfValue(const Ref<PdfArray>& v) noexcept: m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::Array : PdfValueType::Null)) {}
 	PdfValue::PdfValue(Ref<PdfArray>&& v) noexcept: m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::Array : PdfValueType::Null)) {}
-	PdfValue::PdfValue(PdfArray* v) noexcept : m_var(Ref<PdfArray>(v), (sl_uint8)(v ? PdfValueType::Array : PdfValueType::Null)) {}
+	PdfValue::PdfValue(PdfArray* v) noexcept: m_var(Ref<PdfArray>(v), (sl_uint8)(v ? PdfValueType::Array : PdfValueType::Null)) {}
 
 	PdfValue::PdfValue(const Ref<PdfDictionary>& v) noexcept: m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::Dictionary : PdfValueType::Null)) {}
 	PdfValue::PdfValue(Ref<PdfDictionary>&& v) noexcept: m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::Dictionary : PdfValueType::Null)) {}
-	PdfValue::PdfValue(PdfDictionary* v) noexcept : m_var(Ref<PdfDictionary>(v), (sl_uint8)(v ? PdfValueType::Dictionary : PdfValueType::Null)) {}
+	PdfValue::PdfValue(PdfDictionary* v) noexcept: m_var(Ref<PdfDictionary>(v), (sl_uint8)(v ? PdfValueType::Dictionary : PdfValueType::Null)) {}
 
 	PdfValue::PdfValue(const Ref<PdfStream>& v) noexcept: m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::Stream : PdfValueType::Null)) {}
 	PdfValue::PdfValue(Ref<PdfStream>&& v) noexcept: m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::Stream : PdfValueType::Null)) {}
-	PdfValue::PdfValue(PdfStream* v) noexcept : m_var(Ref<PdfStream>(v), (sl_uint8)(v ? PdfValueType::Stream : PdfValueType::Null)) {}
+	PdfValue::PdfValue(PdfStream* v) noexcept: m_var(Ref<PdfStream>(v), (sl_uint8)(v ? PdfValueType::Stream : PdfValueType::Null)) {}
 
 	PdfValue::PdfValue(const Ref<PdfImage>& v) noexcept: m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::Image : PdfValueType::Null)) {}
 	PdfValue::PdfValue(Ref<PdfImage>&& v) noexcept: m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::Image : PdfValueType::Null)) {}
-	PdfValue::PdfValue(PdfImage* v) noexcept : m_var(Ref<PdfImage>(v), (sl_uint8)(v ? PdfValueType::Image : PdfValueType::Null)) {}
+	PdfValue::PdfValue(PdfImage* v) noexcept: m_var(Ref<PdfImage>(v), (sl_uint8)(v ? PdfValueType::Image : PdfValueType::Null)) {}
 
 	PdfValue::PdfValue(const Rectangle& v) noexcept: PdfValue(PdfArray::create(v)) {}
 

@@ -330,7 +330,7 @@ namespace slib
 	public:
 		PdfValue(sl_null_t) noexcept: m_var(sl_null, (sl_uint8)(PdfValueType::Null)) {}
 
-		explicit PdfValue(sl_bool v) noexcept;
+		PdfValue(sl_bool v) noexcept;
 
 		PdfValue(sl_int32 v) noexcept;
 		PdfValue(sl_uint32 v) noexcept;
