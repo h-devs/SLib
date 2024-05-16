@@ -379,7 +379,7 @@ namespace slib
 			if (m_container) {
 				return m_container->data;
 			} else {
-				return (sl_char8*)((void*)(""));
+				return sl_null;
 			}
 		}
 
@@ -393,7 +393,7 @@ namespace slib
 				return m_container->data;
 			} else {
 				outLength = 0;
-				return (sl_char8*)((void*)(""));
+				return sl_null;
 			}
 		}
 

@@ -113,7 +113,7 @@ namespace slib
 		StringData key(_key);
 		char buf[VALUE_BUFFER_SIZE];
 		MemoryData mem(buf, sizeof(buf));
-		if (get(key.getUnsafeData(), key.getLength(), &mem)) {
+		if (get(key.getData(), key.getLength(), &mem)) {
 			return DeserializeValue(Move(mem));
 		} else {
 			return Variant();
@@ -150,14 +150,14 @@ namespace slib
 			return remove(_key);
 		} else if (value.isNull()) {
 			StringData key(_key);
-			return put(key.getUnsafeData(), key.getLength(), sl_null, 0);
+			return put(key.getData(), key.getLength(), sl_null, 0);
 		} else if (value.isStringType()) {
 			StringData key(_key);
 			String str = value.getString();
 			if (str.isNotEmpty()) {
-				return put(key.getUnsafeData(), key.getLength(), str.getData(), str.getLength());
+				return put(key.getData(), key.getLength(), str.getData(), str.getLength());
 			} else {
-				return put(key.getUnsafeData(), key.getLength(), "", 1);
+				return put(key.getData(), key.getLength(), "", 1);
 			}
 		} else {
 			sl_uint8 buf[1024];
@@ -170,8 +170,8 @@ namespace slib
 				if (mem.isNotNull()) {
 					p = mem.getData();
 				}
-				//return put(key.getUnsafeData(), key.getLength(), temp.getData(), nWrite); // nWrite�� ������.
-				return put(key.getUnsafeData(), key.getLength(), temp.getData(), temp.getSize());
+				//return put(key.getData(), key.getLength(), temp.getData(), nWrite); // nWrite�� ������.
+				return put(key.getData(), key.getLength(), temp.getData(), temp.getSize());
 			}
 		}
 		return sl_false;
@@ -180,7 +180,7 @@ namespace slib
 	sl_bool KeyValueWriter::remove(const StringParam& _key)
 	{
 		StringData key(_key);
-		return remove(key.getUnsafeData(), key.getLength());
+		return remove(key.getData(), key.getLength());
 	}
 
 
@@ -359,7 +359,7 @@ namespace slib
 	sl_bool KeyValueIterator::seek(const StringParam& _key)
 	{
 		StringData key(_key);
-		return seek(key.getUnsafeData(), key.getLength());
+		return seek(key.getData(), key.getLength());
 	}
 
 

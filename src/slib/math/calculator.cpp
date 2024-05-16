@@ -198,7 +198,7 @@ namespace slib
 		template <class VIEW, class NUMBER>
 		static sl_bool CalculateSv(const VIEW& str, NUMBER* result, sl_bool* isDivisionByZero) noexcept
 		{
-			typename VIEW::Char* data = str.getUnsafeData();
+			typename VIEW::Char* data = str.getData();
 			sl_reg n = str.getUnsafeLength();
 			if (n >= 0) {
 				return Calculate(result, isDivisionByZero, data, 0, n) == n;

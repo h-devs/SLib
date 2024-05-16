@@ -2971,7 +2971,7 @@ namespace slib
 		template <class VIEW, class INTEGER>
 		static sl_bool ParseViewInt(const VIEW& view, sl_int32 radix, INTEGER* _out) noexcept
 		{
-			typename VIEW::Char* data = view.getUnsafeData();
+			typename VIEW::Char* data = view.getData();
 			sl_reg len = view.getUnsafeLength();
 			if (data && len) {
 				if (len > 0) {
@@ -3021,7 +3021,7 @@ namespace slib
 		template <class VIEW, class INTEGER>
 		static sl_bool ParseViewUint(const VIEW& view, sl_int32 radix, INTEGER* _out) noexcept
 		{
-			typename VIEW::Char* data = view.getUnsafeData();
+			typename VIEW::Char* data = view.getData();
 			sl_reg len = view.getUnsafeLength();
 			if (data && len) {
 				if (len > 0) {
@@ -3187,7 +3187,7 @@ namespace slib
 		template <class VIEW, class FLOAT>
 		static sl_bool ParseViewFloat(const VIEW& view, FLOAT* _out) noexcept
 		{
-			typename VIEW::Char* data = view.getUnsafeData();
+			typename VIEW::Char* data = view.getData();
 			sl_reg len = view.getUnsafeLength();
 			if (data && len) {
 				if (len > 0) {
@@ -3294,7 +3294,7 @@ namespace slib
 		template <class VIEW>
 		static sl_bool ParseViewBoolean(const VIEW& view, sl_bool* _out) noexcept
 		{
-			typename VIEW::Char* data = view.getUnsafeData();
+			typename VIEW::Char* data = view.getData();
 			sl_reg len = view.getUnsafeLength();
 			if (data && len) {
 				if (len > 0) {
@@ -3349,7 +3349,7 @@ namespace slib
 		template <class VIEW>
 		static sl_bool ParseViewHexString(const VIEW& view, void* _out) noexcept
 		{
-			typename VIEW::Char* data = view.getUnsafeData();
+			typename VIEW::Char* data = view.getData();
 			sl_reg len = view.getUnsafeLength();
 			if (data && len) {
 				if (len > 0) {
@@ -4392,7 +4392,7 @@ namespace slib
 				return view;
 			}
 			StringFormatter<typename VIEW::Char, typename VIEW::StringType> formator;
-			formator.format = view.getUnsafeData();
+			formator.format = view.getData();
 			sl_reg len = view.getUnsafeLength();
 			formator.len = len;
 			formator.flagSz = len < 0;
@@ -4500,7 +4500,7 @@ namespace slib
 	\
 	STRING::CONSTRUCTOR(typename STRING::StringViewType const& src) noexcept \
 	{ \
-		m_container = CreateFromSz<Container>(src.getUnsafeData(), src.getUnsafeLength()); \
+		m_container = CreateFromSz<Container>(src.getData(), src.getUnsafeLength()); \
 	} \
 	\
 	STRING::~CONSTRUCTOR() \
@@ -4575,17 +4575,17 @@ namespace slib
 	\
 	STRING STRING::create(const StringView& str) noexcept \
 	{ \
-		return CreateFromSz<Container>(str.getUnsafeData(), str.getUnsafeLength()); \
+		return CreateFromSz<Container>(str.getData(), str.getUnsafeLength()); \
 	} \
 	\
 	STRING STRING::create(const StringView16& str) noexcept \
 	{ \
-		return CreateFromSz<Container>(str.getUnsafeData(), str.getUnsafeLength()); \
+		return CreateFromSz<Container>(str.getData(), str.getUnsafeLength()); \
 	} \
 	\
 	STRING STRING::create(const StringView32& str) noexcept \
 	{ \
-		return CreateFromSz<Container>(str.getUnsafeData(), str.getUnsafeLength()); \
+		return CreateFromSz<Container>(str.getData(), str.getUnsafeLength()); \
 	} \
 	\
 	STRING STRING::create(const char* str, sl_reg length) noexcept \
@@ -4944,7 +4944,7 @@ namespace slib
 				return *this = other; \
 			} \
 			if (other.isNotEmpty()) { \
-				Append<Container>(m_container, other.getUnsafeData(), other.getUnsafeLength()); \
+				Append<Container>(m_container, other.getData(), other.getUnsafeLength()); \
 			} \
 		} \
 		return *this; \
@@ -5001,7 +5001,7 @@ namespace slib
 			} \
 			if (other.isNotEmpty()) { \
 				Container* thiz = m_container; \
-				return Concat<Container>(thiz->data, thiz->len, other.getUnsafeData(), other.getUnsafeLength()); \
+				return Concat<Container>(thiz->data, thiz->len, other.getData(), other.getUnsafeLength()); \
 			} \
 		} \
 		return *this; \
@@ -5056,7 +5056,7 @@ namespace slib
 				return other; \
 			} \
 			if (other.isNotEmpty()) { \
-				Append<Container>(m_container, other.getUnsafeData(), other.getUnsafeLength()); \
+				Append<Container>(m_container, other.getData(), other.getUnsafeLength()); \
 			} \
 		} \
 		return Move(*this); \
@@ -5138,7 +5138,7 @@ namespace slib
 	\
 	sl_bool STRING::equals(typename STRING::StringViewType const& other) const noexcept \
 	{ \
-		return EqualsStringSz(*this, other.getUnsafeData(), other.getUnsafeLength()); \
+		return EqualsStringSz(*this, other.getData(), other.getUnsafeLength()); \
 	} \
 	\
 	sl_bool STRING::equals(typename STRING::Char const* sz) const noexcept \
@@ -5153,27 +5153,27 @@ namespace slib
 	\
 	sl_bool STRING::equals_IgnoreCase(typename STRING::StringViewType const& other) const noexcept \
 	{ \
-		return EqualsStringSz_IgnoreCase(*this, other.getUnsafeData(), other.getUnsafeLength()); \
+		return EqualsStringSz_IgnoreCase(*this, other.getData(), other.getUnsafeLength()); \
 	} \
 	\
 	sl_compare_result STRING::compare(typename STRING::StringViewType const& other) const noexcept \
 	{ \
-		return CompareStringSz(*this, other.getUnsafeData(), other.getUnsafeLength()); \
+		return CompareStringSz(*this, other.getData(), other.getUnsafeLength()); \
 	} \
 	\
 	sl_compare_result STRING::compare_IgnoreCase(typename STRING::StringViewType const& other) const noexcept \
 	{ \
-		return CompareStringSz_IgnoreCase(*this, other.getUnsafeData(), other.getUnsafeLength()); \
+		return CompareStringSz_IgnoreCase(*this, other.getData(), other.getUnsafeLength()); \
 	} \
 	\
 	sl_compare_result STRING::compare(typename STRING::StringViewType const& other, sl_size len) const noexcept \
 	{ \
-		return CompareStringSzLimited(*this, other.getUnsafeData(), other.getUnsafeLength(), len); \
+		return CompareStringSzLimited(*this, other.getData(), other.getUnsafeLength(), len); \
 	} \
 	\
 	sl_compare_result STRING::compare_IgnoreCase(typename STRING::StringViewType const& other, sl_size len) const noexcept \
 	{ \
-		return CompareStringSzLimited_IgnoreCase(*this, other.getUnsafeData(), other.getUnsafeLength(), len); \
+		return CompareStringSzLimited_IgnoreCase(*this, other.getData(), other.getUnsafeLength(), len); \
 	} \
 	\
 	sl_size STRING::getHashCode() const noexcept \
@@ -5262,12 +5262,12 @@ namespace slib
 	\
 	sl_bool STRING::startsWith(typename STRING::StringViewType const& pattern) const noexcept \
 	{ \
-		return StartsWithString(*this, pattern.getUnsafeData(), pattern.getUnsafeLength()); \
+		return StartsWithString(*this, pattern.getData(), pattern.getUnsafeLength()); \
 	} \
 	\
 	sl_bool STRING::startsWith_IgnoreCase(typename STRING::StringViewType const& pattern) const noexcept \
 	{ \
-		return StartsWithString_IgnoreCase(*this, pattern.getUnsafeData(), pattern.getUnsafeLength()); \
+		return StartsWithString_IgnoreCase(*this, pattern.getData(), pattern.getUnsafeLength()); \
 	} \
 	\
 	sl_bool STRING::endsWith(typename STRING::Char ch) const noexcept \
@@ -6013,7 +6013,7 @@ DEFINE_ATOMIC_STRING_FUNC_IMPL(String32)
 	\
 	STRING& STRING::operator=(typename STRING::StringViewType const& other) noexcept \
 	{ \
-		_replaceContainer(CreateFromSz<Container>(other.getUnsafeData(), other.getUnsafeLength())); \
+		_replaceContainer(CreateFromSz<Container>(other.getData(), other.getUnsafeLength())); \
 		return *this; \
 	} \
 	\
@@ -6093,12 +6093,7 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 #define DEFINE_STRING_VIEW_FUNC_IMPL(VIEW) \
 	VIEW::VIEW(typename VIEW::StringType const& value) noexcept \
 	{ \
-		if (value.isNotNull()) { \
-			data = value.getData(*((sl_size*)&length)); \
-		} else { \
-			data = sl_null; \
-			length = 0; \
-		} \
+		data = value.getData(*((sl_size*)&length)); \
 	} \
 	\
 	VIEW::VIEW(typename VIEW::Char const* str) noexcept \
@@ -6155,12 +6150,7 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	VIEW& VIEW::operator=(typename VIEW::StringType const& value) noexcept \
 	{ \
-		if (value.isNotNull()) { \
-			data = value.getData(*((sl_size*)&length)); \
-		} else { \
-			data = sl_null; \
-			length = 0; \
-		} \
+		data = value.getData(*((sl_size*)&length)); \
 		return *this; \
 	} \
 	\
@@ -6192,7 +6182,7 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 			return data; \
 		} else { \
 			outLength = 0; \
-			return EMPTY_SZ(typename VIEW::Char); \
+			return sl_null; \
 		} \
 	} \
 	\
@@ -6206,7 +6196,7 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	typename VIEW::StringType VIEW::operator+(const VIEW& other) const noexcept \
 	{ \
-		return Concat<typename StringType::Container>(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength()); \
+		return Concat<typename StringType::Container>(getData(), getUnsafeLength(), other.getData(), other.getUnsafeLength()); \
 	} \
 	\
 	typename VIEW::StringType VIEW::operator+(typename VIEW::StringType const& other) const noexcept \
@@ -6214,27 +6204,27 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 		if (isEmpty()) { \
 			return other.getNotNull(); \
 		} \
-		return Concat<typename StringType::Container>(getUnsafeData(), getUnsafeLength(), other.getData(), other.getLength()); \
+		return Concat<typename StringType::Container>(getData(), getUnsafeLength(), other.getData(), other.getLength()); \
 	} \
 	\
 	typename VIEW::StringType VIEW::operator+(typename VIEW::Char const* sz) const noexcept \
 	{ \
-		return Concat<typename StringType::Container>(getUnsafeData(), getUnsafeLength(), sz, -1); \
+		return Concat<typename StringType::Container>(getData(), getUnsafeLength(), sz, -1); \
 	} \
 	\
 	typename VIEW::StringType operator+(typename VIEW::Char const* sz, const VIEW& str) noexcept \
 	{ \
-		return Concat<typename VIEW::StringType::Container>(sz, -1, str.getUnsafeData(), str.getUnsafeLength()); \
+		return Concat<typename VIEW::StringType::Container>(sz, -1, str.getData(), str.getUnsafeLength()); \
 	} \
 	\
 	typename VIEW::StringType VIEW::operator+(typename VIEW::StdString const& other) const noexcept \
 	{ \
-		return Concat<typename StringType::Container>(getUnsafeData(), getUnsafeLength(), other.data(), (sl_reg)(other.length())); \
+		return Concat<typename StringType::Container>(getData(), getUnsafeLength(), other.data(), (sl_reg)(other.length())); \
 	} \
 	\
 	typename VIEW::StringType operator+(typename VIEW::StdString const& other, const VIEW& str) noexcept \
 	{ \
-		return Concat<typename VIEW::StringType::Container>(other.data(), (sl_reg)(other.length()), str.getUnsafeData(), str.getUnsafeLength()); \
+		return Concat<typename VIEW::StringType::Container>(other.data(), (sl_reg)(other.length()), str.getData(), str.getUnsafeLength()); \
 	} \
 	\
 	sl_bool operator==(typename VIEW::Char const* sz, const VIEW& str) noexcept { return str.equals(sz); } \
@@ -6252,32 +6242,32 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	sl_bool VIEW::equals(const VIEW& other) const noexcept \
 	{ \
-		return EqualsSz(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength()); \
+		return EqualsSz(getData(), getUnsafeLength(), other.getData(), other.getUnsafeLength()); \
 	} \
 	\
 	sl_bool VIEW::equals_IgnoreCase(const VIEW& other) const noexcept \
 	{ \
-		return EqualsSz_IgnoreCase(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength()); \
+		return EqualsSz_IgnoreCase(getData(), getUnsafeLength(), other.getData(), other.getUnsafeLength()); \
 	} \
 	\
 	sl_compare_result VIEW::compare(const VIEW& other) const noexcept \
 	{ \
-		return CompareSz(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength()); \
+		return CompareSz(getData(), getUnsafeLength(), other.getData(), other.getUnsafeLength()); \
 	} \
 	\
 	sl_compare_result VIEW::compare_IgnoreCase(const VIEW& other) const noexcept \
 	{ \
-		return CompareSz_IgnoreCase(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength()); \
+		return CompareSz_IgnoreCase(getData(), getUnsafeLength(), other.getData(), other.getUnsafeLength()); \
 	} \
 	\
 	sl_compare_result VIEW::compare(const VIEW& other, sl_size len) const noexcept \
 	{ \
-		return CompareSzLimited(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength(), len); \
+		return CompareSzLimited(getData(), getUnsafeLength(), other.getData(), other.getUnsafeLength(), len); \
 	} \
 	\
 	sl_compare_result VIEW::compare_IgnoreCase(const VIEW& other, sl_size len) const noexcept \
 	{ \
-		return CompareSzLimited_IgnoreCase(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength(), len); \
+		return CompareSzLimited_IgnoreCase(getData(), getUnsafeLength(), other.getData(), other.getUnsafeLength(), len); \
 	} \
 	\
 	sl_size VIEW::getHashCode() const noexcept \
@@ -6312,7 +6302,7 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	sl_reg VIEW::indexOf(typename VIEW::Char ch, sl_reg start) const noexcept \
 	{ \
-		return IndexOfCharSz(getUnsafeData(), getUnsafeLength(), ch, start); \
+		return IndexOfCharSz(getData(), getUnsafeLength(), ch, start); \
 	} \
 	\
 	sl_reg VIEW::indexOf(const VIEW& pattern, sl_reg start) const noexcept \
@@ -6342,22 +6332,22 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	sl_bool VIEW::startsWith(typename VIEW::Char ch) const noexcept \
 	{ \
-		return StartsWithCharSz(getUnsafeData(), getUnsafeLength(), ch); \
+		return StartsWithCharSz(getData(), getUnsafeLength(), ch); \
 	} \
 	\
 	sl_bool VIEW::startsWith(const VIEW& pattern) const noexcept \
 	{ \
-		return StartsWithSz(getUnsafeData(), getUnsafeLength(), pattern.getUnsafeData(), pattern.getUnsafeLength()); \
+		return StartsWithSz(getData(), getUnsafeLength(), pattern.getData(), pattern.getUnsafeLength()); \
 	} \
 	\
 	sl_bool VIEW::startsWith_IgnoreCase(const VIEW& pattern) const noexcept \
 	{ \
-		return StartsWithSz_IgnoreCase(getUnsafeData(), getUnsafeLength(), pattern.getUnsafeData(), pattern.getUnsafeLength()); \
+		return StartsWithSz_IgnoreCase(getData(), getUnsafeLength(), pattern.getData(), pattern.getUnsafeLength()); \
 	} \
 	\
 	sl_bool VIEW::endsWith(typename VIEW::Char ch) const noexcept \
 	{ \
-		return EndsWithCharSz(getUnsafeData(), getUnsafeLength(), ch); \
+		return EndsWithCharSz(getData(), getUnsafeLength(), ch); \
 	} \
 	\
 	sl_bool VIEW::endsWith(const VIEW& pattern) const noexcept \
@@ -6387,7 +6377,7 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	sl_size VIEW::countOf(typename VIEW::Char ch) const noexcept \
 	{ \
-		return CountOfCharSz(getUnsafeData(), getUnsafeLength(), ch); \
+		return CountOfCharSz(getData(), getUnsafeLength(), ch); \
 	} \
 	\
 	sl_size VIEW::countOf(const VIEW& pattern) const noexcept \
@@ -6402,27 +6392,27 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	void VIEW::makeUpper() noexcept \
 	{ \
-		MakeUpperSz(getUnsafeData(), getUnsafeLength()); \
+		MakeUpperSz(getData(), getUnsafeLength()); \
 	} \
 	\
 	void VIEW::makeLower() noexcept \
 	{ \
-		MakeLowerSz(getUnsafeData(), getUnsafeLength()); \
+		MakeLowerSz(getData(), getUnsafeLength()); \
 	} \
 	\
 	typename VIEW::StringType VIEW::toUpper() const noexcept \
 	{ \
-		return CreateUpperString<StringType>(getUnsafeData(), getUnsafeLength()); \
+		return CreateUpperString<StringType>(getData(), getUnsafeLength()); \
 	} \
 	\
 	typename VIEW::StringType VIEW::toLower() const noexcept \
 	{ \
-		return CreateLowerString<StringType>(getUnsafeData(), getUnsafeLength()); \
+		return CreateLowerString<StringType>(getData(), getUnsafeLength()); \
 	} \
 	\
 	typename VIEW::StringType VIEW::replaceAll(typename VIEW::Char pattern, typename VIEW::Char replacement) const noexcept \
 	{ \
-		return ReplaceSzChar<StringType>(getUnsafeData(), getUnsafeLength(), pattern, replacement); \
+		return ReplaceSzChar<StringType>(getData(), getUnsafeLength(), pattern, replacement); \
 	} \
 	\
 	typename VIEW::StringType VIEW::replaceAll(const VIEW& pattern, const VIEW& replacement) const noexcept \
@@ -6432,7 +6422,7 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	typename VIEW::StringType VIEW::removeAll(typename VIEW::Char pattern) const noexcept \
 	{ \
-		return ReplaceSzChar<StringType>(getUnsafeData(), getUnsafeLength(), pattern, 0); \
+		return ReplaceSzChar<StringType>(getData(), getUnsafeLength(), pattern, 0); \
 	} \
 	\
 	typename VIEW::StringType VIEW::removeAll(const VIEW& pattern) const noexcept \
@@ -6467,7 +6457,7 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	typename VIEW::StringType VIEW::reverse() const noexcept \
 	{ \
-		return CreateReverseString<StringType>(getUnsafeData(), getUnsafeLength()); \
+		return CreateReverseString<StringType>(getData(), getUnsafeLength()); \
 	} \
 	\
 	List<VIEW> VIEW::split(const VIEW& pattern, sl_reg nMaxSplit) const noexcept \

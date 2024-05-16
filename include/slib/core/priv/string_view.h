@@ -114,28 +114,19 @@ namespace slib
 			return !(isEmpty());
 		}
 
-		SLIB_CONSTEXPR sl_char8* getUnsafeData() const
+		SLIB_CONSTEXPR sl_char8* getData() const
 		{
 			return data;
-		}
-
-		SLIB_CONSTEXPR sl_reg getUnsafeLength() const
-		{
-			return length;
-		}
-
-		sl_char8* getData() const noexcept
-		{
-			if (data) {
-				return data;
-			} else {
-				return (sl_char8*)((void*)(""));
-			}
 		}
 
 		sl_char8* getData(sl_size& outLength) const noexcept;
 
 		sl_size getLength() const noexcept;
+
+		SLIB_CONSTEXPR sl_reg getUnsafeLength() const
+		{
+			return length;
+		}
 
 		sl_size getHashCode() const noexcept;
 
@@ -493,28 +484,19 @@ namespace slib
 			return !(isEmpty());
 		}
 
-		SLIB_CONSTEXPR sl_char16* getUnsafeData() const
+		SLIB_CONSTEXPR sl_char16* getData() const
 		{
 			return data;
-		}
-
-		SLIB_CONSTEXPR sl_reg getUnsafeLength() const
-		{
-			return length;
-		}
-
-		sl_char16* getData() const noexcept
-		{
-			if (data) {
-				return data;
-			} else {
-				return (sl_char16*)((void*)(u""));
-			}
 		}
 
 		sl_char16* getData(sl_size& outLength) const noexcept;
 
 		sl_size getLength() const noexcept;
+
+		SLIB_CONSTEXPR sl_reg getUnsafeLength() const
+		{
+			return length;
+		}
 
 		sl_size getHashCode() const noexcept;
 
@@ -873,28 +855,19 @@ namespace slib
 			return !(isEmpty());
 		}
 
-		SLIB_CONSTEXPR sl_char32* getUnsafeData() const
+		SLIB_CONSTEXPR sl_char32* getData() const
 		{
 			return data;
-		}
-
-		SLIB_CONSTEXPR sl_reg getUnsafeLength() const
-		{
-			return length;
-		}
-
-		sl_char32* getData() const noexcept
-		{
-			if (data) {
-				return data;
-			} else {
-				return (sl_char32*)((void*)(U""));
-			}
 		}
 
 		sl_char32* getData(sl_size& outLength) const noexcept;
 
 		sl_size getLength() const noexcept;
+
+		SLIB_CONSTEXPR sl_reg getUnsafeLength() const
+		{
+			return length;
+		}
 
 		sl_size getHashCode() const noexcept;
 

@@ -68,7 +68,7 @@
 	sl_bool CLASS::writeDouble(double value, EndianType endian) ATTR { return WriterHelper::writeDouble(this, value, endian); } \
 	sl_bool CLASS::writeAll(const void* buf, sl_size size) ATTR { return WriterHelper::writeFully(this, buf, size) == (sl_reg)size; } \
 	sl_bool CLASS::writeAll(const MemoryView& mem) ATTR { return writeAll(mem.data, mem.size); } \
-	sl_bool CLASS::writeAll(const StringView& str) ATTR { return writeAll(str.getUnsafeData(), str.getLength()); }
+	sl_bool CLASS::writeAll(const StringView& str) ATTR { return writeAll(str.getData(), str.getLength()); }
 
 #define SLIB_DEFINE_ISTREAM_MEMBERS(CLASS, ATTR) \
 	SLIB_DEFINE_IREADER_MEMBERS(CLASS, ATTR) \

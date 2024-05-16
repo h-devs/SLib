@@ -68,7 +68,7 @@ namespace slib
 			}
 			return CreateProcessW(
 				(LPCWSTR)(pathExecutable.getData()),
-				(LPWSTR)(cmd.getUnsafeData()),
+				(LPWSTR)(cmd.getData()),
 				NULL, // process security attributes
 				NULL, // thread security attributes
 				flagInheritHandles, // handles are inherited,

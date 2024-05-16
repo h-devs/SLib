@@ -503,6 +503,15 @@ namespace slib
 			return *this;
 		}
 
+		sl_char8* getData() const noexcept
+		{
+			if (data) {
+				return data;
+			} else {
+				return (sl_char8*)((void*)(""));
+			}
+		}
+
 	};
 
 	class SLIB_EXPORT StringCstr16 : public StringView16
@@ -568,6 +577,15 @@ namespace slib
 			return *this;
 		}
 
+		sl_char16* getData() const noexcept
+		{
+			if (data) {
+				return data;
+			} else {
+				return (sl_char16*)((void*)(u""));
+			}
+		}
+
 	};
 
 	class SLIB_EXPORT StringCstr32 : public StringView32
@@ -631,6 +649,15 @@ namespace slib
 			this->~StringCstr32();
 			new (this) StringCstr32(Forward<T>(t));
 			return *this;
+		}
+
+		sl_char32* getData() const noexcept
+		{
+			if (data) {
+				return data;
+			} else {
+				return (sl_char32*)((void*)(U""));
+			}
 		}
 
 	};

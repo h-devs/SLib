@@ -1689,7 +1689,7 @@ namespace slib
 
 		StringCstr password(_password);
 		StringCstr name(p12.friendlyName);
-		PKCS12_Handle handle(PKCS12_create(password.getUnsafeData(), name.getUnsafeData(), key.get(), sl_null, certificates.get(), 0, 0, 0, 0, 0));
+		PKCS12_Handle handle(PKCS12_create(password.getData(), name.getData(), key.get(), sl_null, certificates.get(), 0, 0, 0, 0, 0));
 		if (handle.isNotNone()) {
 			int size = i2d_PKCS12(handle.get(), sl_null);
 			if (size > 0) {

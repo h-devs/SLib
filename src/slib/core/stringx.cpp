@@ -174,7 +174,7 @@ namespace slib
 			if (str.isNull()) {
 				return sl_null;
 			}
-			typename VIEW::Char* data = str.getUnsafeData();
+			typename VIEW::Char* data = str.getData();
 			sl_size len = str.getUnsafeLength();
 			sl_size n = ApplyBackslashEscapes(data, len, flagDoubleQuote, flagAddQuote, flagEscapeNonAscii, (typename VIEW::Char*)sl_null);
 			if (!n) {
@@ -425,7 +425,7 @@ namespace slib
 			if (str.isNull()) {
 				return sl_null;
 			}
-			typename VIEW::Char* data = str.getUnsafeData();
+			typename VIEW::Char* data = str.getData();
 			sl_size len = str.getUnsafeLength();
 			sl_size n = ParseBackslashEscapes(data, len, lengthParsed, outFlagError, (typename VIEW::Char*)sl_null);
 			if (!n) {
@@ -473,7 +473,7 @@ namespace slib
 			if (str.isNull()) {
 				return 0;
 			}
-			return CountLineNumber(str.getUnsafeData(), str.getUnsafeLength(), columnLast);
+			return CountLineNumber(str.getData(), str.getUnsafeLength(), columnLast);
 		}
 
 		template <class STRING>
@@ -518,7 +518,7 @@ namespace slib
 			if (str.isNull()) {
 				return sl_null;
 			}
-			return SplitLinesSub(str, str.getUnsafeData(), str.getUnsafeLength());
+			return SplitLinesSub(str, str.getData(), str.getUnsafeLength());
 		}
 
 		template <class VIEW, class CHECKER>
@@ -535,7 +535,7 @@ namespace slib
 				} else {
 					start = _start;
 				}
-				typename VIEW::Char* data = str.getUnsafeData();
+				typename VIEW::Char* data = str.getData();
 				for (sl_size i = start; ; i++) {
 					typename VIEW::Char ch = data[i];
 					if (!ch) {
@@ -556,7 +556,7 @@ namespace slib
 						return -1;
 					}
 				}
-				typename VIEW::Char* data = str.getUnsafeData();
+				typename VIEW::Char* data = str.getData();
 				for (sl_size i = start; i < count; i++) {
 					typename VIEW::Char ch = data[i];
 					if (checker(ch)) {
@@ -700,8 +700,8 @@ namespace slib
 			if (!nWhat) {
 				return start;
 			}
-			typename VIEW::Char* what = word.getUnsafeData();
-			typename VIEW::Char* src = str.getUnsafeData();
+			typename VIEW::Char* what = word.getData();
+			typename VIEW::Char* src = str.getData();
 			for (sl_size i = start; i < nSrc; i++) {
 				typename VIEW::Char ch = src[i];
 				if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
@@ -747,8 +747,8 @@ namespace slib
 			if (!nWhat) {
 				return start;
 			}
-			typename VIEW::Char* what = word.getUnsafeData();
-			typename VIEW::Char* src = str.getUnsafeData();
+			typename VIEW::Char* what = word.getData();
+			typename VIEW::Char* src = str.getData();
 			for (sl_size i = start; i < nSrc; i++) {
 				typename VIEW::Char ch = src[i];
 				if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {

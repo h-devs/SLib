@@ -248,15 +248,15 @@ namespace slib
 	{
 	}
 
-	StringParam::StringParam(const StringView& str) noexcept : StringParam(str.getUnsafeData(), str.getUnsafeLength())
+	StringParam::StringParam(const StringView& str) noexcept : StringParam(str.getData(), str.getUnsafeLength())
 	{
 	}
 
-	StringParam::StringParam(const StringView16& str) noexcept : StringParam(str.getUnsafeData(), str.getUnsafeLength())
+	StringParam::StringParam(const StringView16& str) noexcept : StringParam(str.getData(), str.getUnsafeLength())
 	{
 	}
 
-	StringParam::StringParam(const StringView32& str) noexcept : StringParam(str.getUnsafeData(), str.getUnsafeLength())
+	StringParam::StringParam(const StringView32& str) noexcept : StringParam(str.getData(), str.getUnsafeLength())
 	{
 	}
 
@@ -1170,7 +1170,7 @@ namespace slib
 	CSTR::CSTR(const Atomic<String16>& str) noexcept: CSTR(String16(str)) {} \
 	CSTR::CSTR(const Atomic<String32>& str) noexcept: CSTR(String32(str)) {} \
 	\
-	CSTR::CSTR(typename StringViewTypeFromCharType<CSTR::Char>::Type const& str) noexcept: BASE(str.getUnsafeData(), str.getUnsafeLength()) \
+	CSTR::CSTR(typename StringViewTypeFromCharType<CSTR::Char>::Type const& str) noexcept: BASE(str.getData(), str.getUnsafeLength()) \
 	{ \
 		if (data) { \
 			if (length > 0) { \

@@ -870,34 +870,39 @@ namespace slib
 	}
 
 
-	sl_bool Serialize(MemoryBuffer* output, const String& _in)
-	{
-		return _in.toMemory().serialize(output);
-	}
-
 	sl_bool Deserialize(SerializeBuffer* input, String& _out)
 	{
 		sl_size size;
 		if (!(CVLI::deserialize(input, size))) {
 			return sl_false;
 		}
-		if (size) {
-			if (input->current + size <= input->end) {
-				if (input->ref.isNotNull()) {
-					_out = String::fromRef(input->ref, (sl_char8*)(input->current), size);
-				} else {
-					_out = String((sl_char8*)(input->current), size);
-				}
-				if (_out.isNotNull()) {
-					input->current += size;
-					return sl_true;
-				}
-			}
-			return sl_false;
-		} else {
+		if (!size) {
 			_out.setNull();
 			return sl_true;
 		}
+		if (input->current + size > input->end) {
+			return sl_false;
+		}
+		if (Base::equalsMemoryZero(input->current, size)) {
+			(input->current)++;
+			size--;
+		}
+		if (!size) {
+			_out.setEmpty();
+			return sl_true;
+		}
+		String ret;
+		if (input->ref.isNotNull()) {
+			ret = String::fromRef(input->ref, (sl_char8*)(input->current), size);
+		} else {
+			ret = String((sl_char8*)(input->current), size);
+		}
+		if (ret.isNull()) {
+			return sl_false;
+		}
+		input->current += size;
+		_out = Move(ret);
+		return sl_true;
 	}
 
 

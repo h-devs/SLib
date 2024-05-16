@@ -424,10 +424,10 @@ namespace slib
 			if (len >= 0) {
 				Init(*this, VariantType::StringData8);
 				_size = (sl_uint32)len;
-				REF_VAR(const sl_char8*, _value) = value.getUnsafeData();
+				REF_VAR(const sl_char8*, _value) = value.getData();
 			} else {
 				Init(*this, VariantType::Sz8);
-				REF_VAR(const sl_char8*, _value) = value.getUnsafeData();
+				REF_VAR(const sl_char8*, _value) = value.getData();
 			}
 		} else {
 			Init(*this, VariantType::Null);
@@ -442,10 +442,10 @@ namespace slib
 			if (len >= 0) {
 				Init(*this, VariantType::StringData16);
 				_size = (sl_uint32)len;
-				REF_VAR(const sl_char16*, _value) = value.getUnsafeData();
+				REF_VAR(const sl_char16*, _value) = value.getData();
 			} else {
 				Init(*this, VariantType::Sz16);
-				REF_VAR(const sl_char16*, _value) = value.getUnsafeData();
+				REF_VAR(const sl_char16*, _value) = value.getData();
 			}
 		} else {
 			Init(*this, VariantType::Null);
@@ -460,10 +460,10 @@ namespace slib
 			if (len >= 0) {
 				Init(*this, VariantType::StringData32);
 				_size = (sl_uint32)len;
-				REF_VAR(const sl_char32*, _value) = value.getUnsafeData();
+				REF_VAR(const sl_char32*, _value) = value.getData();
 			} else {
 				Init(*this, VariantType::Sz32);
-				REF_VAR(const sl_char32*, _value) = value.getUnsafeData();
+				REF_VAR(const sl_char32*, _value) = value.getData();
 			}
 		} else {
 			Init(*this, VariantType::Null);
@@ -2417,7 +2417,7 @@ namespace slib
 	{
 		if (value.isNotNull()) {
 			Free(_type, _value);
-			REF_VAR(const sl_char8*, _value) = value.getUnsafeData();
+			REF_VAR(const sl_char8*, _value) = value.getData();
 			sl_reg len = value.getUnsafeLength();
 			if (len < 0) {
 				Init(*this, VariantType::Sz8);
@@ -2434,7 +2434,7 @@ namespace slib
 	{
 		if (value.isNotNull()) {
 			Free(_type, _value);
-			REF_VAR(const sl_char16*, _value) = value.getUnsafeData();
+			REF_VAR(const sl_char16*, _value) = value.getData();
 			sl_reg len = value.getUnsafeLength();
 			if (len < 0) {
 				Init(*this, VariantType::Sz16);
@@ -2451,7 +2451,7 @@ namespace slib
 	{
 		if (value.isNotNull()) {
 			Free(_type, _value);
-			REF_VAR(const sl_char32*, _value) = value.getUnsafeData();
+			REF_VAR(const sl_char32*, _value) = value.getData();
 			sl_reg len = value.getUnsafeLength();
 			if (len < 0) {
 				Init(*this, VariantType::Sz32);

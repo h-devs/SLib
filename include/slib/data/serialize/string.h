@@ -38,30 +38,32 @@ namespace slib
 	template <class OUTPUT>
 	static sl_bool SerializeString(OUTPUT* output, const sl_char8* str, sl_size len)
 	{
-		if (!(CVLI::serialize(output, len))) {
-			return sl_false;
+		if (!str) {
+			return SerializeStatic(output, "", 1);
 		}
-		if (len) {
+		if (!len) {
+			return SerializeStatic(output, "\x01", 2);
+		}
+		if (Base::equalsMemoryZero(str, len)) {
+			if (!(CVLI::serialize(output, len + 1))) {
+				return sl_false;
+			}
+			if (!(SerializeStatic(output, "", 1))) {
+				return sl_false;
+			}
 			return SerializeRaw(output, str, len);
 		} else {
-			return sl_true;
+			if (!(CVLI::serialize(output, len))) {
+				return sl_false;
+			}
+			return SerializeRaw(output, str, len);
 		}
 	}
-
-	sl_bool Serialize(MemoryBuffer* output, const String& _in);
 
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const String& _in)
 	{
-		sl_size len = _in.getLength();
-		if (!(CVLI::serialize(output, len))) {
-			return sl_false;
-		}
-		if (len) {
-			return SerializeRaw(output, _in.getData(), len);
-		} else {
-			return sl_true;
-		}
+		return SerializeString(output, _in.getData(), _in.getLength());
 	}
 
 	sl_bool Deserialize(SerializeBuffer* input, String& _out);
@@ -73,20 +75,42 @@ namespace slib
 		if (!(CVLI::deserialize(input, len))) {
 			return sl_false;
 		}
-		if (len) {
-			String ret = String::allocate(len);
-			if (ret.isNull()) {
-				return sl_false;
-			}
-			if (DeserializeRaw(input, ret.getData(), len)) {
-				_out = Move(ret);
-				return sl_true;
-			}
-			return sl_false;
-		} else {
+		if (!len) {
 			_out.setNull();
 			return sl_true;
 		}
+		if (len == 1) {
+			sl_uint8 c;
+			if (!(DeserializeByte(input, c))) {
+				return sl_false;
+			}
+			if (!c) {
+				_out.setEmpty();
+				return sl_true;
+			}
+			String ret((sl_char8)c, 1);
+			if (ret.isNull()) {
+				return sl_false;
+			}
+			_out = Move(ret);
+			return sl_true;
+		}
+		String ret = String::allocate(len);
+		if (ret.isNull()) {
+			return sl_false;
+		}
+		sl_char8* data = ret.getData();
+		if (!(DeserializeRaw(input, data, len))) {
+			return sl_false;
+		}
+		if (Base::equalsMemoryZero(data, len)) {
+			ret = ret.substring(1);
+			if (ret.isNull()) {
+				return sl_false;
+			}
+		}
+		_out = Move(ret);
+		return sl_true;
 	}
 
 	template <class OUTPUT>
@@ -100,13 +124,42 @@ namespace slib
 	{
 		String s;
 		if (Deserialize(input, s)) {
-			if (s.isNotNull()) {
-				_out = String16::from(s);
-				return _out.isNotNull();
-			} else {
+			if (s.isNull()) {
 				_out.setNull();
 				return sl_true;
 			}
+			if (s.isEmpty()) {
+				_out.setEmpty();
+				return sl_true;
+			}
+			_out = String16::from(s);
+			return _out.isNotNull();
+		} else {
+			return sl_false;
+		}
+	}
+
+	template <class OUTPUT>
+	static sl_bool Serialize(OUTPUT* output, const String32& _in)
+	{
+		return Serialize(output, String::from(_in));
+	}
+
+	template <class INPUT>
+	static sl_bool Deserialize(INPUT* input, String32& _out)
+	{
+		String s;
+		if (Deserialize(input, s)) {
+			if (s.isNull()) {
+				_out.setNull();
+				return sl_true;
+			}
+			if (s.isEmpty()) {
+				_out.setEmpty();
+				return sl_true;
+			}
+			_out = String32::from(s);
+			return _out.isNotNull();
 		} else {
 			return sl_false;
 		}
@@ -125,6 +178,12 @@ namespace slib
 	}
 
 	template <class OUTPUT>
+	static sl_bool Serialize(OUTPUT* output, const StringView32& _in)
+	{
+		return Serialize(output, String::from(_in));
+	}
+
+	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const sl_char8* _in)
 	{
 		return Serialize(output, StringView(_in));
@@ -132,6 +191,12 @@ namespace slib
 
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const sl_char16* _in)
+	{
+		return Serialize(output, String::from(_in));
+	}
+
+	template <class OUTPUT>
+	static sl_bool Serialize(OUTPUT* output, const sl_char32* _in)
 	{
 		return Serialize(output, String::from(_in));
 	}
@@ -176,6 +241,29 @@ namespace slib
 	static sl_bool Deserialize(INPUT* input, std::u16string& _out)
 	{
 		String16 s;
+		if (Deserialize(input, s)) {
+			if (s.isNotNull()) {
+				_out = s.toStd();
+				return _out.size() != 0;
+			} else {
+				_out.clear();
+				return sl_true;
+			}
+		} else {
+			return sl_false;
+		}
+	}
+
+	template <class OUTPUT>
+	static sl_bool Serialize(OUTPUT* output, const std::u32string& _in)
+	{
+		return Serialize(output, String::from(_in));
+	}
+
+	template <class INPUT>
+	static sl_bool Deserialize(INPUT* input, std::u32string& _out)
+	{
+		String32 s;
 		if (Deserialize(input, s)) {
 			if (s.isNotNull()) {
 				_out = s.toStd();
