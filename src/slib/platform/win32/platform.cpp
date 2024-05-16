@@ -287,12 +287,23 @@ namespace slib
 
 		static sl_bool RegisterFileExtensionToProgId(const StringParam& ext, const StringParam& progId)
 		{
-			return win32::Registry::setValue(HKEY_CURRENT_USER, String16::concat(StringView16::literal(u"Software\\Classes\\."), ext), sl_null, progId);
+			String16 path = String16::concat(StringView16::literal(u"Software\\Classes\\."), ext);
+			Variant orig = win32::Registry::getValue(HKEY_CURRENT_USER, path, sl_null);
+			if (orig.isStringType() && orig.getString16() == progId.toString16()) {
+				return sl_true;
+			}
+			return win32::Registry::setValue(HKEY_CURRENT_USER, path, sl_null, progId);
 		}
 
 		static sl_bool RegisterProgId(const StringParam& progId, const StringParam& appPath)
 		{
-			if (win32::Registry::setValue(HKEY_CURRENT_USER, String16::concat(StringView16::literal(u"Software\\Classes\\"), progId, StringView16::literal(u"\\shell\\open\\command")), sl_null, String16::concat(appPath, StringView16::literal(u" \"%1\"")))) {
+			String16 path = String16::concat(StringView16::literal(u"Software\\Classes\\"), progId, StringView16::literal(u"\\shell\\open\\command"));
+			String16 value = String16::concat(appPath, StringView16::literal(u" \"%1\""));
+			Variant orig = win32::Registry::getValue(HKEY_CURRENT_USER, path, sl_null);
+			if (orig.isStringType() && orig.getString16() == value) {
+				return sl_true;
+			}
+			if (win32::Registry::setValue(HKEY_CURRENT_USER, path, sl_null, value)) {
 				SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
 				return sl_true;
 			}
