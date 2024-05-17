@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -39,31 +39,37 @@ namespace slib
 			if (json.isUndefined()) {
 				return;
 			}
-			MapHelper<MAP>::clear(_out);
 			if (json.getType() == VariantType::Map) {
 				JsonMap src = json.getJsonMap();
 				if (src.isNotNull()) {
-					MutexLocker lock(src.getLocker());
-					auto node = src.getFirstNode();
-					while (node) {
-						typename MAP::VALUE_TYPE v;
-						FromJson(node->value, v);
-						MapHelper<MAP>::add(_out, Cast<String, typename MAP::KEY_TYPE>()(node->key), Move(v));
-						node = node->getNext();
+					if (MapHelper<MAP>::create(_out)) {
+						MutexLocker lock(src.getLocker());
+						auto node = src.getFirstNode();
+						while (node) {
+							typename MAP::VALUE_TYPE v;
+							FromJson(node->value, v);
+							MapHelper<MAP>::add(_out, Cast<String, typename MAP::KEY_TYPE>()(node->key), Move(v));
+							node = node->getNext();
+						}
 					}
+					return;
 				}
 			} else {
 				Ref<Object> src = json.getObject();
 				if (src.isNotNull()) {
-					PropertyIterator iterator = src->getPropertyIterator();
-					while (iterator.moveNext()) {
-						typename MAP::VALUE_TYPE v;
-						Variant value = iterator.getValue();
-						FromJson(*(static_cast<const Json*>(&value)), v);
-						MapHelper<MAP>::add(_out, Cast<String, typename MAP::KEY_TYPE>()(iterator.getKey()), Move(v));
+					if (MapHelper<MAP>::create(_out)) {
+						PropertyIterator iterator = src->getPropertyIterator();
+						while (iterator.moveNext()) {
+							typename MAP::VALUE_TYPE v;
+							Variant value = iterator.getValue();
+							FromJson(*(static_cast<const Json*>(&value)), v);
+							MapHelper<MAP>::add(_out, Cast<String, typename MAP::KEY_TYPE>()(iterator.getKey()), Move(v));
+						}
 					}
+					return;
 				}
 			}
+			MapHelper<MAP>::clear(_out);
 		}
 
 		template <class MAP>
@@ -72,6 +78,7 @@ namespace slib
 			if (_in.isNotNull()) {
 				MutexLocker locker(_in.getLocker());
 				JsonMap map;
+				map.initialize();
 				auto node = _in.getFirstNode();
 				while (node) {
 					map.put_NoLock(Cast<typename MAP::KEY_TYPE, String>()(node->key), node->value);

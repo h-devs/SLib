@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -47,6 +47,12 @@ namespace slib
 			return list.isNotNull();
 		}
 
+		static sl_bool create(LIST& list)
+		{
+			list = LIST::create();
+			return list.isNotNull();
+		}
+
 		static typename LIST::ELEMENT_TYPE* getData(LIST& list)
 		{
 			return list.getData();
@@ -69,6 +75,12 @@ namespace slib
 		{
 			list.resize(n);
 			return list.size() == n;
+		}
+
+		static sl_bool create(std::vector<T, ALLOC>& list)
+		{
+			list.clear();
+			return sl_true;
 		}
 
 		static T* getData(std::vector<T, ALLOC>& list)

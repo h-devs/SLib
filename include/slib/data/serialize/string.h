@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -38,25 +38,13 @@ namespace slib
 	template <class OUTPUT>
 	static sl_bool SerializeString(OUTPUT* output, const sl_char8* str, sl_size len)
 	{
-		if (!str) {
-			return SerializeStatic(output, "", 1);
+		if (!(CVLI::serialize(output, len))) {
+			return sl_false;
 		}
-		if (!len) {
-			return SerializeStatic(output, "\x01", 2);
-		}
-		if (Base::equalsMemoryZero(str, len)) {
-			if (!(CVLI::serialize(output, len + 1))) {
-				return sl_false;
-			}
-			if (!(SerializeStatic(output, "", 1))) {
-				return sl_false;
-			}
+		if (len) {
 			return SerializeRaw(output, str, len);
 		} else {
-			if (!(CVLI::serialize(output, len))) {
-				return sl_false;
-			}
-			return SerializeRaw(output, str, len);
+			return sl_true;
 		}
 	}
 
@@ -76,41 +64,18 @@ namespace slib
 			return sl_false;
 		}
 		if (!len) {
-			_out.setNull();
-			return sl_true;
-		}
-		if (len == 1) {
-			sl_uint8 c;
-			if (!(DeserializeByte(input, c))) {
-				return sl_false;
-			}
-			if (!c) {
-				_out.setEmpty();
-				return sl_true;
-			}
-			String ret((sl_char8)c, 1);
-			if (ret.isNull()) {
-				return sl_false;
-			}
-			_out = Move(ret);
+			_out.setEmpty();
 			return sl_true;
 		}
 		String ret = String::allocate(len);
 		if (ret.isNull()) {
 			return sl_false;
 		}
-		sl_char8* data = ret.getData();
-		if (!(DeserializeRaw(input, data, len))) {
-			return sl_false;
+		if (DeserializeRaw(input, ret.getData(), len)) {
+			_out = Move(ret);
+			return sl_true;
 		}
-		if (Base::equalsMemoryZero(data, len)) {
-			ret = ret.substring(1);
-			if (ret.isNull()) {
-				return sl_false;
-			}
-		}
-		_out = Move(ret);
-		return sl_true;
+		return sl_false;
 	}
 
 	template <class OUTPUT>

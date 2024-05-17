@@ -877,31 +877,21 @@ namespace slib
 			return sl_false;
 		}
 		if (!size) {
-			_out.setNull();
+			_out.setEmpty();
 			return sl_true;
 		}
 		if (input->current + size > input->end) {
 			return sl_false;
 		}
-		if (Base::equalsMemoryZero(input->current, size)) {
-			(input->current)++;
-			size--;
-		}
-		if (!size) {
-			_out.setEmpty();
-			return sl_true;
-		}
-		String ret;
 		if (input->ref.isNotNull()) {
-			ret = String::fromRef(input->ref, (sl_char8*)(input->current), size);
+			_out = String::fromRef(input->ref, (sl_char8*)(input->current), size);
 		} else {
-			ret = String((sl_char8*)(input->current), size);
+			_out = String((sl_char8*)(input->current), size);
 		}
-		if (ret.isNull()) {
+		if (_out.isNull()) {
 			return sl_false;
 		}
 		input->current += size;
-		_out = Move(ret);
 		return sl_true;
 	}
 

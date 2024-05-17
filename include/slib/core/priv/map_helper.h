@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,12 @@ namespace slib
 			map.setNull();
 		}
 
+		static sl_bool create(MAP& map)
+		{
+			map.initialize();
+			return map.isNotNull();
+		}
+
 		template <class... ARGS>
 		static sl_bool add(MAP& map, ARGS&&... args)
 		{
@@ -61,6 +67,12 @@ namespace slib
 			map.clear();
 		}
 
+		static sl_bool create(std::map<KT, TYPES...>& map)
+		{
+			map.clear();
+			return sl_true;
+		}
+
 		template <class... ARGS>
 		static sl_bool add(std::map<KT, TYPES...>& map, ARGS&&... args)
 		{
@@ -77,6 +89,12 @@ namespace slib
 		static void clear(std::unordered_map<KT, TYPES...>& map)
 		{
 			map.clear();
+		}
+
+		static sl_bool create(std::unordered_map<KT, TYPES...>& map)
+		{
+			map.clear();
+			return sl_true;
 		}
 
 		template <class... ARGS>

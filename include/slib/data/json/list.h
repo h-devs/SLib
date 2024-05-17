@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -50,8 +50,10 @@ namespace slib
 								FromJson(src[i], dst[i]);
 							}
 						}
-						return;
+					} else {
+						ListHelper<LIST>::create(_out);
 					}
+					return;
 				}
 			} else {
 				Ref<Collection> src = json.getCollection();
@@ -65,8 +67,10 @@ namespace slib
 								FromJson(*(static_cast<const Json*>(&value)), dst[i]);
 							}
 						}
-						return;
+					} else {
+						ListHelper<LIST>::create(_out);
 					}
+					return;
 				}
 			}
 			ListHelper<LIST>::clear(_out);

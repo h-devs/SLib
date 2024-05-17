@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -61,7 +61,9 @@ namespace slib
 		if (!(CVLI::deserialize(input, count))) {
 			return sl_false;
 		}
-		MapHelper<MAP>::clear(_out);
+		if (!(MapHelper<MAP>::create(_out))) {
+			return sl_false;
+		}
 		for (sl_size i = 0; i < count; i++) {
 			typename MAP::KEY_TYPE k;
 			if (!(Deserialize(input, k))) {
