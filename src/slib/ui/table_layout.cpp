@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -393,6 +393,33 @@ namespace slib
 			return col->m_widthMode;
 		}
 		return SizeMode::Filling;
+	}
+
+	String TableLayout::getColumnId(sl_uint32 iCol)
+	{
+		Ref<Column> col = getColumn(iCol);
+		if (col.isNotNull()) {
+			return col->getId();
+		}
+		return sl_null;
+	}
+
+	String TableLayout::Column::getId()
+	{
+		return m_id;
+	}
+
+	void TableLayout::setColumnId(sl_uint32 iCol, const String& _id)
+	{
+		Ref<Column> col = getColumn(iCol);
+		if (col.isNotNull()) {
+			col->setId(_id);
+		}
+	}
+
+	void TableLayout::Column::setId(const String& _id)
+	{
+		m_id = _id;
 	}
 
 	SizeMode TableLayout::Column::getWidthMode()
@@ -1092,6 +1119,33 @@ namespace slib
 			return row->m_heightMode;
 		}
 		return SizeMode::Filling;
+	}
+
+	String TableLayout::getRowId(sl_uint32 iRow)
+	{
+		Ref<Row> row = getRow(iRow);
+		if (row.isNotNull()) {
+			return row->getId();
+		}
+		return sl_null;
+	}
+
+	String TableLayout::Row::getId()
+	{
+		return m_id;
+	}
+
+	void TableLayout::setRowId(sl_uint32 iRow, const String& _id)
+	{
+		Ref<Row> row = getRow(iRow);
+		if (row.isNotNull()) {
+			row->setId(_id);
+		}
+	}
+
+	void TableLayout::Row::setId(const String& _id)
+	{
+		m_id = _id;
 	}
 
 	SizeMode TableLayout::Row::getHeightMode()

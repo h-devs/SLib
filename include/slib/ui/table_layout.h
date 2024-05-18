@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,8 @@
 
 #include "scroll_view.h"
 #include "adapter.h"
+
+#include "../core/string.h"
 
 namespace slib
 {
@@ -53,6 +55,10 @@ namespace slib
 		Ref<Column> insertColumn(sl_uint32 index);
 
 		sl_bool removeColumn(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		String getColumnId(sl_uint32 column);
+
+		void setColumnId(sl_uint32 column, const String& _id);
 
 		SizeMode getColumnWidthMode(sl_uint32 column);
 
@@ -133,6 +139,10 @@ namespace slib
 		Ref<Row> insertRow(sl_uint32 index);
 
 		sl_bool removeRow(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		String getRowId(sl_uint32 row);
+
+		void setRowId(sl_uint32 row, const String& _id);
 
 		SizeMode getRowHeightMode(sl_uint32 row);
 
@@ -275,6 +285,10 @@ namespace slib
 
 			sl_bool remove(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
+			String getId();
+
+			void setId(const String& _id);
+
 			SizeMode getWidthMode();
 
 			sl_ui_len getWidth();
@@ -357,6 +371,7 @@ namespace slib
 		private:
 			WeakRef<TableLayout> m_table;
 			sl_int32 m_index;
+			AtomicString m_id;
 
 			SizeMode m_widthMode;
 			sl_ui_len m_widthLayout;
@@ -392,6 +407,10 @@ namespace slib
 			sl_uint32 getIndex();
 
 			sl_bool remove(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+			String getId();
+
+			void setId(const String& _id);
 
 			SizeMode getHeightMode();
 
@@ -475,6 +494,7 @@ namespace slib
 		private:
 			WeakRef<TableLayout> m_table;
 			sl_int32 m_index;
+			AtomicString m_id;
 
 			SizeMode m_heightMode;
 			sl_ui_len m_heightLayout;

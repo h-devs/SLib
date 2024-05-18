@@ -1109,6 +1109,35 @@ namespace slib
 		return sl_false;
 	}
 
+	String GridView::getColumnId(sl_uint32 index)
+	{
+		ObjectLocker lock(this);
+		Ref<Column> col = m_columns.getValueAt_NoLock(index);
+		if (col.isNotNull()) {
+			return col->getId();
+		}
+		return sl_null;
+	}
+
+	String GridViewColumn::getId()
+	{
+		return m_id;
+	}
+
+	void GridView::setColumnId(sl_uint32 index, const String& _id)
+	{
+		ObjectLocker lock(this);
+		Ref<Column> col = m_columns.getValueAt_NoLock(index);
+		if (col.isNotNull()) {
+			col->setId(_id);
+		}
+	}
+
+	void GridViewColumn::setId(const String& _id)
+	{
+		m_id = _id;
+	}
+
 	sl_ui_len GridView::getColumnWidth(sl_uint32 index)
 	{
 		ObjectLocker lock(this);
@@ -1694,7 +1723,41 @@ namespace slib
 		return sl_false;
 	}
 
-	namespace {
+#define DEFINE_GET_SET_ROW_ID(SECTION) \
+	String GridView::get##SECTION##RowId(sl_uint32 index) \
+	{ \
+		ObjectLocker lock(this); \
+		Ref<Row> row = m_list##SECTION##Row.getValueAt_NoLock(index); \
+		if (row.isNotNull()) { \
+			return row->getId(); \
+		} \
+		return sl_null; \
+	} \
+	void GridView::set##SECTION##RowId(sl_uint32 index, const String& _id) \
+	{ \
+		ObjectLocker lock(this); \
+		Ref<Row> row = m_list##SECTION##Row.getValueAt_NoLock(index); \
+		if (row.isNotNull()) { \
+			row->setId(_id); \
+		} \
+	}
+
+	DEFINE_GET_SET_ROW_ID(Body)
+	DEFINE_GET_SET_ROW_ID(Header)
+	DEFINE_GET_SET_ROW_ID(Footer)
+
+	String GridViewRow::getId()
+	{
+		return m_id;
+	}
+
+	void GridViewRow::setId(const String& _id)
+	{
+		m_id = _id;
+	}
+
+	namespace
+	{
 		SLIB_INLINE static sl_ui_len FixLength(sl_ui_len value, sl_ui_len defaultRowHeight)
 		{
 			if (value >= 0) {

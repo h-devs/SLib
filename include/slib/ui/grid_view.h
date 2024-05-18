@@ -329,6 +329,9 @@ namespace slib
 		Ref<Column> insertColumn(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 		sl_bool removeColumn(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		String getColumnId(sl_uint32 index);
+		void setColumnId(sl_uint32 index, const String& _id);
+
 		sl_ui_len getColumnWidth(sl_uint32 index);
 		void setColumnWidth(sl_uint32 index, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setColumnWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -388,6 +391,14 @@ namespace slib
 		sl_bool removeBodyRow(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 		sl_bool removeHeaderRow(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 		sl_bool removeFooterRow(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		String getBodyRowId(sl_uint32 index);
+		String getHeaderRowId(sl_uint32 index);
+		String getFooterRowId(sl_uint32 index);
+
+		void setBodyRowId(sl_uint32 index, const String& _id);
+		void setHeaderRowId(sl_uint32 index, const String& _id);
+		void setFooterRowId(sl_uint32 index, const String& _id);
 
 		sl_ui_len getRecordHeight();
 		sl_ui_len getHeaderHeight();
@@ -1137,6 +1148,9 @@ namespace slib
 
 		sl_bool remove(UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		String getId();
+		void setId(const String& _id);
+
 		sl_ui_len getWidth();
 		void setWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setDefaultWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -1170,6 +1184,7 @@ namespace slib
 	private:
 		WeakRef<GridView> m_view;
 		sl_int32 m_index;
+		AtomicString m_id;
 
 		sl_ui_len m_width;
 		sl_ui_len m_fixedWidth;
@@ -1211,6 +1226,9 @@ namespace slib
 
 		sl_bool remove(UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		String getId();
+		void setId(const String& _id);
+
 		sl_ui_len getHeight();
 		void setHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -1229,6 +1247,7 @@ namespace slib
 		WeakRef<GridView> m_view;
 		GridView::RecordIndex m_section;
 		sl_int32 m_index;
+		AtomicString m_id;
 
 		sl_ui_len m_height;
 		sl_ui_len m_fixedHeight;

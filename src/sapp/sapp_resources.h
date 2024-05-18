@@ -626,6 +626,7 @@ namespace slib
 	{
 	public:
 		SAppNameValue name;
+		SAppStringValue id;
 		SAppDimensionValue width;
 		SAppDimensionValue minWidth;
 		SAppDimensionValue maxWidth;
@@ -652,6 +653,7 @@ namespace slib
 	{
 	public:
 		SAppNameValue name;
+		SAppStringValue id;
 		SAppDimensionValue height;
 		SAppDimensionValue minHeight;
 		SAppDimensionValue maxHeight;
@@ -1029,6 +1031,7 @@ namespace slib
 	{
 	public:
 		SAppNameValue name;
+		SAppStringValue id;
 		SAppDimensionValue width;
 		SAppDimensionValue minWidth;
 		SAppDimensionValue maxWidth;
@@ -1049,6 +1052,7 @@ namespace slib
 	{
 	public:
 		SAppNameValue name;
+		SAppStringValue id;
 		SAppDimensionValue height;
 		SAppBooleanValue visible;
 		SAppBooleanValue horizontalGrid;

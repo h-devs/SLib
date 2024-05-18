@@ -3611,6 +3611,7 @@ namespace slib
 						}
 						resource->otherNames.put(column.name.value, sl_true);
 					}
+					LAYOUT_CONTROL_PARSE_XML(STRING, columnXml, column., id)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., width, checkSize)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., minWidth, checkScalarSize)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., maxWidth, checkScalarSize)
@@ -3643,6 +3644,7 @@ namespace slib
 						}
 						resource->otherNames.put(row.name.value, sl_true);
 					}
+					LAYOUT_CONTROL_PARSE_XML(STRING, rowXml, row., id)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., height, checkSize)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., minHeight, checkScalarSize)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., maxHeight, checkScalarSize)
@@ -3716,6 +3718,7 @@ namespace slib
 					params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::TableLayout::Column> %s;%n", col.name.value));
 					params->sbDefineInit->add(String::format("\t\t\t%s = %s->getColumn(%d);%n", col.name.value, resourceItem->name, iCol));
 				}
+				LAYOUT_CONTROL_GENERATE_STRING(col.id, setColumnId, BASIC, "%d, %s", iCol, value)
 				LAYOUT_CONTROL_GENERATE_SIZE(col.width, setColumnWidth, ITEM, "%d, %s", iCol, value)
 				LAYOUT_CONTROL_GENERATE_DIMENSION(col.minWidth, setColumnMinimumWidth, ITEM, "%d, %s", iCol, value)
 				LAYOUT_CONTROL_GENERATE_DIMENSION(col.maxWidth, setColumnMaximumWidth, ITEM, "%d, %s", iCol, value)
@@ -3735,6 +3738,7 @@ namespace slib
 					params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::TableLayout::Row> %s;%n", row.name.value));
 					params->sbDefineInit->add(String::format("\t\t\t%s = %s->getRow(%d);%n", row.name.value, resourceItem->name, iRow));
 				}
+				LAYOUT_CONTROL_GENERATE_STRING(row.id, setRowId, BASIC, "%d, %s", iRow, value)
 				LAYOUT_CONTROL_GENERATE_SIZE(row.height, setRowHeight, ITEM, "%d, %s", iRow, value)
 				LAYOUT_CONTROL_GENERATE_DIMENSION(row.minHeight, setRowMinimumHeight, ITEM, "%d, %s", iRow, value)
 				LAYOUT_CONTROL_GENERATE_DIMENSION(row.maxHeight, setRowMaximumHeight, ITEM, "%d, %s", iRow, value)
@@ -3761,6 +3765,7 @@ namespace slib
 			}
 			for (iCol = 0; iCol < nCols; iCol++) {
 				SAppLayoutTableColumn& col = cols[iCol];
+				LAYOUT_CONTROL_SIMULATE_STRING(col.id, setColumnId, BASIC, iCol, value)
 				LAYOUT_CONTROL_SIMULATE_SIZE(col.width, setColumnWidth, ITEM, iCol, value)
 				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.minWidth, setColumnMinimumWidth, ITEM, iCol, value)
 				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.maxWidth, setColumnMaximumWidth, ITEM, iCol, value)
@@ -3776,6 +3781,7 @@ namespace slib
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
 				SAppLayoutTableRow& row = rows[iRow];
+				LAYOUT_CONTROL_SIMULATE_STRING(row.id, setRowId, BASIC, iRow, value)
 				LAYOUT_CONTROL_SIMULATE_SIZE(row.height, setRowHeight, ITEM, iRow, value)
 				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.minHeight, setRowMinimumHeight, ITEM, iRow, value)
 				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.maxHeight, setRowMaximumHeight, ITEM, iRow, value)
@@ -4984,6 +4990,7 @@ namespace slib
 						}
 						resource->otherNames.put(column.name.value, sl_true);
 					}
+					LAYOUT_CONTROL_PARSE_XML(STRING, columnXml, column., id)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., minWidth, checkScalarSize)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., maxWidth, checkScalarSize)
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., width, checkScalarSize)
@@ -5050,6 +5057,7 @@ namespace slib
 					} \
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(row, rowXml) \
 					row.font.inheritFrom(attr->SECTION.font); \
+					LAYOUT_CONTROL_PARSE_XML(STRING, rowXml, row., id) \
 					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., height, checkScalarSize) \
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml, row., visible) \
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, rowXml, row., horizontalGrid) \
@@ -5264,6 +5272,7 @@ namespace slib
 						params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::GridViewColumn> %s;%n", column.name.value));
 						params->sbDefineInit->add(String::format("\t\t\t%s = %s->getColumn(%d);%n", column.name.value, resourceItem->name, iCol));
 					}
+					LAYOUT_CONTROL_GENERATE_STRING(column.id, setColumnId, BASIC, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_DIMENSION(column.maxWidth, setMaximumColumnWidth, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_DIMENSION(column.minWidth, setMinimumColumnWidth, ITEM, "%d, %s", iCol, value)
 					LAYOUT_CONTROL_GENERATE_DIMENSION(column.width, setColumnWidth, ITEM, "%d, %s", iCol, value)
@@ -5293,6 +5302,7 @@ namespace slib
 						params->sbDeclare->add(String::format("\t\t\tslib::Ref<slib::GridViewRow> %s;%n", row.name.value)); \
 						params->sbDefineInit->add(String::format("\t\t\t%s = %s->get" #PREFIX "Row(%d);%n", row.name.value, resourceItem->name, iRow)); \
 					} \
+					LAYOUT_CONTROL_GENERATE_STRING(row.id, set##PREFIX##RowId, BASIC, "%d, %s", iRow, value) \
 					LAYOUT_CONTROL_GENERATE_DIMENSION(row.height, set##PREFIX##RowHeight, ITEM, "%d, %s", iRow, value) \
 					LAYOUT_CONTROL_GENERATE_GENERIC(row.visible, set##PREFIX##RowVisible, ITEM, "%d, %s", iRow, value) \
 					LAYOUT_CONTROL_GENERATE_GENERIC(row.horizontalGrid, set##PREFIX##HorizontalGrid, ITEM, "%d, %s", iRow, value) \
@@ -5386,6 +5396,7 @@ namespace slib
 			{
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) {
 					SAppLayoutGridColumn& column = columns[iCol];
+					LAYOUT_CONTROL_SIMULATE_STRING(column.id, setColumnId, BASIC, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.maxWidth, setMaximumColumnWidth, ITEM, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.minWidth, setMinimumColumnWidth, ITEM, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.width, setColumnWidth, ITEM, (sl_uint32)iCol, value)
@@ -5411,6 +5422,7 @@ namespace slib
 				ListElements<SAppLayoutGridRow> rows(section.rows); \
 				for (sl_size iRow = 0; iRow < rows.count; iRow++) { \
 					SAppLayoutGridRow& row = rows[iRow]; \
+					LAYOUT_CONTROL_SIMULATE_STRING(row.id, set##PREFIX##RowId, BASIC, (sl_uint32)iRow, value) \
 					LAYOUT_CONTROL_SIMULATE_DIMENSION(row.height, set##PREFIX##RowHeight, ITEM, (sl_uint32)iRow, value) \
 					LAYOUT_CONTROL_SIMULATE_GENERIC(row.visible, set##PREFIX##RowVisible, ITEM, (sl_uint32)iRow, value) \
 					LAYOUT_CONTROL_SIMULATE_GENERIC(row.horizontalGrid, set##PREFIX##HorizontalGrid, ITEM, (sl_uint32)iRow, value) \
