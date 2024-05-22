@@ -975,7 +975,9 @@ namespace slib
 					}
 				}
 #endif
-				ev->acceptByNative();
+				if (!(ev->isAltKey())) {
+					ev->acceptByNative();
+				}
 			}
 			return;
 		}
