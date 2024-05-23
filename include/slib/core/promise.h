@@ -141,26 +141,15 @@ namespace slib
 		SLIB_REF_WRAPPER(Promise, CPromise<T>)
 
 	public:
-		static Promise<T> create()
+		static Promise create()
 		{
 			return new CPromise<T>();
 		}
 
-		template <class... ARGS>
-		static Promise<T> fromValue(ARGS&&... args)
-		{
-			return new CPromise<T>(PromiseState::Resolved, Forward<ARGS>(args)...);
-		}
-
-		static const Promise<T>& from(const Promise<T>& other)
-		{
-			return other;
-		}
-
 		template <class OTHER>
-		static Promise<T> from(const Promise<OTHER>& other)
+		static Promise from(const Promise<OTHER>& other)
 		{
-			Promise<T> ret;
+			Promise ret;
 			ret.initialize();
 			other.then([ret](OTHER& result) {
 				ret.resolve(result);
@@ -168,11 +157,20 @@ namespace slib
 			return ret;
 		}
 
+		template <class... ARGS>
+		static Promise fromValue(ARGS&&... args)
+		{
+			return new CPromise<T>(PromiseState::Resolved, Forward<ARGS>(args)...);
+		}
+
 		void initialize()
 		{
 			ref = new CPromise<T>();
 		}
 
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class VALUE, Promise, Promise<VALUE>)
+
+	public:
 		PromiseState getState() const
 		{
 			CPromise<T>* object = ref.ptr;
@@ -260,7 +258,7 @@ namespace slib
 		template <class... PROMISES>
 		static Promise< List<T> > all(PROMISES&&... _promises)
 		{
-			Promise<T> promises[] = {Forward<PROMISES>(_promises)...};
+			Promise promises[] = {Forward<PROMISES>(_promises)...};
 			sl_size n = sizeof...(_promises);
 			if (!n) {
 				return sl_null;
@@ -275,7 +273,7 @@ namespace slib
 			Promise< List<T> > ret;
 			ret.initialize();
 			for (sl_size i = 0; i < n; i++) {
-				Promise<T>& promise = promises[i];
+				Promise& promise = promises[i];
 				sl_size index = i;
 				promise.then([ret, index, n, context, refContext](T& result) {
 					context->results.setAt_NoLock(index, Move(result));
@@ -287,13 +285,13 @@ namespace slib
 			return ret;
 		}
 
-		static Promise< List<T> > allList(const List< Promise<T> >& _promises)
+		static Promise< List<T> > allList(const List<Promise>& _promises)
 		{
 			sl_size n = _promises.getCount();
 			if (!n) {
 				return sl_null;
 			}
-			ListElements< Promise<T> > promises(_promises.duplicate());
+			ListElements<Promise> promises(_promises.duplicate());
 			if (!(promises.count)) {
 				return sl_null;
 			}
@@ -307,7 +305,7 @@ namespace slib
 			Promise< List<T> > ret;
 			ret.initialize();
 			for (sl_size i = 0; i < promises.count; i++) {
-				Promise<T>& promise = promises[i];
+				Promise& promise = promises[i];
 				sl_size index = i;
 				promise.then([ret, index, n, context, refContext](T& result) {
 					context->results.setAt_NoLock(index, Move(result));
@@ -320,17 +318,17 @@ namespace slib
 		}
 
 		template <class... PROMISES>
-		static Promise<T> race(PROMISES&&... _promises)
+		static Promise race(PROMISES&&... _promises)
 		{
-			Promise<T> promises[] = {Forward<PROMISES>(_promises)...};
+			Promise promises[] = {Forward<PROMISES>(_promises)...};
 			sl_size n = sizeof...(_promises);
 			if (!n) {
 				return sl_null;
 			}
-			Promise<T> ret;
+			Promise ret;
 			ret.initialize();
 			for (sl_size i = 0; i < n; i++) {
-				Promise<T>& promise = promises[i];
+				Promise& promise = promises[i];
 				promise.then([ret](T& result) {
 					ret.resolve(Move(result));
 				});
@@ -338,20 +336,20 @@ namespace slib
 			return ret;
 		}
 
-		static Promise<T> raceList(const List< Promise<T> >& _promises)
+		static Promise raceList(const List<Promise>& _promises)
 		{
 			sl_size n = _promises.getCount();
 			if (!n) {
 				return sl_null;
 			}
-			ListElements< Promise<T> > promises(_promises.duplicate());
+			ListElements<Promise> promises(_promises.duplicate());
 			if (!(promises.count)) {
 				return sl_null;
 			}
-			Promise<T> ret;
+			Promise ret;
 			ret.initialize();
 			for (sl_size i = 0; i < promises.count; i++) {
-				Promise<T>& promise = promises[i];
+				Promise& promise = promises[i];
 				promise.then([ret](T& result) {
 					ret.resolve(Move(result));
 				});
@@ -359,10 +357,10 @@ namespace slib
 			return ret;
 		}
 
-		static Promise<T> dispatch(const Ref<Dispatcher>& dispatcher, const Function<T()>& task)
+		static Promise dispatch(const Ref<Dispatcher>& dispatcher, const Function<T()>& task)
 		{
 			if (dispatcher.isNotNull()) {
-				Promise<T> ret;
+				Promise ret;
 				ret.initialize();
 				if (dispatcher->dispatch([ret, task]() {
 					ret.resolve(task());
@@ -373,9 +371,9 @@ namespace slib
 			return sl_null;
 		}
 
-		static Promise<T> dispatch(const Function<T()>& task)
+		static Promise dispatch(const Function<T()>& task)
 		{
-			Promise<T> ret;
+			Promise ret;
 			ret.initialize();
 			if (Dispatch::dispatch([ret, task]() {
 				ret.resolve(task());
@@ -385,10 +383,10 @@ namespace slib
 			return sl_null;
 		}
 
-		static Promise<T> setTimeout(const Ref<Dispatcher>& dispatcher, const Function<T()>& task, sl_uint64 delayMillis)
+		static Promise setTimeout(const Ref<Dispatcher>& dispatcher, const Function<T()>& task, sl_uint64 delayMillis)
 		{
 			if (dispatcher.isNotNull()) {
-				Promise<T> ret;
+				Promise ret;
 				ret.initialize();
 				if (dispatcher->dispatch([ret, task]() {
 					ret.resolve(task());
@@ -399,9 +397,9 @@ namespace slib
 			return sl_null;
 		}
 
-		static Promise<T> setTimeout(const Function<T()>& task, sl_uint64 delayMillis)
+		static Promise setTimeout(const Function<T()>& task, sl_uint64 delayMillis)
 		{
-			Promise<T> ret;
+			Promise ret;
 			ret.initialize();
 			if (Dispatch::setTimeout([ret, task]() {
 				ret.resolve(task());
@@ -411,10 +409,10 @@ namespace slib
 			return sl_null;
 		}
 
-		static Promise<T> dispatchPromise(const Ref<Dispatcher>& dispatcher, const Function<Promise<T>()>& task)
+		static Promise dispatchPromise(const Ref<Dispatcher>& dispatcher, const Function<Promise()>& task)
 		{
 			if (dispatcher.isNotNull()) {
-				Promise<T> ret;
+				Promise ret;
 				ret.initialize();
 				if (dispatcher->dispatch([ret, task]() {
 					task().then([ret](T& result) {
@@ -427,9 +425,9 @@ namespace slib
 			return sl_null;
 		}
 
-		static Promise<T> dispatchPromise(const Function<Promise<T>()>& task)
+		static Promise dispatchPromise(const Function<Promise()>& task)
 		{
-			Promise<T> ret;
+			Promise ret;
 			ret.initialize();
 			if (Dispatch::dispatch([ret, task]() {
 				task().then([ret](T& result) {
@@ -441,10 +439,10 @@ namespace slib
 			return sl_null;
 		}
 
-		static Promise<T> setTimeoutPromise(const Ref<Dispatcher>& dispatcher, const Function<Promise<T>()>& task, sl_uint64 delayMillis)
+		static Promise setTimeoutPromise(const Ref<Dispatcher>& dispatcher, const Function<Promise()>& task, sl_uint64 delayMillis)
 		{
 			if (dispatcher.isNotNull()) {
-				Promise<T> ret;
+				Promise ret;
 				ret.initialize();
 				if (dispatcher->dispatch([ret, task]() {
 					task().then([ret](T& result) {
@@ -457,9 +455,9 @@ namespace slib
 			return sl_null;
 		}
 
-		static Promise<T> setTimeoutPromise(const Function<Promise<T>()>& task, sl_uint64 delayMillis)
+		static Promise setTimeoutPromise(const Function<Promise()>& task, sl_uint64 delayMillis)
 		{
-			Promise<T> ret;
+			Promise ret;
 			ret.initialize();
 			if (Dispatch::setTimeout([ret, task]() {
 				task().then([ret](T& result) {

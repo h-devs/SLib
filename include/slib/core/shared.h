@@ -656,23 +656,7 @@ namespace slib
 			return container ? (T*)(container->ptr) : sl_null;
 		}
 
-		template <class OTHER>
-		static const Shared& from(const Shared<OTHER*>& other) noexcept
-		{
-			return *(reinterpret_cast<Shared const*>(&other));
-		}
-
-		template <class OTHER>
-		static Shared& from(SharedPtr<OTHER*>& other) noexcept
-		{
-			return *(reinterpret_cast<Shared*>(&other));
-		}
-
-		template <class OTHER>
-		static Shared&& from(Shared<OTHER*>&& other) noexcept
-		{
-			return static_cast<Shared&&>(*(reinterpret_cast<Shared*>(&other)));
-		}
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class OTHER, Shared, Shared<OTHER>)
 
 	public:
 		Shared& operator=(AtomicShared<T*>&& other)
@@ -764,17 +748,7 @@ namespace slib
 		Atomic(const ValueType& t): _container(new priv::shared::ObjectContainer<ValueType>((T*)0, t)) {}
 
 	public:
-		template <class OTHER>
-		static const Atomic& from(const AtomicShared<OTHER*>& other) noexcept
-		{
-			return *(reinterpret_cast<Atomic const*>(&other));
-		}
-
-		template <class OTHER>
-		static Atomic& from(AtomicShared<OTHER*>& other) noexcept
-		{
-			return *(reinterpret_cast<Atomic*>(&other));
-		}
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class OTHER, Atomic, AtomicShared<OTHER>)
 
 	public:
 		template <class OTHER>

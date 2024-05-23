@@ -354,7 +354,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 		Ref<KeyboardEvent> ret = new KeyboardEvent(action, time, systemKeycode);
 		if (ret.isNotNull()) {
 			ret->setKeycode(keycode);
-			return Ref<UIEvent>::from(ret);
+			return Ref<UIEvent>::cast(ret);
 		}
 		return sl_null;
 	}

@@ -145,7 +145,7 @@ namespace slib
 
 	Ref<RenderProgramInstance> RenderProgram::getInstance(RenderEngine* engine)
 	{
-		return Ref<RenderProgramInstance>::from(RenderBaseObject::getInstance(engine));
+		return Ref<RenderProgramInstance>::cast(RenderBaseObject::getInstance(engine));
 	}
 
 

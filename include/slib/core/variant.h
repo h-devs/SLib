@@ -124,6 +124,10 @@ namespace slib
 
 		Variant(const Atomic<Variant>& other) noexcept;
 
+		Variant(Atomic<Variant>& other) noexcept;
+
+		Variant(Atomic<Variant>&& other) noexcept;
+
 		Variant(const Json& other) noexcept;
 
 		Variant(Json&& other) noexcept;
@@ -344,6 +348,10 @@ namespace slib
 		Variant& operator=(Variant&& other) noexcept;
 
 		Variant& operator=(const Atomic<Variant>& other) noexcept;
+
+		Variant& operator=(Atomic<Variant>& other) noexcept;
+
+		Variant& operator=(Atomic<Variant>&& other) noexcept;
 
 		Variant& operator=(const Json& other) noexcept;
 

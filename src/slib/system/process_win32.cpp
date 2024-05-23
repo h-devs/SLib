@@ -363,7 +363,7 @@ namespace slib
 
 	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam& commandLine)
 	{
-		return Ref<Process>::from(ProcessImpl::create(pathExecutable, commandLine));
+		return Ref<Process>::cast(ProcessImpl::create(pathExecutable, commandLine));
 	}
 
 	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs)

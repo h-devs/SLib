@@ -99,7 +99,7 @@ namespace slib
 
 	Ref<CRef> GraphicsPath::_createPlatformObject()
 	{
-		return Ref<CRef>::from(PlatformObject::create());
+		return Ref<CRef>::cast(PlatformObject::create());
 	}
 
 	void GraphicsPath::_moveTo_PO(CRef* _po, sl_real x, sl_real y)

@@ -146,7 +146,7 @@ namespace slib
 						if (ProcessMenuShortcutKey(msg)) {
 							break;
 						}
-						Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
+						Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(msg.hwnd));
 						if (instance.isNotNull()) {
 							Ref<View> view = instance->getView();
 							if (view.isNotNull()) {

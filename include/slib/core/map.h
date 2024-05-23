@@ -1221,12 +1221,6 @@ namespace slib
 		}
 #endif
 
-		template <class KEY, class VALUE, class OTHER_COMPARE>
-		static const Map& from(const Map<KEY, VALUE, OTHER_COMPARE>& other) noexcept
-		{
-			return *(reinterpret_cast<Map const*>(&other));
-		}
-
 		void initialize() noexcept
 		{
 			ref = new CMAP();
@@ -1241,6 +1235,8 @@ namespace slib
 		{
 			ref = new CMAP(Move(compare));
 		}
+
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, Map, Map<TYPES...>)
 
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
@@ -2061,12 +2057,6 @@ namespace slib
 #endif
 
 	public:
-		template <class KEY, class VALUE, class OTHER_COMPARE>
-		static const Atomic& from(const Atomic< Map<KEY, VALUE, OTHER_COMPARE> >& other) noexcept
-		{
-			return *(reinterpret_cast<Atomic const*>(&other));
-		}
-
 		void initialize() noexcept
 		{
 			ref = new CMAP;
@@ -2081,6 +2071,8 @@ namespace slib
 		{
 			ref = new CMAP(Move(compare));
 		}
+
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, Atomic, Atomic< Map<TYPES...> >)
 
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES

@@ -369,7 +369,7 @@ namespace slib
 			Ref<CRef> refStyles = e->getProperty("styles").getRef();
 			if (refStyles.isNotNull()) {
 				SAppLayoutXmlItem item(e);
-				item.styles = Ref< CList< Ref<SAppLayoutStyle> > >::from(refStyles);
+				item.styles = Ref< CList< Ref<SAppLayoutStyle> > >::cast(refStyles);
 				String value = item.getXmlAttribute(vName);
 				if (value.isNotNull()) {
 					return value;
@@ -380,7 +380,7 @@ namespace slib
 					return value;
 				}
 			}
-			RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::from(e->getProperty("caller").getRef());
+			RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::cast(e->getProperty("caller").getRef());
 			if (caller.isNotNull()) {
 				String value = caller->getXmlAttribute(name);
 				if (value.isNotNull()) {
@@ -399,7 +399,7 @@ namespace slib
 		if (!len) {
 			if (value.isNull()) {
 				if (!(name.startsWith(':')) && element->getProperty("inherit").getBoolean()) {
-					RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::from(element->getProperty("caller").getRef());
+					RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::cast(element->getProperty("caller").getRef());
 					if (caller.isNotNull()) {
 						return caller->getXmlAttribute(name);
 					}

@@ -238,7 +238,7 @@ namespace slib
 						m_backgroundColor = window->getBackgroundColor();
 					}
 				}
-				Ref<Win32_ViewInstance> content = Ref<Win32_ViewInstance>::from(UIPlatform::createViewInstance(hWnd, sl_false));
+				Ref<Win32_ViewInstance> content = Ref<Win32_ViewInstance>::cast(UIPlatform::createViewInstance(hWnd, sl_false));
 				if (content.isNotNull()) {
 					content->setWindowContent(sl_true);
 					if (window->isLayered()) {

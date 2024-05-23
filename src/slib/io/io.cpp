@@ -1198,7 +1198,7 @@ namespace slib
 		if (m_queue.add(mem)) {
 			return sl_true;
 		}
-		m_buffer.ref = Move(Ref< CList<sl_uint8> >::from(mem.ref));
+		m_buffer.ref = Move(Ref< CList<sl_uint8> >::cast(mem.ref));
 		return sl_false;
 	}
 

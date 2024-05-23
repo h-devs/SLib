@@ -55,6 +55,11 @@ namespace slib
 			value._retain_construct(m_value);
 		}
 
+		Atomic(Atomic<T>&& value)
+		{
+			value._retain_construct_move(m_value);
+		}
+
 		~Atomic()
 		{
 			((T*)m_value)->~T();
@@ -82,11 +87,31 @@ namespace slib
 			return *this;
 		}
 
+		Atomic<T>& operator=(Atomic<T>&& _other)
+		{
+			SLIB_ALIGN(8) char other[sizeof(T)];
+			_other._retain_construct_move(other);
+			_assign_move(other);
+			((T*)other)->~T();
+			return *this;
+		}
+
 		operator T() const
+		{
+			return get();
+		}
+
+	public:
+		T get() const
 		{
 			T value;
 			_retain_assign(&value);
 			return value;
+		}
+
+		void get(T& ret) const
+		{
+			_retain_assign(&ret);
 		}
 
 		T release()
@@ -109,6 +134,13 @@ namespace slib
 			m_lock.unlock();
 		}
 
+		void _retain_construct_move(void* other) const
+		{
+			m_lock.lock();
+			new ((T*)other) T(Move(*((T*)m_value)));
+			m_lock.unlock();
+		}
+
 		void _retain_assign(void* other) const
 		{
 			m_lock.lock();
@@ -125,22 +157,16 @@ namespace slib
 
 		void _assign_copy(const void* other)
 		{
-			SLIB_ALIGN(8) char old[sizeof(T)];
 			m_lock.lock();
-			new ((T*)old) T(Move(*((T*)m_value)));
 			*((T*)m_value) = *((T*)other);
 			m_lock.unlock();
-			((T*)old)->~T();
 		}
 
 		void _assign_move(void* other)
 		{
-			SLIB_ALIGN(8) char old[sizeof(T)];
 			m_lock.lock();
-			new ((T*)old) T(Move(*((T*)m_value)));
 			*((T*)m_value) = Move(*((T*)other));
 			m_lock.unlock();
-			((T*)old)->~T();
 		}
 
 	protected:

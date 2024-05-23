@@ -230,7 +230,7 @@ namespace slib
 
 	Ref<IPCRequest> IPC::sendMessage(const RequestParam& param)
 	{
-		return Ref<IPCRequest>::from(PipeRequest::create(param));
+		return Ref<IPCRequest>::cast(PipeRequest::create(param));
 	}
 
 	sl_bool IPC::sendMessageSynchronous(const RequestParam& param, ResponseMessage& response)
@@ -259,7 +259,7 @@ namespace slib
 
 	Ref<IPCServer> IPC::createServer(const ServerParam& param)
 	{
-		return Ref<IPCServer>::from(PipeServer::create(param));
+		return Ref<IPCServer>::cast(PipeServer::create(param));
 	}
 
 }

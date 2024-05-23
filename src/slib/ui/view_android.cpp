@@ -327,7 +327,7 @@ namespace slib
 
 	Ref<Android_ViewInstance> Android_ViewInstance::findInstance(jlong jinstance)
 	{
-		return Ref<Android_ViewInstance>::from(UIPlatform::getViewInstance((jobject)jinstance));
+		return Ref<Android_ViewInstance>::cast(UIPlatform::getViewInstance((jobject)jinstance));
 	}
 
 	Ref<View> Android_ViewInstance::findView(jlong jinstance)
@@ -572,7 +572,7 @@ namespace slib
 	jobject UIPlatform::getViewHandle(View* view)
 	{
 		if (view) {
-			Ref<Android_ViewInstance> instance = Ref<Android_ViewInstance>::from(view->getViewInstance());
+			Ref<Android_ViewInstance> instance = Ref<Android_ViewInstance>::cast(view->getViewInstance());
 			if (instance.isNotNull()) {
 				return instance->getHandle();
 			}

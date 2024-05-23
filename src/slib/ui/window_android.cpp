@@ -276,7 +276,7 @@ namespace slib
 
 		SLIB_INLINE static Ref<Android_WindowInstance> GetWindowInstance(jlong instance)
 		{
-			return Ref<Android_WindowInstance>::from(UIPlatform::getWindowInstance((jobject)instance));
+			return Ref<Android_WindowInstance>::cast(UIPlatform::getWindowInstance((jobject)instance));
 		}
 
 		void JNICALL OnResize(JNIEnv* env, jobject _this, jlong instance, int w, int h)

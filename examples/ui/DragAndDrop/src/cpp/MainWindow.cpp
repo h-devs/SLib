@@ -38,7 +38,7 @@ void MainWindow::onCreate()
 					break;
 				case UIAction::Drop:
 					{
-						Ref<Button> button = Ref<Button>::from(linearDrop->findViewById("btn_adding"));
+						Ref<Button> button = Ref<Button>::cast(linearDrop->findViewById("btn_adding"));
 						if (button.isNotNull()) {
 							if (ev->getDragItem().getFiles().isNotNull()) {
 								button->setText(String::format("%s", Json(ev->getDragItem().getFiles())));

@@ -265,7 +265,7 @@ namespace slib
 
 	Ref<UrlRequest> UrlRequest::_create(const UrlRequestParam& param, const String& url)
 	{
-		return Ref<UrlRequest>::from(UrlRequestImpl::create(param, url));
+		return Ref<UrlRequest>::cast(UrlRequestImpl::create(param, url));
 	}
 
 }

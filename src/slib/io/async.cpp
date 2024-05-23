@@ -831,7 +831,7 @@ namespace slib
 
 	sl_bool AsyncStream::isSeekable()
 	{
-		Ref<AsyncStreamInstance> instance = Ref<AsyncStreamInstance>::from(getIoInstance());
+		Ref<AsyncStreamInstance> instance = Ref<AsyncStreamInstance>::cast(getIoInstance());
 		if (instance.isNotNull()) {
 			return instance->isSeekable();
 		}
@@ -840,7 +840,7 @@ namespace slib
 
 	sl_bool AsyncStream::seek(sl_uint64 pos)
 	{
-		Ref<AsyncStreamInstance> instance = Ref<AsyncStreamInstance>::from(getIoInstance());
+		Ref<AsyncStreamInstance> instance = Ref<AsyncStreamInstance>::cast(getIoInstance());
 		if (instance.isNotNull()) {
 			instance->seek(pos);
 			return sl_true;
@@ -850,7 +850,7 @@ namespace slib
 
 	sl_uint64 AsyncStream::getPosition()
 	{
-		Ref<AsyncStreamInstance> instance = Ref<AsyncStreamInstance>::from(getIoInstance());
+		Ref<AsyncStreamInstance> instance = Ref<AsyncStreamInstance>::cast(getIoInstance());
 		if (instance.isNotNull()) {
 			return instance->getPosition();
 		}
@@ -859,7 +859,7 @@ namespace slib
 
 	sl_uint64 AsyncStream::getSize()
 	{
-		Ref<AsyncStreamInstance> instance = Ref<AsyncStreamInstance>::from(getIoInstance());
+		Ref<AsyncStreamInstance> instance = Ref<AsyncStreamInstance>::cast(getIoInstance());
 		if (instance.isNotNull()) {
 			return instance->getSize();
 		}
@@ -889,7 +889,7 @@ namespace slib
 
 	Ref<AsyncStreamInstance> AsyncStreamBase::getIoInstance()
 	{
-		return Ref<AsyncStreamInstance>::from(AsyncIoObject::getIoInstance());
+		return Ref<AsyncStreamInstance>::cast(AsyncIoObject::getIoInstance());
 	}
 
 	sl_bool AsyncStreamBase::requestIo(AsyncStreamRequest* req)
@@ -1076,7 +1076,7 @@ namespace slib
 
 	Ref<AsyncFileStreamInstance> AsyncFileStream::getIoInstance()
 	{
-		return Ref<AsyncFileStreamInstance>::from(AsyncIoObject::getIoInstance());
+		return Ref<AsyncFileStreamInstance>::cast(AsyncIoObject::getIoInstance());
 	}
 
 	sl_file AsyncFileStream::getHandle()

@@ -270,12 +270,6 @@ namespace slib
 		}
 #endif
 
-		template <class TYPE, class COMPARE_ARG>
-		static const Set& from(const Set<TYPE, COMPARE_ARG>& other) noexcept
-		{
-			return *(reinterpret_cast<Set const*>(&other));
-		}
-
 		void initialize() noexcept
 		{
 			ref = new CSET();
@@ -290,6 +284,8 @@ namespace slib
 		{
 			ref = new CSET(Move(compare));
 		}
+
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, Set, Set<TYPES...>)
 
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
@@ -569,12 +565,6 @@ namespace slib
 #endif
 
 	public:
-		template <class TYPE, class COMPARE_ARG>
-		static const Atomic& from(const Atomic< Set<TYPE, COMPARE_ARG> >& other) noexcept
-		{
-			return *(reinterpret_cast<Atomic const*>(&other));
-		}
-
 		void initialize() noexcept
 		{
 			ref = new CSET;
@@ -589,6 +579,8 @@ namespace slib
 		{
 			ref = new CSET(Move(compare));
 		}
+
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, Atomic, Atomic< Set<TYPES...> >)
 
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES

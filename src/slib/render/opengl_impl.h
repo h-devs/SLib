@@ -878,7 +878,7 @@ namespace slib
 			return 0;
 		}
 		if (bitmap->isImage()) {
-			Ref<Image> image = Ref<Image>::from(bitmap);
+			Ref<Image> image = Ref<Image>::cast(bitmap);
 			return createTexture2D(w, h, image->getColorsAt(x, y), image->getStride());
 		} else {
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
@@ -912,7 +912,7 @@ namespace slib
 			return 0;
 		}
 		if (bitmap->isImage()) {
-			Ref<Image> image = Ref<Image>::from(bitmap);
+			Ref<Image> image = Ref<Image>::cast(bitmap);
 			return createTexture2D(w, h, image->getColors(), image->getStride());
 		} else {
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
@@ -993,7 +993,7 @@ namespace slib
 			return;
 		}
 		if (bitmap->isImage()) {
-			Ref<Image> image = Ref<Image>::from(bitmap);
+			Ref<Image> image = Ref<Image>::cast(bitmap);
 			updateTexture2D(x, y, w, h, image->getColorsAt(bx, by), image->getStride());
 		} else {
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
@@ -1177,7 +1177,7 @@ namespace slib
 			return;
 		}
 		if (bitmap->isImage()) {
-			Ref<Image> image = Ref<Image>::from(bitmap);
+			Ref<Image> image = Ref<Image>::cast(bitmap);
 			drawPixels(w, h, image->getColorsAt(sx, sy), image->getStride());
 		} else {
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
@@ -1212,7 +1212,7 @@ namespace slib
 			return;
 		}
 		if (bitmap->isImage()) {
-			Ref<Image> image = Ref<Image>::from(bitmap);
+			Ref<Image> image = Ref<Image>::cast(bitmap);
 			drawPixels(w, h, image->getColors(), image->getStride());
 		} else {
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
@@ -1539,7 +1539,7 @@ namespace slib
 				{
 					Ref<RenderEngine> engine = getEngine();
 					if (engine.isNotNull()) {
-						return Ref<RenderInputLayout>::from(GLRenderInputLayout::create(program, param));
+						return Ref<RenderInputLayout>::cast(GLRenderInputLayout::create(program, param));
 					}
 					return sl_null;
 				}

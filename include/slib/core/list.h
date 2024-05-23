@@ -219,15 +219,15 @@ namespace slib
 		}
 
 	public:
-		static CList<T>* create() noexcept
+		static CList* create() noexcept
 		{
-			return new CList<T>;
+			return new CList;
 		}
 
-		static CList<T>* create(sl_size count) noexcept
+		static CList* create(sl_size count) noexcept
 		{
 			if (count > 0) {
-				CList<T>* ret = new CList<T>(count);
+				CList* ret = new CList(count);
 				if (ret) {
 					if (ret->m_count > 0) {
 						return ret;
@@ -235,15 +235,15 @@ namespace slib
 					delete ret;
 				}
 			} else {
-				return new CList<T>;
+				return new CList;
 			}
 			return sl_null;
 		}
 
-		static CList<T>* create(sl_size count, sl_size capacity) noexcept
+		static CList* create(sl_size count, sl_size capacity) noexcept
 		{
 			if (count > 0 || capacity > 0) {
-				CList<T>* ret = new CList<T>(count, capacity);
+				CList* ret = new CList(count, capacity);
 				if (ret) {
 					if (ret->m_capacity > 0) {
 						return ret;
@@ -251,15 +251,15 @@ namespace slib
 					delete ret;
 				}
 			} else {
-				return new CList<T>;
+				return new CList;
 			}
 			return sl_null;
 		}
 
-		static CList<T>* create(sl_size count, sl_size capacity, const T& initialValue) noexcept
+		static CList* create(sl_size count, sl_size capacity, const T& initialValue) noexcept
 		{
 			if (count > 0 || capacity > 0) {
-				CList<T>* ret = new CList<T>(count, capacity, initialValue);
+				CList* ret = new CList(count, capacity, initialValue);
 				if (ret) {
 					if (ret->m_capacity > 0) {
 						return ret;
@@ -267,16 +267,16 @@ namespace slib
 					delete ret;
 				}
 			} else {
-				return new CList<T>;
+				return new CList;
 			}
 			return sl_null;
 		}
 
 		template <class VALUE>
-		static CList<T>* create(const VALUE* values, sl_size count) noexcept
+		static CList* create(const VALUE* values, sl_size count) noexcept
 		{
 			if (count > 0) {
-				CList<T>* ret = new CList<T>(values, count);
+				CList* ret = new CList(values, count);
 				if (ret) {
 					if (ret->m_count > 0) {
 						return ret;
@@ -284,16 +284,16 @@ namespace slib
 					delete ret;
 				}
 			} else {
-				return new CList<T>;
+				return new CList;
 			}
 			return sl_null;
 		}
 
 		template <class VALUE>
-		static CList<T>* createByMovingElements(VALUE* values, sl_size count) noexcept
+		static CList* createByMovingElements(VALUE* values, sl_size count) noexcept
 		{
 			if (count > 0) {
-				CList<T>* ret = new CList<T>(values, count, (MoveOperation*)sl_null);
+				CList* ret = new CList(values, count, (MoveOperation*)sl_null);
 				if (ret) {
 					if (ret->m_count > 0) {
 						return ret;
@@ -301,28 +301,28 @@ namespace slib
 					delete ret;
 				}
 			} else {
-				return new CList<T>;
+				return new CList;
 			}
 			return sl_null;
 		}
 
 		template <class VALUE>
-		static CList<T>* create(const Array<VALUE>& array) noexcept
+		static CList* create(const Array<VALUE>& array) noexcept
 		{
 			return create(array.getData(), array.getCount());
 		}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		static CList<T>* create(const std::initializer_list<T>& l) noexcept
+		static CList* create(const std::initializer_list<T>& l) noexcept
 		{
 			return create(l.begin(), l.size());
 		}
 #endif
 
 		template <class VALUE>
-		static CList<T>* createFromElement(VALUE&& value) noexcept
+		static CList* createFromElement(VALUE&& value) noexcept
 		{
-			CList<T>* ret = new CList<T>();
+			CList* ret = new CList;
 			if (ret) {
 				T* data = (T*)(Base::createMemory(sizeof(T)));
 				if (data) {
@@ -337,20 +337,20 @@ namespace slib
 			return sl_null;
 		}
 
-		static CList<T>* createFromElement(const T& value, sl_size count) noexcept
+		static CList* createFromElement(const T& value, sl_size count) noexcept
 		{
 			return create(count, count, value);
 		}
 
 		template <class... ARGS>
-		static CList<T>* createFromElements(ARGS&&... _values) noexcept
+		static CList* createFromElements(ARGS&&... _values) noexcept
 		{
 			T values[] = {Forward<ARGS>(_values)...};
 			return create(values, sizeof...(_values));
 		}
 
 		template <class VALUE>
-		static CList<T>* createCopy(CList<VALUE>* other) noexcept
+		static CList* createCopy(CList<VALUE>* other) noexcept
 		{
 			if (other) {
 				ObjectLocker lock(other);
@@ -1308,7 +1308,7 @@ namespace slib
 			return ArrayTraits<T>::indexOf(m_data, m_count, value, equals) >= 0;
 		}
 
-		CList<T>* duplicate_NoLock() const noexcept
+		CList* duplicate_NoLock() const noexcept
 		{
 			if (m_count > 0) {
 				return create(m_data, m_count);
@@ -1316,7 +1316,7 @@ namespace slib
 			return sl_null;
 		}
 
-		CList<T>* duplicate() const noexcept
+		CList* duplicate() const noexcept
 		{
 			ObjectLocker lock(this);
 			return duplicate_NoLock();
@@ -1370,7 +1370,7 @@ namespace slib
 			ArrayTraits<T>::reverse(m_data, m_count);
 		}
 
-		CList<T>* slice_NoLock(sl_size index, sl_size count = SLIB_SIZE_MAX) const noexcept
+		CList* slice_NoLock(sl_size index, sl_size count = SLIB_SIZE_MAX) const noexcept
 		{
 			if (count > 0 && index < m_count) {
 				sl_size n = m_count - index;
@@ -1382,7 +1382,7 @@ namespace slib
 			return sl_null;
 		}
 
-		CList<T>* slice(sl_size index, sl_size count = SLIB_SIZE_MAX) const noexcept
+		CList* slice(sl_size index, sl_size count = SLIB_SIZE_MAX) const noexcept
 		{
 			ObjectLocker lock(this);
 			return slice_NoLock(index, count);
@@ -1441,82 +1441,78 @@ namespace slib
 #endif
 
 	public:
-		static List<T> create() noexcept
+		static List create() noexcept
 		{
 			return CList<T>::create();
 		}
 
-		static List<T> create(sl_size count) noexcept
+		static List create(sl_size count) noexcept
 		{
 			return CList<T>::create(count);
 		}
 
-		static List<T> create(sl_size count, sl_size capacity) noexcept
+		static List create(sl_size count, sl_size capacity) noexcept
 		{
 			return CList<T>::create(count, capacity);
 		}
 
-		static List<T> create(sl_size count, sl_size capacity, const T& initialValue) noexcept
+		static List create(sl_size count, sl_size capacity, const T& initialValue) noexcept
 		{
 			return CList<T>::create(count, capacity, initialValue);
 		}
 
 		template <class VALUE>
-		static List<T> create(const VALUE* values, sl_size count) noexcept
+		static List create(const VALUE* values, sl_size count) noexcept
 		{
 			return CList<T>::create(values, count);
 		}
 
 		template <class VALUE>
-		static List<T> createByMovingElements(VALUE* values, sl_size count) noexcept
+		static List createByMovingElements(VALUE* values, sl_size count) noexcept
 		{
 			return CList<T>::createByMovingElements(values, count);
 		}
 
 		template <class VALUE>
-		static List<T> create(const Array<VALUE>& array) noexcept
+		static List create(const Array<VALUE>& array) noexcept
 		{
 			return CList<T>::create(array.getData(), array.getCount());
 		}
 
-		static List<T> create(Collection* collection);
+		static List create(Collection* collection);
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		static List<T> create(const std::initializer_list<T>& l) noexcept
+		static List create(const std::initializer_list<T>& l) noexcept
 		{
 			return create(l.begin(), l.size());
 		}
 #endif
 
 		template <class VALUE>
-		static List<T> createFromElement(VALUE&& e) noexcept
+		static List createFromElement(VALUE&& e) noexcept
 		{
 			return CList<T>::createFromElement(Forward<VALUE>(e));
 		}
 
-		static List<T> createFromElement(const T& e, sl_size count) noexcept
+		static List createFromElement(const T& e, sl_size count) noexcept
 		{
 			return CList<T>::createFromElement(e, count);
 		}
 
 		template <class... ARGS>
-		static List<T> createFromElements(ARGS&&... args) noexcept
+		static List createFromElements(ARGS&&... args) noexcept
 		{
 			T values[] = {Forward<ARGS>(args)...};
 			return CList<T>::create(values, sizeof...(args));
 		}
 
 		template <class VALUE>
-		static List<T> createCopy(const List<VALUE>& other) noexcept
+		static List createCopy(const List<VALUE>& other) noexcept
 		{
 			return CList<T>::createCopy(other.ref.ptr);
 		}
 
-		template <class VALUE>
-		static List<T>& from(const List<VALUE>& other) noexcept
-		{
-			return *(const_cast<List<T>*>(reinterpret_cast<List<T> const*>(&other)));
-		}
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class VALUE, List, List<VALUE>)
 
 	public:
 		sl_size getCount() const noexcept
@@ -1770,7 +1766,7 @@ namespace slib
 		}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		List<T>& operator=(const std::initializer_list<T>& l) noexcept
+		List& operator=(const std::initializer_list<T>& l) noexcept
 		{
 			ref = CList<T>::create(l.begin(), l.size());
 			return *this;
@@ -2573,7 +2569,7 @@ namespace slib
 			return sl_false;
 		}
 
-		List<T> duplicate_NoLock() const noexcept
+		List duplicate_NoLock() const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
@@ -2582,7 +2578,7 @@ namespace slib
 			return sl_null;
 		}
 
-		List<T> duplicate() const noexcept
+		List duplicate() const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
@@ -2661,7 +2657,7 @@ namespace slib
 			}
 		}
 
-		List<T> slice_NoLock(sl_size index, sl_size count = SLIB_SIZE_MAX) const noexcept
+		List slice_NoLock(sl_size index, sl_size count = SLIB_SIZE_MAX) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
@@ -2670,7 +2666,7 @@ namespace slib
 			return sl_null;
 		}
 
-		List<T> slice(sl_size index, sl_size count = SLIB_SIZE_MAX) const noexcept
+		List slice(sl_size index, sl_size count = SLIB_SIZE_MAX) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
@@ -2753,11 +2749,7 @@ namespace slib
 #endif
 
 	public:
-		template <class VALUE>
-		static Atomic< List<T> >& from(const Atomic< List<VALUE> >& other) noexcept
-		{
-			return *(const_cast<Atomic< List<T> >*>(reinterpret_cast<Atomic< List<T> > const*>(&other)));
-		}
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class VALUE, Atomic, AtomicList<VALUE>)
 
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES

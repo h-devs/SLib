@@ -506,7 +506,7 @@ namespace slib
 
 	Ref<Menu> Menu::create(sl_bool flagPopup)
 	{
-		return Ref<Menu>::from(DrawnMenu::create());
+		return Ref<Menu>::cast(DrawnMenu::create());
 	}
 
 }

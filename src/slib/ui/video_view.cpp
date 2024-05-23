@@ -254,7 +254,7 @@ namespace slib
 			texture = Texture::create(frame.image.width, frame.image.height);
 		}
 		if (texture.isNotNull()) {
-			Ref<Image> image = Ref<Image>::from(texture->getSource());
+			Ref<Image> image = Ref<Image>::cast(texture->getSource());
 			BitmapData bitmapData(image->getWidth(), image->getHeight(), image->getColors());
 
 			sl_bool flagUseYUV = sl_false;

@@ -131,7 +131,7 @@ namespace slib
 
 	Ref<VertexBufferInstance> VertexBuffer::getInstance(RenderEngine* engine)
 	{
-		return Ref<VertexBufferInstance>::from(RenderBuffer::getInstance(engine));
+		return Ref<VertexBufferInstance>::cast(RenderBuffer::getInstance(engine));
 	}
 
 
@@ -188,7 +188,7 @@ namespace slib
 
 	Ref<IndexBufferInstance> IndexBuffer::getInstance(RenderEngine* engine)
 	{
-		return Ref<IndexBufferInstance>::from(RenderBuffer::getInstance(engine));
+		return Ref<IndexBufferInstance>::cast(RenderBuffer::getInstance(engine));
 	}
 
 

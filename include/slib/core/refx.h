@@ -46,12 +46,7 @@
 		Ref(const Pointer<OTHERS...>& v) noexcept: Ref<T1>(v) { _init(v); } \
 		static Ref null() noexcept { return sl_null; } \
 		void setNull() noexcept { Ref<T1>::setNull(); _init(sl_null); } \
-		template <class... OTHERS> \
-		static const Ref& from(const Ref<OTHERS...>& other) noexcept { return *(reinterpret_cast<Ref const*>(&other)); } \
-		template <class... OTHERS> \
-		static Ref& from(Ref<OTHERS...>& other) noexcept { return *(reinterpret_cast<Ref*>(&other)); } \
-		template <class... OTHERS> \
-		static Ref&& from(Ref<OTHERS...>&& other) noexcept { return static_cast<Ref&&>(*(reinterpret_cast<Ref*>(&other))); } \
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... OTHERS, Ref, Ref<OTHERS...>) \
 		Ref& operator=(sl_null_t) noexcept { Ref<T1>::setNull(); _init(sl_null); return *this; } \
 		template <class... OTHERS> \
 		Ref& operator=(Ref<OTHERS...>&& v) noexcept { _init(v); *((Ref<T1>*)this) = Move(v); return *this; } \

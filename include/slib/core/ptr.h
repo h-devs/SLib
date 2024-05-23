@@ -41,37 +41,37 @@ namespace slib
 			template <class... TYPES>
 			static const Ref<CRef>& GetRef(const Ref<TYPES...>& ref) noexcept
 			{
-				return Ref<CRef>::from(ref);
+				return Ref<CRef>::cast(ref);
 			}
 
 			template <class... TYPES>
 			static Ref<CRef>&& GetRef(Ref<TYPES...>&& ref) noexcept
 			{
-				return Move(Ref<CRef>::from(ref));
+				return Move(Ref<CRef>::cast(ref));
 			}
 
 			template <class OTHER>
 			static const AtomicRef<CRef>& GetRef(const AtomicRef<OTHER>& ref) noexcept
 			{
-				return AtomicRef<CRef>::from(ref);
+				return AtomicRef<CRef>::cast(ref);
 			}
 
 			template <class OTHER>
 			static const Ref<CRef>& GetRef(const WeakRef<OTHER>& weak) noexcept
 			{
-				return Ref<CRef>::from(weak._weak);
+				return Ref<CRef>::cast(weak._weak);
 			}
 
 			template <class OTHER>
 			static Ref<CRef>&& GetRef(WeakRef<OTHER>&& weak) noexcept
 			{
-				return Move(Ref<CRef>::from(weak._weak));
+				return Move(Ref<CRef>::cast(weak._weak));
 			}
 
 			template <class OTHER>
 			static const AtomicRef<CRef>& GetRef(const AtomicWeakRef<OTHER>& weak) noexcept
 			{
-				return AtomicRef<CRef>::from(weak._weak);
+				return AtomicRef<CRef>::cast(weak._weak);
 			}
 
 			template <class T>
@@ -280,24 +280,6 @@ namespace slib
 			ref.setNull();
 		}
 
-		template <class... TYPES>
-		static const Ptr& from(const Ptr<TYPES...>& other) noexcept
-		{
-			return *(reinterpret_cast<Ptr const*>(&other));
-		}
-
-		template <class... TYPES>
-		static Ptr& from(Ptr<TYPES...>& other) noexcept
-		{
-			return *(reinterpret_cast<Ptr*>(&other));
-		}
-
-		template <class... TYPES>
-		static Ptr&& from(Ptr<TYPES...>&& other) noexcept
-		{
-			return static_cast<Ptr&&>(*(reinterpret_cast<Ptr*>(&other)));
-		}
-
 		sl_bool isWeak() const noexcept
 		{
 			CRef* obj = ref.ptr;
@@ -349,6 +331,8 @@ namespace slib
 				return *this;
 			}
 		}
+
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, Ptr, Ptr<TYPES...>)
 
 	public:
 		SLIB_CONSTEXPR T* get() const
@@ -708,18 +692,6 @@ namespace slib
 			_replace(sl_null, Ref<CRef>::null());
 		}
 
-		template <class OTHER>
-		static const Atomic& from(const AtomicPtr<OTHER>& other) noexcept
-		{
-			return *(reinterpret_cast<Atomic const*>(&other));
-		}
-
-		template <class OTHER>
-		static Atomic& from(AtomicPtr<OTHER>& other) noexcept
-		{
-			return *(reinterpret_cast<Atomic*>(&other));
-		}
-
 		Ptr<T> lock() const noexcept
 		{
 			Ptr<T> p(*this);
@@ -730,6 +702,8 @@ namespace slib
 		{
 			return Move(*this);
 		}
+
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class OTHER, Atomic, AtomicPtr<OTHER>)
 
 	public:
 		void set(T* pointer) noexcept
@@ -779,28 +753,28 @@ namespace slib
 		void set(Ref<OTHER>&& reference) noexcept
 		{
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
-			_replace(reference.ptr, Move(Ref<CRef>::from(reference)));
+			_replace(reference.ptr, Move(Ref<CRef>::cast(reference)));
 		}
 
 		template <class OTHER>
 		void set(const Ref<OTHER>& reference) noexcept
 		{
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
-			_replace(reference.ptr, Ref<CRef>::from(reference));
+			_replace(reference.ptr, Ref<CRef>::cast(reference));
 		}
 
 		template <class OTHER>
 		void set(AtomicRef<OTHER>&& _reference) noexcept
 		{
 			Ref<OTHER> reference(Move(_reference));
-			_replace(reference.ptr, Move(Ref<CRef>::from(reference)));
+			_replace(reference.ptr, Move(Ref<CRef>::cast(reference)));
 		}
 
 		template <class OTHER>
 		void set(const AtomicRef<OTHER>& _reference) noexcept
 		{
 			Ref<OTHER> reference(_reference);
-			_replace(reference.ptr, Move(Ref<CRef>::from(reference)));
+			_replace(reference.ptr, Move(Ref<CRef>::cast(reference)));
 		}
 
 		template <class OTHER>
@@ -809,7 +783,7 @@ namespace slib
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 			Ref<OTHER> o(weak);
 			if (o.isNotNull()) {
-				_replace(o.ptr, Ref<CRef>::from(weak._weak));
+				_replace(o.ptr, Ref<CRef>::cast(weak._weak));
 			} else {
 				_replace(sl_null, Ref<CRef>::null());
 			}

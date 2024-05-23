@@ -427,7 +427,7 @@ namespace slib
 
 	Ref<LMDB> LMDB::open(const LMDB_Param& param)
 	{
-		return Ref<LMDB>::from(LMDBImpl::open(param));
+		return Ref<LMDB>::cast(LMDBImpl::open(param));
 	}
 
 	Ref<LMDB> LMDB::open(const StringParam& path)

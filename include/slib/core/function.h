@@ -1012,23 +1012,7 @@ namespace slib
 			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new FunctionList<RET_TYPE(ARGS...)>(list));
 		}
 
-		template <class OTHER_RET_TYPE, class... OTHER_ARGS>
-		static const Function& from(const Function<OTHER_RET_TYPE(OTHER_ARGS...)>& other) noexcept
-		{
-			return *(reinterpret_cast<Function const*>(&other));
-		}
-
-		template <class OTHER_RET_TYPE, class... OTHER_ARGS>
-		static Function& from(Function<OTHER_RET_TYPE(OTHER_ARGS...)>& other) noexcept
-		{
-			return *(reinterpret_cast<Function*>(&other));
-		}
-
-		template <class OTHER_RET_TYPE, class... OTHER_ARGS>
-		static Function&& from(Function<OTHER_RET_TYPE(OTHER_ARGS...)>&& other) noexcept
-		{
-			return static_cast<Function&&>(*(reinterpret_cast<Function*>(&other)));
-		}
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class TYPE, Function, Function<TYPE>)
 
 	public:
 		sl_bool isList() const noexcept
@@ -1179,6 +1163,9 @@ namespace slib
 				return RET_TYPE();
 			}
 		}
+
+	public:
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class TYPE, Atomic, AtomicFunction<TYPE>)
 
 	public:
 		// return `function`

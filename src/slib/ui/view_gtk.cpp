@@ -376,7 +376,7 @@ namespace slib
 
 	gboolean GTK_ViewInstance::eventCallback(GtkWidget*, GdkEvent* event, gpointer user_data)
 	{
-		Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
+		Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::cast(UIPlatform::getViewInstance((GtkWidget*)user_data));
 		if (instance.isNotNull()) {
 			switch (event->type) {
 				case GDK_EXPOSE:
@@ -407,7 +407,7 @@ namespace slib
 
 	gboolean GTK_ViewInstance::drawCallback(GtkWidget*, cairo_t* cairo, gpointer user_data)
 	{
-		Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
+		Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::cast(UIPlatform::getViewInstance((GtkWidget*)user_data));
 		if (instance.isNotNull()) {
 			instance->onDrawEvent(cairo);
 		}

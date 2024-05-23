@@ -341,7 +341,7 @@ namespace slib
 		if (!bitmap) {
 			return sl_null;
 		}
-		return Ref<Bitmap>::from(BitmapImpl::create(bitmap, flagFreeOnRelease, ref));
+		return Ref<Bitmap>::cast(BitmapImpl::create(bitmap, flagFreeOnRelease, ref));
 	}
 
 	Ref<Bitmap> GraphicsPlatform::createBitmap(HBITMAP hbm)
@@ -352,7 +352,7 @@ namespace slib
 		startGdiplus();
 		Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(hbm, NULL);
 		if (bitmap) {
-			return Ref<Bitmap>::from(BitmapImpl::create(bitmap, sl_true, sl_null));
+			return Ref<Bitmap>::cast(BitmapImpl::create(bitmap, sl_true, sl_null));
 		}
 		return sl_null;
 	}

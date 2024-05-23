@@ -1347,12 +1347,6 @@ namespace slib
 		}
 #endif
 
-		template <class KEY, class VALUE, class OTHER_HASH, class OTHER_COMPARE>
-		static const HashMap& from(const HashMap<KEY, VALUE, OTHER_HASH, OTHER_COMPARE>& other) noexcept
-		{
-			return *(reinterpret_cast<HashMap const*>(&other));
-		}
-
 		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
 		{
 			ref = new CMAP(capacityMinimum, capacityMaximum);
@@ -1369,6 +1363,8 @@ namespace slib
 		{
 			ref = new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare));
 		}
+
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, HashMap, HashMap<TYPES...>)
 
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
@@ -2089,12 +2085,6 @@ namespace slib
 #endif
 
 	public:
-		template <class KEY, class VALUE, class OTHER_HASH, class OTHER_COMPARE>
-		static const Atomic& from(const Atomic< HashMap<KEY, VALUE, OTHER_HASH, OTHER_COMPARE> >& other) noexcept
-		{
-			return *(reinterpret_cast<Atomic const*>(&other));
-		}
-
 		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
 		{
 			ref = new CMAP(capacityMinimum, capacityMaximum);
@@ -2111,6 +2101,8 @@ namespace slib
 		{
 			ref = new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare));
 		}
+
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, Atomic, Atomic< HashMap<TYPES...> >)
 
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES

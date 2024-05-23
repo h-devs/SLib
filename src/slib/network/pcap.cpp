@@ -416,7 +416,7 @@ namespace slib
 			return sl_null;
 		}
 #endif
-		return Ref<Pcap>::from(PcapImpl::create(param));
+		return Ref<Pcap>::cast(PcapImpl::create(param));
 	}
 
 	namespace {
@@ -698,7 +698,7 @@ namespace slib
 
 	Ref<Pcap> Pcap::createAny(const PcapParam& param)
 	{
-		return Ref<Pcap>::from(AnyDevicePcapImpl::create(param));
+		return Ref<Pcap>::cast(AnyDevicePcapImpl::create(param));
 	}
 
 	sl_bool Pcap::isAllowedNonRoot(const StringParam& executablePath)

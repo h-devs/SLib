@@ -396,13 +396,13 @@ namespace slib
 
 	Ref<UrlRequest> CurlRequest::_create(const UrlRequestParam& param, const String& url)
 	{
-		return Ref<UrlRequest>::from(CurlRequestImpl::create(param, url));
+		return Ref<UrlRequest>::cast(CurlRequestImpl::create(param, url));
 	}
 
 #if defined(SLIB_PLATFORM_IS_LINUX) && !defined(SLIB_PLATFORM_IS_ANDROID)
 	Ref<UrlRequest> UrlRequest::_create(const UrlRequestParam& param, const String& url)
 	{
-		return Ref<UrlRequest>::from(CurlRequestImpl::create(param, url));
+		return Ref<UrlRequest>::cast(CurlRequestImpl::create(param, url));
 	}
 #endif
 

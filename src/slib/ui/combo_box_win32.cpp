@@ -54,7 +54,7 @@ namespace slib
 		LRESULT CALLBACK EditChildSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 		{
 			if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) {
-				Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(GetParent(hWnd)));
+				Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(GetParent(hWnd)));
 				if (instance.isNotNull()) {
 					return instance->processSubclassMessage(uMsg, wParam, lParam);
 				}

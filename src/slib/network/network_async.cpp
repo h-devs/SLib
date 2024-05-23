@@ -99,7 +99,7 @@ namespace slib
 
 	void AsyncSocketStreamInstance::_onConnect(sl_bool flagError)
 	{
-		Ref<AsyncSocketStream> object = Ref<AsyncSocketStream>::from(getObject());
+		Ref<AsyncSocketStream> object = Ref<AsyncSocketStream>::cast(getObject());
 		if (object.isNotNull()) {
 			object->_onConnect(flagError);
 		}
@@ -149,7 +149,7 @@ namespace slib
 	
 	Ref<AsyncSocketStreamInstance> AsyncSocketStream::_getIoInstance()
 	{
-		return Ref<AsyncSocketStreamInstance>::from(AsyncStreamBase::getIoInstance());
+		return Ref<AsyncSocketStreamInstance>::cast(AsyncStreamBase::getIoInstance());
 	}
 
 	void AsyncSocketStream::_requestConnect(AsyncSocketStreamInstance* instance, sl_int32 timeout)
@@ -236,7 +236,7 @@ namespace slib
 
 	void AsyncSocketServerInstance::_onAccept(Socket& client, SocketAddress& address)
 	{
-		Ref<AsyncTcpServer> server = Ref<AsyncTcpServer>::from(getObject());
+		Ref<AsyncTcpServer> server = Ref<AsyncTcpServer>::cast(getObject());
 		if (server.isNotNull()) {
 			server->_onAccept(client, address);
 		}
@@ -244,7 +244,7 @@ namespace slib
 
 	void AsyncSocketServerInstance::_onAccept(Socket& client, DomainSocketPath& path)
 	{
-		Ref<AsyncDomainSocketServer> server = Ref<AsyncDomainSocketServer>::from(getObject());
+		Ref<AsyncDomainSocketServer> server = Ref<AsyncDomainSocketServer>::cast(getObject());
 		if (server.isNotNull()) {
 			server->_onAccept(client, path);
 		}
@@ -252,7 +252,7 @@ namespace slib
 
 	void AsyncSocketServerInstance::_onError()
 	{
-		Ref<AsyncSocketServer> server = Ref<AsyncSocketServer>::from(getObject());
+		Ref<AsyncSocketServer> server = Ref<AsyncSocketServer>::cast(getObject());
 		if (server.isNotNull()) {
 			server->_onError();
 		}
@@ -297,7 +297,7 @@ namespace slib
 
 	Ref<AsyncSocketServerInstance> AsyncSocketServer::_getIoInstance()
 	{
-		return Ref<AsyncSocketServerInstance>::from(AsyncIoObject::getIoInstance());
+		return Ref<AsyncSocketServerInstance>::cast(AsyncIoObject::getIoInstance());
 	}
 
 	void AsyncSocketServer::_onError()
@@ -400,7 +400,7 @@ namespace slib
 				HandlePtr<Socket> socket(instance->getSocket());
 				if (socket->isOpened()) {
 					if (instance->isSupportedConnect()) {
-						m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::from(callback);
+						m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::cast(callback);
 						instance->connect(address);
 						_requestConnect(instance.get(), timeout);
 						return;
@@ -488,7 +488,7 @@ namespace slib
 				Ref<AsyncTcpServer> ret = new AsyncTcpServer;
 				if (ret.isNotNull()) {
 					ret->m_onAccept = param.onAccept;
-					ret->m_onError = Function<void(AsyncSocketServer*)>::from(param.onError);
+					ret->m_onError = Function<void(AsyncSocketServer*)>::cast(param.onError);
 					if (ret->initialize(param.ioLoop, instance.get(), AsyncIoMode::In)) {
 						if (param.flagAutoStart) {
 							instance->start();
@@ -592,7 +592,7 @@ namespace slib
 				HandlePtr<Socket> socket(instance->getSocket());
 				if (socket->isOpened()) {
 					if (instance->isSupportedConnect()) {
-						m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::from(callback);
+						m_onConnect = Function<void(AsyncSocketStream*, sl_bool)>::cast(callback);
 						instance->connect(path);
 						_requestConnect(instance.get(), timeout);
 						return;
@@ -652,7 +652,7 @@ namespace slib
 				Ref<AsyncDomainSocketServer> ret = new AsyncDomainSocketServer;
 				if (ret.isNotNull()) {
 					ret->m_onAccept = param.onAccept;
-					ret->m_onError = Function<void(AsyncSocketServer*)>::from(param.onError);
+					ret->m_onError = Function<void(AsyncSocketServer*)>::cast(param.onError);
 					if (ret->initialize(param.ioLoop, instance.get(), AsyncIoMode::In)) {
 						if (param.flagAutoStart) {
 							instance->start();
@@ -724,7 +724,7 @@ namespace slib
 
 	void AsyncUdpSocketInstance::_onReceive(SocketAddress& address, sl_uint32 size)
 	{
-		Ref<AsyncUdpSocket> object = Ref<AsyncUdpSocket>::from(getObject());
+		Ref<AsyncUdpSocket> object = Ref<AsyncUdpSocket>::cast(getObject());
 		if (object.isNotNull()) {
 			object->_onReceive(address, m_buffer.getData(), size);
 		}
@@ -732,7 +732,7 @@ namespace slib
 
 	void AsyncUdpSocketInstance::_onReceive(sl_uint32 interfaceIndex, IPAddress& dst, SocketAddress& src, sl_uint32 size)
 	{
-		Ref<AsyncUdpSocket> object = Ref<AsyncUdpSocket>::from(getObject());
+		Ref<AsyncUdpSocket> object = Ref<AsyncUdpSocket>::cast(getObject());
 		if (object.isNotNull()) {
 			object->_onReceive(interfaceIndex, dst, src, m_buffer.getData(), size);
 		}
@@ -740,7 +740,7 @@ namespace slib
 
 	void AsyncUdpSocketInstance::_onError()
 	{
-		Ref<AsyncUdpSocket> object = Ref<AsyncUdpSocket>::from(getObject());
+		Ref<AsyncUdpSocket> object = Ref<AsyncUdpSocket>::cast(getObject());
 		if (object.isNotNull()) {
 			object->_onError();
 		}
@@ -957,7 +957,7 @@ namespace slib
 
 	Ref<AsyncUdpSocketInstance> AsyncUdpSocket::_getIoInstance()
 	{
-		return Ref<AsyncUdpSocketInstance>::from(AsyncIoObject::getIoInstance());
+		return Ref<AsyncUdpSocketInstance>::cast(AsyncIoObject::getIoInstance());
 	}
 
 	void AsyncUdpSocket::_onReceive(SocketAddress& address, void* data, sl_uint32 sizeReceived)

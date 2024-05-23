@@ -912,7 +912,7 @@ namespace slib
 
 	Ref<DataPackageReader> DataPackage::openReader(const DataPackageReaderParam& param)
 	{
-		return Ref<DataPackageReader>::from(DataPackageReaderImpl::_open(param));
+		return Ref<DataPackageReader>::cast(DataPackageReaderImpl::_open(param));
 	}
 
 	Ref<DataPackageReader> DataPackage::openReader(const StringParam& path)
@@ -924,7 +924,7 @@ namespace slib
 
 	Ref<DataPackageWriter> DataPackage::openWriter(const DataPackageWriterParam& param)
 	{
-		return Ref<DataPackageWriter>::from(DataPackageWriterImpl::_open(param));
+		return Ref<DataPackageWriter>::cast(DataPackageWriterImpl::_open(param));
 	}
 
 	Ref<DataPackageWriter> DataPackage::openWriter(const StringParam& path)
@@ -973,7 +973,7 @@ namespace slib
 
 	Ref<DataStore> DataStore::open(const DataStoreParam& param)
 	{
-		return Ref<DataStore>::from(DataStoreImpl::open(param));
+		return Ref<DataStore>::cast(DataStoreImpl::open(param));
 	}
 
 }

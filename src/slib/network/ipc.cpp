@@ -424,7 +424,7 @@ namespace slib
 
 	Ref<SocketIPC::Server> SocketIPC::createServer(const ServerParam& param)
 	{
-		return Ref<SocketIPC::Server>::from(SocketServer::create(param));
+		return Ref<SocketIPC::Server>::cast(SocketServer::create(param));
 	}
 
 }

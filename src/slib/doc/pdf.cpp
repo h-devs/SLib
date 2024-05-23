@@ -1236,7 +1236,7 @@ namespace slib
 					Ref<PdfPageTreeItem>& item = kids[i];
 					if (item->isPage()) {
 						if (index == n) {
-							return Ref<PdfPage>::from(item);
+							return Ref<PdfPage>::cast(item);
 						}
 						n++;
 					} else {
@@ -1466,7 +1466,7 @@ namespace slib
 					Ref<PdfPageTreeItem>& item = kids[i];
 					if (item->isPage()) {
 						if (pageNo == n) {
-							Ref<PdfPage> page = Ref<PdfPage>::from(Move(item));
+							Ref<PdfPage> page = Ref<PdfPage>::cast(Move(item));
 							deleteObject(page->reference);
 							parent->decreasePageCount();
 							parent->deleteKidAt((sl_uint32)i);
@@ -3503,7 +3503,7 @@ namespace slib
 
 		SLIB_INLINE static Ref<Context> GetContextRef(const Ref<CRef>& ref)
 		{
-			return Ref<Context>::from(ref);
+			return Ref<Context>::cast(ref);
 		}
 
 	}

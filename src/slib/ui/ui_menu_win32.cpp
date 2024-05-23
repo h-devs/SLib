@@ -328,7 +328,7 @@ namespace slib
 		}
 
 #define MENU_ITEM_SET_PROLOG \
-			Ref<MenuImpl> parent(WeakRef<MenuImpl>::from(m_parent)); \
+			Ref<MenuImpl> parent(WeakRef<MenuImpl>::cast(m_parent)); \
 			if (parent.isNull()) { \
 				return; \
 			} \

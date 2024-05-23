@@ -239,7 +239,7 @@ namespace slib
 
 	Ref<Tap> Tap::open(const StringParam& deviceName)
 	{
-		return Ref<Tap>::from(TapImpl::open(deviceName));
+		return Ref<Tap>::cast(TapImpl::open(deviceName));
 	}
 
 	ServiceState Tap::getDriverState()

@@ -452,7 +452,7 @@ namespace slib
 				if (bufWriting.isNull()) {
 					return sl_null;
 				}
-				Ref<ContextImpl> context = Ref<ContextImpl>::from(param.context);
+				Ref<ContextImpl> context = Ref<ContextImpl>::cast(param.context);
 				if (!(IsInstanceOf<ContextImpl>(context))) {
 					context = ContextImpl::create(param);
 					if (context.isNull()) {
@@ -831,17 +831,17 @@ namespace slib
 
 	Ref<OpenSSL_Context> OpenSSL::createContext(const TlsContextParam& param)
 	{
-		return Ref<OpenSSL_Context>::from(ContextImpl::create(param));
+		return Ref<OpenSSL_Context>::cast(ContextImpl::create(param));
 	}
 
 	Ref<OpenSSL_AsyncStream> OpenSSL::connectStream(const Ref<AsyncStream>& baseStream, const TlsConnectStreamParam& param)
 	{
-		return Ref<OpenSSL_AsyncStream>::from(StreamImpl::connectStream(baseStream, param));
+		return Ref<OpenSSL_AsyncStream>::cast(StreamImpl::connectStream(baseStream, param));
 	}
 
 	Ref<OpenSSL_AsyncStream> OpenSSL::acceptStream(const Ref<AsyncStream>& baseStream, const TlsAcceptStreamParam& param)
 	{
-		return Ref<OpenSSL_AsyncStream>::from(StreamImpl::acceptStream(baseStream, param));
+		return Ref<OpenSSL_AsyncStream>::cast(StreamImpl::acceptStream(baseStream, param));
 	}
 
 }

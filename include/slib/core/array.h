@@ -175,10 +175,10 @@ namespace slib
 		}
 
 	public:
-		static CArray<T>* create(sl_size count) noexcept
+		static CArray* create(sl_size count) noexcept
 		{
 			if (count) {
-				CArray<T>* ret = new CArray<T>(count);
+				CArray* ret = new CArray(count);
 				if (ret) {
 					if (ret->m_data) {
 						return ret;
@@ -190,10 +190,10 @@ namespace slib
 		}
 
 		template <class VALUE>
-		static CArray<T>* create(const VALUE* data, sl_size count) noexcept
+		static CArray* create(const VALUE* data, sl_size count) noexcept
 		{
 			if (count) {
-				CArray<T>* ret = new CArray<T>(data, count);
+				CArray* ret = new CArray(data, count);
 				if (ret) {
 					if (ret->m_data) {
 						return ret;
@@ -204,16 +204,16 @@ namespace slib
 			return sl_null;
 		}
 
-		static CArray<T>* createStatic(const T* data, sl_size count, CRef* ref = sl_null) noexcept
+		static CArray* createStatic(const T* data, sl_size count, CRef* ref = sl_null) noexcept
 		{
 			if (data && count) {
-				return new CArray<T>(data, count, ref);
+				return new CArray(data, count, ref);
 			}
 			return sl_null;
 		}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		static CArray<T>* create(const std::initializer_list<T>& l) noexcept
+		static CArray* create(const std::initializer_list<T>& l) noexcept
 		{
 			return create(l.begin(), l.size());
 		}
@@ -295,7 +295,7 @@ namespace slib
 		}
 
 	public:
-		CArray<T>* sub(sl_size start, sl_size count = SLIB_SIZE_MAX) const noexcept
+		CArray* sub(sl_size start, sl_size count = SLIB_SIZE_MAX) const noexcept
 		{
 			sl_size countParent = m_count;
 			if (start < countParent) {
@@ -305,7 +305,7 @@ namespace slib
 				}
 				if (count) {
 					if (countParent == count) {
-						return (CArray<T>*)this;
+						return (CArray*)this;
 					}
 					if (m_flagStatic) {
 						return createStatic(m_data + start, count, m_ref.ptr);
@@ -383,7 +383,7 @@ namespace slib
 			return 0;
 		}
 
-		CArray<T>* duplicate() const noexcept
+		CArray* duplicate() const noexcept
 		{
 			return create(m_data, m_count);
 		}
@@ -516,36 +516,32 @@ namespace slib
 #endif
 
 	public:
-		static Array<T> create(sl_size count) noexcept
+		static Array create(sl_size count) noexcept
 		{
 			return CArray<T>::create(count);
 		}
 
 		template <class VALUE>
-		static Array<T> create(const VALUE* data, sl_size count) noexcept
+		static Array create(const VALUE* data, sl_size count) noexcept
 		{
 			return CArray<T>::create(data, count);
 		}
 
-		static Array<T> createStatic(const T* data, sl_size count, CRef* ref = sl_null) noexcept
+		static Array createStatic(const T* data, sl_size count, CRef* ref = sl_null) noexcept
 		{
 			return CArray<T>::createStatic(data, count, ref);
 		}
 
-		static Array<T> create(Collection* collection);
+		static Array create(Collection* collection);
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		static Array<T> create(const std::initializer_list<T>& l) noexcept
+		static Array create(const std::initializer_list<T>& l) noexcept
 		{
 			return create(l.begin(), l.size());
 		}
 #endif
 
-		template <class VALUE>
-		static Array<T>& from(const Array<VALUE>& other) noexcept
-		{
-			return *(const_cast<Array<T>*>(reinterpret_cast<Array<T> const*>(&other)));
-		}
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class VALUE, Array, Array<VALUE>)
 
 	public:
 		T* getData() const noexcept
@@ -619,7 +615,7 @@ namespace slib
 		}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Array<T>& operator=(const std::initializer_list<T>& l) noexcept
+		Array& operator=(const std::initializer_list<T>& l) noexcept
 		{
 			ref = CArray<T>::create(l.begin(), l.size());
 			return *this;
@@ -627,7 +623,7 @@ namespace slib
 #endif
 
 	public:
-		Array<T> sub(sl_size start, sl_size count = SLIB_SIZE_MAX) const noexcept
+		Array sub(sl_size start, sl_size count = SLIB_SIZE_MAX) const noexcept
 		{
 			CArray<T>* obj = ref.ptr;
 			if (obj) {
@@ -702,7 +698,7 @@ namespace slib
 			return 0;
 		}
 
-		Array<T> duplicate() const noexcept
+		Array duplicate() const noexcept
 		{
 			CArray<T>* obj = ref.ptr;
 			if (obj) {
@@ -811,14 +807,9 @@ namespace slib
 #endif
 
 	public:
-		template <class VALUE>
-		static Atomic< Array<T> >& from(const Atomic< Array<VALUE> >& other) noexcept
-		{
-			return *(const_cast<Atomic< Array<T> >*>(reinterpret_cast<Atomic< Array<T> > const*>(&other)));
-		}
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class VALUE, Atomic, AtomicArray<VALUE>)
 
 	public:
-
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Atomic& operator=(const std::initializer_list<T>& l) noexcept
 		{

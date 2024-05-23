@@ -201,7 +201,7 @@ namespace slib
 
 	Ref<UserNotification> UserNotification::add(const UserNotificationMessage& message)
 	{
-		return Ref<UserNotification>::from(UserNotificationImpl::create(message));
+		return Ref<UserNotification>::cast(UserNotificationImpl::create(message));
 	}
 
 	void UserNotification::removePendingNotification(const String& identifier)

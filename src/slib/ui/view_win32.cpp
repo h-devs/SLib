@@ -64,7 +64,7 @@ namespace slib
 					{
 						HWND hWndSender = (HWND)lParam;
 						if (hWndSender) {
-							Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(hWndSender));
+							Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(hWndSender));
 							if (instance.isNotNull()) {
 								SHORT code = HIWORD(wParam);
 								LRESULT result = 0;
@@ -79,7 +79,7 @@ namespace slib
 					{
 						NMHDR* nh = (NMHDR*)(lParam);
 						HWND hWndSender = (HWND)(nh->hwndFrom);
-						Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(hWndSender));
+						Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(hWndSender));
 						if (instance.isNotNull()) {
 							LRESULT result = 0;
 							if (instance->processNotify(nh, result)) {
@@ -95,7 +95,7 @@ namespace slib
 				case WM_CTLCOLORSCROLLBAR:
 					{
 						HWND hWndSender = (HWND)lParam;
-						Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(hWndSender));
+						Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(hWndSender));
 						if (instance.isNotNull()) {
 							HDC hDC = (HDC)(wParam);
 							HBRUSH result = NULL;
@@ -145,7 +145,7 @@ namespace slib
 	{
 		LRESULT CALLBACK ViewInstanceProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
-			Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(hWnd));
+			Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(hWnd));
 			if (instance.isNotNull()) {
 				return instance->processWindowMessage(uMsg, wParam, lParam);
 			}
@@ -229,7 +229,7 @@ namespace slib
 	namespace {
 		static LRESULT CALLBACK ViewInstanceSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 		{
-			Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(hWnd));
+			Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(hWnd));
 			if (instance.isNotNull()) {
 				return instance->processSubclassMessage(uMsg, wParam, lParam);
 			}

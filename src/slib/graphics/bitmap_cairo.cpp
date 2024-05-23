@@ -262,7 +262,7 @@ namespace slib
 		if (!bitmap) {
 			return sl_null;
 		}
-		return Ref<Bitmap>::from(BitmapImpl::create(bitmap, flagFreeOnRelease, ref));
+		return Ref<Bitmap>::cast(BitmapImpl::create(bitmap, flagFreeOnRelease, ref));
 	}
 
 	cairo_surface_t* GraphicsPlatform::getBitmapHandle(Bitmap* _bitmap)

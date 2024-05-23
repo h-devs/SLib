@@ -430,7 +430,7 @@ namespace slib
 
 	void EFL_ViewInstance::_onTouch(void *data, Evas *evas, Evas_Object *obj, void *event_info)
 	{
-		Ref<EFL_ViewInstance> instance = Ref<EFL_ViewInstance>::from(UIPlatform::getViewInstance(obj));
+		Ref<EFL_ViewInstance> instance = Ref<EFL_ViewInstance>::cast(UIPlatform::getViewInstance(obj));
 		if (instance.isNotNull()) {
 			instance->onTouch((const void*)data, event_info);
 		}

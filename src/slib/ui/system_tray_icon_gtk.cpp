@@ -225,9 +225,9 @@ namespace slib
 	Ref<SystemTrayIcon> SystemTrayIcon::create(const SystemTrayIconParam& param)
 	{
 		if (app_indicator::getLibrary() && UIPlatform::isSupportedGtk(3)) {
-			return Ref<SystemTrayIcon>::from(AppIndicatorImpl::create(param));
+			return Ref<SystemTrayIcon>::cast(AppIndicatorImpl::create(param));
 		} else {
-			return Ref<SystemTrayIcon>::from(StatusIconImpl::create(param));
+			return Ref<SystemTrayIcon>::cast(StatusIconImpl::create(param));
 		}
 	}
 

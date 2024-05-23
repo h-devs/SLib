@@ -56,7 +56,7 @@ namespace slib
 		public:
 			static Ref<HttpServerConnectionProvider> create(HttpServer* server, const TlsAcceptStreamParam& tlsParam, const SocketAddress& addressListen)
 			{
-				Ref<OpenSSL_Context> context = Ref<OpenSSL_Context>::from(tlsParam.context);
+				Ref<OpenSSL_Context> context = Ref<OpenSSL_Context>::cast(tlsParam.context);
 				if (!(IsInstanceOf<OpenSSL_Context>(context))) {
 					context = OpenSSL::createContext(tlsParam);
 					if (context.isNull()) {

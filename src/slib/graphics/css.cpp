@@ -1444,7 +1444,7 @@ namespace slib
 							if (!(e->isElementNode())) {
 								break;
 							}
-							if (before->matchElement(Ref<XmlElement>::from(e))) {
+							if (before->matchElement(Ref<XmlElement>::cast(e))) {
 								return sl_true;
 							}
 							e = e->getParent();
@@ -1456,7 +1456,7 @@ namespace slib
 						Ref<XmlNodeGroup> parent = element->getParent();
 						if (parent.isNotNull()) {
 							if (parent->isElementNode()) {
-								return before->matchElement(Ref<XmlElement>::from(parent));
+								return before->matchElement(Ref<XmlElement>::cast(parent));
 							}
 						}
 						return sl_false;

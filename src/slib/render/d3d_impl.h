@@ -877,9 +877,9 @@ namespace slib
 			Ref<RenderInputLayout> createInputLayout(const RenderInputLayoutParam& param) override
 			{
 #if D3D_VERSION_MAJOR >= 10
-				return Ref<RenderInputLayout>::from(RenderInputLayoutImpl::create(device, codeVertexShader, param));
+				return Ref<RenderInputLayout>::cast(RenderInputLayoutImpl::create(device, codeVertexShader, param));
 #elif D3D_VERSION_MAJOR >= 9
-				return Ref<RenderInputLayout>::from(RenderInputLayoutImpl::create(device, sl_null, param));
+				return Ref<RenderInputLayout>::cast(RenderInputLayoutImpl::create(device, sl_null, param));
 #else
 				return sl_null;
 #endif
@@ -2007,7 +2007,7 @@ namespace slib
 				if (!context) {
 					return sl_null;
 				}
-				return Ref<RenderProgramInstance>::from(RenderProgramInstanceImpl::create(device, context, this, program));
+				return Ref<RenderProgramInstance>::cast(RenderProgramInstanceImpl::create(device, context, this, program));
 			}
 
 			Ref<VertexBufferInstance> _createVertexBufferInstance(VertexBuffer* buffer) override
@@ -2020,7 +2020,7 @@ namespace slib
 				if (!context) {
 					return sl_null;
 				}
-				return Ref<VertexBufferInstance>::from(VertexBufferInstanceImpl::create(device, context, this, buffer));
+				return Ref<VertexBufferInstance>::cast(VertexBufferInstanceImpl::create(device, context, this, buffer));
 			}
 
 			Ref<IndexBufferInstance> _createIndexBufferInstance(IndexBuffer* buffer) override
@@ -2033,7 +2033,7 @@ namespace slib
 				if (!context) {
 					return sl_null;
 				}
-				return Ref<IndexBufferInstance>::from(IndexBufferInstanceImpl::create(device, context, this, buffer));
+				return Ref<IndexBufferInstance>::cast(IndexBufferInstanceImpl::create(device, context, this, buffer));
 			}
 
 			Ref<TextureInstance> _createTextureInstance(Texture* texture) override
@@ -2046,7 +2046,7 @@ namespace slib
 				if (!context) {
 					return sl_null;
 				}
-				return Ref<TextureInstance>::from(TextureInstanceImpl::create(device, context, this, texture));
+				return Ref<TextureInstance>::cast(TextureInstanceImpl::create(device, context, this, texture));
 			}
 
 			sl_bool _beginScene() override

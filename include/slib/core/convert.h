@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_CORE_CONVERT
 
 #include "cpp_helper.h"
+#include "macro_arg.h"
 
 #if defined(SLIB_COMPILER_IS_VC)
 #	define SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO
@@ -69,5 +70,22 @@ namespace slib
 #endif
 
 #define SLIB_TRY_CONVERT_TYPE(FROM, TO) { static_assert(SLIB_IS_CONVERTIBLE(FROM, TO), "Cannot convert from '" #FROM "' to '" #TO "'"); }
+
+#define SLIB_DEFINE_CAST_REF_FUNCTIONS(TEMPLATE, RET, ARG) \
+	template <TEMPLATE> \
+	static const RET& cast(const ARG& other) noexcept \
+	{ \
+		return *(reinterpret_cast<RET const*>(&other)); \
+	} \
+	template <TEMPLATE> \
+	static RET& cast(ARG& other) noexcept \
+	{ \
+		return *(reinterpret_cast<RET*>(&other)); \
+	} \
+	template <TEMPLATE> \
+	static RET&& cast(ARG&& other) noexcept \
+	{ \
+		return static_cast<RET&&>(*(reinterpret_cast<RET*>(&other))); \
+	}
 
 #endif

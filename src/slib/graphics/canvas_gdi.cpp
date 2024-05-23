@@ -439,7 +439,7 @@ namespace slib
 		if (!graphics) {
 			return sl_null;
 		}
-		return Ref<Canvas>::from(CanvasImpl::create(type, graphics, (sl_real)width, (sl_real)height, onFreeCanvas));
+		return Ref<Canvas>::cast(CanvasImpl::create(type, graphics, (sl_real)width, (sl_real)height, onFreeCanvas));
 	}
 
 	Gdiplus::Graphics* GraphicsPlatform::getCanvasHandle(Canvas* _canvas)

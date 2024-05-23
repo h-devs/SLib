@@ -524,7 +524,7 @@ namespace slib
 				if (ret.isNotNull()) {
 					ret->m_pool = this;
 					ret->m_client = client;
-					return Ref<DocumentStore>::from(ret);
+					return Ref<DocumentStore>::cast(ret);
 				}
 				mongoc_client_pool_push(m_pool, client);
 			}
@@ -966,7 +966,7 @@ namespace slib
 
 	Ref<MongoDB> MongoDB::connect(const MongoDB_Param& param)
 	{
-		return Ref<MongoDB>::from(MongoDBImpl::connect(param));
+		return Ref<MongoDB>::cast(MongoDBImpl::connect(param));
 	}
 
 	Ref<MongoDB> MongoDB::connect(const StringParam& connectionString)

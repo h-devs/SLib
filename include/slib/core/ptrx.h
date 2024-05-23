@@ -52,12 +52,7 @@
 		Ptr(const Pointer<OTHERS...>& v) noexcept: Ptr<T>(v) { _init(v); } \
 		static const Ptr null() noexcept { return sl_null; } \
 		void setNull() noexcept { Ptr<T>::setNull(); _init(sl_null); } \
-		template <class... OTHERS> \
-		static const Ptr& from(const Ptr<OTHERS...>& other) noexcept { return *(reinterpret_cast<Ptr const*>(&other)); } \
-		template <class... OTHERS> \
-		static Ptr& from(Ptr<OTHERS...>& other) noexcept { return *(reinterpret_cast<Ptr*>(&other)); } \
-		template <class... OTHERS> \
-		static Ptr&& from(Ptr<OTHERS...>&& other) noexcept { return static_cast<Ptr&&>(*(reinterpret_cast<Ptr*>(&other))); } \
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... OTHERS, Ptr, Ptr<OTHERS...>) \
 		void set(sl_null_t) noexcept { setNull(); } \
 		template <class OTHER> \
 		void set(OTHER* v) noexcept { Ptr<T>::set(v); _init(v); } \
@@ -136,23 +131,7 @@ namespace slib
 			return *(reinterpret_cast<Ptr const*>(&(priv::ptr::g_null)));
 		}
 
-		template <class... OTHERS>
-		static const Ptr& from(const Ptr<OTHERS...>& other) noexcept
-		{
-			return *(reinterpret_cast<Ptr const*>(&other));
-		}
-
-		template <class... OTHERS>
-		static Ptr& from(Ptr<OTHERS...>& other) noexcept
-		{
-			return *(reinterpret_cast<Ptr*>(&other));
-		}
-
-		template <class... OTHERS>
-		static Ptr&& from(Ptr<OTHERS...>&& other) noexcept
-		{
-			return static_cast<Ptr&&>(*(reinterpret_cast<Ptr*>(&other)));
-		}
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... OTHERS, Ptr, Ptr<OTHERS...>)
 
 	public:
 		template <class OTHER>
@@ -550,7 +529,7 @@ namespace slib
 	template <class T1, class T2, class... TYPES>
 	void Atomic< Ptr<T> >::set(const Ref<T1, T2, TYPES...>& other) noexcept
 	{
-		_replace(other, Ref<CRef>::from(other));
+		_replace(other, Ref<CRef>::cast(other));
 	}
 
 	template <class T>

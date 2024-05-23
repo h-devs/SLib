@@ -419,7 +419,7 @@ namespace slib
 
 			void processAccept(sl_bool flagError)
 			{
-				Ref<AsyncTcpServer> server = Ref<AsyncTcpServer>::from(getObject());
+				Ref<AsyncTcpServer> server = Ref<AsyncTcpServer>::cast(getObject());
 				if (server.isNull()) {
 					return;
 				}

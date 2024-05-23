@@ -926,7 +926,7 @@ namespace slib
 			if (child.isNotNull()) {
 				XmlNodeType type = child->getType();
 				if (type == XmlNodeType::Element) {
-					addHyperTextElement(Ref<XmlElement>::from(child), style);
+					addHyperTextElement(Ref<XmlElement>::cast(child), style);
 				} else if (type == XmlNodeType::WhiteSpace) {
 					XmlWhiteSpace* space = (XmlWhiteSpace*)(child.get());
 					addText(space->getContent(), style);
@@ -1422,7 +1422,7 @@ namespace slib
 				m_items.add_NoLock(Move(item));
 			}
 		}
-		addHyperTextNodeGroup(Ref<XmlNodeGroup>::from(element), styleNew);
+		addHyperTextNodeGroup(Ref<XmlNodeGroup>::cast(element), styleNew);
 	}
 
 	void TextParagraph::addHyperText(const StringParam& text, const Ref<TextStyle>& style) noexcept
@@ -1434,7 +1434,7 @@ namespace slib
 		param.flagCheckWellFormed = sl_false;
 		Ref<XmlDocument> xml = Xml::parse(text, param);
 		if (xml.isNotNull()) {
-			addHyperTextNodeGroup(Ref<XmlNodeGroup>::from(xml), style);
+			addHyperTextNodeGroup(Ref<XmlNodeGroup>::cast(xml), style);
 		}
 	}
 

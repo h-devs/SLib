@@ -214,6 +214,16 @@ namespace slib
 		other._retain_construct(this);
 	}
 
+	Variant::Variant(Atomic<Variant>& other) noexcept
+	{
+		other._retain_construct(this);
+	}
+
+	Variant::Variant(Atomic<Variant>&& other) noexcept
+	{
+		other._retain_construct_move(this);
+	}
+
 	Variant::Variant(const Json& other) noexcept
 	{
 		Copy(*this, other);
@@ -673,7 +683,20 @@ namespace slib
 
 	Variant& Variant::operator=(const Atomic<Variant>& other) noexcept
 	{
-		return *this = Variant(other);
+		other.get(*this);
+		return *this;
+	}
+
+	Variant& Variant::operator=(Atomic<Variant>& other) noexcept
+	{
+		other.get(*this);
+		return *this;
+	}
+
+	Variant& Variant::operator=(Atomic<Variant>&& other) noexcept
+	{
+		other.release(*this);
+		return *this;
 	}
 
 	Variant& Variant::operator=(const Json& other) noexcept
@@ -3382,7 +3405,7 @@ namespace slib
 		} else if (IsRef(_type)) {
 			Ref<CRef> ref = getRef();
 			if (IsInstanceOf<Object>(ref)) {
-				Ref<Object>& dst = Ref<Object>::from(ref);
+				Ref<Object>& dst = Ref<Object>::cast(ref);
 				if (other._type == VariantType::Map) {
 					VariantMap& src = REF_VAR(VariantMap, other._value);
 					MutexLocker lock(src.getLocker());
@@ -3401,7 +3424,7 @@ namespace slib
 					}
 				}
 			} else if (IsInstanceOf<Collection>(ref)) {
-				Ref<Collection>& dst = Ref<Collection>::from(ref);
+				Ref<Collection>& dst = Ref<Collection>::cast(ref);
 				if (other._type == VariantType::List) {
 					ListLocker<Variant> src(REF_VAR(VariantList, other._value));
 					for (sl_size i = 0; i < src.count; i++) {

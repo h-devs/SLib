@@ -64,7 +64,7 @@ namespace slib
 	{
 		Ref<Application> app = Application::getApp();
 		if (app.isNotNull() && app->getAppType() == AppType::Service) {
-			return Ref<Service>::from(app);
+			return Ref<Service>::cast(app);
 		}
 		return sl_null;
 	}

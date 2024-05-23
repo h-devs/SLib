@@ -470,7 +470,7 @@ namespace slib
 
 	Ref<SystemTrayIcon> SystemTrayIcon::create(const SystemTrayIconParam& param)
 	{
-		return Ref<SystemTrayIcon>::from(SystemTrayIconImpl::create(param));
+		return Ref<SystemTrayIcon>::cast(SystemTrayIconImpl::create(param));
 	}
 
 }

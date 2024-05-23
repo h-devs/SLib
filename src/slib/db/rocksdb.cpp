@@ -402,7 +402,7 @@ namespace slib
 
 	Ref<RocksDB> RocksDB::open(const RocksDB_Param& param)
 	{
-		return Ref<RocksDB>::from(RocksDBImpl::open(param));
+		return Ref<RocksDB>::cast(RocksDBImpl::open(param));
 	}
 
 	Ref<RocksDB> RocksDB::open(const StringParam& path)

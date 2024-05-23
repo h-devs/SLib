@@ -504,7 +504,7 @@ namespace slib
 	{
 		m_formatDate = format;
 		if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::from(getAdapter());
+			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::cast(getAdapter());
 			if (adapter.isNotNull()) {
 				adapter->params.formatDate = format;
 			}
@@ -521,7 +521,7 @@ namespace slib
 	{
 		m_formatTime = format;
 		if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::from(getAdapter());
+			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::cast(getAdapter());
 			if (adapter.isNotNull()) {
 				adapter->params.formatTime = format;
 			}
@@ -538,7 +538,7 @@ namespace slib
 	{
 		m_backColorReceived = color;
 		if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::from(getAdapter());
+			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::cast(getAdapter());
 			if (adapter.isNotNull()) {
 				adapter->params.backColorReceived = color;
 			}
@@ -555,7 +555,7 @@ namespace slib
 	{
 		m_textColorReceived = color;
 		if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::from(getAdapter());
+			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::cast(getAdapter());
 			if (adapter.isNotNull()) {
 				adapter->params.textColorReceived = color;
 			}
@@ -572,7 +572,7 @@ namespace slib
 	{
 		m_backColorSent = color;
 		if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::from(getAdapter());
+			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::cast(getAdapter());
 			if (adapter.isNotNull()) {
 				adapter->params.backColorSent = color;
 			}
@@ -589,7 +589,7 @@ namespace slib
 	{
 		m_textColorSent = color;
 		if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::from(getAdapter());
+			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::cast(getAdapter());
 			if (adapter.isNotNull()) {
 				adapter->params.textColorSent = color;
 			}
@@ -606,7 +606,7 @@ namespace slib
 	{
 		m_textColorDate = color;
 		if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::from(getAdapter());
+			Ref<ChatAdapter> adapter = Ref<ChatAdapter>::cast(getAdapter());
 			if (adapter.isNotNull()) {
 				adapter->params.textColorDate = color;
 			}
@@ -715,7 +715,7 @@ namespace slib
 		if (List<ChatViewItem>(m_items).isEmpty()) {
 			return;
 		}
-		Ref<ChatAdapter> adapter = Ref<ChatAdapter>::from(getAdapter());
+		Ref<ChatAdapter> adapter = Ref<ChatAdapter>::cast(getAdapter());
 		if (adapter.isNotNull()) {
 			RefreshParam param;
 			param.flagScrollToLastItem = sl_true;

@@ -47,7 +47,7 @@ namespace slib
 
 	Ref<Event> Event::create(sl_bool flagAutoReset)
 	{
-		return Ref<Event>::from(GenericEvent::create(flagAutoReset));
+		return Ref<Event>::cast(GenericEvent::create(flagAutoReset));
 	}
 
 	sl_bool Event::wait(sl_int32 timeout)
@@ -173,7 +173,7 @@ namespace slib
 
 	Ref<Event> Win32::createEvent(HANDLE hEvent, sl_bool flagCloseOnRelease)
 	{
-		return Ref<Event>::from(GenericEvent::create(hEvent, flagCloseOnRelease));
+		return Ref<Event>::cast(GenericEvent::create(hEvent, flagCloseOnRelease));
 	}
 
 	HANDLE Win32::getEventHandle(Event* ev)

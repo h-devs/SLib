@@ -725,10 +725,10 @@ namespace slib
 				}
 			}
 			if (layout->layoutType == SAppLayoutType::Window) {
-				window->setOnClose(Function<void(Window*)>::from(param.onCloseWindow));
+				window->setOnClose(Function<void(Window*)>::cast(param.onCloseWindow));
 			} else {
 				window->setClientSize(param.pageSize);
-				window->setOnClose(Function<void(Window*)>::from(param.onClosePage));
+				window->setOnClose(Function<void(Window*)>::cast(param.onClosePage));
 			}
 			return window->open(this, layout);
 		}
@@ -1001,7 +1001,7 @@ namespace slib
 		}
 		String strStyles = item->getXmlAttributeWithoutStyle("style").trim();
 		if (strStyles.isNotEmpty()) {
-			Ref< CList< Ref<SAppLayoutStyle> > > _styles = Ref< CList< Ref<SAppLayoutStyle> > >::from(item->element->getProperty("styles").getRef());
+			Ref< CList< Ref<SAppLayoutStyle> > > _styles = Ref< CList< Ref<SAppLayoutStyle> > >::cast(item->element->getProperty("styles").getRef());
 			List< Ref<SAppLayoutStyle> >& styles = *(reinterpret_cast<List< Ref<SAppLayoutStyle> >*>(&_styles));
 			if (styles.isNull()) {
 				ListElements<String> arr(strStyles.split(","));
@@ -1384,7 +1384,7 @@ namespace slib
 		SAppLayoutOperation op = params->op; \
 		const String& name = params->name; \
 		SLIB_UNUSED(name) \
-		Ref<SAppLayout##NAME##Attributes>& attr = Ref<SAppLayout##NAME##Attributes>::from(resourceItem->attrs); \
+		Ref<SAppLayout##NAME##Attributes>& attr = Ref<SAppLayout##NAME##Attributes>::cast(resourceItem->attrs); \
 		if (op == SAppLayoutOperation::Parse) { \
 			if (attr.isNull()) { \
 				attr = new SAppLayout##NAME##Attributes; \

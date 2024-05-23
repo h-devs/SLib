@@ -793,7 +793,7 @@ namespace slib
 
 	Ref<LevelDB> LevelDB::open(LevelDB_Param& param)
 	{
-		return Ref<LevelDB>::from(LevelDBImpl::open(param));
+		return Ref<LevelDB>::cast(LevelDBImpl::open(param));
 	}
 
 	Ref<LevelDB> LevelDB::open(const StringParam& path)

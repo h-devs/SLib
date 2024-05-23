@@ -208,7 +208,7 @@ namespace slib
 
 	Ref<TextureInstance> Texture::getInstance(RenderEngine* engine)
 	{
-		return Ref<TextureInstance>::from(RenderBaseObject::getInstance(engine));
+		return Ref<TextureInstance>::cast(RenderBaseObject::getInstance(engine));
 	}
 
 

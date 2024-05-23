@@ -401,23 +401,7 @@ namespace slib
 			return ptr;
 		}
 
-		template <class... TYPES>
-		static const Ref& from(const Ref<TYPES...>& other) noexcept
-		{
-			return *(reinterpret_cast<Ref const*>(&other));
-		}
-
-		template <class... TYPES>
-		static Ref& from(Ref<TYPES...>& other) noexcept
-		{
-			return *(reinterpret_cast<Ref*>(&other));
-		}
-
-		template <class... TYPES>
-		static Ref&& from(Ref<TYPES...>&& other) noexcept
-		{
-			return static_cast<Ref&&>(*(reinterpret_cast<Ref*>(&other)));
-		}
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, Ref, Ref<TYPES...>)
 
 	public:
 		Ref& operator=(sl_null_t) noexcept
@@ -724,17 +708,7 @@ namespace slib
 			return (priv::ref::DummyContainer*)((void*)_release());
 		}
 
-		template <class OTHER>
-		static const Atomic& from(const AtomicRef<OTHER>& other) noexcept
-		{
-			return *(reinterpret_cast<Atomic const*>(&other));
-		}
-
-		template <class OTHER>
-		static Atomic& from(AtomicRef<OTHER>& other) noexcept
-		{
-			return *(reinterpret_cast<Atomic*>(&other));
-		}
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class OTHER, Atomic, AtomicRef<OTHER>)
 
 	public:
 		Atomic& operator=(sl_null_t) noexcept
@@ -1058,31 +1032,15 @@ namespace slib
 			_weak.setNull();
 		}
 
-		template <class OTHER>
-		static const WeakRef& from(const WeakRef<OTHER>& other) noexcept
-		{
-			return *(reinterpret_cast<WeakRef const*>(&other));
-		}
-
-		template <class OTHER>
-		static WeakRef& from(WeakRef<OTHER>& other) noexcept
-		{
-			return *(reinterpret_cast<WeakRef*>(&other));
-		}
-
-		template <class OTHER>
-		static WeakRef&& from(WeakRef<OTHER>&& other) noexcept
-		{
-			return static_cast<WeakRef&&>(*(reinterpret_cast<WeakRef*>(&other)));
-		}
-
 		Ref<T> lock() const noexcept
 		{
 			if (_weak.isNotNull()) {
-				return Ref<T>::from(_weak->lock());
+				return Ref<T>::cast(_weak->lock());
 			}
 			return sl_null;
 		}
+
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class OTHER, WeakRef, WeakRef<OTHER>)
 
 	public:
 		WeakRef& operator=(sl_null_t) noexcept
@@ -1299,7 +1257,7 @@ namespace slib
 		{
 			Ref<CWeakRef> weak(_weak);
 			if (weak.isNotNull()) {
-				return Ref<T>::from(weak->lock());
+				return Ref<T>::cast(weak->lock());
 			}
 			return sl_null;
 		}
@@ -1309,17 +1267,7 @@ namespace slib
 			return reinterpret_cast<WeakRef<T>&&>(_weak.release());
 		}
 
-		template <class OTHER>
-		static const Atomic& from(const AtomicWeakRef<OTHER>& other) noexcept
-		{
-			return *(reinterpret_cast<Atomic const*>(&other));
-		}
-
-		template <class OTHER>
-		static Atomic& from(AtomicWeakRef<OTHER>& other) noexcept
-		{
-			return *(reinterpret_cast<Atomic*>(&other));
-		}
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class OTHER, Atomic, AtomicWeakRef<OTHER>)
 
 	public:
 		Atomic& operator=(sl_null_t) noexcept
@@ -1565,6 +1513,18 @@ namespace slib
 	}
 
 	template <class T, class OTHER>
+	SLIB_INLINE static Ref<T> CastRef(Ref<OTHER>&& object) noexcept
+	{
+		SLIB_TRY_CONVERT_TYPE(OTHER*, CRef*)
+		if (object.isNotNull()) {
+			if (object->isInstanceOf(T::ObjectType())) {
+				return Move(*(reinterpret_cast<Ref<T>*>(&object)));
+			}
+		}
+		return sl_null;
+	}
+
+	template <class T, class OTHER>
 	SLIB_INLINE static const Ref<T>& CastRef(const Ref<OTHER>& object, const Ref<T>& def) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(OTHER*, CRef*)
@@ -1574,6 +1534,18 @@ namespace slib
 			}
 		}
 		return def;
+	}
+	
+	template <class T, class OTHER, class DEF>
+	SLIB_INLINE static const Ref<T> CastRef(Ref<OTHER>&& object, DEF&& def) noexcept
+	{
+		SLIB_TRY_CONVERT_TYPE(OTHER*, CRef*)
+		if (object.isNotNull()) {
+			if (object->isInstanceOf(T::ObjectType())) {
+				return Move(*(reinterpret_cast<Ref<T>*>(&object)));
+			}
+		}
+		return Forward<DEF>(def);
 	}
 
 	template <class T>

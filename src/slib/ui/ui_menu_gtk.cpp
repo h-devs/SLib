@@ -271,7 +271,7 @@ namespace slib
 			{
 				ObjectLocker lock(this);
 				if (index < m_items.getCount()) {
-					Ref<MenuItemImpl> item = Ref<MenuItemImpl>::from(m_items.getValueAt(index));
+					Ref<MenuItemImpl> item = Ref<MenuItemImpl>::cast(m_items.getValueAt(index));
 					if (item.isNotNull()) {
 						gtk_container_remove((GtkContainer*)m_handle, (GtkWidget*)(item->m_handle));
 						m_items.removeAt(index);

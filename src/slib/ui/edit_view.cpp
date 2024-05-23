@@ -709,7 +709,7 @@ namespace slib
 
 				m_window = window;
 				m_edit = edit;
-				m_view = Ref<EditViewHelper>::from(view);
+				m_view = Ref<EditViewHelper>::cast(view);
 
 #if defined(SLIB_PLATFORM_IS_DESKTOP)
 				window->setParent(view->getWindow());

@@ -231,12 +231,6 @@ namespace slib
 		}
 #endif
 
-		template <class TYPE, class HASH_ARG, class COMPARE_ARG>
-		static const HashSet& from(const HashSet<TYPE, HASH_ARG, COMPARE_ARG>& other) noexcept
-		{
-			return *(reinterpret_cast<HashSet const*>(&other));
-		}
-
 		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
 		{
 			ref = new CSET(capacityMinimum, capacityMaximum);
@@ -253,6 +247,8 @@ namespace slib
 		{
 			ref = new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare));
 		}
+
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, HashSet, HashSet<TYPES...>)
 
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
@@ -618,12 +614,6 @@ namespace slib
 #endif
 
 	public:
-		template <class TYPE, class HASH_ARG, class COMPARE_ARG>
-		static const Atomic& from(const Atomic< HashSet<TYPE, HASH_ARG, COMPARE_ARG> >& other) noexcept
-		{
-			return *(reinterpret_cast<Atomic const*>(&other));
-		}
-
 		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
 		{
 			ref = new CSET(capacityMinimum, capacityMaximum);
@@ -640,6 +630,8 @@ namespace slib
 		{
 			ref = new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare));
 		}
+
+		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, Atomic, Atomic< HashSet<TYPES...> >)
 
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
