@@ -3035,17 +3035,27 @@ namespace slib
 		return sl_false;
 	}
 
+	namespace
+	{
+		static sl_bool AddVariantElement(const Variant& dst, const Variant& value)
+		{
+			if (dst._type == VariantType::List) {
+				return REF_VAR(VariantList, dst._value).add_NoLock(value);
+			} else {
+				Ref<Collection> collection(GET_COLLECTION(dst));
+				if (collection.isNotNull()) {
+					return collection->addElement(value);
+				} else {
+					return sl_false;
+				}
+			}
+		}
+	}
+
 	sl_bool Variant::addElement(const Variant& value) const
 	{
 		if (isNotNull()) {
-			if (_type == VariantType::List) {
-				return REF_VAR(VariantList, _value).add_NoLock(value);
-			} else {
-				Ref<Collection> collection(GET_COLLECTION(*this));
-				if (collection.isNotNull()) {
-					return collection->addElement(value);
-				}
-			}
+			return AddVariantElement(*this, value);
 		}
 		return sl_false;
 	}
@@ -3053,14 +3063,7 @@ namespace slib
 	sl_bool Variant::addElement(const Variant& value)
 	{
 		if (isNotNull()) {
-			if (_type == VariantType::List) {
-				return REF_VAR(VariantList, _value).add_NoLock(value);
-			} else {
-				Ref<Collection> collection(GET_COLLECTION(*this));
-				if (collection.isNotNull()) {
-					return collection->addElement(value);
-				}
-			}
+			return AddVariantElement(*this, value);
 		} else {
 			auto list = VariantList::createFromElement(value);
 			if (list.isNotNull()) {
@@ -3162,25 +3165,35 @@ namespace slib
 		return Variant();
 	}
 
+	namespace
+	{
+		static sl_bool PutVariantItem(const Variant& dst, const String& key, const Variant& value)
+		{
+			if (dst._type == VariantType::Map) {
+				return REF_VAR(VariantMap, dst._value).put_NoLock(key, value) != sl_null;
+			} else {
+				Ref<Object> object(GET_OBJECT(dst));
+				if (object.isNotNull()) {
+					return object->setProperty(key, value);
+				} else {
+					sl_uint64 index;
+					if (StringView(key).trim().parseUint64(&index)) {
+						return dst.setElement(index, value);
+					} else {
+						return sl_false;
+					}
+				}
+			}
+		}
+	}
+
 	sl_bool Variant::putItem(const String& key, const Variant& value) const
 	{
 		if (value.isUndefined()) {
 			return removeItem(key);
 		}
 		if (isNotNull()) {
-			if (_type == VariantType::Map) {
-				return REF_VAR(VariantMap, _value).put_NoLock(key, value) != sl_null;
-			} else {
-				Ref<Object> object(GET_OBJECT(*this));
-				if (object.isNotNull()) {
-					return object->setProperty(key, value);
-				} else {
-					sl_uint64 index;
-					if (StringView(key).trim().parseUint64(&index)) {
-						return setElement(index, value);
-					}
-				}
-			}
+			return PutVariantItem(*this, key, value);
 		}
 		return sl_false;
 	}
@@ -3191,19 +3204,7 @@ namespace slib
 			return removeItem(key);
 		}
 		if (isNotNull()) {
-			if (_type == VariantType::Map) {
-				return REF_VAR(VariantMap, _value).put_NoLock(key, value) != sl_null;
-			} else {
-				Ref<Object> object(GET_OBJECT(*this));
-				if (object.isNotNull()) {
-					return object->setProperty(key, value);
-				} else {
-					sl_uint64 index;
-					if (StringView(key).trim().parseUint64(&index)) {
-						return setElement(index, value);
-					}
-				}
-			}
+			return PutVariantItem(*this, key, value);
 		} else {
 			VariantMap map = VariantMap::create();
 			if (map.isNotNull()) {
@@ -3214,6 +3215,75 @@ namespace slib
 			}
 		}
 		return sl_false;
+	}
+
+	namespace
+	{
+		static sl_bool PutItems(const Variant& thiz, const Variant& other)
+		{
+			if (other.isNull()) {
+				return sl_true;
+			}
+			if (thiz._type == VariantType::Map) {
+				VariantMap& dst = REF_VAR(VariantMap, thiz._value);
+				if (other.isVariantMap()) {
+					return dst.putAll_NoLock(other.getVariantMap());
+				} else {
+					Ref<Object> src(GET_OBJECT(other));
+					if (src.isNotNull()) {
+						PropertyIterator iterator = src->getPropertyIterator();
+						while (iterator.moveNext()) {
+							if (!(dst.put_NoLock(iterator.getKey(), iterator.getValue()))) {
+								return sl_false;
+							}
+						}
+						return sl_true;
+					}
+				}
+			} else {
+				Ref<Object> dst(GET_OBJECT(thiz));
+				if (dst.isNotNull()) {
+					if (other.isVariantMap()) {
+						for (auto&& item : other.getVariantMap()) {
+							if (!(dst->setProperty(item.key, item.value))) {
+								return sl_false;
+							}
+						}
+						return sl_true;
+					} else {
+						Ref<Object> src(GET_OBJECT(other));
+						if (src.isNotNull()) {
+							PropertyIterator iterator = src->getPropertyIterator();
+							while (iterator.moveNext()) {
+								if (!(dst->setProperty(iterator.getKey(), iterator.getValue()))) {
+									return sl_false;
+								}
+							}
+							return sl_true;
+						}
+					}
+				}
+			}
+			return sl_false;
+		}
+	}
+
+	sl_bool Variant::putItems(const Variant& other) const
+	{
+		if (isNotNull()) {
+			return PutItems(*this, other);
+		}
+		return sl_false;
+	}
+
+	sl_bool Variant::putItems(const Variant& other)
+	{
+		if (isNotNull()) {
+			return PutItems(*this, other);
+		} else {
+			*this = other;
+			return sl_true;
+		}
 	}
 
 	sl_bool Variant::removeItem(const String& key) const

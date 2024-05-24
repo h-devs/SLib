@@ -836,6 +836,10 @@ namespace slib
 
 		sl_bool putItem(const String& key, const Variant& value);
 
+		sl_bool putItems(const Variant& other) const;
+
+		sl_bool putItems(const Variant& other);
+
 		sl_bool removeItem(const String& key) const;
 
 		PropertyIterator getItemIterator() const;
