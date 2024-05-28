@@ -61,18 +61,44 @@ namespace slib
 
 }
 
-#define SLIB_PROPERTY(TYPE, NAME) \
+#define SLIB_PROPERTY_EX(TYPE, NAME, GETTER, SETTER) \
 protected: \
 	TYPE _m_property_##NAME; \
 public: \
-	typename slib::PropertyTypeHelper<TYPE>::RetType get##NAME() const { return _m_property_##NAME; } \
-	void set##NAME(typename slib::PropertyTypeHelper<TYPE>::ArgType v) { _m_property_##NAME = v; } \
+	typename slib::PropertyTypeHelper<TYPE>::RetType GETTER() const { return _m_property_##NAME; } \
+	void SETTER(typename slib::PropertyTypeHelper<TYPE>::ArgType v) { _m_property_##NAME = v; }
 
-#define SLIB_BOOLEAN_PROPERTY(NAME) \
+#define SLIB_DECLARE_PROPERTY_EX(TYPE, NAME, GETTER, SETTER) \
 protected: \
-	sl_bool _m_property_##NAME; \
+	TYPE _m_property_##NAME; \
 public: \
-	sl_bool is##NAME() const { return _m_property_##NAME; } \
-	void set##NAME(sl_bool v) { _m_property_##NAME = v; }
+	typename slib::PropertyTypeHelper<TYPE>::RetType GETTER() const; \
+	void SETTER(typename slib::PropertyTypeHelper<TYPE>::ArgType v);
+
+#define SLIB_DEFINE_PROPERTY_EX(CLASS, TYPE, NAME, GETTER, SETTER) \
+	typename slib::PropertyTypeHelper<TYPE>::RetType CLASS::GETTER() const { return _m_property_##NAME; } \
+	void CLASS::SETTER(typename slib::PropertyTypeHelper<TYPE>::ArgType v) { _m_property_##NAME = v; }
+
+#define SLIB_DECLARE_STATIC_PROPERTY_EX(TYPE, GETTER, SETTER) \
+public: \
+	static typename slib::PropertyTypeHelper<TYPE>::RetType GETTER(); \
+	static void SETTER(typename slib::PropertyTypeHelper<TYPE>::ArgType v);
+
+#define SLIB_DEFINE_STATIC_PROPERTY_EX(CLASS, TYPE, NAME, GETTER, SETTER) \
+	namespace { static TYPE _g_property_##CLASS##_##NAME; } \
+	typename slib::PropertyTypeHelper<TYPE>::RetType CLASS::GETTER() { return _g_property_##CLASS##_##NAME; } \
+	void CLASS::SETTER(typename slib::PropertyTypeHelper<TYPE>::ArgType v) { _g_property_##CLASS##_##NAME = v; }
+
+#define SLIB_PROPERTY(TYPE, NAME) SLIB_PROPERTY_EX(TYPE, NAME, get##NAME, set##NAME)
+#define SLIB_DECLARE_PROPERTY(TYPE, NAME) SLIB_DECLARE_PROPERTY_EX(TYPE, NAME, get##NAME, set##NAME)
+#define SLIB_DEFINE_PROPERTY(CLASS, TYPE, NAME) SLIB_DEFINE_PROPERTY_EX(CLASS, TYPE, NAME, get##NAME, set##NAME)
+#define SLIB_DECLARE_STATIC_PROPERTY(TYPE, NAME) SLIB_DECLARE_STATIC_PROPERTY_EX(TYPE, get##NAME, set##NAME)
+#define SLIB_DEFINE_STATIC_PROPERTY(CLASS, TYPE, NAME) SLIB_DEFINE_STATIC_PROPERTY_EX(CLASS, TYPE, NAME, get##NAME, set##NAME)
+
+#define SLIB_BOOLEAN_PROPERTY(NAME) SLIB_PROPERTY_EX(sl_bool, NAME, is##NAME, set##NAME)
+#define SLIB_DECLARE_BOOLEAN_PROPERTY(NAME) SLIB_DECLARE_PROPERTY_EX(sl_bool, NAME, is##NAME, set##NAME)
+#define SLIB_DEFINE_BOOLEAN_PROPERTY(CLASS, NAME) SLIB_DEFINE_PROPERTY_EX(CLASS, sl_bool, NAME, is##NAME, set##NAME)
+#define SLIB_DECLARE_STATIC_BOOLEAN_PROPERTY(NAME) SLIB_DECLARE_STATIC_PROPERTY_EX(sl_bool, is##NAME, set##NAME)
+#define SLIB_DEFINE_STATIC_BOOLEAN_PROPERTY(CLASS, NAME) SLIB_DEFINE_STATIC_PROPERTY_EX(CLASS, sl_bool, NAME, is##NAME, set##NAME)
 
 #endif
