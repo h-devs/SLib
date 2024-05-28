@@ -22,6 +22,7 @@
 
 #include "slib/network/arp.h"
 
+#include "slib/network/ethernet.h"
 #include "slib/core/mio.h"
 #include "slib/core/base.h"
 
@@ -177,6 +178,42 @@ namespace slib
 		setProtocolAddressLength(4);
 		setSenderIPv4Address(sender);
 		setTargetIPv4Address(target);
+	}
+
+	void ArpPacket::buildEthernetIPv4RequestFrame(void* _frame, const IPv4Address& senderIp, const MacAddress senderMac, const IPv4Address& targetIp)
+	{
+		EthernetFrame& frame = *((EthernetFrame*)_frame);
+		frame.setType(EtherType::ARP);
+		frame.setSourceAddress(senderMac);
+		frame.setDestinationAddress(MacAddress::getBroadcast());
+		ArpPacket& arp = *((ArpPacket*)(frame.getContent()));
+		arp.setProtocolType(EtherType::IPv4);
+		arp.setHardwareType(NetworkHardwareType::Ethernet);
+		arp.setHardwareAddressLength(6);
+		arp.setProtocolAddressLength(4);
+		arp.setOperation(ArpOperation::Request);
+		arp.setSenderMacAddress(senderMac);
+		arp.setSenderIPv4Address(senderIp);
+		arp.setTargetMacAddress(MacAddress::zero());
+		arp.setTargetIPv4Address(targetIp);
+	}
+
+	void ArpPacket::buildEthernetIPv4ReplyFrame(void* _frame, const IPv4Address& senderIp, const MacAddress senderMac, const IPv4Address& targetIp, const MacAddress& targetMac)
+	{
+		EthernetFrame& frame = *((EthernetFrame*)_frame);
+		frame.setType(EtherType::ARP);
+		frame.setSourceAddress(senderMac);
+		frame.setDestinationAddress(targetMac);
+		ArpPacket& arp = *((ArpPacket*)(frame.getContent()));
+		arp.setProtocolType(EtherType::IPv4);
+		arp.setHardwareType(NetworkHardwareType::Ethernet);
+		arp.setHardwareAddressLength(6);
+		arp.setProtocolAddressLength(4);
+		arp.setOperation(ArpOperation::Reply);
+		arp.setSenderMacAddress(senderMac);
+		arp.setSenderIPv4Address(senderIp);
+		arp.setTargetMacAddress(targetMac);
+		arp.setTargetIPv4Address(targetIp);
 	}
 
 }

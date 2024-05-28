@@ -126,6 +126,10 @@ namespace slib
 
 		void setIPv4Addresses(const IPv4Address& sender, const IPv4Address& target);
 
+		static void buildEthernetIPv4RequestFrame(void* outFrame, const IPv4Address& senderIp, const MacAddress senderMac, const IPv4Address& targetIp);
+
+		static void buildEthernetIPv4ReplyFrame(void* outFrame, const IPv4Address& senderIp, const MacAddress senderMac, const IPv4Address& targetIp, const MacAddress& targetMac);
+
 	private:
 		sl_uint8 _hardwareType[2];
 		sl_uint8 _protocolType[2];
