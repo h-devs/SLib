@@ -445,28 +445,44 @@ namespace slib
 				} else if (ch == ':') {
 					p++;
 				} else if (ch == '{') {
+					if (t > s) {
+						buf.addStatic(s, t - s);
+					}
 					p++;
 					sl_char8* n = p;
+					sl_char8* m = e;
 					while (n < e) {
-						if (*n == '}') {
+						ch = *n;
+						if (ch == '}') {
+							if (m == e) {
+								m = n;
+							}
 							break;
 						} else {
+							if (m == e && ch == '#') {
+								m = n;
+							}
 							n++;
 						}
 					}
 					if (n >= e) {
 						break;
 					}
-					String var = getVariableValue(String(p, n - p));
+					String var = getVariableValue(String(p, m - p));
 					if (var.isNotNull()) {
-						if (t > s) {
-							buf.addStatic(s, t - s);
-						}
 						buf.add(var);
+					} else {
+						m++;
+						if (m < n) {
+							buf.add(String(m, n - m));
+						}
 					}
 					p = n + 1;
 					s = p;
 				} else if (SLIB_CHAR_IS_ALPHA(ch) || ch == '_') {
+					if (t > s) {
+						buf.addStatic(s, t - s);
+					}
 					sl_char8* n = p + 1;
 					while (n < e) {
 						ch = *n;
@@ -478,9 +494,6 @@ namespace slib
 					}
 					String var = getVariableValue(String(p, n - p));
 					if (var.isNotNull()) {
-						if (t > s) {
-							buf.addStatic(s, t - s);
-						}
 						buf.add(var);
 					}
 					p = n;
