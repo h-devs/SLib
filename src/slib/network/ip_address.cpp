@@ -88,18 +88,18 @@ namespace slib
 
 	sl_bool IPv4Address::isBroadcast() const noexcept
 	{
-		return getInt() == 0xFFFFFFFF;
+		return toInt() == 0xFFFFFFFF;
 	}
 
 	sl_bool IPv4Address::isHost() const noexcept
 	{
-		sl_uint32 n = getInt();
+		sl_uint32 n = toInt();
 		return n != 0 && a < 224 && a != 127;
 	}
 
 	sl_bool IPv4Address::isPrivate() const noexcept
 	{
-		sl_uint32 n = getInt();
+		sl_uint32 n = toInt();
 		// 10.0.0.0 - 10.255.255.255
 		if (n >= 0x0A000000 && n <= 0x0AFFFFFF) {
 			return sl_true;
@@ -123,7 +123,7 @@ namespace slib
 			// 127.0.0.0-127.255.255.255	Loopback
 			return sl_true;
 		}
-		sl_uint32 n = getInt();
+		sl_uint32 n = toInt();
 		if ((n & 0xFFC00000) == 0x64400000) {
 			// 100.64.0.0/10 (100.64.0.0-100.127.255.255)
 			// Private (Shared address space for communications between a service provider and its subscribers when using a carrier-grade NAT)
@@ -197,7 +197,7 @@ namespace slib
 
 	sl_uint32 IPv4Address::getNetworkPrefixLengthFromMask() const noexcept
 	{
-		sl_uint32 t = getInt();
+		sl_uint32 t = toInt();
 		if (t == 0) {
 			return 0;
 		}

@@ -58,19 +58,19 @@ namespace slib
 			return *(reinterpret_cast<MacAddress const*>(&_zero));
 		}
 
-		SLIB_CONSTEXPR sl_uint64 getInt() const
+		SLIB_CONSTEXPR sl_uint64 toInt() const
 		{
 			return SLIB_MAKE_QWORD(0, 0, m[0], m[1], m[2], m[3], m[4], m[5]);
 		}
 
 		SLIB_CONSTEXPR sl_bool isZero() const
 		{
-			return !(getInt());
+			return !(toInt());
 		}
 
 		SLIB_CONSTEXPR sl_bool isNotZero() const
 		{
-			return getInt() != 0;
+			return toInt() != 0;
 		}
 
 		void setZero() noexcept;
@@ -113,17 +113,17 @@ namespace slib
 	public:
 		SLIB_CONSTEXPR sl_compare_result compare(const MacAddress& other) const
 		{
-			return ComparePrimitiveValues(getInt(), other.getInt());
+			return ComparePrimitiveValues(toInt(), other.toInt());
 		}
 
 		SLIB_CONSTEXPR sl_bool equals(const MacAddress& other) const
 		{
-			return getInt() == other.getInt();
+			return toInt() == other.toInt();
 		}
 
 		SLIB_CONSTEXPR sl_size getHashCode() const
 		{
-			return HashPrimitiveValue(getInt());
+			return HashPrimitiveValue(toInt());
 		}
 
 		// m0-m1-m2-m3-m4-m5, m0:m1:m2:m3:m4:m5

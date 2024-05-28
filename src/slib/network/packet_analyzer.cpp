@@ -47,7 +47,7 @@ namespace slib
 
 		static sl_uint64 ToKey(const IPv4Address& address, sl_uint16 port) noexcept
 		{
-			return SLIB_MAKE_QWORD4(address.getInt(), port);
+			return SLIB_MAKE_QWORD4(address.toInt(), port);
 		}
 
 	}

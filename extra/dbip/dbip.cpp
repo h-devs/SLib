@@ -78,7 +78,7 @@ namespace slib
 					break;
 				}
 				if (ip.isIPv4()) {
-					item4.start = ip.getIPv4().getInt();
+					item4.start = ip.getIPv4().toInt();
 				} else {
 					item6.start = ip.getIPv6();
 				}
@@ -105,7 +105,7 @@ namespace slib
 					if (resultParse == SLIB_PARSE_ERROR) {
 						break;
 					}
-					item4.end = ip4.getInt();
+					item4.end = ip4.toInt();
 				} else {
 					IPv6Address ip6;
 					resultParse = IPv6Address::parse(&ip6, sz, pos, len);
@@ -205,7 +205,7 @@ namespace slib
 	const char* DbIp::getCountryCode(const IPv4Address& _ipv4, sl_size depth)
 	{
 		sl_size index = 0;
-		sl_uint32 ipv4 = _ipv4.getInt();
+		sl_uint32 ipv4 = _ipv4.toInt();
 		if (BinarySearch::search(m_ipv4, m_countIPv4, ipv4, &index)) {
 			return m_ipv4[index].code;
 		} else {

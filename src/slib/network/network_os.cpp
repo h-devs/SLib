@@ -153,7 +153,7 @@ namespace slib
 	public:
 		sl_compare_result operator()(const MIB_IPADDRROW& a, const IPv4Address& b) const
 		{
-			return Compare<sl_uint32>()(a.dwAddr, Endian::swap32LE(b.getInt()));
+			return Compare<sl_uint32>()(a.dwAddr, Endian::swap32LE(b.toInt()));
 		}
 	};
 
@@ -163,7 +163,7 @@ namespace slib
 	public:
 		sl_bool operator()(const MIB_IPADDRROW& a, const IPv4Address& b) const
 		{
-			return Equals<sl_uint32>()(a.dwAddr, Endian::swap32LE(b.getInt()));
+			return Equals<sl_uint32>()(a.dwAddr, Endian::swap32LE(b.toInt()));
 		}
 	};
 

@@ -70,7 +70,7 @@ namespace slib
 	public:
 		void setElements(sl_uint8 a, sl_uint8 b, sl_uint8 c, sl_uint8 d) noexcept;
 
-		SLIB_CONSTEXPR sl_uint32 getInt() const
+		SLIB_CONSTEXPR sl_uint32 toInt() const
 		{
 			return ((sl_uint32)(a) << 24) | ((sl_uint32)(b) << 16) | ((sl_uint32)(c) << 8) | ((sl_uint32)(d));
 		}
@@ -96,12 +96,12 @@ namespace slib
 
 		SLIB_CONSTEXPR sl_bool isZero() const
 		{
-			return !(getInt());
+			return !(toInt());
 		}
 
 		SLIB_CONSTEXPR sl_bool isNotZero() const
 		{
-			return getInt() != 0;
+			return toInt() != 0;
 		}
 
 		void setZero() noexcept;
@@ -131,27 +131,27 @@ namespace slib
 	public:
 		SLIB_CONSTEXPR sl_compare_result compare(const IPv4Address& other) const
 		{
-			return ComparePrimitiveValues(getInt(), other.getInt());
+			return ComparePrimitiveValues(toInt(), other.toInt());
 		}
 
 		SLIB_CONSTEXPR sl_compare_result compare(sl_uint32 addr) const
 		{
-			return ComparePrimitiveValues(getInt(), addr);
+			return ComparePrimitiveValues(toInt(), addr);
 		}
 
 		SLIB_CONSTEXPR sl_bool equals(const IPv4Address& other) const
 		{
-			return getInt() == other.getInt();
+			return toInt() == other.toInt();
 		}
 
 		SLIB_CONSTEXPR sl_bool equals(sl_uint32 addr) const
 		{
-			return getInt() == addr;
+			return toInt() == addr;
 		}
 
 		SLIB_CONSTEXPR sl_size getHashCode() const
 		{
-			return HashPrimitiveValue(getInt());
+			return HashPrimitiveValue(toInt());
 		}
 
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS

@@ -1558,15 +1558,15 @@ namespace slib
 	sl_bool Socket::joinMulticast(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept
 	{
 		ip_mreq mreq;
-		mreq.imr_multiaddr.s_addr = htonl(ipMulticast.getInt());
-		mreq.imr_interface.s_addr = htonl(ipInterface.getInt());
+		mreq.imr_multiaddr.s_addr = htonl(ipMulticast.toInt());
+		mreq.imr_interface.s_addr = htonl(ipInterface.toInt());
 		return setOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
 	}
 
 	sl_bool Socket::joinMulticast(const IPv4Address& ipMulticast, sl_uint32 interfaceIndex) const noexcept
 	{
 		ip_mreq mreq;
-		mreq.imr_multiaddr.s_addr = htonl(ipMulticast.getInt());
+		mreq.imr_multiaddr.s_addr = htonl(ipMulticast.toInt());
 		mreq.imr_interface.s_addr = htonl(interfaceIndex);
 		return setOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
 	}
@@ -1582,15 +1582,15 @@ namespace slib
 	sl_bool Socket::leaveMulticast(const IPv4Address& ipMulticast, const IPv4Address& ipInterface) const noexcept
 	{
 		ip_mreq mreq;
-		mreq.imr_multiaddr.s_addr = htonl(ipMulticast.getInt());
-		mreq.imr_interface.s_addr = htonl(ipInterface.getInt());
+		mreq.imr_multiaddr.s_addr = htonl(ipMulticast.toInt());
+		mreq.imr_interface.s_addr = htonl(ipInterface.toInt());
 		return setOption(IPPROTO_IP, IP_DROP_MEMBERSHIP, &mreq, sizeof(mreq));
 	}
 
 	sl_bool Socket::leaveMulticast(const IPv4Address& ipMulticast, sl_uint32 interfaceIndex) const noexcept
 	{
 		ip_mreq mreq;
-		mreq.imr_multiaddr.s_addr = htonl(ipMulticast.getInt());
+		mreq.imr_multiaddr.s_addr = htonl(ipMulticast.toInt());
 		mreq.imr_interface.s_addr = htonl(interfaceIndex);
 		return setOption(IPPROTO_IP, IP_DROP_MEMBERSHIP, &mreq, sizeof(mreq));
 	}

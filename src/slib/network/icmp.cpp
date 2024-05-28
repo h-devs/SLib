@@ -200,7 +200,7 @@ namespace slib
 
 	sl_size IcmpEchoAddress::getHashCode() const noexcept
 	{
-		return Rehash64ToSize(SLIB_MAKE_QWORD4(SLIB_MAKE_DWORD2(identifier, sequenceNumber), ip.getInt()));
+		return Rehash64ToSize(SLIB_MAKE_QWORD4(SLIB_MAKE_DWORD2(identifier, sequenceNumber), ip.toInt()));
 	}
 
 }
