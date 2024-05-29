@@ -50,8 +50,10 @@ namespace slib
 
 		static Ref<Timer> startWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
 
+		// use `createWithLoop` for `DispatchLoop`
 		static Ref<Timer> createWithDispatcher(const Ref<Dispatcher>& dispatcher, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
 
+		// use `startWithLoop` for `DispatchLoop`
 		static Ref<Timer> startWithDispatcher(const Ref<Dispatcher>& dispatcher, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
 
 	public:
