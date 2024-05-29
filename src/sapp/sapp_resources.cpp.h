@@ -961,6 +961,7 @@ namespace slib
 
 	SAppLayoutImportView::SAppLayoutImportView()
 	{
+		setImportView(sl_true);
 	}
 
 	void SAppLayoutImportView::init()

@@ -771,7 +771,7 @@ namespace slib
 				return sl_null;
 			}
 			UISize size = window->getClientSize();
-			if (layout->layoutType == SAppLayoutType::Page) {
+			if (!(simulator->isImportView()) && layout->layoutType == SAppLayoutType::Page) {
 				m_layoutSimulationParams.screenWidth = size.x;
 				m_layoutSimulationParams.screenHeight = size.y;
 				m_layoutSimulationParams.flagResizeScreen = sl_true;

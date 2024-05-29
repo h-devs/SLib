@@ -1402,6 +1402,9 @@ namespace slib
 
 		Ref<View> getSimulationContentView();
 
+	public:
+		SLIB_BOOLEAN_PROPERTY(ImportView)
+
 	protected:
 		AtomicWeakRef<CRef> m_refer;
 		AtomicWeakRef<SAppDocument> m_document;
