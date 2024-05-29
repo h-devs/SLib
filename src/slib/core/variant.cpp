@@ -3513,6 +3513,47 @@ namespace slib
 		}
 	}
 
+	Variant Variant::duplicate() const
+	{
+		switch (_type) {
+			case VariantType::Null:
+			case VariantType::Int32:
+			case VariantType::Uint32:
+			case VariantType::Int64:
+			case VariantType::Uint64:
+			case VariantType::Float:
+			case VariantType::Double:
+			case VariantType::Boolean:
+			case VariantType::Sz8:
+			case VariantType::Sz16:
+			case VariantType::Sz32:
+			case VariantType::StringData8:
+			case VariantType::StringData16:
+			case VariantType::StringData32:
+			case VariantType::Time:
+			case VariantType::Pointer:
+			case VariantType::ObjectId:
+				return *this;
+			case VariantType::String8:
+				return REF_VAR(String const, _value).duplicate();
+			case VariantType::String16:
+				return REF_VAR(String16 const, _value).duplicate();
+			case VariantType::String32:
+				return REF_VAR(String32 const, _value).duplicate();
+			case VariantType::Memory:
+				return REF_VAR(Memory const, _value).duplicate();
+			case VariantType::BigInt:
+				return REF_VAR(BigInt const, _value).duplicate();
+			case VariantType::List:
+				return REF_VAR(VariantList, _value).duplicate_NoLock();
+			case VariantType::Map:
+				return REF_VAR(VariantMap, _value).duplicate_NoLock();
+			default:
+				break;
+		}
+		return Variant();
+	}
+
 	String Variant::toString() const
 	{
 		switch (_type) {

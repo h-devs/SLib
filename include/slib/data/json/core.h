@@ -354,6 +354,8 @@ namespace slib
 			return Json();
 		}
 
+		Json duplicate() const;
+
 	protected:
 		String toString() const;
 

@@ -889,6 +889,8 @@ namespace slib
 
 		void merge(const Variant& other);
 
+		Variant duplicate() const;
+
 
 		String toString() const;
 

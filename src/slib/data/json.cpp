@@ -951,6 +951,28 @@ namespace slib
 		return parseTextFile(filePath, param);
 	}
 
+	Json Json::duplicate() const
+	{
+		if (_type == VariantType::List) {
+			ListElements<Json> items(getJsonList());
+			JsonList ret;
+			for (sl_size i = 0; i < items.count; i++) {
+				ret.add_NoLock(items[i].duplicate());
+			}
+			return ret;
+		} else if (_type == VariantType::Map) {
+			JsonMap map = getJsonMap();
+			JsonMap::NODE* node = map.getFirstNode();
+			JsonMap ret;
+			while (node) {
+				ret.add_NoLock(node->key, node->value.duplicate());
+				node = node->getNext();
+			}
+			return ret;
+		}
+		return *this;
+	}
+
 
 	void FromJson(const Json& json, Json& _out)
 	{
