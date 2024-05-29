@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -102,6 +102,23 @@ namespace slib
 				if (handle) {
 					SendMessageW(handle, CB_SETCURSEL, (WPARAM)index, 0);
 				}
+			}
+
+			sl_bool measureSize(SelectView* view, UISize& _out) override
+			{
+				HWND handle = m_handle;
+				if (handle) {
+					Ref<Font> font = view->getFont();
+					if (font.isNotNull()) {
+						RECT rc;
+						if (GetWindowRect(handle, &rc)) {
+							_out.x = (sl_ui_len)(font->getFontHeight() * 4);
+							_out.y = (sl_ui_len)(rc.bottom - rc.top);
+							return sl_true;
+						}
+					}
+				}
+				return sl_false;
 			}
 
 			sl_bool processCommand(SHORT code, LRESULT& result) override
