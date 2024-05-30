@@ -536,6 +536,7 @@ namespace slib
 	public:
 		SAppColorValue textColor;
 		SAppAlignmentValue gravity;
+		SAppStringValue value;
 
 		CList<SAppLayoutSelectItem> items;
 
@@ -548,6 +549,7 @@ namespace slib
 	public:
 		SAppColorValue textColor;
 		SAppAlignmentValue gravity;
+		SAppStringValue value;
 
 		CList<SAppLayoutSelectItem> items;
 
@@ -851,6 +853,7 @@ namespace slib
 		SAppColorValue textColor;
 		SAppUint32Value lineCount;
 		SAppBooleanValue circular;
+		SAppStringValue value;
 
 		CList<SAppLayoutSelectItem> items;
 
@@ -946,6 +949,7 @@ namespace slib
 		SAppAlignmentValue gravity;
 		SAppEllipsizeModeValue ellipsize;
 		SAppMultiLineModeValue multiLine;
+		SAppStringValue value;
 
 		SAppDimensionValue itemPaddingLeft;
 		SAppDimensionValue itemPaddingTop;
