@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -3163,6 +3163,21 @@ namespace slib
 			}
 		}
 		return Variant();
+	}
+
+	Variant Variant::getItemByPath(const String& path) const
+	{
+		sl_reg index = path.indexOf('.');
+		if (index >= 0) {
+			Variant var = getItem(path.substring(0, index));
+			if (var.isVariantMap() || var.isVariantList()) {
+				return var.getItemByPath(path.substring(index + 1));
+			} else {
+				return Variant();
+			}
+		} else {
+			return getItem(path);
+		}
 	}
 
 	namespace

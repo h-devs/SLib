@@ -832,6 +832,8 @@ namespace slib
 
 		Variant getItem(const String& key) const;
 
+		Variant getItemByPath(const String& path) const;
+
 		sl_bool putItem(const String& key, const Variant& value) const;
 
 		sl_bool putItem(const String& key, const Variant& value);

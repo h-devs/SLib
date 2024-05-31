@@ -165,7 +165,7 @@ namespace slib
 		} else {
 			String& field = attr->field;
 			if (field.isNotEmpty() && record >= 0 && recordData.isNotUndefined()) {
-				return recordData.getItem(field).toString();
+				return recordData.getItemByPath(field).toString();
 			}
 		}
 		return sl_null;
@@ -2279,7 +2279,7 @@ namespace slib
 		public:
 			sl_compare_result operator()(const Variant& v1, const Variant& v2) const
 			{
-				sl_compare_result result = v1.getItem(m_field).compare(v2.getItem(m_field));
+				sl_compare_result result = v1.getItemByPath(m_field).compare(v2.getItemByPath(m_field));
 				if (!m_flagAsc) {
 					result = -result;
 				}
