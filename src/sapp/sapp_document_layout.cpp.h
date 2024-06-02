@@ -45,9 +45,12 @@ namespace slib
 
 		name = getNameInLocalNamespace(localNamespace, name);
 
-		if (m_layoutStyles.find(name)) {
-			logError(element, g_str_error_resource_layout_name_redefined, name);
-			return sl_false;
+		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
+		if (!flagOverride) {
+			if (m_layoutStyles.find(name)) {
+				logError(element, g_str_error_resource_layout_name_redefined, name);
+				return sl_false;
+			}
 		}
 		style->name = name;
 
@@ -100,9 +103,12 @@ namespace slib
 
 		name = getNameInLocalNamespace(localNamespace, name);
 
-		if (m_layoutIncludes.find(name)) {
-			logError(element, g_str_error_resource_layout_name_redefined, name);
-			return sl_false;
+		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
+		if (!flagOverride) {
+			if (m_layoutIncludes.find(name)) {
+				logError(element, g_str_error_resource_layout_name_redefined, name);
+				return sl_false;
+			}
 		}
 		include->name = name;
 
@@ -128,9 +134,12 @@ namespace slib
 
 		name = getNameInLocalNamespace(localNamespace, name);
 
-		if (m_layoutUnits.find(name)) {
-			logError(element, g_str_error_resource_layout_name_redefined, name);
-			return sl_false;
+		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
+		if (!flagOverride) {
+			if (m_layoutUnits.find(name)) {
+				logError(element, g_str_error_resource_layout_name_redefined, name);
+				return sl_false;
+			}
 		}
 
 		String strValue = element->getText();
@@ -188,9 +197,12 @@ namespace slib
 			name = getNameInLocalNamespace(localNamespace, name);
 		}
 
-		if (m_layouts.find(name)) {
-			logError(element, g_str_error_resource_layout_name_redefined, name);
-			return sl_null;
+		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
+		if (!flagOverride) {
+			if (m_layouts.find(name)) {
+				logError(element, g_str_error_resource_layout_name_redefined, name);
+				return sl_null;
+			}
 		}
 		layout->name = name;
 

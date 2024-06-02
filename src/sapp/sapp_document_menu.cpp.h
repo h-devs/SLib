@@ -49,9 +49,12 @@ namespace slib
 
 		name = getNameInLocalNamespace(localNamespace, name);
 
-		if (m_menus.find(name)) {
-			logError(element, g_str_error_resource_menu_name_redefined, name);
-			return sl_false;
+		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
+		if (!flagOverride) {
+			if (m_menus.find(name)) {
+				logError(element, g_str_error_resource_menu_name_redefined, name);
+				return sl_false;
+			}
 		}
 
 		menu->name = name;

@@ -41,9 +41,12 @@ namespace slib
 
 		name = getNameInLocalNamespace(localNamespace, name);
 
-		if (m_colors.find(name)) {
-			logError(element, String::format(g_str_error_resource_color_name_redefined, name));
-			return sl_false;
+		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
+		if (!flagOverride) {
+			if (m_colors.find(name)) {
+				logError(element, String::format(g_str_error_resource_color_name_redefined, name));
+				return sl_false;
+			}
 		}
 
 		String valueText = element->getText();
