@@ -628,10 +628,11 @@ namespace slib
 
 	void ViewPage::onBack(UIEvent* ev)
 	{
-		if (close()) {
-			if (ev) {
-				ev->accept();
-			}
+		if (!(close())) {
+			ViewGroup::onCancel();
+		}
+		if (ev) {
+			ev->accept();
 		}
 	}
 
