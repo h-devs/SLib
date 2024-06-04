@@ -165,11 +165,11 @@ namespace slib
 		void removeAllChildren(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		template <class COMPARE>
-		void sortChildren(const COMPARE& compare, UIUpdateMode mode = UIUpdateMode::UpdateLayout)
+		void sortChildren(COMPARE&& compare, UIUpdateMode mode = UIUpdateMode::UpdateLayout)
 		{
 			{
 				List< Ref<View> > children = _getRawChildren();
-				children.sort(compare);
+				children.sort(Forward<COMPARE>(compare));
 				_clearChildrenCache();
 			}
 			invalidateLayout(mode);

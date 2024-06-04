@@ -92,13 +92,13 @@ namespace slib
 			{
 			public:
 				template <class T, class VALUE, class EQUALS>
-				static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals, sl_reg startIndex) noexcept
+				static sl_reg indexOf(T* data, sl_reg count, VALUE&& value, EQUALS&& equals, sl_reg startIndex) noexcept
 				{
 					if (startIndex < 0) {
 						startIndex = 0;
 					}
 					for (sl_reg i = startIndex; i < count; i++) {
-						if (equals(data[i], value)) {
+						if (equals(data[i], Forward<VALUE>(value))) {
 							return i;
 						}
 					}
@@ -106,13 +106,13 @@ namespace slib
 				}
 
 				template <class T, class VALUE, class EQUALS>
-				static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals, sl_reg startIndex) noexcept
+				static sl_reg lastIndexOf(T* data, sl_reg count, VALUE&& value, EQUALS&& equals, sl_reg startIndex) noexcept
 				{
 					if (startIndex < 0 || startIndex >= count) {
 						startIndex = count - 1;
 					}
 					for (sl_reg i = startIndex; i >= 0; i--) {
-						if (equals(data[i], value)) {
+						if (equals(data[i], Forward<VALUE>(value))) {
 							return i;
 						}
 					}
@@ -127,11 +127,11 @@ namespace slib
 			class IndexOf_Helper<EQUALS, sl_true>
 			{
 			public:
-				template <class T, class VALUE>
-				static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals) noexcept
+				template <class T, class VALUE, class ARG_EQUALS>
+				static sl_reg indexOf(T* data, sl_reg count, VALUE&& value, ARG_EQUALS&& equals) noexcept
 				{
 					for (sl_reg i = 0; i < count; i++) {
-						if (equals(data[i], value)) {
+						if (equals(data[i], Forward<VALUE>(value))) {
 							return i;
 						}
 					}
@@ -144,9 +144,9 @@ namespace slib
 			{
 			public:
 				template <class T, class VALUE>
-				static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, INDEX startIndex) noexcept
+				static sl_reg indexOf(T* data, sl_reg count, VALUE&& value, INDEX startIndex) noexcept
 				{
-					return IndexOf_Base::indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
+					return IndexOf_Base::indexOf(data, count, Forward<VALUE>(value), Equals<T, typename RemoveConstReference<VALUE>::Type>(), (sl_reg)startIndex);
 				}
 			};
 
@@ -157,12 +157,12 @@ namespace slib
 			class LastIndexOf_Helper<EQUALS, sl_true>
 			{
 			public:
-				template <class T, class VALUE>
-				sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals) noexcept
+				template <class T, class VALUE, class ARG_EQUALS>
+				sl_reg lastIndexOf(T* data, sl_reg count, VALUE&& value, ARG_EQUALS&& equals) noexcept
 				{
 					sl_reg ret = -1;
 					for (sl_reg i = count - 1; i >= 0; i--) {
-						if (equals(data[i], value)) {
+						if (equals(data[i], Forward<VALUE>(value))) {
 							ret = i;
 							break;
 						}
@@ -176,9 +176,9 @@ namespace slib
 			{
 			public:
 				template <class T, class VALUE>
-				static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, INDEX startIndex) noexcept
+				static sl_reg lastIndexOf(T* data, sl_reg count, VALUE&& value, INDEX startIndex) noexcept
 				{
-					return IndexOf_Base::lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
+					return IndexOf_Base::lastIndexOf(data, count, Forward<VALUE>(value), Equals<T, typename RemoveConstReference<VALUE>::Type>(), (sl_reg)startIndex);
 				}
 			};
 
@@ -189,15 +189,15 @@ namespace slib
 				using IndexOf_Base::lastIndexOf;
 
 				template <class T, class VALUE, class ARG>
-				static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const ARG& arg) noexcept
+				static sl_reg indexOf(T* data, sl_reg count, VALUE&& value, ARG&& arg) noexcept
 				{
-					return IndexOf_Helper<ARG>::indexOf(data, count, value, arg);
+					return IndexOf_Helper<typename RemoveConstReference<ARG>::Type>::indexOf(data, count, Forward<VALUE>(value), Forward<ARG>(arg));
 				}
 
 				template <class T, class VALUE, class ARG>
-				static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const ARG& arg) noexcept
+				static sl_reg lastIndexOf(T* data, sl_reg count, VALUE&& value, ARG&& arg) noexcept
 				{
-					return LastIndexOf_Helper<ARG>::lastIndexOf(data, count, value, arg);
+					return LastIndexOf_Helper<typename RemoveConstReference<ARG>::Type>::lastIndexOf(data, count, Forward<VALUE>(value), Forward<ARG>(arg));
 				}
 			};
 

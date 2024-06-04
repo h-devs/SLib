@@ -33,7 +33,7 @@ namespace slib
 	{
 	public:
 		template < class TYPE, class COMPARE = Compare<TYPE> >
-		static void sortAsc(TYPE* list, sl_size size, const COMPARE& compare = COMPARE()) noexcept
+		static void sortAsc(TYPE* list, sl_size size, COMPARE&& compare = COMPARE()) noexcept
 		{
 			if (size < 2) {
 				return;
@@ -53,7 +53,7 @@ namespace slib
 		}
 
 		template < class TYPE, class COMPARE = Compare<TYPE> >
-		static void sortDesc(TYPE* list, sl_size size, const COMPARE& compare = COMPARE()) noexcept
+		static void sortDesc(TYPE* list, sl_size size, COMPARE&& compare = COMPARE()) noexcept
 		{
 			if (size < 2) {
 				return;
@@ -78,7 +78,7 @@ namespace slib
 	{
 	public:
 		template < class TYPE, class COMPARE = Compare<TYPE> >
-		static void sortAsc(TYPE* list, sl_size size, const COMPARE& compare = COMPARE()) noexcept
+		static void sortAsc(TYPE* list, sl_size size, COMPARE&& compare = COMPARE()) noexcept
 		{
 			if (size < 2) {
 				return;
@@ -100,7 +100,7 @@ namespace slib
 		}
 
 		template < class TYPE, class COMPARE = Compare<TYPE> >
-		static void sortDesc(TYPE* list, sl_size size, const COMPARE& compare = COMPARE()) noexcept
+		static void sortDesc(TYPE* list, sl_size size, COMPARE&& compare = COMPARE()) noexcept
 		{
 			if (size < 2) {
 				return;
@@ -122,10 +122,10 @@ namespace slib
 		}
 
 		template < class TYPE, class COMPARE = Compare<TYPE> >
-		static void sortAsc(const TYPE* src, TYPE* dst, sl_size size, const COMPARE& compare = COMPARE()) noexcept
+		static void sortAsc(const TYPE* src, TYPE* dst, sl_size size, COMPARE&& compare = COMPARE()) noexcept
 		{
 			if (src == dst) {
-				sortAsc(dst, size, compare);
+				sortAsc(dst, size, Forward<COMPARE>(compare));
 			}
 			if (size < 2) {
 				return;
@@ -146,10 +146,10 @@ namespace slib
 		}
 
 		template < class TYPE, class COMPARE = Compare<TYPE> >
-		static void sortDesc(const TYPE* src, TYPE* dst, sl_size size, const COMPARE& compare = COMPARE()) noexcept
+		static void sortDesc(const TYPE* src, TYPE* dst, sl_size size, COMPARE&& compare = COMPARE()) noexcept
 		{
 			if (src == dst) {
-				sortDesc(dst, size, compare);
+				sortDesc(dst, size, Forward<COMPARE>(compare));
 			}
 			if (size < 2) {
 				return;
@@ -175,7 +175,7 @@ namespace slib
 	{
 	public:
 		template < class TYPE, class COMPARE = Compare<TYPE> >
-		static void sortAsc(TYPE* list, sl_size size, const COMPARE& compare = COMPARE()) noexcept
+		static void sortAsc(TYPE* list, sl_size size, COMPARE&& compare = COMPARE()) noexcept
 		{
 			if (size < 2) {
 				return;
@@ -187,7 +187,7 @@ namespace slib
 			for(;;) {
 				sl_size n = end - start + 1;
 				if (n < 8) {
-					InsertionSort::sortAsc(list + start, n, compare);
+					InsertionSort::sortAsc(list + start, n, Forward<COMPARE>(compare));
 				} else {
 					sl_size mid = start + (n / 2);
 					Swap(list[mid], list[start]);
@@ -254,7 +254,7 @@ namespace slib
 		}
 
 		template < class TYPE, class COMPARE = Compare<TYPE> >
-		static void sortDesc(TYPE* list, sl_size size, const COMPARE& compare = COMPARE()) noexcept
+		static void sortDesc(TYPE* list, sl_size size, COMPARE&& compare = COMPARE()) noexcept
 		{
 			if (size < 2) {
 				return;
@@ -266,7 +266,7 @@ namespace slib
 			for(;;) {
 				sl_size n = end - start + 1;
 				if (n < 8) {
-					InsertionSort::sortDesc(list + start, n, compare);
+					InsertionSort::sortDesc(list + start, n, Forward<COMPARE>(compare));
 				} else {
 					sl_size mid = start + (n / 2);
 					Swap(list[mid], list[start]);

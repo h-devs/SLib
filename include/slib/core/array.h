@@ -317,34 +317,34 @@ namespace slib
 			return sl_null;
 		}
 
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg indexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
+		template < class VALUE, class ARG = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_reg indexOf(VALUE&& value, ARG&& arg = ARG()) const noexcept
 		{
-			return ArrayTraits<T>::indexOf(m_data, m_count, value, arg);
+			return ArrayTraits<T>::indexOf(m_data, m_count, Forward<VALUE>(value), Forward<ARG>(arg));
 		}
 
 		template <class VALUE, class EQUALS>
-		sl_reg indexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
+		sl_reg indexOf(VALUE&& value, EQUALS&& equals, sl_reg startIndex) const noexcept
 		{
-			return ArrayTraits<T>::indexOf(m_data, m_count, value, equals, startIndex);
+			return ArrayTraits<T>::indexOf(m_data, m_count, Forward<VALUE>(value), Forward<EQUALS>(equals), startIndex);
 		}
 
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg lastIndexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
+		template < class VALUE, class ARG = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_reg lastIndexOf(VALUE&& value, ARG&& arg = ARG()) const noexcept
 		{
-			return ArrayTraits<T>::lastIndexOf(m_data, m_count, value, arg);
+			return ArrayTraits<T>::lastIndexOf(m_data, m_count, Forward<VALUE>(value), Forward<ARG>(arg));
 		}
 
 		template <class VALUE, class EQUALS>
-		sl_reg lastIndexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
+		sl_reg lastIndexOf(VALUE&& value, EQUALS&& equals, sl_reg startIndex) const noexcept
 		{
-			return ArrayTraits<T>::lastIndexOf(m_data, m_count, value, equals, startIndex);
+			return ArrayTraits<T>::lastIndexOf(m_data, m_count, Forward<VALUE>(value), Forward<EQUALS>(equals), startIndex);
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool contains(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool contains(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
-			return ArrayTraits<T>::indexOf(m_data, m_count, value, equals) >= 0;
+			return ArrayTraits<T>::indexOf(m_data, m_count, Forward<VALUE>(value), Forward<EQUALS>(equals)) >= 0;
 		}
 
 		template <class VALUE>
@@ -389,15 +389,15 @@ namespace slib
 		}
 
 		template < class COMPARE = Compare<T> >
-		void sort(const COMPARE& compare = COMPARE()) const noexcept
+		void sort(COMPARE&& compare = COMPARE()) const noexcept
 		{
-			QuickSort::sortAsc(m_data, m_count, compare);
+			QuickSort::sortAsc(m_data, m_count, Forward<COMPARE>(compare));
 		}
 
 		template < class COMPARE = Compare<T> >
-		void sortDesc(const COMPARE& compare = COMPARE()) const noexcept
+		void sortDesc(COMPARE&& compare = COMPARE()) const noexcept
 		{
-			QuickSort::sortDesc(m_data, m_count, compare);
+			QuickSort::sortDesc(m_data, m_count, Forward<COMPARE>(compare));
 		}
 
 		void reverse() const noexcept
@@ -632,50 +632,50 @@ namespace slib
 			return sl_null;
 		}
 
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg indexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
+		template < class VALUE, class ARG = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_reg indexOf(VALUE&& value, ARG&& arg = ARG()) const noexcept
 		{
 			CArray<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->indexOf(value, arg);
+				return obj->indexOf(Forward<VALUE>(value), Forward<ARG>(arg));
 			}
 			return -1;
 		}
 
 		template <class VALUE, class EQUALS>
-		sl_reg indexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
+		sl_reg indexOf(VALUE&& value, EQUALS&& equals, sl_reg startIndex) const noexcept
 		{
 			CArray<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->indexOf(value, equals, startIndex);
+				return obj->indexOf(Forward<VALUE>(value), Forward<EQUALS>(equals), startIndex);
 			}
 			return -1;
 		}
 
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg lastIndexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
+		template < class VALUE, class ARG = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_reg lastIndexOf(VALUE&& value, ARG&& arg = ARG()) const noexcept
 		{
 			CArray<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->lastIndexOf(value, arg);
+				return obj->lastIndexOf(Forward<VALUE>(value), Forward<ARG>(arg));
 			}
 			return -1;
 		}
 
 		template <class VALUE, class EQUALS>
-		sl_reg lastIndexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
+		sl_reg lastIndexOf(VALUE&& value, EQUALS&& equals, sl_reg startIndex) const noexcept
 		{
 			CArray<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->lastIndexOf(value, equals, startIndex);
+				return obj->lastIndexOf(Forward<VALUE>(value), Forward<EQUALS>(equals), startIndex);
 			}
 			return -1;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool contains(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool contains(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
-			return indexOf(value, equals) >= 0;
+			return indexOf(Forward<VALUE>(value), Forward<EQUALS>(equals)) >= 0;
 		}
 
 		template <class VALUE>
@@ -728,20 +728,20 @@ namespace slib
 		}
 
 		template < class COMPARE = Compare<T> >
-		void sort(const COMPARE& compare = COMPARE()) const noexcept
+		void sort(COMPARE&& compare = COMPARE()) const noexcept
 		{
 			CArray<T>* obj = ref.ptr;
 			if (obj) {
-				obj->sort(compare);
+				obj->sort(Forward<COMPARE>(compare));
 			}
 		}
 
 		template < class COMPARE = Compare<T> >
-		void sortDesc(const COMPARE& compare = COMPARE()) const noexcept
+		void sortDesc(COMPARE&& compare = COMPARE()) const noexcept
 		{
 			CArray<T>* obj = ref.ptr;
 			if (obj) {
-				obj->sortDesc(compare);
+				obj->sortDesc(Forward<COMPARE>(compare));
 			}
 		}
 

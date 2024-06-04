@@ -935,19 +935,19 @@ namespace slib
 		}
 
 		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
-		sl_bool addIfNotExist_NoLock(VALUE&& value, const EQUALS& equals = EQUALS()) noexcept
+		sl_bool addIfNotExist_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) noexcept
 		{
-			if (indexOf_NoLock(value, equals) < 0) {
-				return add_NoLock(value);
+			if (indexOf_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals)) < 0) {
+				return add_NoLock(Forward<VALUE>(value));
 			}
 			return sl_false;
 		}
 
 		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
-		sl_bool addIfNotExist(VALUE&& value, const EQUALS& equals = EQUALS()) noexcept
+		sl_bool addIfNotExist(VALUE&& value, EQUALS&& equals = EQUALS()) noexcept
 		{
 			ObjectLocker lock(this);
-			if (indexOf_NoLock(value, equals) < 0) {
+			if (indexOf_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals)) < 0) {
 				return add_NoLock(value);
 			}
 			return sl_false;
@@ -1003,14 +1003,14 @@ namespace slib
 			return removeRange_NoLock(index, nValues);
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool remove_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool remove_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) noexcept
 		{
 			if (m_data) {
 				T* data = m_data;
 				sl_size count = m_count;
 				for (sl_size i = 0; i < count; i++) {
-					if (equals(data[i], value)) {
+					if (equals(data[i], Forward<VALUE>(value))) {
 						(data + i)->~T();
 						if (i + 1 < count) {
 							Base::moveMemory(data + i, data + i + 1, (count - i - 1) * sizeof(T));
@@ -1024,22 +1024,22 @@ namespace slib
 			return sl_false;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool remove(const VALUE& value, const EQUALS& equals = EQUALS()) noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool remove(VALUE&& value, EQUALS&& equals = EQUALS()) noexcept
 		{
 			ObjectLocker lock(this);
-			return remove_NoLock(value, equals);
+			return remove_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals));
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_size removeValues_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeValues_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) noexcept
 		{
 			if (m_data) {
 				T* data = m_data;
 				sl_size count = m_count;
 				sl_size t = 0;
 				for (sl_size i = 0; i < count; i++) {
-					if (!(equals(data[i], value))) {
+					if (!(equals(data[i], Forward<VALUE>(value)))) {
 						if (t != i) {
 							data[t] = Move(data[i]);
 						}
@@ -1054,11 +1054,11 @@ namespace slib
 			return 0;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_size removeValues(const VALUE& value, const EQUALS& equals = EQUALS()) noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeValues(VALUE&& value, EQUALS&& equals = EQUALS()) noexcept
 		{
 			ObjectLocker lock(this);
-			return removeValues_NoLock(value, equals);
+			return removeValues_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals));
 		}
 
 		template <class PREDICATE>
@@ -1243,69 +1243,69 @@ namespace slib
 			return popBackElements_NoLock(count);
 		}
 
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg indexOf_NoLock(const VALUE& value, const ARG& arg = ARG()) const noexcept
+		template < class VALUE, class ARG = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_reg indexOf_NoLock(VALUE&& value, ARG&& arg = ARG()) const noexcept
 		{
-			return ArrayTraits<T>::indexOf(m_data, m_count, value, arg);
+			return ArrayTraits<T>::indexOf(m_data, m_count, Forward<VALUE>(value), Forward<ARG>(arg));
 		}
 
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg indexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
+		template < class VALUE, class ARG = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_reg indexOf(VALUE&& value, ARG&& arg = ARG()) const noexcept
 		{
 			ObjectLocker lock(this);
-			return ArrayTraits<T>::indexOf(m_data, m_count, value, arg);
+			return ArrayTraits<T>::indexOf(m_data, m_count, Forward<VALUE>(value), Forward<ARG>(arg));
 		}
 
 		template <class VALUE, class EQUALS>
-		sl_reg indexOf_NoLock(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
+		sl_reg indexOf_NoLock(VALUE&& value, EQUALS&& equals, sl_reg startIndex) const noexcept
 		{
-			return ArrayTraits<T>::indexOf(m_data, m_count, value, equals, startIndex);
+			return ArrayTraits<T>::indexOf(m_data, m_count, Forward<VALUE>(value), Forward<EQUALS>(equals), startIndex);
 		}
 
 		template <class VALUE, class EQUALS>
-		sl_reg indexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
+		sl_reg indexOf(VALUE&& value, EQUALS&& equals, sl_reg startIndex) const noexcept
 		{
 			ObjectLocker lock(this);
-			return ArrayTraits<T>::indexOf(m_data, m_count, value, equals, startIndex);
+			return ArrayTraits<T>::indexOf(m_data, m_count, Forward<VALUE>(value), Forward<EQUALS>(equals), startIndex);
 		}
 
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg lastIndexOf_NoLock(const VALUE& value, const ARG& arg = ARG()) const noexcept
+		template < class VALUE, class ARG = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_reg lastIndexOf_NoLock(VALUE&& value, ARG&& arg = ARG()) const noexcept
 		{
-			return ArrayTraits<T>::lastIndexOf(m_data, m_count, value, arg);
+			return ArrayTraits<T>::lastIndexOf(m_data, m_count, Forward<VALUE>(value), Forward<ARG>(arg));
 		}
 
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg lastIndexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
+		template < class VALUE, class ARG = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_reg lastIndexOf(VALUE&& value, ARG&& arg = ARG()) const noexcept
 		{
 			ObjectLocker lock(this);
-			return ArrayTraits<T>::lastIndexOf(m_data, m_count, value, arg);
+			return ArrayTraits<T>::lastIndexOf(m_data, m_count, Forward<VALUE>(value), Forward<ARG>(arg));
 		}
 
 		template <class VALUE, class EQUALS>
-		sl_reg lastIndexOf_NoLock(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
+		sl_reg lastIndexOf_NoLock(VALUE&& value, EQUALS&& equals, sl_reg startIndex) const noexcept
 		{
-			return ArrayTraits<T>::lastIndexOf(m_data, m_count, value, equals, startIndex);
+			return ArrayTraits<T>::lastIndexOf(m_data, m_count, Forward<VALUE>(value), Forward<EQUALS>(equals), startIndex);
 		}
 
 		template <class VALUE, class EQUALS>
-		sl_reg lastIndexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
+		sl_reg lastIndexOf(VALUE&& value, EQUALS&& equals, sl_reg startIndex) const noexcept
 		{
 			ObjectLocker lock(this);
-			return ArrayTraits<T>::lastIndexOf(m_data, m_count, value, equals, startIndex);
+			return ArrayTraits<T>::lastIndexOf(m_data, m_count, Forward<VALUE>(value), Forward<EQUALS>(equals), startIndex);
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool contains_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool contains_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
-			return ArrayTraits<T>::indexOf(m_data, m_count, value, equals) >= 0;
+			return ArrayTraits<T>::indexOf(m_data, m_count, Forward<VALUE>(value), Forward<EQUALS>(equals)) >= 0;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool contains(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool contains(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			ObjectLocker lock(this);
-			return ArrayTraits<T>::indexOf(m_data, m_count, value, equals) >= 0;
+			return ArrayTraits<T>::indexOf(m_data, m_count, Forward<VALUE>(value), Forward<EQUALS>(equals)) >= 0;
 		}
 
 		CList* duplicate_NoLock() const noexcept
@@ -1334,29 +1334,29 @@ namespace slib
 		}
 
 		template < class COMPARE = Compare<T> >
-		void sort_NoLock(const COMPARE& compare = COMPARE()) const noexcept
+		void sort_NoLock(COMPARE&& compare = COMPARE()) const noexcept
 		{
-			QuickSort::sortAsc(m_data, m_count, compare);
+			QuickSort::sortAsc(m_data, m_count, Forward<COMPARE>(compare));
 		}
 
 		template < class COMPARE = Compare<T> >
-		void sort(const COMPARE& compare = COMPARE()) const noexcept
+		void sort(COMPARE&& compare = COMPARE()) const noexcept
 		{
 			ObjectLocker lock(this);
-			QuickSort::sortAsc(m_data, m_count, compare);
+			QuickSort::sortAsc(m_data, m_count, Forward<COMPARE>(compare));
 		}
 
 		template < class COMPARE = Compare<T> >
-		void sortDesc_NoLock(const COMPARE& compare = COMPARE()) const noexcept
+		void sortDesc_NoLock(COMPARE&& compare = COMPARE()) const noexcept
 		{
-			QuickSort::sortDesc(m_data, m_count, compare);
+			QuickSort::sortDesc(m_data, m_count, Forward<COMPARE>(compare));
 		}
 
 		template < class COMPARE = Compare<T> >
-		void sortDesc(const COMPARE& compare = COMPARE()) const noexcept
+		void sortDesc(COMPARE&& compare = COMPARE()) const noexcept
 		{
 			ObjectLocker lock(this);
-			QuickSort::sortDesc(m_data, m_count, compare);
+			QuickSort::sortDesc(m_data, m_count, Forward<COMPARE>(compare));
 		}
 
 		void reverse_NoLock() const noexcept
@@ -2225,11 +2225,11 @@ namespace slib
 		}
 
 		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
-		sl_bool addIfNotExist_NoLock(VALUE&& value, const EQUALS& equals = EQUALS()) noexcept
+		sl_bool addIfNotExist_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->addIfNotExist_NoLock(Forward<VALUE>(value), equals);
+				return obj->addIfNotExist_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			} else {
 				obj = CList<T>::createFromElement(Forward<VALUE>(value));
 				if (obj) {
@@ -2241,23 +2241,23 @@ namespace slib
 		}
 
 		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
-		sl_bool addIfNotExist(VALUE&& value, const EQUALS& equals = EQUALS()) noexcept
+		sl_bool addIfNotExist(VALUE&& value, EQUALS&& equals = EQUALS()) noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->addIfNotExist(Forward<VALUE>(value), equals);
+				return obj->addIfNotExist(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			} else {
 				SpinLocker lock(SpinLockPoolForList::get(this));
 				obj = ref.ptr;
 				if (obj) {
 					lock.unlock();
-					return obj->addIfNotExist(Forward<VALUE>(value), equals);
+					return obj->addIfNotExist(Forward<VALUE>(value), Forward<EQUALS>(equals));
 				}
 				obj = CList<T>::create();
 				if (obj) {
 					ref = obj;
 					lock.unlock();
-					return obj->addIfNotExist(Forward<VALUE>(value), equals);
+					return obj->addIfNotExist(Forward<VALUE>(value), Forward<EQUALS>(equals));
 				}
 			}
 			return sl_false;
@@ -2299,42 +2299,42 @@ namespace slib
 			return 0;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool remove_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool remove_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->remove_NoLock(value, equals);
+				return obj->remove_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			}
 			return sl_false;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool remove(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool remove(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->remove(value, equals);
+				return obj->remove(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			}
 			return sl_false;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_size removeValues_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeValues_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->removeValues_NoLock(value, equals);
+				return obj->removeValues_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			}
 			return 0;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_size removeValues(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeValues(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->removeValues(value, equals);
+				return obj->removeValues(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			}
 			return 0;
 		}
@@ -2469,102 +2469,102 @@ namespace slib
 			return 0;
 		}
 
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg indexOf_NoLock(const VALUE& value, const ARG& arg = ARG()) const noexcept
+		template < class VALUE, class ARG = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_reg indexOf_NoLock(VALUE&& value, ARG&& arg = ARG()) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->indexOf_NoLock(value, arg);
+				return obj->indexOf_NoLock(Forward<VALUE>(value), Forward<ARG>(arg));
 			}
 			return -1;
 		}
 
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg indexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
+		template < class VALUE, class ARG = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_reg indexOf(VALUE&& value, ARG&& arg = ARG()) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->indexOf(value, arg);
-			}
-			return -1;
-		}
-
-		template <class VALUE, class EQUALS>
-		sl_reg indexOf_NoLock(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
-		{
-			CList<T>* obj = ref.ptr;
-			if (obj) {
-				return obj->indexOf_NoLock(value, equals, startIndex);
+				return obj->indexOf(Forward<VALUE>(value), Forward<ARG>(arg));
 			}
 			return -1;
 		}
 
 		template <class VALUE, class EQUALS>
-		sl_reg indexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
+		sl_reg indexOf_NoLock(VALUE&& value, EQUALS&& equals, sl_reg startIndex) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->indexOf(value, equals, startIndex);
-			}
-			return -1;
-		}
-
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg lastIndexOf_NoLock(const VALUE& value, const ARG& arg = ARG()) const noexcept
-		{
-			CList<T>* obj = ref.ptr;
-			if (obj) {
-				return obj->lastIndexOf_NoLock(value, arg);
-			}
-			return -1;
-		}
-
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg lastIndexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
-		{
-			CList<T>* obj = ref.ptr;
-			if (obj) {
-				return obj->lastIndexOf(value, arg);
+				return obj->indexOf_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals), startIndex);
 			}
 			return -1;
 		}
 
 		template <class VALUE, class EQUALS>
-		sl_reg lastIndexOf_NoLock(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
+		sl_reg indexOf(VALUE&& value, EQUALS&& equals, sl_reg startIndex) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->lastIndexOf_NoLock(value, equals, startIndex);
+				return obj->indexOf(Forward<VALUE>(value), Forward<EQUALS>(equals), startIndex);
+			}
+			return -1;
+		}
+
+		template < class VALUE, class ARG = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_reg lastIndexOf_NoLock(VALUE&& value, ARG&& arg = ARG()) const noexcept
+		{
+			CList<T>* obj = ref.ptr;
+			if (obj) {
+				return obj->lastIndexOf_NoLock(Forward<VALUE>(value), Forward<ARG>(arg));
+			}
+			return -1;
+		}
+
+		template < class VALUE, class ARG = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_reg lastIndexOf(VALUE&& value, ARG&& arg = ARG()) const noexcept
+		{
+			CList<T>* obj = ref.ptr;
+			if (obj) {
+				return obj->lastIndexOf(Forward<VALUE>(value), Forward<ARG>(arg));
 			}
 			return -1;
 		}
 
 		template <class VALUE, class EQUALS>
-		sl_reg lastIndexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
+		sl_reg lastIndexOf_NoLock(VALUE&& value, EQUALS&& equals, sl_reg startIndex) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->lastIndexOf(value, equals, startIndex);
+				return obj->lastIndexOf_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals), startIndex);
 			}
 			return -1;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool contains_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template <class VALUE, class EQUALS>
+		sl_reg lastIndexOf(VALUE&& value, EQUALS&& equals, sl_reg startIndex) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->contains_NoLock(value, equals);
+				return obj->lastIndexOf(Forward<VALUE>(value), Forward<EQUALS>(equals), startIndex);
+			}
+			return -1;
+		}
+
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool contains_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
+		{
+			CList<T>* obj = ref.ptr;
+			if (obj) {
+				return obj->contains_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			}
 			return sl_false;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool contains(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool contains(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->contains(value, equals);
+				return obj->contains(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			}
 			return sl_false;
 		}
@@ -2606,38 +2606,38 @@ namespace slib
 		}
 
 		template < class COMPARE = Compare<T> >
-		void sort_NoLock(const COMPARE& compare = COMPARE()) const noexcept
+		void sort_NoLock(COMPARE&& compare = COMPARE()) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				obj->sort_NoLock(compare);
+				obj->sort_NoLock(Forward<COMPARE>(compare));
 			}
 		}
 
 		template < class COMPARE = Compare<T> >
-		void sort(const COMPARE& compare = COMPARE()) const noexcept
+		void sort(COMPARE&& compare = COMPARE()) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				obj->sort(compare);
+				obj->sort(Forward<COMPARE>(compare));
 			}
 		}
 
 		template < class COMPARE = Compare<T> >
-		void sortDesc_NoLock(const COMPARE& compare = COMPARE()) const noexcept
+		void sortDesc_NoLock(COMPARE&& compare = COMPARE()) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				obj->sortDesc_NoLock(compare);
+				obj->sortDesc_NoLock(Forward<COMPARE>(compare));
 			}
 		}
 
 		template < class COMPARE = Compare<T> >
-		void sortDesc(const COMPARE& compare = COMPARE()) const noexcept
+		void sortDesc(COMPARE&& compare = COMPARE()) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
 			if (obj) {
-				obj->sortDesc(compare);
+				obj->sortDesc(Forward<COMPARE>(compare));
 			}
 		}
 

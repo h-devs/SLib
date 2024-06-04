@@ -227,12 +227,12 @@ namespace slib
 			return getBackValue_NoLock(_out);
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		Link<T>* find_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		Link<T>* find_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			Link<T>* now = m_front;
 			while (now) {
-				if (equals(now->value, value)) {
+				if (equals(now->value, Forward<VALUE>(value))) {
 					return now;
 				}
 				now = now->next;
@@ -240,11 +240,11 @@ namespace slib
 			return sl_null;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool find(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool find(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			ObjectLocker lock(this);
-			return find_NoLock(value) != sl_null;
+			return find_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals)) != sl_null;
 		}
 
 		template <class... ARGS>
@@ -464,13 +464,13 @@ namespace slib
 			return count;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool remove_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool remove_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) noexcept
 		{
 			Link<T>* now = m_front;
 			while (now) {
 				Link<T>* next = now->next;
-				if (equals(now->value, value)) {
+				if (equals(now->value, Forward<VALUE>(value))) {
 					removeAt(now);
 					return sl_true;
 				}
@@ -479,21 +479,21 @@ namespace slib
 			return sl_false;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool remove(const VALUE& value, const EQUALS& equals = EQUALS()) noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool remove(VALUE&& value, EQUALS&& equals = EQUALS()) noexcept
 		{
 			ObjectLocker lock(this);
-			return remove_NoLock(value, equals);
+			return remove_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals));
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_size removeValues_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeValues_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) noexcept
 		{
 			sl_size n = 0;
 			Link<T>* now = m_front;
 			while (now) {
 				Link<T>* next = now->next;
-				if (equals(now->value, value)) {
+				if (equals(now->value, Forward<VALUE>(value))) {
 					n++;
 					removeAt(now);
 				}
@@ -502,11 +502,11 @@ namespace slib
 			return n;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_size removeValues(const VALUE& value, const EQUALS& equals = EQUALS()) noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeValues(VALUE&& value, EQUALS&& equals = EQUALS()) noexcept
 		{
 			ObjectLocker lock(this);
-			return removeValues_NoLock(value, equals);
+			return removeValues_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals));
 		}
 
 		void merge_NoLock(CLinkedList<T>* other) noexcept
@@ -860,22 +860,22 @@ namespace slib
 			return sl_false;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		Link<T>* find_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		Link<T>* find_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			CLinkedList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->find_NoLock(value, equals);
+				return obj->find_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			}
 			return sl_null;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool find(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool find(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			CLinkedList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->find(value, equals);
+				return obj->find(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			}
 			return sl_false;
 		}
@@ -1130,42 +1130,42 @@ namespace slib
 			return 0;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool remove_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool remove_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			CLinkedList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->remove_NoLock(value, equals);
+				return obj->remove_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			}
 			return sl_false;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool remove(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool remove(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			CLinkedList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->remove(value, equals);
+				return obj->remove(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			}
 			return sl_false;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_size removeValues_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeValues_NoLock(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			CLinkedList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->removeValues_NoLock(value, equals);
+				return obj->removeValues_NoLock(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			}
 			return 0;
 		}
 
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_size removeValues(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
+		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeValues(VALUE&& value, EQUALS&& equals = EQUALS()) const noexcept
 		{
 			CLinkedList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->removeValues(value, equals);
+				return obj->removeValues(Forward<VALUE>(value), Forward<EQUALS>(equals));
 			}
 			return 0;
 		}
