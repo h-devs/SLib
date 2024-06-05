@@ -1346,5 +1346,8 @@
     <ClCompile Include="..\..\src\slib\system\preference.cpp">
       <Filter>src\system</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\doc\file_type.cpp">
+      <Filter>src\doc</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

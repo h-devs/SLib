@@ -251,6 +251,7 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/db/redis.cpp"
  "${SLIB_PATH}/src/slib/db/sqlite.cpp"
 
+ "${SLIB_PATH}/src/slib/doc/file_type.cpp"
  "${SLIB_PATH}/src/slib/doc/pdf.cpp"
  "${SLIB_PATH}/src/slib/doc/rar.cpp"
  "${SLIB_PATH}/src/slib/doc/zip.cpp"

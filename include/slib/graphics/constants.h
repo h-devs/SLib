@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "../core/flags.h"
+#include "../doc/file_type.h"
 
 namespace slib
 {
@@ -93,16 +94,6 @@ namespace slib
 		MiddleRight = 14,
 		MiddleCenter = 15
 	})
-
-	enum class ImageFileType
-	{
-		Unknown = 0,
-		JPEG = 10,
-		PNG = 11,
-		BMP = 12,
-		GIF = 13,
-		DDS = 20
-	};
 
 	enum class StretchMode
 	{
@@ -288,6 +279,8 @@ namespace slib
 		True = 1,
 		Inherit = 2
 	};
+
+	typedef FileType ImageFileType;
 
 }
 

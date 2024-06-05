@@ -209,6 +209,7 @@
     <ClCompile Include="..\..\src\slib\device\printer.cpp" />
     <ClCompile Include="..\..\src\slib\device\printer_win32.cpp" />
     <ClCompile Include="..\..\src\slib\device\sensor.cpp" />
+    <ClCompile Include="..\..\src\slib\doc\file_type.cpp" />
     <ClCompile Include="..\..\src\slib\doc\pdf.cpp" />
     <ClCompile Include="..\..\src\slib\doc\rar.cpp" />
     <ClCompile Include="..\..\src\slib\doc\zip.cpp" />

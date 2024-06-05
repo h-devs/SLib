@@ -2364,19 +2364,19 @@ namespace slib
 	ImageFileType Image::getFileType(const void* _mem, sl_size size)
 	{
 		sl_uint8* mem = (sl_uint8*)_mem;
-		if (size > 4 && mem[0] == 0xFF && mem[1] == 0xD8) {
+		if (size >= 4 && mem[0] == 0xFF && mem[1] == 0xD8) {
 			return ImageFileType::JPEG;
 		}
-		if (size > 0x08 && mem[0] == 0x89 && mem[1] == 0x50 && mem[2] == 0x4E && mem[3] == 0x47 && mem[4] == 0x0D && mem[5] == 0x0A && mem[6] == 0x1A && mem[7] == 0x0A) {
+		if (size >= 8 && mem[0] == 0x89 && mem[1] == 0x50 && mem[2] == 0x4E && mem[3] == 0x47 && mem[4] == 0x0D && mem[5] == 0x0A && mem[6] == 0x1A && mem[7] == 0x0A) {
 			return ImageFileType::PNG;
 		}
-		if (size > 12 && mem[0] == 'B' && mem[1] == 'M') {
+		if (size >= 4 && mem[0] == 'B' && mem[1] == 'M') {
 			return ImageFileType::BMP;
 		}
-		if (size > 4 && mem[0] == 'G' && mem[1] == 'I' && mem[2] == 'F' && mem[3] == '8') {
+		if (size >= 4 && mem[0] == 'G' && mem[1] == 'I' && mem[2] == 'F' && mem[3] == '8') {
 			return ImageFileType::GIF;
 		}
-		if (size > 4 && mem[0] == 'D' && mem[1] == 'D' && mem[2] == 'S' && mem[3] == ' ') {
+		if (size >= 4 && mem[0] == 'D' && mem[1] == 'D' && mem[2] == 'S' && mem[3] == ' ') {
 			return ImageFileType::DDS;
 		}
 		return ImageFileType::Unknown;
