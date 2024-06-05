@@ -143,6 +143,8 @@ namespace slib
 			~Cell();
 
 		public:
+			Variant getValue();
+
 			String getText();
 			String getInternalText();
 

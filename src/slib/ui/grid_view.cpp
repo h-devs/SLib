@@ -143,6 +143,15 @@ namespace slib
 	{
 	}
 
+	Variant GridView::Cell::getValue()
+	{
+		String& field = attr->field;
+		if (field.isNotEmpty() && record >= 0 && recordData.isNotUndefined()) {
+			return recordData.getItemByPath(field);
+		}
+		return Variant();
+	}
+
 	String GridView::Cell::getText()
 	{
 		TextGetter& textGetter = attr->textGetter;
