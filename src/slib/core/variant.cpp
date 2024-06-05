@@ -4012,6 +4012,8 @@ namespace slib
 					return REF_VAR(ObjectId const, _value).compare(REF_VAR(ObjectId const, other._value));
 				case VariantType::BigInt:
 					return REF_VAR(BigInt const, _value).compare(REF_VAR(BigInt const, other._value));
+				case VariantType::Memory:
+					return REF_VAR(Memory const, _value).compare(REF_VAR(Memory const, other._value));
 				default:
 					if (IsRef(_type)) {
 						{
