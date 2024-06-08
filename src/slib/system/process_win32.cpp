@@ -309,6 +309,25 @@ namespace slib
 #endif
 	}
 
+	List<sl_uint32> Process::getAllThreadIds(sl_uint32 processId)
+	{
+		List<sl_uint32> ret;
+		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+		if (hSnapshot != INVALID_HANDLE_VALUE) {
+			THREADENTRY32 entry = { 0 };
+			entry.dwSize = sizeof(entry);
+			if (Thread32First(hSnapshot, &entry)) {
+				do {
+					if (!processId || entry.th32OwnerProcessID == processId) {
+						ret.add_NoLock((sl_uint32)(entry.th32ThreadID));
+					}
+				} while (Thread32Next(hSnapshot, &entry));
+			}
+			CloseHandle(hSnapshot);
+		}
+		return ret;
+	}
+
 	String Process::getImagePath(sl_uint32 processId)
 	{
 #if defined(SLIB_PLATFORM_IS_MOBILE)
@@ -354,6 +373,15 @@ namespace slib
 			return bRet != 0;
 		}
 		return sl_false;
+	}
+
+	sl_bool Process::quit(sl_uint32 processId)
+	{
+		ListElements<sl_uint32> threads(getAllThreadIds(processId));
+		for (sl_size i = 0; i < threads.count; i++) {
+			PostThreadMessageW(threads[i], WM_QUIT, 0, 0);
+		}
+		return sl_true;
 	}
 
 	sl_uint32 Process::getCurrentProcessId()

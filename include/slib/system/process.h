@@ -56,9 +56,13 @@ namespace slib
 
 		static List<sl_uint32> getAllProcessIds();
 
+		static List<sl_uint32> getAllThreadIds(sl_uint32 processId = 0);
+
 		static String getImagePath(sl_uint32 processId);
 
 		static sl_bool kill(sl_uint32 processId);
+
+		static sl_bool quit(sl_uint32 processId);
 
 
 		static Ref<Process> openBy(const StringParam& pathExecutable, const StringParam& commandLine);
