@@ -126,11 +126,12 @@ namespace slib
 				Ref<PipeServer> ret = new PipeServer;
 				if (ret.isNotNull()) {
 					if (ret->initialize(param)) {
-						Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), runListen));
+						Ref<Thread> thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), runListen));
 						if (thread.isNotNull()) {
 							ret->m_name = String16::concat(L"\\\\.\\pipe\\", param.name);
 							ret->m_threadListen = Move(thread);
 							ret->m_ioLoop->start();
+							ret->m_threadListen->start();
 							return ret;
 						}
 					}
@@ -175,6 +176,7 @@ namespace slib
 						0, // client time-out 
 						pSA);
 					if (hPipe == INVALID_HANDLE_VALUE) {
+						DWORD dwErr = GetLastError();
 						break;
 					}
 					if (pSA) {
