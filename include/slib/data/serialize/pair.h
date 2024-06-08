@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,25 +20,34 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DATA_SERIALIZE
-#define CHECKHEADER_SLIB_DATA_SERIALIZE
+#ifndef CHECKHEADER_SLIB_DATA_SERIALIZE_PAIR
+#define CHECKHEADER_SLIB_DATA_SERIALIZE_PAIR
 
-#include "serialize/primitive.h"
-#include "serialize/string.h"
-#include "serialize/time.h"
-#include "serialize/memory.h"
-#include "serialize/bytes.h"
-#include "serialize/list.h"
-#include "serialize/map.h"
-#include "serialize/variant.h"
-#include "serialize/nullable.h"
-#include "serialize/atomic.h"
-#include "serialize/ref.h"
-#include "serialize/shared.h"
-#include "serialize/generic.h"
-#include "serialize/pair.h"
-#include "serialize/macro.h"
-#include "serialize/file.h"
-#include "serialize/pipe.h"
+#include "io.h"
+
+#include "../../core/pair.h"
+
+namespace slib
+{
+
+	template <class OUTPUT, class T1, class T2>
+	static sl_bool Serialize(OUTPUT* output, const Pair<T1, T2>& _in)
+	{
+		if (!(Serialize(output, _in.first))) {
+			return sl_false;
+		}
+		return Serialize(output, _in.second);
+	}
+
+	template <class INPUT, class T1, class T2>
+	static sl_bool Deserialize(INPUT* input, Pair<T1, T2>& _out)
+	{
+		if (!(Deserialize(input, _out.first))) {
+			return sl_false;
+		}
+		return Deserialize(input, _out.second);
+	}
+
+}
 
 #endif
