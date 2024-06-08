@@ -139,7 +139,7 @@ namespace slib
 			param.path = System::getApplicationPath();
 			param.arguments.add(SERVICE_COMMAND);
 			param.startType = ServiceStartType::Auto;
-			if (ServiceManager::checkPathAndCreateAndStart(param)) {
+			if (ServiceManager::checkParamAndCreateAndStart(param)) {
 				g_onInstallService();
 				return sl_true;
 			}
@@ -170,7 +170,7 @@ namespace slib
 				param.name = serviceName;
 				param.path = System::getApplicationPath();
 				param.arguments.add(SERVICE_COMMAND);
-				if (ServiceManager::checkPathAndIsRunning(param)) {
+				if (ServiceManager::checkParamAndIsRunning(param)) {
 					Function<sl_bool()> onCheckInstall = g_onCheckInstall;
 					if (onCheckInstall.isNull()) {
 						return sl_true;

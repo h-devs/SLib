@@ -249,7 +249,7 @@ namespace slib
 				manager,
 				(LPCWSTR)(name.getData()),
 				(LPCWSTR)(displayName.getData()),
-				0,
+				param.description.isNotNull() ? SERVICE_CHANGE_CONFIG : 0,
 				FromServiceType(param.type, param.flagInteractive),
 				FromServiceStartType(param.startType),
 				FromServiceErrorControl(param.errorControl),
@@ -257,6 +257,12 @@ namespace slib
 				NULL, NULL, NULL, NULL, NULL
 				);
 			if (handle) {
+				if (param.description.isNotNull()) {
+					StringCstr16 description(param.description);
+					SERVICE_DESCRIPTIONW sd;
+					sd.lpDescription = (LPWSTR)(description.getData());
+					ChangeServiceConfig2W(handle, SERVICE_CONFIG_DESCRIPTION, &sd);
+				}
 				CloseServiceHandle(handle);
 				return sl_true;
 			}

@@ -89,6 +89,7 @@ namespace slib
 	public:
 		StringParam name;
 		StringParam displayName;
+		StringParam description;
 		ServiceType type;
 		sl_bool flagInteractive;
 		ServiceStartType startType;
@@ -116,11 +117,11 @@ namespace slib
 
 		static sl_bool createAndStart(const CreateServiceParam& param, sl_int32 timeout = -1);
 
-		static sl_bool checkPath(const CreateServiceParam& param);
+		static sl_bool checkParam(const CreateServiceParam& param);
 
-		static sl_bool checkPathAndIsRunning(const CreateServiceParam& param);
+		static sl_bool checkParamAndIsRunning(const CreateServiceParam& param);
 
-		static sl_bool checkPathAndCreateAndStart(const CreateServiceParam& param, sl_int32 timeout = -1);
+		static sl_bool checkParamAndCreateAndStart(const CreateServiceParam& param, sl_int32 timeout = -1);
 
 		static sl_bool remove(const StringParam& serviceName);
 

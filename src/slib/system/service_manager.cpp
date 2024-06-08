@@ -50,31 +50,39 @@ namespace slib
 		return CommandLine::build(path, args.data, args.count);
 	}
 
-
-	sl_bool ServiceManager::checkPath(const CreateServiceParam& param)
+	namespace
 	{
-		String path = getCommandPath(param.name);
-		if (path.isNotNull()) {
-			if (path == param.getCommandLine()) {
-				return sl_true;
-			}
+		static sl_bool EqualsStartType(ServiceStartType t1, ServiceStartType t2)
+		{
+			return t1 == t2 || t1 == ServiceStartType::Unknown || t2 == ServiceStartType::Unknown;
 		}
-		return sl_false;
 	}
 
-	sl_bool ServiceManager::checkPathAndIsRunning(const CreateServiceParam& param)
+	sl_bool ServiceManager::checkParam(const CreateServiceParam& param)
 	{
-		if (checkPath(param)) {
+		String path = getCommandPath(param.name);
+		if (path.isNull()) {
+			return sl_false;
+		}
+		if (path != param.getCommandLine()) {
+			return sl_false;
+		}
+		return EqualsStartType(getStartType(param.name), param.startType);
+	}
+
+	sl_bool ServiceManager::checkParamAndIsRunning(const CreateServiceParam& param)
+	{
+		if (checkParam(param)) {
 			return isRunning(param.name);
 		}
 		return sl_false;
 	}
 
-	sl_bool ServiceManager::checkPathAndCreateAndStart(const CreateServiceParam& param, sl_int32 timeout)
+	sl_bool ServiceManager::checkParamAndCreateAndStart(const CreateServiceParam& param, sl_int32 timeout)
 	{
 		String path = getCommandPath(param.name);
 		if (path.isNotNull()) {
-			if (path == param.getCommandLine()) {
+			if (path == param.getCommandLine() && EqualsStartType(getStartType(param.name), param.startType)) {
 				if (isRunning(param.name)) {
 					return sl_true;
 				} else {
