@@ -225,6 +225,9 @@ namespace slib
 		SLIB_DECLARE_CLASS_COMPARE_HASH_MEMBERS(Memory)
 		SLIB_DECLARE_CLASS_SERIALIZE_MEMBERS
 
+		sl_bool equals(const MemoryView& other) const noexcept;
+		sl_compare_result compare(const MemoryView& other) const noexcept;
+
 		sl_bool serialize(MemoryBuffer* output) const;
 		sl_bool deserialize(SerializeBuffer* input);
 

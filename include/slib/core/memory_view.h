@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_CORE_MEMORY_VIEW
 
 #include "default_members.h"
+#include "common_members.h"
 
 namespace slib
 {
@@ -69,6 +70,8 @@ namespace slib
 		{
 			return size != 0;
 		}
+
+		SLIB_DECLARE_CLASS_COMPARE_MEMBERS(MemoryView)
 
 	};
 

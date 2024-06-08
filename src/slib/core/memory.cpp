@@ -721,48 +721,67 @@ namespace slib
 		}
 	}
 
+	namespace
+	{
+		static sl_compare_result CompareMemory(const MemoryView& m1, const MemoryView& m2) noexcept
+		{
+			if (m1.size == m2.size) {
+				if (!(m1.size)) {
+					return 0;
+				}
+				return Base::compareMemory((sl_uint8*)(m1.data), (sl_uint8*)(m2.data), m1.size);
+			} else if (m1.size > m2.size) {
+				if (!(m2.size)) {
+					return 1;
+				}
+				sl_compare_result result = Base::compareMemory((sl_uint8*)(m1.data), (sl_uint8*)(m2.data), m2.size);
+				if (!result) {
+					return 1;
+				}
+				return result;
+			} else {
+				if (!(m1.size)) {
+					return -1;
+				}
+				sl_compare_result result = Base::compareMemory((sl_uint8*)(m1.data), (sl_uint8*)(m2.data), m1.size);
+				if (!result) {
+					return -1;
+				}
+				return result;
+			}
+		}
+
+		static sl_bool EqualsMemory(const MemoryView m1, const MemoryView& m2) noexcept
+		{
+			if (m1.size == m2.size) {
+				if (!(m1.size)) {
+					return sl_true;
+				}
+				return Base::equalsMemory(m1.data, m2.data, m1.size);
+			} else {
+				return sl_false;
+			}
+		}
+	}
+
 	sl_compare_result Memory::compare(const Memory& other) const noexcept
 	{
-		sl_size size1 = getSize();
-		sl_size size2 = other.getSize();
-		if (size1 == size2) {
-			if (!size1) {
-				return 0;
-			}
-			return Base::compareMemory((sl_uint8*)(getData()), (sl_uint8*)(other.getData()), size1);
-		} else if (size1 > size2) {
-			if (!size2) {
-				return 1;
-			}
-			sl_compare_result result = Base::compareMemory((sl_uint8*)(getData()), (sl_uint8*)(other.getData()), size2);
-			if (result == 0) {
-				return 1;
-			}
-			return result;
-		} else {
-			if (!size1) {
-				return -1;
-			}
-			sl_compare_result result = Base::compareMemory((sl_uint8*)(getData()), (sl_uint8*)(other.getData()), size1);
-			if (result == 0) {
-				return -1;
-			}
-			return result;
-		}
+		return CompareMemory(*this, other);
 	}
 
 	sl_bool Memory::equals(const Memory& other) const noexcept
 	{
-		sl_size size1 = getSize();
-		sl_size size2 = other.getSize();
-		if (size1 == size2) {
-			if (!size1) {
-				return sl_true;
-			}
-			return Base::equalsMemory(getData(), other.getData(), size1);
-		} else {
-			return sl_false;
-		}
+		return EqualsMemory(*this, other);
+	}
+
+	sl_compare_result Memory::compare(const MemoryView& other) const noexcept
+	{
+		return CompareMemory(*this, other);
+	}
+
+	sl_bool Memory::equals(const MemoryView& other) const noexcept
+	{
+		return EqualsMemory(*this, other);
 	}
 
 	sl_size Memory::getHashCode() const noexcept
@@ -938,6 +957,16 @@ namespace slib
 			return Move(other);
 		}
 		return Concat(*this, other);
+	}
+
+	sl_compare_result MemoryView::compare(const MemoryView& other) const noexcept
+	{
+		return CompareMemory(*this, other);
+	}
+
+	sl_bool MemoryView::equals(const MemoryView& other) const noexcept
+	{
+		return EqualsMemory(*this, other);
 	}
 
 
