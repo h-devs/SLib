@@ -37,6 +37,9 @@ namespace slib
 		static void SetRunAtStartup(const StringParam& _appName, const StringParam& _path, sl_bool flagRegister)
 		{
 			StringCstr16 path(_path);
+			if (path.contains('/')) {
+				path = path.toString16(_path).replaceAll('/', '\\');
+			}
 			List<String16> listDelete;
 			HKEY hKey = NULL;
 			RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &hKey);
