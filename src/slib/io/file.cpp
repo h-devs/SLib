@@ -504,6 +504,108 @@ namespace slib
 		return sl_null;
 	}
 
+	namespace
+	{
+		template <class CHAR>
+		static sl_compare_result ComparePathChar(CHAR c1, CHAR c2)
+		{
+			if (c1 == '\\') {
+				c1 = '/';
+			}
+			if (c2 == '\\') {
+				c2 = '/';
+			}
+			return ComparePrimitiveValues(c1, c2);
+		}
+
+		template <class VIEW>
+		static sl_compare_result ComparePath(const VIEW& s1, const VIEW& s2)
+		{
+			auto d1 = s1.getData();
+			sl_size n1 = s1.getLength();
+			auto d2 = s2.getData();
+			sl_size n2 = s2.getLength();
+			sl_size n = SLIB_MIN(n1, n2);
+			for (sl_size i = 0; i < n; i++) {
+				sl_compare_result r = ComparePathChar(*d1, *d2);
+				if (r) {
+					return r;
+				}
+				d1++;
+				d2++;
+			}
+			if (n1 == n2) {
+				return 0;
+			}
+			if (n1 > n2) {
+				return 1;
+			} else {
+				return -1;
+			}
+		}
+
+		template <class CHAR>
+		static sl_bool EqualsPathChar(CHAR c1, CHAR c2)
+		{
+			if (c1 == '\\') {
+				c1 = '/';
+			}
+			if (c2 == '\\') {
+				c2 = '/';
+			}
+			return c1 == c2;
+		}
+
+		template <class VIEW>
+		static sl_bool EqualsPath(const VIEW& s1, const VIEW& s2)
+		{
+			sl_size n = s1.getLength();
+			if (n != s2.getLength()) {
+				return sl_false;
+			}
+			auto d1 = s1.getData();
+			auto d2 = s2.getData();
+			for (sl_size i = 0; i < n; i++) {
+				if (!(EqualsPathChar(*d1, *d2))) {
+					return sl_false;
+				}
+				d1++;
+				d2++;
+			}
+			return sl_true;
+		}
+	}
+
+	sl_compare_result File::comparePath(const StringView& s1, const StringView& s2) noexcept
+	{
+		return ComparePath(s1, s2);
+	}
+
+	sl_compare_result File::comparePath(const StringView16& s1, const StringView16& s2) noexcept
+	{
+		return ComparePath(s1, s2);
+	}
+
+	sl_compare_result File::comparePath(const StringView32& s1, const StringView32& s2) noexcept
+	{
+		return ComparePath(s1, s2);
+	}
+
+	sl_bool File::equalsPath(const StringView& s1, const StringView& s2) noexcept
+	{
+		return EqualsPath(s1, s2);
+	}
+
+	sl_bool File::equalsPath(const StringView16& s1, const StringView16& s2) noexcept
+	{
+		return EqualsPath(s1, s2);
+	}
+
+	sl_bool File::equalsPath(const StringView32& s1, const StringView32& s2) noexcept
+	{
+		return EqualsPath(s1, s2);
+	}
+
 	Memory File::readAllBytes(const StringParam& path, sl_size maxSize) noexcept
 	{
 		File file = openForRead(path);
