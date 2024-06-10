@@ -33,8 +33,126 @@
 #include "slib/platform/win32/wmi.h"
 #include "slib/core/safe_static.h"
 
+#pragma warning(disable: 4091)
+#include <mmdeviceapi.h>
+#include <endpointvolume.h>
+
 namespace slib
 {
+
+	namespace
+	{
+		static IAudioEndpointVolume* GetEndpointVolume(EDataFlow dataFlow)
+		{
+			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+			IMMDeviceEnumerator* enumerator = NULL;
+			HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER, __uuidof(IMMDeviceEnumerator), (void**)&enumerator);
+			if (!SUCCEEDED(hr)) {
+				return NULL;
+			}
+			IAudioEndpointVolume* volume = NULL;
+			IMMDevice* device = sl_null;
+			hr = enumerator->GetDefaultAudioEndpoint(dataFlow, eConsole, &device);
+			if (SUCCEEDED(hr)) {
+				device->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, NULL, (void**)&volume);
+				device->Release();
+			}
+			enumerator->Release();
+			return volume;
+		}
+	}
+
+	float Device::getVolume(AudioStreamType stream)
+	{
+		// Only works for Windows Vista and later
+		IAudioEndpointVolume* volume = GetEndpointVolume(eRender);
+		if (volume) {
+			float level = 0;
+			volume->GetMasterVolumeLevelScalar(&level);
+			volume->Release();
+			return level;
+		}
+		return 0;
+	}
+
+	void Device::setVolume(AudioStreamType stream, float level, const DeviceSetVolumeFlags& flags)
+	{
+		// Only works for Windows Vista and later
+		IAudioEndpointVolume* volume = GetEndpointVolume(eRender);
+		if (volume) {
+			volume->SetMasterVolumeLevelScalar(level, NULL);
+			volume->Release();
+		}
+	}
+
+	sl_bool Device::isMute(AudioStreamType stream)
+	{
+		// Only works for Windows Vista and later
+		IAudioEndpointVolume* volume = GetEndpointVolume(eRender);
+		if (volume) {
+			BOOL f = FALSE;
+			volume->GetMute(&f);
+			volume->Release();
+			return f;
+		}
+		return sl_false;
+	}
+
+	void Device::setMute(AudioStreamType stream, sl_bool flag, const DeviceSetVolumeFlags& flags)
+	{
+		// Only works for Windows Vista and later
+		IAudioEndpointVolume* volume = GetEndpointVolume(eRender);
+		if (volume) {
+			volume->SetMute(flag ? TRUE : FALSE, NULL);
+			volume->Release();
+		}
+	}
+
+	float Device::getMicrophoneVolume()
+	{
+		// Only works for Windows Vista and later
+		IAudioEndpointVolume* volume = GetEndpointVolume(eCapture);
+		if (volume) {
+			float level = 0;
+			volume->GetMasterVolumeLevelScalar(&level);
+			volume->Release();
+			return level;
+		}
+		return 0;
+	}
+
+	void Device::setMicrophoneVolume(float level)
+	{
+		// Only works for Windows Vista and later
+		IAudioEndpointVolume* volume = GetEndpointVolume(eCapture);
+		if (volume) {
+			volume->SetMasterVolumeLevelScalar(level, NULL);
+			volume->Release();
+		}
+	}
+
+	sl_bool Device::isMicrophoneMute()
+	{
+		// Only works for Windows Vista and later
+		IAudioEndpointVolume* volume = GetEndpointVolume(eCapture);
+		if (volume) {
+			BOOL f = FALSE;
+			volume->GetMute(&f);
+			volume->Release();
+			return f;
+		}
+		return sl_false;
+	}
+
+	void Device::setMicrophoneMute(sl_bool flag)
+	{
+		// Only works for Windows Vista and later
+		IAudioEndpointVolume* volume = GetEndpointVolume(eCapture);
+		if (volume) {
+			volume->SetMute(flag ? TRUE : FALSE, NULL);
+			volume->Release();
+		}
+	}
 
 	double Device::getScreenPPI()
 	{

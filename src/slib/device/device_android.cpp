@@ -51,6 +51,8 @@ namespace slib
 			SLIB_JNI_METHOD(getStreamVolume, "getStreamVolume", "(I)I")
 			SLIB_JNI_METHOD(setStreamVolume, "setStreamVolume", "(III)V");
 			SLIB_JNI_METHOD(getStreamMaxVolume, "getStreamMaxVolume", "(I)I")
+			SLIB_JNI_METHOD(isStreamMute, "isStreamMute", "(I)Z")
+			SLIB_JNI_METHOD(adjustStreamVolume, "adjustStreamVolume", "(III)V")
 			SLIB_JNI_METHOD(isMicrophoneMute, "isMicrophoneMute", "()Z")
 			SLIB_JNI_METHOD(setMicrophoneMute, "setMicrophoneMute", "(Z)V")
 			SLIB_JNI_METHOD(isSpeakerphoneOn, "isSpeakerphoneOn", "()Z")
@@ -121,6 +123,9 @@ namespace slib
 	{
 		JniLocal<jobject> manager = android::Context::getAudioManager(Android::getCurrentContext());
 		if (manager.isNotNull()) {
+			if (stream == AudioStreamType::Default) {
+				stream = AudioStreamType::Music;
+			}
 			int vol = (int)(JAudioManager::getStreamVolume.callInt(manager, (jint)stream));
 			int max = (int)(JAudioManager::getStreamMaxVolume.callInt(manager, (jint)stream));
 			if (max) {
@@ -130,13 +135,43 @@ namespace slib
 		return 0;
 	}
 
-	void Device::setVolume(float volume, AudioStreamType stream, const DeviceSetVolumeFlags& flags)
+	void Device::setVolume(AudioStreamType stream, float volume, const DeviceSetVolumeFlags& flags)
 	{
 		JniLocal<jobject> manager = android::Context::getAudioManager(Android::getCurrentContext());
 		if (manager.isNotNull()) {
+			if (stream == AudioStreamType::Default) {
+				stream = AudioStreamType::Music;
+			}
 			int max = (int)(JAudioManager::getStreamMaxVolume.callInt(manager, (jint)stream));
 			int vol = (int)(volume * (float)max);
 			JAudioManager::setStreamVolume.call(manager, (jint)stream, (jint)vol, (jint)(flags.value));
+		}
+	}
+
+	sl_bool Device::isMute(AudioStreamType stream)
+	{
+		if (Android::getSdkVersion() >= AndroidSdkVersion::M) {
+			JniLocal<jobject> manager = android::Context::getAudioManager(Android::getCurrentContext());
+			if (manager.isNotNull()) {
+				if (stream == AudioStreamType::Default) {
+					stream = AudioStreamType::Music;
+				}
+				return JAudioManager::isStreamMute.callBoolean(manager, (jint)stream);
+			}
+		} else {
+			return getVolume(stream) < 0.0001;
+		}
+		return sl_false;
+	}
+
+	void Device::setMute(AudioStreamType stream, sl_bool flagMute, const DeviceSetVolumeFlags& flags)
+	{
+		JniLocal<jobject> manager = android::Context::getAudioManager(Android::getCurrentContext());
+		if (manager.isNotNull()) {
+			if (stream == AudioStreamType::Default) {
+				stream = AudioStreamType::Music;
+			}
+			JAudioManager::adjustStreamVolume.call(manager, (jint)stream, (jint)(flagMute ? -100 : 100), (jint)(flags.value));
 		}
 	}
 
@@ -157,7 +192,7 @@ namespace slib
 		}
 	}
 
-	sl_bool Device::isSpeakerOn()
+	sl_bool Device::isSpeakerphoneOn()
 	{
 		JniLocal<jobject> manager = android::Context::getAudioManager(Android::getCurrentContext());
 		if (manager.isNotNull()) {
@@ -166,7 +201,7 @@ namespace slib
 		return sl_false;
 	}
 
-	void Device::setSpeakerOn(sl_bool flag)
+	void Device::setSpeakerphoneOn(sl_bool flag)
 	{
 		JniLocal<jobject> manager = android::Context::getAudioManager(Android::getCurrentContext());
 		if (manager.isNotNull()) {

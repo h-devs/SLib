@@ -78,17 +78,27 @@ namespace slib
 
 		static float getVolume(AudioStreamType stream = AudioStreamType::Default);
 
-		static void setVolume(float volume, AudioStreamType stream, const DeviceSetVolumeFlags& flags);
+		static void setVolume(AudioStreamType stream, float volume, const DeviceSetVolumeFlags& flags = 0);
 
-		static void setVolume(float volume, AudioStreamType stream = AudioStreamType::Default);
+		static void setVolume(float volume, const DeviceSetVolumeFlags& flags = 0);
+
+		static sl_bool isMute(AudioStreamType stream = AudioStreamType::Default);
+
+		static void setMute(AudioStreamType stream, sl_bool flag = sl_true, const DeviceSetVolumeFlags& flags = 0);
+
+		static void setMute(sl_bool flagMute = sl_true, const DeviceSetVolumeFlags& flags = 0);
+
+		static float getMicrophoneVolume();
+
+		static void setMicrophoneVolume(float volume);
 
 		static sl_bool isMicrophoneMute();
 
 		static void setMicrophoneMute(sl_bool flag = sl_true);
 
-		static sl_bool isSpeakerOn();
+		static sl_bool isSpeakerphoneOn();
 
-		static void setSpeakerOn(sl_bool flag = sl_true);
+		static void setSpeakerphoneOn(sl_bool flag = sl_true);
 
 		static sl_bool isBluetoothScoOn();
 

@@ -149,7 +149,7 @@ void MainPage::showRecording()
 
 	Device::setAudioMode(DeviceAudioMode::InCall);
 	Dispatch::setTimeout([]() {
-		Device::setSpeakerOn();
+		Device::setSpeakerphoneOn();
 	}, 500);
 }
 
