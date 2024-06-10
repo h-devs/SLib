@@ -20,6 +20,8 @@
  *   THE SOFTWARE.
  */
 
+#define _WIN32_WINNT 0x0601
+
 #include "slib/device/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)

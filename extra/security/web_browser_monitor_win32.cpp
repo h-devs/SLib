@@ -354,7 +354,7 @@ namespace slib
 				while (queueEvents.pop(&item)) {
 					processEvent(item.first, item.second);
 				}
-				sl_uint64 id;
+				sl_size id;
 				while (queueRemovingWindows.pop(&id)) {
 					watchingBrowsers.remove_NoLock(id);
 					lastTitles.remove_NoLock(id);
