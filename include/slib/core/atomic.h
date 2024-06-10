@@ -207,17 +207,46 @@ namespace slib
 
 
 	template <class T>
-	struct RemoveAtomic { typedef T Type; };
+	struct RemoveAtomic { typedef typename RemoveConstReference<T>::Type Type; };
 
 	template <class T>
 	struct RemoveAtomic< Atomic<T> > { typedef T Type; };
 
 	template <class T>
-	struct AddAtomic { typedef Atomic<T> Type; };
+	struct RemoveAtomic<Atomic<T>&> { typedef T Type; };
+
+	template <class T>
+	struct RemoveAtomic<Atomic<T>&&> { typedef T Type; };
+
+	template <class T>
+	struct RemoveAtomic<const Atomic<T>> { typedef T Type; };
+
+	template <class T>
+	struct RemoveAtomic<Atomic<T> const&> { typedef T Type; };
+
+	template <class T>
+	struct RemoveAtomic<Atomic<T> const&&> { typedef T Type; };
+
+	template <class T>
+	struct AddAtomic { typedef Atomic<typename RemoveConstReference<T>::Type> Type; };
 
 	template <class T>
 	struct AddAtomic< Atomic<T> > { typedef Atomic<T> Type; };
 
+	template <class T>
+	struct AddAtomic<Atomic<T>&> { typedef Atomic<T> Type; };
+
+	template <class T>
+	struct AddAtomic<Atomic<T>&&> { typedef Atomic<T> Type; };
+
+	template <class T>
+	struct AddAtomic<const Atomic<T>> { typedef Atomic<T> Type; };
+
+	template <class T>
+	struct AddAtomic<Atomic<T> const&> { typedef Atomic<T> Type; };
+
+	template <class T>
+	struct AddAtomic<Atomic<T> const&&> { typedef Atomic<T> Type; };
 
 	template <class T>
 	class Compare< Atomic<T>, Atomic<T> >
