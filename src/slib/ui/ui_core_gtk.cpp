@@ -200,7 +200,7 @@ namespace slib
 		}
 	}
 
-	void UI::getActiveApplicationAndWindow(String& appName, String& windowTitle)
+	void UI::getActiveApplicationAndWindow(String& appName, String& windowTitle, sl_int32 timeout)
 	{
 		if (!(GetActiveWindowInfo(appName, windowTitle))) {
 			appName.setNull();
@@ -217,7 +217,7 @@ namespace slib
 		return sl_null;
 	}
 
-	String UI::getActiveWindowTitle()
+	String UI::getActiveWindowTitle(sl_int32 timeout)
 	{
 		String cls, title;
 		if (GetActiveWindowInfo(cls, title)) {

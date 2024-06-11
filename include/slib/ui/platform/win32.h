@@ -65,8 +65,8 @@ namespace slib
 		static void applyEventModifiers(UIEvent* ev);
 
 		static sl_bool isWindowVisible(HWND hWnd);
-		static String getWindowText(HWND hWnd);
-		static String16 getWindowText16(HWND hWnd);
+		static String getWindowText(HWND hWnd, sl_int32 timeout = -1);
+		static String16 getWindowText16(HWND hWnd, sl_int32 timeout = -1);
 		static void setWindowText(HWND hWnd, const StringParam& text);
 
 		static void setWindowStyle(HWND hWnd, LONG flags, sl_bool flagAddOrRemove);

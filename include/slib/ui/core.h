@@ -247,12 +247,12 @@ namespace slib
 		static void dismissKeyboard();
 
 
-		static void getActiveApplicationAndWindow(String& appName, String& windowTitle);
+		static void getActiveApplicationAndWindow(String& appName, String& windowTitle, sl_int32 timeout = -1);
 
 		static String getActiveApplicationName();
 
 		// [macOS] Accessibility authentication is required. See `Application::isAccessibilityEnabled()`.
-		static String getActiveWindowTitle();
+		static String getActiveWindowTitle(sl_int32 timeout = -1);
 
 	};
 

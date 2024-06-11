@@ -421,11 +421,11 @@ namespace slib
 		return ret;
 	}
 
-	String UI::getActiveWindowTitle()
+	String UI::getActiveWindowTitle(sl_int32 timeout)
 	{
 		HWND hWnd = GetForegroundWindow();
 		if (hWnd) {
-			return UIPlatform::getWindowText(hWnd);
+			return UIPlatform::getWindowText(hWnd, timeout);
 		}
 		return sl_null;
 	}
@@ -498,26 +498,59 @@ namespace slib
 		return sl_true;
 	}
 
-	String UIPlatform::getWindowText(HWND hWnd)
+	String UIPlatform::getWindowText(HWND hWnd, sl_int32 timeout)
 	{
-		sl_int32 len = GetWindowTextLengthW(hWnd);
+		sl_int32 len = 0;
+		if (timeout >= 0) {
+			DWORD_PTR result = 0;
+			if (SendMessageTimeoutW(hWnd, WM_GETTEXTLENGTH, 0, 0, 0, (UINT)timeout, &result)) {
+				len = (sl_int32)result;
+			}
+		} else {
+			len = (sl_int32)(SendMessageW(hWnd, WM_GETTEXTLENGTH, 0, 0));
+		}
 		if (len > 0) {
 			SLIB_SCOPED_BUFFER(WCHAR, 1024, buf, len + 2);
 			if (buf) {
-				len = GetWindowTextW(hWnd, buf, len + 1);
+				if (timeout >= 0) {
+					DWORD_PTR result = 0;
+					if (SendMessageTimeoutW(hWnd, WM_GETTEXT, (WPARAM)(len + 1), (LPARAM)buf, 0, timeout, &result)) {
+						len = (sl_int32)result;
+					} else {
+						len = 0;
+					}
+				} else {
+					len = (sl_int32)(SendMessageW(hWnd, WM_GETTEXT, (WPARAM)(len + 1), (LPARAM)buf));
+				}
 				return String::create(buf, len);
 			}
 		}
 		return sl_null;
 	}
 
-	String16 UIPlatform::getWindowText16(HWND hWnd)
+	String16 UIPlatform::getWindowText16(HWND hWnd, sl_int32 timeout)
 	{
-		int len = GetWindowTextLengthW(hWnd);
+		sl_int32 len = 0;
+		if (timeout >= 0) {
+			DWORD_PTR result = 0;
+			if (SendMessageTimeoutW(hWnd, WM_GETTEXTLENGTH, 0, 0, 0, (UINT)timeout, &result)) {
+				len = (sl_int32)result;
+			}
+		} else {
+			len = (sl_int32)(SendMessageW(hWnd, WM_GETTEXTLENGTH, 0, 0));
+		}
 		if (len > 0) {
 			String16 ret = String16::allocate(len);
 			if (ret.isNotNull()) {
-				int n = GetWindowTextW(hWnd, (LPWSTR)(ret.getData()), len + 1);
+				sl_int32 n = 0;
+				if (timeout >= 0) {
+					DWORD_PTR result = 0;
+					if (SendMessageTimeoutW(hWnd, WM_GETTEXT, (WPARAM)(len + 1), (LPARAM)(ret.getData()), 0, timeout, &result)) {
+						n = (sl_int32)result;
+					}
+				} else {
+					n = (sl_int32)(SendMessageW(hWnd, WM_GETTEXT, (WPARAM)(len + 1), (LPARAM)(ret.getData())));
+				}
 				if (n < len) {
 					return ret.substring(0, n);
 				} else {

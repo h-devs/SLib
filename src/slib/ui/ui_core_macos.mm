@@ -241,7 +241,7 @@ namespace slib
 		return sl_null;
 	}
 
-	String UI::getActiveWindowTitle()
+	String UI::getActiveWindowTitle(sl_int32 timeout)
 	{
 		String ret;
 		NSRunningApplication* app = [[NSWorkspace sharedWorkspace] frontmostApplication];

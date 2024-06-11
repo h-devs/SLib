@@ -828,10 +828,10 @@ namespace slib
 #endif
 
 #if !(defined(SLIB_UI_IS_GTK))
-	void UI::getActiveApplicationAndWindow(String& appName, String& windowTitle)
+	void UI::getActiveApplicationAndWindow(String& appName, String& windowTitle, sl_int32 timeout)
 	{
 		appName = getActiveApplicationName();
-		windowTitle = getActiveWindowTitle();
+		windowTitle = getActiveWindowTitle(timeout);
 	}
 #endif
 
@@ -841,7 +841,7 @@ namespace slib
 		return sl_null;
 	}
 
-	String UI::getActiveWindowTitle()
+	String UI::getActiveWindowTitle(sl_int32 timeout)
 	{
 		return sl_null;
 	}
