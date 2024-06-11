@@ -277,6 +277,11 @@ namespace slib
 
 		void setScaledPixel(sl_real sp);
 
+		CRef* getController()
+		{
+			return m_controller.get();
+		}
+
 		template <class LAYOUT>
 		void setController(UILayoutController<LAYOUT>* controller)
 		{

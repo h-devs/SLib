@@ -883,6 +883,58 @@ namespace slib
 		return m_simulationContentView;
 	}
 
+	namespace
+	{
+		class UILayoutResourceHelper : public UILayoutResource
+		{
+		public:
+			using UILayoutResource::setInitialized;
+		};
+	}
+
+	sl_bool SAppLayoutSimulator::doInitialize(SAppLayoutSimulationWindow* window, UILayoutResource* res, SAppDocument* doc, SAppLayoutResource* layout, View* contentView)
+	{
+		m_document = doc;
+		m_layoutResource = layout;
+		m_simulationContentView = contentView;
+		{
+			ListElements<String> radioGroups(layout->radioGroups.getAllKeys());
+			for (sl_size i = 0; i < radioGroups.count; i++) {
+				Ref<RadioGroup> group = new RadioGroup;
+				if (group.isNotNull()) {
+					m_radioGroups.put(radioGroups[i], group);
+				}
+			}
+		}
+		Ref<View> viewContent = CastRef<View>(doc->_simulateLayoutCreateOrLayoutItem(this, layout, sl_null, sl_null, SAppLayoutOperation::SimulateInit));
+		((UILayoutResourceHelper*)res)->setInitialized();
+		if (viewContent.isNotNull()) {
+			if (window) {
+				if (layout->layoutType != SAppLayoutType::Window) {
+					if (viewContent->getBackground().isNull()) {
+						viewContent->setBackgroundColor(Color::White, UIUpdateMode::Init);
+					}
+					window->setBackgroundColor(Color::Black);
+					window->addView(viewContent);
+				}
+				doc->_registerLayoutSimulationWindow(window);
+			}
+			doc->_simulateLayoutCreateOrLayoutItem(this, layout, sl_null, sl_null, SAppLayoutOperation::SimulateLayout);
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	void SAppLayoutSimulator::doLayoutViews(sl_ui_len width, sl_ui_len height)
+	{
+		Ref<SAppDocument> doc = m_document;
+		Ref<SAppLayoutResource> layout = m_layoutResource;
+		if (doc.isNotNull() && layout.isNotNull()) {
+			doc->_simulateLayoutCreateOrLayoutItem(this, layout.get(), sl_null, sl_null, SAppLayoutOperation::SimulateLayout);
+		}
+	}
+
+
 	SAppLayoutSimulationWindow::SAppLayoutSimulationWindow()
 	{
 		setSavingPageSize(sl_true);
@@ -897,39 +949,16 @@ namespace slib
 
 	sl_bool SAppLayoutSimulationWindow::open(SAppDocument* doc, SAppLayoutResource* layout)
 	{
-		m_document = doc;
-		m_layoutResource = layout;
-		{
-			ListElements<String> radioGroups(layout->radioGroups.getAllKeys());
-			for (sl_size i = 0; i < radioGroups.count; i++) {
-				Ref<RadioGroup> group = new RadioGroup;
-				if (group.isNotNull()) {
-					m_radioGroups.put(radioGroups[i], group);
-				}
-			}
-		}
 		Ref<View> viewContent;
 		if (layout->layoutType == SAppLayoutType::Window) {
-			m_simulationContentView = getContentView();
+			viewContent = getContentView();
 		} else {
 			setCenterScreen(sl_true);
 			setResizable(sl_true);
 			viewContent = new ViewGroup;
-			m_simulationContentView = viewContent;
 		}
-		viewContent = CastRef<View>(doc->_simulateLayoutCreateOrLayoutItem(this, layout, sl_null, sl_null, SAppLayoutOperation::SimulateInit));
-		setInitialized();
-		if (viewContent.isNotNull()) {
-			if (layout->layoutType != SAppLayoutType::Window) {
-				if (viewContent->getBackground().isNull()) {
-					viewContent->setBackgroundColor(Color::White, UIUpdateMode::Init);
-				}
-				setBackgroundColor(Color::Black);
-				addView(viewContent);
-			}
-			doc->_simulateLayoutCreateOrLayoutItem(this, layout, sl_null, sl_null, SAppLayoutOperation::SimulateLayout);
+		if (doInitialize(this, this, doc, layout, viewContent.get())) {
 			create();
-			doc->_registerLayoutSimulationWindow(this);
 			return sl_true;
 		}
 		return sl_false;
@@ -943,11 +972,7 @@ namespace slib
 
 	void SAppLayoutSimulationWindow::layoutViews(sl_ui_len width, sl_ui_len height)
 	{
-		Ref<SAppDocument> doc = m_document;
-		Ref<SAppLayoutResource> layout = m_layoutResource;
-		if (doc.isNotNull() && layout.isNotNull()) {
-			doc->_simulateLayoutCreateOrLayoutItem(this, layout.get(), sl_null, sl_null, SAppLayoutOperation::SimulateLayout);
-		}
+		doLayoutViews(width, height);
 	}
 
 	void SAppLayoutSimulationWindow::onDestroy()
@@ -973,33 +998,37 @@ namespace slib
 	void SAppLayoutImportView::initialize(SAppLayoutSimulator* simulator, SAppLayoutResource* layout)
 	{
 		Ref<SAppDocument> document = simulator->getDocument();
-		m_document = document;
 		m_simulationWindow = simulator->getSimulationWindow();
-		m_layoutResource = layout;
-		{
-			ListElements<String> radioGroups(layout->radioGroups.getAllKeys());
-			for (sl_size i = 0; i < radioGroups.count; i++) {
-				Ref<RadioGroup> group = new RadioGroup;
-				if (group.isNotNull()) {
-					m_radioGroups.put(radioGroups[i], group);
-				}
-			}
-		}
-		m_simulationContentView = this;
-		Ref<View> viewContent = CastRef<View>(document->_simulateLayoutCreateOrLayoutItem(this, layout, sl_null, sl_null, SAppLayoutOperation::SimulateInit));
-		setInitialized();
-		if (viewContent.isNotNull()) {
-			document->_simulateLayoutCreateOrLayoutItem(this, layout, sl_null, sl_null, SAppLayoutOperation::SimulateLayout);
-		}
+		doInitialize(sl_null, this, document.get(), layout, this);
 	}
 
 	void SAppLayoutImportView::layoutViews(sl_ui_len width, sl_ui_len height)
 	{
-		Ref<SAppDocument> doc = m_document;
-		Ref<SAppLayoutResource> layout = m_layoutResource;
-		if (doc.isNotNull() && layout.isNotNull()) {
-			doc->_simulateLayoutCreateOrLayoutItem(this, layout.get(), sl_null, sl_null, SAppLayoutOperation::SimulateLayout);
-		}
+		doLayoutViews(width, height);
+	}
+
+
+	SAppLayoutImportPage::SAppLayoutImportPage()
+	{
+		setImportView(sl_true);
+	}
+
+	void SAppLayoutImportPage::init()
+	{
+		PageLayout::init();
+		m_refer = this;
+	}
+
+	void SAppLayoutImportPage::initialize(SAppLayoutSimulator* simulator, SAppLayoutResource* layout)
+	{
+		Ref<SAppDocument> document = simulator->getDocument();
+		m_simulationWindow = simulator->getSimulationWindow();
+		doInitialize(sl_null, this, document.get(), layout, this);
+	}
+
+	void SAppLayoutImportPage::layoutViews(sl_ui_len width, sl_ui_len height)
+	{
+		doLayoutViews(width, height);
 	}
 
 }

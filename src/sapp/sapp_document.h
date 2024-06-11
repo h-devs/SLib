@@ -351,8 +351,8 @@ namespace slib
 		template <class MAP, class ITEM>
 		static sl_bool getItemFromMap(const MAP& map, const String& localNamespace, const String& name, String* outName, ITEM* _out);
 
+		friend class SAppLayoutSimulator;
 		friend class SAppLayoutSimulationWindow;
-		friend class SAppLayoutImportView;
 		friend class SAppDimensionBaseValue;
 	};
 

@@ -2767,14 +2767,23 @@ namespace slib
 		if (op == SAppLayoutOperation::Generate) {
 		} else if (IsSimulateOp(op)) {
 			if (op == SAppLayoutOperation::SimulateInit) {
-				Ref<SAppLayoutImportView> _view = new SAppLayoutImportView;
-				if (_view.isNotNull()) {
-					_view->initialize(params->simulator, layoutImport.get());
+				if (layoutImport->layoutType == SAppLayoutType::Page) {
+					Ref<SAppLayoutImportPage> _view = new SAppLayoutImportPage;
+					if (_view.isNotNull()) {
+						_view->initialize(params->simulator, layoutImport.get());
+					} else {
+						return sl_false;
+					}
+					params->viewItem = _view.get();
 				} else {
-					return sl_false;
+					Ref<SAppLayoutImportView> _view = new SAppLayoutImportView;
+					if (_view.isNotNull()) {
+						_view->initialize(params->simulator, layoutImport.get());
+					} else {
+						return sl_false;
+					}
+					params->viewItem = _view.get();
 				}
-				params->viewItem = _view;
-				view = _view.get();
 			} else {
 				if (!view) {
 					return sl_false;
@@ -2789,7 +2798,11 @@ namespace slib
 		LAYOUT_CONTROL_ADD_STATEMENT
 
 		if (op == SAppLayoutOperation::SimulateLayout) {
-			view->layoutViews(view->getWidth(), view->getHeight());
+			if (layoutImport->layoutType == SAppLayoutType::Page) {
+				((SAppLayoutImportPage*)view)->layoutViews(view->getWidth(), view->getHeight());
+			} else {
+				view->layoutViews(view->getWidth(), view->getHeight());
+			}
 		}
 
 	}

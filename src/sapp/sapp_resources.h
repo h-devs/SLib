@@ -1406,6 +1406,10 @@ namespace slib
 
 		Ref<View> getSimulationContentView();
 
+		sl_bool doInitialize(SAppLayoutSimulationWindow* window, UILayoutResource* res, SAppDocument* doc, SAppLayoutResource* layout, View* contentView);
+
+		void doLayoutViews(sl_ui_len width, sl_ui_len height);
+
 	public:
 		SLIB_BOOLEAN_PROPERTY(ImportView)
 
@@ -1454,6 +1458,24 @@ namespace slib
 
 	public:
 		void initialize(SAppLayoutSimulator* simulator, SAppLayoutResource* layout);
+
+		void layoutViews(sl_ui_len width, sl_ui_len height) override;
+	};
+
+	class SAppLayoutImportPage : public PageLayout, public SAppLayoutSimulator
+	{
+	public:
+		SAppLayoutImportPage();
+
+	protected:
+		void init() override;
+
+	public:
+		void setData(const Variant& data, UIUpdateMode mode) {}
+
+	public:
+		void initialize(SAppLayoutSimulator* simulator, SAppLayoutResource* layout);
+
 		void layoutViews(sl_ui_len width, sl_ui_len height) override;
 	};
 
