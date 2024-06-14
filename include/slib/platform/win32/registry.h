@@ -85,6 +85,8 @@ namespace slib
 
 			static sl_bool setValue(const StringParam& path, const StringParam& name, const Variant& value);
 
+			List<String16> getSubkeys();
+
 		};
 
 	}

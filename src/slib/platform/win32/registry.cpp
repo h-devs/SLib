@@ -423,6 +423,24 @@ namespace slib
 			return key.setValue(name, value);
 		}
 
+		List<String16> Registry::getSubkeys()
+		{
+			HKEY hKey = get();
+			if (!hKey) {
+				return sl_null;
+			}
+			List<String16> ret;
+			WCHAR name[256];
+			for (DWORD index = 0; ; index++) {
+				if (RegEnumKeyW(hKey, index, name, sizeof(name)) == ERROR_SUCCESS) {
+					ret.add_NoLock(String16::from(name));
+				} else {
+					break;
+				}
+			}
+			return ret;
+		}
+
 	}
 
 }
