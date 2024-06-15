@@ -44,7 +44,7 @@ namespace slib
 
 		sl_bool isCheckedInstance();
 
-		void setChecked(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setChecked(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(CheckBox, Change, sl_bool value, UIEvent* ev /* nullable */)

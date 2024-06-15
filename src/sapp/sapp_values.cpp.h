@@ -48,7 +48,7 @@ namespace slib
 
 	namespace priv
 	{
-		sl_bool parseDataAccess(const String& str, String& dataAccess)
+		sl_bool ParseDataAccess(const String& str, String& dataAccess)
 		{
 			if (str.isEmpty()) {
 				return sl_true;
@@ -138,7 +138,7 @@ namespace slib
 
 	sl_bool SAppStringValue::parseDataAccess(const String& str)
 	{
-		if (priv::parseDataAccess(str, dataAccess)) {
+		if (priv::ParseDataAccess(str, dataAccess)) {
 			return sl_true;
 		}
 		flagFormattingDataValue = sl_true;

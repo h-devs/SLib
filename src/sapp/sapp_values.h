@@ -50,7 +50,7 @@ public: \
 
 #define PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_PARSE \
 	PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA \
-	sl_bool parseDataAccess(const String& str) { return priv::parseDataAccess(str, dataAccess); } \
+	sl_bool parseDataAccess(const String& str) { return priv::ParseDataAccess(str, dataAccess); } \
 
 #define PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_GENERIC(VARIANT_FUNC_NAME) \
 	PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_PARSE \
@@ -61,7 +61,7 @@ namespace slib
 
 	namespace priv
 	{
-		sl_bool parseDataAccess(const String& str, String& dataAccess);
+		sl_bool ParseDataAccess(const String& str, String& dataAccess);
 	}
 
 	template <class T>
