@@ -614,16 +614,12 @@ namespace slib
 				}
 			}
 
-			LRESULT processSubclassMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
+			LRESULT processSubclassMessage(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam) override
 			{
-				HWND handle = m_handle;
-				if (!handle) {
-					return 0;
-				}
 				switch (msg) {
 				case WM_PAINT:
 					if (m_flagVisibleHintText && m_hintText.isNotEmpty()) {
-						Win32_ViewInstance::processSubclassMessage(msg, wParam, lParam);
+						Win32_ViewInstance::processSubclassMessage(handle, msg, wParam, lParam);
 						HDC hDC = GetDC(handle);
 						if (hDC) {
 							HFONT hFont = GraphicsPlatform::getGdiFont(m_hintFont.get());
@@ -675,7 +671,7 @@ namespace slib
 						break;
 					}
 				}
-				return Win32_ViewInstance::processSubclassMessage(msg, wParam, lParam);
+				return Win32_ViewInstance::processSubclassMessage(handle, msg, wParam, lParam);
 			}
 
 			sl_bool processCommand(SHORT code, LRESULT& result) override

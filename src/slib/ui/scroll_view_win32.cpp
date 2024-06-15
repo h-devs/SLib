@@ -113,9 +113,8 @@ namespace slib
 				}
 			}
 
-			LRESULT processWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
+			LRESULT processWindowMessage(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam) override
 			{
-				HWND handle = getHandle();
 				Ref<ScrollViewHelper> helper = CastRef<ScrollViewHelper>(getView());
 				if (helper.isNotNull()) {
 					sl_bool flagUpdateScroll = sl_false;
@@ -142,7 +141,7 @@ namespace slib
 						return 0;
 					}
 				}
-				return Win32_ViewInstance::processWindowMessage(msg, wParam, lParam);
+				return Win32_ViewInstance::processWindowMessage(handle, msg, wParam, lParam);
 			}
 
 			sl_bool isDrawingEnabled(View* view) override

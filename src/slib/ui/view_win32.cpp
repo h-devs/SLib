@@ -130,7 +130,7 @@ namespace slib
 						ScreenToClient(hWnd, &pt);
 						if (parent->isCapturingChildInstanceEvents((sl_ui_pos)(pt.x), (sl_ui_pos)(pt.y))) {
 							LPARAM lParam = POINTTOPOINTS(pt);
-							instance->processWindowMessage(uMsg, 0, lParam);
+							instance->processWindowMessage(hWnd, uMsg, 0, lParam);
 							return sl_true;
 						}
 					}
@@ -147,7 +147,7 @@ namespace slib
 		{
 			Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(hWnd));
 			if (instance.isNotNull()) {
-				return instance->processWindowMessage(uMsg, wParam, lParam);
+				return instance->processWindowMessage(hWnd, uMsg, wParam, lParam);
 			}
 			return DefaultViewInstanceProc(hWnd, uMsg, wParam, lParam);
 		}
@@ -226,12 +226,13 @@ namespace slib
 		}
 	}
 
-	namespace {
+	namespace
+	{
 		static LRESULT CALLBACK ViewInstanceSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 		{
 			Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(hWnd));
 			if (instance.isNotNull()) {
-				return instance->processSubclassMessage(uMsg, wParam, lParam);
+				return instance->processSubclassMessage(hWnd, uMsg, wParam, lParam);
 			}
 			return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 		}
@@ -1622,12 +1623,8 @@ namespace slib
 		m_flagGenericView = flag;
 	}
 
-	LRESULT Win32_ViewInstance::processWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+	LRESULT Win32_ViewInstance::processWindowMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
-		HWND hWnd = m_handle;
-		if (!hWnd) {
-			return 0;
-		}
 		switch (msg) {
 			case WM_ERASEBKGND:
 				return TRUE;
@@ -1770,115 +1767,111 @@ namespace slib
 		return DefaultViewInstanceProc(hWnd, msg, wParam, lParam);
 	}
 
-	LRESULT Win32_ViewInstance::processSubclassMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+	LRESULT Win32_ViewInstance::processSubclassMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		HWND hWnd = m_handle;
-		if (!hWnd) {
-			return 0;
-		}
 		switch (uMsg) {
-		case WM_LBUTTONDOWN:
-			if (onEventMouse(UIAction::LeftButtonDown, wParam, lParam, sl_false, sl_false)) {
-				return 0;
-			}
-			break;
-		case WM_LBUTTONDBLCLK:
-			if (onEventMouse(UIAction::LeftButtonDoubleClick, wParam, lParam, sl_false, sl_false)) {
-				return 0;
-			}
-			break;
-		case WM_LBUTTONUP:
-			if (onEventMouse(UIAction::LeftButtonUp, wParam, lParam, sl_false, sl_false)) {
-				return 0;
-			}
-			break;
-		case WM_RBUTTONDOWN:
-			if (onEventMouse(UIAction::RightButtonDown, wParam, lParam, sl_false, sl_false)) {
-				return 0;
-			}
-			break;
-		case WM_RBUTTONDBLCLK:
-			if (onEventMouse(UIAction::RightButtonDoubleClick, wParam, lParam, sl_false, sl_false)) {
-				return 0;
-			}
-			break;
-		case WM_RBUTTONUP:
-			if (onEventMouse(UIAction::RightButtonUp, wParam, lParam, sl_false, sl_false)) {
-				return 0;
-			}
-			break;
-		case WM_MBUTTONDOWN:
-			if (onEventMouse(UIAction::MiddleButtonDown, wParam, lParam, sl_false, sl_false)) {
-				return 0;
-			}
-			break;
-		case WM_MBUTTONDBLCLK:
-			if (onEventMouse(UIAction::MiddleButtonDoubleClick, wParam, lParam, sl_false, sl_false)) {
-				return 0;
-			}
-			break;
-		case WM_MBUTTONUP:
-			if (onEventMouse(UIAction::MiddleButtonUp, wParam, lParam, sl_false, sl_false)) {
-				return 0;
-			}
-			break;
-		case WM_MOUSEMOVE:
-			if (onEventMouse(UIAction::MouseMove, wParam, lParam, sl_false, sl_false)) {
-				return 0;
-			}
-			break;
-		case WM_MOUSEWHEEL:
-			if (onEventMouseWheel(sl_true, wParam, lParam)) {
-				return 0;
-			}
-			break;
-		case 0x020E: // WM_MOUSEHWHEEL
-			if (onEventMouseWheel(sl_false, wParam, lParam)) {
-				return 0;
-			}
-			break;
-		case 0x0240: // WM_TOUCH
-			if (onEventTouch(hWnd, wParam, lParam, sl_false)) {
-				return 0;
-			}
-			break;
-		case WM_KEYDOWN:
-		case WM_SYSKEYDOWN:
-			if (onEventKey(UIAction::KeyDown, wParam, lParam)) {
-				return 0;
-			}
-			if (wParam == VK_TAB) {
-				DefSubclassProc(hWnd, WM_CHAR, '\t', lParam);
-			} else if (wParam == VK_RETURN) {
-				DefSubclassProc(hWnd, WM_CHAR, '\r', lParam);
-			}
-			break;
-		case WM_KEYUP:
-		case WM_SYSKEYUP:
-			if (onEventKey(UIAction::KeyUp, wParam, lParam)) {
-				return 0;
-			}
-			break;
-		case WM_CHAR:
-		case WM_SYSCHAR:
-			if (onEventKey(UIAction::Char, wParam, lParam)) {
-				return 0;
-			}
-			if (wParam == '\t' || wParam == '\r' || wParam == '\n') {
-				return 0;
-			}
-			break;
-		case WM_SETFOCUS:
-			onSetFocus();
-			break;
-		case WM_KILLFOCUS:
-			onKillFocus();
-			break;
-		case WM_SETCURSOR:
-			if (onEventSetCursor()) {
-				return TRUE;
-			}
-			break;
+			case WM_LBUTTONDOWN:
+				if (onEventMouse(UIAction::LeftButtonDown, wParam, lParam, sl_false, sl_false)) {
+					return 0;
+				}
+				break;
+			case WM_LBUTTONDBLCLK:
+				if (onEventMouse(UIAction::LeftButtonDoubleClick, wParam, lParam, sl_false, sl_false)) {
+					return 0;
+				}
+				break;
+			case WM_LBUTTONUP:
+				if (onEventMouse(UIAction::LeftButtonUp, wParam, lParam, sl_false, sl_false)) {
+					return 0;
+				}
+				break;
+			case WM_RBUTTONDOWN:
+				if (onEventMouse(UIAction::RightButtonDown, wParam, lParam, sl_false, sl_false)) {
+					return 0;
+				}
+				break;
+			case WM_RBUTTONDBLCLK:
+				if (onEventMouse(UIAction::RightButtonDoubleClick, wParam, lParam, sl_false, sl_false)) {
+					return 0;
+				}
+				break;
+			case WM_RBUTTONUP:
+				if (onEventMouse(UIAction::RightButtonUp, wParam, lParam, sl_false, sl_false)) {
+					return 0;
+				}
+				break;
+			case WM_MBUTTONDOWN:
+				if (onEventMouse(UIAction::MiddleButtonDown, wParam, lParam, sl_false, sl_false)) {
+					return 0;
+				}
+				break;
+			case WM_MBUTTONDBLCLK:
+				if (onEventMouse(UIAction::MiddleButtonDoubleClick, wParam, lParam, sl_false, sl_false)) {
+					return 0;
+				}
+				break;
+			case WM_MBUTTONUP:
+				if (onEventMouse(UIAction::MiddleButtonUp, wParam, lParam, sl_false, sl_false)) {
+					return 0;
+				}
+				break;
+			case WM_MOUSEMOVE:
+				if (onEventMouse(UIAction::MouseMove, wParam, lParam, sl_false, sl_false)) {
+					return 0;
+				}
+				break;
+			case WM_MOUSEWHEEL:
+				if (onEventMouseWheel(sl_true, wParam, lParam)) {
+					return 0;
+				}
+				break;
+			case 0x020E: // WM_MOUSEHWHEEL
+				if (onEventMouseWheel(sl_false, wParam, lParam)) {
+					return 0;
+				}
+				break;
+			case 0x0240: // WM_TOUCH
+				if (onEventTouch(hWnd, wParam, lParam, sl_false)) {
+					return 0;
+				}
+				break;
+			case WM_KEYDOWN:
+			case WM_SYSKEYDOWN:
+				if (onEventKey(UIAction::KeyDown, wParam, lParam)) {
+					return 0;
+				}
+				if (wParam == VK_TAB) {
+					DefSubclassProc(hWnd, WM_CHAR, '\t', lParam);
+				} else if (wParam == VK_RETURN) {
+					DefSubclassProc(hWnd, WM_CHAR, '\r', lParam);
+				}
+				break;
+			case WM_KEYUP:
+			case WM_SYSKEYUP:
+				if (onEventKey(UIAction::KeyUp, wParam, lParam)) {
+					return 0;
+				}
+				break;
+			case WM_CHAR:
+			case WM_SYSCHAR:
+				if (onEventKey(UIAction::Char, wParam, lParam)) {
+					return 0;
+				}
+				if (wParam == '\t' || wParam == '\r' || wParam == '\n') {
+					return 0;
+				}
+				break;
+			case WM_SETFOCUS:
+				onSetFocus();
+				break;
+			case WM_KILLFOCUS:
+				onKillFocus();
+				break;
+			case WM_SETCURSOR:
+				if (onEventSetCursor()) {
+					return TRUE;
+				}
+				break;
 		}
 		return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 	}

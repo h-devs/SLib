@@ -217,13 +217,29 @@ namespace slib
 
 	void ComboBox::onKeyEvent(UIEvent* ev)
 	{
-		if (ev->getAction() == UIAction::KeyDown) {
+		UIAction action = ev->getAction();
+		if (action == UIAction::KeyDown) {
 			Keycode keycode = ev->getKeycode();
 			if (keycode == Keycode::Enter || keycode == Keycode::NumpadEnter) {
 				invokeReturnKey();
+				View::onKeyEvent(ev);
+				return;
 			}
 		}
 		View::onKeyEvent(ev);
+		if (ev->isAccepted()) {
+			return;
+		}
+		if (isNativeWidget()) {
+			if (action == UIAction::KeyDown) {
+				if (!(ev->isAltKey())) {
+					ev->acceptByNative();
+				}
+			} else {
+				ev->acceptByNative();
+			}
+			return;
+		}
 	}
 
 #if !HAS_NATIVE_WIDGET_IMPL

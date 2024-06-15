@@ -95,21 +95,21 @@ namespace slib
 				}
 			}
 
-			LRESULT processWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
+			LRESULT processWindowMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) override
 			{
 				if (msg == WM_PAINT) {
 					Ref<Renderer> renderer = m_renderer;
 					if (renderer.isNotNull()) {
 						PAINTSTRUCT ps;
-						BeginPaint(m_handle, &ps);
-						EndPaint(m_handle, &ps);
+						BeginPaint(hWnd, &ps);
+						EndPaint(hWnd, &ps);
 						renderer->requestRender();
 						return 0;
 					}
 				} else if (msg == WM_ERASEBKGND) {
 					return TRUE;
 				}
-				return Win32_ViewInstance::processWindowMessage(msg, wParam, lParam);
+				return Win32_ViewInstance::processWindowMessage(hWnd, msg, wParam, lParam);
 			}
 
 			void onFrame(RenderEngine* engine)

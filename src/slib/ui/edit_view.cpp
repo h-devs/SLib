@@ -978,6 +978,8 @@ namespace slib
 				if (!(ev->isAltKey())) {
 					ev->acceptByNative();
 				}
+			} else {
+				ev->acceptByNative();
 			}
 			return;
 		}
@@ -997,7 +999,6 @@ namespace slib
 					}
 					break;
 				default:
-					ev->acceptByNative();
 					break;
 			}
 		}

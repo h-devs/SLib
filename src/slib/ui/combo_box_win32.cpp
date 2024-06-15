@@ -56,7 +56,7 @@ namespace slib
 			if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) {
 				Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(GetParent(hWnd)));
 				if (instance.isNotNull()) {
-					return instance->processSubclassMessage(uMsg, wParam, lParam);
+					return instance->processSubclassMessage(hWnd, uMsg, wParam, lParam);
 				}
 			}
 			return DefSubclassProc(hWnd, uMsg, wParam, lParam);

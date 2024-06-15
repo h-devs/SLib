@@ -531,24 +531,21 @@ namespace slib
 				}
 			}
 
-			LRESULT processWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
+			LRESULT processWindowMessage(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam) override
 			{
-				HWND handle = getHandle();
-				if (handle) {
-					switch (msg) {
+				switch (msg) {
 					case WM_PAINT:
 						if (m_browser) {
 							PAINTSTRUCT ps;
-							BeginPaint(m_handle, &ps);
-							EndPaint(m_handle, &ps);
+							BeginPaint(handle, &ps);
+							EndPaint(handle, &ps);
 							return 0;
 						}
 						break;
 					case WM_ERASEBKGND:
 						return TRUE;
-					}
 				}
-				return Win32_ViewInstance::processWindowMessage(msg, wParam, lParam);
+				return Win32_ViewInstance::processWindowMessage(handle, msg, wParam, lParam);
 			}
 
 		};
