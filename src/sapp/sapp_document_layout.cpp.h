@@ -737,10 +737,18 @@ namespace slib
 				}
 			}
 			if (layout->layoutType == SAppLayoutType::Window) {
-				window->setOnClose(Function<void(Window*)>::cast(param.onCloseWindow));
+				auto callback = param.onCloseWindow;
+				window->setOnDestroy([callback](Window* window) {
+					window->onDestroy();
+					callback((SAppLayoutSimulationWindow*)window);
+				});
 			} else {
 				window->setClientSize(param.pageSize);
-				window->setOnClose(Function<void(Window*)>::cast(param.onClosePage));
+				auto callback = param.onClosePage;
+				window->setOnDestroy([callback](Window* window) {
+					window->onDestroy();
+					callback((SAppLayoutSimulationWindow*)window);
+				});
 			}
 			return window->open(this, layout);
 		}
