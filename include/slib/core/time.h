@@ -577,13 +577,13 @@ namespace slib
 
 		String getTimeString(const TimeZone& zone = Time::LocalZone) const noexcept;
 
-		String getPeriodString(const Time& minUnit, const Time& maxUnit, const Locale& locale) const noexcept;
+		String getPeriodString(const Time& minUnit, const Time& maxUnit, sl_bool flagLong, const Locale& locale) const noexcept;
 
-		String getPeriodString(const Time& minUnit = Time::withSeconds(1), const Time& maxUnit = Time::zero()) const noexcept;
+		String getPeriodString(const Time& minUnit = Time::withSeconds(1), const Time& maxUnit = Time::zero(), sl_bool flagLong = sl_true) const noexcept;
 
-		String getDiffString(const Time& timeFrom, const Time& minUnit, const Time& maxUnit, const Locale& locale) const noexcept;
+		String getDiffString(const Time& timeFrom, const Time& minUnit, const Time& maxUnit, sl_bool flagLong, const Locale& locale) const noexcept;
 
-		String getDiffString(const Time& timeFrom, const Time& minUnit = Time::withSeconds(1), const Time& maxUnit = Time::zero()) const noexcept;
+		String getDiffString(const Time& timeFrom, const Time& minUnit = Time::withSeconds(1), const Time& maxUnit = Time::zero(), sl_bool flagLong = sl_true) const noexcept;
 
 
 		static String format(const TimeComponents& comps, TimeFormat fmt, const Locale& locale) noexcept;

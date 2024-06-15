@@ -1560,7 +1560,7 @@ namespace slib
 		return String(s, 8);
 	}
 
-	String Time::getPeriodString(const Time& minUnit, const Time& maxUnit, const Locale& _locale) const noexcept
+	String Time::getPeriodString(const Time& minUnit, const Time& maxUnit, sl_bool flagLong, const Locale& _locale) const noexcept
 	{
 		Locale locale = _locale;
 		if (locale == Locale::Unknown) {
@@ -1587,9 +1587,17 @@ namespace slib
 				return String::fromInt64(t) + "\xEC\xB4\x88";
 			} else {
 				if (t == 1) {
-					SLIB_RETURN_STRING("1 second");
+					if (flagLong) {
+						SLIB_RETURN_STRING("1 second")
+					} else {
+						SLIB_RETURN_STRING("1s")
+					}
 				} else {
-					return String::fromInt64(t) + " seconds";
+					if (flagLong) {
+						return String::fromInt64(t) + " seconds";
+					} else {
+						return String::fromInt64(t) + "s";
+					}
 				}
 			}
 		} else if (n < TIME_HOUR || max <= TIME_MINUTE) {
@@ -1598,9 +1606,17 @@ namespace slib
 				return String::fromInt64(t) + "\xEB\xB6\x84";
 			} else {
 				if (t == 1) {
-					SLIB_RETURN_STRING("1 minute");
+					if (flagLong) {
+						SLIB_RETURN_STRING("1 minute")
+					} else {
+						SLIB_RETURN_STRING("1min")
+					}
 				} else {
-					return String::fromInt64(t) + " minutes";
+					if (flagLong) {
+						return String::fromInt64(t) + " minutes";
+					} else {
+						return String::fromInt64(t) + "min";
+					}
 				}
 			}
 		} else if (n < TIME_DAY || max <= TIME_HOUR) {
@@ -1609,9 +1625,17 @@ namespace slib
 				return String::fromInt64(t) + "\xEC\x8B\x9C\xEA\xB0\x84";
 			} else {
 				if (t == 1) {
-					SLIB_RETURN_STRING("1 hour");
+					if (flagLong) {
+						SLIB_RETURN_STRING("1 hour")
+					} else {
+						SLIB_RETURN_STRING("1h")
+					}
 				} else {
-					return String::fromInt64(t) + " hours";
+					if (flagLong) {
+						return String::fromInt64(t) + " hours";
+					} else {
+						return String::fromInt64(t) + "h";
+					}
 				}
 			}
 		} else if (n < TIME_DAY*32 || max <= TIME_DAY) {
@@ -1620,9 +1644,17 @@ namespace slib
 				return String::fromInt64(t) + "\xEC\x9D\xBC";
 			} else {
 				if (t == 1) {
-					SLIB_RETURN_STRING("1 day");
+					if (flagLong) {
+						SLIB_RETURN_STRING("1 day")
+					} else {
+						SLIB_RETURN_STRING("1d")
+					}
 				} else {
-					return String::fromInt64(t) + " days";
+					if (flagLong) {
+						return String::fromInt64(t) + " days";
+					} else {
+						return String::fromInt64(t) + "d";
+					}
 				}
 			}
 		} else if (n < TIME_DAY*366 || max < TIME_DAY*32) {
@@ -1631,9 +1663,17 @@ namespace slib
 				return String::fromInt64(t) + "\xEA\xB0\x9C\xEB\x8B\xAC";
 			} else {
 				if (t == 1) {
-					SLIB_RETURN_STRING("1 month");
+					if (flagLong) {
+						SLIB_RETURN_STRING("1 month")
+					} else {
+						SLIB_RETURN_STRING("1mo")
+					}
 				} else {
-					return String::fromInt64(t) + " months";
+					if (flagLong) {
+						return String::fromInt64(t) + " months";
+					} else {
+						return String::fromInt64(t) + "mo";
+					}
 				}
 			}
 		} else {
@@ -1642,20 +1682,28 @@ namespace slib
 				return String::fromInt64(t) + "\xEB\x85\x84";
 			} else {
 				if (t == 1) {
-					SLIB_RETURN_STRING("1 year");
+					if (flagLong) {
+						SLIB_RETURN_STRING("1 year")
+					} else {
+						SLIB_RETURN_STRING("1yr")
+					}
 				} else {
-					return String::fromInt64(t) + " years";
+					if (flagLong) {
+						return String::fromInt64(t) + " years";
+					} else {
+						return String::fromInt64(t) + "yr";
+					}
 				}
 			}
 		}
 	}
 
-	String Time::getPeriodString(const Time& minUnit, const Time& maxUnit) const noexcept
+	String Time::getPeriodString(const Time& minUnit, const Time& maxUnit, sl_bool flagLong) const noexcept
 	{
-		return getPeriodString(minUnit, maxUnit, Locale::Unknown);
+		return getPeriodString(minUnit, maxUnit, flagLong, Locale::Unknown);
 	}
 
-	String Time::getDiffString(const Time& timeFrom, const Time& minUnit, const Time& maxUnit, const Locale& _locale) const noexcept
+	String Time::getDiffString(const Time& timeFrom, const Time& minUnit, const Time& maxUnit, sl_bool flagLong, const Locale& _locale) const noexcept
 	{
 		Locale locale = _locale;
 		if (locale == Locale::Unknown) {
@@ -1672,7 +1720,7 @@ namespace slib
 		if (diff < minUnit) {
 			return sl_null;
 		}
-		String s = diff.getPeriodString(minUnit, maxUnit, locale);
+		String s = diff.getPeriodString(minUnit, maxUnit, flagLong, locale);
 		Language lang = locale.getLanguage();
 		if (lang == Language::Korean) {
 			if (locale.getCountry() == Country::DPRK) {
@@ -1697,9 +1745,9 @@ namespace slib
 		}
 	}
 
-	String Time::getDiffString(const Time& timeFrom, const Time& minUnit, const Time& maxUnit) const noexcept
+	String Time::getDiffString(const Time& timeFrom, const Time& minUnit, const Time& maxUnit, sl_bool flagLong) const noexcept
 	{
-		return getDiffString(timeFrom, minUnit, maxUnit, Locale::Unknown);
+		return getDiffString(timeFrom, minUnit, maxUnit, flagLong, Locale::Unknown);
 	}
 
 	namespace {
