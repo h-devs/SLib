@@ -168,14 +168,51 @@ namespace slib
 			return d;
 		}
 
+		template <class STRING>
+		static STRING GetQuotedEmptyString(sl_bool flagDoubleQuote) noexcept;
+
+		template <>
+		String GetQuotedEmptyString<String>(sl_bool flagDoubleQuote) noexcept
+		{
+			if (flagDoubleQuote) {
+				SLIB_RETURN_STRING("\"\"")
+			} else {
+				SLIB_RETURN_STRING("''")
+			}
+		}
+
+		template <>
+		String16 GetQuotedEmptyString<String16>(sl_bool flagDoubleQuote) noexcept
+		{
+			if (flagDoubleQuote) {
+				SLIB_RETURN_STRING16("\"\"")
+			} else {
+				SLIB_RETURN_STRING16("''")
+			}
+		}
+
+		template <>
+		String32 GetQuotedEmptyString<String32>(sl_bool flagDoubleQuote) noexcept
+		{
+			if (flagDoubleQuote) {
+				SLIB_RETURN_STRING32("\"\"")
+			} else {
+				SLIB_RETURN_STRING32("''")
+			}
+		}
+
 		template <class VIEW>
 		static typename VIEW::StringType ApplyBackslashEscapes(const VIEW& str, sl_bool flagDoubleQuote, sl_bool flagAddQuote, sl_bool flagEscapeNonAscii)
 		{
-			if (str.isNull()) {
-				return sl_null;
+			sl_size len = str.getUnsafeLength();
+			if (!len) {
+				if (flagAddQuote) {
+					return GetQuotedEmptyString<typename VIEW::StringType>(flagDoubleQuote);
+				} else {
+					return str;
+				}
 			}
 			typename VIEW::Char* data = str.getData();
-			sl_size len = str.getUnsafeLength();
 			sl_size n = ApplyBackslashEscapes(data, len, flagDoubleQuote, flagAddQuote, flagEscapeNonAscii, (typename VIEW::Char*)sl_null);
 			if (!n) {
 				return VIEW::StringType::getEmpty();
