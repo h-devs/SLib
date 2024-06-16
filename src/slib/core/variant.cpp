@@ -3707,6 +3707,13 @@ namespace slib
 			case VariantType::Boolean:
 				return getString();
 			case VariantType::Time:
+				{
+					Time& time = REF_VAR(Time, _value);
+					if (time.isNotZero()) {
+						return Stringx::applyBackslashEscapes(getString());
+					}
+					break;
+				}
 			case VariantType::String8:
 			case VariantType::String16:
 			case VariantType::String32:
