@@ -37,6 +37,7 @@
 #include "serialize/shared.h"
 #include "serialize/generic.h"
 #include "serialize/pair.h"
+#include "serialize/enum_int.h"
 #include "serialize/macro.h"
 #include "serialize/file.h"
 #include "serialize/pipe.h"

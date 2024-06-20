@@ -20,22 +20,33 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DATA_JSON
-#define CHECKHEADER_SLIB_DATA_JSON
+#ifndef CHECKHEADER_SLIB_DATA_JSON_ENUM_INT
+#define CHECKHEADER_SLIB_DATA_JSON_ENUM_INT
 
-#include "json/core.h"
-#include "json/macro.h"
-#include "json/conv.h"
-#include "json/generic.h"
-#include "json/ref.h"
-#include "json/shared.h"
-#include "json/list.h"
-#include "json/map.h"
-#include "json/set.h"
-#include "json/nullable.h"
-#include "json/atomic.h"
-#include "json/bytes.h"
-#include "json/cvli.h"
-#include "json/enum_int.h"
+#include "core.h"
+
+#include "../enum_int.h"
+
+namespace slib
+{
+
+	template <class ENUM, class INT>
+	static void FromJson(const Json& json, EnumInt<ENUM, INT>& _out)
+	{
+		if (json.isUndefined()) {
+			return;
+		}
+		INT value;
+		FromJson(json, value);
+		_out.value = (ENUM)value;
+	}
+
+	template <class ENUM, class INT>
+	static Json ToJson(const EnumInt<ENUM, INT>& _in)
+	{
+		return Json((INT)(_in.value));
+	}
+
+}
 
 #endif

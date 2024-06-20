@@ -20,22 +20,33 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DATA_JSON
-#define CHECKHEADER_SLIB_DATA_JSON
+#ifndef CHECKHEADER_SLIB_DATA_SERIALIZE_ENUM_INT
+#define CHECKHEADER_SLIB_DATA_SERIALIZE_ENUM_INT
 
-#include "json/core.h"
-#include "json/macro.h"
-#include "json/conv.h"
-#include "json/generic.h"
-#include "json/ref.h"
-#include "json/shared.h"
-#include "json/list.h"
-#include "json/map.h"
-#include "json/set.h"
-#include "json/nullable.h"
-#include "json/atomic.h"
-#include "json/bytes.h"
-#include "json/cvli.h"
-#include "json/enum_int.h"
+#include "primitive.h"
+
+#include "../enum_int.h"
+
+namespace slib
+{
+
+	template <class OUTPUT, class ENUM, class INT>
+	static sl_bool Serialize(OUTPUT* output, const EnumInt<ENUM, INT>& _in)
+	{
+		return Serialize(output, (INT)(_in.value));
+	}
+
+	template <class INPUT, class ENUM, class INT>
+	static sl_bool Deserialize(INPUT* input, EnumInt<ENUM, INT>& _out)
+	{
+		INT value;
+		if (Deserialize(input, value)) {
+			_out.value = (ENUM)value;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+}
 
 #endif

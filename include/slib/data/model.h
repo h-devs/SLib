@@ -66,7 +66,7 @@ namespace slib
 
 		virtual sl_bool add(const T& value)
 		{
-			return insert(getCount(), vlaue);
+			return insert(getCount(), value);
 		}
 
 		virtual sl_uint64 removeAll(sl_uint64 index, sl_uint64 count)

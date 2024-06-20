@@ -20,22 +20,56 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DATA_JSON
-#define CHECKHEADER_SLIB_DATA_JSON
+#ifndef CHECKHEADER_SLIB_DATA_ENUM_INT
+#define CHECKHEADER_SLIB_DATA_ENUM_INT
 
-#include "json/core.h"
-#include "json/macro.h"
-#include "json/conv.h"
-#include "json/generic.h"
-#include "json/ref.h"
-#include "json/shared.h"
-#include "json/list.h"
-#include "json/map.h"
-#include "json/set.h"
-#include "json/nullable.h"
-#include "json/atomic.h"
-#include "json/bytes.h"
-#include "json/cvli.h"
-#include "json/enum_int.h"
+#include "definition.h"
+
+#include "serialize/primitive.h"
+
+namespace slib
+{
+
+	template <class ENUM, class INT>
+	class EnumInt
+	{
+	public:
+		ENUM value;
+
+	public:
+		EnumInt() noexcept {}
+
+		SLIB_CONSTEXPR EnumInt(ENUM _value): value(_value) {}
+
+		SLIB_CONSTEXPR EnumInt(INT _value) : value((ENUM)_value) {}
+
+		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(EnumInt)
+
+	public:
+		EnumInt & operator=(ENUM _value)
+		{
+			value = _value;
+			return *this;
+		}
+
+		EnumInt & operator=(INT _value)
+		{
+			value = (ENUM)_value;
+			return *this;
+		}
+
+		SLIB_CONSTEXPR operator ENUM() const
+		{
+			return (ENUM)value;
+		}
+
+		SLIB_CONSTEXPR operator INT() const
+		{
+			return (INT)value;
+		}
+
+	};
+
+}
 
 #endif
