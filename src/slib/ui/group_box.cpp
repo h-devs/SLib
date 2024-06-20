@@ -36,6 +36,10 @@ namespace slib
 		setBorder(Pen::createSolidPen(1, Color(150, 150, 150)), UIUpdateMode::Init);
 
 		m_labelColor = Color::Black;
+		m_iconWidth = 0;
+		m_iconHeight = 0;
+		m_iconMarginLeft = 0;
+		m_iconMarginRight = 0;
 		m_paddingBorder = 0;
 		m_paddingTop = 0;
 	}
@@ -86,6 +90,93 @@ namespace slib
 		setLabelFont(Font::create(desc), mode);
 	}
 
+	Ref<Drawable> GroupBox::getIcon()
+	{
+		return m_icon;
+	}
+
+	void GroupBox::setIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
+	{
+		m_icon = icon;
+		invalidate(mode);
+	}
+
+	UISize GroupBox::getIconSize()
+	{
+		return UISize(m_iconWidth, m_iconHeight);
+	}
+
+	void GroupBox::setIconSize(const UISize& size, UIUpdateMode mode)
+	{
+		m_iconWidth = size.x;
+		m_iconHeight = size.y;
+		invalidate(mode);
+	}
+
+	void GroupBox::setIconSize(sl_ui_len size, UIUpdateMode mode)
+	{
+		m_iconWidth = size;
+		m_iconHeight = size;
+		invalidate(mode);
+	}
+
+	void GroupBox::setIconSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode)
+	{
+		m_iconWidth = width;
+		m_iconHeight = height;
+		invalidate(mode);
+	}
+
+	sl_ui_len GroupBox::getIconWidth()
+	{
+		return m_iconWidth;
+	}
+
+	void GroupBox::setIconWidth(sl_ui_len width, UIUpdateMode mode)
+	{
+		m_iconWidth = width;
+	}
+
+	sl_ui_len GroupBox::getIconHeight()
+	{
+		return m_iconHeight;
+	}
+
+	void GroupBox::setIconHeight(sl_ui_len height, UIUpdateMode mode)
+	{
+		m_iconHeight = height;
+		invalidate(mode);
+	}
+
+	sl_ui_len GroupBox::getIconMarginLeft()
+	{
+		return m_iconMarginLeft;
+	}
+
+	void GroupBox::setIconMarginLeft(sl_ui_len margin, UIUpdateMode mode)
+	{
+		m_iconMarginLeft = margin;
+		invalidate(mode);
+	}
+
+	sl_ui_len GroupBox::getIconMarginRight()
+	{
+		return m_iconMarginRight;
+	}
+
+	void GroupBox::setIconMarginRight(sl_ui_len margin, UIUpdateMode mode)
+	{
+		m_iconMarginRight = margin;
+		invalidate(mode);
+	}
+
+	void GroupBox::setIconMargin(sl_ui_len margin, UIUpdateMode mode)
+	{
+		m_iconMarginLeft = margin;
+		m_iconMarginRight = margin;
+		invalidate(mode);
+	}
+
 	void GroupBox::onDrawBorder(Canvas* canvas)
 	{
 		Ref<Font> font = getLabelFont();
@@ -97,9 +188,40 @@ namespace slib
 		sl_real t = (sl_real)(m_paddingTop / 2);
 		String label = m_label;
 		sl_real widthLabel = 0;
+		Ref<Drawable> icon = m_icon;
+		sl_real iconWidth = (sl_real)m_iconWidth;
+		sl_real iconHeight = (sl_real)m_iconHeight;
+		sl_real totalIconWidth;
+		if (icon.isNotNull()) {
+			if (font.isNotNull()) {
+				if (m_iconHeight <= 0) {
+					iconHeight = font->getFontHeight();
+				}
+			}
+			if (m_iconWidth <= 0) {
+				iconWidth = iconHeight;
+			}
+			totalIconWidth = (sl_real)m_iconMarginLeft + iconWidth + (sl_real)m_iconMarginRight;
+		} else {
+			totalIconWidth = 0;
+		}
 		if (font.isNotNull()) {
 			widthLabel = font->measureText(label).x;
-			canvas->drawText(label, Rectangle(bounds.left + p + t, bounds.top, bounds.left + p + t + widthLabel, bounds.top + t * 2), font, m_labelColor, Alignment::MiddleCenter);
+			Rectangle rcText;
+			rcText.left = bounds.left + p + t + totalIconWidth;
+			rcText.top = bounds.top;
+			rcText.right = rcText.left + widthLabel;
+			rcText.bottom = rcText.top + t + t;
+			CanvasAntiAliasScope scope(canvas, sl_true);
+			canvas->drawText(label, rcText, font, m_labelColor, Alignment::MiddleCenter);
+		}
+		if (icon.isNotNull() && iconHeight > SLIB_EPSILON) {
+			Rectangle rcIcon;
+			rcIcon.left = bounds.left + p + t + (sl_real)m_iconMarginLeft;
+			rcIcon.top = bounds.top + t - iconHeight * 0.5f;
+			rcIcon.right = rcIcon.left + iconWidth;
+			rcIcon.bottom = rcIcon.top + iconHeight;
+			canvas->draw(rcIcon, icon);
 		}
 		Ref<Pen> pen = getBorder();
 		if (pen.isNotNull()) {
@@ -109,7 +231,7 @@ namespace slib
 				{ bounds.left + p, bounds.bottom - p },
 				{ bounds.right - p, bounds.bottom - p },
 				{ bounds.right - p, bounds.top + t },
-				{ bounds.left + t + widthLabel + 3 * p, bounds.top + t }
+				{ bounds.left + t + totalIconWidth + widthLabel + 3 * p, bounds.top + t }
 			};
 			canvas->drawLines(pts, (sl_uint32)(CountOfArray(pts)), pen);
 		}

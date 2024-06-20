@@ -54,6 +54,36 @@ namespace slib
 
 		void setLabelFont(const FontDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Ref<Drawable> getIcon();
+
+		void setIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		UISize getIconSize();
+
+		void setIconSize(const UISize& size, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setIconSize(sl_ui_len size, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setIconSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getIconWidth();
+
+		void setIconWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getIconHeight();
+
+		void setIconHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getIconMarginLeft();
+
+		void setIconMarginLeft(sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getIconMarginRight();
+
+		void setIconMarginRight(sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setIconMargin(sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 	protected:
 		void onDrawBorder(Canvas* canvas) override;
 
@@ -66,6 +96,11 @@ namespace slib
 		AtomicString m_label;
 		Color m_labelColor;
 		AtomicRef<Font> m_labelFont;
+		AtomicRef<Drawable> m_icon;
+		sl_ui_len m_iconWidth;
+		sl_ui_len m_iconHeight;
+		sl_ui_len m_iconMarginLeft;
+		sl_ui_len m_iconMarginRight;
 
 		sl_ui_len m_paddingBorder;
 		sl_ui_len m_paddingTop;

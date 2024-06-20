@@ -616,12 +616,18 @@ namespace slib
 			return sl_false;
 		}
 
+		name = getNameInLocalNamespace(localNamespace, name);
+		if (m_drawables.find(name)) {
+			logError(element, g_str_error_resource_ninepieces_name_redefined, name);
+			return sl_false;
+		}
+
 		Ref<SAppDrawableResource> res = new SAppDrawableResource;
 		if (res.isNull()) {
 			logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
-		res->name = getNameInLocalNamespace(localNamespace, name);
+		res->name = name;
 		res->type = SAppDrawableResource::typeNinePieces;
 		res->ninePiecesAttrs = new SAppDrawableResourceNinePiecesAttributes;
 		if (res->ninePiecesAttrs.isNull()) {
@@ -814,7 +820,14 @@ namespace slib
 			logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
-		res->name = getNameInLocalNamespace(localNamespace, name);
+
+		name = getNameInLocalNamespace(localNamespace, name);
+		if (m_drawables.find(name)) {
+			logError(element, g_str_error_resource_ninepatch_name_redefined, name);
+			return sl_false;
+		}
+
+		res->name = name;
 		res->type = SAppDrawableResource::typeNinePatch;
 		res->ninePatchAttrs = new SAppDrawableResourceNinePatchAttributes;
 		if (res->ninePatchAttrs.isNull()) {

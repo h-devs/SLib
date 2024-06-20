@@ -4814,6 +4814,13 @@ namespace slib
 				attr->labelFont.inheritFrom(attr->font);
 			}
 		}
+		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, icon, setIcon)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconSize, setIconSize, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconWidth, setIconWidth, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconHeight, setIconHeight, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMargin, setIconMargin, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMarginLeft, setIconMarginLeft, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMarginRight, setIconMarginRight, checkScalarSize)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 

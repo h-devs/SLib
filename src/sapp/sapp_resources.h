@@ -970,6 +970,14 @@ namespace slib
 		SAppStringValue label;
 		SAppColorValue labelColor;
 		SAppFontValue labelFont;
+		SAppDrawableValue icon;
+		SAppDimensionValue iconSize;
+		SAppDimensionValue iconWidth;
+		SAppDimensionValue iconHeight;
+		SAppDimensionValue iconMargin;
+		SAppDimensionValue iconMarginLeft;
+		SAppDimensionValue iconMarginRight;
+
 	};
 
 	class SAppLayoutGridCellAttributes

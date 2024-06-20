@@ -69,9 +69,11 @@ namespace {
 	SLIB_STATIC_STRING(g_str_error_resource_drawable_load_image_failed, "Drawable Resource: Loading image file failed: %s")
 	SLIB_STATIC_STRING(g_str_error_resource_ninepieces_name_is_empty, "Nine-Pieces Resource: `name` attribute is empty")
 	SLIB_STATIC_STRING(g_str_error_resource_ninepieces_name_invalid, "Nine-Pieces Resource: Invalid `name` attribute value: %s")
+	SLIB_STATIC_STRING(g_str_error_resource_ninepieces_name_redefined, "Nine-Pieces Resource: `name` is redefined: %s")
 	SLIB_STATIC_STRING(g_str_error_resource_ninepieces_attribute_invalid, "Nine-Pieces Resource: Invalid `%s` attribute value: %s")
 	SLIB_STATIC_STRING(g_str_error_resource_ninepatch_name_is_empty, "Nine-Patch Resource: `name` attribute is empty")
 	SLIB_STATIC_STRING(g_str_error_resource_ninepatch_name_invalid, "Nine-Patch Resource: Invalid `name` attribute value: %s")
+	SLIB_STATIC_STRING(g_str_error_resource_ninepatch_name_redefined, "Nine-Patch Resource: `name` is redefined: %s")
 	SLIB_STATIC_STRING(g_str_error_resource_ninepatch_attribute_invalid, "Nine-Patch Resource: Invalid `%s` attribute value: %s")
 	SLIB_STATIC_STRING(g_str_log_generate_cpp_drawables_begin, "Generating: drawables.h, drawables.cpp")
 
