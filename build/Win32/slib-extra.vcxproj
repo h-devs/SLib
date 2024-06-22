@@ -20,19 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\extra\captcha\captcha.h" />
-    <ClInclude Include="..\..\extra\chat\chat.h" />
-    <ClInclude Include="..\..\extra\chat\chat_client.h" />
-    <ClInclude Include="..\..\extra\chat\chat_view.h" />
-    <ClInclude Include="..\..\extra\data_store\data_package.h" />
-    <ClInclude Include="..\..\extra\data_store\data_store.h" />
     <ClInclude Include="..\..\extra\dbip\dbip.h" />
     <ClInclude Include="..\..\extra\file_encrypt\chacha.h" />
     <ClInclude Include="..\..\extra\input_sender\input_sender.h" />
+    <ClInclude Include="..\..\extra\packet_analyzer\packet_analyzer.h" />
     <ClInclude Include="..\..\extra\pseudo_tcp\pseudo_tcp.h" />
     <ClInclude Include="..\..\extra\pseudo_tcp\pseudo_tcp_message.h" />
     <ClInclude Include="..\..\extra\qrcode\zxing.h" />
     <ClInclude Include="..\..\extra\qrcode\zxing_scanner.h" />
-    <ClInclude Include="..\..\extra\security\web_browser_monitor.h" />
     <ClInclude Include="..\..\extra\social\alipay.h" />
     <ClInclude Include="..\..\extra\social\ebay.h" />
     <ClInclude Include="..\..\extra\social\etsy.h" />
@@ -43,26 +38,18 @@
     <ClInclude Include="..\..\extra\social\pinterest.h" />
     <ClInclude Include="..\..\extra\social\twitter.h" />
     <ClInclude Include="..\..\extra\social\wechat.h" />
-    <ClInclude Include="..\..\extra\winhook\input_dll_file.h" />
-    <ClInclude Include="..\..\extra\winhook\winhook.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\extra\captcha\captcha.cpp" />
-    <ClCompile Include="..\..\extra\chat\chat.cpp" />
-    <ClCompile Include="..\..\extra\chat\chat_client.cpp" />
-    <ClCompile Include="..\..\extra\chat\chat_resource.cpp" />
-    <ClCompile Include="..\..\extra\chat\chat_sqlite.cpp" />
-    <ClCompile Include="..\..\extra\chat\chat_view.cpp" />
-    <ClCompile Include="..\..\extra\data_store\data_store.cpp" />
     <ClCompile Include="..\..\extra\dbip\dbip.cpp" />
     <ClCompile Include="..\..\extra\file_encrypt\chacha.cpp" />
     <ClCompile Include="..\..\extra\input_sender\input_sender.cpp" />
+    <ClCompile Include="..\..\extra\packet_analyzer\packet_analyzer.cpp" />
     <ClCompile Include="..\..\extra\pseudo_tcp\pseudo_tcp.cpp" />
     <ClCompile Include="..\..\extra\pseudo_tcp\pseudo_tcp_message.cpp" />
     <ClCompile Include="..\..\extra\qrcode\external\zxing\zxing_unity.cpp" />
     <ClCompile Include="..\..\extra\qrcode\zxing.cpp" />
     <ClCompile Include="..\..\extra\qrcode\zxing_scanner.cpp" />
-    <ClCompile Include="..\..\extra\security\web_browser_monitor_win32.cpp" />
     <ClCompile Include="..\..\extra\social\alipay.cpp" />
     <ClCompile Include="..\..\extra\social\alipay_openssl.cpp" />
     <ClCompile Include="..\..\extra\social\alipay_sdk.cpp" />
@@ -82,9 +69,6 @@
     <ClCompile Include="..\..\extra\social\twitter.cpp" />
     <ClCompile Include="..\..\extra\social\wechat.cpp" />
     <ClCompile Include="..\..\extra\social\wechat_sdk.cpp" />
-    <ClCompile Include="..\..\extra\winhook\input_dll_file.cpp" />
-    <ClCompile Include="..\..\extra\winhook\install_input.cpp" />
-    <ClCompile Include="..\..\extra\winhook\winhook.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C833A4D0-B47B-4E29-9671-DF73E1C1D818}</ProjectGuid>

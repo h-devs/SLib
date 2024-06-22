@@ -159,7 +159,6 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/network/network_async.cpp"
  "${SLIB_PATH}/src/slib/network/network_async_unix.cpp"
  "${SLIB_PATH}/src/slib/network/network_os.cpp"
- "${SLIB_PATH}/src/slib/network/packet_analyzer.cpp"
  "${SLIB_PATH}/src/slib/network/smb.cpp"
  "${SLIB_PATH}/src/slib/network/socket.cpp"
  "${SLIB_PATH}/src/slib/network/socket_address.cpp"
@@ -231,11 +230,6 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/device/disk.cpp"
  "${SLIB_PATH}/src/slib/device/performance.cpp"
  "${SLIB_PATH}/src/slib/device/sensor.cpp"
-
- "${SLIB_PATH}/src/slib/storage/fuse.cpp"
- "${SLIB_PATH}/src/slib/storage/file_system.cpp"
- "${SLIB_PATH}/src/slib/storage/file_system_logger.cpp"
- "${SLIB_PATH}/src/slib/storage/file_system_mirror.cpp"
 
  "${SLIB_PATH}/src/slib/db/database.cpp"
  "${SLIB_PATH}/src/slib/db/database_cursor.cpp"
@@ -403,7 +397,6 @@ else()
   "${SLIB_PATH}/src/slib/system/preference_linux.cpp"
   "${SLIB_PATH}/src/slib/system/service_manager_linux.cpp"
 
-  "${SLIB_PATH}/src/slib/network/packet_analyzer.cpp"
   "${SLIB_PATH}/src/slib/network/pcap.cpp"
   "${SLIB_PATH}/src/slib/network/tap_unix.cpp"
 

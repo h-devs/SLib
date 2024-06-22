@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,6 @@
  */
 
 #include "slib/network/pcap.h"
-#include "slib/network/npcap.h"
 
 namespace slib
 {
@@ -99,7 +98,6 @@ namespace slib
 #ifdef USE_STATIC_NPCAP
 void InitNpcap();
 void FreeNpcap();
-#define NPCAP_DRIVER_NAME "NPCAP"
 #pragma comment(lib, "npcap.lib")
 #endif
 
@@ -781,24 +779,6 @@ namespace slib
 		return AnyDevicePcapImpl::create(param);
 	}
 
-
-	ServiceState Npcap::getDriverState()
-	{
-#ifdef SLIB_PLATFORM_IS_WIN32
-		return ServiceManager::getState(NPCAP_DRIVER_NAME);
-#else
-		return ServiceState::None;
-#endif
-	}
-
-	sl_bool Npcap::startDriver()
-	{
-#ifdef SLIB_PLATFORM_IS_WIN32
-		return ServiceManager::start(NPCAP_DRIVER_NAME);
-#else
-		return sl_false;
-#endif
-	}
 
 #ifndef SLIB_PLATFORM_IS_WIN32
 	sl_bool Npcap::install()

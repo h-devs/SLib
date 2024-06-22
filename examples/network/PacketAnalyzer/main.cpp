@@ -1,7 +1,7 @@
 #include <slib.h>
 
-#include <slib/network/packet_analyzer.h>
 #include <slib/network/pcap.h>
+#include <packet_analyzer/packet_analyzer.h>
 
 using namespace slib;
 

@@ -899,21 +899,6 @@
     <ClCompile Include="..\..\src\slib\media\camera_win32.cpp">
       <Filter>src\media</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\dokany.cpp">
-      <Filter>src\storage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\file_system_logger.cpp">
-      <Filter>src\storage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\dokany_install.cpp">
-      <Filter>src\storage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\file_system.cpp">
-      <Filter>src\storage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\file_system_mirror.cpp">
-      <Filter>src\storage</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\jpeg.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
@@ -931,9 +916,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\render\d3d11.cpp">
       <Filter>src\render</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\fuse.cpp">
-      <Filter>src\storage</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\render\render_buffer.cpp">
       <Filter>src\render</Filter>
@@ -959,15 +941,6 @@
     <ClCompile Include="..\..\src\slib\graphics\image_canvas.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\tap.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\tap_install_win32.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\tap_win32.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\math\decimal128.cpp">
       <Filter>src\math</Filter>
     </ClCompile>
@@ -990,9 +963,6 @@
       <Filter>src\db</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\network\pcap.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\npcap_install_win32.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\network\ipc.cpp">
@@ -1028,9 +998,6 @@
     <ClCompile Include="..\..\src\slib\doc\zip.cpp">
       <Filter>src\doc</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\packet_analyzer.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\external\src\brotli\brotli_unity.c">
       <Filter>external</Filter>
     </ClCompile>
@@ -1060,9 +1027,6 @@
     </ClCompile>
     <ClCompile Include="..\..\external\src\zstd\zstd_unity.c">
       <Filter>external</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\block_device.cpp">
-      <Filter>src\storage</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\network\smb.cpp">
       <Filter>src\network</Filter>

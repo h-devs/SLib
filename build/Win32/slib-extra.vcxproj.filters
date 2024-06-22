@@ -7,9 +7,6 @@
     <Filter Include="src\qrcode">
       <UniqueIdentifier>{84871635-dc4a-4d00-a58e-ef2496f0ee6e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\chat">
-      <UniqueIdentifier>{ccb34cee-d24a-4afa-be61-45cdc55eb292}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\social">
       <UniqueIdentifier>{bf767bcf-a3cf-4af3-a71f-92e37bf30b53}</UniqueIdentifier>
     </Filter>
@@ -22,20 +19,14 @@
     <Filter Include="src\file_encrypt">
       <UniqueIdentifier>{92c97861-fb8e-4e49-93fa-69f1cc3679db}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\data_store">
-      <UniqueIdentifier>{f500317c-27f0-4284-8839-c54ee4fb0db0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\pseudo_tcp">
       <UniqueIdentifier>{4180a0ea-a09f-4f6a-821b-d745a5744082}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\winhook">
-      <UniqueIdentifier>{a9d8e6bc-c0b4-495d-a87a-0c1a5cf130b5}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\input_sender">
       <UniqueIdentifier>{fa91f3f7-c053-4a6b-a991-fcd8948eb1ff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\security">
-      <UniqueIdentifier>{5962f34f-1878-4c1c-8902-dbf726280678}</UniqueIdentifier>
+    <Filter Include="src\packet_analyzer">
+      <UniqueIdentifier>{21a6f874-cd85-4ee5-be33-0a17eb897306}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -47,15 +38,6 @@
     </ClInclude>
     <ClInclude Include="..\..\extra\captcha\captcha.h">
       <Filter>src\captcha</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\extra\chat\chat_client.h">
-      <Filter>src\chat</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\extra\chat\chat_view.h">
-      <Filter>src\chat</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\extra\chat\chat.h">
-      <Filter>src\chat</Filter>
     </ClInclude>
     <ClInclude Include="..\..\extra\social\alipay.h">
       <Filter>src\social</Filter>
@@ -93,29 +75,17 @@
     <ClInclude Include="..\..\extra\file_encrypt\chacha.h">
       <Filter>src\file_encrypt</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\extra\data_store\data_store.h">
-      <Filter>src\data_store</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\extra\data_store\data_package.h">
-      <Filter>src\data_store</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\extra\pseudo_tcp\pseudo_tcp_message.h">
       <Filter>src\pseudo_tcp</Filter>
     </ClInclude>
     <ClInclude Include="..\..\extra\pseudo_tcp\pseudo_tcp.h">
       <Filter>src\pseudo_tcp</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\extra\winhook\winhook.h">
-      <Filter>src\winhook</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\extra\winhook\input_dll_file.h">
-      <Filter>src\winhook</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\extra\input_sender\input_sender.h">
       <Filter>src\input_sender</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\extra\security\web_browser_monitor.h">
-      <Filter>src\security</Filter>
+    <ClInclude Include="..\..\extra\packet_analyzer\packet_analyzer.h">
+      <Filter>src\packet_analyzer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -127,21 +97,6 @@
     </ClCompile>
     <ClCompile Include="..\..\extra\captcha\captcha.cpp">
       <Filter>src\captcha</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\extra\chat\chat_sqlite.cpp">
-      <Filter>src\chat</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\extra\chat\chat_view.cpp">
-      <Filter>src\chat</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\extra\chat\chat.cpp">
-      <Filter>src\chat</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\extra\chat\chat_client.cpp">
-      <Filter>src\chat</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\extra\chat\chat_resource.cpp">
-      <Filter>src\chat</Filter>
     </ClCompile>
     <ClCompile Include="..\..\extra\social\alipay.cpp">
       <Filter>src\social</Filter>
@@ -209,29 +164,17 @@
     <ClCompile Include="..\..\extra\file_encrypt\chacha.cpp">
       <Filter>src\file_encrypt</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\extra\data_store\data_store.cpp">
-      <Filter>src\data_store</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\extra\pseudo_tcp\pseudo_tcp_message.cpp">
       <Filter>src\pseudo_tcp</Filter>
     </ClCompile>
     <ClCompile Include="..\..\extra\pseudo_tcp\pseudo_tcp.cpp">
       <Filter>src\pseudo_tcp</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\extra\winhook\winhook.cpp">
-      <Filter>src\winhook</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\extra\winhook\input_dll_file.cpp">
-      <Filter>src\winhook</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\extra\winhook\install_input.cpp">
-      <Filter>src\winhook</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\extra\input_sender\input_sender.cpp">
       <Filter>src\input_sender</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\extra\security\web_browser_monitor_win32.cpp">
-      <Filter>src\security</Filter>
+    <ClCompile Include="..\..\extra\packet_analyzer\packet_analyzer.cpp">
+      <Filter>src\packet_analyzer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

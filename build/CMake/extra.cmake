@@ -15,17 +15,11 @@ set (EXTRA_SOURCE_FILES
 
  "${SLIB_PATH}/extra/captcha/captcha.cpp"
 
- "${SLIB_PATH}/extra/chat/chat.cpp"
- "${SLIB_PATH}/extra/chat/chat_client.cpp"
- "${SLIB_PATH}/extra/chat/chat_resource.cpp"
- "${SLIB_PATH}/extra/chat/chat_sqlite.cpp"
- "${SLIB_PATH}/extra/chat/chat_view.cpp"
-
- "${SLIB_PATH}/extra/data_store/data_store.cpp"
-
  "${SLIB_PATH}/extra/dbip/dbip.cpp"
 
  "${SLIB_PATH}/extra/file_encrypt/chacha.cpp"
+
+ "${SLIB_PATH}/extra/packet_analyzer/packet_analyzer.cpp"
 
  "${SLIB_PATH}/extra/pseudo_tcp/pseudo_tcp.cpp"
  "${SLIB_PATH}/extra/pseudo_tcp/pseudo_tcp_message.cpp"

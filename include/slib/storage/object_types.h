@@ -31,14 +31,7 @@ namespace slib
 	{
 
 		enum {
-			Package_Storage = packages::Storage,
-			FileContext,
-			FileSystemProvider,
-			FileSystemHost,
-			FileSystemWrapper,
-			FileSystemLogger,
-			MirrorFileSystem,
-			BlockDevice
+			Package_Storage = packages::Storage
 		};
 
 	}

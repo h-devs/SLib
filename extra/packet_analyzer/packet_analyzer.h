@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,17 +20,17 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_PACKET_ANALYZER
-#define CHECKHEADER_SLIB_NETWORK_PACKET_ANALYZER
+#ifndef CHECKHEADER_SLIB_EXTRA_PACKET_ANALYZER
+#define CHECKHEADER_SLIB_EXTRA_PACKET_ANALYZER
 
-#include "ethernet.h"
-#include "arp.h"
-#include "tcpip.h"
-#include "icmp.h"
-#include "dns.h"
-#include "capture.h"
+#include <slib/network/ethernet.h>
+#include <slib/network/arp.h>
+#include <slib/network/tcpip.h>
+#include <slib/network/icmp.h>
+#include <slib/network/dns.h>
+#include <slib/network/capture.h>
 
-#include "../core/rw_lock.h"
+#include <slib/core/rw_lock.h>
 
 namespace slib
 {

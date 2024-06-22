@@ -1,4 +1,0 @@
-LIBRARY hook_input
-EXPORTS
-StartHook
-StopHook

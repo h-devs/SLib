@@ -9,10 +9,7 @@
 /* Begin PBXBuildFile section */
 		1808BC8D2A0D37EF005B5AC6 /* pseudo_tcp_message.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE6A7B2A0D379100BFABA1 /* pseudo_tcp_message.cpp */; };
 		1808BC8E2A0D37F2005B5AC6 /* pseudo_tcp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18BE6A792A0D379100BFABA1 /* pseudo_tcp.cpp */; };
-		1808BC922A0D3802005B5AC6 /* p2p.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1808BC902A0D3802005B5AC6 /* p2p.cpp */; };
-		1808BC962A0D3816005B5AC6 /* log_package.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1808BC942A0D3816005B5AC6 /* log_package.cpp */; };
 		1808BC9A2A0D3825005B5AC6 /* chacha.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1808BC992A0D3825005B5AC6 /* chacha.cpp */; };
-		1808BCA22A0D3832005B5AC6 /* data_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1808BC9C2A0D3831005B5AC6 /* data_store.cpp */; };
 		1808BCA32A0D3832005B5AC6 /* dbip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1808BCA12A0D3832005B5AC6 /* dbip.cpp */; };
 		1847A9772A2B09E900E11B67 /* dhcp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1847A9762A2B09E900E11B67 /* dhcp.cpp */; };
 		1847A9792A2B09FA00E11B67 /* utm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1847A9782A2B09FA00E11B67 /* utm.cpp */; };
@@ -49,11 +46,6 @@
 		1887E55C202CF82400A81967 /* fcm_service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E474202CF82400A81967 /* fcm_service.cpp */; };
 		1887E55E202CF82400A81967 /* fcm_ios.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1887E485202CF82400A81967 /* fcm_ios.mm */; };
 		1887E55F202CF82400A81967 /* xgpush.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E486202CF82400A81967 /* xgpush.cpp */; };
-		1887E560202CF82400A81967 /* chat_resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E488202CF82400A81967 /* chat_resource.cpp */; };
-		1887E563202CF82400A81967 /* chat_client.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E497202CF82400A81967 /* chat_client.cpp */; };
-		1887E564202CF82400A81967 /* chat_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E498202CF82400A81967 /* chat_view.cpp */; };
-		1887E565202CF82400A81967 /* chat_sqlite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E49A202CF82400A81967 /* chat_sqlite.cpp */; };
-		1887E566202CF82400A81967 /* chat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E49B202CF82400A81967 /* chat.cpp */; };
 		1887E568202CF82400A81967 /* captcha.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E4A2202CF82400A81967 /* captcha.cpp */; };
 		1887E569202CF82400A81967 /* zxing_scanner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E4A5202CF82400A81967 /* zxing_scanner.cpp */; };
 		1887E56A202CF82400A81967 /* zxing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E4A6202CF82400A81967 /* zxing.cpp */; };
@@ -370,7 +362,6 @@
 		D70C66242BC875DA001D670F /* system.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C66212BC875DA001D670F /* system.cpp */; };
 		D70C66252BC875DA001D670F /* system_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = D70C66222BC875DA001D670F /* system_apple.mm */; };
 		D70C66262BC875DA001D670F /* system_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D70C66232BC875DA001D670F /* system_unix.cpp */; };
-		D7C3BB0D26AEF20F00FD529D /* packet_analyzer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C3BB0B26AEF20F00FD529D /* packet_analyzer.cpp */; };
 		D7ECA21A26317C2800D366A8 /* decimal128.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA21926317C2800D366A8 /* decimal128.cpp */; };
 		D7ECA21E26317C6800D366A8 /* zlib_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA21D26317C6700D366A8 /* zlib_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7ECA22226317C7600D366A8 /* zstd_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7ECA22126317C7600D366A8 /* zstd_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -405,15 +396,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		1808BC902A0D3802005B5AC6 /* p2p.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = p2p.cpp; sourceTree = "<group>"; };
-		1808BC912A0D3802005B5AC6 /* p2p.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = p2p.h; sourceTree = "<group>"; };
-		1808BC942A0D3816005B5AC6 /* log_package.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = log_package.cpp; sourceTree = "<group>"; };
-		1808BC952A0D3816005B5AC6 /* log_package.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = log_package.h; sourceTree = "<group>"; };
 		1808BC982A0D3825005B5AC6 /* chacha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chacha.h; sourceTree = "<group>"; };
 		1808BC992A0D3825005B5AC6 /* chacha.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chacha.cpp; sourceTree = "<group>"; };
-		1808BC9C2A0D3831005B5AC6 /* data_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = data_store.cpp; sourceTree = "<group>"; };
-		1808BC9D2A0D3831005B5AC6 /* data_package.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = data_package.h; sourceTree = "<group>"; };
-		1808BC9E2A0D3831005B5AC6 /* data_store.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = data_store.h; sourceTree = "<group>"; };
 		1808BCA02A0D3832005B5AC6 /* dbip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dbip.h; sourceTree = "<group>"; };
 		1808BCA12A0D3832005B5AC6 /* dbip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dbip.cpp; sourceTree = "<group>"; };
 		1847A9762A2B09E900E11B67 /* dhcp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dhcp.cpp; sourceTree = "<group>"; };
@@ -458,14 +442,6 @@
 		1887E484202CF82400A81967 /* fcm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fcm.h; sourceTree = "<group>"; };
 		1887E485202CF82400A81967 /* fcm_ios.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = fcm_ios.mm; sourceTree = "<group>"; };
 		1887E486202CF82400A81967 /* xgpush.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xgpush.cpp; sourceTree = "<group>"; };
-		1887E488202CF82400A81967 /* chat_resource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chat_resource.cpp; sourceTree = "<group>"; };
-		1887E497202CF82400A81967 /* chat_client.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chat_client.cpp; sourceTree = "<group>"; };
-		1887E498202CF82400A81967 /* chat_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chat_view.cpp; sourceTree = "<group>"; };
-		1887E499202CF82400A81967 /* chat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chat.h; sourceTree = "<group>"; };
-		1887E49A202CF82400A81967 /* chat_sqlite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chat_sqlite.cpp; sourceTree = "<group>"; };
-		1887E49B202CF82400A81967 /* chat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = chat.cpp; sourceTree = "<group>"; };
-		1887E49C202CF82400A81967 /* chat_client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chat_client.h; sourceTree = "<group>"; };
-		1887E49D202CF82400A81967 /* chat_view.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chat_view.h; sourceTree = "<group>"; };
 		1887E4A2202CF82400A81967 /* captcha.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = captcha.cpp; sourceTree = "<group>"; };
 		1887E4A3202CF82400A81967 /* captcha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = captcha.h; sourceTree = "<group>"; };
 		1887E4A5202CF82400A81967 /* zxing_scanner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zxing_scanner.cpp; sourceTree = "<group>"; };
@@ -805,7 +781,6 @@
 		D70C66212BC875DA001D670F /* system.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system.cpp; sourceTree = "<group>"; };
 		D70C66222BC875DA001D670F /* system_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = system_apple.mm; sourceTree = "<group>"; };
 		D70C66232BC875DA001D670F /* system_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system_unix.cpp; sourceTree = "<group>"; };
-		D7C3BB0B26AEF20F00FD529D /* packet_analyzer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = packet_analyzer.cpp; sourceTree = "<group>"; };
 		D7ECA21926317C2800D366A8 /* decimal128.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = decimal128.cpp; sourceTree = "<group>"; };
 		D7ECA21D26317C6700D366A8 /* zlib_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zlib_unity.c; path = ../../external/src/zlib/zlib_unity.c; sourceTree = "<group>"; };
 		D7ECA22126317C7600D366A8 /* zstd_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zstd_unity.c; path = ../../external/src/zstd/zstd_unity.c; sourceTree = "<group>"; };
@@ -841,24 +816,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1808BC8F2A0D3802005B5AC6 /* p2p */ = {
-			isa = PBXGroup;
-			children = (
-				1808BC912A0D3802005B5AC6 /* p2p.h */,
-				1808BC902A0D3802005B5AC6 /* p2p.cpp */,
-			);
-			path = p2p;
-			sourceTree = "<group>";
-		};
-		1808BC932A0D3816005B5AC6 /* log_package */ = {
-			isa = PBXGroup;
-			children = (
-				1808BC952A0D3816005B5AC6 /* log_package.h */,
-				1808BC942A0D3816005B5AC6 /* log_package.cpp */,
-			);
-			path = log_package;
-			sourceTree = "<group>";
-		};
 		1808BC972A0D3825005B5AC6 /* file_encrypt */ = {
 			isa = PBXGroup;
 			children = (
@@ -866,16 +823,6 @@
 				1808BC992A0D3825005B5AC6 /* chacha.cpp */,
 			);
 			path = file_encrypt;
-			sourceTree = "<group>";
-		};
-		1808BC9B2A0D3831005B5AC6 /* data_store */ = {
-			isa = PBXGroup;
-			children = (
-				1808BC9D2A0D3831005B5AC6 /* data_package.h */,
-				1808BC9E2A0D3831005B5AC6 /* data_store.h */,
-				1808BC9C2A0D3831005B5AC6 /* data_store.cpp */,
-			);
-			path = data_store;
 			sourceTree = "<group>";
 		};
 		1808BC9F2A0D3832005B5AC6 /* dbip */ = {
@@ -978,21 +925,6 @@
 				1887E473202CF82400A81967 /* xgpush_ios.mm */,
 			);
 			path = push_notification;
-			sourceTree = "<group>";
-		};
-		1887E487202CF82400A81967 /* chat */ = {
-			isa = PBXGroup;
-			children = (
-				1887E499202CF82400A81967 /* chat.h */,
-				1887E49B202CF82400A81967 /* chat.cpp */,
-				1887E49C202CF82400A81967 /* chat_client.h */,
-				1887E497202CF82400A81967 /* chat_client.cpp */,
-				1887E488202CF82400A81967 /* chat_resource.cpp */,
-				1887E49A202CF82400A81967 /* chat_sqlite.cpp */,
-				1887E49D202CF82400A81967 /* chat_view.h */,
-				1887E498202CF82400A81967 /* chat_view.cpp */,
-			);
-			path = chat;
 			sourceTree = "<group>";
 		};
 		1887E4A1202CF82400A81967 /* captcha */ = {
@@ -1363,7 +1295,6 @@
 				266DD3C91C1181B500D47AB0 /* network_async_unix.cpp */,
 				266DD3CB1C1181B500D47AB0 /* network_async.cpp */,
 				266DD3CC1C1181B500D47AB0 /* network_os.cpp */,
-				D7C3BB0B26AEF20F00FD529D /* packet_analyzer.cpp */,
 				18A3420527357C7C001F7E4F /* smb.cpp */,
 				266DD3CF1C1181B500D47AB0 /* socket_address.cpp */,
 				266DD3D21C1181B500D47AB0 /* socket_event.cpp */,
@@ -1626,18 +1557,14 @@
 			files = (
 				1887E56E202CF82400A81967 /* instagram_ios.mm in Sources */,
 				1887E574202CF82400A81967 /* linkedin_ui.cpp in Sources */,
-				1887E565202CF82400A81967 /* chat_sqlite.cpp in Sources */,
 				1887E56B202CF82400A81967 /* wechat.cpp in Sources */,
 				1887E577202CF82400A81967 /* alipay_openssl.cpp in Sources */,
 				1808BC8E2A0D37F2005B5AC6 /* pseudo_tcp.cpp in Sources */,
-				1887E563202CF82400A81967 /* chat_client.cpp in Sources */,
 				1887E55F202CF82400A81967 /* xgpush.cpp in Sources */,
 				1887E571202CF82400A81967 /* facebook_ios.mm in Sources */,
-				1887E560202CF82400A81967 /* chat_resource.cpp in Sources */,
 				1887E572202CF82400A81967 /* wechat_ios.mm in Sources */,
 				1887E57C202CF82400A81967 /* etsy_ui.cpp in Sources */,
 				1887E578202CF82400A81967 /* alipay.cpp in Sources */,
-				1808BCA22A0D3832005B5AC6 /* data_store.cpp in Sources */,
 				1808BC8D2A0D37EF005B5AC6 /* pseudo_tcp_message.cpp in Sources */,
 				1887E57E202CF82400A81967 /* facebook_ui.cpp in Sources */,
 				1887E57A202CF82400A81967 /* linkedin.cpp in Sources */,
@@ -1650,10 +1577,8 @@
 				1887E55C202CF82400A81967 /* fcm_service.cpp in Sources */,
 				1887E56D202CF82400A81967 /* pinterest.cpp in Sources */,
 				1887E568202CF82400A81967 /* captcha.cpp in Sources */,
-				1808BC962A0D3816005B5AC6 /* log_package.cpp in Sources */,
 				1887E575202CF82400A81967 /* facebook.cpp in Sources */,
 				1887E576202CF82400A81967 /* ebay.cpp in Sources */,
-				1887E564202CF82400A81967 /* chat_view.cpp in Sources */,
 				1887E583202CF82400A81967 /* wechat_sdk.cpp in Sources */,
 				1808BC922A0D3802005B5AC6 /* p2p.cpp in Sources */,
 				1808BC9A2A0D3825005B5AC6 /* chacha.cpp in Sources */,
@@ -1733,7 +1658,6 @@
 				26E44AEB2322F39D00A88D93 /* collection_view.cpp in Sources */,
 				26D9D8DB1E962976005F7BD3 /* ui_animation.cpp in Sources */,
 				D70C66172BC875B9001D670F /* service_manager.cpp in Sources */,
-				D7C3BB0D26AEF20F00FD529D /* packet_analyzer.cpp in Sources */,
 				1887E17D202CD20F00A81967 /* crc32c.cpp in Sources */,
 				18A341FE27357C53001F7E4F /* key_value_store.cpp in Sources */,
 				18BE6A742A0D373900BFABA1 /* grid_view.cpp in Sources */,
