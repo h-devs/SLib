@@ -49,6 +49,7 @@ namespace slib
 	DEFINE_CONTENT_TYPE(ImagePng, "image/png")
 	DEFINE_CONTENT_TYPE(ImageBmp, "image/bmp")
 	DEFINE_CONTENT_TYPE(ImageTiff, "image/tiff")
+	DEFINE_CONTENT_TYPE(ImageSvg, "image/svg+xml")
 
 	DEFINE_CONTENT_TYPE(AudioOgg, "audio/ogg")
 	DEFINE_CONTENT_TYPE(AudioOpus, "audio/opus")
@@ -108,6 +109,7 @@ namespace slib
 				maps.put("bmp", ContentType::ImageBmp);
 				maps.put("tiff", ContentType::ImageTiff);
 				maps.put("tif", ContentType::ImageTiff);
+				maps.put("svg", ContentType::ImageSvg);
 
 				maps.put("oga", ContentType::AudioOgg);
 				maps.put("opus", ContentType::AudioOpus);

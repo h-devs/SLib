@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,9 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/network/web.h"
+#include "web_service.h"
 
-#include "slib/data/xml.h"
+#include <slib/data/xml.h>
 
 namespace slib
 {

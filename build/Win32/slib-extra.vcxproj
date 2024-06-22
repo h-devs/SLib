@@ -38,6 +38,7 @@
     <ClInclude Include="..\..\extra\social\pinterest.h" />
     <ClInclude Include="..\..\extra\social\twitter.h" />
     <ClInclude Include="..\..\extra\social\wechat.h" />
+    <ClInclude Include="..\..\extra\web_service\web_service.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\extra\captcha\captcha.cpp" />
@@ -69,6 +70,7 @@
     <ClCompile Include="..\..\extra\social\twitter.cpp" />
     <ClCompile Include="..\..\extra\social\wechat.cpp" />
     <ClCompile Include="..\..\extra\social\wechat_sdk.cpp" />
+    <ClCompile Include="..\..\extra\web_service\web_service.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C833A4D0-B47B-4E29-9671-DF73E1C1D818}</ProjectGuid>

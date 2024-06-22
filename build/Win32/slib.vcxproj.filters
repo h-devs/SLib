@@ -1217,9 +1217,6 @@
     <ClCompile Include="..\..\src\slib\math\math.cpp">
       <Filter>src\math</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\web_service.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\script\ginger.cpp">
       <Filter>src\script</Filter>
     </ClCompile>

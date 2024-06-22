@@ -36,7 +36,6 @@
 		1887E151202CCD4300A81967 /* stringx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E150202CCD4300A81967 /* stringx.cpp */; };
 		1887E153202CCD7000A81967 /* disk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E152202CCD7000A81967 /* disk.cpp */; };
 		1887E155202CCD7A00A81967 /* performance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E154202CCD7900A81967 /* performance.cpp */; };
-		1887E159202CCE0400A81967 /* web_service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E158202CCE0400A81967 /* web_service.cpp */; };
 		1887E15E202CCE1800A81967 /* oauth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E15A202CCE1800A81967 /* oauth.cpp */; };
 		1887E15F202CCE1800A81967 /* oauth_server_openssl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E15B202CCE1800A81967 /* oauth_server_openssl.cpp */; };
 		1887E160202CCE1800A81967 /* oauth_server.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1887E15C202CCE1800A81967 /* oauth_server.cpp */; };
@@ -498,7 +497,6 @@
 		1887E150202CCD4300A81967 /* stringx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stringx.cpp; sourceTree = "<group>"; };
 		1887E152202CCD7000A81967 /* disk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = disk.cpp; sourceTree = "<group>"; };
 		1887E154202CCD7900A81967 /* performance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = performance.cpp; sourceTree = "<group>"; };
-		1887E158202CCE0400A81967 /* web_service.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = web_service.cpp; sourceTree = "<group>"; };
 		1887E15A202CCE1800A81967 /* oauth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = oauth.cpp; sourceTree = "<group>"; };
 		1887E15B202CCE1800A81967 /* oauth_server_openssl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = oauth_server_openssl.cpp; sourceTree = "<group>"; };
 		1887E15C202CCE1800A81967 /* oauth_server.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = oauth_server.cpp; sourceTree = "<group>"; };
@@ -1317,7 +1315,6 @@
 				2607300220D985BF004EB272 /* url_request_common.inc */,
 				26C13E461DDA516D00612945 /* url_request_apple.mm */,
 				26072FFD20D97B66004EB272 /* url_request_curl.cpp */,
-				1887E158202CCE0400A81967 /* web_service.cpp */,
 			);
 			path = network;
 			sourceTree = "<group>";
@@ -2169,7 +2166,6 @@
 				2644BD062361898E001B9842 /* table_layout.cpp in Sources */,
 				26F5EA6622D6835C00CD1595 /* toast.cpp in Sources */,
 				2607300E20DCE368004EB272 /* rw_lock.cpp in Sources */,
-				1887E159202CCE0400A81967 /* web_service.cpp in Sources */,
 				26D9D9CE1E96468D005F7BD3 /* render_view.cpp in Sources */,
 				26D9D9541E964659005F7BD3 /* database_cursor.cpp in Sources */,
 				18FF0E0D28444F5900FC8F75 /* freetype_unity.c in Sources */,

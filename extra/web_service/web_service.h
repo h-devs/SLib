@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,12 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_WEB
-#define CHECKHEADER_SLIB_NETWORK_WEB
+#ifndef CHECKHEADER_SLIB_EXTRA_WEB_SERVICE
+#define CHECKHEADER_SLIB_EXTRA_WEB_SERVICE
 
-#include "http_server.h"
-
-#include "../system/service.h"
-#include "../core/function.h"
-#include "../core/variant.h"
+#include <slib/network/http_server.h>
+#include <slib/system/service.h>
+#include <slib/core/variant.h>
 
 namespace slib
 {

@@ -58,6 +58,8 @@ namespace slib
 		static const String& ImageBmp;
 		// image/tiff
 		static const String& ImageTiff;
+		// image/svg
+		static const String& ImageSvg;
 
 		// audio/ogg
 		static const String& AudioOgg;

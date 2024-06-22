@@ -170,7 +170,6 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/network/url_request.cpp"
  "${SLIB_PATH}/src/slib/network/url_request_param.cpp"
  "${SLIB_PATH}/src/slib/network/url_request_curl.cpp"
- "${SLIB_PATH}/src/slib/network/web_service.cpp"
  
  "${SLIB_PATH}/src/slib/graphics/animation.cpp"
  "${SLIB_PATH}/src/slib/graphics/bitmap.cpp"

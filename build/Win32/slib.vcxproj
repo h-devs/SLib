@@ -326,7 +326,6 @@
     <ClCompile Include="..\..\src\slib\network\url_request_curl.cpp" />
     <ClCompile Include="..\..\src\slib\network\url_request_param.cpp" />
     <ClCompile Include="..\..\src\slib\network\url_request_win32.cpp" />
-    <ClCompile Include="..\..\src\slib\network\web_service.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\async_handle.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\com.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_bcrypt.cpp" />

@@ -28,6 +28,9 @@
     <Filter Include="src\packet_analyzer">
       <UniqueIdentifier>{21a6f874-cd85-4ee5-be33-0a17eb897306}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\web_service">
+      <UniqueIdentifier>{cc5c2293-e525-4791-ac77-c789f8725fe5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\extra\qrcode\zxing_scanner.h">
@@ -86,6 +89,9 @@
     </ClInclude>
     <ClInclude Include="..\..\extra\packet_analyzer\packet_analyzer.h">
       <Filter>src\packet_analyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\web_service\web_service.h">
+      <Filter>src\web_service</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -175,6 +181,9 @@
     </ClCompile>
     <ClCompile Include="..\..\extra\packet_analyzer\packet_analyzer.cpp">
       <Filter>src\packet_analyzer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\web_service\web_service.cpp">
+      <Filter>src\web_service</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
