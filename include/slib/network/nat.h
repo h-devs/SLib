@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,14 +23,13 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_NAT
 #define CHECKHEADER_SLIB_NETWORK_NAT
 
-#include "socket.h"
 #include "tcpip.h"
 #include "icmp.h"
 
 #include "../core/hash_map.h"
 
 /*
-	If you are usiing kernel-mode NAT on linux (for example on port range 40000~60000), following configuration will avoid to conflict with kernel-networking.
+	If you are using kernel-mode NAT on linux (for example on port range 40000~60000), following configuration will avoid to conflict with kernel-networking.
 
 		iptables -A INPUT -p tcp --dport 40000:60000 -j DROP
 		sysctl -w net.ipv4.ip_local_port_range="30000 39000"
@@ -39,21 +38,15 @@
 namespace slib
 {
 
-	class NatTablePort
+	struct NatTablePort
 	{
-	public:
-		sl_bool flagActive;
-		SocketAddress addressSource;
-		sl_uint64 timeLastAccess;
-
-	public:
-		NatTablePort();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(NatTablePort)
-
+		sl_uint32 sourceIP;
+		sl_uint16 sourcePort;
+		sl_uint8 flagActive;
+		sl_uint64 lastAccessTick;
 	};
 
-	class NatTableMapping : public Object
+	class SLIB_EXPORT NatTableMapping
 	{
 	public:
 		NatTableMapping();
@@ -61,14 +54,14 @@ namespace slib
 		~NatTableMapping();
 
 	public:
-		void setup(sl_uint16 portBegin, sl_uint16 portEnd);
+		sl_bool initialize(sl_uint16 portBegin, sl_uint16 portEnd);
 
-		sl_bool mapToExternalPort(const SocketAddress& address, sl_uint16& port);
+		sl_bool mapToExternal(const IPv4Address& internalIP, sl_uint16 internalPort, sl_uint16& externalPort, sl_uint64 currentTick);
 
-		sl_bool mapToInternalAddress(sl_uint16 port, SocketAddress& address);
+		sl_bool mapToInternal(sl_uint16 externalPort, IPv4Address& internalIP, sl_uint16& internalPort, sl_uint64 currentTick);
 
 	protected:
-		CHashMap<SocketAddress, sl_uint16> m_mapPorts;
+		CHashMap<sl_uint64, sl_uint16> m_mapTranslation;
 
 		NatTablePort* m_ports;
 		sl_uint16 m_nPorts;
@@ -99,42 +92,39 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT NatTable : public Object
+	class SLIB_EXPORT NatTable
 	{
-		SLIB_DECLARE_OBJECT
-
 	public:
 		NatTable();
 
 		~NatTable();
 
 	public:
-		const NatTableParam& getParam() const;
-
-		void setup(const NatTableParam& param);
+		sl_bool initialize(const NatTableParam& param);
 
 	public:
-		sl_bool translateOutgoingPacket(IPv4Packet* ipHeader, void* ipContent, sl_uint32 sizeContent);
+		sl_bool translateOutgoingPacket(IPv4Packet* header, void* content, sl_uint32 sizeContent, sl_uint64 currentTick);
 
-		sl_bool translateIncomingPacket(IPv4Packet* ipHeader, void* ipContent, sl_uint32 sizeContent);
+		sl_bool translateIncomingPacket(IPv4Packet* header, void* content, sl_uint32 sizeContent, sl_uint64 currentTick);
 
 		sl_uint16 getMappedIcmpEchoSequenceNumber(const IcmpEchoAddress& address);
 
 	protected:
-		NatTableParam m_param;
-
 		NatTableMapping m_mappingTcp;
-
 		NatTableMapping m_mappingUdp;
 
+		IPv4Address m_targetAddress;
+		sl_uint32 m_icmpEchoIdentifier;
 		sl_uint16 m_icmpEchoSequenceCurrent;
+
+		IPv4Address m_tcpFragmentTable[0x10000];
+		IPv4Address m_udpFragmentTable[0x10000];
 
 		struct IcmpEchoElement
 		{
 			IcmpEchoAddress addressSource;
 			sl_uint16 sequenceNumberTarget;
 		};
-
 		CHashMap<IcmpEchoAddress, IcmpEchoElement> m_mapIcmpEchoOutgoing;
 		CHashMap<sl_uint32, IcmpEchoElement> m_mapIcmpEchoIncoming;
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,6 @@
 
 #include "slib/network/nat.h"
 
-#include "slib/system/system.h"
-#include "slib/core/new_helper.h"
-
 namespace slib
 {
 
@@ -44,8 +41,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(NatTable, Object)
-
 	NatTable::NatTable()
 	{
 		m_icmpEchoSequenceCurrent = 0;
@@ -55,206 +50,295 @@ namespace slib
 	{
 	}
 
-	const NatTableParam& NatTable::getParam() const
+	sl_bool NatTable::initialize(const NatTableParam& param)
 	{
-		return m_param;
-	}
-
-	void NatTable::setup(const NatTableParam& param)
-	{
-		ObjectLocker lock(this);
-		m_param = param;
-		m_mappingTcp.setup(param.tcpPortBegin, param.tcpPortEnd);
-		m_mappingUdp.setup(param.udpPortBegin, param.udpPortEnd);
-	}
-
-	sl_bool NatTable::translateOutgoingPacket(IPv4Packet* ipHeader, void* ipContent, sl_uint32 sizeContent)
-	{
-		IPv4Address addressTarget = m_param.targetAddress;
-		if (addressTarget.isZero()) {
+		if (m_targetAddress.isNotZero()) {
+			return sl_true;
+		}
+		if (param.targetAddress.isZero()) {
 			return sl_false;
 		}
-		InternetProtocol protocol = ipHeader->getProtocol();
+		if (!(m_mappingTcp.initialize(param.tcpPortBegin, param.tcpPortEnd))) {
+			return sl_false;
+		}
+		if (!(m_mappingUdp.initialize(param.udpPortBegin, param.udpPortEnd))) {
+			return sl_false;
+		}
+		m_targetAddress = param.targetAddress;
+		m_icmpEchoIdentifier = param.icmpEchoIdentifier;
+		return sl_true;
+	}
+
+	namespace
+	{
+		static sl_uint16 OneComplementMinus(sl_uint16 a, sl_uint16 b)
+		{
+			b = ~b;
+			sl_uint32 sum = a;
+			sum += b;
+			while (sum >> 16) {
+				sum = (sum >> 16) + (sum & 0xffff);
+			}
+			return sum;
+		}
+
+		static sl_uint16 GetUpdatedChecksum(sl_uint16 original, const IPv4Address& oldIP, const IPv4Address& newIP, sl_uint16 oldPort, sl_uint16 newPort)
+		{
+			sl_uint32 sum = (sl_uint16)(~original);
+			sum += (sl_uint16)(~SLIB_MAKE_WORD(oldIP.a, oldIP.b));
+			sum += (sl_uint16)(~SLIB_MAKE_WORD(oldIP.c, oldIP.d));
+			sum += SLIB_MAKE_WORD(newIP.a, newIP.b);
+			sum += SLIB_MAKE_WORD(newIP.c, newIP.d);
+			sum += (sl_uint16)(~oldPort);
+			sum += newPort;
+			while (sum >> 16) {
+				sum = (sum >> 16) + (sum & 0xffff);
+			}
+			return (sl_uint16)(~sum);
+		}
+	}
+
+	sl_bool NatTable::translateOutgoingPacket(IPv4Packet* header, void* content, sl_uint32 sizeContent, sl_uint64 currentTick)
+	{
+		InternetProtocol protocol = header->getProtocol();
 		if (protocol == InternetProtocol::TCP) {
-			TcpSegment* tcp = (TcpSegment*)(ipContent);
-			if (tcp->checkSize(sizeContent)) {
-				sl_uint16 targetPort;
-				if (m_mappingTcp.mapToExternalPort(SocketAddress(ipHeader->getSourceAddress(), tcp->getSourcePort()), targetPort)) {
-					tcp->setSourcePort(targetPort);
-					ipHeader->setSourceAddress(addressTarget);
-					tcp->updateChecksum(ipHeader, sizeContent);
-					ipHeader->updateChecksum();
-					return sl_true;
+			if (!(header->getFragmentOffset())) {
+				if (!(TcpSegment::checkSize(content, sizeContent))) {
+					return sl_false;
 				}
+				TcpSegment* tcp = (TcpSegment*)content;
+				sl_uint16 targetPort;
+				if (!(m_mappingTcp.mapToExternal(header->getSourceAddress(), tcp->getSourcePort(), targetPort, currentTick))) {
+					return sl_false;
+				}
+				tcp->setChecksum(GetUpdatedChecksum(tcp->getChecksum(), header->getSourceAddress(), m_targetAddress, tcp->getSourcePort(), targetPort));
+				tcp->setSourcePort(targetPort);
 			}
+			header->setSourceAddress(m_targetAddress);
+			header->updateChecksum();
+			return sl_true;
 		} else if (protocol == InternetProtocol::UDP) {
-			UdpDatagram* udp = (UdpDatagram*)(ipContent);
-			if (udp->checkSize(sizeContent)) {
-				sl_uint16 targetPort;
-				if (m_mappingUdp.mapToExternalPort(SocketAddress(ipHeader->getSourceAddress(), udp->getSourcePort()), targetPort)) {
-					udp->setSourcePort(targetPort);
-					ipHeader->setSourceAddress(addressTarget);
-					udp->updateChecksum(ipHeader);
-					ipHeader->updateChecksum();
-					return sl_true;
+			if (!(header->getFragmentOffset())) {
+				if (sizeContent < UdpDatagram::HeaderSize) {
+					return sl_false;
 				}
+				UdpDatagram* udp = (UdpDatagram*)content;
+				sl_uint16 targetPort;
+				if (!(m_mappingUdp.mapToExternal(header->getSourceAddress(), udp->getSourcePort(), targetPort, currentTick))) {
+					return sl_false;
+				}
+				udp->setChecksum(GetUpdatedChecksum(udp->getChecksum(), header->getSourceAddress(), m_targetAddress, udp->getSourcePort(), targetPort));
+				udp->setSourcePort(targetPort);
 			}
+			header->setSourceAddress(m_targetAddress);
+			header->updateChecksum();
+			return sl_true;
 		} else if (protocol == InternetProtocol::ICMP) {
-			IcmpHeaderFormat* icmp = (IcmpHeaderFormat*)(ipContent);
-			if (sizeContent >= sizeof(IcmpHeaderFormat)) {
-				IcmpType type = icmp->getType();
-				if (type == IcmpType::Echo) {
-					IcmpEchoAddress address;
-					address.ip = ipHeader->getSourceAddress();
-					address.identifier = icmp->getEchoIdentifier();
-					address.sequenceNumber = icmp->getEchoSequenceNumber();
-					sl_uint16 sn = getMappedIcmpEchoSequenceNumber(address);
-					icmp->setEchoIdentifier(m_param.icmpEchoIdentifier);
-					icmp->setEchoSequenceNumber(sn);
-					ipHeader->setSourceAddress(addressTarget);
-					icmp->updateChecksum(sizeContent);
-					ipHeader->updateChecksum();
-					return sl_true;
-				} else if (type == IcmpType::DestinationUnreachable || type == IcmpType::TimeExceeded) {
-					IPv4Packet* ipOrig = (IPv4Packet*)(icmp->getContent());
-					sl_uint32 sizeOrig = sizeContent - sizeof(IcmpHeaderFormat);
-					IPv4Address addressSrc = ipHeader->getSourceAddress();
-					if (IPv4Packet::checkHeaderSize(ipOrig, sizeOrig) && sizeOrig >= (sl_uint32)(ipOrig->getHeaderSize() + 8) && ipOrig->getDestinationAddress() == addressSrc) {
-						InternetProtocol protocolOrig = ipOrig->getProtocol();
-						if (protocolOrig == InternetProtocol::TCP) {
-							TcpSegment* tcp = (TcpSegment*)(ipOrig->getContent());
-							sl_uint16 targetPort;
-							if (m_mappingTcp.mapToExternalPort(SocketAddress(addressSrc, tcp->getDestinationPort()), targetPort)) {
-								ipOrig->setDestinationAddress(addressTarget);
-								tcp->setDestinationPort(targetPort);
-								tcp->setChecksum(0);
-								ipOrig->updateChecksum();
-								ipHeader->setSourceAddress(addressTarget);
-								icmp->updateChecksum(sizeContent);
-								ipHeader->updateChecksum();
-								return sl_true;
-							}
-						} else if (protocolOrig == InternetProtocol::UDP) {
-							UdpDatagram* udp = (UdpDatagram*)(ipOrig->getContent());
-							sl_uint16 targetPort;
-							if (m_mappingUdp.mapToExternalPort(SocketAddress(addressSrc, udp->getDestinationPort()), targetPort)) {
-								ipOrig->setDestinationAddress(addressTarget);
-								udp->setDestinationPort(targetPort);
-								udp->setChecksum(0);
-								ipOrig->updateChecksum();
-								ipHeader->setSourceAddress(addressTarget);
-								icmp->updateChecksum(sizeContent);
-								ipHeader->updateChecksum();
-								return sl_true;
-							}
-						}
+			if (header->getFragmentOffset() || header->isMF()) {
+				return sl_false;
+			}
+			if (sizeContent < sizeof(IcmpHeaderFormat)) {
+				return sl_false;
+			}
+			IcmpHeaderFormat* icmp = (IcmpHeaderFormat*)content;
+			IcmpType type = icmp->getType();
+			if (type == IcmpType::Echo) {
+				IcmpEchoAddress address;
+				address.ip = header->getSourceAddress();
+				address.identifier = icmp->getEchoIdentifier();
+				address.sequenceNumber = icmp->getEchoSequenceNumber();
+				sl_uint16 sn = getMappedIcmpEchoSequenceNumber(address);
+				icmp->setEchoIdentifier(m_icmpEchoIdentifier);
+				icmp->setEchoSequenceNumber(sn);
+				icmp->updateChecksum(sizeContent);
+				header->setSourceAddress(m_targetAddress);
+				header->updateChecksum();
+				return sl_true;
+			} else if (type == IcmpType::DestinationUnreachable || type == IcmpType::TimeExceeded) {
+				IPv4Packet* ipOrig = (IPv4Packet*)(icmp->getContent());
+				sl_uint32 sizeOrig = sizeContent - sizeof(IcmpHeaderFormat);
+				IPv4Address addressSrc = header->getSourceAddress();
+				if (!(IPv4Packet::checkHeaderSize(ipOrig, sizeOrig)) || sizeOrig < (sl_uint32)(ipOrig->getHeaderSize() + 8) || ipOrig->getDestinationAddress() != addressSrc) {
+					return sl_false;
+				}
+				InternetProtocol protocolOrig = ipOrig->getProtocol();
+				if (protocolOrig == InternetProtocol::TCP) {
+					TcpSegment* tcp = (TcpSegment*)(ipOrig->getContent());
+					sl_uint16 targetPort;
+					if (!(m_mappingTcp.mapToExternal(addressSrc, tcp->getDestinationPort(), targetPort, currentTick))) {
+						return sl_false;
 					}
+					tcp->setDestinationPort(targetPort);
+					tcp->setChecksum(0);
+					ipOrig->setDestinationAddress(m_targetAddress);
+					ipOrig->updateChecksum();
+					icmp->updateChecksum(sizeContent);
+					header->setSourceAddress(m_targetAddress);
+					header->updateChecksum();
+					return sl_true;
+				} else if (protocolOrig == InternetProtocol::UDP) {
+					UdpDatagram* udp = (UdpDatagram*)(ipOrig->getContent());
+					sl_uint16 targetPort;
+					if (!(m_mappingUdp.mapToExternal(addressSrc, udp->getDestinationPort(), targetPort, currentTick))) {
+						return sl_false;
+					}
+					udp->setDestinationPort(targetPort);
+					udp->setChecksum(0);
+					ipOrig->setDestinationAddress(m_targetAddress);
+					ipOrig->updateChecksum();
+					icmp->updateChecksum(sizeContent);
+					header->setSourceAddress(m_targetAddress);
+					header->updateChecksum();
+					return sl_true;
 				}
 			}
 		}
 		return sl_false;
 	}
 
-	sl_bool NatTable::translateIncomingPacket(IPv4Packet* ipHeader, void* ipContent, sl_uint32 sizeContent)
+	sl_bool NatTable::translateIncomingPacket(IPv4Packet* header, void* content, sl_uint32 sizeContent, sl_uint64 currentTick)
 	{
-		IPv4Address addressTarget = m_param.targetAddress;
-		if (addressTarget.isZero()) {
+		if (header->getDestinationAddress() != m_targetAddress) {
 			return sl_false;
 		}
-		if (ipHeader->getDestinationAddress() != addressTarget) {
-			return sl_false;
-		}
-		InternetProtocol protocol = ipHeader->getProtocol();
+		InternetProtocol protocol = header->getProtocol();
 		if (protocol == InternetProtocol::TCP) {
-			TcpSegment* tcp = (TcpSegment*)(ipContent);
-			if (tcp->checkSize(sizeContent)) {
-				SocketAddress addressSource;
-				if (m_mappingTcp.mapToInternalAddress(tcp->getDestinationPort(), addressSource)) {
-					ipHeader->setDestinationAddress(addressSource.ip.getIPv4());
-					tcp->setDestinationPort(addressSource.port);
-					tcp->updateChecksum(ipHeader, sizeContent);
-					ipHeader->updateChecksum();
-					return sl_true;
+			if (header->getFragmentOffset()) {
+				IPv4Address& ip = m_tcpFragmentTable[header->getIdentification()];
+				if (ip.isZero()) {
+					return sl_false;
+				}
+				header->setDestinationAddress(ip);
+				if (!(header->isMF())) {
+					ip.setZero();
+				}
+			} else {
+				if (!(TcpSegment::checkSize(content, sizeContent))) {
+					return sl_false;
+				}
+				TcpSegment* tcp = (TcpSegment*)content;
+				IPv4Address internalIP;
+				sl_uint16 internalPort;
+				if (!(m_mappingTcp.mapToInternal(tcp->getDestinationPort(), internalIP, internalPort, currentTick))) {
+					return sl_false;
+				}
+				tcp->setChecksum(GetUpdatedChecksum(tcp->getChecksum(), header->getDestinationAddress(), internalIP, tcp->getDestinationPort(), internalPort));
+				tcp->setDestinationPort(internalPort);
+				header->setDestinationAddress(internalIP);
+				if (header->isMF()) {
+					m_tcpFragmentTable[header->getIdentification()] = internalIP;
 				}
 			}
+			header->updateChecksum();
+			return sl_true;
 		} else if (protocol == InternetProtocol::UDP) {
-			UdpDatagram* udp = (UdpDatagram*)(ipHeader->getContent());
-			if (udp->checkSize(sizeContent)) {
-				SocketAddress addressSource;
-				if (m_mappingUdp.mapToInternalAddress(udp->getDestinationPort(), addressSource)) {
-					ipHeader->setDestinationAddress(addressSource.ip.getIPv4());
-					udp->setDestinationPort(addressSource.port);
-					udp->updateChecksum(ipHeader);
-					ipHeader->updateChecksum();
-					return sl_true;
+			if (header->getFragmentOffset()) {
+				IPv4Address& ip = m_udpFragmentTable[header->getIdentification()];
+				if (ip.isZero()) {
+					return sl_false;
+				}
+				header->setDestinationAddress(ip);
+				if (!(header->isMF())) {
+					ip.setZero();
+				}
+			} else {
+				if (sizeContent < UdpDatagram::HeaderSize) {
+					return sl_false;
+				}
+				UdpDatagram* udp = (UdpDatagram*)content;
+				IPv4Address internalIP;
+				sl_uint16 internalPort;
+				if (!(m_mappingUdp.mapToInternal(udp->getDestinationPort(), internalIP, internalPort, currentTick))) {
+					return sl_false;
+				}
+				udp->setChecksum(GetUpdatedChecksum(udp->getChecksum(), header->getDestinationAddress(), internalIP, udp->getDestinationPort(), internalPort));
+				udp->setDestinationPort(internalPort);
+				header->setDestinationAddress(internalIP);
+				if (header->isMF()) {
+					m_udpFragmentTable[header->getIdentification()] = internalIP;
 				}
 			}
+			header->updateChecksum();
+			return sl_true;
 		} else if (protocol == InternetProtocol::ICMP) {
-			IcmpHeaderFormat* icmp = (IcmpHeaderFormat*)(ipContent);
-			if (sizeContent >= sizeof(IcmpHeaderFormat)) {
-				IcmpType type = icmp->getType();
-				if (type == IcmpType::EchoReply) {
-					if (icmp->getEchoIdentifier() == m_param.icmpEchoIdentifier) {
-						IcmpEchoElement element;
-						if (m_mapIcmpEchoIncoming.get(icmp->getEchoSequenceNumber(), &element)) {
-							ipHeader->setDestinationAddress(element.addressSource.ip);
-							icmp->setEchoIdentifier(element.addressSource.identifier);
-							icmp->setEchoSequenceNumber(element.addressSource.sequenceNumber);
-							icmp->updateChecksum(sizeContent);
-							ipHeader->updateChecksum();
-							return sl_true;
-						}
+			if (header->getFragmentOffset() || header->isMF()) {
+				return sl_false;
+			}
+			if (sizeContent < sizeof(IcmpHeaderFormat)) {
+				return sl_false;
+			}
+			IcmpHeaderFormat* icmp = (IcmpHeaderFormat*)content;
+			IcmpType type = icmp->getType();
+			if (type == IcmpType::EchoReply) {
+				if (icmp->getEchoIdentifier() != m_icmpEchoIdentifier) {
+					return sl_false;
+				}
+				IcmpEchoElement element;
+				if (!(m_mapIcmpEchoIncoming.get_NoLock(icmp->getEchoSequenceNumber(), &element))) {
+					return sl_false;
+				}
+				icmp->setEchoIdentifier(element.addressSource.identifier);
+				icmp->setEchoSequenceNumber(element.addressSource.sequenceNumber);
+				icmp->updateChecksum(sizeContent);
+				header->setDestinationAddress(element.addressSource.ip);
+				header->updateChecksum();
+				return sl_true;
+			} else if (type == IcmpType::DestinationUnreachable || type == IcmpType::TimeExceeded) {
+				IPv4Packet* ipOrig = (IPv4Packet*)(icmp->getContent());
+				sl_uint32 sizeOrig = sizeContent - sizeof(IcmpHeaderFormat);
+				if (!(IPv4Packet::checkHeaderSize(ipOrig, sizeOrig)) || sizeOrig < (sl_uint32)(ipOrig->getHeaderSize() + 8) || ipOrig->getSourceAddress() != m_targetAddress) {
+					return sl_false;
+				}
+				InternetProtocol protocolOrig = ipOrig->getProtocol();
+				if (protocolOrig == InternetProtocol::TCP) {
+					TcpSegment* tcp = (TcpSegment*)(ipOrig->getContent());
+					IPv4Address internalIP;
+					sl_uint16 internalPort;
+					if (!(m_mappingTcp.mapToInternal(tcp->getSourcePort(), internalIP, internalPort, currentTick))) {
+						return sl_false;
 					}
-				} else if (type == IcmpType::DestinationUnreachable || type == IcmpType::TimeExceeded) {
-					IPv4Packet* ipOrig = (IPv4Packet*)(icmp->getContent());
-					sl_uint32 sizeOrig = sizeContent - sizeof(IcmpHeaderFormat);
-					if (IPv4Packet::checkHeaderSize(ipOrig, sizeOrig) && sizeOrig >= (sl_uint32)(ipOrig->getHeaderSize() + 8) && ipOrig->getSourceAddress() == addressTarget) {
-						InternetProtocol protocolOrig = ipOrig->getProtocol();
-						if (protocolOrig == InternetProtocol::TCP) {
-							TcpSegment* tcp = (TcpSegment*)(ipOrig->getContent());
-							SocketAddress addressSource;
-							if (m_mappingTcp.mapToInternalAddress(tcp->getSourcePort(), addressSource)) {
-								ipOrig->setSourceAddress(addressSource.ip.getIPv4());
-								tcp->setSourcePort(addressSource.port);
-								tcp->setChecksum(0);
-								ipOrig->updateChecksum();
-								ipHeader->setDestinationAddress(addressSource.ip.getIPv4());
-								icmp->updateChecksum(sizeContent);
-								ipHeader->updateChecksum();
-								return sl_true;
-							}
-						} else if (protocolOrig == InternetProtocol::UDP) {
-							UdpDatagram* udp = (UdpDatagram*)(ipOrig->getContent());
-							SocketAddress addressSource;
-							if (m_mappingUdp.mapToInternalAddress(udp->getSourcePort(), addressSource)) {
-								ipOrig->setSourceAddress(addressSource.ip.getIPv4());
-								udp->setSourcePort(addressSource.port);
-								udp->setChecksum(0);
-								ipOrig->updateChecksum();
-								ipHeader->setDestinationAddress(addressSource.ip.getIPv4());
-								icmp->updateChecksum(sizeContent);
-								ipHeader->updateChecksum();
-								return sl_true;
-							}
-						} else if (protocolOrig == InternetProtocol::ICMP) {
-							IcmpHeaderFormat* icmpOrig = (IcmpHeaderFormat*)(ipOrig->getContent());
-							if (icmpOrig->getType() == IcmpType::Echo) {
-								if (icmpOrig->getEchoIdentifier() == m_param.icmpEchoIdentifier) {
-									IcmpEchoElement element;
-									if (m_mapIcmpEchoIncoming.get(icmp->getEchoSequenceNumber(), &element)) {
-										ipOrig->setSourceAddress(element.addressSource.ip);
-										icmpOrig->setEchoIdentifier(element.addressSource.identifier);
-										icmpOrig->setEchoSequenceNumber(element.addressSource.sequenceNumber);
-										icmpOrig->setChecksum(0);
-										ipOrig->updateChecksum();
-										ipHeader->setDestinationAddress(element.addressSource.ip);
-										icmp->updateChecksum(sizeContent);
-										ipHeader->updateChecksum();
-										return sl_true;
-									}
-								}
-							}
+					tcp->setSourcePort(internalPort);
+					tcp->setChecksum(0);
+					ipOrig->setSourceAddress(internalIP);
+					ipOrig->updateChecksum();
+					icmp->updateChecksum(sizeContent);
+					header->setDestinationAddress(internalIP);
+					header->updateChecksum();
+					return sl_true;
+				} else if (protocolOrig == InternetProtocol::UDP) {
+					UdpDatagram* udp = (UdpDatagram*)(ipOrig->getContent());
+					IPv4Address internalIP;
+					sl_uint16 internalPort;
+					if (!(m_mappingUdp.mapToInternal(udp->getSourcePort(), internalIP, internalPort, currentTick))) {
+						return sl_false;
+					}
+					udp->setSourcePort(internalPort);
+					udp->setChecksum(0);
+					ipOrig->setSourceAddress(internalIP);
+					ipOrig->updateChecksum();
+					icmp->updateChecksum(sizeContent);
+					header->setDestinationAddress(internalIP);
+					header->updateChecksum();
+					return sl_true;
+				} else if (protocolOrig == InternetProtocol::ICMP) {
+					IcmpHeaderFormat* icmpOrig = (IcmpHeaderFormat*)(ipOrig->getContent());
+					if (icmpOrig->getType() == IcmpType::Echo) {
+						if (icmpOrig->getEchoIdentifier() != m_icmpEchoIdentifier) {
+							return sl_false;
 						}
+						IcmpEchoElement element;
+						if (!(m_mapIcmpEchoIncoming.get_NoLock(icmp->getEchoSequenceNumber(), &element))) {
+							return sl_false;
+						}
+						icmpOrig->setEchoIdentifier(element.addressSource.identifier);
+						icmpOrig->setEchoSequenceNumber(element.addressSource.sequenceNumber);
+						icmpOrig->setChecksum(0);
+						ipOrig->setSourceAddress(element.addressSource.ip);
+						ipOrig->updateChecksum();
+						icmp->updateChecksum(sizeContent);
+						header->setDestinationAddress(element.addressSource.ip);
+						header->updateChecksum();
+						return sl_true;
 					}
 				}
 			}
@@ -265,26 +349,18 @@ namespace slib
 	sl_uint16 NatTable::getMappedIcmpEchoSequenceNumber(const IcmpEchoAddress& address)
 	{
 		IcmpEchoElement element;
-		if (m_mapIcmpEchoOutgoing.get(address, &element)) {
+		if (m_mapIcmpEchoOutgoing.get_NoLock(address, &element)) {
 			return element.sequenceNumberTarget;
 		}
 		sl_uint16 sn = ++ m_icmpEchoSequenceCurrent;
-		if (m_mapIcmpEchoIncoming.get(sn, &element)) {
-			m_mapIcmpEchoOutgoing.removeItems(element.addressSource);
+		if (m_mapIcmpEchoIncoming.get_NoLock(sn, &element)) {
+			m_mapIcmpEchoOutgoing.remove_NoLock(element.addressSource);
 		}
 		element.addressSource = address;
 		element.sequenceNumberTarget = sn;
-		m_mapIcmpEchoOutgoing.put(address, element);
-		m_mapIcmpEchoIncoming.put(sn, element);
+		m_mapIcmpEchoOutgoing.put_NoLock(address, element);
+		m_mapIcmpEchoIncoming.put_NoLock(sn, element);
 		return sn;
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(NatTablePort)
-
-	NatTablePort::NatTablePort()
-	{
-		flagActive = sl_false;
 	}
 
 
@@ -300,84 +376,78 @@ namespace slib
 
 	NatTableMapping::~NatTableMapping()
 	{
-		NewHelper<NatTablePort>::free(m_ports, m_nPorts);
+		if (m_ports) {
+			Base::freeMemory(m_ports);
+		}
 	}
 
-	void NatTableMapping::setup(sl_uint16 portBegin, sl_uint16 portEnd)
+	sl_bool NatTableMapping::initialize(sl_uint16 portBegin, sl_uint16 portEnd)
 	{
-		ObjectLocker lock(this);
-
-		m_mapPorts.removeAll_NoLock();
-
 		if (m_ports) {
-			NewHelper<NatTablePort>::free(m_ports, m_nPorts);
-			m_ports = sl_null;
+			return sl_true;
 		}
-		m_pos = 0;
-		m_nPorts = 0;
-
+		if (portEnd < portBegin) {
+			return sl_false;
+		}
 		m_portBegin = portBegin;
 		m_portEnd = portEnd;
-		if (portEnd >= portBegin) {
-			m_nPorts = portEnd - portBegin + 1;
-			m_ports = NewHelper<NatTablePort>::create(m_nPorts);
+		m_nPorts = portEnd - portBegin + 1;
+		sl_size size = sizeof(NatTablePort) * m_nPorts;
+		m_ports = (NatTablePort*)(Base::createZeroMemory(size));
+		return m_ports != sl_null;
+	}
+
+	namespace
+	{
+		static sl_uint64 GetAddressKey(const IPv4Address& ip, sl_uint16 port)
+		{
+			sl_uint64 n = ip.toInt();
+			return (n << 16) | port;
 		}
 	}
 
-	sl_bool NatTableMapping::mapToExternalPort(const SocketAddress& address, sl_uint16& _port)
+	sl_bool NatTableMapping::mapToExternal(const IPv4Address& internalIP, sl_uint16 internalPort, sl_uint16& externalPort, sl_uint64 currentTick)
 	{
-		ObjectLocker lock(this);
-
-		if (!m_ports) {
-			return sl_false;
+		sl_uint64 key = GetAddressKey(internalIP, internalPort);
+		if (m_mapTranslation.get_NoLock(key, &externalPort)) {
+			m_ports[externalPort - m_portBegin].lastAccessTick = currentTick;
+			return sl_true;
 		}
-		sl_uint32 n = m_nPorts;
-		if (!n) {
-			return sl_false;
-		}
-
-		sl_uint16 port;
-		if (m_mapPorts.get_NoLock(address, &port)) {
-			if (port >= m_portBegin && port <= m_portEnd) {
-				m_ports[port - m_portBegin].timeLastAccess = System::getTickCount64();
-				_port = port;
-				return sl_true;
-			} else {
-				m_mapPorts.remove_NoLock(address);
-			}
-		}
-
 		sl_uint16 pos = m_pos;
-		n *= 2;
 		sl_uint64 timeAccessMin = 0;
 		sl_uint64 timeAccessMax = 0;
+		sl_uint32 n = m_nPorts << 1;
 		for (sl_uint32 i = 0; i < n; i++) {
-			if (!(m_ports[pos].flagActive)) {
-				port = pos + m_portBegin;
-				m_ports[pos].flagActive = sl_true;
-				m_ports[pos].addressSource = address;
-				m_ports[pos].timeLastAccess = System::getTickCount64();
-				m_mapPorts.put_NoLock(address, port);
-				_port = port;
-				m_pos = (pos + 1) % m_nPorts;
-				return sl_true;
-			} else {
-				sl_uint64 t = m_ports[pos].timeLastAccess;
-				if (t > timeAccessMax) {
-					timeAccessMax = t;
-				}
-				if (!timeAccessMin || t < timeAccessMin) {
-					timeAccessMin = t;
+			{
+				NatTablePort& port = m_ports[pos];
+				if (!(port.flagActive)) {
+					externalPort = pos + m_portBegin;
+					port.flagActive = sl_true;
+					port.sourceIP = internalIP.toInt();
+					port.sourcePort = internalPort;
+					port.lastAccessTick = currentTick;
+					m_mapTranslation.put_NoLock(key, externalPort);
+					m_pos = (pos + 1) % m_nPorts;
+					return sl_true;
+				} else {
+					sl_uint64 t = port.lastAccessTick;
+					if (t > timeAccessMax) {
+						timeAccessMax = t;
+					}
+					if (!timeAccessMin || t < timeAccessMin) {
+						timeAccessMin = t;
+					}
 				}
 			}
 			pos = (pos + 1) % m_nPorts;
 			if (i == m_nPorts) {
 				sl_uint64 mid = (timeAccessMin + timeAccessMax) / 2;
 				for (sl_uint16 k = 0; k < m_nPorts; k++) {
-					if (m_ports[k].flagActive) {
-						if (m_ports[k].timeLastAccess <= mid) {
-							m_ports[k].flagActive = sl_false;
-							m_mapPorts.remove_NoLock(m_ports[k].addressSource);
+					NatTablePort& port = m_ports[k];
+					if (port.flagActive) {
+						if (port.lastAccessTick <= mid) {
+							port.flagActive = sl_false;
+							m_mapTranslation.remove_NoLock(GetAddressKey(port.sourceIP, port.sourcePort));
 						}
 					}
 				}
@@ -386,20 +456,15 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool NatTableMapping::mapToInternalAddress(sl_uint16 port, SocketAddress& address)
+	sl_bool NatTableMapping::mapToInternal(sl_uint16 externalPort, IPv4Address& internalIP, sl_uint16& internalPort, sl_uint64 currentTick)
 	{
-		ObjectLocker lock(this);
-		if (!m_ports) {
-			return sl_false;
-		}
-		if (!m_nPorts) {
-			return sl_false;
-		}
-		if (port >= m_portBegin && port <= m_portEnd) {
-			sl_uint32 k = port - m_portBegin;
-			if (m_ports[k].flagActive) {
-				m_ports[k].timeLastAccess = System::getTickCount64();
-				address = m_ports[k].addressSource;
+		if (externalPort >= m_portBegin && externalPort <= m_portEnd) {
+			sl_uint32 k = externalPort - m_portBegin;
+			NatTablePort& port = m_ports[k];
+			if (port.flagActive) {
+				port.lastAccessTick = currentTick;
+				internalIP = port.sourceIP;
+				internalPort = port.sourcePort;
 				return sl_true;
 			}
 		}

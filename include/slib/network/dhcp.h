@@ -242,6 +242,7 @@ namespace slib
 	{
 	public:
 		String bindDevice;
+		IPAddress bindAddress;
 		sl_uint16 port;
 
 		Ref<AsyncIoLoop> ioLoop;

@@ -747,19 +747,13 @@ namespace slib
 		}
 
 	public:
-		sl_bool checkSize(sl_size sizeTcp) const;
+		static sl_bool checkSize(const void* tcp, sl_size sizeTcp);
 
 		void updateChecksum(const IPv4Packet* ipv4, sl_size sizeTcp);
 
 		sl_bool checkChecksum(const IPv4Packet* ipv4, sl_size sizeTcp) const;
 
-		sl_bool check(IPv4Packet* ip, sl_size sizeTcp) const;
-
-		void updateChecksum(const IPv6Packet* ipv4, sl_size sizeTcp);
-
-		sl_bool checkChecksum(const IPv6Packet* ipv4, sl_size sizeTcp) const;
-
-		sl_bool check(IPv6Packet* ip, sl_size sizeTcp) const;
+		static sl_bool check(IPv4Packet* ip, const void* tcp, sl_size sizeTcp);
 
 	private:
 		sl_uint8 _sourcePort[2];
@@ -846,19 +840,11 @@ namespace slib
 		}
 
 	public:
-		sl_bool checkSize(sl_size sizeUdp) const;
-
 		void updateChecksum(const IPv4Packet* ipv4);
 
 		sl_bool checkChecksum(const IPv4Packet* ipv4) const;
 
-		sl_bool check(IPv4Packet* ipv4, sl_size sizeUdp) const;
-
-		void updateChecksum(const IPv6Packet* ipv6);
-
-		sl_bool checkChecksum(const IPv6Packet* ipv6) const;
-
-		sl_bool check(IPv6Packet* ipv6, sl_size sizeUdp) const;
+		static sl_bool check(IPv4Packet* ipv4, const void* udp, sl_size sizeUdp);
 
 	private:
 		sl_uint8 _sourcePort[2];

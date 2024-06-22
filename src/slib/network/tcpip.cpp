@@ -206,12 +206,13 @@ namespace slib
 	}
 
 
-	sl_bool TcpSegment::checkSize(sl_size sizeTcp) const
+	sl_bool TcpSegment::checkSize(const void* _tcp, sl_size sizeTcp)
 	{
 		if (sizeTcp < HeaderSizeBeforeOptions) {
 			return sl_false;
 		}
-		if (sizeTcp < getHeaderSize()) {
+		TcpSegment* tcp = (TcpSegment*)_tcp;
+		if (tcp->getHeaderSize() > sizeTcp) {
 			return sl_false;
 		}
 		return sl_true;
@@ -231,22 +232,15 @@ namespace slib
 		return checksum == 0;
 	}
 
-	sl_bool TcpSegment::check(IPv4Packet* ip, sl_size sizeTcp) const
+	sl_bool TcpSegment::check(IPv4Packet* ip, const void* _tcp, sl_size sizeTcp)
 	{
-		return checkSize(sizeTcp) && checkChecksum(ip, sizeTcp);
-	}
-
-
-	sl_bool UdpDatagram::checkSize(sl_size sizeUdp) const
-	{
-		if (sizeUdp < HeaderSize) {
+		if (!(checkSize(_tcp, sizeTcp))) {
 			return sl_false;
 		}
-		if (sizeUdp != getTotalSize()) {
-			return sl_false;
-		}
-		return sl_true;
+		TcpSegment* tcp = (TcpSegment*)_tcp;
+		return tcp->checkChecksum(ip, sizeTcp);
 	}
+
 
 	void UdpDatagram::updateChecksum(const IPv4Packet* ipv4)
 	{
@@ -268,9 +262,16 @@ namespace slib
 		return !checksum || checksum == 0xFFFF;
 	}
 
-	sl_bool UdpDatagram::check(IPv4Packet* ip, sl_size sizeUdp) const
+	sl_bool UdpDatagram::check(IPv4Packet* ip, const void* _udp, sl_size sizeUdp)
 	{
-		return checkSize(sizeUdp) && checkChecksum(ip);
+		if (sizeUdp < HeaderSize) {
+			return sl_false;
+		}
+		UdpDatagram* udp = (UdpDatagram*)_udp;
+		if (sizeUdp != udp->getTotalSize()) {
+			return sl_false;
+		}
+		return udp->checkChecksum(ip);
 	}
 
 
@@ -449,7 +450,7 @@ namespace slib
 		sl_uint8 sizeHeader = header->getHeaderSize();
 		sl_uint16 sizeContent = header->getContentSize();
 
-		if (sizeContent == 0) {
+		if (!sizeContent) {
 			return sl_null;
 		}
 		if (sizeHeader + 8 > mtu) {

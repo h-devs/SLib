@@ -209,6 +209,7 @@ namespace slib
 			AsyncUdpSocketParam up;
 			up.ioLoop = param.ioLoop;
 			up.bindDevice = param.bindDevice;
+			up.bindAddress.ip = param.bindAddress;
 			up.bindAddress.port = param.port;
 			up.onReceiveFrom = SLIB_FUNCTION_WEAKREF(ret, _onReceiveFrom);
 			up.packetSize = 4096;
