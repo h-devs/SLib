@@ -328,6 +328,11 @@ namespace slib
 #endif
 	}
 
+	sl_int32 System::execute(const StringParam& command, sl_bool flagHideWindow)
+	{
+		return execute(command);
+	}
+
 	void System::assert(const StringParam& _msg, const StringParam& _file, sl_uint32 line)
 	{
 #if defined(SLIB_DEBUG)

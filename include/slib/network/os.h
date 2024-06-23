@@ -69,6 +69,23 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT NetworkSetAddressParam
+	{
+	public:
+		sl_uint32 index; // Interface index
+		IPv4Address address;
+		IPv4Address subnetMask;
+		IPv4Address gateway;
+		IPv4Address dns1;
+		IPv4Address dns2;
+
+	public:
+		NetworkSetAddressParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(NetworkSetAddressParam)
+
+	};
+
 	class SLIB_EXPORT Network
 	{
 	public:
@@ -103,6 +120,8 @@ namespace slib
 
 		static IPv6Address getIPv6AddressFromHostName(const StringParam& hostName);
 
+
+		static sl_bool setAddress(const NetworkSetAddressParam& param);
 
 		static IPv4Address getDefaultGateway(const StringParam& interfaceName);
 

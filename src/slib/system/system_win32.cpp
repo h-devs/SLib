@@ -603,6 +603,13 @@ namespace slib
 		return (sl_int32)(_wsystem((WCHAR*)(command.getData())));
 	}
 
+	sl_int32 System::execute(const StringParam& _command, sl_bool flagHideWindow)
+	{
+		StringCstr command(_command);
+		UINT ret = WinExec(command.getData(), flagHideWindow ? SW_HIDE : SW_SHOW);
+		return ret >= 32 ? 0 : -1;
+	}
+
 	void System::assert(const StringParam& _msg, const StringParam& _file, sl_uint32 line)
 	{
 #if defined(SLIB_DEBUG)

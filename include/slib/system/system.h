@@ -142,6 +142,8 @@ namespace slib
 
 		static sl_int32 execute(const StringParam& command);
 
+		static sl_int32 execute(const StringParam& command, sl_bool flagHideWindow);
+
 		static void assert(const StringParam& msg, const StringParam& file, sl_uint32 line);
 
 		static void setCrashHandler(SIGNAL_HANDLER handler);

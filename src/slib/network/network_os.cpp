@@ -44,6 +44,12 @@ namespace slib
 	{
 	}
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(NetworkSetAddressParam)
+
+	NetworkSetAddressParam::NetworkSetAddressParam(): index(0)
+	{
+	}
+
 
 	List<IPv4Address> Network::findAllIPv4Addresses()
 	{
@@ -566,7 +572,36 @@ namespace slib
 		}
 		return IPv6Address::zero();
 	}
+}
 
+#include "slib/system/system.h"
+#include "slib/system/process.h"
+
+namespace slib
+{
+	sl_bool Network::setAddress(const NetworkSetAddressParam& param)
+	{
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		if (!(Process::isCurrentProcessAdmin())) {
+			return sl_false;
+		}
+		SLIB_STATIC_STRING(strNone, "none")
+		System::execute(String::format("netsh interface ipv4 set address %s static %s %s %s", param.index, param.address.toString(), param.subnetMask.toString(), param.gateway.isNotZero() ? param.gateway.toString() : strNone), sl_true);
+		IPv4Address dns1 = param.dns1;
+		IPv4Address dns2 = param.dns2;
+		if (dns1.isZero()) {
+			dns1 = dns2;
+			dns2.setZero();
+		}
+		System::execute(String::format("netsh interface ipv4 set dnsservers %s static %s validate=no", param.index, dns1.isNotZero() ? dns1.toString() : strNone), sl_true);
+		if (dns2.isNotZero()) {
+			System::execute(String::format("netsh interface ipv4 add dnsservers %s %s validate=no", param.index, dns2.toString()), sl_true);
+		}
+		return sl_true;
+#else
+		return sl_false;
+#endif
+	}
 }
 
 #if defined(SLIB_PLATFORM_IS_APPLE) || defined(SLIB_PLATFORM_IS_FREEBSD)
