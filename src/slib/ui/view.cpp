@@ -378,6 +378,7 @@ namespace slib
 		contentShape(BoundShape::None),
 		contentRadius(5, 5),
 
+		fontSizeWeight(-1),
 		alpha(1),
 
 		shadowOpacity(0),
@@ -6167,6 +6168,39 @@ namespace slib
 		setFont(Font::create(fontFamily, getFont()), mode);
 	}
 
+	sl_real View::getFontSizeWeight()
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->fontSizeWeight;
+		}
+		return -1.0f;
+	}
+
+	void View::setFontSizeWeight(sl_real weight, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->fontSizeWeight = weight;
+			if (weight > 0) {
+				_applyFontSizeWeight(weight, mode);
+			}
+		}
+	}
+
+	void View::_applyFontSizeWeight(sl_real weight, UIUpdateMode mode)
+	{
+		if (isHeightWrapping()) {
+			return;
+		}
+		sl_real size = (sl_real)(getHeight() * weight);
+		if (Math::isAlmostZero(size - getFontSize())) {
+			return;
+		}
+		setFontSize(size, mode);
+	}
+
 	sl_bool View::isUsingFont()
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
@@ -10536,6 +10570,12 @@ namespace slib
 	void View::handleResize(sl_ui_len width, sl_ui_len height)
 	{
 		refreshScroll(UIUpdateMode::None);
+		Ref<DrawAttributes>& drawAttrs = m_drawAttrs;
+		if (drawAttrs.isNotNull()) {
+			if (drawAttrs->fontSizeWeight > 0) {
+				_applyFontSizeWeight(drawAttrs->fontSizeWeight, UIUpdateMode::UpdateLayout);
+			}
+		}
 		invokeResize(width, height);
 		Ref<View> parent = m_parent;
 		if (parent.isNotNull()) {

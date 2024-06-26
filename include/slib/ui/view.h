@@ -910,6 +910,10 @@ namespace slib
 
 		void setFontFamily(const String& fontFamily, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
+		sl_real getFontSizeWeight();
+
+		void setFontSizeWeight(sl_real weight = 1.0f, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
 		sl_bool isUsingFont();
 
 		void setUsingFont(sl_bool flag = sl_true);
@@ -1643,6 +1647,8 @@ namespace slib
 		void _setFontInvalidateChildren(const Ref<Font>& font);
 
 		void _setInstanceFont(const Ref<Font>& font);
+
+		void _applyFontSizeWeight(sl_real weight, UIUpdateMode mode);
 
 		void _setInstancePadding();
 

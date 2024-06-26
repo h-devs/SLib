@@ -191,6 +191,7 @@ namespace slib
 		ViewStateMap<Color> paddingColors;
 
 		AtomicRef<Font> font;
+		sl_real fontSizeWeight;
 		sl_real alpha;
 		Color colorKey;
 

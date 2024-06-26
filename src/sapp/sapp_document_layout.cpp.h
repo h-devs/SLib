@@ -205,6 +205,7 @@ namespace slib
 			}
 		}
 		layout->name = name;
+		layout->localNamespace = localNamespace;
 
 		if (!(_parseLayoutResourceItem(layout.get(), layout.get(), sl_null, source))) {
 			return sl_null;
@@ -221,7 +222,7 @@ namespace slib
 	Ref<SAppLayoutResource> SAppDocument::_openLayoutResource(SAppLayoutResource* parent, const String& name)
 	{
 		Ref<SAppLayoutResource> ret;
-		getItemFromMap(m_layouts, parent->name, name, sl_null, &ret);
+		getItemFromMap(m_layouts, parent->localNamespace, name, sl_null, &ret);
 		if (ret.isNotNull()) {
 			return ret;
 		}
@@ -257,7 +258,7 @@ namespace slib
 		if (element.isNull()) {
 			return sl_false;
 		}
-		if (!(_parseStyleAttribute(layout->name, item))) {
+		if (!(_parseStyleAttribute(layout->localNamespace, item))) {
 			return sl_false;
 		}
 
@@ -1258,14 +1259,14 @@ namespace slib
 				return sl_true;
 			}
 			List< Ref<XmlElement> > children;
-			if (!(_getXmlChildElements(children, params->resource->name, resourceItem, sl_null))) {
+			if (!(_getXmlChildElements(children, params->resource->localNamespace, resourceItem, sl_null))) {
 				return sl_false;
 			}
 			for (auto&& child : children) {
 				String tagName = child->getName();
 				if (tagName == "layout") {
 					if (resourceType != SAppLayoutItemType::LinearIterate && resourceType != SAppLayoutItemType::TileIterate && resourceType != SAppLayoutItemType::List && resourceType != SAppLayoutItemType::Collection) {
-						Ref<SAppLayoutResource> childLayout = _parseLayoutResource(params->resource->filePath, params->resource->name, child, params->source, params->resource, sl_null);
+						Ref<SAppLayoutResource> childLayout = _parseLayoutResource(params->resource->filePath, params->resource->localNamespace, child, params->source, params->resource, sl_null);
 						if (childLayout.isNull()) {
 							return sl_false;
 						}
@@ -1430,13 +1431,13 @@ namespace slib
 
 #define LAYOUT_CONTROL_DEFINE_XML(NAME, ...) \
 	SAppLayoutXmlItem NAME(__VA_ARGS__); \
-	if (!(_parseStyleAttribute(resource->name, &NAME))) { \
+	if (!(_parseStyleAttribute(resource->localNamespace, &NAME))) { \
 		return sl_false; \
 	}
 
 #define LAYOUT_CONTROL_DEFINE_XML_CHILDREN(NAME, XML, TAG_NAME) \
 	List< Ref<XmlElement> > _##NAME; \
-	if (!(_getXmlChildElements(_##NAME, resource->name, &XML, TAG_NAME))) { \
+	if (!(_getXmlChildElements(_##NAME, resource->localNamespace, &XML, TAG_NAME))) { \
 		return sl_false; \
 	} \
 	ListElements< Ref<XmlElement> > NAME(_##NAME);
@@ -1643,14 +1644,14 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_STRING(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.isDefinedDataAccess()) { \
 		String value; \
-		if (!(_getStringDataAccessString(resource->name, VAR, value))) { \
+		if (!(_getStringDataAccessString(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		params->sbDefineSetData->add(String::format("%s%s->" #SETFUNC "(%s" SET_DATA_MODE_##CATEGORY(", mode") ");%n", strTab, name, value)); \
 	} \
 	if (VAR.flagDefined) { \
 		String value; \
-		if (!(_getStringAccessString(resource->name, VAR, value))) { \
+		if (!(_getStringAccessString(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
@@ -1658,7 +1659,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_STRING(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined && op == SAppLayoutOperation::SimulateInit) { \
 		String value; \
-		if (!(_getStringValue(resource->name, VAR, value))) { \
+		if (!(_getStringValue(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
@@ -1668,14 +1669,14 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_DRAWABLE(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.isDefinedDataAccess()) { \
 		String value; \
-		if (!(_getDrawableDataAccessString(resource->name, VAR, value))) { \
+		if (!(_getDrawableDataAccessString(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		params->sbDefineSetData->add(String::format("%s%s->" #SETFUNC "(%s, mode);%n", strTab, name, value)); \
 	} \
 	if (VAR.flagDefined) { \
 		String value; \
-		if (!(_getDrawableAccessString(resource->name, VAR, value))) { \
+		if (!(_getDrawableAccessString(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
@@ -1683,7 +1684,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_DRAWABLE(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined && LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR)) { \
 		Ref<Drawable> value; \
-		if (!(_getDrawableValue(resource->name, VAR, value))) { \
+		if (!(_getDrawableValue(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		if (op == SAppLayoutOperation::SimulateLayout) { \
@@ -1697,14 +1698,14 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_COLOR(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.isDefinedDataAccess()) { \
 		String value; \
-		if (!(_getColorDataAccessString(resource->name, VAR, value))) { \
+		if (!(_getColorDataAccessString(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		params->sbDefineSetData->add(String::format("%s%s->" #SETFUNC "(%s, mode);%n", strTab, name, value)); \
 	} \
 	if (VAR.flagDefined) { \
 		String value; \
-		if (!(_getColorAccessString(resource->name, VAR, value))) { \
+		if (!(_getColorAccessString(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
@@ -1712,7 +1713,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_COLOR(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined && op == SAppLayoutOperation::SimulateInit) { \
 		Color value; \
-		if (!(_getColorValue(resource->name, VAR, value))) { \
+		if (!(_getColorValue(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
@@ -1725,7 +1726,7 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_FONT(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		String value; \
-		if (!(_getFontAccessString(resource->name, VAR, value))) { \
+		if (!(_getFontAccessString(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		if (VAR.size.isNeededOnLayoutFunction()) { \
@@ -1737,7 +1738,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_FONT(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined && LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR.size)) { \
 		Ref<Font> value; \
-		if (!(_getFontValue(resource->name, VAR, value))) { \
+		if (!(_getFontValue(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		if (op == SAppLayoutOperation::SimulateLayout) { \
@@ -1754,7 +1755,7 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_BORDER(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		String value; \
-		if (!(_getBorderAccessString(resource->name, VAR, value))) { \
+		if (!(_getBorderAccessString(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		if (VAR.width.isNeededOnLayoutFunction()) { \
@@ -1774,7 +1775,7 @@ namespace slib
 			} \
 		} else { \
 			PenDesc value; \
-			if (!(_getBorderValue(resource->name, VAR, value))) { \
+			if (!(_getBorderValue(resource->localNamespace, VAR, value))) { \
 				return sl_false; \
 			} \
 			if (op == SAppLayoutOperation::SimulateLayout) { \
@@ -1789,7 +1790,7 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_MENU(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		String name, value; \
-		if (!(_getMenuAccessString(resource->name, VAR, sl_false, name, value))) { \
+		if (!(_getMenuAccessString(resource->localNamespace, VAR, sl_false, name, value))) { \
 			return sl_false; \
 		} \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
@@ -1797,7 +1798,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_MENU(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined && op == SAppLayoutOperation::SimulateInit) { \
 		Ref<Menu> value; \
-		if (!(_getMenuValue(resource->name, VAR, value))) { \
+		if (!(_getMenuValue(resource->localNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
@@ -1888,6 +1889,22 @@ namespace slib
 	}
 #define LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, ...) PRIV_LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, BASIC, ##__VA_ARGS__)
 #define LAYOUT_CONTROL_UI_ATTR(TYPE, NAME, SETFUNC, ...) PRIV_LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, CONTROL, ##__VA_ARGS__)
+
+#define PRIV_LAYOUT_CONTROL_SIMULATABLE_ATTR(TYPE, NAME, SIMULATION_NAME, SETFUNC, CATEGORY, ...) \
+	if (op == SAppLayoutOperation::Parse) { \
+		LAYOUT_CONTROL_PARSE_ATTR(TYPE, attr->, NAME, ##__VA_ARGS__) \
+		LAYOUT_CONTROL_PARSE_ATTR(TYPE, attr->, SIMULATION_NAME, ##__VA_ARGS__) \
+	} else if (op == SAppLayoutOperation::Generate) { \
+		PRIV_LAYOUT_CONTROL_GENERATE_ATTR(TYPE, attr->NAME, SETFUNC, CATEGORY) \
+	} else if (IsSimulateOp(op)) { \
+		if (attr->SIMULATION_NAME.flagDefined) { \
+			PRIV_LAYOUT_CONTROL_SIMULATE_ATTR(TYPE, attr->SIMULATION_NAME, SETFUNC, CATEGORY) \
+		} else { \
+			PRIV_LAYOUT_CONTROL_SIMULATE_ATTR(TYPE, attr->NAME, SETFUNC, CATEGORY) \
+		} \
+	}
+#define LAYOUT_CONTROL_SIMULATABLE_ATTR(TYPE, NAME, SIMULATION_NAME, SETFUNC, ...) PRIV_LAYOUT_CONTROL_SIMULATABLE_ATTR(TYPE, NAME, SIMULATION_NAME, SETFUNC, BASIC, ##__VA_ARGS__)
+#define LAYOUT_CONTROL_UI_SIMULATABLE_ATTR(TYPE, NAME, SIMULATION_NAME, SETFUNC, ...) PRIV_LAYOUT_CONTROL_SIMULATABLE_ATTR(TYPE, NAME, SIMULATION_NAME, SETFUNC, CONTROL, ##__VA_ARGS__)
 
 #define LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, XML, NAME, SUFFIX, VAR, ...) \
 	{ \
@@ -2409,6 +2426,7 @@ namespace slib
 				}
 			}
 		}
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, fontSizeWeight, setFontSizeWeight)
 
 		if (flagView) {
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, alpha, setAlpha)
@@ -2528,8 +2546,8 @@ namespace slib
 		}
 
 		if (flagView) {
-			LAYOUT_CONTROL_UI_ATTR(GENERIC, visibility, setVisibility)
-			LAYOUT_CONTROL_UI_ATTR(GENERIC, visible, setVisible)
+			LAYOUT_CONTROL_UI_SIMULATABLE_ATTR(GENERIC, visibility, simulationVisibility, setVisibility)
+			LAYOUT_CONTROL_UI_SIMULATABLE_ATTR(GENERIC, visible, simulationVisible, setVisible)
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, enabled, setEnabled)
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, clipping, setClipping)
 			if (op == SAppLayoutOperation::SimulateLayout) {
@@ -2575,7 +2593,7 @@ namespace slib
 		} else if (op == SAppLayoutOperation::Generate) {
 			if (attr->menu.flagDefined) {
 				String menuName, value;
-				if (!(_getMenuAccessString(resource->name, attr->menu, sl_true, menuName, value))) {
+				if (!(_getMenuAccessString(resource->localNamespace, attr->menu, sl_true, menuName, value))) {
 					return sl_false;
 				}
 				params->sbDeclare->add(String::format("\t\t\tslib::Ref<menu::%s> menu;%n", menuName));
@@ -2584,7 +2602,7 @@ namespace slib
 		} else if (op == SAppLayoutOperation::SimulateInit) {
 			if (attr->menu.flagDefined) {
 				Ref<Menu> value;
-				if (!(_getMenuValue(resource->name, attr->menu, value))) {
+				if (!(_getMenuValue(resource->localNamespace, attr->menu, value))) {
 					return sl_false;
 				}
 				if (value.isNotNull()) {
@@ -2935,7 +2953,7 @@ namespace slib
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		LAYOUT_CONTROL_UI_ATTR(STRING, text, setText)
+		LAYOUT_CONTROL_UI_SIMULATABLE_ATTR(STRING, text, simulationText, setText)
 		LAYOUT_CONTROL_UI_ATTR(STRING, hyperText, setHyperText)
 		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setTextColor)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, gravity, setGravity)
@@ -3178,11 +3196,11 @@ namespace slib
 				for (i = 0; i < selectItems.count; i++) { \
 					SAppLayoutSelectItem& selectItem = selectItems[i]; \
 					String strSelectedItemTitle; \
-					if (!(_getStringAccessString(resource->name, selectItem.title, strSelectedItemTitle))) { \
+					if (!(_getStringAccessString(resource->localNamespace, selectItem.title, strSelectedItemTitle))) { \
 						return sl_false; \
 					} \
 					String strSelectedItemValue; \
-					if (!(_getStringAccessString(resource->name, selectItem.value, strSelectedItemValue))) { \
+					if (!(_getStringAccessString(resource->localNamespace, selectItem.value, strSelectedItemValue))) { \
 						return sl_false; \
 					} \
 					LAYOUT_CONTROL_GENERATE(addItem, "%s, %s, slib::UIUpdateMode::Init", strSelectedItemValue, strSelectedItemTitle) \
@@ -3202,11 +3220,11 @@ namespace slib
 				for (i = 0; i < n; i++) { \
 					SAppLayoutSelectItem& selectItem = selectItems[i]; \
 					String selectedItemTitle; \
-					if (!(_getStringValue(resource->name, selectItem.title, selectedItemTitle))) { \
+					if (!(_getStringValue(resource->localNamespace, selectItem.title, selectedItemTitle))) { \
 						return sl_false; \
 					} \
 					String selectedItemValue; \
-					if (!(_getStringValue(resource->name, selectItem.value, selectedItemValue))) { \
+					if (!(_getStringValue(resource->localNamespace, selectItem.value, selectedItemValue))) { \
 						return sl_false; \
 					} \
 					view->addItem(selectedItemValue, selectedItemTitle, UIUpdateMode::Init); \
@@ -3398,7 +3416,7 @@ namespace slib
 			Ref<XmlElement>& childXml = childXmls[0]; \
 			if (childXml->getName() == "layout") { \
 				sl_bool flagGeneratedName; \
-				Ref<SAppLayoutResource> childLayout = _parseLayoutResource(resource->filePath, resource->name, childXml, params->source, resource, &(attr->layout.name), &flagGeneratedName); \
+				Ref<SAppLayoutResource> childLayout = _parseLayoutResource(resource->filePath, resource->localNamespace, childXml, params->source, resource, &(attr->layout.name), &flagGeneratedName); \
 				if (childLayout.isNull()) { \
 					return sl_false; \
 				} \
@@ -4384,11 +4402,11 @@ namespace slib
 		} else {
 			if (op == SAppLayoutOperation::Generate) {
 				String strUrl;
-				if (!(_getStringAccessString(resource->name, attr->url, strUrl))) {
+				if (!(_getStringAccessString(resource->localNamespace, attr->url, strUrl))) {
 					return sl_false;
 				}
 				String strHtml;
-				if (!(_getStringAccessString(resource->name, attr->html, strHtml))) {
+				if (!(_getStringAccessString(resource->localNamespace, attr->html, strHtml))) {
 					return sl_false;
 				}
 				if (attr->html.flagDefined) {
@@ -4404,11 +4422,11 @@ namespace slib
 				}
 			} else if (op == SAppLayoutOperation::SimulateInit) {
 				String _url;
-				if (!(_getStringValue(resource->name, attr->url, _url))) {
+				if (!(_getStringValue(resource->localNamespace, attr->url, _url))) {
 					return sl_false;
 				}
 				String _html;
-				if (!(_getStringValue(resource->name, attr->html, _html))) {
+				if (!(_getStringValue(resource->localNamespace, attr->html, _html))) {
 					return sl_false;
 				}
 				if (attr->html.flagDefined) {
@@ -4678,7 +4696,7 @@ namespace slib
 		} else if (op == SAppLayoutOperation::SimulateInit) {
 			if (attr->src.flagDefined) {
 				String value;
-				if (!(_getStringValue(resource->name, attr->src, value))) {
+				if (!(_getStringValue(resource->localNamespace, attr->src, value))) {
 					return sl_false;
 				}
 				if (value.startsWith("asset://")) {

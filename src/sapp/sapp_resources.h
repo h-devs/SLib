@@ -240,7 +240,9 @@ namespace slib
 		SAppDimensionValue paddingBottom;
 
 		SAppVisibilityValue visibility;
+		SAppVisibilityValue simulationVisibility;
 		SAppBooleanValue visible;
+		SAppBooleanValue simulationVisible;
 		SAppBooleanValue enabled;
 		SAppBooleanValue clipping;
 		SAppBooleanValue drawing;
@@ -261,6 +263,7 @@ namespace slib
 		SAppStateMap<SAppColorValue> paddingColor;
 
 		SAppFontValue font;
+		SAppFloatValue fontSizeWeight;
 
 		SAppBooleanValue opaque;
 		SAppFloatValue alpha;
@@ -450,6 +453,7 @@ namespace slib
 	{
 	public:
 		SAppStringValue text;
+		SAppStringValue simulationText;
 		SAppStringValue hyperText;
 		SAppStateMap<SAppColorValue> textColor;
 		SAppAlignmentValue gravity;
@@ -1273,6 +1277,7 @@ namespace slib
 		SAppLayoutItemType itemType;
 		String itemTypeName;
 		String name;
+		String localNamespace;
 		sl_bool flagGeneratedName;
 		String arrayName;
 		sl_int32 arrayIndex;
