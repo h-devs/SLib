@@ -20,23 +20,42 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DATA_JSON
-#define CHECKHEADER_SLIB_DATA_JSON
+#ifndef CHECKHEADER_SLIB_MATH_JSON_VECTOR
+#define CHECKHEADER_SLIB_MATH_JSON_VECTOR
 
-#include "json/core.h"
-#include "json/macro.h"
-#include "json/conv.h"
-#include "json/generic.h"
-#include "json/ref.h"
-#include "json/shared.h"
-#include "json/list.h"
-#include "json/map.h"
-#include "json/set.h"
-#include "json/nullable.h"
-#include "json/atomic.h"
-#include "json/pair.h"
-#include "json/bytes.h"
-#include "json/cvli.h"
-#include "json/enum_int.h"
+#include "../vector.h"
+
+#include "../../data/json/core.h"
+
+namespace slib
+{
+
+	template <sl_uint32 N, class T, class FT>
+	static void FromJson(const Json& json, VectorT<N, T, FT>& _out)
+	{
+		if (json.isUndefined()) {
+			return;
+		}
+		ListLocker<Json> list(json.getJsonList());
+		for (sl_uint32 i = 0; i < N; i++) {
+			if (i < list.count) {
+				FromJson(list[i], _out.m[i]);
+			} else {
+				FromJson(Json(), _out.m[i]);
+			}
+		}
+	}
+
+	template <sl_uint32 N, class T, class FT>
+	static Json ToJson(const VectorT<N, T, FT>& _in)
+	{
+		JsonList ret;
+		for (sl_uint32 i = 0; i < N; i++) {
+			ret.add_NoLock(Json(_in.m[i]));
+		}
+		return ret;
+	}
+
+}
 
 #endif

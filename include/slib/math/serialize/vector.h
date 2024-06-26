@@ -20,23 +20,38 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DATA_JSON
-#define CHECKHEADER_SLIB_DATA_JSON
+#ifndef CHECKHEADER_SLIB_MATH_SERIALIZE_VECTOR
+#define CHECKHEADER_SLIB_MATH_SERIALIZE_VECTOR
 
-#include "json/core.h"
-#include "json/macro.h"
-#include "json/conv.h"
-#include "json/generic.h"
-#include "json/ref.h"
-#include "json/shared.h"
-#include "json/list.h"
-#include "json/map.h"
-#include "json/set.h"
-#include "json/nullable.h"
-#include "json/atomic.h"
-#include "json/pair.h"
-#include "json/bytes.h"
-#include "json/cvli.h"
-#include "json/enum_int.h"
+#include "../vector.h"
+
+#include "../../data/serialize/io.h"
+
+namespace slib
+{
+
+	template <class OUTPUT, sl_uint32 N, class T, class FT>
+	static sl_bool Serialize(OUTPUT* output, const VectorT<N, T, FT>& _in)
+	{
+		for (sl_uint32 i = 0; i < N; i++) {
+			if (!(Serialize(output, _in.m[i]))) {
+				return sl_false;
+			}
+		}
+		return sl_true;
+	}
+
+	template <class INPUT, sl_uint32 N, class T, class FT>
+	static sl_bool Deserialize(INPUT* input, VectorT<N, T, FT>& _out)
+	{
+		for (sl_uint32 i = 0; i < N; i++) {
+			if (!(Deserialize(input, _out.m[i]))) {
+				return sl_false;
+			}
+		}
+		return sl_true;
+	}
+
+}
 
 #endif

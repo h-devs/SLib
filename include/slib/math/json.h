@@ -26,5 +26,6 @@
 #include "json/bigint.h"
 #include "json/int128.h"
 #include "json/decimal128.h"
+#include "json/vector.h"
 
 #endif

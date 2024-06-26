@@ -146,7 +146,8 @@ public: \
 	SLIB_CONSTEXPR sl_compare_result compare(const Atomic& other) const { return ref.compare(other.ref._ptr); } \
 	template <class OTHER> SLIB_CONSTEXPR sl_bool equals(const OTHER& other) const { return ref.equals(other); } \
 	template <class OTHER> SLIB_CONSTEXPR sl_compare_result compare(const OTHER& other) const { return ref.compare(other); } \
-	SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
+	SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR \
+	SLIB_CONSTEXPR explicit operator sl_bool() const { return ref._ptr != sl_null; }
 
 #define SLIB_REF_WRAPPER_ALL_LRVALUES_NO_ATOMIC(WRAPPER, ...) \
 public: \

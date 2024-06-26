@@ -20,23 +20,36 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DATA_JSON
-#define CHECKHEADER_SLIB_DATA_JSON
+#ifndef CHECKHEADER_SLIB_DATA_JSON_PAIR
+#define CHECKHEADER_SLIB_DATA_JSON_PAIR
 
-#include "json/core.h"
-#include "json/macro.h"
-#include "json/conv.h"
-#include "json/generic.h"
-#include "json/ref.h"
-#include "json/shared.h"
-#include "json/list.h"
-#include "json/map.h"
-#include "json/set.h"
-#include "json/nullable.h"
-#include "json/atomic.h"
-#include "json/pair.h"
-#include "json/bytes.h"
-#include "json/cvli.h"
-#include "json/enum_int.h"
+#include "core.h"
+
+#include "../../core/pair.h"
+
+namespace slib
+{
+
+	template <class FIRST, class SECOND>
+	static void FromJson(const Json& json, Pair<FIRST, SECOND>& _out)
+	{
+		if (json.isUndefined()) {
+			return;
+		}
+		JsonList list = json.getJsonList();
+		FromJson(list.getValueAt(0), _out.first);
+		FromJson(list.getValueAt(1), _out.second);
+	}
+
+	template <class FIRST, class SECOND>
+	static Json ToJson(const Pair<FIRST, SECOND>& _in)
+	{
+		JsonList ret;
+		ret.add_NoLock(Json(_in.first));
+		ret.add_NoLock(Json(_in.second));
+		return ret;
+	}
+
+}
 
 #endif

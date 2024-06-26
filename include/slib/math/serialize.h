@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,5 +26,6 @@
 #include "serialize/bigint.h"
 #include "serialize/decimal128.h"
 #include "serialize/int128.h"
+#include "serialize/vector.h"
 
 #endif
