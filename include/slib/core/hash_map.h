@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -122,18 +122,13 @@ namespace slib
 		KEY_COMPARE m_compare;
 
 	public:
-		template <class HASH_ARG, class KEY_COMPARE_ARG>
-		CHashMap(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept: m_hash(Forward<HASH_ARG>(hash)), m_compare(Forward<KEY_COMPARE_ARG>(compare))
+		template <class HASH_ARG = HASH, class KEY_COMPARE_ARG = KEY_COMPARE>
+		CHashMap(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), KEY_COMPARE_ARG&& compare = KEY_COMPARE()) noexcept: m_hash(Forward<HASH_ARG>(hash)), m_compare(Forward<KEY_COMPARE_ARG>(compare))
 		{
 			priv::hash_table::Helper::initialize(reinterpret_cast<HashTableStructBase*>(&m_table), capacityMinimum, capacityMaximum);
 			m_nodeFirst = sl_null;
 			m_nodeLast = sl_null;
 		}
-
-		template <class HASH_ARG>
-		CHashMap(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: CHashMap(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), KEY_COMPARE()) {}
-
-		CHashMap(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept: CHashMap(capacityMinimum, capacityMaximum, HASH(), KEY_COMPARE()) {}
 
 		~CHashMap() noexcept
 		{
@@ -168,8 +163,8 @@ namespace slib
 		}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		template <class HASH_ARG, class KEY_COMPARE_ARG>
-		CHashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept: m_hash(Forward<HASH_ARG>(hash)), m_compare(Forward<KEY_COMPARE_ARG>(compare))
+		template <class HASH_ARG = HASH, class KEY_COMPARE_ARG = KEY_COMPARE>
+		CHashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), KEY_COMPARE_ARG&& compare = KEY_COMPARE()) noexcept: m_hash(Forward<HASH_ARG>(hash)), m_compare(Forward<KEY_COMPARE_ARG>(compare))
 		{
 			priv::hash_table::Helper::initialize(reinterpret_cast<HashTableStructBase*>(&m_table), capacityMinimum, capacityMaximum);
 			m_nodeFirst = sl_null;
@@ -180,11 +175,6 @@ namespace slib
 				add_NoLock(data[i].first, data[i].second);
 			}
 		}
-
-		template <class HASH_ARG>
-		CHashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: CHashMap(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), KEY_COMPARE()) {}
-
-		CHashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept: CHashMap(l, capacityMinimum, capacityMaximum, HASH(), KEY_COMPARE()) {}
 #endif
 
 	public:
@@ -270,19 +260,19 @@ namespace slib
 			return RedBlackTree::getEqualRange(entry, key, m_compare, (NODE**)pStart, (NODE**)pEnd);
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		NODE* findKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		NODE* findKeyAndValue_NoLock(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			NODE* entry = _getEntry(key);
-			return RedBlackTree::findKeyAndValue(entry, key, m_compare, value, value_equals);
+			return RedBlackTree::findKeyAndValue(entry, key, m_compare, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool findKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			ObjectLocker lock(this);
 			NODE* entry = _getEntry(key);
-			return RedBlackTree::findKeyAndValue(entry, key, m_compare, value, value_equals) != sl_null;
+			return RedBlackTree::findKeyAndValue(entry, key, m_compare, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals)) != sl_null;
 		}
 
 		/* added for compatibility with `Map` */
@@ -309,11 +299,11 @@ namespace slib
 		}
 
 		// unsynchronized function
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		VT* getItemPointerByKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			NODE* entry = _getEntry(key);
-			NODE* node = RedBlackTree::findKeyAndValue(entry, key, m_compare, value, value_equals);
+			NODE* node = RedBlackTree::findKeyAndValue(entry, key, m_compare, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			if (node) {
 				return &(node->value);
 			}
@@ -445,22 +435,22 @@ namespace slib
 			return list;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		List<VT> getValuesByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		List<VT> getValuesByKeyAndValue_NoLock(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			List<VT> list;
 			NODE* entry = _getEntry(key);
-			RedBlackTree::getValuesByKeyAndValue(list, entry, key, m_compare, value, value_equals);
+			RedBlackTree::getValuesByKeyAndValue(list, entry, key, m_compare, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			return list;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		List<VT> getValuesByKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			ObjectLocker lock(this);
 			List<VT> list;
 			NODE* entry = _getEntry(key);
-			RedBlackTree::getValuesByKeyAndValue(list, entry, key, m_compare, value, value_equals);
+			RedBlackTree::getValuesByKeyAndValue(list, entry, key, m_compare, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			return list;
 		}
 
@@ -493,8 +483,8 @@ namespace slib
 			return put_NoLock(Forward<KEY>(key), Forward<VALUE>(value), isInsertion) != sl_null;
 		}
 
-		template <class KEY, class VALUE>
-		NODE* replace_NoLock(const KEY& key, VALUE&& value) noexcept
+		template <class VALUE>
+		NODE* replace_NoLock(const KT& key, VALUE&& value) noexcept
 		{
 			NODE* entry = _getEntry(key);
 			NODE* node = RedBlackTree::find(entry, key, m_compare);
@@ -506,7 +496,7 @@ namespace slib
 		}
 
 		template <class KEY, class VALUE>
-		sl_bool replace(const KEY& key, VALUE&& value) noexcept
+		sl_bool replace(const KT& key, VALUE&& value) noexcept
 		{
 			ObjectLocker lock(this);
 			NODE* entry = _getEntry(key);
@@ -880,8 +870,8 @@ namespace slib
 			return removeItemsAndReturnValues_NoLock(key);
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool removeKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool removeKeyAndValue_NoLock(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) noexcept
 		{
 			NODE** pEntry = _getEntryPtr(key);
 			if (!pEntry) {
@@ -891,7 +881,7 @@ namespace slib
 			NODE* end;
 			if (RedBlackTree::getEqualRange(*pEntry, key, m_compare, &node, &end)) {
 				for (;;) {
-					if (value_equals(node->value, value)) {
+					if (value_equals(node->value, Forward<VALUE>(value))) {
 						_unlinkNode(node);
 						RedBlackTree::removeNode(pEntry, m_table.count, node);
 						return sl_true;
@@ -905,15 +895,15 @@ namespace slib
 			return sl_false;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool removeKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) noexcept
 		{
 			ObjectLocker lock(this);
-			return removeKeyAndValue_NoLock(key, value, value_equals);
+			return removeKeyAndValue_NoLock(key, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_size removeItemsByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeItemsByKeyAndValue_NoLock(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) noexcept
 		{
 			NODE** pEntry = _getEntryPtr(key);
 			if (!pEntry) {
@@ -924,7 +914,7 @@ namespace slib
 			if (RedBlackTree::getEqualRange(*pEntry, key, m_compare, &node, &end)) {
 				sl_size n = 0;
 				for (;;) {
-					if (value_equals(node->value, value)) {
+					if (value_equals(node->value, Forward<VALUE>(value))) {
 						n++;
 						if (node == end) {
 							_unlinkNode(node);
@@ -949,11 +939,11 @@ namespace slib
 			}
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeItemsByKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) noexcept
 		{
 			ObjectLocker lock(this);
-			return removeItemsByKeyAndValue_NoLock(key, value, value_equals);
+			return removeItemsByKeyAndValue_NoLock(key, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 		}
 
 		sl_size removeAll_NoLock() noexcept
@@ -1290,38 +1280,17 @@ namespace slib
 		SLIB_REF_WRAPPER(HashMap, CMAP)
 
 	public:
-		HashMap(sl_size capacityMinimum, sl_size capacityMaximum = 0) noexcept: ref(new CMAP(capacityMinimum, capacityMaximum)) {}
-
-		template <class HASH_ARG>
-		HashMap(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: ref(new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash))) {}
-
-		template <class HASH_ARG, class KEY_COMPARE_ARG>
-		HashMap(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept: ref(new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare))) {}
+		template <class HASH_ARG = HASH, class KEY_COMPARE_ARG = KEY_COMPARE>
+		HashMap(sl_size capacityMinimum, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), KEY_COMPARE_ARG&& compare = KEY_COMPARE()) noexcept: ref(new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare))) {}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		HashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept: ref(new CMAP(l, capacityMinimum, capacityMaximum)) {}
-
-		template <class HASH_ARG>
-		HashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: ref(new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash))) {}
-
-		template <class HASH_ARG, class KEY_COMPARE_ARG>
-		HashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept: ref(new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare))) {}
+		template <class HASH_ARG = HASH, class KEY_COMPARE_ARG = KEY_COMPARE>
+		HashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), KEY_COMPARE_ARG&& compare = KEY_COMPARE()) noexcept: ref(new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare))) {}
 #endif
 
 	public:
-		static HashMap create(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
-		{
-			return new CMAP(capacityMinimum, capacityMaximum);
-		}
-
-		template <class HASH_ARG>
-		static HashMap create(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept
-		{
-			return new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash));
-		}
-
-		template <class HASH_ARG, class KEY_COMPARE_ARG>
-		static HashMap create(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept
+		template <class HASH_ARG = HASH, class KEY_COMPARE_ARG = KEY_COMPARE>
+		static HashMap create(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), KEY_COMPARE_ARG&& compare = KEY_COMPARE()) noexcept
 		{
 			return new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare));
 		}
@@ -1329,37 +1298,15 @@ namespace slib
 		static HashMap create(Object* object);
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		static HashMap create(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
-		{
-			return new CMAP(l, capacityMinimum, capacityMaximum);
-		}
-
-		template <class HASH_ARG>
-		static HashMap create(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept
-		{
-			return new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash));
-		}
-
-		template <class HASH_ARG, class KEY_COMPARE_ARG>
-		static HashMap create(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept
+		template <class HASH_ARG = HASH, class KEY_COMPARE_ARG = KEY_COMPARE>
+		static HashMap create(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), KEY_COMPARE_ARG&& compare = KEY_COMPARE()) noexcept
 		{
 			return new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare));
 		}
 #endif
 
-		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
-		{
-			ref = new CMAP(capacityMinimum, capacityMaximum);
-		}
-
-		template <class HASH_ARG>
-		void initialize(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept
-		{
-			ref = new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash));
-		}
-
-		template <class HASH_ARG, class KEY_COMPARE_ARG>
-		void initialize(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept
+		template <class HASH_ARG = HASH, class KEY_COMPARE_ARG = KEY_COMPARE>
+		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), KEY_COMPARE_ARG&& compare = KEY_COMPARE()) noexcept
 		{
 			ref = new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare));
 		}
@@ -1517,22 +1464,22 @@ namespace slib
 			return sl_false;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		NODE* findKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		NODE* findKeyAndValue_NoLock(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
-				return obj->findKeyAndValue_NoLock(key, value, value_equals);
+				return obj->findKeyAndValue_NoLock(key, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			}
 			return sl_null;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool findKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
-				return obj->findKeyAndValue(key, value, value_equals);
+				return obj->findKeyAndValue(key, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			}
 			return sl_false;
 		}
@@ -1548,12 +1495,12 @@ namespace slib
 		}
 
 		// unsynchronized function
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		VT* getItemPointerByKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
-				return obj->getItemPointerByKeyAndValue(key, value, value_equals);
+				return obj->getItemPointerByKeyAndValue(key, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			}
 			return sl_null;
 		}
@@ -1652,22 +1599,22 @@ namespace slib
 			return sl_null;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		List<VT> getValuesByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		List<VT> getValuesByKeyAndValue_NoLock(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
-				return obj->getValuesByKeyAndValue_NoLock(key, value, value_equals);
+				return obj->getValuesByKeyAndValue_NoLock(key, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			}
 			return sl_null;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		List<VT> getValuesByKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
-				return obj->getValuesByKeyAndValue(key, value, value_equals);
+				return obj->getValuesByKeyAndValue(key, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			}
 			return sl_null;
 		}
@@ -1684,8 +1631,8 @@ namespace slib
 			return MapBaseHelper::put(this, Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
 		}
 
-		template <class KEY, class VALUE>
-		NODE* replace_NoLock(const KEY& key, VALUE&& value) const noexcept
+		template <class VALUE>
+		NODE* replace_NoLock(const KT& key, VALUE&& value) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
@@ -1694,8 +1641,8 @@ namespace slib
 			return sl_null;
 		}
 
-		template <class KEY, class VALUE>
-		sl_bool replace(const KEY& key, VALUE&& value) const noexcept
+		template <class VALUE>
+		sl_bool replace(const KT& key, VALUE&& value) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
@@ -1865,42 +1812,42 @@ namespace slib
 			return sl_null;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool removeKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool removeKeyAndValue_NoLock(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
-				return obj->removeKeyAndValue_NoLock(key, value, value_equals);
+				return obj->removeKeyAndValue_NoLock(key, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			}
 			return sl_false;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool removeKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
-				return obj->removeKeyAndValue(key, value, value_equals);
+				return obj->removeKeyAndValue(key, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			}
 			return sl_false;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_size removeItemsByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeItemsByKeyAndValue_NoLock(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
-				return obj->removeItemsByKeyAndValue_NoLock(key, value, value_equals);
+				return obj->removeItemsByKeyAndValue_NoLock(key, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			}
 			return 0;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeItemsByKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
-				return obj->removeItemsByKeyAndValue(key, value, value_equals);
+				return obj->removeItemsByKeyAndValue(key, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			}
 			return 0;
 		}
@@ -2066,38 +2013,17 @@ namespace slib
 		SLIB_ATOMIC_REF_WRAPPER(CMAP)
 
 	public:
-		Atomic(sl_size capacityMinimum, sl_size capacityMaximum = 0) noexcept : ref(new CMAP(capacityMinimum, capacityMaximum)) {}
-
-		template <class HASH_ARG>
-		Atomic(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept : ref(new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash))) {}
-
-		template <class HASH_ARG, class KEY_COMPARE_ARG>
-		Atomic(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept : ref(new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare))) {}
+		template <class HASH_ARG = HASH, class KEY_COMPARE_ARG = KEY_COMPARE>
+		Atomic(sl_size capacityMinimum, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), KEY_COMPARE_ARG&& compare = KEY_COMPARE()) noexcept : ref(new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare))) {}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept : ref(new CMAP(l, capacityMinimum, capacityMaximum)) {}
-
-		template <class HASH_ARG>
-		Atomic(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept : ref(new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash))) {}
-
-		template <class HASH_ARG, class KEY_COMPARE_ARG>
-		Atomic(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept : ref(new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare))) {}
+		template <class HASH_ARG = HASH, class KEY_COMPARE_ARG = KEY_COMPARE>
+		Atomic(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), KEY_COMPARE_ARG&& compare = KEY_COMPARE()) noexcept : ref(new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare))) {}
 #endif
 
 	public:
-		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
-		{
-			ref = new CMAP(capacityMinimum, capacityMaximum);
-		}
-
-		template <class HASH_ARG>
-		void initialize(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept
-		{
-			ref = new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash));
-		}
-
-		template <class HASH_ARG, class KEY_COMPARE_ARG>
-		void initialize(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept
+		template <class HASH_ARG = HASH, class KEY_COMPARE_ARG = KEY_COMPARE>
+		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), KEY_COMPARE_ARG&& compare = KEY_COMPARE()) noexcept
 		{
 			ref = new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare));
 		}

@@ -164,7 +164,6 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/network/socket_address.cpp"
  "${SLIB_PATH}/src/slib/network/socket_event.cpp"
  "${SLIB_PATH}/src/slib/network/stun.cpp"
- "${SLIB_PATH}/src/slib/network/tap.cpp"
  "${SLIB_PATH}/src/slib/network/tcpip.cpp"
  "${SLIB_PATH}/src/slib/network/url.cpp"
  "${SLIB_PATH}/src/slib/network/url_request.cpp"
@@ -397,7 +396,6 @@ else()
   "${SLIB_PATH}/src/slib/system/service_manager_linux.cpp"
 
   "${SLIB_PATH}/src/slib/network/pcap.cpp"
-  "${SLIB_PATH}/src/slib/network/tap_unix.cpp"
 
   "${SLIB_PATH}/src/slib/db/mongodb.cpp"
   "${SLIB_PATH}/src/slib/db/mysql.cpp"

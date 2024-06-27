@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -206,7 +206,8 @@ namespace slib
 		typedef HashTableNode<KT, VT> NODE;
 
 	public:
-		HashTable(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_EQUALS& equals = KEY_EQUALS()) noexcept: m_hash(hash), m_equals(equals)
+		template <class HASH_ARG = HASH, class KEY_EQUALS_ARG = KEY_EQUALS>
+		HashTable(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), KEY_EQUALS_ARG&& equals = KEY_EQUALS()) noexcept: m_hash(Forward<HASH_ARG>(hash)), m_equals(Forward<KEY_EQUALS_ARG>(equals))
 		{
 			priv::hash_table::Helper::initialize(reinterpret_cast<HashTableStructBase*>(&m_table), capacityMinimum, capacityMaximum);
 		}
@@ -294,8 +295,8 @@ namespace slib
 			return sl_null;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		NODE* findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		NODE* findKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			sl_size capacity = m_table.capacity;
 			if (!capacity) {
@@ -305,7 +306,7 @@ namespace slib
 			sl_size index = hash & (capacity - 1);
 			NODE* node = m_table.nodes[index];
 			while (node) {
-				if (node->hash == hash && m_equals(node->key, key) && value_equals(node->value, value)) {
+				if (node->hash == hash && m_equals(node->key, key) && value_equals(node->value, Forward<VALUE>(value))) {
 					return node;
 				}
 				node = node->next;
@@ -322,10 +323,10 @@ namespace slib
 			return sl_null;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		VT* getItemPointerByKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
-			NODE* node = findKeyAndValue(key, value, value_equals);
+			NODE* node = findKeyAndValue(key, Forward<VALUE>(value), Forward<VALUE_EQUALS>(value_equals));
 			if (node) {
 				return &(node->value);
 			}
@@ -382,8 +383,8 @@ namespace slib
 			return ret;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		List<VT> getValuesByKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			sl_size capacity = m_table.capacity;
 			if (!capacity) {
@@ -394,7 +395,7 @@ namespace slib
 			sl_size index = hash & (capacity - 1);
 			NODE* node = m_table.nodes[index];
 			while (node) {
-				if (node->hash == hash && m_equals(node->key, key) && value_equals(node->value, value)) {
+				if (node->hash == hash && m_equals(node->key, key) && value_equals(node->value, Forward<VALUE>(value))) {
 					ret.add_NoLock(node->value);
 				}
 				node = node->next;
@@ -648,8 +649,8 @@ namespace slib
 			return ret;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool removeKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) noexcept
 		{
 			sl_size capacity = m_table.capacity;
 			if (!capacity) {
@@ -663,7 +664,7 @@ namespace slib
 			NODE* node = *link;
 			while (node) {
 				NODE* next = node->next;
-				if (node->hash == hash && m_equals(node->key, key) && value_equals(node->value, value)) {
+				if (node->hash == hash && m_equals(node->key, key) && value_equals(node->value, Forward<VALUE>(value))) {
 					*link = next;
 					(m_table.count)--;
 					delete node;
@@ -676,8 +677,8 @@ namespace slib
 			return sl_false;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeItemsByKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) noexcept
 		{
 			sl_size capacity = m_table.capacity;
 			if (!capacity) {
@@ -693,7 +694,7 @@ namespace slib
 			NODE** linkDelete = &nodeDelete;
 			while (node) {
 				NODE* next = node->next;
-				if (node->hash == hash && m_equals(node->key, key) && value_equals(node->value, value)) {
+				if (node->hash == hash && m_equals(node->key, key) && value_equals(node->value, Forward<VALUE>(value))) {
 					*link = next;
 					*linkDelete = node;
 					node->next = sl_null;

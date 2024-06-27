@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -100,11 +100,11 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE>
-		static NODE* tryFind(NODE* look, const KEY& key, const KEY_COMPARE& key_compare, sl_compare_result& compare_result) noexcept
+		static NODE* tryFind(NODE* look, KEY&& key, KEY_COMPARE&& key_compare, sl_compare_result& compare_result) noexcept
 		{
 			sl_compare_result comp;
 			for (;;) {
-				comp = key_compare(look->key, key);
+				comp = key_compare(look->key, Forward<KEY>(key));
 				if (!comp) {
 					break;
 				} else if (comp > 0) {
@@ -128,13 +128,13 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE>
-		static sl_bool getEqualRange(NODE* look, const KEY& key, const KEY_COMPARE& key_compare, NODE** pStart = sl_null, NODE** pEnd = sl_null) noexcept
+		static sl_bool getEqualRange(NODE* look, KEY&& key, KEY_COMPARE&& key_compare, NODE** pStart = sl_null, NODE** pEnd = sl_null) noexcept
 		{
 			if (!look) {
 				return sl_false;
 			}
 			sl_compare_result compare_result;
-			look = tryFind(look, key, key_compare, compare_result);
+			look = tryFind(look, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), compare_result);
 			if (compare_result != 0) {
 				return sl_false;
 			}
@@ -144,7 +144,7 @@ namespace slib
 				if (left) {
 					NODE* node = left;
 					for (;;) {
-						if (!(key_compare(node->key, key))) {
+						if (!(key_compare(node->key, Forward<KEY>(key)))) {
 							last_equal = node;
 							left = node->left;
 							if (left) {
@@ -170,7 +170,7 @@ namespace slib
 				if (right) {
 					NODE* node = right;
 					for (;;) {
-						if (key_compare(node->key, key) != 0) {
+						if (key_compare(node->key, Forward<KEY>(key)) != 0) {
 							NODE* left = node->left;
 							if (left) {
 								node = left;
@@ -194,7 +194,7 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE>
-		static void getNearest(NODE* look, const KEY& key, const KEY_COMPARE& key_compare, NODE** pLessEqual = sl_null, NODE** pGreaterEqual = sl_null) noexcept
+		static void getNearest(NODE* look, KEY&& key, KEY_COMPARE&& key_compare, NODE** pLessEqual = sl_null, NODE** pGreaterEqual = sl_null) noexcept
 		{
 			if (!look) {
 				if (pLessEqual) {
@@ -206,7 +206,7 @@ namespace slib
 				return;
 			}
 			sl_compare_result compare_result;
-			NODE* node = tryFind(look, key, key_compare, compare_result);
+			NODE* node = tryFind(look, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), compare_result);
 			if (!compare_result) {
 				if (pLessEqual) {
 					*pLessEqual = node;
@@ -232,14 +232,14 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE>
-		static NODE* getLowerBound(NODE* look, const KEY& key, const KEY_COMPARE& key_compare) noexcept
+		static NODE* getLowerBound(NODE* look, KEY&& key, KEY_COMPARE&& key_compare) noexcept
 		{
 			if (!look) {
 				return sl_null;
 			}
 			NODE* last_greater_equal = sl_null;
 			for (;;) {
-				if (key_compare(look->key, key) >= 0) {
+				if (key_compare(look->key, Forward<KEY>(key)) >= 0) {
 					last_greater_equal = look;
 					NODE* left = look->left;
 					if (left) {
@@ -260,14 +260,14 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE>
-		static NODE* getUpperBound(NODE* look, const KEY& key, const KEY_COMPARE& key_compare) noexcept
+		static NODE* getUpperBound(NODE* look, KEY&& key, KEY_COMPARE&& key_compare) noexcept
 		{
 			if (!look) {
 				return sl_null;
 			}
 			NODE* last_greater = sl_null;
 			for (;;) {
-				if (key_compare(look->key, key) > 0) {
+				if (key_compare(look->key, Forward<KEY>(key)) > 0) {
 					last_greater = look;
 					NODE* left = look->left;
 					if (left) {
@@ -288,13 +288,13 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE>
-		static NODE* find(NODE* look, const KEY& key, const KEY_COMPARE& key_compare) noexcept
+		static NODE* find(NODE* look, KEY&& key, KEY_COMPARE&& key_compare) noexcept
 		{
 			if (!look) {
 				return sl_null;
 			}
 			sl_compare_result compare_result;
-			NODE* node = tryFind(look, key, key_compare, compare_result);
+			NODE* node = tryFind(look, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), compare_result);
 			if (!compare_result) {
 				return node;
 			}
@@ -302,12 +302,12 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE, class VALUE_EQUALS>
-		static NODE* findKeyAndValue(NODE* look, const KEY& key, const KEY_COMPARE& key_compare, const VALUE& value, const VALUE_EQUALS& value_equals) noexcept
+		static NODE* findKeyAndValue(NODE* look, KEY&& key, KEY_COMPARE&& key_compare, VALUE&& value, VALUE_EQUALS&& value_equals) noexcept
 		{
 			NODE *node, *end;
-			if (getEqualRange(look, key, key_compare, &node, &end)) {
+			if (getEqualRange(look, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), &node, &end)) {
 				for (;;) {
-					if (value_equals(node->value, value)) {
+					if (value_equals(node->value, Forward<VALUE>(value))) {
 						return node;
 					}
 					if (node == end) {
@@ -320,10 +320,10 @@ namespace slib
 		}
 
 		template <class VT, class NODE, class KEY, class KEY_COMPARE>
-		static void getValues(List<VT>& list, NODE* look, const KEY& key, const KEY_COMPARE& key_compare) noexcept
+		static void getValues(List<VT>& list, NODE* look, KEY&& key, KEY_COMPARE&& key_compare) noexcept
 		{
 			NODE *node, *end;
-			if (getEqualRange(look, key, key_compare, &node, &end)) {
+			if (getEqualRange(look, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), &node, &end)) {
 				for (;;) {
 					list.add_NoLock(node->value);
 					if (node == end) {
@@ -335,12 +335,12 @@ namespace slib
 		}
 
 		template <class VT, class NODE, class KEY, class KEY_COMPARE, class VALUE, class VALUE_EQUALS>
-		static void getValuesByKeyAndValue(List<VT>& list, NODE* look, const KEY& key, const KEY_COMPARE& key_compare, const VALUE& value, const VALUE_EQUALS& value_equals) noexcept
+		static void getValuesByKeyAndValue(List<VT>& list, NODE* look, KEY&& key, KEY_COMPARE&& key_compare, VALUE&& value, VALUE_EQUALS&& value_equals) noexcept
 		{
 			NODE *node, *end;
-			if (getEqualRange(look, key, key_compare, &node, &end)) {
+			if (getEqualRange(look, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), &node, &end)) {
 				for (;;) {
-					if (value_equals(node->value, value)) {
+					if (value_equals(node->value, Forward<VALUE>(value))) {
 						list.add_NoLock(node->value);
 					}
 					if (node == end) {
@@ -364,7 +364,7 @@ namespace slib
 		}
 
 		template <class NODE, class KEY_COMPARE>
-		static void addNode(NODE** pRoot, NODE* node, const KEY_COMPARE& key_compare) noexcept
+		static void addNode(NODE** pRoot, NODE* node, KEY_COMPARE&& key_compare) noexcept
 		{
 			NODE* look = *pRoot;
 			if (look) {
@@ -396,12 +396,12 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE>
-		static NODE* put(NODE** pRoot, sl_size& count, KEY&& key, const KEY_COMPARE& key_compare, VALUE&& value, sl_bool* isInsertion) noexcept
+		static NODE* put(NODE** pRoot, sl_size& count, KEY&& key, KEY_COMPARE&& key_compare, VALUE&& value, sl_bool* isInsertion) noexcept
 		{
 			NODE* root = *pRoot;
 			if (root) {
 				sl_compare_result compare_result;
-				NODE* where = tryFind(root, key, key_compare, compare_result);
+				NODE* where = tryFind(root, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), compare_result);
 				if (!compare_result) {
 					where->value = Forward<VALUE>(value);
 					if (isInsertion) {
@@ -436,13 +436,13 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE>
-		static NODE* replace(NODE* root, const KEY& key, const KEY_COMPARE& key_compare, VALUE&& value) noexcept
+		static NODE* replace(NODE* root, KEY&& key, KEY_COMPARE&& key_compare, VALUE&& value) noexcept
 		{
 			if (!root) {
 				return sl_null;
 			}
 			sl_compare_result compare_result;
-			NODE* node = tryFind(root, key, key_compare, compare_result);
+			NODE* node = tryFind(root, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), compare_result);
 			if (!compare_result) {
 				node->value = Forward<VALUE>(value);
 				return node;
@@ -452,11 +452,11 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE, class... VALUE_ARGS>
-		static NODE* add(NODE** pRoot, sl_size& count, KEY&& key, const KEY_COMPARE& key_compare, VALUE_ARGS&&... value_args) noexcept
+		static NODE* add(NODE** pRoot, sl_size& count, KEY&& key, KEY_COMPARE&& key_compare, VALUE_ARGS&&... value_args) noexcept
 		{
 			NODE* node = new NODE(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 			if (node) {
-				addNode(pRoot, node, key_compare);
+				addNode(pRoot, node, Forward<KEY_COMPARE>(key_compare));
 				count++;
 				return node;
 			}
@@ -464,12 +464,12 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE, class... VALUE_ARGS>
-		static MapEmplaceReturn<NODE> emplace(NODE** pRoot, sl_size& count, KEY&& key, const KEY_COMPARE& key_compare, VALUE_ARGS&&... value_args) noexcept
+		static MapEmplaceReturn<NODE> emplace(NODE** pRoot, sl_size& count, KEY&& key, KEY_COMPARE&& key_compare, VALUE_ARGS&&... value_args) noexcept
 		{
 			NODE* root = *pRoot;
 			if (root) {
 				sl_compare_result compare_result;
-				NODE* where = tryFind(root, key, key_compare, compare_result);
+				NODE* where = tryFind(root, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), compare_result);
 				if (!compare_result) {
 					return MapEmplaceReturn<NODE>(sl_false, where);
 				}
@@ -548,12 +548,12 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE>
-		static sl_bool remove(NODE** pRoot, sl_size& count, const KEY& key, const KEY_COMPARE& key_compare, VALUE* outValue) noexcept
+		static sl_bool remove(NODE** pRoot, sl_size& count, KEY&& key, KEY_COMPARE&& key_compare, VALUE* outValue) noexcept
 		{
 			NODE* root = *pRoot;
 			if (root) {
 				sl_compare_result compare_result;
-				NODE* node = tryFind(root, key, key_compare, compare_result);
+				NODE* node = tryFind(root, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), compare_result);
 				if (!compare_result) {
 					if (outValue) {
 						*outValue = Move(node->value);
@@ -566,11 +566,11 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE>
-		static sl_size removeItems(NODE** pRoot, sl_size& count, const KEY& key, const KEY_COMPARE& key_compare) noexcept
+		static sl_size removeItems(NODE** pRoot, sl_size& count, KEY&& key, KEY_COMPARE&& key_compare) noexcept
 		{
 			NODE* node;
 			NODE* end;
-			if (getEqualRange(*pRoot, key, key_compare, &node, &end)) {
+			if (getEqualRange(*pRoot, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), &node, &end)) {
 				sl_size n = 0;
 				for (;;) {
 					n++;
@@ -590,11 +590,11 @@ namespace slib
 		}
 
 		template <class VT, class NODE, class KEY, class KEY_COMPARE>
-		static sl_size removeItemsAndReturnValues(List<VT>& list, NODE** pRoot, sl_size& count, const KEY& key, const KEY_COMPARE& key_compare) noexcept
+		static sl_size removeItemsAndReturnValues(List<VT>& list, NODE** pRoot, sl_size& count, KEY&& key, KEY_COMPARE&& key_compare) noexcept
 		{
 			NODE* node;
 			NODE* end;
-			if (getEqualRange(*pRoot, key, key_compare, &node, &end)) {
+			if (getEqualRange(*pRoot, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), &node, &end)) {
 				sl_size n = 0;
 				for (;;) {
 					n++;
@@ -615,13 +615,13 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE, class VALUE_EQUALS>
-		static sl_bool removeKeyAndValue(NODE** pRoot, sl_size& count, const KEY& key, const KEY_COMPARE& key_compare, const VALUE& value, const VALUE_EQUALS& value_equals) noexcept
+		static sl_bool removeKeyAndValue(NODE** pRoot, sl_size& count, KEY&& key, KEY_COMPARE&& key_compare, VALUE&& value, VALUE_EQUALS&& value_equals) noexcept
 		{
 			NODE* node;
 			NODE* end;
-			if (getEqualRange(*pRoot, key, key_compare, &node, &end)) {
+			if (getEqualRange(*pRoot, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), &node, &end)) {
 				for (;;) {
-					if (value_equals(node->value, value)) {
+					if (value_equals(node->value, Forward<VALUE>(value))) {
 						removeNode(pRoot, count, node);
 						return sl_true;
 					}
@@ -635,14 +635,14 @@ namespace slib
 		}
 
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE, class VALUE_EQUALS>
-		static sl_size removeItemsByKeyAndValue(NODE** pRoot, sl_size& count, const KEY& key, const KEY_COMPARE& key_compare, const VALUE& value, const VALUE_EQUALS& value_equals) noexcept
+		static sl_size removeItemsByKeyAndValue(NODE** pRoot, sl_size& count, KEY&& key, KEY_COMPARE&& key_compare, VALUE&& value, VALUE_EQUALS&& value_equals) noexcept
 		{
 			sl_size n = 0;
 			NODE* node;
 			NODE* end;
-			if (getEqualRange(*pRoot, key, key_compare, &node, &end)) {
+			if (getEqualRange(*pRoot, Forward<KEY>(key), Forward<KEY_COMPARE>(key_compare), &node, &end)) {
 				for (;;) {
-					if (value_equals(node->value, value)) {
+					if (value_equals(node->value, Forward<VALUE>(value))) {
 						n++;
 						if (node == end) {
 							removeNode(pRoot, count, node);

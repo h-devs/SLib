@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -46,13 +46,8 @@ namespace slib
 		typedef SetPosition<NODE> POSITION;
 
 	public:
-		template <class HASH_ARG, class COMPARE_ARG>
-		CHashSet(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, COMPARE_ARG&& compare) noexcept: CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare)) {}
-
-		template <class HASH_ARG>
-		CHashSet(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), COMPARE()) {}
-
-		CHashSet(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept: CMAP(capacityMinimum, capacityMaximum, HASH(), COMPARE()) {}
+		template <class HASH_ARG = HASH, class COMPARE_ARG = COMPARE>
+		CHashSet(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH_ARG(), COMPARE_ARG&& compare = COMPARE_ARG()) noexcept: CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare)) {}
 
 	public:
 		CHashSet(const CHashSet& other) = delete;
@@ -64,8 +59,8 @@ namespace slib
 		CHashSet& operator=(CHashSet&& other) = default;
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		template <class HASH_ARG, class COMPARE_ARG>
-		CHashSet(const std::initializer_list<T>& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, COMPARE_ARG&& compare) noexcept: CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare))
+		template <class HASH_ARG = HASH, class COMPARE_ARG = COMPARE>
+		CHashSet(const std::initializer_list<T>& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH_ARG(), COMPARE_ARG&& compare = COMPARE_ARG()) noexcept: CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare))
 		{
 			const T* data = l.begin();
 			sl_size n = l.size();
@@ -73,11 +68,6 @@ namespace slib
 				CMAP::add_NoLock(data[i], sl_true);
 			}
 		}
-
-		template <class HASH_ARG>
-		CHashSet(const std::initializer_list<T>& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: CHashSet(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), COMPARE()) {}
-
-		CHashSet(const std::initializer_list<T>& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept: CHashSet(l, capacityMinimum, capacityMaximum, HASH(), COMPARE()) {}
 #endif
 
 	public:
@@ -176,74 +166,31 @@ namespace slib
 		SLIB_REF_WRAPPER(HashSet, CSET)
 
 	public:
-		HashSet(sl_size capacityMinimum, sl_size capacityMaximum = 0) noexcept: ref(new CSET(capacityMinimum, capacityMaximum)) {}
-
-		template <class HASH_ARG>
-		HashSet(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: ref(new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash))) {}
-
-		template <class HASH_ARG, class COMPARE_ARG>
-		HashSet(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, COMPARE_ARG&& compare) noexcept: ref(new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare))) {}
+		template <class HASH_ARG = HASH, class COMPARE_ARG = COMPARE>
+		HashSet(sl_size capacityMinimum, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), COMPARE_ARG&& compare = COMPARE()) noexcept: ref(new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare))) {}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		HashSet(const std::initializer_list<T>& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept: ref(new CSET(l, capacityMinimum, capacityMaximum)) {}
-
-		template <class HASH_ARG>
-		HashSet(const std::initializer_list<T>& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: ref(new CSET(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash))) {}
-
-		template <class HASH_ARG, class COMPARE_ARG>
-		HashSet(const std::initializer_list<T>& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, COMPARE_ARG&& compare) noexcept: ref(new CSET(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare))) {}
+		template <class HASH_ARG = HASH, class COMPARE_ARG = COMPARE>
+		HashSet(const std::initializer_list<T>& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), COMPARE_ARG&& compare = COMPARE()) noexcept: ref(new CSET(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare))) {}
 #endif
 
 	public:
-		static HashSet create(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
-		{
-			return new CSET(capacityMinimum, capacityMaximum);
-		}
-
-		template <class HASH_ARG>
-		static HashSet create(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept
-		{
-			return new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash));
-		}
-
-		template <class HASH_ARG, class COMPARE_ARG>
-		static HashSet create(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, COMPARE_ARG&& compare) noexcept
+		template <class HASH_ARG = HASH, class COMPARE_ARG = COMPARE>
+		static HashSet create(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), COMPARE_ARG&& compare = COMPARE()) noexcept
 		{
 			return new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare));
 		}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		static HashSet create(const std::initializer_list<T>& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
-		{
-			return new CSET(l, capacityMinimum, capacityMaximum);
-		}
-
-		template <class HASH_ARG>
-		static HashSet create(const std::initializer_list<T>& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept
-		{
-			return new CSET(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash));
-		}
-
-		template <class HASH_ARG, class COMPARE_ARG>
-		static HashSet create(const std::initializer_list<T>& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, COMPARE_ARG&& compare) noexcept
+		template <class HASH_ARG = HASH, class COMPARE_ARG = COMPARE>
+		static HashSet create(const std::initializer_list<T>& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), COMPARE_ARG&& compare = COMPARE()) noexcept
 		{
 			return new CSET(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare));
 		}
 #endif
 
-		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
-		{
-			ref = new CSET(capacityMinimum, capacityMaximum);
-		}
-
-		template <class HASH_ARG>
-		void initialize(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept
-		{
-			ref = new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash));
-		}
-
-		template <class HASH_ARG, class COMPARE_ARG>
-		void initialize(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, COMPARE_ARG&& compare) noexcept
+		template <class HASH_ARG = HASH, class COMPARE_ARG = COMPARE>
+		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), COMPARE_ARG&& compare = COMPARE()) noexcept
 		{
 			ref = new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare));
 		}
@@ -595,38 +542,17 @@ namespace slib
 		SLIB_ATOMIC_REF_WRAPPER(CSET)
 
 	public:
-		Atomic(sl_size capacityMinimum, sl_size capacityMaximum = 0) noexcept: ref(new CSET(capacityMinimum, capacityMaximum)) {}
-
-		template <class HASH_ARG>
-		Atomic(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: ref(new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash))) {}
-
-		template <class HASH_ARG, class COMPARE_ARG>
-		Atomic(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, COMPARE_ARG&& compare) noexcept: ref(new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare))) {}
+		template <class HASH_ARG = HASH, class COMPARE_ARG = COMPARE>
+		Atomic(sl_size capacityMinimum, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), COMPARE_ARG&& compare = COMPARE()) noexcept: ref(new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare))) {}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic(const std::initializer_list<T>& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept: ref(new CSET(l, capacityMinimum, capacityMaximum)) {}
-
-		template <class HASH_ARG>
-		Atomic(const std::initializer_list<T>& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: ref(new CSET(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash))) {}
-
-		template <class HASH_ARG, class COMPARE_ARG>
-		Atomic(const std::initializer_list<T>& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, COMPARE_ARG&& compare) noexcept: ref(new CSET(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare))) {}
+		template <class HASH_ARG = HASH, class COMPARE_ARG = COMPARE>
+		Atomic(const std::initializer_list<T>& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), COMPARE_ARG&& compare = COMPARE()) noexcept: ref(new CSET(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare))) {}
 #endif
 
 	public:
-		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
-		{
-			ref = new CSET(capacityMinimum, capacityMaximum);
-		}
-
-		template <class HASH_ARG>
-		void initialize(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept
-		{
-			ref = new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash));
-		}
-
-		template <class HASH_ARG, class COMPARE_ARG>
-		void initialize(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, COMPARE_ARG&& compare) noexcept
+		template <class HASH_ARG = HASH, class COMPARE_ARG = COMPARE>
+		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, HASH_ARG&& hash = HASH(), COMPARE_ARG&& compare = COMPARE()) noexcept
 		{
 			ref = new CSET(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<COMPARE_ARG>(compare));
 		}

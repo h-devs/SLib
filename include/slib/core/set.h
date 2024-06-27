@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -125,8 +125,8 @@ namespace slib
 		CSet& operator=(CSet&& other) = default;
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		template <class COMPARE_ARG>
-		CSet(const std::initializer_list<T>& l, COMPARE_ARG&& compare) noexcept: CMAP(Forward<COMPARE_ARG>(compare))
+		template <class COMPARE_ARG = COMPARE>
+		CSet(const std::initializer_list<T>& l, COMPARE_ARG&& compare = COMPARE()) noexcept: CMAP(Forward<COMPARE_ARG>(compare))
 		{
 			const T* data = l.begin();
 			sl_size n = l.size();
@@ -134,8 +134,6 @@ namespace slib
 				CMAP::add_NoLock(data[i], sl_true);
 			}
 		}
-
-		CSet(const std::initializer_list<T>& l) noexcept: CSet(l, COMPARE()) {}
 #endif
 
 	public:
@@ -234,17 +232,19 @@ namespace slib
 		SLIB_REF_WRAPPER(Set, CSET)
 
 	public:
-#ifdef SLIB_SUPPORT_STD_TYPES
-		Set(const std::initializer_list<T>& l) noexcept: ref(new CSET(l)) {}
+		Set(const COMPARE& compare) noexcept: ref(new CSET(compare)) {}
 
-		template <class COMPARE_ARG>
-		Set(const std::initializer_list<T>& l, COMPARE_ARG&& compare) noexcept: ref(new CSET(l, Forward<COMPARE_ARG>(compare))) {}
+		Set(COMPARE&& compare) noexcept: ref(new CSET(Move(compare))) {}
+
+#ifdef SLIB_SUPPORT_STD_TYPES
+		template <class COMPARE_ARG = COMPARE>
+		Set(const std::initializer_list<T>& l, COMPARE_ARG&& compare = COMPARE()) noexcept: ref(new CSET(l, Forward<COMPARE_ARG>(compare))) {}
 #endif
 
 	public:
 		static Set create() noexcept
 		{
-			return new CSET();
+			return new CSET;
 		}
 
 		static Set create(const COMPARE& compare) noexcept
@@ -258,31 +258,17 @@ namespace slib
 		}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		static Set create(const std::initializer_list<T>& l) noexcept
-		{
-			return new CSET(l);
-		}
-
-		template <class COMPARE_ARG>
-		static Set create(const std::initializer_list<T>& l, COMPARE_ARG&& compare) noexcept
+		template <class COMPARE_ARG = COMPARE>
+		static Set create(const std::initializer_list<T>& l, COMPARE_ARG&& compare = COMPARE()) noexcept
 		{
 			return new CSET(l, Forward<COMPARE_ARG>(compare));
 		}
 #endif
 
-		void initialize() noexcept
+		template <class COMPARE_ARG = COMPARE>
+		void initialize(COMPARE_ARG&& compare = COMPARE()) noexcept
 		{
-			ref = new CSET();
-		}
-
-		void initialize(const COMPARE& compare) noexcept
-		{
-			ref = new CSET(compare);
-		}
-
-		void initialize(COMPARE&& compare) noexcept
-		{
-			ref = new CSET(Move(compare));
+			ref = new CSET(Forward<COMPARE_ARG>(compare));
 		}
 
 		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, Set, Set<TYPES...>)
@@ -557,27 +543,20 @@ namespace slib
 		SLIB_ATOMIC_REF_WRAPPER(CSET)
 
 	public:
-#ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic(const std::initializer_list<T>& l) noexcept: ref(new CSET(l)) {}
+		Atomic(const COMPARE& compare) noexcept: ref(new CSET(compare)) {}
 
-		template <class COMPARE_ARG>
-		Atomic(const std::initializer_list<T>& l, COMPARE_ARG&& compare) noexcept: ref(new CSET(l, Forward<COMPARE_ARG>(compare))) {}
+		Atomic(COMPARE&& compare) noexcept: ref(new CSET(Move(compare))) {}
+
+#ifdef SLIB_SUPPORT_STD_TYPES
+		template <class COMPARE_ARG = COMPARE>
+		Atomic(const std::initializer_list<T>& l, COMPARE_ARG&& compare = COMPARE()) noexcept: ref(new CSET(l, Forward<COMPARE_ARG>(compare))) {}
 #endif
 
 	public:
-		void initialize() noexcept
+		template <class COMPARE_ARG = COMPARE>
+		void initialize(COMPARE_ARG&& compare = COMPARE()) noexcept
 		{
-			ref = new CSET;
-		}
-
-		void initialize(const COMPARE& compare) noexcept
-		{
-			ref = new CSET(compare);
-		}
-
-		void initialize(COMPARE&& compare) noexcept
-		{
-			ref = new CSET(Move(compare));
+			ref = new CSET(Forward<COMPARE_ARG>(compare));
 		}
 
 		SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, Atomic, Atomic< Set<TYPES...> >)

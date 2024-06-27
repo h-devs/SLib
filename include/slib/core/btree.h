@@ -173,18 +173,8 @@ namespace slib
 	class SLIB_EXPORT BTree
 	{
 	public:
-		BTree(sl_uint32 order = SLIB_BTREE_DEFAULT_ORDER)
-		{
-			if (order < 1) {
-				order = 1;
-			}
-			m_order = order;
-			m_maxLength = 0;
-			m_totalCount = 0;
-			initialize();
-		}
-
-		BTree(const KEY_COMPARE& compare, sl_uint32 order = SLIB_BTREE_DEFAULT_ORDER): m_compare(compare)
+		template <class KEY_COMPARE_ARG = KEY_COMPARE>
+		BTree(sl_uint32 order = SLIB_BTREE_DEFAULT_ORDER, KEY_COMPARE_ARG&& compare= KEY_COMPARE()): m_compare(Forward<KEY_COMPARE_ARG>(compare))
 		{
 			if (order < 1) {
 				order = 1;
@@ -738,15 +728,15 @@ namespace slib
 			return getEqualRangeInNode(root, key, pLowerBound, pUpperBound);
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		BTreePosition findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		BTreePosition findKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const
 		{
 			BTreePosition pos, end;
 			if (getEqualRange(key, &pos, &end)) {
 				VT v;
 				if (getAt(pos, sl_null, &v)) {
 					do {
-						if (value_equals(value, v)) {
+						if (value_equals(v, Forward<VALUE>(value))) {
 							return pos;
 						}
 						if (!(moveToNext(pos, sl_null, &v))) {
@@ -782,8 +772,8 @@ namespace slib
 			return sl_null;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		List<VT> getValuesByKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS()) const
 		{
 			List<VT> ret;
 			BTreePosition pos, end;
@@ -791,7 +781,7 @@ namespace slib
 				VT v;
 				if (getAt(pos, sl_null, &v)) {
 					do {
-						if (value_equals(v, value)) {
+						if (value_equals(v, Forward<VALUE>(value))) {
 							ret.add_NoLock(v);
 						}
 						if (!(moveToNext(pos, sl_null, &v))) {
@@ -1027,10 +1017,10 @@ namespace slib
 			return ret;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS())
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_bool removeKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS())
 		{
-			BTreePosition pos = findKeyAndValue(key, value, value_equals);
+			BTreePosition pos = findKeyAndValue(key, Forward<VALUE>(value), Forward<VALUE>(value_equals));
 			if (pos.isNotNull()) {
 				if (removeAt(pos)) {
 					return sl_true;
@@ -1039,15 +1029,15 @@ namespace slib
 			return sl_false;
 		}
 
-		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
-		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS())
+		template < class VALUE, class VALUE_EQUALS = Equals< VT, typename RemoveConstReference<VALUE>::Type> >
+		sl_size removeItemsByKeyAndValue(const KT& key, VALUE&& value, VALUE_EQUALS&& value_equals = VALUE_EQUALS())
 		{
-			BTreePosition pos = findKeyAndValue(key, value, value_equals);
+			BTreePosition pos = findKeyAndValue(key, Forward<VALUE>(value), Forward<VALUE>(value_equals));
 			if (pos.isNotNull()) {
 				if (removeAt(pos)) {
 					sl_size n = 1;
 					for (;;) {
-						pos = findKeyAndValue(key, value, value_equals);
+						pos = findKeyAndValue(key, Forward<VALUE>(value), Forward<VALUE>(value_equals));
 						if (pos.isNotNull()) {
 							if (removeAt(pos)) {
 								n++;
