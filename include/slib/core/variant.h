@@ -322,7 +322,7 @@ namespace slib
 			} else {
 				_tag = 0;
 				_type = VariantType::Null;
-				_value = 0;
+				_value = value.isUndefined() ? 0 : 1;
 			}
 		}
 
@@ -1130,10 +1130,15 @@ namespace slib
 	template <class T>
 	static void FromVariant(const Variant& var, Nullable<T>& _out) noexcept
 	{
-		if (var.isUndefined()) {
-			_out->setNull();
+		if (var.isNull()) {
+			if (var.isUndefined()) {
+				_out->setUndefined();
+			} else {
+				_out->setNull();
+			}
 		} else {
 			_out.flagNull = sl_false;
+			_out.flagUndefined = sl_false;
 			FromVariant(var, _out.value);
 		}
 	}

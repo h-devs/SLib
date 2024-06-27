@@ -33,19 +33,19 @@ namespace slib
 	class Nullable
 	{
 	public:
-		Nullable(): flagNull(sl_true) {}
+		Nullable(): flagNull(sl_true), flagUndefined(sl_true) {}
 
-		Nullable(const Nullable& other): flagNull(other.flagNull), value(other.value) {}
+		Nullable(const Nullable& other) = default;
 
-		Nullable(Nullable&& other): flagNull(Move(other.flagNull)), value(Move(other.value)) {}
+		Nullable(Nullable&& other) = default;
 
-		Nullable(sl_null_t): flagNull(sl_true) {}
+		Nullable(sl_null_t): flagNull(sl_true), flagUndefined(sl_false) {}
 
 		template <class OTHER>
-		Nullable(const Nullable<OTHER>& other): flagNull(other.flagNull), value(other.value) {}
+		Nullable(const Nullable<OTHER>& other): flagNull(other.flagNull), flagUndefined(other.flagUndefined), value(other.value) {}
 
 		template <class... ARGS>
-		Nullable(ARGS... args): flagNull(sl_false), value(Forward<ARGS...>(args...)) {}
+		Nullable(ARGS... args): flagNull(sl_false), flagUndefined(sl_false), value(Forward<ARGS...>(args...)) {}
 
 	public:
 		operator T const&() const noexcept
@@ -58,23 +58,14 @@ namespace slib
 			return value;
 		}
 
-		Nullable& operator=(const Nullable& other)
-		{
-			flagNull = other.flagNull;
-			value = other.value;
-			return *this;
-		}
+		Nullable& operator=(const Nullable& other) = default;
 
-		Nullable& operator=(Nullable&& other)
-		{
-			flagNull = other.flagNull;
-			value = Move(other.value);
-			return *this;
-		}
+		Nullable& operator=(Nullable&& other) = default;
 
 		Nullable& operator=(sl_null_t)
 		{
 			flagNull = sl_true;
+			flagUndefined = sl_false;
 			value = T();
 			return *this;
 		}
@@ -83,6 +74,7 @@ namespace slib
 		Nullable& operator=(const Nullable<OTHER>& other)
 		{
 			flagNull = other.flagNull;
+			flagUndefined = other.flagUndefined;
 			value = other.value;
 			return *this;
 		}
@@ -91,6 +83,7 @@ namespace slib
 		Nullable& operator=(ARG&& arg)
 		{
 			flagNull = sl_false;
+			flagUndefined = sl_false;
 			value = Forward<ARG>(arg);
 			return *this;
 		}
@@ -114,6 +107,24 @@ namespace slib
 		void setNull()
 		{
 			flagNull = sl_true;
+			flagUndefined = sl_false;
+			value = T();
+		}
+
+		SLIB_CONSTEXPR sl_bool isUndefined() const
+		{
+			return flagUndefined;
+		}
+
+		SLIB_CONSTEXPR sl_bool isNotUndefined() const
+		{
+			return !flagUndefined;
+		}
+
+		void setUndefined()
+		{
+			flagNull = sl_true;
+			flagUndefined = sl_true;
 			value = T();
 		}
 
@@ -201,6 +212,7 @@ namespace slib
 	public:
 		T value;
 		sl_bool flagNull;
+		sl_bool flagUndefined;
 
 	};
 

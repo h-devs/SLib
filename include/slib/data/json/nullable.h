@@ -38,6 +38,7 @@ namespace slib
 			_out.setNull();
 		} else {
 			_out.flagNull = sl_false;
+			_out.flagUndefined = sl_false;
 			FromJson(json, _out.value);
 		}
 	}
@@ -45,8 +46,12 @@ namespace slib
 	template <class T>
 	Json::Json(const Nullable<T>& _in)
 	{
-		if (_in.isNotNull()) {
-			new (this) Json(_in.value);
+		if (_in.isNotUndefined()) {
+			if (_in.isNotNull()) {
+				new (this) Json(_in.value);
+			} else {
+				new (this) Json(sl_null);
+			}
 		}
 	}
 

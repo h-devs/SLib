@@ -52,6 +52,7 @@ namespace slib
 		}
 		if (f) {
 			_out.flagNull = sl_false;
+			_out.flagUndefined = sl_false;
 			return Deserialize(input, _out.value);
 		} else {
 			_out.setNull();
