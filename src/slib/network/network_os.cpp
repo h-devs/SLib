@@ -723,7 +723,7 @@ namespace slib
 			if (funcGetIpNetTable(table, &size, FALSE) == NO_ERROR) {
 				for (DWORD i = 0; i < table->dwNumEntries; i++) {
 					MIB_IPNETROW& row = table->table[i];
-					if (row.dwType == MIB_IPNET_TYPE_DYNAMIC && row.dwPhysAddrLen == 6) {
+					if (row.dwPhysAddrLen == 6 && (row.dwType == MIB_IPNET_TYPE_DYNAMIC || row.dwType == MIB_IPNET_TYPE_STATIC)) {
 						IPv4Address ip((sl_uint32)(Endian::swap32(row.dwAddr)));
 						MacAddress mac(row.bPhysAddr);
 						ret.add_NoLock(ip, mac);
