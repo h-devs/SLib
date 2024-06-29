@@ -177,6 +177,17 @@ namespace slib
 		invalidate(updateMode);
 	}
 
+	sl_bool LabelView::isAligningInVisibleRect()
+	{
+		return m_cell->flagAlignInVisibleRect;
+	}
+
+	void LabelView::setAligningInVisibleRect(sl_bool flag, UIUpdateMode updateMode)
+	{
+		m_cell->flagAlignInVisibleRect = flag;
+		invalidate(updateMode);
+	}
+
 	Color LabelView::getLinkColor()
 	{
 		Color color = m_cell->linkColor;
@@ -304,6 +315,7 @@ namespace slib
 		gravity = Alignment::Left;
 		ellipsizeMode = EllipsizeMode::None;
 		flagEnabledHyperlinksInPlainText = sl_false;
+		flagAlignInVisibleRect = sl_false;
 		linkColor = Color::Zero;
 
 		shadowOpacity = 0;
@@ -385,9 +397,40 @@ namespace slib
 		}
 	}
 
+	UIRect LabelViewCell::_getFinalFrame()
+	{
+		if (flagAlignInVisibleRect && isServingAsView()) {
+			Ref<View> view = getView();
+			if (view.isNotNull()) {
+				UIRect bounds = view->getBoundsInnerPadding();
+				UIRect visibleRect;
+				if (view->getVisibleBounds(&visibleRect)) {
+					sl_ui_len contentWidth = (sl_ui_len)(m_textBox.getContentWidth());
+					sl_ui_len contentHeight = (sl_ui_len)(m_textBox.getContentHeight());
+					if (contentWidth > visibleRect.getWidth()) {
+						if (Math::abs(visibleRect.right - bounds.right) < Math::abs(visibleRect.left - bounds.left)) {
+							visibleRect.left = visibleRect.right - contentWidth;
+						} else {
+							visibleRect.right = visibleRect.left + contentWidth;
+						}
+					}
+					if (contentHeight > visibleRect.getHeight()) {
+						if (Math::abs(visibleRect.bottom - bounds.bottom) < Math::abs(visibleRect.top - bounds.top)) {
+							visibleRect.top = visibleRect.bottom - contentHeight;
+						} else {
+							visibleRect.bottom = visibleRect.top + contentHeight;
+						}
+					}
+					return visibleRect;
+				}
+			}
+		}
+		return getFrame();
+	}
+
 	void LabelViewCell::onDraw(Canvas* canvas)
 	{
-		UIRect bounds = getFrame();
+		UIRect bounds = _getFinalFrame();
 		if (bounds.getWidth() < 1 || bounds.getHeight() < 1) {
 			return;
 		}
@@ -415,7 +458,7 @@ namespace slib
 
 	void LabelViewCell::onClickEvent(UIEvent* ev)
 	{
-		Ref<TextItem> item = m_textBox.getTextItemAtLocation(ev->getX(), ev->getY(), getFrame());
+		Ref<TextItem> item = m_textBox.getTextItemAtLocation(ev->getX(), ev->getY(), _getFinalFrame());
 		if (item.isNotNull()) {
 			Ref<TextStyle> style = item->getStyle();
 			if (style.isNotNull()) {
@@ -429,7 +472,7 @@ namespace slib
 
 	void LabelViewCell::onSetCursor(UIEvent* ev)
 	{
-		Ref<TextItem> item = m_textBox.getTextItemAtLocation(ev->getX(), ev->getY(), getFrame());
+		Ref<TextItem> item = m_textBox.getTextItemAtLocation(ev->getX(), ev->getY(), _getFinalFrame());
 		if (item.isNotNull()) {
 			Ref<TextStyle> style = item->getStyle();
 			if (style.isNotNull()) {

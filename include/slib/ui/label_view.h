@@ -86,7 +86,11 @@ namespace slib
 
 		sl_bool isDetectingHyperlinksInPlainText();
 
-		void setDetectingHyperlinksInPlainText(sl_bool flag, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+		void setDetectingHyperlinksInPlainText(sl_bool flag = sl_true, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+		sl_bool isAligningInVisibleRect();
+
+		void setAligningInVisibleRect(sl_bool flag = sl_true, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 		Color getLinkColor();
 
@@ -141,6 +145,7 @@ namespace slib
 		Alignment gravity;
 		EllipsizeMode ellipsizeMode;
 		sl_bool flagEnabledHyperlinksInPlainText;
+		sl_bool flagAlignInVisibleRect;
 		Color linkColor;
 		Color lineColor;
 
@@ -177,6 +182,8 @@ namespace slib
 		void _updateTextBox(sl_ui_len width);
 
 		void _updateTextBox(sl_bool flagWrapping, sl_ui_len width, sl_ui_len padding, const Alignment& align);
+
+		UIRect _getFinalFrame();
 
 	protected:
 		TextBox m_textBox;

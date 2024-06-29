@@ -2960,6 +2960,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setMultiLine)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, ellipsize, setEllipsize)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, lines, setLineCount)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, alignInVisibleRect, setAligningInVisibleRect)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, linksInText, setDetectingHyperlinksInPlainText);
 		LAYOUT_CONTROL_UI_ATTR(COLOR, linkColor, setLinkColor)
 		LAYOUT_CONTROL_UI_ATTR(COLOR, lineColor, setLineColor)

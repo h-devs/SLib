@@ -460,6 +460,7 @@ namespace slib
 		SAppMultiLineModeValue multiLine;
 		SAppEllipsizeModeValue ellipsize;
 		SAppUint32Value lines;
+		SAppBooleanValue alignInVisibleRect;
 		SAppBooleanValue linksInText;
 		SAppColorValue linkColor;
 		SAppColorValue lineColor;
