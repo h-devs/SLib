@@ -436,8 +436,19 @@ namespace slib
 		static String findParentPathContainingFile(const StringParam& basePath, const StringParam& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX) noexcept;
 
 		static sl_bool isDotOrDotDot(const char* fileName) noexcept;
-
 		static sl_bool isDotOrDotDot(const sl_char16* fileName) noexcept;
+
+		static sl_bool isAbsolutePath(const StringView& path) noexcept;
+		static sl_bool isAbsolutePath(const StringView16& path) noexcept;
+		static sl_bool isAbsolutePath(const StringView32& path) noexcept;
+
+		static sl_bool isWindowsAbsolutePath(const StringView& path) noexcept;
+		static sl_bool isWindowsAbsolutePath(const StringView16& path) noexcept;
+		static sl_bool isWindowsAbsolutePath(const StringView32& path) noexcept;
+
+		static sl_bool isUnixAbsolutePath(const StringView& path) noexcept;
+		static sl_bool isUnixAbsolutePath(const StringView16& path) noexcept;
+		static sl_bool isUnixAbsolutePath(const StringView32& path) noexcept;
 
 	private:
 		static sl_file _open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs) noexcept;

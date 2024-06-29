@@ -1031,6 +1031,97 @@ namespace slib
 		return sl_false;
 	}
 
+	namespace
+	{
+		template <class CHAR>
+		static sl_bool IsWindowsAbsolutePath(const CHAR* s, sl_reg len)
+		{
+			if (len >= 0 && len < 2) {
+				return sl_false;
+			}
+			CHAR drive = *s;
+			if (!SLIB_CHAR_IS_ALPHA(drive)) {
+				return sl_false;
+			}
+			if (s[1] != ':') {
+				return sl_false;
+			}
+			if (len == 2) {
+				return sl_true;
+			}
+			CHAR sep = s[2];
+			return sep == '\\' || sep == '/' || (len < 0 && !sep);
+		}
+
+		template <class CHAR>
+		static sl_bool IsUnixAbsolutePath(const CHAR* s, sl_reg len)
+		{
+			if (!len) {
+				return sl_false;
+			}
+			return *s == '/';
+		}
+
+#ifdef SLIB_PLATFORM_IS_WINDOWS
+		template <class CHAR>
+		static sl_bool IsAbsolutePath(const CHAR* s, sl_reg len)
+		{
+			return IsWindowsAbsolutePath(s, len);
+		}
+#else
+		template <class CHAR>
+		static sl_bool IsAbsolutePath(const CHAR* s, sl_reg len)
+		{
+			return IsUnixAbsolutePath(s, len);
+		}
+#endif
+	}
+
+	sl_bool File::isAbsolutePath(const StringView& path) noexcept
+	{
+		return IsAbsolutePath(path.getData(), path.getUnsafeLength());
+	}
+
+	sl_bool File::isAbsolutePath(const StringView16& path) noexcept
+	{
+		return IsAbsolutePath(path.getData(), path.getUnsafeLength());
+	}
+
+	sl_bool File::isAbsolutePath(const StringView32& path) noexcept
+	{
+		return IsAbsolutePath(path.getData(), path.getUnsafeLength());
+	}
+
+	sl_bool File::isWindowsAbsolutePath(const StringView& path) noexcept
+	{
+		return IsWindowsAbsolutePath(path.getData(), path.getUnsafeLength());
+	}
+
+	sl_bool File::isWindowsAbsolutePath(const StringView16& path) noexcept
+	{
+		return IsWindowsAbsolutePath(path.getData(), path.getUnsafeLength());
+	}
+
+	sl_bool File::isWindowsAbsolutePath(const StringView32& path) noexcept
+	{
+		return IsWindowsAbsolutePath(path.getData(), path.getUnsafeLength());
+	}
+
+	sl_bool File::isUnixAbsolutePath(const StringView& path) noexcept
+	{
+		return IsUnixAbsolutePath(path.getData(), path.getUnsafeLength());
+	}
+
+	sl_bool File::isUnixAbsolutePath(const StringView16& path) noexcept
+	{
+		return IsUnixAbsolutePath(path.getData(), path.getUnsafeLength());
+	}
+
+	sl_bool File::isUnixAbsolutePath(const StringView32& path) noexcept
+	{
+		return IsUnixAbsolutePath(path.getData(), path.getUnsafeLength());
+	}
+
 
 	SLIB_DEFINE_ROOT_OBJECT(FileIO)
 
