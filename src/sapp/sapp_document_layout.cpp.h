@@ -306,6 +306,7 @@ namespace slib
 
 			item->itemType = type;
 			item->itemTypeName = strType;
+			item->localNamespace = layout->localNamespace;
 
 		}
 
@@ -688,14 +689,21 @@ namespace slib
 		String name;
 		if (parent) {
 			name = item->name;
+			String className;
+			if (item->classNameGetter.isNotNull()) {
+				className = item->classNameGetter(this, item);
+			} else {
+				className = item->className;
+				getItemFromMap(m_layouts, layout->localNamespace, className, &className, (Ref<SAppLayoutResource>*)sl_null);
+			}
 			if (item->arrayIndex < 0) {
-				if (item->className.endsWith('>')) {
-					params->sbDeclare->add(String::format("\t\t\tslib::Ref< %s > %s;%n", item->className, name));
+				if (className.endsWith('>')) {
+					params->sbDeclare->add(String::format("\t\t\tslib::Ref< %s > %s;%n", className, name));
 				} else {
-					params->sbDeclare->add(String::format("\t\t\tslib::Ref<%s> %s;%n", item->className, name));
+					params->sbDeclare->add(String::format("\t\t\tslib::Ref<%s> %s;%n", className, name));
 				}
 			}
-			params->sbDefineInit->add(String::format("\t\t\t%2$s = new %1$s;%n", item->className, name));
+			params->sbDefineInit->add(String::format("\t\t\t%2$s = new %1$s;%n", className, name));
 		} else {
 			name = "this";
 		}
@@ -3441,7 +3449,12 @@ namespace slib
 				return sl_false; \
 			} \
 			if (resourceItem->className == "slib::" #SUPER_VIEW) { \
-				resourceItem->className = String::concat("slib::IterateLayout<slib::" #SUPER_VIEW ", ", attr->layout.name, ">"); \
+				String _layoutName = attr->layout.name; \
+				resourceItem->classNameGetter = [_layoutName](SAppDocument* doc, SAppLayoutResourceItem* item) { \
+					String layoutName = _layoutName; \
+					doc->getItemFromMap(doc->m_layouts, item->localNamespace, layoutName, &layoutName, (Ref<SAppLayoutResource>*)sl_null); \
+					return String::concat("slib::IterateLayout<slib::" #SUPER_VIEW ", ", layoutName, ">"); \
+				}; \
 			} \
 			if (!(attr->layout.simulationCount.flagDefined)) { \
 				attr->layout.simulationCount.value = 3; \

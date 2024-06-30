@@ -1287,6 +1287,7 @@ namespace slib
 		sl_bool flagSkipSimulateChildren;
 
 		String className;
+		Function<String(SAppDocument*, SAppLayoutResourceItem*)> classNameGetter;
 
 		Ref<CRef> attrs;
 		CList< Ref<SAppLayoutResourceItem> > children;
