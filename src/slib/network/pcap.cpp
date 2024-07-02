@@ -69,7 +69,6 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_UNIX) || defined(SLIB_PLATFORM_IS_WIN32)
 
 #include "slib/network/socket_address.h"
-
 #include "slib/io/file.h"
 #include "slib/system/process.h"
 #include "slib/system/system.h"
@@ -77,29 +76,23 @@ namespace slib
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
 
-#define TAG "Pcap"
-
 #if defined(SLIB_PLATFORM_IS_WIN32)
 #	include "slib/platform.h"
-#	define USE_STATIC_NPCAP
-#	include "pcap/pcap.h"
+#	include "slib/dl/common/pcap.h"
+#	define PCAP_DYNAMIC_LIB
 #else
 #	include "slib/io/pipe_event.h"
 #	if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-#		include "slib/dl/linux/pcap.h"
+#		include "slib/dl/common/pcap.h"
+#		define PCAP_DYNAMIC_LIB
 #	else
 #		include "pcap/pcap.h"
 #	endif
 #	include <sys/socket.h>
 #endif
 
+#define TAG "Pcap"
 #define MAX_PACKET_SIZE 65535
-
-#ifdef USE_STATIC_NPCAP
-void InitNpcap();
-void FreeNpcap();
-#pragma comment(lib, "npcap.lib")
-#endif
 
 #if !defined(SLIB_PLATFORM_IS_WIN32)
 #define PCAP_BREAK_SIGNAL SIGUSR1
@@ -108,25 +101,8 @@ void FreeNpcap();
 namespace slib
 {
 
-	namespace {
-
-#ifdef USE_STATIC_NPCAP
-		class NpcapEnv
-		{
-		public:
-			NpcapEnv()
-			{
-				InitNpcap();
-			}
-
-			~NpcapEnv()
-			{
-				FreeNpcap();
-			}
-		};
-
-		SLIB_SAFE_STATIC_GETTER(NpcapEnv, GetEnv)
-#endif
+	namespace
+	{
 
 		class PcapImpl : public Pcap
 		{
@@ -149,6 +125,11 @@ namespace slib
 		public:
 			static Ref<PcapImpl> create(const PcapParam& param)
 			{
+#ifdef PCAP_DYNAMIC_LIB
+				if (!(pcap_findalldevs)) {
+					return sl_null;
+				}
+#endif
 				StringCstr name(param.deviceName);
 				if (name.isEmpty()) {
 					name = "any";
@@ -409,15 +390,11 @@ namespace slib
 
 	Ref<Pcap> Pcap::create(const PcapParam& param)
 	{
-#ifdef USE_STATIC_NPCAP
-		if (!(GetEnv())) {
-			return sl_null;
-		}
-#endif
 		return Ref<Pcap>::cast(PcapImpl::create(param));
 	}
 
-	namespace {
+	namespace
+	{
 		static void ParseDeviceInfo(pcap_if_t* dev, PcapDeviceInfo& _out)
 		{
 			_out.name = String::fromUtf8(dev->name);
@@ -472,49 +449,44 @@ namespace slib
 
 	List<PcapDeviceInfo> Pcap::getAllDevices()
 	{
-#ifdef USE_STATIC_NPCAP
-		if (!(GetEnv())) {
+#ifdef PCAP_DYNAMIC_LIB
+		if (!(pcap_findalldevs)) {
 			return sl_null;
 		}
 #endif
-
-		List<PcapDeviceInfo> list;
+		List<PcapDeviceInfo> ret;
 		char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
-
 		pcap_if_t* devs = NULL;
-		int ret = pcap_findalldevs(&devs, errBuf);
-		if (!ret && devs) {
+		int iRet = pcap_findalldevs(&devs, errBuf);
+		if (!iRet && devs) {
 			pcap_if_t* dev = devs;
 			while (dev) {
 				PcapDeviceInfo item;
 				ParseDeviceInfo(dev, item);
-				list.add_NoLock(item);
+				ret.add_NoLock(item);
 				dev = dev->next;
 			}
 			pcap_freealldevs(devs);
 		} else {
 			LogError(TAG, errBuf);
 		}
-		return list;
+		return ret;
 	}
 
 	sl_bool Pcap::findDevice(const StringView& name, PcapDeviceInfo& _out)
 	{
-		if (name.isEmpty()) {
-			return sl_false;
-		}
-
-#ifdef USE_STATIC_NPCAP
-		if (!(GetEnv())) {
+#if defined(PCAP_DYNAMIC_LIB)
+		if (!(pcap_findalldevs)) {
 			return sl_false;
 		}
 #endif
-
+		if (name.isEmpty()) {
+			return sl_false;
+		}
 		char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
-
 		pcap_if_t* devs = NULL;
-		int ret = pcap_findalldevs(&devs, errBuf);
-		if (!ret && devs) {
+		int iRet = pcap_findalldevs(&devs, errBuf);
+		if (!iRet && devs) {
 			pcap_if_t* dev = devs;
 			while (dev) {
 				if (name == dev->name || name == dev->description) {
@@ -538,7 +510,8 @@ namespace slib
 		return sl_false;
 	}
 
-	namespace {
+	namespace
+	{
 		class AnyDevicePcapImpl : public AnyDevicePcap
 		{
 		public:
@@ -559,6 +532,11 @@ namespace slib
 		public:
 			static Ref<AnyDevicePcapImpl> create(const PcapParam& param)
 			{
+#if defined(PCAP_DYNAMIC_LIB)
+				if (!(pcap_findalldevs)) {
+					return sl_null;
+				}
+#endif
 				Ref<AnyDevicePcapImpl> ret = new AnyDevicePcapImpl;
 				if (ret.isNotNull()) {
 					ret->_initWithParam(param);
@@ -779,19 +757,6 @@ namespace slib
 		return AnyDevicePcapImpl::create(param);
 	}
 
-
-#ifndef SLIB_PLATFORM_IS_WIN32
-	sl_bool Npcap::install()
-	{
-		return sl_false;
-	}
-
-	sl_bool Npcap::uninstall()
-	{
-		return sl_false;
-	}
-#endif
-
 }
 
 #else
@@ -822,26 +787,6 @@ namespace slib
 	Ref<AnyDevicePcap> AnyDevicePcap::create(const PcapParam& param)
 	{
 		return sl_null;
-	}
-
-	ServiceState Npcap::getDriverState()
-	{
-		return ServiceState::None;
-	}
-
-	sl_bool Npcap::startDriver()
-	{
-		return sl_false;
-	}
-
-	sl_bool Npcap::install()
-	{
-		return sl_false;
-	}
-
-	sl_bool Npcap::uninstall()
-	{
-		return sl_false;
 	}
 
 }

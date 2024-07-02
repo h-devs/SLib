@@ -342,6 +342,7 @@
     <ClCompile Include="..\..\src\slib\platform\win32\dl_user32.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_wininet.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_winmm.cpp" />
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_wpcap.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_wtsapi32.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\message_loop.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\platform.cpp" />

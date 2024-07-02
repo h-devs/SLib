@@ -12,11 +12,8 @@ int main(int argc, const char * argv[])
 	System::setDebugFlags();
 
 	analyzer.setLogging();
-	//analyzer.setUdpEnabled();
-	//analyzer.setTcpEnabled();
-	analyzer.setAnalyzingHttp();
-	analyzer.setAnalyzingHttps();
-	analyzer.setIgnoringLocalPackets();
+	analyzer.setUdpEnabled();
+	analyzer.setTcpEnabled();
 
 	PcapParam param;
 	param.onCapturePacket = [](NetCapture* capture, NetCapturePacket& input) {

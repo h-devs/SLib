@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +20,23 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_DL_LINUX_PCAP
-#define CHECKHEADER_SLIB_DL_LINUX_PCAP
+#ifndef CHECKHEADER_SLIB_DL_COMMON_PCAP
+#define CHECKHEADER_SLIB_DL_COMMON_PCAP
 
 #include "../dl.h"
 
-#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP) || defined(SLIB_PLATFORM_IS_WIN32)
 
 #include "pcap/pcap.h"
 
 namespace slib
 {
 
+#ifdef SLIB_PLATFORM_IS_WIN32
+	SLIB_IMPORT_LIBRARY_BEGIN(pcap, "wpcap.dll")
+#else
 	SLIB_IMPORT_LIBRARY_BEGIN(pcap, "libpcap.so", "libpcap.so.1", "libpcap.so.0.8")
+#endif
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pcap_create,
@@ -131,6 +135,13 @@ namespace slib
 			pcap_t *, int, pcap_handler, u_char *
 		)
 		#define pcap_dispatch slib::pcap::getApi_pcap_dispatch()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			pcap_getevent,
+			HANDLE, ,
+			pcap_t *p
+		)
+		#define pcap_getevent slib::pcap::getApi_pcap_getevent()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pcap_get_selectable_fd,

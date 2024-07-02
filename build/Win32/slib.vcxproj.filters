@@ -1310,5 +1310,8 @@
     <ClCompile Include="..\..\src\slib\doc\file_type.cpp">
       <Filter>src\doc</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_wpcap.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
