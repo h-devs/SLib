@@ -42,6 +42,48 @@
 namespace slib
 {
 
+	namespace
+	{
+
+		enum class ArgumentValue
+		{
+			None,
+			Service,
+			Admin,
+			Install,
+			Reinstall,
+			Uninstall,
+			Status,
+			Start,
+			Stop,
+			Restart
+		};
+
+		static ArgumentValue ParseArgumentValue(const StringView& cmd)
+		{
+			if (cmd == StringView::literal("service")) {
+				return ArgumentValue::Service;
+			} else if (cmd == StringView::literal("admin")) {
+				return ArgumentValue::Admin;
+			} else if (cmd == StringView::literal("install")) {
+				return ArgumentValue::Install;
+			} else if (cmd == StringView::literal("reinstall")) {
+				return ArgumentValue::Reinstall;
+			} else if (cmd == StringView::literal("uninstall")) {
+				return ArgumentValue::Uninstall;
+			} else if (cmd == StringView::literal("status")) {
+				return ArgumentValue::Status;
+			} else if (cmd == StringView::literal("start")) {
+				return ArgumentValue::Start;
+			} else if (cmd == StringView::literal("stop")) {
+				return ArgumentValue::Stop;
+			} else if (cmd == StringView::literal("restart")) {
+				return ArgumentValue::Restart;
+			}
+			return ArgumentValue::None;
+		}
+	}
+
 	SLIB_DEFINE_OBJECT(Service, Object)
 
 	Service::Service()
@@ -182,50 +224,72 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_MOBILE)
 		Log(TAG, "Can not run on mobile platforms");
 #else
+
 		List<String> arguments = getArguments();
-		if (arguments.contains("service")) {
+		sl_bool flagControlSystem = sl_false;
+		sl_bool flagRequireAdmin = sl_false;
+
+		sl_uint32 currentArgIndex = 2;
+		ArgumentValue arg = ParseArgumentValue(arguments.getValueAt_NoLock(1));
+		if (arg == ArgumentValue::Service) {
+			flagControlSystem = sl_true;
+			arg = ParseArgumentValue(arguments.getValueAt_NoLock(currentArgIndex++));
+			if (arg == ArgumentValue::Admin) {
+				flagRequireAdmin = sl_true;
+				arg = ParseArgumentValue(arguments.getValueAt_NoLock(currentArgIndex++));
+			}
+			if (arg < ArgumentValue::Install) {
+				flagControlSystem = sl_false;
+			}
+		}
+		if (flagControlSystem) {
+			if (!flagRequireAdmin) {
+				if (ParseArgumentValue(arguments.getValueAt_NoLock(currentArgIndex)) == ArgumentValue::Admin) {
+					flagRequireAdmin = sl_true;
+				}
+			}
 			String name = getServiceId();
 			if (name.isEmpty()) {
 				LogError(TAG, "SERVICE NAME IS EMPTY");
 				return -1;
 			}
 			ServiceState state = ServiceManager::getState(name);
-			if (arguments.contains("status")) {
+			if (arg == ArgumentValue::Status) {
 				switch (state) {
-				case ServiceState::None:
-					Log(TAG, "Not Installed");
-					break;
-				case ServiceState::Running:
-					Log(TAG, "Running");
-					break;
-				case ServiceState::Paused:
-					Log(TAG, "Paused");
-					break;
-				case ServiceState::Stopped:
-					Log(TAG, "Stopped");
-					break;
-				case ServiceState::StartPending:
-					Log(TAG, "StartPending");
-					break;
-				case ServiceState::PausePending:
-					Log(TAG, "PausePending");
-					break;
-				case ServiceState::StopPending:
-					Log(TAG, "StopPending");
-					break;
-				case ServiceState::ContinuePending:
-					Log(TAG, "ContinuePending");
-					break;
-				default:
-					Log(TAG, "Unknown");
-					break;
+					case ServiceState::None:
+						Log(TAG, "Not Installed");
+						break;
+					case ServiceState::Running:
+						Log(TAG, "Running");
+						break;
+					case ServiceState::Paused:
+						Log(TAG, "Paused");
+						break;
+					case ServiceState::Stopped:
+						Log(TAG, "Stopped");
+						break;
+					case ServiceState::StartPending:
+						Log(TAG, "StartPending");
+						break;
+					case ServiceState::PausePending:
+						Log(TAG, "PausePending");
+						break;
+					case ServiceState::StopPending:
+						Log(TAG, "StopPending");
+						break;
+					case ServiceState::ContinuePending:
+						Log(TAG, "ContinuePending");
+						break;
+					default:
+						Log(TAG, "Unknown");
+						break;
 				}
 				return 0;
 			}
 			if (!(Process::isCurrentProcessAdmin())) {
-				if (arguments.contains("admin")) {
+				if (flagRequireAdmin) {
 					List<StringParam> args;
-					args.addAll_NoLock(getArguments());
+					args.addAll_NoLock(getArguments().slice_NoLock(1));
 					Process::runAsAdminBy(getApplicationPath(), args.getData(), args.getCount());
 					return 0;
 				} else {
@@ -233,9 +297,9 @@ namespace slib
 					return -1;
 				}
 			}
-			if (arguments.contains("install") || arguments.contains("reinstall")) {
+			if (arg == ArgumentValue::Install || arg == ArgumentValue::Reinstall) {
 				if (state != ServiceState::None) {
-					if (arguments.contains("reinstall")) {
+					if (arg == ArgumentValue::Reinstall) {
 						Log(TAG, "UNINSTALLING SERVICE: %s", name);
 						if (ServiceManager::stopAndRemove(name)) {
 							Log(TAG, "UNINSTALLED SERVICE: %s", name);
@@ -264,76 +328,83 @@ namespace slib
 				Log(TAG, "SERVICE IS NOT INSTALLED: %s", name);
 				return -1;
 			}
-			if (arguments.contains("uninstall")) {
-				Log(TAG, "UNINSTALLING SERVICE: %s", name);
-				if (ServiceManager::stopAndRemove(name)) {
-					Log(TAG, "UNINSTALLED SERVICE: %s", name);
-					return 0;
-				} else {
-					Log(TAG, "FAILED TO UNINSTALL SERVICE: %s", name);
+			switch (arg) {
+				case ArgumentValue::Uninstall:
+					Log(TAG, "UNINSTALLING SERVICE: %s", name);
+					if (ServiceManager::stopAndRemove(name)) {
+						Log(TAG, "UNINSTALLED SERVICE: %s", name);
+						return 0;
+					} else {
+						Log(TAG, "FAILED TO UNINSTALL SERVICE: %s", name);
+					}
 					return -1;
-				}
-			} else if (arguments.contains("start")) {
-				if (state == ServiceState::Running) {
-					Log(TAG, "ALREADY RUNNING SERVICE: %s", name);
-					return 0;
-				}
-				Log(TAG, "STARTING SERVICE: %s", name);
-				if (ServiceManager::start(name)) {
-					Log(TAG, "STARTED SERVICE: %s", name);
-					return 0;
-				} else {
-					Log(TAG, "FAILED TO START SERVICE: %s", name);
+				case ArgumentValue::Start:
+					if (state == ServiceState::Running) {
+						Log(TAG, "ALREADY RUNNING SERVICE: %s", name);
+						return 0;
+					}
+					Log(TAG, "STARTING SERVICE: %s", name);
+					if (ServiceManager::start(name)) {
+						Log(TAG, "STARTED SERVICE: %s", name);
+						return 0;
+					} else {
+						Log(TAG, "FAILED TO START SERVICE: %s", name);
+					}
 					return -1;
-				}
-			} else if (arguments.contains("stop")) {
-				if (state == ServiceState::Stopped) {
-					Log(TAG, "ALREADY STOPPED SERVICE: %s", name);
-					return 0;
-				}
-				Log(TAG, "STOPPING SERVICE: %s", name);
-				if (ServiceManager::stop(name)) {
-					Log(TAG, "STOPPED SERVICE: %s", name);
-					return 0;
-				} else {
-					Log(TAG, "FAILED TO STOP SERVICE: %s", name);
-					return -1;
-				}
-			} else if (arguments.contains("restart")) {
-				if (state != ServiceState::Stopped) {
+				case ArgumentValue::Stop:
+					if (state == ServiceState::Stopped) {
+						Log(TAG, "ALREADY STOPPED SERVICE: %s", name);
+						return 0;
+					}
 					Log(TAG, "STOPPING SERVICE: %s", name);
 					if (ServiceManager::stop(name)) {
 						Log(TAG, "STOPPED SERVICE: %s", name);
+						return 0;
 					} else {
 						Log(TAG, "FAILED TO STOP SERVICE: %s", name);
-						return -1;
 					}
-				}
-				Log(TAG, "STARTING SERVICE: %s", name);
-				if (ServiceManager::start(name)) {
-					Log(TAG, "STARTED SERVICE: %s", name);
-					return 0;
-				}
+					return -1;
+				case ArgumentValue::Restart:
+					if (state != ServiceState::Stopped) {
+						Log(TAG, "STOPPING SERVICE: %s", name);
+						if (ServiceManager::stop(name)) {
+							Log(TAG, "STOPPED SERVICE: %s", name);
+						} else {
+							Log(TAG, "FAILED TO STOP SERVICE: %s", name);
+							return -1;
+						}
+					}
+					Log(TAG, "STARTING SERVICE: %s", name);
+					if (ServiceManager::start(name)) {
+						Log(TAG, "STARTED SERVICE: %s", name);
+						return 0;
+					}
+				default:
+					break;
 			}
 		} else {
-			if (arguments.contains("start")) {
-				if (startService()) {
+			switch (arg) {
+				case ArgumentValue::Start:
+					if (startService()) {
+						return 0;
+					}
+					break;
+				case ArgumentValue::Stop:
+					if (stopService()) {
+						return 0;
+					}
+					break;
+				case ArgumentValue::Restart:
+					stopService();
+					if (startService()) {
+						return 0;
+					}
+					break;
+				case ArgumentValue::Status:
+					statusService();
 					return 0;
-				}
-			} else if (arguments.contains("stop")) {
-				if (stopService()) {
-					return 0;
-				}
-			} else if (arguments.contains("restart")) {
-				stopService();
-				if (startService()) {
-					return 0;
-				}
-			} else if (arguments.contains("status")) {
-				statusService();
-				return 0;
-			} else {
-				return runService();
+				default:
+					return runService();
 			}
 		}
 #endif
