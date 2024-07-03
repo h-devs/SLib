@@ -166,7 +166,7 @@ namespace slib
 			}
 
 		public:
-			static Ref<ProcessImpl> create(const StringParam& pathExecutable, const StringParam& commandLine)
+			static Ref<ProcessImpl> create(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags)
 			{
 				HANDLE hStdinRead, hStdinWrite, hStdoutRead, hStdoutWrite;
 				if (CreatePipe(&hStdinRead, &hStdinWrite)) {
@@ -182,6 +182,10 @@ namespace slib
 						si.hStdOutput = hStdoutWrite;
 						si.hStdError = hStdoutWrite;
 						si.dwFlags = STARTF_USESTDHANDLES;
+						if (flags & ProcessFlags::HideWindow) {
+							si.wShowWindow = SW_HIDE;
+							si.dwFlags |= STARTF_USESHOWWINDOW;
+						}
 						if (Execute(pathExecutable, commandLine, &pi, &si, NORMAL_PRIORITY_CLASS, sl_true)) {
 							CloseHandle(pi.hThread);
 							CloseHandle(hStdinRead);
@@ -389,17 +393,17 @@ namespace slib
 		return (sl_uint32)(GetCurrentProcessId());
 	}
 
-	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags)
 	{
-		return Ref<Process>::cast(ProcessImpl::create(pathExecutable, commandLine));
+		return Ref<Process>::cast(ProcessImpl::create(pathExecutable, commandLine, flags));
 	}
 
-	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs)
+	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags)
 	{
-		return openBy(pathExecutable, CommandLine::build(args, nArgs));
+		return openBy(pathExecutable, CommandLine::build(args, nArgs), flags);
 	}
 
-	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags)
 	{
 		PROCESS_INFORMATION pi;
 		ZeroMemory(&pi, sizeof(pi));
@@ -407,6 +411,10 @@ namespace slib
 		STARTUPINFOW si;
 		ZeroMemory(&si, sizeof(si));
 		si.cb = sizeof(si);
+		if (flags & ProcessFlags::HideWindow) {
+			si.wShowWindow = SW_HIDE;
+			si.dwFlags |= STARTF_USESHOWWINDOW;
+		}
 
 		if (Execute(pathExecutable, commandLine, &pi, &si, NORMAL_PRIORITY_CLASS | DETACHED_PROCESS, sl_false)) {
 			CloseHandle(pi.hThread);
@@ -420,9 +428,9 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs)
+	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags)
 	{
-		return runBy(pathExecutable, CommandLine::build(args, nArgs));
+		return runBy(pathExecutable, CommandLine::build(args, nArgs), flags);
 	}
 
 	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam& commandLine)

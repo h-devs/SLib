@@ -567,6 +567,9 @@ Microsoft Specific
 
 	String CommandLine::build(const StringParam* argv, sl_size argc)
 	{
+		if (!argc) {
+			return sl_null;
+		}
 		StringBuffer buf;
 		for (sl_size i = 0; i < argc; i++) {
 			if (i > 0) {

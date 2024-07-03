@@ -279,7 +279,7 @@ namespace slib
 		return getpid();
 	}
 
-	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags)
 	{
 		ListElements<String> args(CommandLine::parse(commandLine));
 		if (!(args.count)) {
@@ -292,13 +292,13 @@ namespace slib
 		return openBy(pathExecutable, params, args.count);
 	}
 
-	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments, const ProcessFlags& flags)
 	{
-		return Ref<Process>::cast(ProcessImpl::create(pathExecutable, arguments, nArguments));
+		return Ref<Process>::cast(ProcessImpl::create(pathExecutable, arguments, nArguments, flags));
 	}
 
 #if !defined(SLIB_PLATFORM_IS_MACOS)
-	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags)
 	{
 		ListElements<String> args(CommandLine::parse(commandLine));
 		if (!(args.count)) {
@@ -308,10 +308,10 @@ namespace slib
 		for (sl_size i = 0; i < args.count; i++) {
 			params[i] = args[i];
 		}
-		return runBy(pathExecutable, params, args.count);
+		return runBy(pathExecutable, params, args.count, flags);
 	}
 
-	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments, const ProcessFlags& flags)
 	{
 		pid_t pid = fork();
 		if (!pid) {

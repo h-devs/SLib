@@ -34,9 +34,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(Process, Object)
 
-	Process::Process():
-		m_status(ProcessStatus::Running),
-		m_exitStatus(-1)
+	Process::Process(): m_status(ProcessStatus::Running), m_exitStatus(-1)
 	{
 	}
 
@@ -54,14 +52,24 @@ namespace slib
 		return m_exitStatus;
 	}
 
-	Ref<Process> Process::open(const StringParam& pathExecutable)
+	Ref<Process> Process::open(const StringParam& pathExecutable, const ProcessFlags& flags)
 	{
-		return openBy(pathExecutable, sl_null);
+		return openBy(pathExecutable, sl_null, 0, flags);
 	}
 
-	Ref<Process> Process::run(const StringParam& pathExecutable)
+	Ref<Process> Process::open(const StringParam& pathExecutable, const StringParam& arg)
 	{
-		return runBy(pathExecutable, sl_null);
+		return openBy(pathExecutable, &arg, 1);
+	}
+
+	Ref<Process> Process::run(const StringParam& pathExecutable, const ProcessFlags& flags)
+	{
+		return runBy(pathExecutable, sl_null, 0, flags);
+	}
+
+	Ref<Process> Process::run(const StringParam& pathExecutable, const StringParam& arg)
+	{
+		return runBy(pathExecutable, &arg, 1);
 	}
 
 	void Process::runAsAdmin(const StringParam& pathExecutable)
@@ -69,9 +77,9 @@ namespace slib
 		runAsAdminBy(pathExecutable, sl_null);
 	}
 
-	String Process::getOutputBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	String Process::getOutputBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags)
 	{
-		Ref<Process> process = openBy(pathExecutable, commandLine);
+		Ref<Process> process = openBy(pathExecutable, commandLine, flags);
 		if (process.isNotNull()) {
 			IStream* stream = process->getStream();
 			if (stream) {
@@ -82,9 +90,9 @@ namespace slib
 		return sl_null;
 	}
 
-	String Process::getOutputBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs)
+	String Process::getOutputBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags)
 	{
-		Ref<Process> process = openBy(pathExecutable, args, nArgs);
+		Ref<Process> process = openBy(pathExecutable, args, nArgs, flags);
 		if (process.isNotNull()) {
 			IStream* stream = process->getStream();
 			if (stream) {
@@ -95,17 +103,22 @@ namespace slib
 		return sl_null;
 	}
 
-	String Process::getOutput(const StringParam& pathExecutable)
+	String Process::getOutput(const StringParam& pathExecutable, const ProcessFlags& flags)
 	{
-		return getOutputBy(pathExecutable, sl_null);
+		return getOutputBy(pathExecutable, sl_null, 0, flags);
 	}
 
-	void Process::runCommand(const StringParam& command)
+	String Process::getOutput(const StringParam& pathExecutable, const StringParam& arg)
+	{
+		return getOutputBy(pathExecutable, &arg, 1);
+	}
+
+	void Process::runCommand(const StringParam& command, const ProcessFlags& flags)
 	{
 #ifdef SLIB_PLATFORM_IS_WIN32
-		runBy(System::getSystemDirectory() + "\\cmd.exe", String::concat("/C ", command));
+		runBy(System::getSystemDirectory() + "\\cmd.exe", String::concat("/C ", command), flags);
 #else
-		run("/bin/sh", "-c", command);
+		run("/bin/sh", flags, "-c", command);
 #endif
 	}
 
