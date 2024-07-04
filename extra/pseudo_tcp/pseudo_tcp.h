@@ -102,6 +102,8 @@ namespace slib
 	public:
 		static sl_uint32 now();
 
+		sl_uint32 getConversationNo();
+
 		sl_bool connect();
 
 		sl_int32 receive(void* buf, sl_size len);

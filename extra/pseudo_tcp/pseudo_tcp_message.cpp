@@ -35,6 +35,24 @@
 namespace slib
 {
 
+	PseudoTcpConnection::PseudoTcpConnection()
+	{
+	}
+
+	PseudoTcpConnection::~PseudoTcpConnection()
+	{
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PseudoTcpMessageParam)
+
+	PseudoTcpMessageParam::PseudoTcpMessageParam()
+	{
+		timeout = DEFAULT_TIMEOUT;
+		flagAutoStart = sl_true;
+	}
+
+
 	struct PseudoTcpMessage::Packet
 	{
 		WeakRef<Connection> connection;
@@ -64,7 +82,7 @@ namespace slib
 
 	};
 
-	class PseudoTcpMessage::Connection : public CRef, public IPseudoTcpNotify
+	class PseudoTcpMessage::Connection : public PseudoTcpConnection, public IPseudoTcpNotify
 	{
 	public:
 		PseudoTcp tcp;
@@ -176,22 +194,10 @@ namespace slib
 			return PseudoTcpWriteResult::Success;
 		}
 
-		sl_bool setSendingData(const void* data, sl_size size)
+		void setSendingData(const Memory& chunk)
 		{
-			if (size <= MESSAGE_SIZE_MAX) {
-				Memory mem = Memory::create(4 + size);
-				if (mem.isNotNull()) {
-					sl_uint8* p = (sl_uint8*)(mem.getData());
-					MIO::writeUint32LE(p, (sl_uint32)size);
-					if (size) {
-						Base::copyMemory(p + 4, data, size);
-					}
-					dataSend = Move(mem);
-					m_offsetWrite = 0;
-					return sl_true;
-				}
-			}
-			return sl_false;
+			dataSend = chunk;
+			m_offsetWrite = 0;
 		}
 
 		Memory getReceivedData()
@@ -233,49 +239,108 @@ namespace slib
 	{
 		m_timeout = DEFAULT_TIMEOUT;
 		m_conversationNoLastSent = (sl_uint32)(Time::now().getMillisecondCount());
-		m_eventProcess = Event::create();
-		m_threadProcess = Thread::start(SLIB_FUNCTION_MEMBER(this, process));
 	}
 
 	PseudoTcpMessage::~PseudoTcpMessage()
 	{
-		m_threadProcess->finishAndWait();
+		release();
 	}
 
-	sl_uint32 PseudoTcpMessage::getTimeout()
+	sl_bool PseudoTcpMessage::initialize(const PseudoTcpMessageParam& param)
 	{
-		return m_timeout;
+		m_eventProcess = Event::create();
+		if (m_eventProcess.isNull()) {
+			return sl_false;
+		}
+		m_timeout = param.timeout;
+		if (param.flagAutoStart) {
+			if (!(start())) {
+				return sl_false;
+			}
+		}
+		return sl_true;
 	}
 
-	void PseudoTcpMessage::setTimeout(sl_uint32 timeout)
+	Ref<PseudoTcpMessage> PseudoTcpMessage::create(const PseudoTcpMessageParam& param)
 	{
-		m_timeout = timeout;
+		Ref<PseudoTcpMessage> ret = new PseudoTcpMessage;
+		if (ret.isNotNull()) {
+			if (ret->initialize(param)) {
+				return ret;
+			}
+		}
+		return sl_null;
 	}
 
-	void PseudoTcpMessage::sendMessage(const void* data, sl_size size, const Function<void(sl_uint8* data, sl_int32 size)>& callbackResponse, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout)
+	Ref<PseudoTcpMessage> PseudoTcpMessage::create()
 	{
-		if (!(data && size && size <= MESSAGE_SIZE_MAX)) {
-			callbackResponse(sl_null, -1);
-			return;
+		PseudoTcpMessageParam param;
+		return create(param);
+	}
+
+	sl_bool PseudoTcpMessage::start()
+	{
+		ObjectLocker lock(this);
+		if (m_threadProcess.isNotNull()) {
+			return sl_true;
+		}
+		Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(this, process));
+		if (thread.isNull()) {
+			return sl_false;
+		}
+		m_threadProcess = Move(thread);
+		return sl_true;
+	}
+
+	void PseudoTcpMessage::release()
+	{
+		if (m_threadProcess.isNotNull()) {
+			m_threadProcess->finishAndWait();
+		}
+	}
+
+	Memory PseudoTcpMessage::createMessageChunk(const void* data, sl_size size)
+	{
+		if (size <= MESSAGE_SIZE_MAX) {
+			Memory mem = Memory::create(4 + size);
+			if (mem.isNotNull()) {
+				sl_uint8* p = (sl_uint8*)(mem.getData());
+				MIO::writeUint32LE(p, (sl_uint32)size);
+				if (size) {
+					Base::copyMemory(p + 4, data, size);
+				}
+				return mem;
+			}
+		}
+		return sl_null;
+	}
+
+	Ref<PseudoTcpConnection> PseudoTcpMessage::sendMessageChunk(const Memory& chunk, const Function<void(Memory&)>& callbackResponse, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout)
+	{
+		static sl_uint8 _empty[sizeof(Memory)] = { 0 };
+		static Memory& empty = *((Memory*)_empty);
+		if (chunk.isNull()) {
+			callbackResponse(empty);
+			return sl_null;
 		}
 		if (!timeout) {
 			timeout = m_timeout;
 		}
 		sl_uint32 conversationNo = generateConversationNo();
 		WeakRef<PseudoTcpMessage> thiz = this;
-		auto callbackUpdate = [thiz, this, conversationNo, callbackResponse](Connection* connection) {
+		auto callbackUpdate = [thiz, this, callbackResponse](Connection* connection) {
 			if (connection->flagEnd) {
 				return;
 			}
 			Ref<PseudoTcpMessage> ref = thiz;
 			if (ref.isNull()) {
 				connection->flagEnd = sl_true;
-				callbackResponse(sl_null, -1);
+				callbackResponse(empty);
 				return;
 			}
 			if (connection->flagError) {
-				endSendingConnection(conversationNo, connection);
-				callbackResponse(sl_null, -1);
+				endSendingConnection(connection);
+				callbackResponse(empty);
 				return;
 			}
 			if (connection->isWriteComplete()) {
@@ -286,25 +351,41 @@ namespace slib
 						dispatch([connection, refConnection]() {
 							connection->tcp.send("", 1);
 						});
-						endSendingConnection(conversationNo, connection);
-						Memory mem = connection->getReceivedData();
-						callbackResponse((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()));
+						endSendingConnection(connection);
+						callbackResponse(connection->getReceivedData());
 					}
 				}
 			}
 		};
 		Ref<Connection> connection = new Connection(conversationNo, callbackUpdate, callbackSendPacket, timeout);
 		if (connection.isNotNull()) {
-			if (!(connection->setSendingData(data, size))) {
-				callbackResponse(sl_null, -1);
-				return;
-			}
+			connection->setSendingData(chunk);
 			m_mapSend.put(conversationNo, connection);
 			dispatch([connection]() {
 				connection->tcp.connect();
 			});
 			m_eventProcess->set();
 		}
+		return connection;
+	}
+
+	Ref<PseudoTcpConnection> PseudoTcpMessage::sendMessage(const void* data, sl_size size, const Function<void(Memory&)>& callbackResponse, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout)
+	{
+		static sl_uint8 _empty[sizeof(Memory)] = { 0 };
+		static Memory& empty = *((Memory*)_empty);
+		if (size > MESSAGE_SIZE_MAX) {
+			callbackResponse(empty);
+			return sl_null;
+		}
+		return sendMessageChunk(createMessageChunk(data, size), callbackResponse, callbackSendPacket, timeout);
+	}
+
+	void PseudoTcpMessage::endConnection(PseudoTcpConnection* connection)
+	{
+		if (!connection) {
+			return;
+		}
+		endSendingConnection((Connection*)connection);
 	}
 
 	void PseudoTcpMessage::notifyPacketForSendingMessage(const void* data, sl_size size)
@@ -323,10 +404,10 @@ namespace slib
 		}
 	}
 
-	void PseudoTcpMessage::notifyPacketForListeningMessage(const String& host, const void* data, sl_size size, const Function<Promise<sl_bool>(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket)
+	sl_bool PseudoTcpMessage::continueListeningMessage(const String& host, const void* data, sl_size size)
 	{
 		if (size < 4) {
-			return;
+			return sl_true;
 		}
 		sl_uint32 conversationNo = MIO::readUint32BE(data);
 		Address address;
@@ -339,8 +420,20 @@ namespace slib
 			packet.content = Memory::create(data, size);
 			m_queuePackets.pushBack(packet);
 			m_eventProcess->set();
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	void PseudoTcpMessage::startListeningMessage(const String& host, const void* data, sl_size size, const Function<Promise<Memory>(const Memory& input)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket)
+	{
+		if (size < 4) {
 			return;
 		}
+		sl_uint32 conversationNo = MIO::readUint32BE(data);
+		Address address;
+		address.host = host;
+		address.conversationNo = conversationNo;
 		WeakRef<PseudoTcpMessage> thiz = this;
 		auto callbackUpdate = [this, thiz, address, callbackMessage](Connection* connection) {
 			if (connection->flagEnd) {
@@ -358,40 +451,28 @@ namespace slib
 			if (connection->isReadComplete()) {
 				if (!(connection->flagCalledReceiveCallback)) {
 					connection->flagCalledReceiveCallback = sl_true;
-					Shared<MemoryOutput> output = Shared<MemoryOutput>::create();
-					if (output.isNull()) {
-						endListeningConnection(address, connection);
-						return;
-					}
 					Memory mem = connection->getReceivedData();
-					Promise<sl_bool> promise = callbackMessage((sl_uint8*)(mem.getData()), (sl_uint32)(mem.getSize()), output.get());
+					Promise<Memory> promise = callbackMessage(mem);
 					if (promise.isNotNull()) {
 						Ref<Connection> refConnection = connection;
-						promise.then([this, thiz, address, mem, output, refConnection](sl_bool flag) {
+						promise.then([this, thiz, address, mem, refConnection](const Memory& output) {
 							Ref<PseudoTcpMessage> ref = thiz;
 							if (ref.isNull()) {
 								refConnection->flagEnd = sl_true;
 								return;
 							}
-							dispatch([this, address, output, refConnection, flag]() {
-								if (flag) {
-									Memory mem = output->merge();
-									if (refConnection->setSendingData(mem.getData(), mem.getSize())) {
-										refConnection->onTcpWriteable(sl_null);
-										return;
-									}
+							dispatch([this, address, output, refConnection]() {
+								Memory chunk = createMessageChunk(output.getData(), output.getSize());
+								if (chunk.isNotNull()) {
+									refConnection->setSendingData(chunk);
+									refConnection->onTcpWriteable(sl_null);
+									return;
 								}
-								endListeningConnection(address, refConnection);
+								endListeningConnection(address, refConnection.get());
 							});
 						});
 					} else {
-						mem = output->merge();
-						if (connection->setSendingData(mem.getData(), mem.getSize())) {
-							connection->onTcpWriteable(sl_null);
-						} else {
-							endListeningConnection(address, connection);
-							return;
-						}
+						endListeningConnection(address, connection);
 					}
 				}
 				if (connection->isWriteComplete()) {
@@ -401,7 +482,7 @@ namespace slib
 				}
 			}
 		};
-		connection = new Connection(conversationNo, callbackUpdate, callbackSendPacket, m_timeout);
+		Ref<Connection> connection = new Connection(conversationNo, callbackUpdate, callbackSendPacket, m_timeout);
 		if (connection.isNotNull()) {
 			m_mapListen.put(address, connection);
 			Packet packet;
@@ -410,6 +491,14 @@ namespace slib
 			m_queuePackets.pushBack(packet);
 			m_eventProcess->set();
 		}
+	}
+
+	void PseudoTcpMessage::notifyPacketForListeningMessage(const String& host, const void* data, sl_size size, const Function<Promise<Memory>(const Memory& input)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket)
+	{
+		if (continueListeningMessage(host, data, size)) {
+			return;
+		}
+		startListeningMessage(host, data, size, callbackMessage, callbackSendPacket);
 	}
 
 	sl_uint32 PseudoTcpMessage::generateConversationNo()
@@ -502,10 +591,10 @@ namespace slib
 		m_eventProcess->set();
 	}
 
-	void PseudoTcpMessage::endSendingConnection(sl_uint32 conversationNo, Connection* connection)
+	void PseudoTcpMessage::endSendingConnection(Connection* connection)
 	{
 		connection->flagEnd = sl_true;
-		m_queueEndSend.pushBack(conversationNo);
+		m_queueEndSend.pushBack(connection->tcp.getConversationNo());
 		m_eventProcess->set();
 	}
 

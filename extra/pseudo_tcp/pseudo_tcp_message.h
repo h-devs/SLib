@@ -38,28 +38,66 @@ namespace slib
 	class Thread;
 	class Event;
 
-	class PseudoTcpMessage : public Object
+	class PseudoTcpConnection : public CRef
 	{
 	public:
+		PseudoTcpConnection();
+
+		~PseudoTcpConnection();
+
+	};
+
+	class PseudoTcpMessageParam
+	{
+	public:
+		sl_uint32 timeout;
+		sl_bool flagAutoStart;
+
+	public:
+		PseudoTcpMessageParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PseudoTcpMessageParam)
+
+	};
+
+	class PseudoTcpMessage : public Object
+	{
+	protected:
 		PseudoTcpMessage();
 
 		~PseudoTcpMessage();
 
 	public:
-		sl_uint32 getTimeout();
+		static Ref<PseudoTcpMessage> create(const PseudoTcpMessageParam& param);
 
-		void setTimeout(sl_uint32 timeout);
+		static Ref<PseudoTcpMessage> create();
 
 	public:
-		void sendMessage(const void* data, sl_size size, const Function<void(sl_uint8* data, sl_int32 size)>& callbackResponse, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout = 0);
+		sl_bool start();
+
+		void release();
+
+		static Memory createMessageChunk(const void* data, sl_size size);
+
+		Ref<PseudoTcpConnection> sendMessageChunk(const Memory& chunk, const Function<void(Memory&)>& callbackResponse, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout = 0);
+
+		Ref<PseudoTcpConnection> sendMessage(const void* data, sl_size size, const Function<void(Memory&)>& callbackResponse, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout = 0);
+
+		void endConnection(PseudoTcpConnection* connection);
 
 		void notifyPacketForSendingMessage(const void* data, sl_size size);
 
-		void notifyPacketForListeningMessage(const String& host, const void* data, sl_size size, const Function<Promise<sl_bool>(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket);
+		void startListeningMessage(const String& host, const void* data, sl_size size, const Function<Promise<Memory>(const Memory& input)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket);
+
+		sl_bool continueListeningMessage(const String& host, const void* data, sl_size size);
+
+		void notifyPacketForListeningMessage(const String& host, const void* data, sl_size size, const Function<Promise<Memory>(const Memory& input)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket);
 
 	protected:
 		class Address;
 		class Connection;
+
+		sl_bool initialize(const PseudoTcpMessageParam& param);
 
 		sl_uint32 generateConversationNo();
 
@@ -67,7 +105,7 @@ namespace slib
 
 		void dispatch(const Function<void()>& callback);
 
-		void endSendingConnection(sl_uint32 conversationNo, Connection* connection);
+		void endSendingConnection(Connection* connection);
 
 		void endListeningConnection(const Address& address, Connection* connection);
 

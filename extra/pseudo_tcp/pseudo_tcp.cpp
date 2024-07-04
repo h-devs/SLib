@@ -441,6 +441,11 @@ namespace slib
 		return (sl_uint32)(System::getHighResolutionTickCount());
 	}
 
+	sl_uint32 PseudoTcp::getConversationNo()
+	{
+		return m_conv;
+	}
+
 	sl_bool PseudoTcp::connect()
 	{
 		if (m_state != PseudoTcpState::Listen) {
