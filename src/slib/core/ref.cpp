@@ -103,6 +103,11 @@ namespace slib
 		return m_nRefCount;
 	}
 
+	sl_reg CRef::_increaseReference() noexcept
+	{
+		return Base::interlockedIncrement(&m_nRefCount);
+	}
+
 	sl_reg CRef::_decreaseReference() noexcept
 	{
 		return Base::interlockedDecrement(&m_nRefCount);
@@ -226,11 +231,13 @@ namespace slib
 		m_lock.lock();
 		CRef* obj = m_object;
 		if (obj) {
-			sl_reg n = obj->increaseReference();
-			if (n > 1) {
-				ret.ptr = obj;
-			} else {
-				obj->_decreaseReference();
+			if (obj->m_nRefCount) {
+				sl_reg n = obj->_increaseReference();
+				if (n > 1) {
+					ret.ptr = obj;
+				} else {
+					obj->_decreaseReference();
+				}
 			}
 		}
 		m_lock.unlock();

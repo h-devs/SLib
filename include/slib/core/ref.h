@@ -262,6 +262,8 @@ namespace slib
 
 		void _clearWeak() noexcept;
 
+		sl_reg _increaseReference() noexcept;
+
 		sl_reg _decreaseReference() noexcept;
 
 	public:
