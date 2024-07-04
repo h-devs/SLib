@@ -31,12 +31,10 @@
 	namespace NAME { \
 		void* getLibrary() { \
 			static void* library = sl_null; \
-			static sl_bool flagLoaded = sl_false; \
-			if (flagLoaded) { \
+			if (library) { \
 				return library; \
 			} \
 			library = DynamicLibrary::loadLibrary(__VA_ARGS__); \
-			flagLoaded = sl_true; \
 			return library; \
 		} \
 		void* getApi(const char* name) { \

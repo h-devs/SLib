@@ -93,12 +93,10 @@ namespace slib
 				return sl_null; \
 			} \
 			static DL_FUNC_TYPE_##NAME func = sl_null; \
-			static sl_bool flagLoaded = sl_false; \
-			if (flagLoaded) { \
+			if (func) { \
 				return func; \
 			} \
 			func = (DL_FUNC_TYPE_##NAME)(DynamicLibrary::getFunctionAddress(_dl_library, #NAME)); \
-			flagLoaded = sl_true; \
 			return func; \
 		}
 
