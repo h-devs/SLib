@@ -107,11 +107,13 @@ namespace slib
 					return sl_false;
 				}
 				TcpSegment* tcp = (TcpSegment*)content;
+				IPv4Address srcIP = header->getSourceAddress();
+				sl_uint16 srcPort = tcp->getSourcePort();
 				sl_uint16 targetPort;
-				if (!(m_mappingTcp.mapToExternal(header->getSourceAddress(), tcp->getSourcePort(), targetPort, currentTick))) {
+				if (!(m_mappingTcp.mapToExternal(srcIP, srcPort, targetPort, currentTick))) {
 					return sl_false;
 				}
-				tcp->setChecksum(GetUpdatedChecksum(tcp->getChecksum(), header->getSourceAddress(), m_targetAddress, tcp->getSourcePort(), targetPort));
+				tcp->setChecksum(GetUpdatedChecksum(tcp->getChecksum(), srcIP, m_targetAddress, srcPort, targetPort));
 				tcp->setSourcePort(targetPort);
 			}
 			header->setSourceAddress(m_targetAddress);
@@ -123,11 +125,13 @@ namespace slib
 					return sl_false;
 				}
 				UdpDatagram* udp = (UdpDatagram*)content;
+				IPv4Address srcIP = header->getSourceAddress();
+				sl_uint16 srcPort = udp->getSourcePort();
 				sl_uint16 targetPort;
-				if (!(m_mappingUdp.mapToExternal(header->getSourceAddress(), udp->getSourcePort(), targetPort, currentTick))) {
+				if (!(m_mappingUdp.mapToExternal(srcIP, srcPort, targetPort, currentTick))) {
 					return sl_false;
 				}
-				udp->setChecksum(GetUpdatedChecksum(udp->getChecksum(), header->getSourceAddress(), m_targetAddress, udp->getSourcePort(), targetPort));
+				udp->setChecksum(GetUpdatedChecksum(udp->getChecksum(), srcIP, m_targetAddress, srcPort, targetPort));
 				udp->setSourcePort(targetPort);
 			}
 			header->setSourceAddress(m_targetAddress);
@@ -198,7 +202,8 @@ namespace slib
 
 	sl_bool NatTable::translateIncomingPacket(IPv4Packet* header, void* content, sl_uint32 sizeContent, sl_uint64 currentTick)
 	{
-		if (header->getDestinationAddress() != m_targetAddress) {
+		IPv4Address dstIP = header->getDestinationAddress();
+		if (dstIP != m_targetAddress) {
 			return sl_false;
 		}
 		InternetProtocol protocol = header->getProtocol();
@@ -219,10 +224,11 @@ namespace slib
 				TcpSegment* tcp = (TcpSegment*)content;
 				IPv4Address internalIP;
 				sl_uint16 internalPort;
-				if (!(m_mappingTcp.mapToInternal(tcp->getDestinationPort(), internalIP, internalPort, currentTick))) {
+				sl_uint16 dstPort = tcp->getDestinationPort();
+				if (!(m_mappingTcp.mapToInternal(dstPort, internalIP, internalPort, currentTick))) {
 					return sl_false;
 				}
-				tcp->setChecksum(GetUpdatedChecksum(tcp->getChecksum(), header->getDestinationAddress(), internalIP, tcp->getDestinationPort(), internalPort));
+				tcp->setChecksum(GetUpdatedChecksum(tcp->getChecksum(), dstIP, internalIP, dstPort, internalPort));
 				tcp->setDestinationPort(internalPort);
 				header->setDestinationAddress(internalIP);
 				if (header->isMF()) {
@@ -248,10 +254,11 @@ namespace slib
 				UdpDatagram* udp = (UdpDatagram*)content;
 				IPv4Address internalIP;
 				sl_uint16 internalPort;
-				if (!(m_mappingUdp.mapToInternal(udp->getDestinationPort(), internalIP, internalPort, currentTick))) {
+				sl_uint16 dstPort = udp->getDestinationPort();
+				if (!(m_mappingUdp.mapToInternal(dstPort, internalIP, internalPort, currentTick))) {
 					return sl_false;
 				}
-				udp->setChecksum(GetUpdatedChecksum(udp->getChecksum(), header->getDestinationAddress(), internalIP, udp->getDestinationPort(), internalPort));
+				udp->setChecksum(GetUpdatedChecksum(udp->getChecksum(), dstIP, internalIP, dstPort, internalPort));
 				udp->setDestinationPort(internalPort);
 				header->setDestinationAddress(internalIP);
 				if (header->isMF()) {
@@ -420,7 +427,15 @@ namespace slib
 		for (sl_uint32 i = 0; i < n; i++) {
 			{
 				NatTablePort& port = m_ports[pos];
-				if (!(port.flagActive)) {
+				if (port.flagActive) {
+					sl_uint64 t = port.lastAccessTick;
+					if (t > timeAccessMax) {
+						timeAccessMax = t;
+					}
+					if (!timeAccessMin || t < timeAccessMin) {
+						timeAccessMin = t;
+					}
+				} else {
 					externalPort = pos + m_portBegin;
 					port.flagActive = sl_true;
 					port.sourceIP = internalIP.toInt();
@@ -429,14 +444,6 @@ namespace slib
 					m_mapTranslation.put_NoLock(key, externalPort);
 					m_pos = (pos + 1) % m_nPorts;
 					return sl_true;
-				} else {
-					sl_uint64 t = port.lastAccessTick;
-					if (t > timeAccessMax) {
-						timeAccessMax = t;
-					}
-					if (!timeAccessMin || t < timeAccessMin) {
-						timeAccessMin = t;
-					}
 				}
 			}
 			pos = (pos + 1) % m_nPorts;
@@ -444,11 +451,9 @@ namespace slib
 				sl_uint64 mid = (timeAccessMin + timeAccessMax) / 2;
 				for (sl_uint16 k = 0; k < m_nPorts; k++) {
 					NatTablePort& port = m_ports[k];
-					if (port.flagActive) {
-						if (port.lastAccessTick <= mid) {
-							port.flagActive = sl_false;
-							m_mapTranslation.remove_NoLock(GetAddressKey(port.sourceIP, port.sourcePort));
-						}
+					if (port.lastAccessTick <= mid) {
+						port.flagActive = sl_false;
+						m_mapTranslation.remove_NoLock(GetAddressKey(port.sourceIP, port.sourcePort));
 					}
 				}
 			}

@@ -294,7 +294,7 @@ namespace slib
 
 	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments, const ProcessFlags& flags)
 	{
-		return Ref<Process>::cast(ProcessImpl::create(pathExecutable, arguments, nArguments, flags));
+		return Ref<Process>::cast(ProcessImpl::create(pathExecutable, arguments, nArguments));
 	}
 
 #if !defined(SLIB_PLATFORM_IS_MACOS)

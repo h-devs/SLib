@@ -22,52 +22,6 @@
 
 #include "slib/network/pcap.h"
 
-namespace slib
-{
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PcapDeviceInfo)
-
-	PcapDeviceInfo::PcapDeviceInfo(): flagLoopback(sl_false), flagUp(sl_false), flagRunning(sl_false), flagWireless(sl_false), connectionStatus(PcapConnectionStatus::Unknown)
-	{
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PcapParam)
-
-	PcapParam::PcapParam()
-	{
-		timeoutRead = 0; // no timeout specified
-		flagImmediate = sl_true;
-		sizeBuffer = 0x200000; // 2MB (16Mb)
-		threadPriority = ThreadPriority::Normal;
-	}
-
-
-	SLIB_DEFINE_OBJECT(Pcap, NetCapture)
-
-	Pcap::Pcap()
-	{
-	}
-
-	Pcap::~Pcap()
-	{
-	}
-
-
-	SLIB_DEFINE_OBJECT(AnyDevicePcap, Pcap)
-
-	AnyDevicePcap::AnyDevicePcap()
-	{
-	}
-
-	AnyDevicePcap::~AnyDevicePcap()
-	{
-	}
-
-}
-
-#if defined(SLIB_PLATFORM_IS_UNIX) || defined(SLIB_PLATFORM_IS_WIN32)
-
 #include "slib/network/socket_address.h"
 #include "slib/io/file.h"
 #include "slib/system/process.h"
@@ -92,6 +46,13 @@ namespace slib
 #endif
 
 #define TAG "Pcap"
+#ifdef SLIB_DEBUG
+#define LOG(...) SLIB_LOG(TAG, __VA_ARGS__)
+#else
+#define LOG(...)
+#endif
+#define LOG_ERROR(...) SLIB_LOG_ERROR(TAG, __VA_ARGS__)
+
 #define MAX_PACKET_SIZE 65535
 
 #if !defined(SLIB_PLATFORM_IS_WIN32)
@@ -104,17 +65,19 @@ namespace slib
 	namespace
 	{
 
+		static sl_uint64 g_tickForAnyPcap = 0;
+
 		class PcapImpl : public Pcap
 		{
 		public:
 			pcap_t* m_handle;
 			Ref<Thread> m_thread;
-			sl_bool m_flagInit;
+			sl_bool m_flagInit = sl_false;
+			sl_uint64 m_lastPacketTickForAnyPcap = 0;
 
 		public:
 			PcapImpl()
 			{
-				m_flagInit = sl_false;
 			}
 
 			~PcapImpl()
@@ -173,7 +136,7 @@ namespace slib
 							}
 							pcap_freealldevs(devs);
 						}
-						LogError(TAG, "Failed to find device: %s", name);
+						LOG_ERROR("Failed to find device: %s", name);
 					}
 				}
 				return sl_null;
@@ -197,7 +160,7 @@ namespace slib
 						}
 						return ret;
 					} else {
-						LogError(TAG, "Failed to create thread");
+						LOG_ERROR("Failed to create thread");
 					}
 				}
 				pcap_close(handle);
@@ -212,7 +175,16 @@ namespace slib
 				}
 #endif
 				char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
+#ifdef SLIB_PLATFORM_IS_WIN32
+				if (name.startsWith('{')) {
+					String _name = StringView::literal("\\Device\\NPF_") + name;
+					handle = pcap_create(_name.getData(), errBuf);
+				} else {
+					handle = pcap_create(name.getData(), errBuf);
+				}
+#else
 				handle = pcap_create(name.getData(), errBuf);
+#endif
 				if (handle) {
 					pcap_set_snaplen(handle, MAX_PACKET_SIZE);
 					pcap_set_buffer_size(handle, param.sizeBuffer);
@@ -223,14 +195,14 @@ namespace slib
 					int iRet = pcap_activate(handle);
 					if (iRet < 0) {
 						if (iRet != PCAP_ERROR_NO_SUCH_DEVICE) {
-							LogError(TAG, "Failed to activate: %s", name);
+							LOG_ERROR("Failed to activate: %s", name);
 						}
 						pcap_close(handle);
 						handle = sl_null;
 					}
 					return iRet;
 				} else {
-					LogError(TAG, errBuf);
+					LOG_ERROR(errBuf);
 				}
 				return PCAP_ERROR;
 			}
@@ -284,6 +256,7 @@ namespace slib
 					sl_uint64 t = h->ts.tv_sec;
 					t = t * 1000000 + h->ts.tv_usec;
 					packet.time = t;
+					pcap->m_lastPacketTickForAnyPcap = g_tickForAnyPcap;
 					pcap->_onCapturePacket(packet);
 					pcap->decreaseReference();
 				} else {
@@ -387,6 +360,32 @@ namespace slib
 		};
 
 	}
+	
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PcapDeviceInfo)
+
+	PcapDeviceInfo::PcapDeviceInfo() : flagLoopback(sl_false), flagUp(sl_false), flagRunning(sl_false), flagWireless(sl_false), connectionStatus(PcapConnectionStatus::Unknown)
+	{
+	}
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PcapParam)
+
+	PcapParam::PcapParam()
+	{
+		timeoutRead = 0; // no timeout specified
+		flagImmediate = sl_true;
+		sizeBuffer = 0x200000; // 2MB (16Mb)
+		threadPriority = ThreadPriority::Normal;
+	}
+
+	SLIB_DEFINE_OBJECT(Pcap, NetCapture)
+
+	Pcap::Pcap()
+	{
+	}
+
+	Pcap::~Pcap()
+	{
+	}
 
 	Ref<Pcap> Pcap::create(const PcapParam& param)
 	{
@@ -468,7 +467,7 @@ namespace slib
 			}
 			pcap_freealldevs(devs);
 		} else {
-			LogError(TAG, errBuf);
+			LOG_ERROR(errBuf);
 		}
 		return ret;
 	}
@@ -505,176 +504,9 @@ namespace slib
 			}
 			pcap_freealldevs(devs);
 		} else {
-			LogError(TAG, errBuf);
+			LOG_ERROR(errBuf);
 		}
 		return sl_false;
-	}
-
-	namespace
-	{
-		class AnyDevicePcapImpl : public AnyDevicePcap
-		{
-		public:
-			PcapParam m_param;
-			CList< Ref<PcapImpl> > m_devices;
-			AtomicRef<Timer> m_timerAddDevices;
-
-		public:
-			AnyDevicePcapImpl()
-			{
-			}
-
-			~AnyDevicePcapImpl()
-			{
-				release();
-			}
-
-		public:
-			static Ref<AnyDevicePcapImpl> create(const PcapParam& param)
-			{
-#if defined(PCAP_DYNAMIC_LIB)
-				if (!(pcap_findalldevs)) {
-					return sl_null;
-				}
-#endif
-				Ref<AnyDevicePcapImpl> ret = new AnyDevicePcapImpl;
-				if (ret.isNotNull()) {
-					ret->_initWithParam(param);
-					ret->m_param = param;
-					if (param.flagAutoStart) {
-						ret->start();
-					}
-					return ret;
-				}
-				return sl_null;
-			}
-
-		public:
-			void release() override
-			{
-				Ref<Timer> timer = Move(m_timerAddDevices);
-				if (timer.isNotNull()) {
-					timer->stopAndWait();
-				}
-				m_devices.removeAll();
-			}
-
-			void start() override
-			{
-				ObjectLocker lock(this);
-				if (m_timerAddDevices.isNotNull()) {
-					return;
-				}
-				onAddDevices(sl_null);
-				m_timerAddDevices = Timer::start(SLIB_FUNCTION_MEMBER(this, onAddDevices), 10000);
-			}
-
-			sl_bool isRunning() override
-			{
-				return m_devices.getCount() > 0;
-			}
-
-			NetworkCaptureType getType() override
-			{
-				return NetworkCaptureType::Raw;
-			}
-
-			sl_bool sendPacket(const void*, sl_uint32) override
-			{
-				return sl_false;
-			}
-
-			List< Ref<Pcap> > getDevices() override
-			{
-				return reinterpret_cast<CList< Ref<Pcap> >*>(m_devices.duplicate());
-			}
-
-		protected:
-			Ref<NetCapture> findDevice(const StringParam& _name)
-			{
-				ListLocker< Ref<PcapImpl> > devices(m_devices);
-				if (devices.count) {
-					StringData name(_name);
-					for (sl_size i = 0; i < devices.count; i++) {
-						Ref<PcapImpl>& capture = devices[i];
-						if (capture->getDeviceName() == name) {
-							if (capture->isRunning()) {
-								return capture;
-							} else {
-								m_devices.remove_NoLock(capture);
-								return sl_null;
-							}
-						}
-					}
-				}
-				return sl_null;
-			}
-
-			void onAddDevices(Timer*)
-			{
-				char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
-				pcap_if_t* devs = NULL;
-				int ret = pcap_findalldevs(&devs, errBuf);
-				if (!ret && devs) {
-					pcap_if_t* dev = devs;
-					while (dev) {
-						if (!(dev->flags & PCAP_IF_LOOPBACK) && !(Base::equalsString(dev->name, "any"))) {
-							Ref<NetCapture> capture = findDevice(dev->name);
-							sl_uint32 status = (sl_uint32)(dev->flags & PCAP_IF_CONNECTION_STATUS);
-							if (status == PCAP_IF_CONNECTION_STATUS_CONNECTED || ((dev->flags & PCAP_IF_UP) && status != PCAP_IF_CONNECTION_STATUS_DISCONNECTED)) {
-								if (capture.isNull()) {
-									PcapParam param = m_param;
-									param.deviceName = dev->name;
-									param.onError = SLIB_BIND_WEAKREF(void(NetCapture*), this, onErrorDevice, param.onError);
-									param.flagAutoStart = sl_true;
-									Ref<PcapImpl> pcap = PcapImpl::create(param);
-									if (pcap.isNotNull()) {
-										m_devices.add_NoLock(Move(pcap));
-										if (dev->description && dev->description[0]) {
-											SLIB_LOG(TAG, "Added device to any capture: %s (%s)", param.deviceName, dev->description);
-										} else {
-											SLIB_LOG(TAG, "Added device to any capture: %s", param.deviceName);
-										}
-									} else {
-										if (dev->description && dev->description[0]) {
-											SLIB_LOG(TAG, "Failed to add device to any capture: %s (%s)", param.deviceName);
-										} else {
-											SLIB_LOG(TAG, "Failed to add device to any capture: %s (%s)", param.deviceName, dev->description);
-										}
-									}
-								}
-							} else {
-								if (capture.isNotNull()) {
-									m_devices.removeValues(capture);
-								}
-							}
-						}
-						dev = dev->next;
-					}
-					pcap_freealldevs(devs);
-				}
-			}
-
-			void onErrorDevice(const Function<void(NetCapture*)>& onError, NetCapture* capture)
-			{
-				auto thiz = ToWeakRef(this);
-				Dispatch::dispatch([this, thiz, capture]() {
-					auto ref = ToRef(thiz);
-					if (ref.isNull()) {
-						return;
-					}
-					m_devices.removeValues(capture);
-				});
-				SLIB_LOG(TAG, "Removed device from any capture: %s", capture->getDeviceName());
-				onError(capture);
-			}
-
-		};
-	}
-
-	Ref<Pcap> Pcap::createAny(const PcapParam& param)
-	{
-		return Ref<Pcap>::cast(AnyDevicePcapImpl::create(param));
 	}
 
 	sl_bool Pcap::isAllowedNonRoot(const StringParam& executablePath)
@@ -752,43 +584,243 @@ namespace slib
 	}
 #endif
 
-	Ref<AnyDevicePcap> AnyDevicePcap::create(const PcapParam& param)
+	namespace
+	{
+		static void OnUpdateTick(Timer*)
+		{
+			g_tickForAnyPcap = System::getTickCount64();
+		}
+
+		class AnyDevicePcapImpl : public AnyDevicePcap
+		{
+		public:
+			AnyDevicePcapParam m_param;
+			CList< Ref<PcapImpl> > m_devices;
+			AtomicRef<Timer> m_timerAddDevices;
+			AtomicRef<Timer> m_timerUpdateTick;
+
+		public:
+			AnyDevicePcapImpl()
+			{
+			}
+
+			~AnyDevicePcapImpl()
+			{
+				release();
+			}
+
+		public:
+			static Ref<AnyDevicePcapImpl> create(const AnyDevicePcapParam& param)
+			{
+				Ref<AnyDevicePcapImpl> ret = new AnyDevicePcapImpl;
+				if (ret.isNotNull()) {
+					ret->_initWithParam(param);
+					ret->m_param = param;
+					if (param.flagAutoStart) {
+						ret->start();
+					}
+					return ret;
+				}
+				return sl_null;
+			}
+
+		public:
+			void release() override
+			{
+				Ref<Timer> timer = Move(m_timerAddDevices);
+				if (timer.isNotNull()) {
+					timer->stopAndWait();
+				}
+				m_timerUpdateTick.setNull();
+				ObjectLocker lock(&m_devices);
+				ListElements< Ref<PcapImpl> > devices(m_devices);
+				for (sl_size i = 0; i < devices.count; i++) {
+					devices[i]->release();
+				}
+				m_devices.removeAll_NoLock();
+			}
+
+			void start() override
+			{
+				ObjectLocker lock(this);
+				if (m_timerAddDevices.isNotNull()) {
+					return;
+				}
+				if (m_param.deviceTimeout) {
+					OnUpdateTick(sl_null);
+					m_timerUpdateTick = Timer::start(&OnUpdateTick, 1000);
+				}
+				onAddDevices(sl_null);
+				m_timerAddDevices = Timer::start(SLIB_FUNCTION_MEMBER(this, onAddDevices), 10000);
+			}
+
+			sl_bool isRunning() override
+			{
+				return m_devices.getCount() > 0;
+			}
+
+			NetworkCaptureType getType() override
+			{
+				return NetworkCaptureType::Any;
+			}
+
+			sl_bool sendPacket(const void* frame, sl_uint32 size) override
+			{
+				return sl_false;
+			}
+
+			List< Ref<Pcap> > getDevices() override
+			{
+				return reinterpret_cast<CList< Ref<Pcap> >*>(m_devices.duplicate());
+			}
+
+		protected:
+			Ref<NetCapture> findDevice(const StringParam& _name)
+			{
+				ListLocker< Ref<PcapImpl> > devices(m_devices);
+				if (devices.count) {
+					StringData name(_name);
+					for (sl_size i = 0; i < devices.count; i++) {
+						Ref<PcapImpl>& capture = devices[i];
+						if (capture->getDeviceName() == name) {
+							return capture;
+						}
+					}
+				}
+				return sl_null;
+			}
+
+			void checkDevices()
+			{
+				ListElements< Ref<PcapImpl> > devices(m_devices.duplicate());
+				for (sl_size i = 0; i < devices.count; i++) {
+					Ref<PcapImpl>& capture = devices[i];
+					sl_bool flagRemove = sl_false;
+					if (!(capture->isRunning())) {
+						flagRemove = sl_true;
+					} else if (m_param.deviceTimeout) {
+						if (g_tickForAnyPcap > capture->m_lastPacketTickForAnyPcap + m_param.deviceTimeout) {
+							flagRemove = sl_true;
+						}
+					}
+					if (flagRemove) {
+						removeDevice(capture);
+					}
+				}
+			}
+
+			void removeDevice(NetCapture* device)
+			{
+				if (!device) {
+					return;
+				}
+				LOG("Removed device from any capture: %s", device->getDeviceName());
+				device->release();
+				m_devices.remove(device);
+			}
+
+			void addDevice(pcap_if_t* dev)
+			{
+				if ((dev->flags & PCAP_IF_LOOPBACK) || Base::equalsString(dev->name, "any")) {
+					return;
+				}
+				Ref<NetCapture> capture = findDevice(dev->name);
+				sl_uint32 status = (sl_uint32)(dev->flags & PCAP_IF_CONNECTION_STATUS);
+				if (status == PCAP_IF_CONNECTION_STATUS_DISCONNECTED) {
+					removeDevice(capture.get());
+					return;
+				}
+				if (status != PCAP_IF_CONNECTION_STATUS_CONNECTED && !(dev->flags & PCAP_IF_UP)) {
+					removeDevice(capture.get());
+					return;
+				}
+				if (capture.isNotNull()) {
+					return;
+				}
+				PcapParam param = m_param;
+				param.deviceName = dev->name;
+				param.onError = SLIB_BIND_WEAKREF(void(NetCapture*), this, onErrorDevice, param.onError);
+				param.flagAutoStart = sl_true;
+				Ref<PcapImpl> pcap = PcapImpl::create(param);
+				if (pcap.isNotNull()) {
+					m_devices.add_NoLock(Move(pcap));
+					if (dev->description && dev->description[0]) {
+						LOG("Added device to any capture: %s (%s)", param.deviceName, dev->description);
+					} else {
+						LOG("Added device to any capture: %s", param.deviceName);
+					}
+				} else {
+					if (dev->description && dev->description[0]) {
+						LOG("Failed to add device to any capture: %s (%s)", param.deviceName);
+					} else {
+						LOG("Failed to add device to any capture: %s (%s)", param.deviceName, dev->description);
+					}
+				}
+			}
+
+			void onAddDevices(Timer*)
+			{
+#if defined(PCAP_DYNAMIC_LIB)
+				if (!(pcap_findalldevs)) {
+					return;
+				}
+#endif
+				checkDevices();
+
+				char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
+				pcap_if_t* devs = NULL;
+				int ret = pcap_findalldevs(&devs, errBuf);
+				if (!ret && devs) {
+					pcap_if_t* dev = devs;
+					while (dev) {
+						addDevice(dev);
+						dev = dev->next;
+					}
+					pcap_freealldevs(devs);
+				}
+			}
+
+			void onErrorDevice(const Function<void(NetCapture*)>& onError, NetCapture* capture)
+			{
+				auto thiz = ToWeakRef(this);
+				Dispatch::dispatch([this, thiz, capture]() {
+					auto ref = ToRef(thiz);
+					if (ref.isNull()) {
+						return;
+					}
+					removeDevice(capture);
+				});
+				onError(capture);
+			}
+
+		};
+	}
+	
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AnyDevicePcapParam)
+
+	AnyDevicePcapParam::AnyDevicePcapParam()
+	{
+		deviceTimeout = 0;
+	}
+
+	SLIB_DEFINE_OBJECT(AnyDevicePcap, Pcap)
+
+	AnyDevicePcap::AnyDevicePcap()
+	{
+	}
+
+	AnyDevicePcap::~AnyDevicePcap()
+	{
+	}
+
+	Ref<AnyDevicePcap> AnyDevicePcap::create(const AnyDevicePcapParam& param)
 	{
 		return AnyDevicePcapImpl::create(param);
 	}
 
-}
-
-#else
-
-namespace slib
-{
-
-	Ref<Pcap> Pcap::create(const PcapParam& param)
+	Ref<Pcap> Pcap::createAny(const AnyDevicePcapParam& param)
 	{
-		return sl_null;
-	}
-
-	List<PcapDeviceInfo> Pcap::getAllDevices()
-	{
-		return sl_null;
-	}
-
-	sl_bool Pcap::findDevice(const String& name, PcapDeviceInfo& _out)
-	{
-		return sl_false;
-	}
-
-	Ref<Pcap> Pcap::createAny(const PcapParam& param)
-	{
-		return sl_null;
-	}
-
-	Ref<AnyDevicePcap> AnyDevicePcap::create(const PcapParam& param)
-	{
-		return sl_null;
+		return Ref<Pcap>::cast(AnyDevicePcapImpl::create(param));
 	}
 
 }
-
-#endif

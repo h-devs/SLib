@@ -62,6 +62,7 @@ namespace slib
 	NetCapture::NetCapture()
 	{
 		m_timeDeviceAddress = 0;
+		m_timeIP = 0;
 	}
 
 	NetCapture::~NetCapture()
@@ -83,28 +84,51 @@ namespace slib
 		return m_deviceName;
 	}
 
+	namespace
+	{
+		static sl_bool GetDeviceInfo(const StringView& name, NetworkInterfaceInfo& info)
+		{
+#ifdef SLIB_PLATFORM_IS_WIN32
+			// Remove prefix: \Device\NPF_
+			sl_reg index = name.indexOf('{');
+			if (index > 0) {
+				return Network::findInterface(name.substring(index), &info);
+			}
+#endif
+			return Network::findInterface(name, &info);
+		}
+	}
+
 	const MacAddress& NetCapture::getDeviceAddress()
 	{
 		sl_uint64 now = System::getTickCount64();
 		if (m_timeDeviceAddress && now >= m_timeDeviceAddress && now < m_timeDeviceAddress + 10000) {
 			return m_deviceAddress;
 		}
-		StringView name = m_deviceName;
 		NetworkInterfaceInfo info;
-#ifdef SLIB_PLATFORM_IS_WIN32
-		// Remove prefix: \Device\NPF_
-		sl_reg index = name.indexOf('{');
-		if (index > 0) {
-			name = name.substring(index);
-		}
-#endif
-		if (Network::findInterface(name, &info)) {
+		if (GetDeviceInfo(m_deviceName, info)) {
 			m_deviceAddress = info.macAddress;
 		} else {
 			m_deviceAddress.setZero();
 		}
 		m_timeDeviceAddress = now;
 		return m_deviceAddress;
+	}
+
+	const IPv4Address& NetCapture::getIPv4Address()
+	{
+		sl_uint64 now = System::getTickCount64();
+		if (m_timeIP && now >= m_timeIP && now < m_timeIP + 5000) {
+			return m_ip;
+		}
+		NetworkInterfaceInfo info;
+		if (GetDeviceInfo(m_deviceName, info)) {
+			m_ip = info.addresses_IPv4.getValueAt_NoLock(0).address;
+		} else {
+			m_ip.setZero();
+		}
+		m_timeIP = now;
+		return m_ip;
 	}
 
 	void NetCapture::_initWithParam(const NetCaptureParam& param)

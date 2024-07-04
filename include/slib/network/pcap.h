@@ -77,6 +77,18 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT AnyDevicePcapParam : public PcapParam
+	{
+	public:
+		sl_uint32 deviceTimeout; // device expiring timeout, in milliseconds
+
+	public:
+		AnyDevicePcapParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AnyDevicePcapParam)
+
+	};
+
 	class Pcap : public NetCapture
 	{
 		SLIB_DECLARE_OBJECT
@@ -93,7 +105,7 @@ namespace slib
 
 		static sl_bool findDevice(const StringView& name, PcapDeviceInfo& _out);
 
-		static Ref<Pcap> createAny(const PcapParam& param);
+		static Ref<Pcap> createAny(const AnyDevicePcapParam& param);
 
 
 		static sl_bool isAllowedNonRoot(const StringParam& executablePath);
@@ -116,7 +128,7 @@ namespace slib
 		~AnyDevicePcap();
 
 	public:
-		static Ref<AnyDevicePcap> create(const PcapParam& param);
+		static Ref<AnyDevicePcap> create(const AnyDevicePcapParam& param);
 
 	public:
 		virtual List< Ref<Pcap> > getDevices() = 0;

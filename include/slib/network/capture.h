@@ -42,7 +42,9 @@ namespace slib
 		IEEE802_11 = 105, // IEEE 802.11 wireless LAN
 		Linux = 113, //  Linux "cooked" capture encapsulation. (for "any" or PPP devices)
 
-		Raw = 0x8001 // Raw IP; the packet begins with an IPv4 or IPv6 header, with the "version" field of the header indicating whether it's an IPv4 or IPv6 header.
+		Raw = 0x8001, // Raw IP; the packet begins with an IPv4 or IPv6 header, with the "version" field of the header indicating whether it's an IPv4 or IPv6 header.
+
+		Any = 0xffff
 
 	};
 
@@ -119,6 +121,8 @@ namespace slib
 
 		const MacAddress& getDeviceAddress();
 
+		const IPv4Address& getIPv4Address();
+
 	protected:
 		void _initWithParam(const NetCaptureParam& param);
 
@@ -131,6 +135,8 @@ namespace slib
 
 		sl_uint64 m_timeDeviceAddress;
 		MacAddress m_deviceAddress;
+		sl_uint64 m_timeIP;
+		IPv4Address m_ip;
 
 		Function<void(NetCapture*, NetCapturePacket&)> m_onCapturePacket;
 		Function<void(NetCapture*)> m_onError;

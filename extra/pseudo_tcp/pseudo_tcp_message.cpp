@@ -352,7 +352,8 @@ namespace slib
 							connection->tcp.send("", 1);
 						});
 						endSendingConnection(connection);
-						callbackResponse(connection->getReceivedData());
+						Memory response = connection->getReceivedData();
+						callbackResponse(response);
 					}
 				}
 			}
