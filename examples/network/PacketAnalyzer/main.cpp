@@ -15,7 +15,7 @@ int main(int argc, const char * argv[])
 	analyzer.setUdpEnabled();
 	analyzer.setTcpEnabled();
 
-	AnyPcapParam param;
+	AnyDevicePcapParam param;
 	param.onCapturePacket = [](NetCapture* capture, NetCapturePacket& input) {
 		auto type = capture->getType();
 		if (type == NetworkCaptureType::Ethernet) {
