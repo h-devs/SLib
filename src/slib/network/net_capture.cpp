@@ -63,6 +63,7 @@ namespace slib
 	{
 		m_timeDeviceAddress = 0;
 		m_timeIP = 0;
+		m_index = 0;
 	}
 
 	NetCapture::~NetCapture()
@@ -129,6 +130,20 @@ namespace slib
 		}
 		m_timeIP = now;
 		return m_ip;
+	}
+
+	sl_uint32 NetCapture::getInterfaceIndex()
+	{
+		if (m_index) {
+			return m_index;
+		}
+		NetworkInterfaceInfo info;
+		if (GetDeviceInfo(m_deviceName, info)) {
+			m_index = info.index;
+			return info.index;
+		} else {
+			return 0;
+		}
 	}
 
 	void NetCapture::_initWithParam(const NetCaptureParam& param)
