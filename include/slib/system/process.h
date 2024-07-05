@@ -89,7 +89,7 @@ namespace slib
 		static Ref<Process> open(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
 		{
 			StringParam params[] = { arg, Forward<ARGS>(args)... };
-			return openBy(pathExecutable, params, sizeof...(args));
+			return openBy(pathExecutable, params, sizeof...(args) + 1);
 		}
 
 		static Ref<Process> runBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags = 0);
@@ -111,7 +111,7 @@ namespace slib
 		static Ref<Process> run(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
 		{
 			StringParam params[] = { arg, Forward<ARGS>(args)... };
-			return runBy(pathExecutable, params, sizeof...(args));
+			return runBy(pathExecutable, params, sizeof...(args) + 1);
 		}
 
 		static void runAsAdminBy(const StringParam& pathExecutable, const StringParam& commandLine);
@@ -151,7 +151,7 @@ namespace slib
 		static String getOutput(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
 		{
 			StringParam params[] = { arg, Forward<ARGS>(args)... };
-			return getOutputBy(pathExecutable, params, sizeof...(args));
+			return getOutputBy(pathExecutable, params, sizeof...(args) + 1);
 		}
 
 		static void runCommand(const StringParam& command, const ProcessFlags& flags = 0);
