@@ -91,48 +91,6 @@ namespace slib
 
 		};
 
-		static HDESK GetInputDesktop()
-		{
-			return OpenInputDesktop(0, FALSE, DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW | DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL | DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS | DESKTOP_SWITCHDESKTOP | GENERIC_WRITE);
-		}
-
-		static sl_bool IsInputDesktopSelected()
-		{
-			HDESK hCurrent = GetThreadDesktop(GetCurrentThreadId());
-			if (!hCurrent) {
-				return sl_false;
-			}
-			sl_bool bRet = sl_false;
-			HDESK hInput = GetInputDesktop();
-			if (hInput) {
-				DWORD size;
-				WCHAR currentName[256] = { 0 };
-				if (GetUserObjectInformationW(hCurrent, UOI_NAME, currentName, sizeof(currentName) - 2, &size)) {
-					WCHAR inputName[256] = { 0 };
-					if (GetUserObjectInformationW(hInput, UOI_NAME, inputName, sizeof(inputName) - 2, &size)) {
-						if (Base::equalsString2((sl_char16*)currentName, (sl_char16*)inputName)) {
-							bRet = sl_true;
-						}
-					}
-				}
-				CloseDesktop(hInput);
-			}
-			return bRet;
-		}
-
-		static sl_bool SwitchToDesktop(HDESK hDesktop)
-		{
-			HDESK hDesktopOld = GetThreadDesktop(GetCurrentThreadId());
-			if (SetThreadDesktop(hDesktop)) {
-				if (hDesktopOld) {
-					CloseDesktop(hDesktopOld);
-				}
-				return sl_true;
-			} else {
-				return sl_false;
-			}
-		}
-
 		static sl_bool SelectInputDesktop()
 		{
 			static sl_uint64 tickLastCheck = 0;
@@ -141,17 +99,10 @@ namespace slib
 				return sl_true;
 			}
 			tickLastCheck = tickCurrent;
-			if (IsInputDesktopSelected()) {
+			if (Win32::getInputDesktopName() == Win32::getCurrentDesktopName()) {
 				return sl_true;
 			}
-			HDESK hDesktop = GetInputDesktop();
-			if (hDesktop) {
-				if (SwitchToDesktop(hDesktop)) {
-					return sl_true;
-				}
-				CloseDesktop(hDesktop);
-			}
-			return sl_false;
+			return Win32::switchToInputDesktop();
 		}
 
 		static sl_bool InstallService()

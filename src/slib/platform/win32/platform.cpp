@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -450,6 +450,69 @@ namespace slib
 			}
 		}
 		return CreateFileW((LPCWSTR)(path.getData()), dwDesiredAccess, dwShareMode, NULL, OPEN_EXISTING, 0, NULL);
+	}
+
+	namespace
+	{
+		static HDESK GetInputDesktop()
+		{
+			return OpenInputDesktop(0, FALSE, DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW | DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL | DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS | DESKTOP_SWITCHDESKTOP | GENERIC_WRITE);
+		}
+
+		static String16 GetDesktopName(HDESK hDesk)
+		{
+			WCHAR name[256] = { 0 };
+			DWORD size = 0;
+			if (GetUserObjectInformationW(hDesk, UOI_NAME, name, sizeof(name) - 2, &size)) {
+				return String16::from((sl_char16*)name, Base::getStringLength2((sl_char16*)name, CountOfArray(name)));
+			}
+			return sl_null;
+		}
+
+		static sl_bool SwitchToDesktop(HDESK hDesktop)
+		{
+			HDESK hDesktopOld = GetThreadDesktop(GetCurrentThreadId());
+			if (SetThreadDesktop(hDesktop)) {
+				if (hDesktopOld) {
+					CloseDesktop(hDesktopOld);
+				}
+				return sl_true;
+			} else {
+				return sl_false;
+			}
+		}
+	}
+
+	String16 Win32::getCurrentDesktopName()
+	{
+		HDESK hCurrent = GetThreadDesktop(GetCurrentThreadId());
+		if (hCurrent) {
+			return GetDesktopName(hCurrent);
+		}
+		return sl_null;
+	}
+
+	String16 Win32::getInputDesktopName()
+	{
+		String16 ret;
+		HDESK hInput = GetInputDesktop();
+		if (hInput) {
+			ret = GetDesktopName(hInput);
+			CloseDesktop(hInput);
+		}
+		return ret;
+	}
+
+	sl_bool Win32::switchToInputDesktop()
+	{
+		HDESK hDesktop = GetInputDesktop();
+		if (hDesktop) {
+			if (SwitchToDesktop(hDesktop)) {
+				return sl_true;
+			}
+			CloseDesktop(hDesktop);
+		}
+		return sl_false;
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -181,6 +181,13 @@ namespace slib
 
 
 		static HANDLE createSystemProcess(const StringParam& commandLine);
+
+
+		static String16 getCurrentDesktopName();
+
+		static String16 getInputDesktopName();
+
+		static sl_bool switchToInputDesktop();
 
 	};
 
