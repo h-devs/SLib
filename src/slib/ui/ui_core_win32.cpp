@@ -412,11 +412,7 @@ namespace slib
 		String ret;
 		HWND hWnd = GetForegroundWindow();
 		if (hWnd) {
-			DWORD dwProcessId = 0;
-			GetWindowThreadProcessId(hWnd, &dwProcessId);
-			if (dwProcessId) {
-				ret = File::getFileName(Process::getImagePath(dwProcessId));
-			}
+			return File::getFileName(Win32::getProcessPath(hWnd));
 		}
 		return ret;
 	}

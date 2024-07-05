@@ -189,6 +189,8 @@ namespace slib
 
 		static sl_bool switchToInputDesktop();
 
+		static String getProcessPath(HWND hWnd);
+
 	};
 
 }

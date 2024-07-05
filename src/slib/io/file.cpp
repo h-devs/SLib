@@ -1361,14 +1361,4 @@ namespace slib
 		return ret.merge();
 	}
 
-#ifndef SLIB_PLATFORM_IS_WIN32
-	DisableWow64FsRedirectionScope::DisableWow64FsRedirectionScope() noexcept
-	{
-	}
-
-	DisableWow64FsRedirectionScope::~DisableWow64FsRedirectionScope() noexcept
-	{
-	}
-#endif
-
 }

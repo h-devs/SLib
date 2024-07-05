@@ -198,7 +198,9 @@ namespace slib
 			if (func) {
 				BOOL flag = FALSE;
 				func(GetCurrentProcess(), &flag);
-				flag64Bit = flag;
+				if (flag) {
+					flag64Bit = sl_true;
+				}
 			}
 			flagInit = sl_false;
 		}

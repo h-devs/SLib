@@ -22,11 +22,12 @@
 
 #include "slib/core/definition.h"
 
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
+#if defined(SLIB_PLATFORM_IS_WIN32)
 
 #include "slib/system/process.h"
 
 #include "slib/io/file.h"
+#include "slib/system/system.h"
 #include "slib/core/command_line.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/handle_ptr.h"
@@ -40,9 +41,8 @@
 namespace slib
 {
 
-	namespace {
-
-#if !defined(SLIB_PLATFORM_IS_MOBILE)
+	namespace
+	{
 
 		static sl_bool CreatePipe(HANDLE* pRead, HANDLE* pWrite)
 		{
@@ -278,15 +278,10 @@ namespace slib
 
 		};
 
-#endif
-
 	}
 
 	List<sl_uint32> Process::getAllProcessIds()
 	{
-#if defined(SLIB_PLATFORM_IS_MOBILE)
-		return sl_null;
-#else
 		auto funcEnumProcesses = psapi::getApi_EnumProcesses();
 		if (!funcEnumProcesses) {
 			return sl_null;
@@ -310,7 +305,6 @@ namespace slib
 			}
 		}
 		return ret;
-#endif
 	}
 
 	List<sl_uint32> Process::getAllThreadIds(sl_uint32 processId)
@@ -334,9 +328,6 @@ namespace slib
 
 	String Process::getImagePath(sl_uint32 processId)
 	{
-#if defined(SLIB_PLATFORM_IS_MOBILE)
-		return sl_null;
-#else
 		auto funcQueryFullProcessImageNameW = kernel32::getApi_QueryFullProcessImageNameW();
 		auto funcGetModuleFileNameExW = psapi::getApi_GetModuleFileNameExW();
 		if (!(funcQueryFullProcessImageNameW || funcGetModuleFileNameExW)) {
@@ -365,7 +356,26 @@ namespace slib
 			}
 		}
 		return ret;
-#endif
+	}
+
+	sl_bool Process::is32BitProcess(sl_uint32 processId)
+	{
+		if (!(System::is64BitSystem())) {
+			return sl_true;
+		}
+		auto func_IsWow64Process = kernel32::getApi_IsWow64Process();
+		if (func_IsWow64Process) {
+			HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
+			if (hProcess) {
+				BOOL bIsWow64 = FALSE;
+				func_IsWow64Process(hProcess, &bIsWow64);
+				CloseHandle(hProcess);
+				if (bIsWow64) {
+					return sl_true;
+				}
+			}
+		}
+		return sl_false;
 	}
 
 	sl_bool Process::kill(sl_uint32 processId)
@@ -501,7 +511,6 @@ namespace slib
 
 	void Process::execBy(const StringParam& _pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
-#if defined(SLIB_PLATFORM_IS_WIN32)
 		StringCstr pathExecutable(_pathExecutable);
 		char* exe = pathExecutable.getData();
 		char* args[64];
@@ -517,7 +526,6 @@ namespace slib
 		args[nArguments + 1] = 0;
 		_execvp(exe, args);
 		::abort();
-#endif
 	}
 
 	void Process::abort()
@@ -597,6 +605,16 @@ namespace slib
 			CloseHandle(hToken);
 		}
 		return hProcess;
+	}
+
+	String Win32::getProcessPath(HWND hWnd)
+	{
+		DWORD dwProcessId = 0;
+		GetWindowThreadProcessId(hWnd, &dwProcessId);
+		if (dwProcessId) {
+			return Process::getImagePath(dwProcessId);
+		}
+		return sl_null;
 	}
 
 }

@@ -65,6 +65,8 @@ namespace slib
 
 		static String getImagePath(sl_uint32 processId);
 
+		static sl_bool is32BitProcess(sl_uint32 processId);
+
 		static sl_bool kill(sl_uint32 processId);
 
 		static sl_bool quit(sl_uint32 processId);

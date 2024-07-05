@@ -56,6 +56,7 @@ namespace slib
 	};
 
 
+#ifdef SLIB_PLATFORM_IS_WIN32
 	class SLIB_EXPORT DisableWow64FsRedirectionScope
 	{
 	public:
@@ -64,11 +65,9 @@ namespace slib
 		~DisableWow64FsRedirectionScope() noexcept;
 
 	private:
-#ifdef SLIB_PLATFORM_IS_WIN32
 		void* m_pOldValue;
-#endif
-
 	};
+#endif
 
 }
 

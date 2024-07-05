@@ -84,6 +84,12 @@ namespace slib
 		)
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			GetWindowDisplayAffinity,
+			BOOL, WINAPI,
+			HWND hWnd, DWORD *dwAffinity
+		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			SetWindowDisplayAffinity,
 			BOOL, WINAPI,
 			HWND hWnd, DWORD dwAffinity
