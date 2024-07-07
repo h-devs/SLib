@@ -582,9 +582,14 @@ namespace slib
 		return getTickCount64();
 	}
 
-	float System::getUptime()
+	sl_uint64 System::getUptime()
 	{
-		return (float)((double)(getTickCount64()) / 1000.0);
+		return getTickCount64() / 1000;
+	}
+
+	double System::getUptimeF()
+	{
+		return (double)(getTickCount64()) / 1000.0;
 	}
 
 	void System::sleep(sl_uint32 milliseconds)

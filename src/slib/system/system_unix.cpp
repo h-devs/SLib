@@ -294,11 +294,22 @@ namespace slib
 		return (sl_uint64)(getTickCount64());
 	}
 
-	float System::getUptime()
+	sl_uint64 System::getUptime()
 	{
 		String strUptime = File::readAllTextUTF8("/proc/uptime");
-		float t;
-		sl_reg iRet = String::parseFloat(&t, strUptime.getData(), 0, strUptime.getLength());
+		sl_uint64 t;
+		sl_reg iRet = String::parseUint64(10, &t, strUptime.getData(), 0, strUptime.getLength());
+		if (iRet >= 0) {
+			return t;
+		}
+		return 0;
+	}
+
+	double System::getUptimeF()
+	{
+		String strUptime = File::readAllTextUTF8("/proc/uptime");
+		double t;
+		sl_reg iRet = String::parseDouble(&t, strUptime.getData(), 0, strUptime.getLength());
 		if (iRet >= 0) {
 			return t;
 		}

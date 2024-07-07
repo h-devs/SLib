@@ -131,7 +131,9 @@ namespace slib
 		static sl_uint64 getHighResolutionTickCount();
 
 		// Total number of seconds the system has been up
-		static float getUptime();
+		static sl_uint64 getUptime();
+
+		static double getUptimeF();
 
 		static void sleep(sl_uint32 millis);
 
