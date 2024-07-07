@@ -243,6 +243,11 @@ namespace slib
 
 			void show(sl_ui_pos x, sl_ui_pos y) override
 			{
+				UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), this, _show, x, y));
+			}
+
+			void _show(sl_ui_pos x, sl_ui_pos y)
+			{
 				Win32_UI_Shared* shared = Win32_UI_Shared::get();
 				if (shared) {
 					TrackPopupMenuEx(m_hMenu, 0, (int)x, (int)y, shared->hWndMessage, NULL);
