@@ -68,7 +68,7 @@ namespace slib
 		m_tabBackgrounds.set(ViewState::Selected, Drawable::fromColor(Color(150, 150, 150)));
 		m_tabBackgrounds.set(ViewState::Hover, Drawable::fromColor(Color(210, 210, 210)));
 
-		m_labelColors.defaultValue = Color(50, 50, 50);
+		m_labelColors.setDefault(Color(50, 50, 50));
 		m_labelColors.set(ViewState::Selected, Color::Black);
 		m_labelColors.set(ViewState::Hover, Color(0, 20, 250));
 
@@ -406,7 +406,7 @@ namespace slib
 
 	void TabView::setTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_tabBackgrounds.defaultValue = drawable;
+		m_tabBackgrounds.set(drawable);
 		_invalidateTabBar(mode);
 	}
 
@@ -433,7 +433,7 @@ namespace slib
 
 	void TabView::setLabelColor(const Color& color, UIUpdateMode mode)
 	{
-		m_labelColors.defaultValue = color;
+		m_labelColors.set(color);
 		_invalidateTabBar(mode);
 	}
 

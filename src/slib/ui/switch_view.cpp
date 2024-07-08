@@ -122,7 +122,7 @@ namespace slib
 
 	void SwitchView::setThumb(SwitchValue value, const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_thumbs[(int)value].defaultValue = drawable;
+		m_thumbs[(int)value].set(drawable);
 		invalidate(mode);
 	}
 
@@ -135,8 +135,8 @@ namespace slib
 
 	void SwitchView::setThumb(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_thumbs[0].defaultValue = drawable;
-		m_thumbs[1].defaultValue = drawable;
+		m_thumbs[0].set(drawable);
+		m_thumbs[1].set(drawable);
 		invalidate(mode);
 	}
 
@@ -173,7 +173,7 @@ namespace slib
 
 	void SwitchView::setTrack(SwitchValue value, const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_tracks[(int)value].defaultValue = drawable;
+		m_tracks[(int)value].set(drawable);
 		invalidate(mode);
 	}
 
@@ -186,8 +186,8 @@ namespace slib
 
 	void SwitchView::setTrack(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_tracks[0].defaultValue = drawable;
-		m_tracks[1].defaultValue = drawable;
+		m_tracks[0].set(drawable);
+		m_tracks[1].set(drawable);
 		invalidate(mode);
 	}
 

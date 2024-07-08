@@ -2015,7 +2015,8 @@ namespace slib
 			const char* suffix;
 		};
 		SAppStateDefine g_stateDefines[] = {
-			{ViewState::Default, sl_null},
+			{ ViewState::All, sl_null },
+			{ ViewState::Default, "Default" },
 			{ ViewState::Normal, "Normal" },
 			{ ViewState::Hover, "Hover" },
 			{ ViewState::Pressed, "Pressed" },
@@ -2033,6 +2034,8 @@ namespace slib
 		static const char* GetViewStateAcessString(ViewState state)
 		{
 			switch (state) {
+				case ViewState::Default:
+					return "slib::ViewState::Default";
 				case ViewState::Normal:
 					return "slib::ViewState::Normal";
 				case ViewState::Hover:
@@ -2058,7 +2061,7 @@ namespace slib
 				case ViewState::SelectedPressed:
 					return "slib::ViewState::SelectedPressed";
 				default:
-					return "slib::ViewState::Default";
+					return "slib::ViewState::All";
 			}
 		}
 	}

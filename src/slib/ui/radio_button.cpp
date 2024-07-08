@@ -172,7 +172,7 @@ namespace slib
 				if (ret.isNotNull()) {
 					ButtonCategory* c = ret.getData();
 					for (sl_size i = 0; i < 2; i++) {
-						c[i].icons.defaultValue = s.iconDefault[i];
+						c[i].icons.setDefault(s.iconDefault[i]);
 						c[i].icons.set(ViewState::Disabled, s.iconDisabled[i]);
 						c[i].icons.set(ViewState::Hover, s.iconHover[i]);
 						c[i].icons.set(ViewState::Focused, s.iconHover[i]);

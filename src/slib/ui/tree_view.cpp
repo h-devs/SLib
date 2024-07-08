@@ -341,7 +341,7 @@ namespace slib
 
 	void TreeViewItem::setBackground(const Ref<Drawable>& background, UIUpdateMode mode)
 	{
-		setBackground(background, ViewState::Default, mode);
+		setBackground(background, ViewState::All, mode);
 	}
 
 	void TreeViewItem::setBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode)
@@ -371,7 +371,7 @@ namespace slib
 
 	void TreeViewItem::setOpenedIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
-		setOpenedIcon(icon, ViewState::Default, mode);
+		setOpenedIcon(icon, ViewState::All, mode);
 	}
 
 	Ref<Drawable> TreeViewItem::getClosedIcon(ViewState state)
@@ -391,7 +391,7 @@ namespace slib
 
 	void TreeViewItem::setClosedIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
-		setClosedIcon(icon, ViewState::Default, mode);
+		setClosedIcon(icon, ViewState::All, mode);
 	}
 
 	void TreeViewItem::setIcon(const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode)
@@ -407,7 +407,7 @@ namespace slib
 
 	void TreeViewItem::setIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
-		setIcon(icon, ViewState::Default, mode);
+		setIcon(icon, ViewState::All, mode);
 	}
 
 	sl_ui_len TreeViewItem::getIconWidth()
@@ -467,7 +467,7 @@ namespace slib
 
 	void TreeViewItem::setTextColor(const Color& color, UIUpdateMode mode)
 	{
-		m_textColors.defaultValue = color;
+		m_textColors.set(color);
 		_redrawTree(mode);
 	}
 
@@ -607,7 +607,7 @@ namespace slib
 		m_flagInvalidTreeLayout = sl_true;
 
 		m_itemBackgrounds.set(ViewState::Selected, Drawable::fromColor(Color(0, 0, 0, 50)));
-		m_itemTextColors.defaultValue = Color::Black;
+		m_itemTextColors.setDefault(Color::Black);
 		m_itemTextColors.set(ViewState::Hover, Color(0, 0, 200));
 		m_itemTextColors.set(ViewState::Selected, Color(0, 0, 200));
 
@@ -780,7 +780,7 @@ namespace slib
 
 	void TreeView::setOpenedItemIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
-		setOpenedItemIcon(icon, ViewState::Default, mode);
+		setOpenedItemIcon(icon, ViewState::All, mode);
 	}
 
 	Ref<Drawable> TreeView::getClosedItemIcon(ViewState state)
@@ -796,7 +796,7 @@ namespace slib
 
 	void TreeView::setClosedItemIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
-		setClosedItemIcon(icon, ViewState::Default, mode);
+		setClosedItemIcon(icon, ViewState::All, mode);
 	}
 
 	void TreeView::setItemIcon(const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode)
@@ -808,7 +808,7 @@ namespace slib
 
 	void TreeView::setItemIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
-		setItemIcon(icon, ViewState::Default, mode);
+		setItemIcon(icon, ViewState::All, mode);
 	}
 
 	Ref<Drawable> TreeView::getCollapsedIcon()
@@ -856,7 +856,7 @@ namespace slib
 
 	void TreeView::setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_itemBackgrounds.defaultValue = drawable;
+		m_itemBackgrounds.set(drawable);
 		_redrawContent(mode);
 	}
 
@@ -883,7 +883,7 @@ namespace slib
 
 	void TreeView::setItemTextColor(const Color& color, UIUpdateMode mode)
 	{
-		m_itemTextColors.defaultValue = color;
+		m_itemTextColors.set(color);
 		_redrawContent(mode);
 	}
 
@@ -1140,16 +1140,16 @@ namespace slib
 				Ref<Drawable> iconDraw;
 				sl_bool flagOpened = item->m_children.getCount() ? item->m_flagOpened : sl_true;
 				if (flagOpened) {
-					if (item->m_openedIcons.defaultValue.isNotNull()) {
-						iconDraw = item->m_openedIcons.defaultValue;
+					if (item->m_openedIcons.isDefinedDefault()) {
+						iconDraw = item->m_openedIcons.getDefault();
 					} else {
-						iconDraw = m_openedItemIcons.defaultValue;
+						iconDraw = m_openedItemIcons.getDefault();
 					}
 				} else {
-					if (item->m_closedIcons.defaultValue.isNotNull()) {
-						iconDraw = item->m_closedIcons.defaultValue;
+					if (item->m_closedIcons.isDefinedDefault()) {
+						iconDraw = item->m_closedIcons.getDefault();
 					} else {
-						iconDraw = m_closedItemIcons.defaultValue;
+						iconDraw = m_closedItemIcons.getDefault();
 					}
 				}
 				if (iconDraw.isNotNull()) {

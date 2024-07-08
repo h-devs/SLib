@@ -710,11 +710,11 @@ namespace slib
 		Ref<Drawable> getHeaderIcon(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 		Ref<Drawable> getFooterIcon(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 
-		void setBodyIcon(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setHeaderIcon(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setFooterIcon(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setColumnIcon(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellIcon(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyIcon(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderIcon(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterIcon(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnIcon(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellIcon(const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Function<Ref<Drawable>(Cell*, ViewState)> getBodyIconGetter(sl_uint32 row, sl_uint32 column);
 		Function<Ref<Drawable>(Cell*, ViewState)> getHeaderIconGetter(sl_uint32 row, sl_uint32 column);
@@ -799,11 +799,11 @@ namespace slib
 		Ref<Drawable> getHeaderBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 		Ref<Drawable> getFooterBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 
-		void setBodyBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setHeaderBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setFooterBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setColumnBackground(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellBackground(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnBackground(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellBackground(const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Function<Ref<Drawable>(Cell*, ViewState)> getBodyBackgroundGetter(sl_uint32 row, sl_uint32 column);
 		Function<Ref<Drawable>(Cell*, ViewState)> getHeaderBackgroundGetter(sl_uint32 row, sl_uint32 column);
@@ -819,11 +819,11 @@ namespace slib
 		Color getHeaderTextColor(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 		Color getFooterTextColor(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 
-		void setBodyTextColor(sl_int32 row, sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setHeaderTextColor(sl_int32 row, sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setFooterTextColor(sl_int32 row, sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setColumnTextColor(sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellTextColor(const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyTextColor(sl_int32 row, sl_int32 column, const Color& color, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderTextColor(sl_int32 row, sl_int32 column, const Color& color, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterTextColor(sl_int32 row, sl_int32 column, const Color& color, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnTextColor(sl_int32 column, const Color& color, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellTextColor(const Color& color, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Function<Color(Cell*, ViewState)> getBodyTextColorGetter(sl_uint32 row, sl_uint32 column);
 		Function<Color(Cell*, ViewState)> getHeaderTextColorGetter(sl_uint32 row, sl_uint32 column);
@@ -839,11 +839,11 @@ namespace slib
 		Shared<ColorMatrix> getHeaderColorFilter(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 		Shared<ColorMatrix> getFooterColorFilter(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 
-		void setBodyColorFilter(sl_int32 row, sl_int32 column, const Shared<ColorMatrix>& filter, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setHeaderColorFilter(sl_int32 row, sl_int32 column, const Shared<ColorMatrix>& filter, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setFooterColorFilter(sl_int32 row, sl_int32 column, const Shared<ColorMatrix>& filter, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setColumnColorFilter(sl_int32 column, const Shared<ColorMatrix>& filter, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setCellColorFilter(const Shared<ColorMatrix>& filter, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyColorFilter(sl_int32 row, sl_int32 column, const Shared<ColorMatrix>& filter, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderColorFilter(sl_int32 row, sl_int32 column, const Shared<ColorMatrix>& filter, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterColorFilter(sl_int32 row, sl_int32 column, const Shared<ColorMatrix>& filter, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnColorFilter(sl_int32 column, const Shared<ColorMatrix>& filter, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellColorFilter(const Shared<ColorMatrix>& filter, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_uint32 getBodyRowspan(sl_uint32 row, sl_uint32 column);
 		sl_uint32 getHeaderRowspan(sl_uint32 row, sl_uint32 column);

@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -33,9 +33,33 @@ namespace slib
 {
 
 	template <class VALUE>
+	sl_bool ViewStateMap<VALUE>::isNone()
+	{
+		return !((sl_bool)defaultValue) && values.isNull();
+	}
+
+	template <class VALUE>
+	sl_bool ViewStateMap<VALUE>::isNotNone()
+	{
+		return (sl_bool)defaultValue || values.isNotNull();
+	}
+
+	template <class VALUE>
+	sl_bool ViewStateMap<VALUE>::isDefinedDefault()
+	{
+		return (sl_bool)defaultValue;
+	}
+
+	template <class VALUE>
+	sl_bool ViewStateMap<VALUE>::isDefinedStates()
+	{
+		return values.isNotNull();
+	}
+
+	template <class VALUE>
 	VALUE ViewStateMap<VALUE>::get(ViewState state)
 	{
-		if (state == ViewState::Default) {
+		if (state == ViewState::Default || state == ViewState::All) {
 			return defaultValue;
 		} else {
 			return HashMap<ViewState, VALUE>(PRIV_SLIB_VIEW_STATE_MAP_VALUES).getValue(state);
@@ -43,18 +67,26 @@ namespace slib
 	}
 
 	template <class VALUE>
+	VALUE ViewStateMap<VALUE>::getDefault()
+	{
+		return defaultValue;
+	}
+
+	template <class VALUE>
 	void ViewStateMap<VALUE>::set(ViewState state, const VALUE& value)
 	{
 		if (state == ViewState::Default) {
 			defaultValue = value;
-		} else {
-			setNonDefault(state, value);
+			return;
 		}
-	}
-
-	template <class VALUE>
-	void ViewStateMap<VALUE>::setNonDefault(ViewState state, const VALUE& value)
-	{
+		if (state == ViewState::All) {
+			defaultValue = value;
+			(PRIV_SLIB_VIEW_STATE_MAP_VALUES).setNull();
+			return;
+		}
+		if (!((sl_bool)value)) {
+			_remove(state);
+		}
 		HashMap<ViewState, VALUE> map(PRIV_SLIB_VIEW_STATE_MAP_VALUES);
 		if (map.isNotNull()) {
 			map.put(state, value);
@@ -65,10 +97,44 @@ namespace slib
 	}
 
 	template <class VALUE>
+	void ViewStateMap<VALUE>::set(const VALUE& value)
+	{
+		defaultValue = value;
+		(PRIV_SLIB_VIEW_STATE_MAP_VALUES).setNull();
+	}
+
+	template <class VALUE>
+	void ViewStateMap<VALUE>::setDefault(const VALUE& value)
+	{
+		defaultValue = value;
+	}
+
+	template <class VALUE>
 	void ViewStateMap<VALUE>::remove(ViewState state)
 	{
-		HashMap<ViewState, VALUE> map(PRIV_SLIB_VIEW_STATE_MAP_VALUES);
-		map.remove(state);
+		if (state == ViewState::Default) {
+			defaultValue = VALUE();
+			return;
+		}
+		if (state == ViewState::All) {
+			defaultValue = VALUE();
+			(PRIV_SLIB_VIEW_STATE_MAP_VALUES).setNull();
+			return;
+		}
+		_remove(state);
+	}
+
+	template <class VALUE>
+	void ViewStateMap<VALUE>::remove()
+	{
+		defaultValue = VALUE();
+		(PRIV_SLIB_VIEW_STATE_MAP_VALUES).setNull();
+	}
+
+	template <class VALUE>
+	void ViewStateMap<VALUE>::removeDefault()
+	{
+		defaultValue = VALUE();
 	}
 
 	template <class VALUE>
@@ -99,6 +165,16 @@ namespace slib
 		if (map.isNotNull()) {
 			map = map.duplicate();
 			values = Move(map.ref);
+		}
+	}
+
+	template <class VALUE>
+	void ViewStateMap<VALUE>::_remove(ViewState state)
+	{
+		HashMap<ViewState, VALUE> map(PRIV_SLIB_VIEW_STATE_MAP_VALUES);
+		map.remove(state);
+		if (map.isEmpty()) {
+			(PRIV_SLIB_VIEW_STATE_MAP_VALUES).setNull();
 		}
 	}
 

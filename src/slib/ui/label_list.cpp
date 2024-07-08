@@ -53,7 +53,7 @@ namespace slib
 
 		m_textColors.set(ViewState::Selected, Color::White);
 		m_textColors.set(ViewState::Hover, Color::White);
-		m_textColors.defaultValue = Color::Black;
+		m_textColors.setDefault(Color::Black);
 	}
 
 	LabelList::~LabelList()
@@ -137,7 +137,7 @@ namespace slib
 
 	void LabelList::setTextColor(const Color& color, UIUpdateMode mode)
 	{
-		m_textColors.defaultValue = color;
+		m_textColors.set(color);
 		invalidate(mode);
 	}
 

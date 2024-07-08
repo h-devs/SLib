@@ -372,7 +372,7 @@ namespace slib
 
 			void setCheckedIcon(const Ref<Drawable>& icon) override
 			{
-				m_button->setIcon(1, icon, ViewState::Default);
+				m_button->setIcon(1, icon, ViewState::All);
 			}
 
 		};

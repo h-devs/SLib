@@ -406,6 +406,11 @@ namespace slib
 			return getARGB();
 		}
 
+		SLIB_CONSTEXPR explicit operator sl_bool() const
+		{
+			return getARGB() != 0;
+		}
+
 	private:
 		static sl_uint8 _zero[4];
 

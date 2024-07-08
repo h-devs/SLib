@@ -598,7 +598,7 @@ namespace slib
 		}
 	}
 
-#define DEFINE_STATE_MAP_FUNCS_SUB(FUNC, NAME, TYPE, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
+#define DEFINE_STATE_MAP_FUNCS_SUB(FUNC, NAME, TYPE, SET_TYPE, SET_VALUE) \
 	TYPE Button::get##FUNC(sl_uint32 category, ViewState state) \
 	{ \
 		if (m_cell.isNotNull()) { \
@@ -606,14 +606,14 @@ namespace slib
 				return m_cell->categories[category].NAME.get(state); \
 			} \
 		} \
-		return NULL_VALUE; \
+		return TYPE(); \
 	} \
 	void Button::set##FUNC(sl_uint32 category, SET_TYPE value, ViewState state, UIUpdateMode mode) \
 	{ \
 		_initCell(); \
 		if (m_cell.isNotNull()) { \
 			if (category < m_cell->categories.getCount()) { \
-				if (value SET_CHECK_NOT_NULL) { \
+				if (value) { \
 					m_cell->categories[category].NAME.set(state, SET_VALUE); \
 				} else { \
 					m_cell->categories[category].NAME.remove(state); \
@@ -624,11 +624,11 @@ namespace slib
 	} \
 	void Button::set##FUNC(sl_uint32 category, SET_TYPE value, UIUpdateMode mode) \
 	{ \
-		set##FUNC(category, value, ViewState::Default, mode); \
+		set##FUNC(category, value, ViewState::All, mode); \
 	}
 
-#define DEFINE_STATE_MAP_FUNCS(FUNC, NAME, TYPE, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
-	DEFINE_STATE_MAP_FUNCS_SUB(FUNC, NAME, TYPE, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
+#define DEFINE_STATE_MAP_FUNCS(FUNC, NAME, TYPE, SET_TYPE, SET_VALUE) \
+	DEFINE_STATE_MAP_FUNCS_SUB(FUNC, NAME, TYPE, SET_TYPE, SET_VALUE) \
 	TYPE Button::get##FUNC(ViewState state) \
 	{ \
 		return get##FUNC(0, state); \
@@ -642,10 +642,10 @@ namespace slib
 	} \
 	void Button::set##FUNC(SET_TYPE value, UIUpdateMode mode) \
 	{ \
-		set##FUNC(value, ViewState::Default, mode); \
+		set##FUNC(value, ViewState::All, mode); \
 	}
 
-	DEFINE_STATE_MAP_FUNCS_SUB(TextColor, textColors, Color, Color::zero(), const Color&, .isNotZero(), value)
+	DEFINE_STATE_MAP_FUNCS_SUB(TextColor, textColors, Color, const Color&, value)
 
 	Color Button::getTextColor(ViewState state)
 	{
@@ -659,23 +659,19 @@ namespace slib
 	{
 		_initCell();
 		if (m_cell.isNotNull()) {
-			if (value.isNotZero()) {
-				m_cell->textColors.set(state, value);
-			} else {
-				m_cell->textColors.remove(state);
-			}
+			m_cell->textColors.set(state, value);
 			invalidate(mode);
 		}
 	}
 
 	void Button::setTextColor(const Color& value, UIUpdateMode mode)
 	{
-		setTextColor(value, ViewState::Default, mode);
+		setTextColor(value, ViewState::All, mode);
 	}
 
-	DEFINE_STATE_MAP_FUNCS(Icon, icons, Ref<Drawable>, sl_null, const Ref<Drawable>&, .isNotNull(), value)
+	DEFINE_STATE_MAP_FUNCS(Icon, icons, Ref<Drawable>, const Ref<Drawable>&, value)
 
-	DEFINE_STATE_MAP_FUNCS_SUB(Background, backgrounds, Ref<Drawable>, sl_null, const Ref<Drawable>&, .isNotNull(), value)
+	DEFINE_STATE_MAP_FUNCS_SUB(Background, backgrounds, Ref<Drawable>, const Ref<Drawable>&, value)
 
 	Color Button::getBackgroundColor(sl_uint32 category, ViewState state)
 	{
@@ -696,7 +692,7 @@ namespace slib
 		setBackground(category, Drawable::fromColor(color), mode);
 	}
 
-	DEFINE_STATE_MAP_FUNCS_SUB(Border, borders, Ref<Pen>, sl_null, const Ref<Pen>&, .isNotNull(), value)
+	DEFINE_STATE_MAP_FUNCS_SUB(Border, borders, Ref<Pen>, const Ref<Pen>&, value)
 
 	void Button::setBorder(sl_uint32 category, const PenDesc& desc, ViewState state, UIUpdateMode mode)
 	{
@@ -705,10 +701,10 @@ namespace slib
 
 	void Button::setBorder(sl_uint32 category, const PenDesc& desc, UIUpdateMode mode)
 	{
-		setBorder(category, desc, ViewState::Default, mode);
+		setBorder(category, desc, ViewState::All, mode);
 	}
 
-	DEFINE_STATE_MAP_FUNCS(ColorFilter, filters, Shared<ColorMatrix>, sl_null, ColorMatrix*, , Shared<ColorMatrix>::create(*value))
+	DEFINE_STATE_MAP_FUNCS(ColorFilter, filters, Shared<ColorMatrix>, ColorMatrix*, Shared<ColorMatrix>::create(*value))
 
 	void Button::setColorOverlay(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode)
 	{
@@ -723,7 +719,7 @@ namespace slib
 
 	void Button::setColorOverlay(sl_uint32 category, const Color& color, UIUpdateMode mode)
 	{
-		setColorOverlay(category, color, ViewState::Default, mode);
+		setColorOverlay(category, color, ViewState::All, mode);
 	}
 
 	void Button::setColorOverlay(const Color& color, ViewState state, UIUpdateMode mode)
@@ -736,7 +732,7 @@ namespace slib
 
 	void Button::setColorOverlay(const Color& color, UIUpdateMode mode)
 	{
-		setColorOverlay(color, ViewState::Default, mode);
+		setColorOverlay(color, ViewState::All, mode);
 	}
 
 	sl_bool Button::isUsingDefaultColorFilter()
@@ -1035,7 +1031,7 @@ namespace slib
 				Array<ButtonCategory> ret = Array<ButtonCategory>::create(2);
 				if (ret.isNotNull()) {
 					ButtonCategory* c = ret.getData();
-					c[1].borders.defaultValue = context.defaultButtonPen;
+					c[1].borders.setDefault(context.defaultButtonPen);
 					return ret;
 				}
 				return sl_null;
@@ -1079,7 +1075,7 @@ namespace slib
 		flagUseDefaultColorFilter = sl_true;
 		flagUseFocusedColorFilter = BUTTON_DEFAULT_USE_FOCUSED_COLOR_FILTER;
 
-		textColors.defaultValue = Color(0, 100, 200);
+		textColors.setDefault(Color(0, 100, 200));
 	}
 
 	ButtonCell::~ButtonCell()

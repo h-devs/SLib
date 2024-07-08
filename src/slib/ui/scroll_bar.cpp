@@ -207,7 +207,7 @@ namespace slib
 
 	void ScrollBar::setThumb(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_thumbs.defaultValue = drawable;
+		m_thumbs.set(drawable);
 		invalidate(mode);
 	}
 
@@ -234,7 +234,7 @@ namespace slib
 
 	void ScrollBar::setTrack(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_tracks.defaultValue = drawable;
+		m_tracks.set(drawable);
 		invalidate(mode);
 	}
 

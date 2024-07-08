@@ -1171,17 +1171,17 @@ namespace slib
 
 		void setHorizontalScrollBar(const Ref<ScrollBar>& bar, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setHorizontalScrollThumb(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHorizontalScrollThumb(const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setHorizontalScrollTrack(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHorizontalScrollTrack(const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<ScrollBar> getVerticalScrollBar();
 
 		void setVerticalScrollBar(const Ref<ScrollBar>& bar, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setVerticalScrollThumb(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setVerticalScrollThumb(const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setVerticalScrollTrack(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setVerticalScrollTrack(const Ref<Drawable>& drawable, ViewState state = ViewState::All, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isHorizontalScrollBarVisible();
 

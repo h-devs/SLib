@@ -266,6 +266,7 @@ namespace slib
 		SelectedNormal = 11,
 		SelectedHover = 12,
 		SelectedPressed = 13,
+		All = 255
 	};
 
 #define SLIB_VIEW_STATE_IS_DEFAULT(mode) (((int)(mode)) % 5 == ((int)(ViewState::Default)))

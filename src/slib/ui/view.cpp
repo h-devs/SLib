@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -2196,7 +2196,7 @@ namespace slib
 		}
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->backgrounds.values.isNotNull() || attrs->borders.values.isNotNull();
+			return attrs->backgrounds.isDefinedStates() || attrs->borders.isDefinedStates();
 		}
 		return sl_false;
 	}
@@ -5550,11 +5550,7 @@ namespace slib
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			if (drawable.isNotNull()) {
-				attrs->backgrounds.setNonDefault(state, drawable);
-			} else {
-				attrs->backgrounds.remove(state);
-			}
+			attrs->backgrounds.set(state, drawable);
 			invalidate(mode);
 		}
 	}
@@ -5569,7 +5565,7 @@ namespace slib
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			attrs->backgrounds.defaultValue = drawable;
+			attrs->backgrounds.set(drawable);
 			if (instance.isNotNull()) {
 				Color color;
 				if (ColorDrawable::check(drawable, &color)) {
@@ -5656,11 +5652,7 @@ namespace slib
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			if (pen.isNotNull()) {
-				attrs->borders.setNonDefault(state, pen);
-			} else {
-				attrs->borders.remove(state);
-			}
+			attrs->borders.set(state, pen);
 			invalidate(mode);
 		}
 	}
@@ -5675,7 +5667,7 @@ namespace slib
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			attrs->borders.defaultValue = pen;
+			attrs->borders.set(pen);
 			if (instance.isNotNull()) {
 				sl_bool flagValid = sl_false;
 				if (pen.isNotNull()) {
@@ -5700,7 +5692,7 @@ namespace slib
 
 	void View::setBorder(const PenDesc& desc, UIUpdateMode mode)
 	{
-		setBorder(desc, ViewState::Default, mode);
+		setBorder(desc, ViewState::All, mode);
 	}
 
 	PenStyle View::getBorderStyle(ViewState state)
@@ -5735,7 +5727,7 @@ namespace slib
 
 	void View::setBorderStyle(PenStyle style, UIUpdateMode mode)
 	{
-		setBorderStyle(style, ViewState::Default, mode);
+		setBorderStyle(style, ViewState::All, mode);
 	}
 
 	sl_real View::getBorderWidth(ViewState state)
@@ -5770,7 +5762,7 @@ namespace slib
 
 	void View::setBorderWidth(sl_real width, UIUpdateMode mode)
 	{
-		setBorderWidth(width, ViewState::Default, mode);
+		setBorderWidth(width, ViewState::All, mode);
 	}
 
 	Color View::getBorderColor(ViewState state)
@@ -5805,7 +5797,7 @@ namespace slib
 
 	void View::setBorderColor(const Color& color, UIUpdateMode mode)
 	{
-		setBorderColor(color, ViewState::Default, mode);
+		setBorderColor(color, ViewState::All, mode);
 	}
 
 	void View::setBorder(sl_bool flagBorder, UIUpdateMode mode)
@@ -5813,11 +5805,11 @@ namespace slib
 		if (flagBorder) {
 			Ref<DrawAttributes>& attrs = m_drawAttrs;
 			if (attrs.isNotNull()) {
-				if (attrs->borders.defaultValue.isNotNull()) {
+				if (attrs->borders.isDefinedDefault()) {
 					return;
 				}
 			}
-			setBorder(Pen::create(PenDesc(DEFAULT_BORDER_PARAMS)), mode);
+			setBorder(Pen::create(PenDesc(DEFAULT_BORDER_PARAMS)), ViewState::Default, mode);
 		} else {
 			setBorder(Ref<Pen>::null(), mode);
 		}
@@ -6035,12 +6027,7 @@ namespace slib
 
 	void View::setPaddingColor(const Color& color, UIUpdateMode mode)
 	{
-		_initializeDrawAttributes();
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			attrs->paddingColors.defaultValue = color;
-			invalidate(mode);
-		}
+		setPaddingColor(color, ViewState::All, mode);
 	}
 
 	Ref<Font> View::getFont()

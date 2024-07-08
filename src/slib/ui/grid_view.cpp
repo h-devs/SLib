@@ -909,9 +909,9 @@ namespace slib
 		m_defaultBodyProps.backgrounds.set(ViewState::Selected, Drawable::fromColor(Color(200, 235, 255)));
 		m_defaultBodyProps.backgrounds.set(ViewState::Hover, Drawable::fromColor(Color(235, 250, 255)));
 		m_defaultHeaderProps.creator = SortCell::creator();
-		m_defaultHeaderProps.backgrounds.defaultValue = Drawable::fromColor(Color(230, 230, 230));
+		m_defaultHeaderProps.backgrounds.setDefault(Drawable::fromColor(Color(230, 230, 230)));
 		m_defaultFooterProps.creator = TextCell::creator();
-		m_defaultFooterProps.backgrounds.defaultValue = Drawable::fromColor(Color(240, 240, 240));
+		m_defaultFooterProps.backgrounds.setDefault(Drawable::fromColor(Color(240, 240, 240)));
 
 		m_flagInvalidateBodyLayout = sl_true;
 		m_flagInvalidateHeaderLayout = sl_true;
@@ -4396,7 +4396,7 @@ namespace slib
 				if (m_selectionMode == SelectionMode::Record || m_selectionMode == SelectionMode::Row) {
 					background = row->m_defaultProps.backgrounds.evaluate(getCellState(record, iRow, -1));
 				} else {
-					background = row->m_defaultProps.backgrounds.defaultValue;
+					background = row->m_defaultProps.backgrounds.getDefault();
 				}
 			}
 			if (background.isNotNull()) {

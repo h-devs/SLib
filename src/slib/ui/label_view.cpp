@@ -132,7 +132,7 @@ namespace slib
 	void LabelView::setTextColor(const Color& color, ViewState state, UIUpdateMode updateMode)
 	{
 		m_cell->textColors.set(state, color);
-		if (state != ViewState::Default) {
+		if (state != ViewState::Default && state != ViewState::All) {
 			setRedrawingOnChangeState(sl_true);
 		}
 		invalidate(updateMode);
@@ -140,7 +140,7 @@ namespace slib
 
 	void LabelView::setTextColor(const Color& color, UIUpdateMode updateMode)
 	{
-		m_cell->textColors.defaultValue = color;
+		m_cell->textColors.set(color);
 		invalidate(updateMode);
 	}
 
@@ -311,7 +311,7 @@ namespace slib
 		multiLineMode = MultiLineMode::Single;
 		lineCount = 0;
 
-		textColors.defaultValue = Color::Black;
+		textColors.setDefault(Color::Black);
 		gravity = Alignment::Left;
 		ellipsizeMode = EllipsizeMode::None;
 		flagEnabledHyperlinksInPlainText = sl_false;

@@ -495,7 +495,7 @@ namespace slib
 
 	void ListBox::setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_itemBackgrounds.defaultValue = drawable;
+		m_itemBackgrounds.set(drawable);
 		invalidate(mode);
 	}
 

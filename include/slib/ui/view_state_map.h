@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -33,34 +33,42 @@ namespace slib
 	template <class VALUE>
 	class ViewStateMap
 	{
-	public:
+	private:
 		Atomic<VALUE> defaultValue;
 		AtomicRef<CRef> values;
 
 	public:
-		sl_bool isNone()
-		{
-			return defaultValue.isNull() && values.isNull();
-		}
+		sl_bool isNone();
 
-		sl_bool isNotNone()
-		{
-			return defaultValue.isNotNull() || values.isNotNull();
-		}
+		sl_bool isNotNone();
+
+		sl_bool isDefinedDefault();
+
+		sl_bool isDefinedStates();
 
 		VALUE get(ViewState state);
 
+		VALUE getDefault();
+
 		void set(ViewState state, const VALUE& value);
 
-		void setNonDefault(ViewState state, const VALUE& value);
+		void set(const VALUE& value);
+
+		void setDefault(const VALUE& value);
 
 		void remove(ViewState state);
+
+		void remove();
+
+		void removeDefault();
 
 		VALUE evaluate(ViewState state, sl_bool* outFlagReturnDefault = sl_null);
 
 		void copyFrom(const ViewStateMap& other);
 
 	private:
+		void _remove(ViewState state);
+
 		template <class MAP>
 		static sl_bool _evaluate(VALUE& ret, const MAP& map, ViewState state, ViewState def, sl_bool& flagReturnDefault);
 

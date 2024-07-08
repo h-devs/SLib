@@ -232,7 +232,7 @@ namespace slib
 				if (ret.isNotNull()) {
 					ButtonCategory* c = ret.getData();
 					for (sl_size i = 0; i < 2; i++) {
-						c[i].icons.defaultValue = s.iconDefault[i];
+						c[i].icons.setDefault(s.iconDefault[i]);
 						c[i].icons.set(ViewState::Disabled, s.iconDisabled[i]);
 						c[i].icons.set(ViewState::Hover, s.iconHover[i]);
 						c[i].icons.set(ViewState::Focused, s.iconHover[i]);
@@ -256,7 +256,7 @@ namespace slib
 	CheckBoxCell::CheckBoxCell(const Array<ButtonCategory>& categories): ButtonCell(categories)
 	{
 		gravity = Alignment::Left;
-		textColors.defaultValue = Color::Black;
+		textColors.setDefault(Color::Black);
 		textMarginLeft = 2 * UIResource::toUiPos(UIResource::dpToPixel(1));
 		textMarginTop = 1;
 		textMarginRight = 1;

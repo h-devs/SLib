@@ -123,7 +123,7 @@ namespace slib
 
 	void Slider::setThumb(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_thumbs.defaultValue = drawable;
+		m_thumbs.set(drawable);
 		invalidate(mode);
 	}
 
