@@ -11032,6 +11032,15 @@ namespace slib
 					if (ev->isShiftKey()) {
 						Swap(deltaX, deltaY);
 					}
+					if (!flagHorz) {
+						if (Math::isAlmostZero(deltaY)) {
+							deltaY = deltaX;
+						}
+					} else if (!flagVert) {
+						if (Math::isAlmostZero(deltaX)) {
+							deltaX = deltaY;
+						}
+					}
 
 					if (flagHorz) {
 						sl_scroll_pos wheelX = lineX * 3;
