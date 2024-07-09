@@ -3530,6 +3530,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, columnWidth, setColumnWidth, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setRowHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, cellRatio, setCellRatio)
+		LAYOUT_CONTROL_UI_ATTR(BORDER, grid, setGrid)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 

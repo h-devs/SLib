@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #include "slib/ui/tile_layout.h"
 
+#include "slib/graphics/canvas.h"
 #include "slib/core/scoped_buffer.h"
 
 namespace slib
@@ -34,11 +35,16 @@ namespace slib
 		setCustomLayout(sl_true);
 		setSavingCanvasState(sl_false);
 
-		m_countColumns = 0;
-		m_countRows = 0;
-		m_widthColumn = 0;
-		m_heightRow = 0;
-		m_ratioCell = 1;
+		m_nColumns = 0;
+		m_nRows = 0;
+		m_columnWidth = 0;
+		m_rowHeight = 0;
+		m_cellRatio = 1;
+
+		m_nCurrentColumns = 0;
+		m_nCurrentRows = 0;
+		m_currentColumnWidth = 0;
+		m_currentRowHeight = 0;
 	}
 
 	TileLayout::~TileLayout()
@@ -47,57 +53,74 @@ namespace slib
 
 	sl_uint32 TileLayout::getColumnCount()
 	{
-		return m_countColumns;
+		return m_nColumns;
 	}
 
 	void TileLayout::setColumnCount(sl_uint32 nColumns, UIUpdateMode mode)
 	{
-		m_countColumns = nColumns;
+		m_nColumns = nColumns;
 		invalidateLayout(mode);
 	}
 
 	sl_uint32 TileLayout::getRowCount()
 	{
-		return m_countRows;
+		return m_nRows;
 	}
 
 	void TileLayout::setRowCount(sl_uint32 nRows, UIUpdateMode mode)
 	{
-		m_countRows = nRows;
+		m_nRows = nRows;
 		invalidateLayout(mode);
 	}
 
 	sl_ui_len TileLayout::getColumnWidth()
 	{
-		return m_widthColumn;
+		return m_columnWidth;
 	}
 
 	void TileLayout::setColumnWidth(sl_ui_len width, UIUpdateMode mode)
 	{
-		m_widthColumn = width;
+		m_columnWidth = width;
 		invalidateLayout(mode);
 	}
 
 	sl_ui_len TileLayout::getRowHeight()
 	{
-		return m_heightRow;
+		return m_rowHeight;
 	}
 
 	void TileLayout::setRowHeight(sl_ui_len height, UIUpdateMode mode)
 	{
-		m_heightRow = height;
+		m_rowHeight = height;
 		invalidateLayout(mode);
 	}
 
 	float TileLayout::getCellRatio()
 	{
-		return m_ratioCell;
+		return m_cellRatio;
 	}
 
 	void TileLayout::setCellRatio(float ratio, UIUpdateMode mode)
 	{
-		m_ratioCell = ratio;
+		m_cellRatio = ratio;
 		invalidateLayout(mode);
+	}
+
+	Ref<Pen> TileLayout::getGrid()
+	{
+		return m_grid;
+	}
+
+	void TileLayout::setGrid(const Ref<Pen>& pen, UIUpdateMode mode)
+	{
+		m_grid = pen;
+		invalidate(mode);
+	}
+
+	void TileLayout::setGrid(const PenDesc& desc, UIUpdateMode mode)
+	{
+		m_grid = Pen::create(desc, m_grid);
+		invalidate(mode);
 	}
 
 	void TileLayout::onAddChild(View* child)
@@ -130,10 +153,10 @@ namespace slib
 		sl_ui_len widthContainer = widthLayout - getPaddingLeft() - getPaddingTop();
 		sl_ui_len heightContainer = heightLayout - getPaddingTop() - getPaddingBottom();
 
-		sl_ui_len widthCol = m_widthColumn;
-		sl_ui_len heightRow = m_heightRow;
-		sl_uint32 nCols = m_countColumns;
-		sl_uint32 nRows = m_countRows;
+		sl_ui_len widthCol = m_columnWidth;
+		sl_ui_len heightRow = m_rowHeight;
+		sl_uint32 nCols = m_nColumns;
+		sl_uint32 nRows = m_nRows;
 
 		sl_bool flagWrapX = isLastWidthWrapping();
 		sl_bool flagWrapY = isLastHeightWrapping();
@@ -154,7 +177,7 @@ namespace slib
 				flagWrapCellY = sl_true;
 			}
 		}
-		float ratio = m_ratioCell;
+		float ratio = m_cellRatio;
 		if (ratio < 0.0001f) {
 			ratio = 0.0001f;
 		}
@@ -216,6 +239,38 @@ namespace slib
 				setLayoutHeight(y + heightRow + getPaddingBottom());
 			} else {
 				setLayoutHeight(y + getPaddingBottom());
+			}
+		}
+
+		m_nCurrentColumns = nCols;
+		m_nCurrentRows = nRows;
+		m_currentColumnWidth = widthCol;
+		m_currentRowHeight = heightRow;
+	}
+
+	void TileLayout::dispatchDraw(Canvas* canvas)
+	{
+		ViewGroup::dispatchDraw(canvas);
+
+		Ref<Pen> grid = m_grid;
+		if (grid.isNotNull()) {
+			UIRect bounds = getBoundsInnerPadding();
+			UIEdgeInsets padding = getPadding();
+			sl_ui_len y = bounds.top;
+			if (padding.top) {
+				canvas->drawLine((sl_real)(bounds.left), (sl_real)y, (sl_real)(bounds.right), (sl_real)y, grid);
+			}
+			for (sl_uint32 row = 0; row + 1 < m_nCurrentRows; row++) {
+				y += m_currentRowHeight;
+				canvas->drawLine((sl_real)(bounds.left), (sl_real)y, (sl_real)(bounds.right), (sl_real)y, grid);
+			}
+			sl_ui_len x = bounds.left;
+			if (padding.left) {
+				canvas->drawLine((sl_real)x, (sl_real)(bounds.top), (sl_real)x, (sl_real)(bounds.bottom), grid);
+			}
+			for (sl_uint32 col = 0; col + 1 < m_nCurrentColumns; col++) {
+				x += m_currentColumnWidth;
+				canvas->drawLine((sl_real)x, (sl_real)(bounds.top), (sl_real)x, (sl_real)(bounds.bottom), grid);
 			}
 		}
 	}

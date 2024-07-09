@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -58,17 +58,31 @@ namespace slib
 
 		void setCellRatio(float ratio, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
+		Ref<Pen> getGrid();
+
+		void setGrid(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setGrid(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 	protected:
 		void onAddChild(View* child) override;
 
 		void onUpdateLayout() override;
 
+		void dispatchDraw(Canvas* canvas) override;
+
 	private:
-		sl_uint32 m_countColumns;
-		sl_uint32 m_countRows;
-		sl_ui_len m_widthColumn;
-		sl_ui_len m_heightRow;
-		float m_ratioCell;
+		sl_uint32 m_nColumns;
+		sl_uint32 m_nRows;
+		sl_ui_len m_columnWidth;
+		sl_ui_len m_rowHeight;
+		float m_cellRatio;
+		AtomicRef<Pen> m_grid;
+
+		sl_uint32 m_nCurrentColumns;
+		sl_uint32 m_nCurrentRows;
+		sl_ui_len m_currentColumnWidth;
+		sl_ui_len m_currentRowHeight;
 
 	};
 
