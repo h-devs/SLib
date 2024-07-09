@@ -126,7 +126,7 @@ namespace slib
 
 		void onTcpReadable(PseudoTcp*) override
 		{
-			sl_uint8 buf[65536];
+			sl_uint8 buf[16384];
 			for (;;) {
 				sl_int32 n = tcp.receive(buf, sizeof(buf));
 				if (n < 0) {

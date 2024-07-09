@@ -65,9 +65,9 @@ namespace slib
 	class SLIB_EXPORT PcapParam : public NetCaptureParam
 	{
 	public:
-		sl_uint32 timeoutRead; // read timeout, in milliseconds
+		sl_uint32 timeout; // milliseconds
 		sl_bool flagImmediate; // immediate mode
-		sl_uint32 sizeBuffer; // buffer size
+		sl_uint32 bufferSize;
 		ThreadPriority threadPriority;
 
 	public:

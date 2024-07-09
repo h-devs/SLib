@@ -80,6 +80,15 @@ namespace slib
 		)
 		#define pcap_set_buffer_size slib::pcap::getApi_pcap_set_buffer_size()
 
+#ifdef SLIB_PLATFORM_IS_WIN32
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			pcap_setuserbuffer,
+			int, ,
+			pcap_t *, int
+		)
+		#define pcap_setuserbuffer slib::pcap::getApi_pcap_setuserbuffer()
+#endif
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pcap_set_promisc,
 			int, ,
@@ -136,12 +145,14 @@ namespace slib
 		)
 		#define pcap_dispatch slib::pcap::getApi_pcap_dispatch()
 
+#ifdef SLIB_PLATFORM_IS_WIN32
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pcap_getevent,
 			HANDLE, ,
 			pcap_t *p
 		)
 		#define pcap_getevent slib::pcap::getApi_pcap_getevent()
+#endif
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pcap_get_selectable_fd,
@@ -170,6 +181,36 @@ namespace slib
 			pcap_t *, const u_char *, int
 		)
 		#define pcap_sendpacket slib::pcap::getApi_pcap_sendpacket()
+
+#ifdef SLIB_PLATFORM_IS_WIN32
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			pcap_sendqueue_alloc,
+			pcap_send_queue*, ,
+			u_int memsize
+		)
+		#define pcap_sendqueue_alloc slib::pcap::getApi_pcap_sendqueue_alloc()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			pcap_sendqueue_destroy,
+			void, ,
+			pcap_send_queue*
+		)
+		#define pcap_sendqueue_destroy slib::pcap::getApi_pcap_sendqueue_destroy()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			pcap_sendqueue_queue,
+			int, ,
+			pcap_send_queue*, const struct pcap_pkthdr *, const u_char *pkt_data
+		)
+		#define pcap_sendqueue_queue slib::pcap::getApi_pcap_sendqueue_queue()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			pcap_sendqueue_transmit,
+			int, ,
+			pcap_t *p, pcap_send_queue*, int sync
+		)
+		#define pcap_sendqueue_transmit slib::pcap::getApi_pcap_sendqueue_transmit()
+#endif
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pcap_geterr,

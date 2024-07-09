@@ -112,7 +112,7 @@ namespace slib
 		virtual sl_bool setType(NetworkCaptureType type);
 
 		// send a L2-packet
-		virtual sl_bool sendPacket(const void* buf, sl_uint32 size) = 0;
+		virtual sl_bool sendPacket(const void* data, sl_uint32 size) = 0;
 
 		virtual String getErrorMessage();
 

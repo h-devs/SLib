@@ -30,13 +30,13 @@
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
 
-#if defined(SLIB_PLATFORM_IS_WIN32)
+#ifdef SLIB_PLATFORM_IS_WIN32
 #	include "slib/platform.h"
 #	include "slib/dl/common/pcap.h"
 #	define PCAP_DYNAMIC_LIB
 #else
 #	include "slib/io/pipe_event.h"
-#	if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+#	ifdef SLIB_PLATFORM_IS_LINUX_DESKTOP
 #		include "slib/dl/common/pcap.h"
 #		define PCAP_DYNAMIC_LIB
 #	else
@@ -55,7 +55,7 @@
 
 #define MAX_PACKET_SIZE 65535
 
-#if !defined(SLIB_PLATFORM_IS_WIN32)
+#ifndef SLIB_PLATFORM_IS_WIN32
 #define PCAP_BREAK_SIGNAL SIGUSR1
 #endif
 
@@ -70,8 +70,15 @@ namespace slib
 		class PcapImpl : public Pcap
 		{
 		public:
-			pcap_t* m_handle;
-			Ref<Thread> m_thread;
+			pcap_t* m_handle = sl_null;
+			Ref<Thread> m_threadReceive;
+#ifdef SLIB_PLATFORM_IS_WIN32
+			Ref<Thread> m_threadSend;
+			Ref<Event> m_eventSend;
+			Mutex m_lockSend;
+			pcap_send_queue* m_queueSend = sl_null;
+#endif
+
 			sl_bool m_flagInit = sl_false;
 			sl_uint64 m_lastPacketTickForAnyPcap = 0;
 
@@ -146,15 +153,8 @@ namespace slib
 			{
 				Ref<PcapImpl> ret = new PcapImpl;
 				if (ret.isNotNull()) {
-					ret->_initWithParam(param);
-					if (ret->m_deviceName.getData() != deviceName.getData()) {
-						ret->m_deviceName = deviceName;
-					}
-					ret->m_handle = handle;
-					ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
-					if (ret->m_thread.isNotNull()) {
-						ret->m_thread->setPriority(param.threadPriority);
-						ret->m_flagInit = sl_true;
+					if (ret->_initWithParam(param, deviceName)) {
+						ret->m_handle = handle;
 						if (param.flagAutoStart) {
 							ret->start();
 						}
@@ -165,6 +165,36 @@ namespace slib
 				}
 				pcap_close(handle);
 				return sl_null;
+			}
+
+			sl_bool _initWithParam(const PcapParam& param, const StringView& deviceName)
+			{
+				Pcap::_initWithParam(param);
+				if (m_deviceName.getData() != deviceName.getData()) {
+					m_deviceName = deviceName;
+				}
+				m_threadReceive = Thread::create(SLIB_FUNCTION_MEMBER(this, runReceive));
+				if (m_threadReceive.isNull()) {
+					return sl_false;
+				}
+#ifdef SLIB_PLATFORM_IS_WIN32
+				m_threadSend = Thread::create(SLIB_FUNCTION_MEMBER(this, runSend));
+				if (m_threadSend.isNull()) {
+					return sl_false;
+				}
+				m_eventSend = Event::create();
+				if (m_eventSend.isNull()) {
+					return sl_false;
+				}
+				m_queueSend = pcap_sendqueue_alloc(param.bufferSize);
+				if (!m_queueSend) {
+					return sl_false;
+				}
+				m_threadSend->setPriority(param.threadPriority);
+#endif
+				m_threadReceive->setPriority(param.threadPriority);
+				m_flagInit = sl_true;
+				return sl_true;
 			}
 
 			static int createHandle(pcap_t*& handle, const StringView& name, const PcapParam& param)
@@ -187,10 +217,13 @@ namespace slib
 #endif
 				if (handle) {
 					pcap_set_snaplen(handle, MAX_PACKET_SIZE);
-					pcap_set_buffer_size(handle, param.sizeBuffer);
-					pcap_set_promisc(handle, param.flagPromiscuous);
-					pcap_set_timeout(handle, param.timeoutRead);
-					pcap_set_immediate_mode(handle, param.flagImmediate);
+					pcap_set_buffer_size(handle, (int)(param.bufferSize));
+#ifdef SLIB_PLATFORM_IS_WIN32
+					pcap_setuserbuffer(handle, (int)(param.bufferSize));
+#endif
+					pcap_set_promisc(handle, (int)(param.flagPromiscuous));
+					pcap_set_timeout(handle, (int)(param.timeout));
+					pcap_set_immediate_mode(handle, (int)(param.flagImmediate));
 					pcap_setnonblock(handle, 1, errBuf);
 					int iRet = pcap_activate(handle);
 					if (iRet < 0) {
@@ -215,11 +248,19 @@ namespace slib
 				}
 				m_flagInit = sl_false;
 
-				if (m_thread.isNotNull()) {
-					m_thread->finishAndWait();
-					m_thread.setNull();
+				if (m_threadReceive.isNotNull()) {
+					m_threadReceive->finishAndWait();
+					m_threadReceive.setNull();
 				}
-
+#ifdef SLIB_PLATFORM_IS_WIN32
+				if (m_threadSend.isNotNull()) {
+					m_threadSend->finishAndWait();
+					m_threadSend.setNull();
+				}
+				if (m_queueSend) {
+					pcap_sendqueue_destroy(m_queueSend);
+				}
+#endif
 				pcap_close(m_handle);
 			}
 
@@ -229,29 +270,34 @@ namespace slib
 				if (!m_flagInit) {
 					return;
 				}
-
-				if (m_thread.isNotNull()) {
-					m_thread->start();
+				if (m_threadReceive.isNotNull()) {
+					m_threadReceive->start();
 				}
+#ifdef SLIB_PLATFORM_IS_WIN32
+				if (m_threadSend.isNotNull()) {
+					m_threadSend->start();
+				}
+#endif
 			}
 
 			sl_bool isRunning() override
 			{
-				if (m_thread.isNotNull()) {
-					return m_thread->isRunning();
+				if (m_threadReceive.isNotNull()) {
+					return m_threadReceive->isRunning();
 				}
 				return sl_false;
 			}
 
-			static void _handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
+			static void onHandlePacket(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
 			{
 				PcapImpl* pcap = (PcapImpl*)user;
 				if (pcap->increaseReference() > 1) {
 					NetCapturePacket packet;
 					packet.data = (sl_uint8*)bytes;
-					packet.length = h->len;
-					if (packet.length > h->caplen) {
-						packet.length = h->caplen;
+					packet.length = (sl_uint32)(h->len);
+					sl_uint32 caplen = (sl_uint32)(h->caplen);
+					if (packet.length > caplen) {
+						packet.length = caplen;
 					}
 					sl_uint64 t = h->ts.tv_sec;
 					t = t * 1000000 + h->ts.tv_usec;
@@ -264,13 +310,13 @@ namespace slib
 				}
 			}
 
-			void _run()
+			void runReceive()
 			{
 				Thread* thread = Thread::getCurrent();
 				if (!thread) {
 					return;
 				}
-#if defined(SLIB_PLATFORM_IS_WIN32)
+#ifdef SLIB_PLATFORM_IS_WIN32
 				HANDLE hEvent = pcap_getevent(m_handle);
 				if (!hEvent) {
 					return;
@@ -290,7 +336,7 @@ namespace slib
 				}
 #endif
 				while (thread->isNotStopping()) {
-					int result = pcap_dispatch(m_handle, -1, &_handler, (u_char*)this);
+					int result = pcap_dispatch(m_handle, -1, &onHandlePacket, (u_char*)this);
 					if (result < 0) {
 						if (result == -1) {
 							if (increaseReference() > 1) {
@@ -305,7 +351,7 @@ namespace slib
 						if (thread->isStopping()) {
 							break;
 						}
-#if defined(SLIB_PLATFORM_IS_WIN32)
+#ifdef SLIB_PLATFORM_IS_WIN32
 						ev->wait(10000);
 #else
 						ev->waitReadFd(fd, 10000);
@@ -313,6 +359,24 @@ namespace slib
 					}
 				}
 			}
+
+#ifdef SLIB_PLATFORM_IS_WIN32
+			void runSend()
+			{
+				Thread* thread = Thread::getCurrent();
+				if (!thread) {
+					return;
+				}
+				while (thread->isNotStopping()) {
+					{
+						MutexLocker lock(&m_lockSend);
+						pcap_sendqueue_transmit(m_handle, m_queueSend, 0);
+						m_queueSend->len = 0;
+					}
+					m_eventSend->wait();
+				}
+			}
+#endif
 
 			NetworkCaptureType getType() override
 			{
@@ -335,14 +399,28 @@ namespace slib
 				return !ret;
 			}
 
-			sl_bool sendPacket(const void* buf, sl_uint32 size) override
+			sl_bool sendPacket(const void* data, sl_uint32 size) override
 			{
-				if (m_flagInit) {
-					int ret = pcap_sendpacket(m_handle, (const sl_uint8*)buf, size);
-					if (!ret) {
-						return sl_true;
-					}
+				if (!m_flagInit) {
+					return sl_false;
 				}
+#ifdef SLIB_PLATFORM_IS_WIN32
+				pcap_pkthdr hdr = { 0 };
+				hdr.caplen = size;
+				hdr.len = size;
+				MutexLocker lock(&m_lockSend);
+				int ret = pcap_sendqueue_queue(m_queueSend, &hdr, (const sl_uint8*)data);
+				if (!ret) {
+					lock.unlock();
+					m_eventSend->set();
+					return sl_true;
+				}
+#else
+				int ret = pcap_sendpacket(m_handle, (const sl_uint8*)data, size);
+				if (!ret) {
+					return sl_true;
+				}
+#endif
 				return sl_false;
 			}
 
@@ -371,9 +449,9 @@ namespace slib
 
 	PcapParam::PcapParam()
 	{
-		timeoutRead = 0; // no timeout specified
+		timeout = 0; // no timeout specified
 		flagImmediate = sl_true;
-		sizeBuffer = 0x200000; // 2MB (16Mb)
+		bufferSize = 0x200000; // 2MB
 		threadPriority = ThreadPriority::Normal;
 	}
 
@@ -474,7 +552,7 @@ namespace slib
 
 	sl_bool Pcap::findDevice(const StringView& name, PcapDeviceInfo& _out)
 	{
-#if defined(PCAP_DYNAMIC_LIB)
+#ifdef PCAP_DYNAMIC_LIB
 		if (!(pcap_findalldevs)) {
 			return sl_false;
 		}
@@ -760,7 +838,7 @@ namespace slib
 
 			void onAddDevices(Timer*)
 			{
-#if defined(PCAP_DYNAMIC_LIB)
+#ifdef PCAP_DYNAMIC_LIB
 				if (!(pcap_findalldevs)) {
 					return;
 				}
