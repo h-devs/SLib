@@ -390,7 +390,7 @@ namespace slib
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
-					return hWnd == GetActiveWindow();
+					return hWnd == GetForegroundWindow();
 				}
 				return sl_false;
 			}
