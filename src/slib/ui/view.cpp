@@ -11134,10 +11134,16 @@ namespace slib
 							if (flagHorz) {
 								sx -= pageWidth;
 								flagChange = sl_true;
+							} else if (flagVert) {
+								sy -= pageHeight;
+								flagChange = sl_true;
 							}
 						} else {
 							if (flagVert) {
 								sy -= pageHeight;
+								flagChange = sl_true;
+							} else if (flagHorz) {
+								sx -= pageWidth;
 								flagChange = sl_true;
 							}
 						}
@@ -11147,10 +11153,16 @@ namespace slib
 							if (flagHorz) {
 								sx += pageWidth;
 								flagChange = sl_true;
+							} else if (flagVert) {
+								sy += pageHeight;
+								flagChange = sl_true;
 							}
 						} else {
 							if (flagVert) {
 								sy += pageHeight;
+								flagChange = sl_true;
+							} else if (flagHorz) {
+								sx += pageWidth;
 								flagChange = sl_true;
 							}
 						}
@@ -11160,10 +11172,16 @@ namespace slib
 							if (flagHorz) {
 								sx = 0;
 								flagChange = sl_true;
+							} else if (flagVert) {
+								sy = 0;
+								flagChange = sl_true;
 							}
 						} else {
 							if (flagVert) {
 								sy = 0;
+								flagChange = sl_true;
+							} else if (flagHorz) {
+								sx = 0;
 								flagChange = sl_true;
 							}
 						}
@@ -11173,10 +11191,16 @@ namespace slib
 							if (flagHorz) {
 								sx = getScrollRange().x;
 								flagChange = sl_true;
+							} else if (flagVert) {
+								sy = getScrollRange().y;
+								flagChange = sl_true;
 							}
 						} else {
 							if (flagVert) {
 								sy = getScrollRange().y;
+								flagChange = sl_true;
+							} else if (flagHorz) {
+								sx = getScrollRange().x;
 								flagChange = sl_true;
 							}
 						}
