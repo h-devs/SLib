@@ -507,7 +507,7 @@ namespace slib
 	namespace
 	{
 		template <class CHAR>
-		static sl_compare_result ComparePathChar(CHAR c1, CHAR c2)
+		static sl_compare_result ComparePathChar(CHAR c1, CHAR c2, sl_bool flagIgnoreCase)
 		{
 			if (c1 == '\\') {
 				c1 = '/';
@@ -515,11 +515,15 @@ namespace slib
 			if (c2 == '\\') {
 				c2 = '/';
 			}
+			if (flagIgnoreCase) {
+				c1 = SLIB_CHAR_UPPER_TO_LOWER(c1);
+				c2 = SLIB_CHAR_UPPER_TO_LOWER(c2);
+			}
 			return ComparePrimitiveValues(c1, c2);
 		}
 
 		template <class VIEW>
-		static sl_compare_result ComparePath(const VIEW& s1, const VIEW& s2)
+		static sl_compare_result ComparePath(const VIEW& s1, const VIEW& s2, sl_bool flagIgnoreCase)
 		{
 			auto d1 = s1.getData();
 			sl_size n1 = s1.getLength();
@@ -527,7 +531,7 @@ namespace slib
 			sl_size n2 = s2.getLength();
 			sl_size n = SLIB_MIN(n1, n2);
 			for (sl_size i = 0; i < n; i++) {
-				sl_compare_result r = ComparePathChar(*d1, *d2);
+				sl_compare_result r = ComparePathChar(*d1, *d2, flagIgnoreCase);
 				if (r) {
 					return r;
 				}
@@ -545,7 +549,7 @@ namespace slib
 		}
 
 		template <class CHAR>
-		static sl_bool EqualsPathChar(CHAR c1, CHAR c2)
+		static sl_bool EqualsPathChar(CHAR c1, CHAR c2, sl_bool flagIngoreCase)
 		{
 			if (c1 == '\\') {
 				c1 = '/';
@@ -553,11 +557,15 @@ namespace slib
 			if (c2 == '\\') {
 				c2 = '/';
 			}
-			return c1 == c2;
+			if (flagIngoreCase) {
+				return SLIB_CHAR_UPPER_TO_LOWER(c1) == SLIB_CHAR_UPPER_TO_LOWER(c2);
+			} else {
+				return c1 == c2;
+			}
 		}
 
 		template <class VIEW>
-		static sl_bool EqualsPath(const VIEW& s1, const VIEW& s2)
+		static sl_bool EqualsPath(const VIEW& s1, const VIEW& s2, sl_bool flagIgnoreCase)
 		{
 			sl_size n = s1.getLength();
 			if (n != s2.getLength()) {
@@ -566,7 +574,7 @@ namespace slib
 			auto d1 = s1.getData();
 			auto d2 = s2.getData();
 			for (sl_size i = 0; i < n; i++) {
-				if (!(EqualsPathChar(*d1, *d2))) {
+				if (!(EqualsPathChar(*d1, *d2, flagIgnoreCase))) {
 					return sl_false;
 				}
 				d1++;
@@ -576,34 +584,34 @@ namespace slib
 		}
 	}
 
-	sl_compare_result File::comparePath(const StringView& s1, const StringView& s2) noexcept
+	sl_compare_result File::comparePath(const StringView& s1, const StringView& s2, sl_bool flagIgnoreCase) noexcept
 	{
-		return ComparePath(s1, s2);
+		return ComparePath(s1, s2, flagIgnoreCase);
 	}
 
-	sl_compare_result File::comparePath(const StringView16& s1, const StringView16& s2) noexcept
+	sl_compare_result File::comparePath(const StringView16& s1, const StringView16& s2, sl_bool flagIgnoreCase) noexcept
 	{
-		return ComparePath(s1, s2);
+		return ComparePath(s1, s2, flagIgnoreCase);
 	}
 
-	sl_compare_result File::comparePath(const StringView32& s1, const StringView32& s2) noexcept
+	sl_compare_result File::comparePath(const StringView32& s1, const StringView32& s2, sl_bool flagIgnoreCase) noexcept
 	{
-		return ComparePath(s1, s2);
+		return ComparePath(s1, s2, flagIgnoreCase);
 	}
 
-	sl_bool File::equalsPath(const StringView& s1, const StringView& s2) noexcept
+	sl_bool File::equalsPath(const StringView& s1, const StringView& s2, sl_bool flagIgnoreCase) noexcept
 	{
-		return EqualsPath(s1, s2);
+		return EqualsPath(s1, s2, flagIgnoreCase);
 	}
 
-	sl_bool File::equalsPath(const StringView16& s1, const StringView16& s2) noexcept
+	sl_bool File::equalsPath(const StringView16& s1, const StringView16& s2, sl_bool flagIgnoreCase) noexcept
 	{
-		return EqualsPath(s1, s2);
+		return EqualsPath(s1, s2, flagIgnoreCase);
 	}
 
-	sl_bool File::equalsPath(const StringView32& s1, const StringView32& s2) noexcept
+	sl_bool File::equalsPath(const StringView32& s1, const StringView32& s2, sl_bool flagIgnoreCase) noexcept
 	{
-		return EqualsPath(s1, s2);
+		return EqualsPath(s1, s2, flagIgnoreCase);
 	}
 
 	Memory File::readAllBytes(const StringParam& path, sl_size maxSize) noexcept

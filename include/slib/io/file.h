@@ -419,13 +419,13 @@ namespace slib
 			return joinPath(params, 1 + sizeof...(args));
 		}
 
-		static sl_compare_result comparePath(const StringView& s1, const StringView& s2) noexcept;
-		static sl_compare_result comparePath(const StringView16& s1, const StringView16& s2) noexcept;
-		static sl_compare_result comparePath(const StringView32& s1, const StringView32& s2) noexcept;
+		static sl_compare_result comparePath(const StringView& s1, const StringView& s2, sl_bool flagIngoreCase = sl_true) noexcept;
+		static sl_compare_result comparePath(const StringView16& s1, const StringView16& s2, sl_bool flagIngoreCase = sl_true) noexcept;
+		static sl_compare_result comparePath(const StringView32& s1, const StringView32& s2, sl_bool flagIngoreCase = sl_true) noexcept;
 
-		static sl_bool equalsPath(const StringView& s1, const StringView& s2) noexcept;
-		static sl_bool equalsPath(const StringView16& s1, const StringView16& s2) noexcept;
-		static sl_bool equalsPath(const StringView32& s1, const StringView32& s2) noexcept;
+		static sl_bool equalsPath(const StringView& s1, const StringView& s2, sl_bool flagIngoreCase = sl_true) noexcept;
+		static sl_bool equalsPath(const StringView16& s1, const StringView16& s2, sl_bool flagIngoreCase = sl_true) noexcept;
+		static sl_bool equalsPath(const StringView32& s1, const StringView32& s2, sl_bool flagIngoreCase = sl_true) noexcept;
 
 		// converts any invalid characters (0~0x1f, 0x7f~0x9f, :*?"<>|\/) into "_"
 		static String makeSafeFileName(const StringParam& fileName) noexcept;
