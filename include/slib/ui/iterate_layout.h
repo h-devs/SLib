@@ -32,7 +32,7 @@ namespace slib
 	class SLIB_EXPORT IterateLayout : public PARENT
 	{
 	public:
-		const List< Ref<CHILD_LAYOUT> >& getChildren()
+		const CList< Ref<CHILD_LAYOUT> >& getChildren()
 		{
 			return m_children;
 		}
@@ -56,7 +56,7 @@ namespace slib
 		}
 
 	protected:
-		List< Ref<CHILD_LAYOUT> > m_children;
+		CList< Ref<CHILD_LAYOUT> > m_children;
 
 	};
 
