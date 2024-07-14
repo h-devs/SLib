@@ -770,7 +770,7 @@ namespace slib
 
 			void checkDevices()
 			{
-				ListElements< Ref<PcapImpl> > devices(m_devices.duplicate());
+				ListElements< Ref<PcapImpl> > devices(List< Ref<PcapImpl> >(m_devices.duplicate()));
 				for (sl_size i = 0; i < devices.count; i++) {
 					Ref<PcapImpl>& capture = devices[i];
 					sl_bool flagRemove = sl_false;

@@ -26,8 +26,7 @@
 
 #include "slib/system/system.h"
 
-#include "slib/system/process.h"
-#include "slib/core/string.h"
+#include "slib/core/string_buffer.h"
 #include "slib/core/list.h"
 #include "slib/core/safe_static.h"
 #include "slib/io/file.h"
@@ -43,6 +42,7 @@
 #include <signal.h>
 #include <pwd.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <sys/time.h>
 #include <sys/utsname.h>
@@ -233,13 +233,13 @@ namespace slib
 			*outActiveSessionName = sessionName;
 		}
 		if (sessionName.isNotEmpty()) {
-			ListElements<String> sessions(Process::getOutput("loginctl", "list-sessions", "--no-legend").split('\n'));
+			ListElements<String> sessions(System::getCommandOutput("loginctl list-sessions --no-legend").split('\n'));
 			for (sl_size i = 0; i < sessions.count; i++) {
 				String row = sessions[i].trim();
 				if (row.endsWith(sessionName)) {
 					String sid = row.split(' ', 1).getFirstValue_NoLock();
 					Ini session;
-					if (session.parseText(Process::getOutput("loginctl", "show-session", sid))) {
+					if (session.parseText(System::getCommandOutput("loginctl show-session " + sid))) {
 						if (session.getValue("Active") == "yes" && session.getValue("Remote") == "no") {
 							return session.getValue("Name");
 						}
@@ -342,6 +342,39 @@ namespace slib
 	sl_int32 System::execute(const StringParam& command, sl_bool flagHideWindow)
 	{
 		return execute(command);
+	}
+
+	String System::getCommandOutput(const StringParam& _command)
+	{
+		StringCstr command(_command);
+		FILE* fp = popen(command.getData(), "r");
+		if (!fp) {
+			return sl_null;
+		}
+		StringBuffer sb;
+		char buf[1024];
+		for (;;) {
+			int ret = fread(buf, 1, sizeof(buf), fp);
+			if (ret > 0) {
+				sb.add(String(buf, (sl_size)ret));
+			} else {
+				break;
+			}
+		}
+		pclose(fp);
+		return sb.merge();
+	}
+
+	sl_int32 System::getCommandOutput(const StringParam& _command, void* output, sl_uint32 maxOutputSize)
+	{
+		StringCstr command(_command);
+		FILE* fp = popen(command.getData(), "r");
+		if (!fp) {
+			return -1;
+		}
+		int ret = fread(output, 1, maxOutputSize, fp);
+		pclose(fp);
+		return ret;
 	}
 
 	void System::assert(const StringParam& _msg, const StringParam& _file, sl_uint32 line)

@@ -26,7 +26,7 @@
 
 #include "slib/system/service_manager.h"
 
-#include "slib/system/process.h"
+#include "slib/system/system.h"
 
 namespace slib
 {
@@ -45,7 +45,7 @@ namespace slib
 
 	sl_bool ServiceManager::isExisting(const StringParam& name)
 	{
-		String output = Process::getOutput("launchctl", "print", GetName(name));
+		String output = System::getCommandOutput("launchctl print " + GetName(name));
 		return output.contains("state = ");
 	}
 
@@ -63,7 +63,7 @@ namespace slib
 
 	ServiceState ServiceManager::getState(const StringParam& name)
 	{
-		String output = Process::getOutput("launchctl", "print", GetName(name));
+		String output = System::getCommandOutput("launchctl print " + GetName(name));
 		sl_reg index = output.indexOf("state = ");
 		if (index >= 0) {
 			StringView state(output.getData() + index + 8, output.getLength() - index - 8);
@@ -82,13 +82,13 @@ namespace slib
 
 	sl_bool ServiceManager::start(const StringParam& name, const String16* argv, sl_uint32 argc, sl_int32 timeoutMilliseconds)
 	{
-		String output = Process::getOutput("launchctl", "kickstart", GetName(name));
+		String output = System::getCommandOutput("launchctl kickstart " + GetName(name));
 		return output.trim().isEmpty();
 	}
 
 	sl_bool ServiceManager::stop(const StringParam& name, sl_int32 timeoutMilliseconds)
 	{
-		String output = Process::getOutput("launchctl", "kill", "SIGTERM", GetName(name));
+		String output = System::getCommandOutput("launchctl kill SIGTERM " + GetName(name));
 		return output.trim().isEmpty();
 	}
 

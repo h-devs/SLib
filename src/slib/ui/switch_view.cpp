@@ -24,6 +24,7 @@
 
 #include "slib/ui/core.h"
 #include "slib/ui/cursor.h"
+#include "slib/ui/priv/view_state_map.h"
 #include "slib/graphics/canvas.h"
 #include "slib/core/timer.h"
 #include "slib/core/safe_static.h"

@@ -2314,6 +2314,10 @@ namespace slib
 	{
 	}
 
+	SerializeBuffer::SerializeBuffer(const Memory& mem) noexcept: SerializeBuffer(MemoryView(mem))
+	{
+	}
+
 	SerializeBuffer::SerializeBuffer(Memory&& mem) noexcept: SerializeBuffer(MemoryData(Move(mem)))
 	{
 	}

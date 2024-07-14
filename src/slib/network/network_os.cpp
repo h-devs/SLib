@@ -604,9 +604,7 @@ namespace slib
 	}
 }
 
-#if defined(SLIB_PLATFORM_IS_APPLE) || defined(SLIB_PLATFORM_IS_FREEBSD)
-#include <stdio.h>
-#elif defined(SLIB_PLATFORM_IS_LINUX)
+#if defined(SLIB_PLATFORM_IS_LINUX)
 #include "slib/io/file.h"
 #endif
 
@@ -649,23 +647,19 @@ namespace slib
 #elif defined(SLIB_PLATFORM_IS_MACOS) || defined(SLIB_PLATFORM_IS_FREEBSD)
 
 		String command = String::concat(StringView::literal("netstat -nr | grep default | grep "), _interfaceName);
-		FILE* fp = popen(command.getData(), "r");
-		if (fp) {
-			char buf[1024];
-			*buf = 0;
-			fgets(buf, sizeof(buf), fp);
-			pclose(fp);
-			if (*buf) {
-				if (Base::equalsMemory(buf, "default ", 8)) {
-					char* p = buf + 8;
-					while (*p == ' ') {
-						p++;
-					}
-					IPv4Address ret;
-					sl_reg iRet = IPv4Address::parse(&ret, buf, p - buf, sizeof(buf) - 1);
-					if (iRet > 0 && buf[iRet] == ' ') {
-						return ret;
-					}
+		char buf[1024];
+		int n = System::getCommandOutput(command.getData(), buf, sizeof(buf) - 1);
+		if (n > 0) {
+			buf[n] = 0;
+			if (Base::equalsMemory(buf, "default ", 8)) {
+				char* p = buf + 8;
+				while (*p == ' ') {
+					p++;
+				}
+				IPv4Address ret;
+				sl_reg iRet = IPv4Address::parse(&ret, buf, p - buf, sizeof(buf) - 1);
+				if (iRet > 0 && buf[iRet] == ' ') {
+					return ret;
 				}
 			}
 		}

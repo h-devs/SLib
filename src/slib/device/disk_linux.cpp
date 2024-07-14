@@ -24,37 +24,109 @@
 
 #if defined(SLIB_PLATFORM_IS_LINUX)
 
-#include "slib/device/device.h"
 #include "slib/device/disk.h"
+
+#include "slib/system/system.h"
+#include "slib/io/file.h"
+#include "slib/core/stringx.h"
+
 #include <stdio.h>
 
 namespace slib
 {
 
+	namespace
+	{
+		static String GetDeviceInfo(const StringView& name)
+		{
+			String cmd = StringView::literal("udevadm info --query=all --name=/dev/") + name;
+			return System::getCommandOutput(cmd);
+		}
+
+		static String GetDiskInfoValue(const StringView& output, const StringView& field)
+		{
+			sl_reg index = output.indexOf(field);
+			if (index > 0) {
+				index += field.getLength();
+				sl_reg index2 = Stringx::indexOfLine(output, index);
+				if (index2 > 0) {
+					return output.substring(index, index2);
+				}
+			}
+			return sl_null;
+		}
+
+		static String GetSerialNumber(const StringView& output)
+		{
+			String s = GetDiskInfoValue(output, StringView::literal("ID_SCSI_SERIAL="));
+			if (s.isNotEmpty()) {
+				return s;
+			}
+			return GetDiskInfoValue(output, StringView::literal("ID_SERIAL_SHORT="));
+		}
+
+		static DiskInterface GetDiskInterface(const StringView& output)
+		{
+			String s = GetDiskInfoValue(output, StringView::literal("ID_BUS="));
+			if (s.isNotEmpty()) {
+				if (s == StringView::literal("ata")) {
+					return DiskInterface::IDE;
+				} else if (s == StringView::literal("scsi")) {
+					return DiskInterface::SCSI;
+				} else if (s == StringView::literal("usb")) {
+					return DiskInterface::USB;
+				}
+			}
+			return DiskInterface::Unknown;
+		}
+
+		static DiskType GetDiskType(const StringView& output)
+		{
+			String s = GetDiskInfoValue(output, StringView::literal("ID_DRIVE_THUMB="));
+			if (s.isNotEmpty()) {
+				if (s == StringView::literal("1")) {
+					return DiskType::Removable;
+				}
+			}
+			return DiskType::Fixed;
+		}
+	}
+
 	String Disk::getSerialNumber(sl_uint32 diskNo)
 	{
-		sl_char8 chDrive = (sl_char8)('a' + diskNo);
-		String cmd = String::concat(StringView::literal("udevadm info --query=all --name=/dev/sd"), StringView(&chDrive, 1), StringView::literal(" | grep -E 'ID_BUS|ID_SERIAL_SHORT' | awk '{print $2}'"));
-		FILE* fp = popen(cmd.getData(), "r");
-		if (fp) {
-			char buf[1024];
-			size_t n = fread(buf, 1, sizeof(buf), fp);
-			pclose(fp);
-			if (n) {
-				StringView output(buf, (sl_size)n);
-				sl_reg index = output.indexOf(StringView::literal("ID_BUS="));
-				if (index >= 0) {
-					index += 7;
-					if (!(output.substring(index, index + 3).equals_IgnoreCase(StringView::literal("USB")))) {
-						index = output.indexOf(StringView::literal("ID_SERIAL_SHORT="), index);
-						if (index >= 0) {
-							return output.substring(index + 16);
+		char name[4] = {'s', 'd', 0, 0};
+		name[2] = 'a' + diskNo;
+		String info = GetDeviceInfo(name);
+		return GetSerialNumber(info);
+	}
+
+	List<DiskInfo> Disk::getDevices()
+	{
+		List<DiskInfo> ret;
+		ListElements<String> names(File::getFiles(StringView::literal("/dev")));
+		for (sl_size i = 0; i < names.count; i++) {
+			String& name = names[i];
+			if (name.startsWith(StringView::literal("sd")) && name.getLength() == 3) {
+				char c = (name.getData())[2];
+				if (c >= 'a' && c <= 'z') {
+					String infos = GetDeviceInfo(name);
+					if (infos.isNotEmpty()) {
+						DiskInfo info;
+						info.index = c - 'a';
+						info.path = StringView::literal("/dev/") + name;
+						info.interface = GetDiskInterface(infos);
+						info.type = GetDiskType(infos);
+						info.model = GetDiskInfoValue(infos, StringView::literal("ID_MODEL="));
+						info.serialNumber = GetSerialNumber(infos);
+						info.capacity = File::getDiskSize(info.path);
+						if (!(ret.add_NoLock(Move(info)))) {
+							return sl_null;
 						}
 					}
 				}
 			}
 		}
-		return sl_null;
+		return ret;
 	}
 
 }

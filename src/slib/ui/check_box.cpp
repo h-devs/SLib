@@ -24,6 +24,7 @@
 
 #include "slib/ui/core.h"
 #include "slib/ui/resource.h"
+#include "slib/ui/priv/view_state_map.h"
 #include "slib/core/safe_static.h"
 
 #if defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_GTK)

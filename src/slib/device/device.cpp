@@ -98,12 +98,12 @@ namespace slib
 	{
 	}
 
-	float Device::isMute(AudioStreamType stream)
+	sl_bool Device::isMute(AudioStreamType stream)
 	{
 		return sl_false;
 	}
 
-	void Device::setMute(AudioStreamType stream, sl_bool flags, const DeviceSetVolumeFlags& flags)
+	void Device::setMute(AudioStreamType stream, sl_bool flagMute, const DeviceSetVolumeFlags& flags)
 	{
 	}
 

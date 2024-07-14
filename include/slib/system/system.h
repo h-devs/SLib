@@ -146,6 +146,13 @@ namespace slib
 
 		static sl_int32 execute(const StringParam& command, sl_bool flagHideWindow);
 
+#ifdef SLIB_PLATFORM_IS_UNIX
+		static String getCommandOutput(const StringParam& command);
+
+		// Return read size. Negative means an error.
+		static sl_int32 getCommandOutput(const StringParam& command, void* output, sl_uint32 maxOutputSize);
+#endif
+
 		static void assert(const StringParam& msg, const StringParam& file, sl_uint32 line);
 
 		static void setCrashHandler(SIGNAL_HANDLER handler);

@@ -55,6 +55,8 @@ namespace slib
 
 		SerializeBuffer(MemoryData&& data) noexcept;
 
+		SerializeBuffer(const Memory& mem) noexcept;
+
 		SerializeBuffer(Memory&& mem) noexcept;
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SerializeBuffer)

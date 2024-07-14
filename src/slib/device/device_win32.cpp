@@ -100,12 +100,12 @@ namespace slib
 		return sl_false;
 	}
 
-	void Device::setMute(AudioStreamType stream, sl_bool flag, const DeviceSetVolumeFlags& flags)
+	void Device::setMute(AudioStreamType stream, sl_bool flagMute, const DeviceSetVolumeFlags& flags)
 	{
 		// Only works for Windows Vista and later
 		IAudioEndpointVolume* volume = GetEndpointVolume(eRender);
 		if (volume) {
-			volume->SetMute(flag ? TRUE : FALSE, NULL);
+			volume->SetMute(flagMute ? TRUE : FALSE, NULL);
 			volume->Release();
 		}
 	}

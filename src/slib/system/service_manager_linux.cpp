@@ -26,8 +26,8 @@
 
 #include "slib/system/service_manager.h"
 
-#include "slib/system/process.h"
 #include "slib/system/system.h"
+#include "slib/system/process.h"
 #include "slib/core/string_buffer.h"
 #include "slib/io/file.h"
 
@@ -61,7 +61,7 @@ namespace slib
 
 		static String GetUnitFilePath(const StringParam& serviceName)
 		{
-			return String::concat("/etc/systemd/system/", serviceName, ".service");
+			return String::concat(StringView::literal("/etc/systemd/system/"), serviceName, StringView::literal(".service"));
 		}
 
 	}
@@ -92,7 +92,7 @@ namespace slib
 		File::writeAllTextUTF8(GetUnitFilePath(param.name), sb.merge());
 		System::execute("systemctl daemon-reload");
 		if (param.startType == ServiceStartType::Auto) {
-			System::execute(String::concat("systemctl enable ", param.name));
+			System::execute(String::concat(StringView::literal("systemctl enable "), param.name));
 		}
 		return isExisting(param.name);
 	}
@@ -113,7 +113,7 @@ namespace slib
 
 	ServiceState ServiceManager::getState(const StringParam& name)
 	{
-		String output = Process::getOutput("systemctl", "status", name);
+		String output = System::getCommandOutput(String::concat(StringView::literal("systemctl status "), name));
 		sl_reg index = output.indexOf("Active: ");
 		if (index >= 0) {
 			StringView state(output.getData() + index + 8, output.getLength() - index - 8);
@@ -133,7 +133,7 @@ namespace slib
 		if (!(Process::isCurrentProcessAdmin())) {
 			return sl_false;
 		}
-		System::execute(String::concat("systemctl start ", name));
+		System::execute(String::concat(StringView::literal("systemctl start "), name));
 		return WaitState(name, ServiceState::Running, timeoutMilliseconds);
 	}
 
@@ -142,7 +142,7 @@ namespace slib
 		if (!(Process::isCurrentProcessAdmin())) {
 			return sl_false;
 		}
-		System::execute(String::concat("systemctl stop ", name));
+		System::execute(String::concat(StringView::literal("systemctl stop "), name));
 		return WaitState(name, ServiceState::Stopped, timeoutMilliseconds);
 	}
 
@@ -159,11 +159,11 @@ namespace slib
 		}
 		String output;
 		if (type == ServiceStartType::Auto) {
-			output = Process::getOutput("systemctl", "enable", serviceName);
+			output = System::getCommandOutput(String::concat(StringView::literal("systemctl enable "), serviceName));
 		} else {
-			output = Process::getOutput("systemctl", "disable", serviceName);
+			output = System::getCommandOutput(String::concat(StringView::literal("systemctl disable"), serviceName));
 		}
-		return output.contains("Synchronizing state");
+		return output.contains(StringView::literal("Synchronizing state"));
 	}
 
 	ServiceStartType ServiceManager::getStartType(const StringParam& serviceName)

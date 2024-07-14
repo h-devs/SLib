@@ -29,10 +29,6 @@ else()
  )
 endif()
 
-link_directories(
- "${SLIB_LIB_PATH}"
-)
-
 set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/core/app.cpp"
  "${SLIB_PATH}/src/slib/core/atomic.cpp"
