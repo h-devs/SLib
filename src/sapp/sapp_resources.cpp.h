@@ -116,7 +116,7 @@ namespace slib
 	sl_bool SAppLayoutViewAttributes::isNotRequiredNative(sl_bool flagCheckBackgroundColor)
 	{
 		for (auto&& item : background.values) {
-			if (item.key == ViewState::Default) {
+			if (item.key == ViewState::All) {
 				if (flagCheckBackgroundColor) {
 					return sl_true;
 				} else {

@@ -18,5 +18,9 @@ namespace slib
 		{
 		}
 
+		void TakePhotoFromCameraDialog::setData(const slib::Variant& data, slib::UIUpdateMode mode)
+		{
+		}
+
 	}
 }

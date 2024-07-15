@@ -117,7 +117,11 @@ namespace slib
 
 #define SLIB_DEFINE_STRING_VARIANT_SIMPLE(NAME, VARIANT, VALUE) \
 	namespace NAME { \
-		SLIB_DEFINE_STRING_RESOURCE_SIMPLE(VARIANT, VALUE) \
+		namespace VARIANT { \
+			SLIB_STATIC_STRING(def, VALUE) \
+			slib::String get(const slib::Locale& locale) { return _get(locale, def); } \
+			slib::String get() { return get(slib::Resources::getCurrentLocale()); } \
+		} \
 	}
 
 

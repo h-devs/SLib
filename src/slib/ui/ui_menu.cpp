@@ -405,14 +405,14 @@ namespace slib
 				button->setWidthWrapping(UIUpdateMode::Init);
 				button->setHeightWrapping(UIUpdateMode::Init);
 				button->setFontSize(UIResource::dpToPixel(20), UIUpdateMode::Init);
-				button->setTextColor(0, Color::Black, ViewState::Default, UIUpdateMode::Init);
+				button->setTextColor(0, Color::Black, UIUpdateMode::Init);
 				button->setText(param.text, UIUpdateMode::Init);
 				button->setPadding(UIResource::dpToPixel(4), UIUpdateMode::Init);
 				if (param.icon.isNotNull()) {
 					button->setIcon(param.icon, UIUpdateMode::Init);
 				}
 				if (param.checkedIcon.isNotNull()) {
-					button->setIcon(1, param.icon, ViewState::Default, UIUpdateMode::Init);
+					button->setIcon(1, param.icon, UIUpdateMode::Init);
 				}
 				if (param.flagChecked) {
 					button->setCurrentCategory(1, UIUpdateMode::Init);

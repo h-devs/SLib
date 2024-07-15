@@ -13,8 +13,8 @@ namespace slib
 			m_contentView->setFont(slib::Font::create(slib::UI::getDefaultFontFamily(), 18.0f, sl_false, sl_false, sl_false), slib::UIUpdateMode::Init);
 
 			_linear1 = new slib::LinearLayout;
-			_linear1->setWidthWrapping(slib::UIUpdateMode::Init);
-			_linear1->setHeightWrapping(slib::UIUpdateMode::Init);
+			_linear1->setWidthWrapping(sl_true, slib::UIUpdateMode::Init);
+			_linear1->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			_linear1->setAlignParentLeft(slib::UIUpdateMode::Init);
 			_linear1->setAlignParentTop(slib::UIUpdateMode::Init);
 			_linear1->setMinimumWidth(slib::UIResource::toUiPos(0.2f*slib::UIResource::getScreenWidth()), slib::UIUpdateMode::Init);
@@ -25,14 +25,14 @@ namespace slib
 			m_contentView->addChild(_linear1, slib::UIUpdateMode::Init);
 
 			label = new slib::LabelView;
-			label->setWidthWrapping(slib::UIUpdateMode::Init);
-			label->setHeightWrapping(slib::UIUpdateMode::Init);
+			label->setWidthWrapping(sl_true, slib::UIUpdateMode::Init);
+			label->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			label->setAlignParentLeft(slib::UIUpdateMode::Init);
 			_linear1->addChild(label, slib::UIUpdateMode::Init);
 
 			input = new slib::EditView;
 			input->setWidthFilling(1.0f, slib::UIUpdateMode::Init);
-			input->setHeightWrapping(slib::UIUpdateMode::Init);
+			input->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			input->setAlignParentLeft(slib::UIUpdateMode::Init);
 			input->setMarginTop(10, slib::UIUpdateMode::Init);
 			input->setFocus(sl_true, slib::UIUpdateMode::Init);
@@ -40,15 +40,15 @@ namespace slib
 
 			_linear2 = new slib::LinearLayout;
 			_linear2->setOrientation(slib::LayoutOrientation::Horizontal, slib::UIUpdateMode::Init);
-			_linear2->setWidthWrapping(slib::UIUpdateMode::Init);
-			_linear2->setHeightWrapping(slib::UIUpdateMode::Init);
+			_linear2->setWidthWrapping(sl_true, slib::UIUpdateMode::Init);
+			_linear2->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			_linear2->setAlignParentRight(slib::UIUpdateMode::Init);
 			_linear2->setMarginTop(10, slib::UIUpdateMode::Init);
 			_linear1->addChild(_linear2, slib::UIUpdateMode::Init);
 
 			ok = new slib::Button;
-			ok->setWidthWrapping(slib::UIUpdateMode::Init);
-			ok->setHeightWrapping(slib::UIUpdateMode::Init);
+			ok->setWidthWrapping(sl_true, slib::UIUpdateMode::Init);
+			ok->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			ok->setAlignParentTop(slib::UIUpdateMode::Init);
 			ok->setPaddingLeft(30, slib::UIUpdateMode::Init);
 			ok->setPaddingRight(30, slib::UIUpdateMode::Init);
@@ -59,8 +59,8 @@ namespace slib
 			_linear2->addChild(ok, slib::UIUpdateMode::Init);
 
 			cancel = new slib::Button;
-			cancel->setWidthWrapping(slib::UIUpdateMode::Init);
-			cancel->setHeightWrapping(slib::UIUpdateMode::Init);
+			cancel->setWidthWrapping(sl_true, slib::UIUpdateMode::Init);
+			cancel->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			cancel->setAlignParentTop(slib::UIUpdateMode::Init);
 			cancel->setMarginLeft(10, slib::UIUpdateMode::Init);
 			cancel->setPaddingLeft(10, slib::UIUpdateMode::Init);
@@ -73,6 +73,10 @@ namespace slib
 		}
 
 		void PromptDialog::layoutViews(sl_ui_len CONTENT_WIDTH, sl_ui_len CONTENT_HEIGHT)
+		{
+		}
+
+		void PromptDialog::setData(const slib::Variant& data, slib::UIUpdateMode mode)
 		{
 		}
 

@@ -2736,12 +2736,12 @@ namespace slib
 		if (op == SAppLayoutOperation::Parse) {
 			if (!(attr->backgroundColor.flagDefined)) {
 				SAppDrawableValue background;
-				if (attr->background.values.get_NoLock(ViewState::Default, &background)) {
+				if (attr->background.values.getCount() == 1 && attr->background.values.get_NoLock(ViewState::All, &background)) {
 					if (background.flagDefined && background.flagColor) {
 						attr->backgroundColor.flagDefined = sl_true;
 						attr->backgroundColor.color = background.color;
 						attr->backgroundColor.resourceName = background.resourceName;
-						attr->background.values.remove_NoLock(ViewState::Default);
+						attr->background.values.setNull();
 					}
 				}
 			}

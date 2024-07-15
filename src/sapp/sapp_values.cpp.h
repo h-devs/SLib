@@ -1730,10 +1730,10 @@ namespace slib
 		InheritBorderStateMap(map, vFocused, vPressed, ViewState::FocusedPressed);
 
 		{
-			SAppBorderValue* v = map.values.getItemPointer(ViewState::Default);
+			SAppBorderValue* v = map.values.getItemPointer(ViewState::All);
 			if (v) {
 				for (auto&& item : map.values) {
-					if (item.key != ViewState::Default) {
+					if (item.key != ViewState::All) {
 						item.value.inheritFrom(*v);
 					}
 				}

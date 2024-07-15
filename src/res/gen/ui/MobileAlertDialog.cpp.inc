@@ -7,7 +7,7 @@ namespace slib
 		void MobileAlertDialog::initialize()
 		{
 			this->setWidthWeight(0.8f, slib::UIUpdateMode::Init);
-			this->setHeightWrapping(slib::UIUpdateMode::Init);
+			this->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			this->setCenterHorizontal(slib::UIUpdateMode::Init);
 			this->setCenterVertical(slib::UIUpdateMode::Init);
 			this->setMaximumWidth(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(500.0f)), slib::UIUpdateMode::Init);
@@ -17,14 +17,14 @@ namespace slib
 
 			_linear1 = new slib::LinearLayout;
 			_linear1->setWidthFilling(1.0f, slib::UIUpdateMode::Init);
-			_linear1->setHeightWrapping(slib::UIUpdateMode::Init);
+			_linear1->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			_linear1->setAlignParentLeft(slib::UIUpdateMode::Init);
 			_linear1->setAlignParentTop(slib::UIUpdateMode::Init);
 			m_contentView->addChild(_linear1, slib::UIUpdateMode::Init);
 
 			txtTitle = new slib::LabelView;
 			txtTitle->setWidthFilling(1.0f, slib::UIUpdateMode::Init);
-			txtTitle->setHeightWrapping(slib::UIUpdateMode::Init);
+			txtTitle->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			txtTitle->setAlignParentLeft(slib::UIUpdateMode::Init);
 			txtTitle->setMarginTop(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(10.0f)), slib::UIUpdateMode::Init);
 			txtTitle->setFont(slib::Font::create(slib::UI::getDefaultFontFamily(), slib::UIResource::dpToPixel(25.0f), sl_true, sl_false, sl_false), slib::UIUpdateMode::Init);
@@ -35,14 +35,14 @@ namespace slib
 
 			_scroll1 = new slib::ScrollView;
 			_scroll1->setWidthFilling(1.0f, slib::UIUpdateMode::Init);
-			_scroll1->setHeightWrapping(slib::UIUpdateMode::Init);
+			_scroll1->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			_scroll1->setAlignParentLeft(slib::UIUpdateMode::Init);
 			_scroll1->setMaximumHeight(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(160.0f)), slib::UIUpdateMode::Init);
 			_linear1->addChild(_scroll1, slib::UIUpdateMode::Init);
 
 			txtContent = new slib::LabelView;
 			txtContent->setWidthFilling(1.0f, slib::UIUpdateMode::Init);
-			txtContent->setHeightWrapping(slib::UIUpdateMode::Init);
+			txtContent->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			txtContent->setMinimumHeight(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(80.0f)), slib::UIUpdateMode::Init);
 			txtContent->setPaddingLeft(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(10.0f)), slib::UIUpdateMode::Init);
 			txtContent->setPaddingTop(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(10.0f)), slib::UIUpdateMode::Init);
@@ -59,18 +59,18 @@ namespace slib
 			_view1->setHeight(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(1.0f)), slib::UIUpdateMode::Init);
 			_view1->setAlignParentLeft(slib::UIUpdateMode::Init);
 			_view1->setMarginTop(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(1.0f)), slib::UIUpdateMode::Init);
-			_view1->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
+			_view1->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::ViewState::All, slib::UIUpdateMode::Init);
 			_linear1->addChild(_view1, slib::UIUpdateMode::Init);
 
 			_linear2 = new slib::LinearLayout;
 			_linear2->setOrientation(slib::LayoutOrientation::Horizontal, slib::UIUpdateMode::Init);
 			_linear2->setWidthFilling(1.0f, slib::UIUpdateMode::Init);
-			_linear2->setHeightWrapping(slib::UIUpdateMode::Init);
+			_linear2->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			_linear2->setAlignParentLeft(slib::UIUpdateMode::Init);
 			_linear1->addChild(_linear2, slib::UIUpdateMode::Init);
 
 			btnOK = new slib::Button;
-			btnOK->setWidthFilling(1.0f, slib::UIUpdateMode::Init);
+			btnOK->setWidthFilling(-1.0f, slib::UIUpdateMode::Init);
 			btnOK->setHeight(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(40.0f)), slib::UIUpdateMode::Init);
 			btnOK->setAlignParentTop(slib::UIUpdateMode::Init);
 			btnOK->setPaddingLeft(0, slib::UIUpdateMode::Init);
@@ -86,11 +86,11 @@ namespace slib
 			_view2->setHeightFilling(1.0f, slib::UIUpdateMode::Init);
 			_view2->setAlignParentRight(slib::UIUpdateMode::Init);
 			_view2->setAlignParentBottom(slib::UIUpdateMode::Init);
-			_view2->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
+			_view2->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::ViewState::All, slib::UIUpdateMode::Init);
 			btnOK->addChild(_view2, slib::UIUpdateMode::Init);
 
 			btnYes = new slib::Button;
-			btnYes->setWidthFilling(1.0f, slib::UIUpdateMode::Init);
+			btnYes->setWidthFilling(-1.0f, slib::UIUpdateMode::Init);
 			btnYes->setHeight(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(40.0f)), slib::UIUpdateMode::Init);
 			btnYes->setAlignParentTop(slib::UIUpdateMode::Init);
 			btnYes->setPaddingLeft(0, slib::UIUpdateMode::Init);
@@ -106,11 +106,11 @@ namespace slib
 			_view3->setHeightFilling(1.0f, slib::UIUpdateMode::Init);
 			_view3->setAlignParentRight(slib::UIUpdateMode::Init);
 			_view3->setAlignParentBottom(slib::UIUpdateMode::Init);
-			_view3->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
+			_view3->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::ViewState::All, slib::UIUpdateMode::Init);
 			btnYes->addChild(_view3, slib::UIUpdateMode::Init);
 
 			btnNo = new slib::Button;
-			btnNo->setWidthFilling(1.0f, slib::UIUpdateMode::Init);
+			btnNo->setWidthFilling(-1.0f, slib::UIUpdateMode::Init);
 			btnNo->setHeight(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(40.0f)), slib::UIUpdateMode::Init);
 			btnNo->setAlignParentTop(slib::UIUpdateMode::Init);
 			btnNo->setPaddingLeft(0, slib::UIUpdateMode::Init);
@@ -126,11 +126,11 @@ namespace slib
 			_view4->setHeightFilling(1.0f, slib::UIUpdateMode::Init);
 			_view4->setAlignParentRight(slib::UIUpdateMode::Init);
 			_view4->setAlignParentBottom(slib::UIUpdateMode::Init);
-			_view4->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
+			_view4->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::ViewState::All, slib::UIUpdateMode::Init);
 			btnNo->addChild(_view4, slib::UIUpdateMode::Init);
 
 			btnCancel = new slib::Button;
-			btnCancel->setWidthFilling(1.0f, slib::UIUpdateMode::Init);
+			btnCancel->setWidthFilling(-1.0f, slib::UIUpdateMode::Init);
 			btnCancel->setHeight(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(40.0f)), slib::UIUpdateMode::Init);
 			btnCancel->setAlignParentTop(slib::UIUpdateMode::Init);
 			btnCancel->setPaddingLeft(0, slib::UIUpdateMode::Init);
@@ -146,12 +146,16 @@ namespace slib
 			_view5->setHeightFilling(1.0f, slib::UIUpdateMode::Init);
 			_view5->setAlignParentRight(slib::UIUpdateMode::Init);
 			_view5->setAlignParentBottom(slib::UIUpdateMode::Init);
-			_view5->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
+			_view5->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::ViewState::All, slib::UIUpdateMode::Init);
 			btnCancel->addChild(_view5, slib::UIUpdateMode::Init);
 
 		}
 
 		void MobileAlertDialog::layoutViews(sl_ui_len CONTENT_WIDTH, sl_ui_len CONTENT_HEIGHT)
+		{
+		}
+
+		void MobileAlertDialog::setData(const slib::Variant& data, slib::UIUpdateMode mode)
 		{
 		}
 
