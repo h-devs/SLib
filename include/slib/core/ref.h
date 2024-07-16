@@ -545,17 +545,17 @@ namespace slib
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
 
 	public:
-		SLIB_CONSTEXPR T& operator*() const
+		SLIB_CONSTEXPR T& operator*() const&
 		{
 			return *ptr;
 		}
 
-		SLIB_CONSTEXPR T* operator->() const
+		SLIB_CONSTEXPR T* operator->() const&
 		{
 			return ptr;
 		}
 
-		SLIB_CONSTEXPR operator T*() const
+		SLIB_CONSTEXPR operator T*() const&
 		{
 			return ptr;
 		}
