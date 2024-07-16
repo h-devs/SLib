@@ -61,7 +61,7 @@ namespace slib
 			template <class OUTPUT>
 			static sl_bool serialize(OUTPUT* output, const T& _in)
 			{
-				return CVLI::serialize(output, (sl_int64)_in);
+				return CVLI::serialize(output, (sl_uint64)_in);
 			}
 
 			template <class INPUT>
