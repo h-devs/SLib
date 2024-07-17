@@ -893,13 +893,17 @@ namespace slib
 	void EditView::_change(IEditViewInstance* instance, String& text, UIEvent* ev, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
-		m_flagInvalidateText = sl_false;
-		if (text == m_text) {
-			return;
-		}
-		invokeChanging(text, ev);
-		if (text == m_text) {
-			return;
+		if (m_flagInvalidateText) {
+			m_flagInvalidateText = sl_false;
+			invokeChanging(text, ev);
+		} else {
+			if (text == m_text) {
+				return;
+			}
+			invokeChanging(text, ev);
+			if (text == m_text) {
+				return;
+			}
 		}
 		m_text = text;
 		if (instance) {
