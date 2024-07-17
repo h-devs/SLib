@@ -52,24 +52,14 @@ namespace slib
 		return m_exitStatus;
 	}
 
-	Ref<Process> Process::open(const StringParam& pathExecutable, const ProcessFlags& flags)
+	Ref<Process> Process::open(const StringParam& pathExecutable)
 	{
-		return openBy(pathExecutable, sl_null, 0, flags);
+		return openBy(pathExecutable, sl_null, 0);
 	}
 
-	Ref<Process> Process::open(const StringParam& pathExecutable, const StringParam& arg)
+	Ref<Process> Process::run(const StringParam& pathExecutable)
 	{
-		return openBy(pathExecutable, &arg, 1);
-	}
-
-	Ref<Process> Process::run(const StringParam& pathExecutable, const ProcessFlags& flags)
-	{
-		return runBy(pathExecutable, sl_null, 0, flags);
-	}
-
-	Ref<Process> Process::run(const StringParam& pathExecutable, const StringParam& arg)
-	{
-		return runBy(pathExecutable, &arg, 1);
+		return runBy(pathExecutable, sl_null, 0);
 	}
 
 	void Process::runAsAdmin(const StringParam& pathExecutable)
@@ -77,40 +67,35 @@ namespace slib
 		runAsAdminBy(pathExecutable, sl_null);
 	}
 
-	String Process::getOutputBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags)
+	String Process::getOutputBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags, sl_int32 timeout)
 	{
 		Ref<Process> process = openBy(pathExecutable, commandLine, flags);
 		if (process.isNotNull()) {
 			IStream* stream = process->getStream();
 			if (stream) {
-				Memory mem = stream->readFully();
+				Memory mem = stream->readFully(SLIB_SIZE_MAX, 0, timeout);
 				return String::fromMemory(mem);
 			}
 		}
 		return sl_null;
 	}
 
-	String Process::getOutputBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags)
+	String Process::getOutputBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags, sl_int32 timeout)
 	{
 		Ref<Process> process = openBy(pathExecutable, args, nArgs, flags);
 		if (process.isNotNull()) {
 			IStream* stream = process->getStream();
 			if (stream) {
-				Memory mem = stream->readFully();
+				Memory mem = stream->readFully(SLIB_SIZE_MAX, 0, timeout);
 				return String::fromMemory(mem);
 			}
 		}
 		return sl_null;
 	}
 
-	String Process::getOutput(const StringParam& pathExecutable, const ProcessFlags& flags)
+	String Process::getOutput(const StringParam& pathExecutable)
 	{
-		return getOutputBy(pathExecutable, sl_null, 0, flags);
-	}
-
-	String Process::getOutput(const StringParam& pathExecutable, const StringParam& arg)
-	{
-		return getOutputBy(pathExecutable, &arg, 1);
+		return getOutputBy(pathExecutable, sl_null, 0);
 	}
 
 	void Process::runCommand(const StringParam& command, const ProcessFlags& flags)
@@ -118,7 +103,18 @@ namespace slib
 #ifdef SLIB_PLATFORM_IS_WIN32
 		runBy(System::getSystemDirectory() + "\\cmd.exe", String::concat("/C ", command), flags);
 #else
-		run("/bin/sh", flags, "-c", command);
+		StringParam args[] = { "-c", command };
+		runBy("/bin/sh", args, 2, flags);
+#endif
+	}
+
+	String Process::getCommandOutput(const StringParam& command, const ProcessFlags& flags, sl_int32 timeout)
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		return getOutputBy(System::getSystemDirectory() + "\\cmd.exe", String::concat("/C ", command), flags, timeout);
+#else
+		StringParam args[] = { "-c", command };
+		return getOutputBy("/bin/sh", args, 2, flags, timeout);
 #endif
 	}
 

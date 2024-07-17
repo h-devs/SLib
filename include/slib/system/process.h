@@ -76,44 +76,26 @@ namespace slib
 
 		static Ref<Process> openBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags = 0);
 
-		static Ref<Process> open(const StringParam& pathExecutable, const ProcessFlags& flags = 0);
-
-		static Ref<Process> open(const StringParam& pathExecutable, const StringParam& arg);
+		static Ref<Process> open(const StringParam& pathExecutable);
 
 		template <class ARG, class... ARGS>
-		static Ref<Process> open(const StringParam& pathExecutable, const ProcessFlags& flags, ARGS&&... args)
+		static Ref<Process> open(const StringParam& pathExecutable, ARGS&&... args)
 		{
 			StringParam params[] = { Forward<ARGS>(args)... };
-			return openBy(pathExecutable, params, sizeof...(args), flags);
-		}
-
-		template <class ARG, class... ARGS>
-		static Ref<Process> open(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
-		{
-			StringParam params[] = { arg, Forward<ARGS>(args)... };
-			return openBy(pathExecutable, params, sizeof...(args) + 1);
+			return openBy(pathExecutable, params, sizeof...(args));
 		}
 
 		static Ref<Process> runBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags = 0);
 
 		static Ref<Process> runBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags = 0);
 
-		static Ref<Process> run(const StringParam& pathExecutable, const ProcessFlags& flags = 0);
-
-		static Ref<Process> run(const StringParam& pathExecutable, const StringParam& arg);
+		static Ref<Process> run(const StringParam& pathExecutable);
 
 		template <class... ARGS>
-		static Ref<Process> run(const StringParam& pathExecutable, const ProcessFlags& flags, ARGS&&... args)
+		static Ref<Process> run(const StringParam& pathExecutable, ARGS&&... args)
 		{
 			StringParam params[] = { Forward<ARGS>(args)... };
-			return runBy(pathExecutable, params, sizeof...(args), flags);
-		}
-
-		template <class... ARGS>
-		static Ref<Process> run(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
-		{
-			StringParam params[] = { arg, Forward<ARGS>(args)... };
-			return runBy(pathExecutable, params, sizeof...(args) + 1);
+			return runBy(pathExecutable, params, sizeof...(args));
 		}
 
 		static void runAsAdminBy(const StringParam& pathExecutable, const StringParam& commandLine);
@@ -134,29 +116,22 @@ namespace slib
 
 		static sl_bool isCurrentProcessInAdminGroup();
 
-		static String getOutputBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags = 0);
+		static String getOutputBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags = 0, sl_int32 timeout = -1);
 
-		static String getOutputBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags = 0);
+		static String getOutputBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags = 0, sl_int32 timeout = -1);
 
-		static String getOutput(const StringParam& pathExecutable, const ProcessFlags& flags = 0);
-
-		static String getOutput(const StringParam& pathExecutable, const StringParam& arg);
+		static String getOutput(const StringParam& pathExecutable);
 
 		template <class... ARGS>
-		static String getOutput(const StringParam& pathExecutable, const ProcessFlags& flags, ARGS&&... args)
+		static String getOutput(const StringParam& pathExecutable, ARGS&&... args)
 		{
 			StringParam params[] = { Forward<ARGS>(args)... };
-			return getOutputBy(pathExecutable, params, sizeof...(args), flags);
-		}
-
-		template <class... ARGS>
-		static String getOutput(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
-		{
-			StringParam params[] = { arg, Forward<ARGS>(args)... };
-			return getOutputBy(pathExecutable, params, sizeof...(args) + 1);
+			return getOutputBy(pathExecutable, params, sizeof...(args));
 		}
 
 		static void runCommand(const StringParam& command, const ProcessFlags& flags = 0);
+
+		static String getCommandOutput(const StringParam& command, const ProcessFlags& flags = 0, sl_int32 timeout = -1);
 
 		// replace current process context
 		static void execBy(const StringParam& pathExecutable, const StringParam& commandLine);
