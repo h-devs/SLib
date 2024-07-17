@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,50 @@
 #include "slib/network/os.h"
 
 #include "slib/network/socket.h"
+#include "slib/system/system.h"
 #include "slib/core/endian.h"
 #include "slib/core/hash_map.h"
+
+#if defined(SLIB_PLATFORM_IS_WIN32)
+
+#include "slib/system/process.h"
 #include "slib/core/search.h"
 #include "slib/core/scoped_buffer.h"
+#include "slib/core/variant.h"
+#include "slib/platform.h"
+#include "slib/platform/win32/registry.h"
+#include "slib/platform/win32/wmi.h"
+#include "slib/dl/win32/iphlpapi.h"
+
+#include <winsock2.h>
+#include <ws2ipdef.h>
+#include <ws2tcpip.h>
+#include <netioapi.h>
+
+#pragma comment(lib, "ws2_32.lib")
+
+#elif defined(SLIB_PLATFORM_IS_UNIX)
+
+#include "slib/io/file.h"
+#if defined(SLIB_PLATFORM_IS_ANDROID)
+#	include "slib/platform.h"
+#endif
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <ifaddrs.h>
+#include <netdb.h>
+#include <net/if.h>
+#if defined(SLIB_PLATFORM_IS_APPLE)
+#	define	IFT_ETHER	0x6		/* Ethernet CSMACD */
+#	include <net/if_dl.h>
+#endif
+#if defined(SLIB_PLATFORM_IS_LINUX)
+#	include <linux/if_packet.h>
+#endif
+
+#endif
 
 namespace slib
 {
@@ -134,25 +174,7 @@ namespace slib
 		return sl_false;
 	}
 
-}
-
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-#	if defined(SLIB_PLATFORM_IS_WIN32)
-
-#include <winsock2.h>
-#include <ws2ipdef.h>
-#include <ws2tcpip.h>
-#include <netioapi.h>
-
-#include "slib/platform.h"
-#include "slib/dl/win32/iphlpapi.h"
-#include "slib/platform/win32/wmi.h"
-
-#pragma comment(lib, "ws2_32.lib")
-
-namespace slib
-{
-
+#if defined(SLIB_PLATFORM_IS_WIN32)
 	template <>
 	class Compare<MIB_IPADDRROW, IPv4Address>
 	{
@@ -280,19 +302,9 @@ namespace slib
 		return ret;
 	}
 
-}
-
-#	endif
-
 #elif defined(SLIB_PLATFORM_IS_ANDROID)
-
-#include "slib/platform.h"
-
-namespace slib
-{
-
-	namespace {
-
+	namespace 
+	{
 		SLIB_JNI_BEGIN_CLASS(JNetworkDevice, "slib/android/network/NetworkDevice")
 			SLIB_JNI_INT_FIELD(index);
 			SLIB_JNI_STRING_FIELD(name);
@@ -306,7 +318,6 @@ namespace slib
 		SLIB_JNI_BEGIN_CLASS(JNetworkAddress, "slib/android/network/Network")
 			SLIB_JNI_STATIC_METHOD(getAllDevices, "getAllDevices", "()[Lslib/android/network/NetworkDevice;");
 		SLIB_JNI_END_CLASS
-
 	}
 
 	List<NetworkInterfaceInfo> Network::getInterfaces()
@@ -363,26 +374,9 @@ namespace slib
 		}
 		return ret;
 	}
-}
 
 #elif defined(SLIB_PLATFORM_IS_UNIX)
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <ifaddrs.h>
-#include <net/if.h>
-
-#	if defined(SLIB_PLATFORM_IS_APPLE)
-#		define	IFT_ETHER	0x6		/* Ethernet CSMACD */
-#		include <net/if_dl.h>
-#	endif
-#	if defined(SLIB_PLATFORM_IS_LINUX)
-#		include <linux/if_packet.h>
-#	endif
-
-namespace slib
-{
 	List<NetworkInterfaceInfo> Network::getInterfaces()
 	{
 		HashMap<String, NetworkInterfaceInfo> ret;
@@ -452,24 +446,13 @@ namespace slib
 
 		return ret.getAllValues();
 	}
-}
 
 #endif
-
-#if defined(SLIB_PLATFORM_IS_UNIX)
-
-#include <netdb.h>
-#include <net/if.h>
-
-#endif
-
-namespace slib
-{
 
 	sl_uint32 Network::getInterfaceIndexFromName(const StringParam& _name)
 	{
 		StringCstr name(_name);
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
+#if defined(SLIB_PLATFORM_IS_WIN32)
 		auto func = iphlpapi::getApi_if_nametoindex();
 		if (func) {
 			Socket::initializeSocket();
@@ -485,7 +468,7 @@ namespace slib
 	{
 		char buf[256];
 		char* s;
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
+#if defined(SLIB_PLATFORM_IS_WIN32)
 		auto func = iphlpapi::getApi_if_indextoname();
 		if (func) {
 			Socket::initializeSocket();
@@ -505,7 +488,9 @@ namespace slib
 
 	List<IPAddress> Network::getIPAddressesFromHostName(const StringParam& _hostName)
 	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
 		Socket::initializeSocket();
+#endif
 
 		StringCstr hostName(_hostName);
 		List<IPAddress> ret;
@@ -572,16 +557,10 @@ namespace slib
 		}
 		return IPv6Address::zero();
 	}
-}
 
-#include "slib/system/system.h"
-#include "slib/system/process.h"
-
-namespace slib
-{
 	sl_bool Network::setAddress(const NetworkSetAddressParam& param)
 	{
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
+#if defined(SLIB_PLATFORM_IS_WIN32)
 		if (!(Process::isCurrentProcessAdmin())) {
 			return sl_false;
 		}
@@ -602,20 +581,11 @@ namespace slib
 		return sl_false;
 #endif
 	}
-}
-
-#if defined(SLIB_PLATFORM_IS_LINUX)
-#include "slib/io/file.h"
-#endif
-
-namespace slib
-{
 
 	// Reference: PcapPlusPlus (https://github.com/seladb/PcapPlusPlus/blob/master/Pcap%2B%2B/src/PcapLiveDevice.cpp#setDefaultGateway)
 	IPv4Address Network::getDefaultGateway(const StringParam& _interfaceName)
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-
 		auto funcGetAdaptersInfo = iphlpapi::getApi_GetAdaptersInfo();
 		if (!funcGetAdaptersInfo) {
 			return IPv4Address::zero();
@@ -643,9 +613,7 @@ namespace slib
 			}
 			info = info->Next;
 		} while (info);
-
 #elif defined(SLIB_PLATFORM_IS_MACOS) || defined(SLIB_PLATFORM_IS_FREEBSD)
-
 		String command = String::concat(StringView::literal("netstat -nr | grep default | grep "), _interfaceName);
 		char buf[1024];
 		int n = System::getCommandOutput(command.getData(), buf, sizeof(buf) - 1);
@@ -663,9 +631,7 @@ namespace slib
 				}
 			}
 		}
-
 #elif defined(SLIB_PLATFORM_IS_LINUX)
-
 		File file = File::openForRead("/proc/net/route");
 		if (file.isNone()) {
 			return IPv4Address::zero();
@@ -693,9 +659,16 @@ namespace slib
 				}
 			}
 		}
-
 #endif
 		return IPv4Address::zero();
+	}
+
+	void Network::disableIPv6()
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		System::execute("powershell.exe -command Disable-NetAdapterBinding -Name * -ComponentID ms_tcpip6", sl_true);
+		win32::Registry::setValue(HKEY_LOCAL_MACHINE, u"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", u"DisabledComponents", (sl_uint32)0xFF);
+#endif
 	}
 
 	HashMap<IPv4Address, MacAddress> Network::getArpTable()
