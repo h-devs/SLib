@@ -681,6 +681,23 @@ namespace slib
 		}
 	}
 
+	void Win32_ViewInstance::setScrollPos(sl_scroll_pos x, sl_scroll_pos y)
+	{
+		HWND handle = m_handle;
+		if (handle) {
+			SCROLLINFO si;
+			Base::zeroMemory(&si, sizeof(si));
+			si.cbSize = sizeof(si);
+			si.fMask = SIF_POS;
+			si.nPos = (int)x;
+			SetScrollInfo(handle, SB_HORZ, &si, TRUE);
+			SendMessageW(handle, WM_HSCROLL, SLIB_MAKE_DWORD2(Math::clamp(si.nPos, 0, 0xffff), SB_THUMBPOSITION), 0);
+			si.nPos = (int)y;
+			SetScrollInfo(handle, SB_VERT, &si, TRUE);
+			SendMessageW(handle, WM_VSCROLL, SLIB_MAKE_DWORD2(Math::clamp(si.nPos, 0, 0xffff), SB_THUMBPOSITION), 0);
+		}
+	}
+
 	sl_bool Win32_ViewInstance::getClientSize(View* view, UISize& _out)
 	{
 		HWND handle = m_handle;

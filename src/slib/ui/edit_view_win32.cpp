@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -33,8 +33,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		class EditViewHelper : public EditView
 		{
 		public:
@@ -279,17 +279,7 @@ namespace slib
 
 			void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate) override
 			{
-				Win32_ViewInstance::scrollTo(view, x, y, flagAnimate);
-				HWND handle = m_handle;
-				if (handle) {
-					sl_uint16 _y;
-					if (y > 0xffff) {
-						_y = 0xffff;
-					} else {
-						_y = (sl_uint16)y;
-					}
-					SendMessageW(handle, WM_VSCROLL, SLIB_MAKE_DWORD2(_y, SB_THUMBPOSITION), 0);
-				}
+				setScrollPos(x, y);
 			}
 
 			void setBackgroundColor(View* view, const Color& color) override
@@ -350,7 +340,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(EditViewInstance, Win32_ViewInstance)
-
 	}
 
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* parent)
@@ -395,8 +384,8 @@ namespace slib
 		return CastRef<EditViewInstance>(getViewInstance());
 	}
 
-	namespace {
-		
+	namespace
+	{
 		class TextAreaInstance: public Win32_ViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
@@ -586,6 +575,11 @@ namespace slib
 					}
 				}
 				return 0;
+			}
+
+			void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate) override
+			{
+				setScrollPos(x, y);
 			}
 
 			void setBackgroundColor(View* view, const Color& color) override
