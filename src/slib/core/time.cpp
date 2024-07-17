@@ -1660,7 +1660,7 @@ namespace slib
 		} else if (n < TIME_DAY*366 || max < TIME_DAY*32) {
 			sl_int64 t = (sl_int64)(getDayCountF() / 30.5);
 			if (lang == Language::Korean) {
-				return String::fromInt64(t) + "\xEA\xB0\x9C\xEB\x8B\xAC";
+				return String::fromInt64(t) + "\xEB\x8B\xAC";
 			} else {
 				if (t == 1) {
 					if (flagLong) {
