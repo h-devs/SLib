@@ -703,4 +703,20 @@ namespace slib
 		return ret;
 	}
 
+	sl_bool Network::removeArpEntry(sl_uint32 index, const IPv4Address& ip)
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		auto funcDeleteIpNetEntry = iphlpapi::getApi_DeleteIpNetEntry();
+		if (funcDeleteIpNetEntry) {
+			MIB_IPNETROW row = { 0 };
+			row.dwIndex = index;
+			row.dwAddr = ip.toInt();
+			if (funcDeleteIpNetEntry(&row) == NO_ERROR) {
+				return sl_true;
+			}
+		}
+#endif
+		return sl_false;
+	}
+
 }

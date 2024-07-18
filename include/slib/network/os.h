@@ -129,6 +129,8 @@ namespace slib
 
 		static HashMap<IPv4Address, MacAddress> getArpTable();
 
+		static sl_bool removeArpEntry(sl_uint32 index, const IPv4Address& ip);
+
 	};
 
 }

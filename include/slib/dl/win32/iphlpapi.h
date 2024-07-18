@@ -74,6 +74,11 @@ namespace slib
 			PULONG pdwSize,
 			BOOL bOrder
 		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			DeleteIpNetEntry,
+			DWORD, WINAPI,
+			PMIB_IPNETROW pArpEntry
+		)
 	SLIB_IMPORT_LIBRARY_END
 
 }
