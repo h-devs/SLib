@@ -710,7 +710,7 @@ namespace slib
 		if (funcDeleteIpNetEntry) {
 			MIB_IPNETROW row = { 0 };
 			row.dwIndex = index;
-			row.dwAddr = ip.toInt();
+			row.dwAddr = (sl_uint32)(Endian::swap32(ip.toInt()));
 			if (funcDeleteIpNetEntry(&row) == NO_ERROR) {
 				return sl_true;
 			}
