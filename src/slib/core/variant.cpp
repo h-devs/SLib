@@ -235,6 +235,18 @@ namespace slib
 		other._type = VariantType::Null;
 	}
 
+	template <>
+	Variant::Variant(const Atomic<Json>& other) noexcept
+	{
+		other._retain_construct((Json*)this);
+	}
+
+	template <>
+	Variant::Variant(Atomic<Json>&& other) noexcept
+	{
+		other._retain_construct_move((Json*)this);
+	}
+
 	Variant::~Variant() noexcept
 	{
 		Free(_type, _value);

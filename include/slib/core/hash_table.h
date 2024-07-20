@@ -514,7 +514,7 @@ namespace slib
 		{
 			sl_size capacity = m_table.capacity;
 			if (!capacity) {
-				return sl_null;
+				return sl_false;
 			}
 
 			sl_size hash = nodeRemove->hash;

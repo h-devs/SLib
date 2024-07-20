@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,32 +20,38 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/device/definition.h"
+#ifndef CHECKHEADER_SLIB_PLATFORM_APPLE_IOKIT
+#define CHECKHEADER_SLIB_PLATFORM_APPLE_IOKIT
 
-#if defined(SLIB_PLATFORM_IS_MACOS)
+#include "platform.h"
 
-#include "slib/device/device.h"
-
-#include "slib/platform.h"
+#include "slib/core/variant.h"
 
 namespace slib
 {
-
-	String Device::getDeviceId()
+	namespace apple
 	{
-		/* https://developer.apple.com/library/archive/technotes/tn1103/_index.html */
-		NSString* ret = nil;
-		io_service_t platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"));
-		if (platformExpert) {
-			CFTypeRef serialNumberAsCFString = IORegistryEntryCreateCFProperty(platformExpert, CFSTR(kIOPlatformSerialNumberKey), kCFAllocatorDefault, 0);
-			if (serialNumberAsCFString) {
-				ret = CFBridgingRelease(serialNumberAsCFString);
-			}
-			IOObjectRelease(platformExpert);
-		}
-		return Apple::getStringFromNSString(ret);
-	}
 
+		class SLIB_EXPORT IOKit
+		{
+		public:
+			static Variant getRegistryEntryPropertyValue(CFTypeRef cfValue);
+
+			static Variant getRegistryEntryProperty(io_registry_entry_t entry, CFStringRef key);
+
+			static sl_bool isRegistryEntryMatchingClass(io_registry_entry_t service, const char* className);
+
+			static io_registry_entry_t findRegistryEntry(io_registry_entry_t parent, const io_name_t plane, const char* className);
+
+			static void findServices(const char* className, const Function<sl_bool(io_service_t)>& callback);
+
+			static io_service_t findService(const char* className);
+
+			static Variant getServiceProperty(const char* className, CFStringRef key);
+
+		};
+
+	}
 }
 
 #endif

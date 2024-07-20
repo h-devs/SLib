@@ -179,7 +179,6 @@ namespace slib
 
 	String System::getSystemVersion()
 	{
-#define SYSTEM_VERSION_PLIST 
 		NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
 		if (dict != nil) {
 			NSString* info = [dict objectForKey:@"ProductVersion"];
@@ -225,6 +224,11 @@ namespace slib
 		return sl_null;
 	}
 
+	Time System::getInstalledTime()
+	{
+		return File::getModifiedTime("/var/db/.AppleSetupDone");
+	}
+
 	String System::getComputerName()
 	{
 #if defined(SLIB_PLATFORM_IS_MACOS)
@@ -255,7 +259,17 @@ namespace slib
 
 	sl_uint64 System::getTickCount64()
 	{
-		return clock_gettime_nsec_np(CLOCK_MONOTONIC) / 1000000;
+		return clock_gettime_nsec_np(CLOCK_UPTIME_RAW) / 1000000;
+	}
+
+	sl_uint64 System::getUptime()
+	{
+		return (sl_uint64)(clock_gettime_nsec_np(CLOCK_UPTIME_RAW_APPROX) / 1000000000);
+	}
+
+	double System::getUptimeF()
+	{
+		return (double)(clock_gettime_nsec_np(CLOCK_UPTIME_RAW_APPROX)) / 1000000000.0;
 	}
 
 }

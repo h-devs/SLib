@@ -42,9 +42,9 @@
 namespace slib
 {
 
+#if !defined(SLIB_PLATFORM_IS_MOBILE)
 	namespace
 	{
-
 		enum class ArgumentValue
 		{
 			None,
@@ -83,6 +83,7 @@ namespace slib
 			return ArgumentValue::None;
 		}
 	}
+#endif
 
 	SLIB_DEFINE_OBJECT(Service, Object)
 

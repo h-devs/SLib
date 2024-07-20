@@ -294,6 +294,7 @@ namespace slib
 		return (sl_uint64)(getTickCount64());
 	}
 
+#if !defined(SLIB_PLATFORM_IS_APPLE)
 	sl_uint64 System::getUptime()
 	{
 		String strUptime = File::readAllTextUTF8("/proc/uptime");
@@ -315,6 +316,7 @@ namespace slib
 		}
 		return 0;
 	}
+#endif
 
 	void System::sleep(sl_uint32 milliseconds)
 	{
@@ -354,7 +356,7 @@ namespace slib
 		StringBuffer sb;
 		char buf[1024];
 		for (;;) {
-			int ret = fread(buf, 1, sizeof(buf), fp);
+			sl_int32 ret = (sl_int32)(fread(buf, 1, sizeof(buf), fp));
 			if (ret > 0) {
 				sb.add(String(buf, (sl_size)ret));
 			} else {
@@ -372,7 +374,7 @@ namespace slib
 		if (!fp) {
 			return -1;
 		}
-		int ret = fread(output, 1, maxOutputSize, fp);
+		sl_int32 ret = (sl_int32)(fread(output, 1, maxOutputSize, fp));
 		pclose(fp);
 		return ret;
 	}

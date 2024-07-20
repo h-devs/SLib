@@ -157,7 +157,7 @@
 		26A3DA8E228A08D40031CBDA /* chacha.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26A3DA8D228A08D40031CBDA /* chacha.cpp */; };
 		26A3DA92228AFDDE0031CBDA /* poly1305.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26A3DA91228AFDDE0031CBDA /* poly1305.cpp */; };
 		26A3DA96228B698A0031CBDA /* ecc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26A3DA95228B69890031CBDA /* ecc.cpp */; };
-		26ACB3F82209872C0093FF3F /* device_id_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26ACB3F72209872B0093FF3F /* device_id_macos.mm */; };
+		26ACB3F82209872C0093FF3F /* device_info_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26ACB3F72209872B0093FF3F /* device_info_macos.mm */; };
 		26B92D4921D33E6E003F6F82 /* des.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26B92D4821D33E6E003F6F82 /* des.cpp */; };
 		26B92D6621D770F0003F6F82 /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26B92D6521D770F0003F6F82 /* device.cpp */; };
 		26B92D7021D7C237003F6F82 /* device_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26B92D6F21D7C237003F6F82 /* device_macos.mm */; };
@@ -398,8 +398,12 @@
 		D72A0895263B506000BCD333 /* lmdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0891263B505F00BCD333 /* lmdb.cpp */; };
 		D72A0896263B506000BCD333 /* key_value_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0892263B505F00BCD333 /* key_value_store.cpp */; };
 		D72A0897263B506000BCD333 /* leveldb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72A0893263B505F00BCD333 /* leveldb.cpp */; };
+		D7342F0F2C49EB31007838C5 /* disk_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = D7342F0E2C49EB31007838C5 /* disk_macos.mm */; };
+		D7342F132C4A5C16007838C5 /* iokit.mm in Sources */ = {isa = PBXBuildFile; fileRef = D7342F122C4A5C16007838C5 /* iokit.mm */; };
 		D738404B28F1A7A8005F5ED8 /* group_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D738404A28F1A7A8005F5ED8 /* group_box.cpp */; };
 		D765664A28F1B501002ED52F /* storage_volume_macos.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D765664928F1B501002ED52F /* storage_volume_macos.cpp */; };
+		D7A5B0242C4971E400CCEF43 /* device_audio_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = D7A5B0222C4970D800CCEF43 /* device_audio_macos.mm */; };
+		D7A5B0262C4971F800CCEF43 /* device_audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7A5B0252C4971F800CCEF43 /* device_audio.cpp */; };
 		D7B1C87926453EC200E60145 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF11B21AEE6BE004E58CB /* Cocoa.framework */; };
 		D7B1C8C22645432A00E60145 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF16E21B3FFE8004E58CB /* CoreImage.framework */; };
 		D7BF609C26311E1700E0B3DD /* decimal128.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7BF609B26311E1700E0B3DD /* decimal128.cpp */; };
@@ -412,7 +416,7 @@
 		D7BF60E626311F3600E0B3DD /* snappy_unity.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60E426311F3600E0B3DD /* snappy_unity.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7BF60F126311F7600E0B3DD /* lmdb_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60EF26311F7600E0B3DD /* lmdb_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7BF60FB26311FB700E0B3DD /* leveldb_unity.cc in Sources */ = {isa = PBXBuildFile; fileRef = D7BF60FA26311FB700E0B3DD /* leveldb_unity.cc */; settings = {COMPILER_FLAGS = "-w"; }; };
-		D7C3BAD026AEEB8D00FD529D /* brotli_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7C3BACF26AEEB8D00FD529D /* brotli_unity.c */; };
+		D7C3BAD026AEEB8D00FD529D /* brotli_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = D7C3BACF26AEEB8D00FD529D /* brotli_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D7C3BB0026AEEEC400FD529D /* pdf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C3BAFD26AEEEC400FD529D /* pdf.cpp */; };
 		D7C3BB0126AEEEC400FD529D /* rar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C3BAFE26AEEEC400FD529D /* rar.cpp */; };
 		D7C3BB0226AEEEC400FD529D /* zip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7C3BAFF26AEEEC400FD529D /* zip.cpp */; };
@@ -758,7 +762,7 @@
 		26A3DA91228AFDDE0031CBDA /* poly1305.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = poly1305.cpp; sourceTree = "<group>"; };
 		26A3DA95228B69890031CBDA /* ecc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ecc.cpp; sourceTree = "<group>"; };
 		26A4ECCE1CFE7FB700288A0B /* tree_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tree_view.cpp; sourceTree = "<group>"; };
-		26ACB3F72209872B0093FF3F /* device_id_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = device_id_macos.mm; sourceTree = "<group>"; };
+		26ACB3F72209872B0093FF3F /* device_info_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = device_info_macos.mm; sourceTree = "<group>"; };
 		26AE7CCB1D8450F80095AACA /* split_layout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = split_layout.cpp; sourceTree = "<group>"; };
 		26AFF77A1C34CE2B00AF9470 /* atomic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = atomic.cpp; sourceTree = "<group>"; };
 		26B0AF831C13E08600CD8673 /* bitmap_data.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bitmap_data.cpp; sourceTree = "<group>"; };
@@ -887,11 +891,12 @@
 		D72A0891263B505F00BCD333 /* lmdb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lmdb.cpp; sourceTree = "<group>"; };
 		D72A0892263B505F00BCD333 /* key_value_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = key_value_store.cpp; sourceTree = "<group>"; };
 		D72A0893263B505F00BCD333 /* leveldb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = leveldb.cpp; sourceTree = "<group>"; };
-		D738403D28F1A77E005F5ED8 /* x_button.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = x_button.cpp; sourceTree = "<group>"; };
-		D738403E28F1A77E005F5ED8 /* x_control.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = x_control.cpp; sourceTree = "<group>"; };
-		D738403F28F1A77E005F5ED8 /* x_edit_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = x_edit_view.cpp; sourceTree = "<group>"; };
+		D7342F0E2C49EB31007838C5 /* disk_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = disk_macos.mm; sourceTree = "<group>"; };
+		D7342F122C4A5C16007838C5 /* iokit.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = iokit.mm; sourceTree = "<group>"; };
 		D738404A28F1A7A8005F5ED8 /* group_box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = group_box.cpp; sourceTree = "<group>"; };
 		D765664928F1B501002ED52F /* storage_volume_macos.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = storage_volume_macos.cpp; sourceTree = "<group>"; };
+		D7A5B0222C4970D800CCEF43 /* device_audio_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = device_audio_macos.mm; sourceTree = "<group>"; };
+		D7A5B0252C4971F800CCEF43 /* device_audio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = device_audio.cpp; sourceTree = "<group>"; };
 		D7B1C87E26453EC200E60145 /* GenerateAppIcons */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenerateAppIcons; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7BF609B26311E1700E0B3DD /* decimal128.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = decimal128.cpp; sourceTree = "<group>"; };
 		D7BF60A926311E8B00E0B3DD /* zlib_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zlib_unity.c; path = ../../external/src/zlib/zlib_unity.c; sourceTree = "<group>"; };
@@ -1020,6 +1025,7 @@
 		1887E133202CCCF900A81967 /* apple */ = {
 			isa = PBXGroup;
 			children = (
+				D7342F122C4A5C16007838C5 /* iokit.mm */,
 				1887E134202CCCF900A81967 /* platform.mm */,
 			);
 			path = apple;
@@ -1037,15 +1043,11 @@
 			isa = PBXGroup;
 			children = (
 				18BE66DB2A0D315F00BFABA1 /* captcha */,
-				18BE66C02A0D315F00BFABA1 /* chat */,
 				18BE66DE2A0D315F00BFABA1 /* qrcode */,
 				18BE680A2A0D316000BFABA1 /* social */,
 				18BE68902A0D316100BFABA1 /* dbip */,
-				18BE68932A0D316100BFABA1 /* p2p */,
-				18BE68962A0D316100BFABA1 /* data_store */,
 				18BE689A2A0D316100BFABA1 /* pseudo_tcp */,
 				18BE689F2A0D316100BFABA1 /* file_encrypt */,
-				18BE68A22A0D316100BFABA1 /* log_package */,
 			);
 			name = extra;
 			path = ../../extra;
@@ -1249,9 +1251,12 @@
 			isa = PBXGroup;
 			children = (
 				26B92D6521D770F0003F6F82 /* device.cpp */,
+				D7A5B0252C4971F800CCEF43 /* device_audio.cpp */,
 				26B92D6F21D7C237003F6F82 /* device_macos.mm */,
-				26ACB3F72209872B0093FF3F /* device_id_macos.mm */,
+				D7A5B0222C4970D800CCEF43 /* device_audio_macos.mm */,
+				26ACB3F72209872B0093FF3F /* device_info_macos.mm */,
 				1887E152202CCD7000A81967 /* disk.cpp */,
+				D7342F0E2C49EB31007838C5 /* disk_macos.mm */,
 				1887E154202CCD7900A81967 /* performance.cpp */,
 				266DD4761C1193AB00D47AB0 /* sensor.cpp */,
 			);
@@ -1525,7 +1530,6 @@
 				264AF10721AECF7F004E58CB /* tool */,
 				28CE36531A0FEDC600AB513C /* Products */,
 				2605036A20CEC3C500032B2C /* Frameworks */,
-				D73E0F962AC2D6480039A9EA /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1726,16 +1730,6 @@
 			path = system;
 			sourceTree = "<group>";
 		};
-		D73E0F962AC2D6480039A9EA /* Recovered References */ = {
-			isa = PBXGroup;
-			children = (
-				D738403E28F1A77E005F5ED8 /* x_control.cpp */,
-				D738403F28F1A77E005F5ED8 /* x_edit_view.cpp */,
-				D738403D28F1A77E005F5ED8 /* x_button.cpp */,
-			);
-			name = "Recovered References";
-			sourceTree = "<group>";
-		};
 		D7C3BAFC26AEEEC400FD529D /* doc */ = {
 			isa = PBXGroup;
 			children = (
@@ -1764,7 +1758,6 @@
 				18BE6A682A0D316100BFABA1 /* pseudo_tcp_message.h in Headers */,
 				18BE68CA2A0D316100BFABA1 /* zxing.h in Headers */,
 				18BE69F52A0D316100BFABA1 /* facebook.h in Headers */,
-				18BE68BE2A0D316100BFABA1 /* chat.h in Headers */,
 				18BE6A5D2A0D316100BFABA1 /* pinterest.h in Headers */,
 				18BE69E62A0D316100BFABA1 /* alipay.h in Headers */,
 				18BE69F32A0D316100BFABA1 /* wechat.h in Headers */,
@@ -1984,7 +1977,6 @@
 				18BE68C52A0D316100BFABA1 /* captcha.cpp in Sources */,
 				18BE6A592A0D316100BFABA1 /* wechat_sdk.cpp in Sources */,
 				18BE6A692A0D316100BFABA1 /* pseudo_tcp_message.cpp in Sources */,
-				18BE6A612A0D316100BFABA1 /* p2p.cpp in Sources */,
 				18BE6A672A0D316100BFABA1 /* pseudo_tcp.cpp in Sources */,
 				18BE69F72A0D316100BFABA1 /* linkedin.cpp in Sources */,
 				18BE6A012A0D316100BFABA1 /* alipay_sdk.cpp in Sources */,
@@ -2027,6 +2019,7 @@
 				1887E144202CCD1100A81967 /* zstd.cpp in Sources */,
 				18F1E61320742FE200A47EE8 /* css.cpp in Sources */,
 				1847A9702A2B050C00E11B67 /* dhcp.cpp in Sources */,
+				D7A5B0242C4971E400CCEF43 /* device_audio_macos.mm in Sources */,
 				26D9D98F1E964675005F7BD3 /* video_capture.cpp in Sources */,
 				26D9D9551E964659005F7BD3 /* database_statement.cpp in Sources */,
 				26D9D9AE1E964683005F7BD3 /* render_drawable.cpp in Sources */,
@@ -2105,6 +2098,7 @@
 				26F53F7F22DB4F6D0031D485 /* date_picker_macos.mm in Sources */,
 				1887E155202CCD7A00A81967 /* performance.cpp in Sources */,
 				2628EAE921C410ED00D8CD00 /* jwt.cpp in Sources */,
+				D7A5B0262C4971F800CCEF43 /* device_audio.cpp in Sources */,
 				26D9D9A61E96467B005F7BD3 /* url.cpp in Sources */,
 				26D9D9571E964659005F7BD3 /* mysql.cpp in Sources */,
 				26D9D9771E96466A005F7BD3 /* image_stb.cpp in Sources */,
@@ -2192,7 +2186,7 @@
 				1887E151202CCD4300A81967 /* stringx.cpp in Sources */,
 				26539FB02374BA310064340D /* ui_notification.cpp in Sources */,
 				26D9D9911E964675005F7BD3 /* video_frame.cpp in Sources */,
-				26ACB3F82209872C0093FF3F /* device_id_macos.mm in Sources */,
+				26ACB3F82209872C0093FF3F /* device_info_macos.mm in Sources */,
 				26635CA322670708005E4BA6 /* ui_photo.cpp in Sources */,
 				1887E12C202CCC3B00A81967 /* async_unix.cpp in Sources */,
 				26D9D9B21E964683005F7BD3 /* texture.cpp in Sources */,
@@ -2227,6 +2221,7 @@
 				D7C3BB0226AEEEC400FD529D /* zip.cpp in Sources */,
 				18BE6A702A0D367600BFABA1 /* svg.cpp in Sources */,
 				26D9D9C31E96468D005F7BD3 /* linear_layout.cpp in Sources */,
+				D7342F0F2C49EB31007838C5 /* disk_macos.mm in Sources */,
 				26446D66249377BE00430AC5 /* list_box.cpp in Sources */,
 				D765664A28F1B501002ED52F /* storage_volume_macos.cpp in Sources */,
 				26D9D97E1E964675005F7BD3 /* audio_device.cpp in Sources */,
@@ -2367,6 +2362,7 @@
 				D738404B28F1A7A8005F5ED8 /* group_box.cpp in Sources */,
 				265A934A2301E43000B155A2 /* screen_capture_macos.mm in Sources */,
 				D7BF60C826311EBF00E0B3DD /* libjpeg_unity2.c in Sources */,
+				D7342F132C4A5C16007838C5 /* iokit.mm in Sources */,
 				26D9D9B61E96468D005F7BD3 /* camera_view.cpp in Sources */,
 				26D9D9B91E96468D005F7BD3 /* common_dialogs.cpp in Sources */,
 				26D9D94D1E9645CE005F7BD3 /* dispatch.cpp in Sources */,

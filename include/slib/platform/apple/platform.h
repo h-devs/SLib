@@ -56,15 +56,19 @@ namespace slib
 
 		static String32 getString32FromNSString(NSString* str);
 
-		static Time getTimeFromNSDate(NSDate* date);
-
-		static NSDate* getNSDateFromTime(const Time& time);
-
-		static String getFilePathFromNSURL(NSURL* url);
+		static String getStringFromNSData(NSData* str);
 
 		static Memory getMemoryFromNSData(NSData* data);
 
 		static NSData* getNSDataFromMemory(const MemoryView& mem);
+
+		static Time getTimeFromNSDate(NSDate* date);
+
+		static NSDate* getNSDateFromTime(const Time& time);
+
+		static Variant getVariantFromCFType(CFTypeRef value);
+		
+		static String getFilePathFromNSURL(NSURL* url);
 
 		static NSString* getSystemLocalizedNSString(NSString* key);
 #endif

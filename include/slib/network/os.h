@@ -56,11 +56,12 @@ namespace slib
 	class SLIB_EXPORT NetworkAdapterInfo
 	{
 	public:
-		sl_uint32 index; // Interface Index
-		String name;
+		sl_uint32 interfaceIndex;
+		String interfaceName;
+		String deviceName;
 		MacAddress macAddress;
 		sl_bool flagPhysical;
-		String pnpDeviceId;
+		String pnpDeviceId; // Used on Win32
 
 	public:
 		NetworkAdapterInfo();

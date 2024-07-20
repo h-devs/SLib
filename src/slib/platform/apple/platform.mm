@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,9 @@
 
 #if defined(SLIB_PLATFORM_IS_APPLE)
 
-#include "slib/core/memory.h"
 #include "slib/platform.h"
+
+#include "slib/core/variant.h"
 
 namespace slib
 {
@@ -93,29 +94,20 @@ namespace slib
 		return String32::fromUtf8(buf);
 	}
 
-	Time Apple::getTimeFromNSDate(NSDate* date)
+	String Apple::getStringFromNSData(NSData* data)
 	{
-		if (date == nil) {
-			return Time::zero();
-		}
-		Time time;
-		time.setSecondCountF([date timeIntervalSince1970]);
-		return time;
-	}
-
-	NSDate* Apple::getNSDateFromTime(const Time& time)
-	{
-		return [NSDate dateWithTimeIntervalSince1970:(time.getSecondCountF())];
-	}
-
-	String Apple::getFilePathFromNSURL(NSURL* url)
-	{
-		if (url != nil) {
-			String path = Apple::getStringFromNSString([url path]);
-			if (path.startsWith("file://")) {
-				path = path.substring(7);
+		if (data != nil) {
+			sl_size n = (sl_size)([data length]);
+			if (n > 0) {
+				String str = String::allocate(n);
+				if (str.isNotNull()) {
+					char* p = (char*)(str.getData());
+					[data enumerateByteRangesUsingBlock:^(const void* bytes, NSRange byteRange, BOOL* stop) {
+						Base::copyMemory(p + byteRange.location, bytes, byteRange.length);
+					}];
+					return str;
+				}
 			}
-			return path;
 		}
 		return sl_null;
 	}
@@ -144,6 +136,75 @@ namespace slib
 			return [NSData dataWithBytes:mem.data length:mem.size];
 		}
 		return nil;
+	}
+
+	Time Apple::getTimeFromNSDate(NSDate* date)
+	{
+		if (date == nil) {
+			return Time::zero();
+		}
+		Time time;
+		time.setSecondCountF([date timeIntervalSince1970]);
+		return time;
+	}
+
+	NSDate* Apple::getNSDateFromTime(const Time& time)
+	{
+		return [NSDate dateWithTimeIntervalSince1970:(time.getSecondCountF())];
+	}
+
+	Variant Apple::getVariantFromCFType(CFTypeRef cfValue)
+	{
+		Variant ret;
+		CFTypeID cfType = CFGetTypeID(cfValue);
+		if (cfType == CFBooleanGetTypeID()) {
+			ret = (sl_bool)(CFBooleanGetValue((CFBooleanRef)cfValue) != 0);
+		} else if (cfType == CFNumberGetTypeID()) {
+			CFNumberRef number = (CFNumberRef)cfValue;
+			CFNumberType type = CFNumberGetType(number);
+#define CASE_GET_NUMBER(TYPE, VALUE_TYPE) case TYPE: { VALUE_TYPE n = 0; if (CFNumberGetValue(number, type, &n)) { ret = n; }; break; }
+			switch (type) {
+				CASE_GET_NUMBER(kCFNumberSInt8Type, SInt8)
+				CASE_GET_NUMBER(kCFNumberSInt16Type, SInt16)
+				CASE_GET_NUMBER(kCFNumberSInt32Type, SInt32)
+				CASE_GET_NUMBER(kCFNumberSInt64Type, SInt64)
+				CASE_GET_NUMBER(kCFNumberFloat32Type, Float32)
+				CASE_GET_NUMBER(kCFNumberFloat64Type, Float64)
+				CASE_GET_NUMBER(kCFNumberCharType, char)
+				CASE_GET_NUMBER(kCFNumberShortType, short)
+				CASE_GET_NUMBER(kCFNumberIntType, int)
+				CASE_GET_NUMBER(kCFNumberLongType, long)
+				CASE_GET_NUMBER(kCFNumberLongLongType, long long)
+				CASE_GET_NUMBER(kCFNumberFloatType, float)
+				CASE_GET_NUMBER(kCFNumberDoubleType, double)
+				CASE_GET_NUMBER(kCFNumberCFIndexType, CFIndex)
+				CASE_GET_NUMBER(kCFNumberNSIntegerType, NSInteger)
+				CASE_GET_NUMBER(kCFNumberCGFloatType, CGFloat)
+				default:
+					ret = getStringFromNSString([(__bridge NSNumber*)number stringValue]);
+			}
+#undef CASE_GET_NUMBER
+		} else if (cfType == CFStringGetTypeID()) {
+			ret = Apple::getStringFromNSString((__bridge NSString*)cfValue);
+		} else if (cfType == CFDataGetTypeID()) {
+			ret = Apple::getMemoryFromNSData((__bridge NSData*)cfValue);
+		} else if (cfType == CFDateGetTypeID()) {
+			ret = Apple::getTimeFromNSDate((__bridge NSDate*)cfValue);
+		}
+		CFRelease(cfValue);
+		return ret;
+	}
+
+	String Apple::getFilePathFromNSURL(NSURL* url)
+	{
+		if (url != nil) {
+			String path = Apple::getStringFromNSString([url path]);
+			if (path.startsWith("file://")) {
+				path = path.substring(7);
+			}
+			return path;
+		}
+		return sl_null;
 	}
 
 	NSString* Apple::getSystemLocalizedNSString(NSString* str)

@@ -71,17 +71,6 @@ namespace slib
 
 	namespace
 	{
-		static sl_uint16 OneComplementMinus(sl_uint16 a, sl_uint16 b)
-		{
-			b = ~b;
-			sl_uint32 sum = a;
-			sum += b;
-			while (sum >> 16) {
-				sum = (sum >> 16) + (sum & 0xffff);
-			}
-			return sum;
-		}
-
 		static sl_uint16 GetUpdatedChecksum(sl_uint16 original, const IPv4Address& oldIP, const IPv4Address& newIP, sl_uint16 oldPort, sl_uint16 newPort)
 		{
 			sl_uint32 sum = (sl_uint16)(~original);

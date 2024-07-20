@@ -329,6 +329,9 @@ namespace slib
 		template <class T>
 		Variant(const Atomic<T>& t) noexcept: Variant(T(t)) {}
 
+		template <class T>
+		Variant(Atomic<T>&& t) noexcept: Variant(T(Move(t))) {}
+
 		Variant(const VariantWrapper& t) noexcept;
 	
 		Variant(VariantWrapper&& t) noexcept;

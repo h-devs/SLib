@@ -80,7 +80,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(NetworkAdapterInfo)
 
-	NetworkAdapterInfo::NetworkAdapterInfo(): index(0), flagPhysical(sl_false)
+	NetworkAdapterInfo::NetworkAdapterInfo(): interfaceIndex(0), flagPhysical(sl_false)
 	{
 	}
 
@@ -288,12 +288,13 @@ namespace slib
 	List<NetworkAdapterInfo> Network::getAdapters()
 	{
 		List<NetworkAdapterInfo> ret;
-		ListElements<VariantMap> items(win32::Wmi::getQueryResponseRecords(L"SELECT * FROM Win32_NetworkAdapter", L"Name", L"InterfaceIndex", L"MACAddress", L"PhysicalAdapter", L"PNPDeviceID"));
+		ListElements<VariantMap> items(win32::Wmi::getQueryResponseRecords(L"SELECT * FROM Win32_NetworkAdapter", L"Name", L"InterfaceIndex", L"NetConnectionID", L"MACAddress", L"PhysicalAdapter", L"PNPDeviceID"));
 		for (sl_size i = 0; i < items.count; i++) {
 			NetworkAdapterInfo adapter;
 			VariantMap& item = items[i];
-			adapter.index = item.getValue("InterfaceIndex").getUint32();
-			adapter.name = item.getValue("Name").getString();
+			adapter.interfaceIndex = item.getValue("InterfaceIndex").getUint32();
+			adapter.interfaceName = item.getValue("NetConnectionID").getString();
+			adapter.deviceName = item.getValue("Name").getString();
 			adapter.macAddress.parse(item.getValue("MACAddress").getString());
 			adapter.flagPhysical = item.getValue("PhysicalAdapter").getBoolean();
 			adapter.pnpDeviceId = item.getValue("PNPDeviceID").getString();
@@ -582,10 +583,10 @@ namespace slib
 #endif
 	}
 
-	// Reference: PcapPlusPlus (https://github.com/seladb/PcapPlusPlus/blob/master/Pcap%2B%2B/src/PcapLiveDevice.cpp#setDefaultGateway)
 	IPv4Address Network::getDefaultGateway(const StringParam& _interfaceName)
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
+		// Reference: PcapPlusPlus (https://github.com/seladb/PcapPlusPlus/blob/master/Pcap%2B%2B/src/PcapLiveDevice.cpp#setDefaultGateway)
 		auto funcGetAdaptersInfo = iphlpapi::getApi_GetAdaptersInfo();
 		if (!funcGetAdaptersInfo) {
 			return IPv4Address::zero();

@@ -441,6 +441,7 @@
 				DEVELOPMENT_TEAM = 56WV5U3VJT;
 				HEADER_SEARCH_PATHS = "$(SLIB_PATH)/include";
 				INFOPLIST_FILE = project/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				OTHER_LDFLAGS = "-lslib";
@@ -460,6 +461,7 @@
 				DEVELOPMENT_TEAM = 56WV5U3VJT;
 				HEADER_SEARCH_PATHS = "$(SLIB_PATH)/include";
 				INFOPLIST_FILE = project/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(SLIB_PATH)/lib/iOS/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				OTHER_LDFLAGS = "-lslib";

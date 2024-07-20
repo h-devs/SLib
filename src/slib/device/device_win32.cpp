@@ -204,11 +204,12 @@ namespace slib
 	List<SoundDeviceInfo> Device::getSoundDevices()
 	{
 		List<SoundDeviceInfo> ret;
-		ListElements<VariantMap> items(win32::Wmi::getQueryResponseRecords(L"SELECT * FROM Win32_SoundDevice", L"Name", L"PNPDeviceID"));
+		ListElements<VariantMap> items(win32::Wmi::getQueryResponseRecords(L"SELECT * FROM Win32_SoundDevice", L"Name", L"Manufacturer", L"PNPDeviceID"));
 		for (sl_size i = 0; i < items.count; i++) {
 			SoundDeviceInfo dev;
 			VariantMap& item = items[i];
 			dev.name = item.getValue("Name").getString();
+			dev.manufacturer = item.getValue("Manufacturer").getString();
 			dev.pnpDeviceId = item.getValue("PNPDeviceID").getString();
 			ret.add_NoLock(Move(dev));
 		}

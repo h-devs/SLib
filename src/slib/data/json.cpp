@@ -49,6 +49,16 @@ namespace slib
 		other._retain_construct(this);
 	}
 
+	Json::Json(Atomic<Json>& other)
+	{
+		other._retain_construct(this);
+	}
+
+	Json::Json(Atomic<Json>&& other)
+	{
+		other._retain_construct_move(this);
+	}
+
 	Json::Json(const Variant& other): Variant(other)
 	{
 	}
@@ -58,6 +68,10 @@ namespace slib
 	}
 
 	Json::Json(const Atomic<Variant>& other): Variant(other)
+	{
+	}
+
+	Json::Json(Atomic<Variant>&& other): Variant(Move(other))
 	{
 	}
 

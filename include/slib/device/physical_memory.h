@@ -40,7 +40,7 @@ namespace slib
 	{
 	public:
 		sl_uint64 capacity;
-		sl_uint32 speed;
+		sl_uint32 speed; // MHz
 		String bank;
 		String serialNumber;
 

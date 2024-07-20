@@ -30,8 +30,6 @@
 #include "slib/io/file.h"
 #include "slib/core/stringx.h"
 
-#include <stdio.h>
-
 namespace slib
 {
 

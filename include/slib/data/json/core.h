@@ -50,11 +50,17 @@ namespace slib
 
 		Json(const Atomic<Json>& other);
 
+		Json(Atomic<Json>& other);
+
+		Json(Atomic<Json>&& other);
+
 		Json(const Variant& other);
 
 		Json(Variant&& other);
 
 		Json(const Atomic<Variant>& other);
+
+		Json(Atomic<Variant>&& other);
 
 		~Json();
 
@@ -360,6 +366,12 @@ namespace slib
 		String toString() const;
 
 	};
+
+	template <>
+	Variant::Variant(const Atomic<Json>& t) noexcept;
+
+	template <>
+	Variant::Variant(Atomic<Json>&& t) noexcept;
 
 	class SLIB_EXPORT JsonItem : public Pair<String, Json>
 	{
