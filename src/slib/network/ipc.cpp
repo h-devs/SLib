@@ -319,28 +319,28 @@ namespace slib
 		public:
 			static Ref<SocketServer> create(const IPCServerParam& param)
 			{
-				AsyncDomainSocketServerParam serverParam;
-#if defined(SLIB_PLATFORM_IS_LINUX)
-				serverParam.bindPath = AbstractDomainSocketPath(param.name);
-#else
-				String path = GetDomainName(param.name);
-				File::deleteFile(path);
-				serverParam.bindPath = DomainSocketPath(path);
-#if !defined(SLIB_PLATFORM_IS_WINDOWS)
-				if (param.flagAcceptOtherUsers) {
-					File::setAttributes(path, FileAttributes::AllAccess);
-				}
-#endif
-#endif
 				Ref<SocketServer> ret = new SocketServer;
 				if (ret.isNotNull()) {
 					if (ret->initialize(param)) {
+						AsyncDomainSocketServerParam serverParam;
+#if defined(SLIB_PLATFORM_IS_LINUX)
+						serverParam.bindPath = AbstractDomainSocketPath(param.name);
+#else
+						String path = GetDomainName(param.name);
+						File::deleteFile(path);
+						serverParam.bindPath = DomainSocketPath(path);
+#endif
 						serverParam.ioLoop = ret->m_ioLoop;
 						serverParam.onAccept = SLIB_FUNCTION_WEAKREF(ret, onAccept);
 						Ref<AsyncDomainSocketServer> server = AsyncDomainSocketServer::create(serverParam);
 						if (server.isNotNull()) {
 							ret->m_server = server;
 							ret->m_ioLoop->start();
+#if !defined(SLIB_PLATFORM_IS_WINDOWS)
+							if (param.flagAcceptOtherUsers) {
+								File::setAttributes(path, FileAttributes::AllAccess);
+							}
+#endif
 							return ret;
 						}
 					}

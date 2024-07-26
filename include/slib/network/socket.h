@@ -237,11 +237,11 @@ namespace slib
 
 		Socket accept(DomainSocketPath& path) const noexcept;
 
-		sl_bool connect(const SocketAddress& address) const noexcept;
+		sl_bool connect(const SocketAddress& address, sl_bool* pFlagWouldBlock = sl_null) const noexcept;
 
 		sl_bool connectAndWait(const SocketAddress& address, sl_int32 timeout = -1) const noexcept;
 
-		sl_bool connect(const DomainSocketPath& path) const noexcept;
+		sl_bool connect(const DomainSocketPath& path, sl_bool* pFlagWouldBlock = sl_null) const noexcept;
 
 		sl_bool connectAndWait(const DomainSocketPath& path, sl_int32 timeout = -1) const noexcept;
 

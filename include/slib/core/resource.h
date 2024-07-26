@@ -85,7 +85,7 @@ namespace slib
 #define SLIB_DEFINE_STRING_RESOURCE_SIMPLE(NAME, VALUE) \
 	namespace NAME { \
 		SLIB_STATIC_STRING(def, VALUE) \
-		static slib::String _get(const slib::Locale& locale, const slib::String& _def) { return _def; } \
+		slib::String _get(const slib::Locale& locale, const slib::String& _def) { return _def; } \
 		slib::String get(const slib::Locale& locale) { return def; } \
 		slib::String get() { return def; } \
 	}

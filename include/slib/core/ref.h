@@ -1519,12 +1519,13 @@ namespace slib
 	SLIB_INLINE static Ref<T> CastRef(Ref<OTHER>&& object) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(OTHER*, CRef*)
+		Ref<T> ret;
 		if (object.isNotNull()) {
 			if (object->isInstanceOf(T::ObjectType())) {
-				return Move(*(reinterpret_cast<Ref<T>*>(&object)));
+				ret = Move(*(reinterpret_cast<Ref<T>*>(&object)));
 			}
 		}
-		return sl_null;
+		return ret;
 	}
 
 	template <class T, class OTHER>
@@ -1543,12 +1544,17 @@ namespace slib
 	SLIB_INLINE static const Ref<T> CastRef(Ref<OTHER>&& object, DEF&& def) noexcept
 	{
 		SLIB_TRY_CONVERT_TYPE(OTHER*, CRef*)
+		Ref<T> ret;
 		if (object.isNotNull()) {
 			if (object->isInstanceOf(T::ObjectType())) {
-				return Move(*(reinterpret_cast<Ref<T>*>(&object)));
+				ret = Move(*(reinterpret_cast<Ref<T>*>(&object)));
+			} else {
+				ret = Forward<DEF>(def);
 			}
+		} else {
+			ret = Forward<DEF>(def);
 		}
-		return Forward<DEF>(def);
+		return ret;
 	}
 
 	template <class T>

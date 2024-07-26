@@ -1482,7 +1482,9 @@ namespace slib
 			SVMTControl control_var[446 / (3 + 1) + 3];
 			SVMTControl control_pre[446 / (5 + 1) + 3];
 			sl_int32 ncb_pre = RecodeWnaf(control_pre, scalar1, 5);
+			SLIB_UNUSED(ncb_pre)
 			sl_int32 ncb_var = RecodeWnaf(control_var, scalar2, 3);
+			SLIB_UNUSED(ncb_var)
 
 			PNield precmp_var[8];
 			PrepareWnafTable(precmp_var, base2, 3);

@@ -4965,17 +4965,21 @@ namespace slib
 	\
 	STRING STRING::operator+(STRING&& _other) const& noexcept \
 	{ \
+		STRING ret; \
 		Container* other = _other.m_container; \
 		if (other) { \
 			if (isEmpty()) { \
-				return Move(_other); \
-			} \
-			if (other->len) { \
+				ret = Move(_other); \
+			} else if (other->len) { \
 				Container* thiz = m_container; \
-				return Concat<Container>(thiz->data, thiz->len, other->data, other->len); \
+				ret = Concat<Container>(thiz->data, thiz->len, other->data, other->len); \
+			} else { \
+				ret = *this; \
 			} \
+		} else { \
+			ret = *this; \
 		} \
-		return *this; \
+		return ret; \
 	} \
 	\
 	STRING STRING::operator+(const STRING& _other) const& noexcept \
@@ -5023,56 +5027,76 @@ namespace slib
 	\
 	STRING STRING::operator+(STRING&& _other)&& noexcept \
 	{ \
+		STRING ret; \
 		Container* other = _other.m_container; \
 		if (other) { \
 			if (isEmpty()) { \
-				return Move(_other); \
+				ret = Move(_other); \
+			} else { \
+				if (other->len) { \
+					Append<Container>(m_container, other->data, other->len); \
+				} \
+				ret = Move(*this); \
 			} \
-			if (other->len) { \
-				Append<Container>(m_container, other->data, other->len); \
-			} \
+		} else { \
+			ret = Move(*this); \
 		} \
-		return Move(*this); \
+		return ret; \
 	} \
 	\
 	STRING STRING::operator+(const STRING& _other)&& noexcept \
 	{ \
+		STRING ret; \
 		Container* other = _other.m_container; \
 		if (other) { \
 			if (isEmpty()) { \
-				return _other; \
+				ret = _other; \
+			} else { \
+				if (other->len) { \
+					Append<Container>(m_container, other->data, other->len); \
+				} \
+				ret = Move(*this); \
 			} \
-			if (other->len) { \
-				Append<Container>(m_container, other->data, other->len); \
-			} \
+		} else { \
+			ret = Move(*this); \
 		} \
-		return Move(*this); \
+		return ret; \
 	} \
 	\
 	STRING STRING::operator+(typename STRING::StringViewType const& other)&& noexcept \
 	{ \
+		STRING ret; \
 		if (other.isNotNull()) { \
 			if (isEmpty()) { \
-				return other; \
+				ret = other; \
+			} else { \
+				if (other.isNotEmpty()) { \
+					Append<Container>(m_container, other.getData(), other.getUnsafeLength()); \
+				} \
+				ret = Move(*this); \
 			} \
-			if (other.isNotEmpty()) { \
-				Append<Container>(m_container, other.getData(), other.getUnsafeLength()); \
-			} \
+		} else { \
+			ret = Move(*this); \
 		} \
-		return Move(*this); \
+		return ret; \
 	} \
 	\
 	STRING STRING::operator+(typename STRING::Char const* sz)&& noexcept \
 	{ \
+		STRING ret; \
 		if (sz) { \
 			if (isEmpty()) { \
-				return sz; \
+				ret = sz; \
+			} else { \
+				if (*sz) { \
+					Append<Container>(m_container, sz, -1); \
+				} \
+				ret = Move(*this); \
 			} \
-			if (*sz) { \
-				Append<Container>(m_container, sz, -1); \
-			} \
+		} else { \
+			ret = Move(*this); \
 		} \
-		return Move(*this); \
+		return ret; \
 	} \
 	\
 	STRING operator+(typename STRING::Char const* sz, const STRING& str) noexcept \

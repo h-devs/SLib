@@ -102,24 +102,24 @@ namespace slib
 		{
 			int styleMask;
 			if (window->isSheet()) {
-				styleMask = NSTitledWindowMask;
+				styleMask = NSWindowStyleMaskTitled;
 			} else {
 				if (window->isBorderless()) {
-					styleMask = NSBorderlessWindowMask;
+					styleMask = NSWindowStyleMaskBorderless | NSWindowStyleMaskMiniaturizable;
 				} else {
 					if (window->isTitleBarVisible()) {
-						styleMask = NSTitledWindowMask;
+						styleMask = NSWindowStyleMaskTitled;
 					} else {
-						styleMask = NSClosableWindowMask | NSMiniaturizableWindowMask;
+						styleMask = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
 					}
 					if (window->isCloseButtonEnabled()) {
-						styleMask |= NSClosableWindowMask;
+						styleMask |= NSWindowStyleMaskClosable;
 					}
 					if (window->isMinimizeButtonEnabled()) {
-						styleMask |= NSMiniaturizableWindowMask;
+						styleMask |= NSWindowStyleMaskMiniaturizable;
 					}
 					if (window->isResizable()) {
-						styleMask |= NSResizableWindowMask;
+						styleMask |= NSWindowStyleMaskResizable;
 					}
 				}
 			}
@@ -526,16 +526,16 @@ namespace slib
 				NSWindow* window = m_window;
 				if (window != nil) {
 					NSUInteger style = [window styleMask];
-					if (!(style & NSTitledWindowMask)) {
+					if (!(style & NSWindowStyleMaskTitled)) {
 						return;
 					}
-					sl_bool f1 = (style & NSClosableWindowMask) ? sl_true : sl_false;
+					sl_bool f1 = (style & NSWindowStyleMaskClosable) ? sl_true : sl_false;
 					sl_bool f2 = flag ? sl_true : sl_false;
 					if (f1 != f2) {
 						if (flag) {
-							style = style | NSClosableWindowMask;
+							style = style | NSWindowStyleMaskClosable;
 						} else {
-							style = style & (~NSClosableWindowMask);
+							style = style & (~NSWindowStyleMaskClosable);
 						}
 						[window setStyleMask:style];
 					}
@@ -547,16 +547,16 @@ namespace slib
 				NSWindow* window = m_window;
 				if (window != nil) {
 					NSUInteger style = [window styleMask];
-					if (!(style & NSTitledWindowMask)) {
+					if (!(style & NSWindowStyleMaskTitled)) {
 						return;
 					}
-					sl_bool f1 = (style & NSMiniaturizableWindowMask) ? sl_true : sl_false;
+					sl_bool f1 = (style & NSWindowStyleMaskMiniaturizable) ? sl_true : sl_false;
 					sl_bool f2 = flag ? sl_true : sl_false;
 					if (f1 != f2) {
 						if (flag) {
-							style = style | NSMiniaturizableWindowMask;
+							style = style | NSWindowStyleMaskMiniaturizable;
 						} else {
-							style = style & (~NSMiniaturizableWindowMask);
+							style = style & (~NSWindowStyleMaskMiniaturizable);
 						}
 						[window setStyleMask:style];
 					}
@@ -584,13 +584,13 @@ namespace slib
 				NSWindow* window = m_window;
 				if (window != nil) {
 					NSUInteger style = [window styleMask];
-					sl_bool f1 = (style & NSResizableWindowMask) ? sl_true : sl_false;
+					sl_bool f1 = (style & NSWindowStyleMaskResizable) ? sl_true : sl_false;
 					sl_bool f2 = flag ? sl_true : sl_false;
 					if (f1 != f2) {
 						if (flag) {
-							style = style | NSResizableWindowMask;
+							style = style | NSWindowStyleMaskResizable;
 						} else {
-							style = style & (~NSResizableWindowMask);
+							style = style & (~NSWindowStyleMaskResizable);
 						}
 						[window setStyleMask:style];
 					}

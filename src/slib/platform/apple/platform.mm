@@ -26,6 +26,8 @@
 
 #include "slib/platform.h"
 
+#include "slib/system/system.h"
+#include "slib/core/stringx.h"
 #include "slib/core/variant.h"
 
 namespace slib
@@ -155,14 +157,13 @@ namespace slib
 
 	Variant Apple::getVariantFromCFType(CFTypeRef cfValue)
 	{
-		Variant ret;
 		CFTypeID cfType = CFGetTypeID(cfValue);
 		if (cfType == CFBooleanGetTypeID()) {
-			ret = (sl_bool)(CFBooleanGetValue((CFBooleanRef)cfValue) != 0);
+			return (sl_bool)(CFBooleanGetValue((CFBooleanRef)cfValue) != 0);
 		} else if (cfType == CFNumberGetTypeID()) {
 			CFNumberRef number = (CFNumberRef)cfValue;
 			CFNumberType type = CFNumberGetType(number);
-#define CASE_GET_NUMBER(TYPE, VALUE_TYPE) case TYPE: { VALUE_TYPE n = 0; if (CFNumberGetValue(number, type, &n)) { ret = n; }; break; }
+#define CASE_GET_NUMBER(TYPE, VALUE_TYPE) case TYPE: { VALUE_TYPE n = 0; if (CFNumberGetValue(number, type, &n)) { return n; }; break; }
 			switch (type) {
 				CASE_GET_NUMBER(kCFNumberSInt8Type, SInt8)
 				CASE_GET_NUMBER(kCFNumberSInt16Type, SInt16)
@@ -181,18 +182,17 @@ namespace slib
 				CASE_GET_NUMBER(kCFNumberNSIntegerType, NSInteger)
 				CASE_GET_NUMBER(kCFNumberCGFloatType, CGFloat)
 				default:
-					ret = getStringFromNSString([(__bridge NSNumber*)number stringValue]);
+					return getStringFromNSString([(__bridge NSNumber*)number stringValue]);
 			}
 #undef CASE_GET_NUMBER
 		} else if (cfType == CFStringGetTypeID()) {
-			ret = Apple::getStringFromNSString((__bridge NSString*)cfValue);
+			return Apple::getStringFromNSString((__bridge NSString*)cfValue);
 		} else if (cfType == CFDataGetTypeID()) {
-			ret = Apple::getMemoryFromNSData((__bridge NSData*)cfValue);
+			return Apple::getMemoryFromNSData((__bridge NSData*)cfValue);
 		} else if (cfType == CFDateGetTypeID()) {
-			ret = Apple::getTimeFromNSDate((__bridge NSDate*)cfValue);
+			return Apple::getTimeFromNSDate((__bridge NSDate*)cfValue);
 		}
-		CFRelease(cfValue);
-		return ret;
+		return Variant();
 	}
 
 	String Apple::getFilePathFromNSURL(NSURL* url)
@@ -216,6 +216,23 @@ namespace slib
 		}
 #endif
 		return str;
+	}
+
+	String Apple::runAppleScript(const StringParam& script, sl_bool flagExternalProcess)
+	{
+		if (flagExternalProcess) {
+			StringData s(script);
+			return System::getCommandOutput("osascript -e " + Stringx::applyBackslashEscapes(s));
+		} else {
+			NSAppleScript* as = [[NSAppleScript alloc] initWithSource:getNSStringFromString(script)];
+			if (as != nil) {
+				NSAppleEventDescriptor* desc = [as executeAndReturnError:nil];
+				if (desc != nil) {
+					return getStringFromNSString([desc stringValue]);
+				}
+			}
+		}
+		return sl_null;
 	}
 
 }

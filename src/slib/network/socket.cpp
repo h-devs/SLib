@@ -101,7 +101,8 @@ namespace slib
 	}
 
 
-	namespace {
+	namespace
+	{
 		SLIB_INLINE static void CloseSocket(sl_socket socket) noexcept
 		{
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
@@ -596,6 +597,7 @@ namespace slib
 			if (client != SLIB_SOCKET_INVALID_HANDLE) {
 				if (path.setSystemSocketAddress(&addr, (sl_uint32)len)) {
 					socket = Move(client);
+					return sl_true;
 				} else {
 					_setError(SocketError::Invalid);
 				}
@@ -615,7 +617,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool Socket::connect(const SocketAddress& address) const noexcept
+	sl_bool Socket::connect(const SocketAddress& address, sl_bool* pFlagWouldBlock) const noexcept
 	{
 		if (isOpened()) {
 			sockaddr_storage addr;
@@ -623,14 +625,22 @@ namespace slib
 			if (sizeAddr) {
 				int ret = ::connect(m_socket, (sockaddr*)&addr, sizeAddr);
 				if (ret != SOCKET_ERROR) {
+					if (pFlagWouldBlock) {
+						*pFlagWouldBlock = sl_false;
+					}
 					return sl_true;
 				} else {
 					SocketError e = _checkError();
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-					return (e == SocketError::WouldBlock);
+					if (e == SocketError::WouldBlock) {
 #else
-					return (e == SocketError::InProgress);
+					if (e == SocketError::InProgress) {
 #endif
+						if (pFlagWouldBlock) {
+							*pFlagWouldBlock = sl_true;
+						}
+						return sl_false;
+					}
 				}
 			} else {
 				_setError(SocketError::Invalid);
@@ -638,10 +648,13 @@ namespace slib
 		} else {
 			_setError(SocketError::Closed);
 		}
+		if (pFlagWouldBlock) {
+			*pFlagWouldBlock = sl_false;
+		}
 		return sl_false;
 	}
 
-	sl_bool Socket::connect(const DomainSocketPath& path) const noexcept
+	sl_bool Socket::connect(const DomainSocketPath& path, sl_bool* pFlagWouldBlock) const noexcept
 	{
 		if (isOpened()) {
 			sockaddr_un addr;
@@ -649,20 +662,31 @@ namespace slib
 			if (sizeAddr) {
 				int ret = ::connect(m_socket, (sockaddr*)&addr, (int)sizeAddr);
 				if (ret != SOCKET_ERROR) {
+					if (pFlagWouldBlock) {
+						*pFlagWouldBlock = sl_false;
+					}
 					return sl_true;
 				} else {
 					SocketError e = _checkError();
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-					return (e == SocketError::WouldBlock);
+					if (e == SocketError::WouldBlock) {
 #else
-					return (e == SocketError::InProgress);
+					if (e == SocketError::InProgress) {
 #endif
+						if (pFlagWouldBlock) {
+							*pFlagWouldBlock = sl_true;
+						}
+						return sl_false;
+					}
 				}
 			} else {
 				_setError(SocketError::Invalid);
 			}
 		} else {
 			_setError(SocketError::Closed);
+		}
+		if (pFlagWouldBlock) {
+			*pFlagWouldBlock = sl_false;
 		}
 		return sl_false;
 	}
@@ -1231,7 +1255,8 @@ namespace slib
 		return SLIB_IO_ERROR;
 	}
 
-	namespace {
+	namespace
+	{
 		static sl_bool SetNonBlocking(sl_socket fd, sl_bool flagEnable) noexcept
 		{
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
@@ -1259,7 +1284,8 @@ namespace slib
 	}
 
 #if defined(SLIB_PLATFORM_IS_LINUX)
-	namespace {
+	namespace
+	{
 		static sl_bool SetPromiscuousMode(sl_socket fd, const char* deviceName, sl_bool flagEnable) noexcept
 		{
 			ifreq ifopts;

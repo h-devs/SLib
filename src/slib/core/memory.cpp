@@ -795,18 +795,22 @@ namespace slib
 
 	Memory Memory::operator+(const MemoryView& other) const& noexcept
 	{
-		if (!(other.size)) {
+		if (other.size) {
+			return Concat(*this, other);
+		} else {
 			return *this;
 		}
-		return Concat(*this, other);
 	}
 
 	Memory Memory::operator+(const MemoryView& other) && noexcept
 	{
-		if (!(other.size)) {
-			return Move(*this);
+		Memory ret;
+		if (other.size) {
+			ret = Concat(*this, other);
+		} else {
+			ret = Move(*this);
 		}
-		return Concat(*this, other);
+		return ret;
 	}
 
 	Memory Memory::operator+(const Memory& other) const& noexcept
@@ -822,35 +826,41 @@ namespace slib
 
 	Memory Memory::operator+(const Memory& other) && noexcept
 	{
+		Memory ret;
 		if (isNull()) {
-			return other;
+			ret = other;
+		} else if (other.isNull()) {
+			ret = Move(*this);
+		} else {
+			ret = Concat(*this, other);
 		}
-		if (other.isNull()) {
-			return Move(*this);
-		}
-		return Concat(*this, other);
+		return ret;
 	}
 
 	Memory Memory::operator+(Memory&& other) const& noexcept
 	{
+		Memory ret;
 		if (isNull()) {
-			return Move(other);
+			ret = Move(other);
+		} else if (other.isNull()) {
+			ret = *this;
+		} else {
+			ret = Concat(*this, other);
 		}
-		if (other.isNull()) {
-			return *this;
-		}
-		return Concat(*this, other);
+		return ret;
 	}
 
 	Memory Memory::operator+(Memory&& other) && noexcept
 	{
+		Memory ret;
 		if (isNull()) {
-			return Move(other);
+			ret = Move(other);
+		} else if (other.isNull()) {
+			ret = Move(*this);
+		} else {
+			ret = Concat(*this, other);
 		}
-		if (other.isNull()) {
-			return Move(*this);
-		}
-		return Concat(*this, other);
+		return ret;
 	}
 
 	sl_bool Memory::serialize(MemoryBuffer* output) const
@@ -953,10 +963,13 @@ namespace slib
 
 	Memory MemoryView::operator+(Memory&& other) const noexcept
 	{
+		Memory ret;
 		if (!size) {
-			return Move(other);
+			ret = Move(other);
+		} else {
+			ret = Concat(*this, other);
 		}
-		return Concat(*this, other);
+		return ret;
 	}
 
 	sl_compare_result MemoryView::compare(const MemoryView& other) const noexcept

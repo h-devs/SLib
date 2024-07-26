@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -29,39 +29,26 @@
 #include "slib/system/system.h"
 #include "slib/platform.h"
 
-#include <AppKit/AppKit.h>
+#import <ServiceManagement/ServiceManagement.h>
 
 namespace slib
 {
 
-	sl_bool Application::isAccessibilityEnabled()
+	namespace
 	{
-		return AXIsProcessTrustedWithOptions(NULL) != FALSE;
-	}
-
-	void Application::authenticateAccessibility()
-	{
-		NSDictionary *options = @{(__bridge NSString*)kAXTrustedCheckOptionPrompt: @YES};
-		AXIsProcessTrustedWithOptions((CFDictionaryRef)options);
-	}
-
-	void Application::openSystemPreferencesForAccessibility()
-	{
-		[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"]];
-	}
-
-	namespace {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 		static void SetBundleLoginItemEnabled(const StringParam& path, sl_bool flagEnabled)
 		{
 			if (path.isEmpty()) {
 				return;
 			}
-
+			
 			NSURL *itemURL = [NSURL fileURLWithPath:(Apple::getNSStringFromString(path))];
 			LSSharedFileListItemRef existingItem = NULL;
-
+			
 			LSSharedFileListRef loginItems = LSSharedFileListCreate(NULL, kLSSharedFileListSessionLoginItems, NULL);
-
+			
 			if(loginItems) {
 				UInt32 seed = 0U;
 				NSArray *currentLoginItems = CFBridgingRelease(LSSharedFileListCopySnapshot(loginItems, &seed));
@@ -91,6 +78,25 @@ namespace slib
 				CFRelease(loginItems);
 			}
 		}
+#pragma clang diagnostic pop
+
+		static void SetBundleLoginItemEnabled(sl_bool flagEnabled)
+		{
+			if (@available(macos 13.0, *)) {
+				if (flagEnabled) {
+					[[SMAppService mainAppService] registerAndReturnError:nil];
+				} else {
+					[[SMAppService mainAppService] unregisterAndReturnError:nil];
+				}
+			} else {
+				SetBundleLoginItemEnabled(System::getMainBundlePath(), flagEnabled);
+			}
+		}
+	}
+
+	void Application::registerRunAtStartup(const StringParam& appName, const StringParam& path)
+	{
+		registerRunAtStartup(path);
 	}
 
 	void Application::registerRunAtStartup(const StringParam& path)
@@ -100,7 +106,7 @@ namespace slib
 
 	void Application::registerRunAtStartup()
 	{
-		SetBundleLoginItemEnabled(System::getMainBundlePath(), sl_true);
+		SetBundleLoginItemEnabled(sl_true);
 	}
 
 	void Application::unregisterRunAtStartup(const StringParam& path)
@@ -110,7 +116,7 @@ namespace slib
 
 	void Application::unregisterRunAtStartup()
 	{
-		SetBundleLoginItemEnabled(System::getMainBundlePath(), sl_false);
+		SetBundleLoginItemEnabled(sl_false);
 	}
 
 }

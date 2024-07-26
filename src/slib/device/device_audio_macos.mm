@@ -26,6 +26,8 @@
 
 #include "slib/device/device.h"
 
+#include "slib/core/scoped_buffer.h"
+
 #include <CoreAudio/CoreAudio.h>
 #include <AudioToolbox/AudioToolbox.h>
 
@@ -195,6 +197,42 @@ namespace slib
 				setMicrophoneVolume(savedVolume);
 			}
 		}
+	}
+
+	sl_bool Device::isUsingMicrophone()
+	{
+		AudioObjectPropertyAddress address;
+		address.mSelector = kAudioHardwarePropertyDevices;
+		address.mScope = kAudioObjectPropertyScopeGlobal;
+		address.mElement = kAudioObjectPropertyElementMain;
+		UInt32 nDataSize = 0;
+		AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &address, 0, nil, &nDataSize);
+		sl_uint32 nDevices = nDataSize / sizeof(AudioDeviceID);
+		SLIB_SCOPED_BUFFER(AudioDeviceID, 64, deviceIds, nDevices)
+		if (!deviceIds) {
+			return sl_false;
+		}
+		sl_bool bRet = sl_false;
+		if (AudioObjectGetPropertyData(kAudioObjectSystemObject, &address, 0, nil, &nDataSize, deviceIds) == noErr) {
+			for (sl_uint32 i = 0; i < nDevices; i++) {
+				AudioDeviceID deviceId = deviceIds[i];
+				address.mSelector = kAudioDevicePropertyStreams;
+				address.mScope = kAudioDevicePropertyScopeInput;
+				nDataSize = 0;
+				AudioObjectGetPropertyDataSize(deviceId, &address, 0, nil, &nDataSize);
+				if (nDataSize) {
+					UInt32 flagRunning = 0;
+					address.mSelector = kAudioDevicePropertyDeviceIsRunningSomewhere;
+					nDataSize = sizeof(flagRunning);
+					if (AudioObjectGetPropertyData(deviceId, &address, 0, nil, &nDataSize, &flagRunning) == noErr) {
+						if (flagRunning) {
+							bRet = sl_true;
+						}
+					}
+				}
+			}
+		}
+		return bRet;
 	}
 
 }

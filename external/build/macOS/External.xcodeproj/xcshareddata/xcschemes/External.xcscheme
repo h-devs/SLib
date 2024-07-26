@@ -42,20 +42,6 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "26D15C351E93A952003BD61A"
-               BuildableName = "libfreetype.a"
-               BlueprintName = "freetype"
-               ReferencedContainer = "container:External.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
                BlueprintIdentifier = "26D15C3F1E93A966003BD61A"
                BuildableName = "libsqlite3.a"
                BlueprintName = "sqlite3"
@@ -115,20 +101,6 @@
                BlueprintIdentifier = "2639191921CD2389008B335B"
                BuildableName = "libhiredis.a"
                BlueprintName = "hiredis"
-               ReferencedContainer = "container:External.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2628EB0321C41FFF00D8CD00"
-               BuildableName = "libzxing.a"
-               BlueprintName = "zxing"
                ReferencedContainer = "container:External.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

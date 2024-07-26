@@ -26,11 +26,18 @@
 #include "slib/core/scoped_buffer.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
+
 #include "slib/platform/win32/socket.h"
+
 #else
+
 #include "slib/io/pipe_event.h"
+#include "slib/system/system.h"
+
 #include <unistd.h>
 #include <poll.h>
+#include <errno.h>
+
 #endif
 
 namespace slib
@@ -150,8 +157,8 @@ namespace slib
 		return doWait(sl_null, timeout);
 	}
 
-	namespace {
-
+	namespace
+	{
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 		static sl_uint32 GetEventStatus(sl_uint32 ne)
 		{
@@ -209,8 +216,40 @@ namespace slib
 			}
 			return ret;
 		}
-#endif
 
+		static int SafePoll(pollfd* fd, int n, int timeout)
+		{
+			for (;;) {
+				sl_uint64 tick = timeout > 0 ? System::getTickCount64() : 0;
+				int iRet = poll(fd, n, timeout);
+				if (iRet >= 0) {
+					return iRet;
+				}
+				int err = errno;
+				if (err == EINTR || err == EAGAIN || err == ENOMEM) {
+					if (Thread::isStoppingCurrent()) {
+						return iRet;
+					}
+					if (!timeout) {
+						return iRet;
+					}
+					if (timeout > 0) {
+						sl_uint64 newTick = System::getTickCount64();
+						if (newTick < tick) {
+							return 0;
+						}
+						sl_uint64 diff = newTick - tick;
+						if (diff > (sl_uint64)timeout) {
+							return 0;
+						}
+						timeout -= (int)diff;
+					}
+				} else {
+					return iRet;
+				}
+			}
+		}
+#endif
 	}
 
 	sl_bool SocketEvent::doWait(sl_uint32* pOutStatus, sl_int32 timeout) noexcept
@@ -232,7 +271,7 @@ namespace slib
 		int t = timeout >= 0 ? (int)timeout : -1;
 		pollfd fd[2] = { 0 };
 		PreparePoll(fd, m_socket, (int)(getReadPipeHandle()), m_events);
-		int iRet = poll(fd, 2, t);
+		int iRet = SafePoll(fd, 2, t);
 		if (iRet > 0) {
 			sl_uint32 revents = fd->revents;
 			if (revents) {
@@ -331,7 +370,7 @@ namespace slib
 		}
 
 		int t = timeout >= 0 ? (int)timeout : -1;
-		int iRet = poll(fd, 2 * (int)cEvents, t);
+		int iRet = SafePoll(fd, 2 * (int)cEvents, t);
 		if (iRet > 0) {
 			sl_bool flagSuccess = sl_false;
 			for (sl_uint32 k = 0; k < cEvents; k++) {
@@ -355,12 +394,18 @@ namespace slib
 
 	sl_bool Socket::connectAndWait(const SocketAddress& address, sl_int32 timeout) const noexcept
 	{
-		setNonBlockingMode();
-		if (connect(address)) {
+		if (timeout >= 0) {
+			setNonBlockingMode();
+		}
+		sl_bool flagWouldBlock = sl_false;
+		if (connect(address, &flagWouldBlock)) {
+			return sl_true;
+		}
+		if (flagWouldBlock) {
 			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
 			if (ev.isNotNull()) {
 				if (ev->waitEvents(timeout) & SocketEvent::Write) {
-					if (getSocketError() == 0) {
+					if (!(getSocketError())) {
 						return sl_true;
 					}
 				}
@@ -371,12 +416,18 @@ namespace slib
 
 	sl_bool Socket::connectAndWait(const DomainSocketPath& path, sl_int32 timeout) const noexcept
 	{
-		setNonBlockingMode();
-		if (connect(path)) {
+		if (timeout >= 0) {
+			setNonBlockingMode();
+		}
+		sl_bool flagWouldBlock = sl_false;
+		if (connect(path, &flagWouldBlock)) {
+			return sl_true;
+		}
+		if (flagWouldBlock) {
 			Ref<SocketEvent> ev = SocketEvent::createWrite(*this);
 			if (ev.isNotNull()) {
 				if (ev->waitEvents(timeout) & SocketEvent::Write) {
-					if (getSocketError() == 0) {
+					if (!(getSocketError())) {
 						return sl_true;
 					}
 				}

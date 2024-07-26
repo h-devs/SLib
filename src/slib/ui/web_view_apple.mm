@@ -369,13 +369,16 @@ using namespace slib;
 		[rootController presentViewController:alertController animated:YES completion:nil];
 	}
 #else
-	NSAlert* alert = [NSAlert alertWithMessageText:prompt defaultButton:@"OK" alternateButton:@"Cancel" otherButton:nil informativeTextWithFormat:@""];
+	NSAlert* alert = [[NSAlert alloc] init];
+	[alert setMessageText:prompt];
+	[alert addButtonWithTitle:@"OK"];
+	[alert addButtonWithTitle:@"Cancel"];
 	NSTextField* input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
 	[input setStringValue:defaultText];
 	[alert setAccessoryView:input];
 	NSInteger button = [alert runModal];
 	NSString* ret = nil;
-	if (button == NSAlertDefaultReturn) {
+	if (button == NSAlertFirstButtonReturn) {
 		[input validateEditing];
 		ret = [input stringValue];
 	}

@@ -33,6 +33,7 @@
 
 #include "slib/platform/win32/windows.h"
 #include "slib/platform/win32/wmi.h"
+#include "slib/platform/win32/registry.h"
 #include "slib/core/safe_static.h"
 
 #pragma warning(disable: 4091)
@@ -154,6 +155,93 @@ namespace slib
 			volume->SetMute(flag ? TRUE : FALSE, NULL);
 			volume->Release();
 		}
+	}
+
+	namespace
+	{
+		static sl_bool IsUsingConsentSub(win32::Registry& key)
+		{
+			ListElements<String16> subkeys(key.getSubkeys());
+			for (sl_size i = 0; i < subkeys.count; i++) {
+				String16& subkey = subkeys[i];
+				Variant value = win32::Registry::getValue(key.get(), subkey, u"LastUsedTimeStop");
+				if (value.isIntegerType() && !(value.getUint32())) {
+					return sl_true;
+				}
+			}
+			return sl_false;
+		}
+
+		static sl_bool IsUsingConsent(const StringView16& name)
+		{
+			win32::Registry root = HKEY_USERS;
+			ListElements<String16> users(root.getSubkeys());
+			for (sl_size i = 0; i < users.count; i++) {
+				win32::Registry key = win32::Registry::open(HKEY_USERS, users[i] + u"\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\" + name, KEY_READ);
+				if (key.isNotNone()) {
+					if (IsUsingConsentSub(key)) {
+						return sl_true;
+					}
+					key = win32::Registry::open(key.get(), "NonPackaged", KEY_READ);
+					if (key.isNotNone()) {
+						if (IsUsingConsentSub(key)) {
+							return sl_true;
+						}
+					}
+				}
+			}
+			return sl_false;
+		}
+
+		static void GetAppsUsingConsentSub(win32::Registry& key, List<String>& ret)
+		{
+			ListElements<String16> subkeys(key.getSubkeys());
+			for (sl_size i = 0; i < subkeys.count; i++) {
+				String16& subkey = subkeys[i];
+				Variant value = win32::Registry::getValue(key.get(), subkey, u"LastUsedTimeStop");
+				if (value.isIntegerType() && !(value.getUint32())) {
+					ret.add_NoLock(String::from(subkey));
+				}
+			}
+		}
+
+		static List<String> GetAppsUsingConsent(const StringView16& name)
+		{
+			List<String> ret;
+			win32::Registry root = HKEY_USERS;
+			ListElements<String16> users(root.getSubkeys());
+			for (sl_size i = 0; i < users.count; i++) {
+				win32::Registry key = win32::Registry::open(HKEY_USERS, users[i] + u"\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\" + name, KEY_READ);
+				if (key.isNotNone()) {
+					GetAppsUsingConsentSub(key, ret);
+					key = win32::Registry::open(key.get(), "NonPackaged", KEY_READ);
+					if (key.isNotNone()) {
+						GetAppsUsingConsentSub(key, ret);
+					}
+				}
+			}
+			return ret;
+		}
+	}
+
+	sl_bool Device::isUsingCamera()
+	{
+		return IsUsingConsent(StringView16::literal(u"webcam"));
+	}
+
+	sl_bool Device::isUsingMicrophone()
+	{
+		return IsUsingConsent(StringView16::literal(u"microphone"));
+	}
+
+	List<String> Device::getApplicationsUsingCamera()
+	{
+		return GetAppsUsingConsent(StringView16::literal(u"webcam"));
+	}
+
+	List<String> Device::getApplicationsUsingMicrophone()
+	{
+		return GetAppsUsingConsent(StringView16::literal(u"microphone"));
 	}
 
 	double Device::getScreenPPI()

@@ -34,9 +34,7 @@ namespace slib
 		Variant IOKit::getRegistryEntryPropertyValue(CFTypeRef cfValue)
 		{
 			if (CFGetTypeID(cfValue) == CFDataGetTypeID()) {
-				Variant ret = Apple::getStringFromNSData((__bridge NSData*)cfValue);
-				CFRelease(cfValue);
-				return ret;
+				return Apple::getStringFromNSData((__bridge NSData*)cfValue);
 			}
 			return Apple::getVariantFromCFType(cfValue);
 		}
@@ -45,7 +43,9 @@ namespace slib
 		{
 			CFTypeRef cfValue = IORegistryEntryCreateCFProperty(entry, key, kCFAllocatorDefault, 0);
 			if (cfValue) {
-				return getRegistryEntryPropertyValue(cfValue);
+				Variant ret = getRegistryEntryPropertyValue(cfValue);
+				CFRelease(cfValue);
+				return ret;
 			}
 			return Variant();
 		}

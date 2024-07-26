@@ -224,10 +224,10 @@ namespace slib
 
 	Ref<CRef> CWeakRef::lock() noexcept
 	{
-		Ref<CRef> ret;
 		if (!m_object) {
 			return sl_null;
 		}
+		Ref<CRef> ret;
 		m_lock.lock();
 		CRef* obj = m_object;
 		if (obj) {

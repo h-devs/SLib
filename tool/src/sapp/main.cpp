@@ -24,7 +24,7 @@
 #include <slib/ui.h>
 #include <slib/io/file.h>
 
-#include "sapp.h"
+#include "../../../src/sapp/sapp.h"
 
 using namespace slib;
 

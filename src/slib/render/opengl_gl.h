@@ -1157,6 +1157,7 @@ namespace slib
 
 #elif defined(SLIB_PLATFORM_IS_MACOS)
 
+#define GL_SILENCE_DEPRECATION
 #include <OpenGL/gl3.h>
 
 #define PRIV_GL_ENTRY(name) name

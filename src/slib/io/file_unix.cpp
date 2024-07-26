@@ -69,7 +69,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 		static int GetFilePermissions(const FileAttributes& attrs)
 		{
 			int perm = 0;
@@ -404,7 +405,8 @@ namespace slib
 		return sl_false;
 	}
 
-	namespace {
+	namespace
+	{
 		static sl_int64 GetModifiedTime(struct stat& st) noexcept
 		{
 #if defined(SLIB_PLATFORM_IS_APPLE)
@@ -450,7 +452,8 @@ namespace slib
 		}
 	}
 
-	namespace {
+	namespace
+	{
 		static sl_int64 GetAccessedTime(struct stat& st) noexcept
 		{
 #if defined(SLIB_PLATFORM_IS_APPLE)
@@ -496,7 +499,8 @@ namespace slib
 		}
 	}
 
-	namespace {
+	namespace
+	{
 		static sl_int64 GetCreatedTime(struct stat& st) noexcept
 		{
 #if defined(SLIB_PLATFORM_IS_APPLE)
@@ -560,7 +564,8 @@ namespace slib
 		return sl_false;
 	}
 
-	namespace {
+	namespace
+	{
 		static sl_bool SetAccessedAndModifiedTime(const StringParam& _filePath, const Time& timeAccess, const Time& timeModify) noexcept
 		{
 			StringCstr filePath(_filePath);
@@ -596,7 +601,8 @@ namespace slib
 		return sl_false;
 	}
 
-	namespace {
+	namespace
+	{
 		static FileAttributes GetAttributes(struct stat& st)
 		{
 			int ret = 0;
@@ -855,7 +861,16 @@ namespace slib
 #undef BUF_SIZE
 					}
 				}
+				struct stat stDst = {0};
+				fstat(handleDst, &stDst);
 				::close(handleDst);
+				struct stat stSrc;
+				if (!(fstat(handleSrc, &stSrc))) {
+					int attrs = stSrc.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
+					if ((stDst.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO)) != attrs) {
+						chmod(pathDst.getData(), attrs);
+					}
+				}
 			}
 			::close(handleSrc);
 		}

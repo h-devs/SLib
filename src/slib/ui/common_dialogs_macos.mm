@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -115,7 +115,9 @@ namespace slib
 			}];
 			UI::runLoop();
 		} else {
-			result = [alert runModal];
+			@autoreleasepool {
+				result = [alert runModal];
+			}
 		}
 		if (result == NSAlertFirstButtonReturn) {
 			return result1;
@@ -217,7 +219,7 @@ namespace slib
 			} else {
 				result = [panel runModal];
 			}
-			if (result == NSFileHandlingPanelOKButton) {
+			if (result == NSModalResponseOK) {
 				if ([panel isKindOfClass:[NSOpenPanel class]]) {
 					NSOpenPanel* openPanel = (NSOpenPanel*)panel;
 					NSArray* urls = [openPanel URLs];

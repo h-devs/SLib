@@ -274,6 +274,16 @@ namespace slib
 
 	}
 
+	sl_bool Process::kill(sl_uint32 processId)
+	{
+		return !(::kill((pid_t)processId, SIGKILL));
+	}
+
+	sl_bool Process::quit(sl_uint32 processId)
+	{
+		return !(::kill((pid_t)processId, SIGTERM));
+	}
+
 	sl_uint32 Process::getCurrentProcessId()
 	{
 		return getpid();

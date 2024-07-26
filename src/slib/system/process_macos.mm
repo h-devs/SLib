@@ -32,6 +32,9 @@
 #include "slib/core/scoped_buffer.h"
 #include "slib/platform.h"
 
+#include <sys/sysctl.h>
+#include <libproc.h>
+
 namespace slib
 {
 	namespace {
@@ -109,7 +112,58 @@ namespace slib
 			}
 
 		};
-        
+
+	}
+
+	List<sl_uint32> Process::getAllProcessIds()
+	{
+		List<sl_uint32> ret;
+		int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0};
+		size_t size = 0;
+		if (!(sysctl(mib, (int)(CountOfArray(mib)), NULL, &size, NULL, 0))) {
+			kinfo_proc* processes = (kinfo_proc*)(Base::createMemory(size));
+			if (processes) {
+				if (!(sysctl(mib, (int)(CountOfArray(mib)), processes, &size, NULL, 0))) {
+					int n = (int)(size / sizeof(struct kinfo_proc));
+					for (int i = 0; i < n; i++) {
+						ret.add_NoLock((sl_uint32)(processes[i].kp_proc.p_pid));
+					}
+				}
+				Base::freeMemory(processes);
+			}
+		}
+		return ret;
+	}
+
+	List<sl_uint32> Process::getAllThreadIds(sl_uint32 processId)
+	{
+		List<sl_uint32> ret;
+		task_t task;
+		if (task_for_pid(mach_task_self(), (int)processId, &task) == KERN_SUCCESS) {
+			thread_act_array_t threads = sl_null;
+			mach_msg_type_number_t nThreads = 0;
+			if (task_threads(task, &threads, &nThreads) == KERN_SUCCESS) {
+				for (mach_msg_type_number_t i = 0; i < nThreads; i++) {
+					ret.add_NoLock(threads[i]);
+				}
+				vm_deallocate(mach_task_self(), (vm_address_t)threads, nThreads * sizeof(thread_act_t));
+			}
+		}
+		return ret;
+	}
+
+	String Process::getImagePath(sl_uint32 processId)
+	{
+		char buf[PROC_PIDPATHINFO_MAXSIZE];
+		if (proc_pidpath(processId, buf, sizeof(buf)) > 0) {
+			return String::fromUtf8(buf, Base::getStringLength(buf, sizeof(buf)));
+		}
+		return sl_null;
+	}
+
+	sl_bool Process::is32BitProcess(sl_uint32 processId)
+	{
+		return sl_false;
 	}
 
 	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags)

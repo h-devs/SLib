@@ -646,12 +646,11 @@ namespace slib
 			rectSrc.origin.y = 0;
 			rectSrc.size.width = CGImageGetWidth(image);
 			rectSrc.size.height = CGImageGetHeight(image);
-			[ciImage drawInRect:rectDst fromRect:rectSrc operation:NSCompositeSourceOver fraction:(alpha * canvas->getAlpha())];
+			[ciImage drawInRect:rectDst fromRect:rectSrc operation:NSCompositingOperationSourceOver fraction:(alpha * canvas->getAlpha())];
 
 			if (!flagFlipY) {
 				CGContextRestoreGState(graphics);
 			}
-
 #else
 			if (flagFlipY) {
 				CGContextSaveGState(graphics);
@@ -668,7 +667,6 @@ namespace slib
 				CGContextRestoreGState(graphics);
 			}
 #endif
-
 
 #if defined(SLIB_PLATFORM_IS_MACOS)
 			[NSGraphicsContext setCurrentContext:oldContext];

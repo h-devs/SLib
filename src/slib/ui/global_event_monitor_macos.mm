@@ -101,43 +101,43 @@ namespace slib
 		{
 			NSEventType type = ev.type;
 			switch (type) {
-				case NSLeftMouseDown:
+				case NSEventTypeLeftMouseDown:
 					ProcessMouseEvent(UIAction::LeftButtonDown, ev);
 					break;
-				case NSLeftMouseUp:
+				case NSEventTypeLeftMouseUp:
 					ProcessMouseEvent(UIAction::LeftButtonUp, ev);
 					break;
-				case NSLeftMouseDragged:
+				case NSEventTypeLeftMouseDragged:
 					ProcessMouseEvent(UIAction::LeftButtonDrag, ev);
 					break;
-				case NSRightMouseDown:
+				case NSEventTypeRightMouseDown:
 					ProcessMouseEvent(UIAction::RightButtonDown, ev);
 					break;
-				case NSRightMouseUp:
+				case NSEventTypeRightMouseUp:
 					ProcessMouseEvent(UIAction::RightButtonUp, ev);
 					break;
-				case NSRightMouseDragged:
+				case NSEventTypeRightMouseDragged:
 					ProcessMouseEvent(UIAction::RightButtonDrag, ev);
 					break;
-				case NSOtherMouseDown:
+				case NSEventTypeOtherMouseDown:
 					ProcessMouseEvent(UIAction::MiddleButtonDown, ev);
 					break;
-				case NSOtherMouseUp:
+				case NSEventTypeOtherMouseUp:
 					ProcessMouseEvent(UIAction::MiddleButtonUp, ev);
 					break;
-				case NSOtherMouseDragged:
+				case NSEventTypeOtherMouseDragged:
 					ProcessMouseEvent(UIAction::MiddleButtonDrag, ev);
 					break;
-				case NSMouseMoved:
+				case NSEventTypeMouseMoved:
 					ProcessMouseEvent(UIAction::MouseMove, ev);
 					break;
-				case NSScrollWheel:
+				case NSEventTypeScrollWheel:
 					ProcessMouseWheelEvent(ev);
 					break;
-				case NSKeyDown:
+				case NSEventTypeKeyDown:
 					ProcessKeyEvent(UIAction::KeyDown, ev);
 					break;
-				case NSKeyUp:
+				case NSEventTypeKeyUp:
 					ProcessKeyEvent(UIAction::KeyUp, ev);
 					break;
 				default:
@@ -160,21 +160,21 @@ namespace slib
 		if (_mask) {
 			NSEventMask mask = 0;
 			if (_mask & MASK_MOUSE) {
-				mask |= NSLeftMouseDownMask;
-				mask |= NSLeftMouseUpMask;
-				mask |= NSLeftMouseDraggedMask;
-				mask |= NSRightMouseDownMask;
-				mask |= NSRightMouseUpMask;
-				mask |= NSRightMouseDraggedMask;
-				mask |= NSOtherMouseDownMask;
-				mask |= NSOtherMouseUpMask;
-				mask |= NSOtherMouseDraggedMask;
-				mask |= NSMouseMovedMask;
-				mask |= NSScrollWheelMask;
+				mask |= NSEventMaskLeftMouseDown;
+				mask |= NSEventMaskLeftMouseUp;
+				mask |= NSEventMaskLeftMouseDragged;
+				mask |= NSEventMaskRightMouseDown;
+				mask |= NSEventMaskRightMouseUp;
+				mask |= NSEventMaskRightMouseDragged;
+				mask |= NSEventMaskOtherMouseDown;
+				mask |= NSEventMaskOtherMouseUp;
+				mask |= NSEventMaskOtherMouseDragged;
+				mask |= NSEventMaskMouseMoved;
+				mask |= NSEventMaskScrollWheel;
 			}
 			if (_mask & MASK_KEYBOARD) {
-				mask |= NSKeyDownMask;
-				mask |= NSKeyUpMask;
+				mask |= NSEventMaskKeyDown;
+				mask |= NSEventMaskKeyUp;
 			}
 			id monitorGlobal = [NSEvent addGlobalMonitorForEventsMatchingMask:mask handler:^(NSEvent* ev) {
 				ProcessEvent(ev);

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
 		class MenuImpl;
 
@@ -209,7 +210,6 @@ namespace slib
 					ret->setAction(param.action);
 					return ret;
 				}
-
 			}
 			return sl_null;
 		}
@@ -351,18 +351,23 @@ namespace slib
 	self = [super init];
 	if (self != nil) {
 		self.target = self;
-		self.action = @selector(onAction);
+		self.action = @selector(onAction:);
 		self->m_defaultCheckedImage = self.onStateImage;
 	}
 	return self;
 }
 
--(void)onAction
+-(void)onAction:(NSMenuItem*)sender
 {
 	slib::Ref<slib::MenuItem> item(m_item);
 	if (item.isNotNull()) {
 		(item->getAction())();
 	}
+}
+
+-(BOOL)worksWhenModal
+{
+	return YES;
 }
 
 @end

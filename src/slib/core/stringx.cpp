@@ -31,7 +31,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
 		template <class CHAR>
 		static sl_size ApplyBackslashEscapes(const CHAR* str, sl_size len, sl_bool flagDoubleQuote, sl_bool flagAddQuote, sl_bool flagEscapeNonAscii, CHAR* buf) noexcept
@@ -50,44 +51,45 @@ namespace slib
 			for (sl_size i = 0; i < len; i++) {
 				typename UnsignedType<CHAR>::Type c = str[i];
 				typename UnsignedType<CHAR>::Type r = 0;
-				switch (c) {
-					case '\\':
-						r = c;
-						break;
-					case '"':
-						if (flagDoubleQuote) {
+				if (c) {
+					switch (c) {
+						case '\\':
 							r = c;
-						}
-						break;
-					case '\'':
-						if (!flagDoubleQuote) {
-							r = c;
-						}
-						break;
-					case 0:
-						if (len & SLIB_SIZE_TEST_SIGN_BIT) {
 							break;
-						}
-						r = '0';
+						case '"':
+							if (flagDoubleQuote) {
+								r = c;
+							}
+							break;
+						case '\'':
+							if (!flagDoubleQuote) {
+								r = c;
+							}
+							break;
+						case '\n':
+							r = 'n';
+							break;
+						case '\r':
+							r = 'r';
+							break;
+						case '\b':
+							r = 'b';
+							break;
+						case '\f':
+							r = 'f';
+							break;
+						case '\a':
+							r = 'a';
+							break;
+						case '\v':
+							r = 'v';
+							break;
+					}
+				} else {
+					if (len & SLIB_SIZE_TEST_SIGN_BIT) {
 						break;
-					case '\n':
-						r = 'n';
-						break;
-					case '\r':
-						r = 'r';
-						break;
-					case '\b':
-						r = 'b';
-						break;
-					case '\f':
-						r = 'f';
-						break;
-					case '\a':
-						r = 'a';
-						break;
-					case '\v':
-						r = 'v';
-						break;
+					}
+					r = '0';
 				}
 				if (r) {
 					if (buf) {

@@ -254,13 +254,13 @@ namespace slib
 	sl_bool UI::isCapsLockOn()
 	{
 		NSUInteger flags = [NSEvent modifierFlags];
-		return (flags & NSAlphaShiftKeyMask) != 0;
+		return (flags & NSEventModifierFlagCapsLock) != 0;
 	}
 
 	sl_bool UI::isNumLockOn()
 	{
 		NSUInteger flags = [NSEvent modifierFlags];
-		return (flags & NSNumericPadKeyMask) != 0;
+		return (flags & NSEventModifierFlagNumericPad) != 0;
 	}
 
 	sl_bool UI::isScrollLockOn()
@@ -308,16 +308,16 @@ namespace slib
 		}
 		if (ret.length > 0) {
 			if (km.isCommandKey()) {
-				mask |= NSCommandKeyMask;
+				mask |= NSEventModifierFlagCommand;
 			}
 			if (km.isControlKey()) {
-				mask |= NSControlKeyMask;
+				mask |= NSEventModifierFlagControl;
 			}
 			if (km.isShiftKey()) {
-				mask |= NSShiftKeyMask;
+				mask |= NSEventModifierFlagShift;
 			}
 			if (km.isAltKey()) {
-				mask |= NSAlternateKeyMask;
+				mask |= NSEventModifierFlagOption;
 			}
 		}
 		return ret;
@@ -326,16 +326,16 @@ namespace slib
 	void UIPlatform::applyEventModifiers(UIEvent* ev, NSEvent* event)
 	{
 		NSUInteger flags = [event modifierFlags];
-		if (flags & NSShiftKeyMask) {
+		if (flags & NSEventModifierFlagShift) {
 			ev->setShiftKey();
 		}
-		if (flags & NSAlternateKeyMask) {
+		if (flags & NSEventModifierFlagOption) {
 			ev->setOptionKey();
 		}
-		if (flags & NSControlKeyMask) {
+		if (flags & NSEventModifierFlagControl) {
 			ev->setControlKey();
 		}
-		if (flags & NSCommandKeyMask) {
+		if (flags & NSEventModifierFlagCommand) {
 			ev->setCommandKey();
 		}
 	}

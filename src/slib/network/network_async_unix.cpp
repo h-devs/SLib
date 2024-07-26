@@ -34,7 +34,6 @@ namespace slib
 
 	namespace
 	{
-
 		class StreamInstance : public AsyncSocketStreamInstance
 		{
 		public:
@@ -173,14 +172,17 @@ namespace slib
 				}
 				if (m_flagRequestConnect) {
 					m_flagRequestConnect = sl_false;
+					sl_bool flagWouldBlock = sl_false;
+					sl_bool flagConnected;
 					if (m_addressRequestConnect.isValid()) {
-						if (socket->connect(m_addressRequestConnect)) {
-							m_flagConnecting = sl_true;
-						} else {
-							_onConnect(sl_true);
-						}
+						flagConnected = socket->connect(m_addressRequestConnect, &flagWouldBlock);
 					} else {
-						if (socket->connect(m_pathRequestConnect)) {
+						flagConnected = socket->connect(m_pathRequestConnect, &flagWouldBlock);
+					}
+					if (flagConnected) {
+						_onConnect(sl_false);
+					} else {
+						if (flagWouldBlock) {
 							m_flagConnecting = sl_true;
 						} else {
 							_onConnect(sl_true);
@@ -233,7 +235,8 @@ namespace slib
 		return StreamInstance::create(Move(socket));
 	}
 
-	namespace {
+	namespace
+	{
 		class ServerInstance : public AsyncSocketServerInstance
 		{
 		public:
@@ -312,7 +315,8 @@ namespace slib
 		return ServerInstance::create(Move(socket), flagDomain);
 	}
 
-	namespace {
+	namespace
+	{
 		class UdpInstance : public AsyncUdpSocketInstance
 		{
 		public:

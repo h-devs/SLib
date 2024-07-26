@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,8 @@ namespace slib
 	{
 	}
 
-	namespace {
+	namespace
+	{
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicWeakRef<Application>, g_app)
 	}
 
@@ -154,7 +155,8 @@ namespace slib
 	}
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-	namespace {
+	namespace
+	{
 		static void CrashHandler(int)
 		{
 			Ref<Application> app = Application::getApp();
@@ -234,7 +236,8 @@ namespace slib
 		m_flagCrashRecoverySupport = flagSupport;
 	}
 
-	namespace {
+	namespace
+	{
 		SLIB_SAFE_STATIC_GETTER(String, GetAppPath, System::getApplicationPath())
 	}
 
@@ -247,7 +250,8 @@ namespace slib
 		return *s;
 	}
 
-	namespace {
+	namespace
+	{
 		SLIB_SAFE_STATIC_GETTER(String, GetAppDir, System::getApplicationDirectory())
 	}
 
@@ -343,14 +347,12 @@ namespace slib
 	}
 #endif
 
-#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_MACOS) && !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 	void Application::registerRunAtStartup(const StringParam& appName, const StringParam& path)
 	{
 		registerRunAtStartup(path);
 	}
-#endif
 
-#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_MACOS) && !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 	void Application::registerRunAtStartup(const StringParam& path)
 	{
 	}
@@ -395,7 +397,8 @@ Microsoft Specific
 	* If an even number of backslashes is followed by a double quotation mark, one backslash is placed in the argv array for every pair of backslashes, and the double quotation mark is interpreted as a string delimiter.
 	* If an odd number of backslashes is followed by a double quotation mark, one backslash is placed in the argv array for every pair of backslashes, and the double quotation mark is "escaped" by the remaining backslash, causing a literal double quotation mark (") to be placed in argv.
 ***************************************************************************************/
-	namespace {
+	namespace
+	{
 		static List<String> ParseCommandLine(const StringParam& _commandLine, sl_bool flagWin32)
 		{
 			if (_commandLine.isEmpty()) {

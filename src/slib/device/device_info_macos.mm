@@ -31,7 +31,8 @@
 #include "slib/network/os.h"
 
 #include "slib/system/system.h"
-#include "slib/data/xml.h"
+#include "slib/data/json.h"
+#include "slib/core/thread.h"
 #include "slib/core/safe_static.h"
 #include "slib/platform/apple/iokit.h"
 
@@ -44,7 +45,7 @@ namespace slib
 	{
 		static String GetPlatformEntryValue(CFStringRef key)
 		{
-			return apple::IOKit::getServiceProperty("IOPlatformExpertDevice", key).getString();
+			return apple::IOKit::getServiceProperty("IOPlatformExpertDevice", key).getString().trim();
 		}
 
 		static String GetDeviceManufacturer()
@@ -94,27 +95,14 @@ namespace slib
 
 	namespace
 	{
-		static Ref<XmlElement> GetDictValueElement(const Ref<XmlElement>& dict, const StringView& name)
+		static String GetCommandOutput(const StringView& command, sl_uint32 nRetry = 3)
 		{
-			ListElements< Ref<XmlElement> > children(dict->getChildElements());
-			for (sl_size i = 0; i < children.count; i++) {
-				Ref<XmlElement>& child = children[i];
-				if (child.isNotNull()) {
-					if (child->getName() == StringView::literal("key")) {
-						if (child->getText() == name) {
-							return children[i+1];
-						}
-					}
+			for (sl_uint32 i = 0; i < nRetry; i++) {
+				String output = System::getCommandOutput(command);
+				if (output.isNotEmpty()) {
+					return output;
 				}
-			}
-			return sl_null;
-		}
-
-		static String GetDictValueString(const Ref<XmlElement>& dict, const StringView& name)
-		{
-			Ref<XmlElement> xml = GetDictValueElement(dict, name);
-			if (xml.isNotNull()) {
-				return xml->getText();
+				Thread::sleep(10);
 			}
 			return sl_null;
 		}
@@ -139,34 +127,15 @@ namespace slib
 
 	List<VideoControllerInfo> Device::getVideoControllers()
 	{
-		String strXml = System::getCommandOutput(StringView::literal("system_profiler -xml SPDisplaysDataType"));
-		Ref<XmlDocument> xml = Xml::parse(strXml);
-		if (xml.isNull()) {
-			return sl_null;
-		}
-		Ref<XmlElement> xmlPlist = xml->getFirstChildElement("plist");
-		if (xmlPlist.isNull()) {
-			return sl_null;
-		}
-		Ref<XmlElement> xmlArray = xmlPlist->getFirstChildElement("array");
-		if (xmlArray.isNull()) {
-			return sl_null;
-		}
-		Ref<XmlElement> xmlDict = xmlArray->getFirstChildElement("dict");
-		if (xmlDict.isNull()) {
-			return sl_null;
-		}
-		Ref<XmlElement> xmlItems = GetDictValueElement(xmlDict, "_items");
-		if (xmlItems.isNull()) {
-			return sl_null;
-		}
+		String strJson = GetCommandOutput(StringView::literal("system_profiler -json SPDisplaysDataType"));
+		Json json = Json::parse(strJson);
 		List<VideoControllerInfo> ret;
-		ListElements< Ref<XmlElement> > xmlVideos(xmlItems->getChildElements("dict"));
-		for (sl_size i = 0; i < xmlVideos.count; i++) {
+		ListElements<Json> items(json["SPDisplaysDataType"].getJsonList());
+		for (sl_size i = 0; i < items.count; i++) {
 			VideoControllerInfo controller;
-			Ref<XmlElement>& xmlVideo = xmlVideos[i];
-			controller.name = GetDictValueString(xmlVideo, "sppci_model");
-			controller.memorySize = ParseCapacity(GetDictValueString(xmlVideo, "spdisplays_vram"));
+			Json& item = items[i];
+			controller.name = item["sppci_model"].getString().trim();
+			controller.memorySize = ParseCapacity(item["spdisplays_vram"].getString());
 			ret.add_NoLock(Move(controller));
 		}
 		return ret;
@@ -193,47 +162,20 @@ namespace slib
 	{
 		static List<PhysicalMemorySlotInfo> GetMemorySlots()
 		{
-			String strXml = System::getCommandOutput(StringView::literal("system_profiler -xml SPMemoryDataType"));
-			Ref<XmlDocument> xml = Xml::parse(strXml);
-			if (xml.isNull()) {
-				return sl_null;
-			}
-			Ref<XmlElement> xmlPlist = xml->getFirstChildElement("plist");
-			if (xmlPlist.isNull()) {
-				return sl_null;
-			}
-			Ref<XmlElement> xmlArray = xmlPlist->getFirstChildElement("array");
-			if (xmlArray.isNull()) {
-				return sl_null;
-			}
-			Ref<XmlElement> xmlDict = xmlArray->getFirstChildElement("dict");
-			if (xmlDict.isNull()) {
-				return sl_null;
-			}
-			Ref<XmlElement> xmlItems = GetDictValueElement(xmlDict, "_items");
-			if (xmlItems.isNull()) {
-				return sl_null;
-			}
-			xmlDict = xmlItems->getFirstChildElement("dict");
-			if (xmlDict.isNull()) {
-				return sl_null;
-			}
-			xmlItems = GetDictValueElement(xmlDict, "_items");
-			if (xmlItems.isNull()) {
-				return sl_null;
-			}
+			String strJson = GetCommandOutput(StringView::literal("system_profiler -json SPMemoryDataType"));
+			Json json = Json::parse(strJson);
 			List<PhysicalMemorySlotInfo> ret;
-			ListElements< Ref<XmlElement> > xmlSlots(xmlItems->getChildElements("dict"));
-			for (sl_size i = 0; i < xmlSlots.count; i++) {
+			ListElements<Json> items(json["SPMemoryDataType"][0]["_items"].getJsonList());
+			for (sl_size i = 0; i < items.count; i++) {
 				PhysicalMemorySlotInfo slot;
-				Ref<XmlElement>& xmlSlot = xmlSlots[i];
-				slot.capacity = ParseCapacity(GetDictValueString(xmlSlot, "dimm_size"));
-				String strSpeed = GetDictValueString(xmlSlot, "dimm_speed");
+				Json& item = items[i];
+				slot.capacity = ParseCapacity(item["dimm_size"].getString());
+				String strSpeed = item["dimm_speed"].getString();
 				if (strSpeed.endsWith_IgnoreCase("MHz")) {
 					String::parseUint32(10, &(slot.speed), strSpeed.getData(), 0, strSpeed.getLength());
 				}
-				slot.bank = GetDictValueString(xmlSlot, "_name");
-				slot.serialNumber = GetDictValueString(xmlSlot, "dimm_serial_number");
+				slot.bank = item["_name"].getString().trim();
+				slot.serialNumber = item["dimm_serial_number"].getString().trim();
 				ret.add_NoLock(Move(slot));
 			}
 			return ret;
@@ -248,36 +190,17 @@ namespace slib
 
 	List<NetworkAdapterInfo> Network::getAdapters()
 	{
-		String strXml = System::getCommandOutput(StringView::literal("system_profiler -xml SPEthernetDataType"));
-		Ref<XmlDocument> xml = Xml::parse(strXml);
-		if (xml.isNull()) {
-			return sl_null;
-		}
-		Ref<XmlElement> xmlPlist = xml->getFirstChildElement("plist");
-		if (xmlPlist.isNull()) {
-			return sl_null;
-		}
-		Ref<XmlElement> xmlArray = xmlPlist->getFirstChildElement("array");
-		if (xmlArray.isNull()) {
-			return sl_null;
-		}
-		Ref<XmlElement> xmlDict = xmlArray->getFirstChildElement("dict");
-		if (xmlDict.isNull()) {
-			return sl_null;
-		}
-		Ref<XmlElement> xmlItems = GetDictValueElement(xmlDict, "_items");
-		if (xmlItems.isNull()) {
-			return sl_null;
-		}
+		String strJson = GetCommandOutput(StringView::literal("system_profiler -json SPEthernetDataType"));
+		Json json = Json::parse(strJson);
 		List<NetworkAdapterInfo> ret;
-		ListElements< Ref<XmlElement> > xmlDevices(xmlItems->getChildElements("dict"));
-		for (sl_size i = 0; i < xmlDevices.count; i++) {
+		ListElements<Json> items(json["SPEthernetDataType"].getJsonList());
+		for (sl_size i = 0; i < items.count; i++) {
 			NetworkAdapterInfo adapter;
-			Ref<XmlElement>& xmlDevice = xmlDevices[i];
-			adapter.deviceName = GetDictValueString(xmlDevice, "_name");
-			adapter.interfaceName = GetDictValueString(xmlDevice, "spethernet_BSD_Device_Name");
+			Json& item = items[i];
+			adapter.deviceName = item["_name"].getString().trim();
+			adapter.interfaceName = item["spethernet_BSD_Device_Name"].getString();
 			adapter.interfaceIndex = Network::getInterfaceIndexFromName(adapter.interfaceName);
-			adapter.macAddress.parse(GetDictValueString(xmlDevice, "spethernet_mac_address"));
+			adapter.macAddress.parse(item["spethernet_mac_address"].getString());
 			adapter.flagPhysical = sl_true;
 			ret.add_NoLock(Move(adapter));
 		}
@@ -286,42 +209,15 @@ namespace slib
 
 	List<SoundDeviceInfo> Device::getSoundDevices()
 	{
-		String strXml = System::getCommandOutput(StringView::literal("system_profiler -xml SPAudioDataType"));
-		Ref<XmlDocument> xml = Xml::parse(strXml);
-		if (xml.isNull()) {
-			return sl_null;
-		}
-		Ref<XmlElement> xmlPlist = xml->getFirstChildElement("plist");
-		if (xmlPlist.isNull()) {
-			return sl_null;
-		}
-		Ref<XmlElement> xmlArray = xmlPlist->getFirstChildElement("array");
-		if (xmlArray.isNull()) {
-			return sl_null;
-		}
-		Ref<XmlElement> xmlDict = xmlArray->getFirstChildElement("dict");
-		if (xmlDict.isNull()) {
-			return sl_null;
-		}
-		Ref<XmlElement> xmlItems = GetDictValueElement(xmlDict, "_items");
-		if (xmlItems.isNull()) {
-			return sl_null;
-		}
-		xmlDict = xmlItems->getFirstChildElement("dict");
-		if (xmlDict.isNull()) {
-			return sl_null;
-		}
-		xmlItems = GetDictValueElement(xmlDict, "_items");
-		if (xmlItems.isNull()) {
-			return sl_null;
-		}
+		String strJson = GetCommandOutput(StringView::literal("system_profiler -json SPAudioDataType"));
+		Json json = Json::parse(strJson);
 		List<SoundDeviceInfo> ret;
-		ListElements< Ref<XmlElement> > xmlDevices(xmlItems->getChildElements("dict"));
-		for (sl_size i = 0; i < xmlDevices.count; i++) {
+		ListElements<Json> items(json["SPAudioDataType"][0]["_items"].getJsonList());
+		for (sl_size i = 0; i < items.count; i++) {
 			SoundDeviceInfo dev;
-			Ref<XmlElement>& xmlDevice = xmlDevices[i];
-			dev.name = GetDictValueString(xmlDevice, "_name");
-			dev.manufacturer = GetDictValueString(xmlDevice, "coreaudio_device_manufacturer");
+			Json& item = items[i];
+			dev.name = item["_name"].getString().trim();
+			dev.manufacturer = item["coreaudio_device_manufacturer"].getString().trim();
 			ret.add_NoLock(Move(dev));
 		}
 		return ret;

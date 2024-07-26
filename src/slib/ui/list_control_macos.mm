@@ -59,11 +59,11 @@ namespace slib
 		{
 			Alignment align = _align & Alignment::HorizontalMask;
 			if (align == Alignment::Left) {
-				return NSLeftTextAlignment;
+				return NSTextAlignmentLeft;
 			} else if (align == Alignment::Right) {
-				return NSRightTextAlignment;
+				return NSTextAlignmentRight;
 			} else {
-				return NSCenterTextAlignment;
+				return NSTextAlignmentCenter;
 			}
 		}
 

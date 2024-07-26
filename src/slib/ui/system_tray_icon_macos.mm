@@ -235,31 +235,31 @@ namespace slib
 				}
 				if (action == UIAction::Unknown) {
 					switch ([event type]) {
-						case NSLeftMouseDown:
+						case NSEventTypeLeftMouseDown:
 							action = UIAction::LeftButtonDown;
 							break;
-						case NSLeftMouseUp:
+						case NSEventTypeLeftMouseUp:
 							action = UIAction::LeftButtonUp;
 							break;
-						case NSLeftMouseDragged:
+						case NSEventTypeLeftMouseDragged:
 							action = UIAction::LeftButtonDrag;
 							break;
-						case NSRightMouseDown:
+						case NSEventTypeRightMouseDown:
 							action = UIAction::RightButtonDown;
 							break;
-						case NSRightMouseUp:
+						case NSEventTypeRightMouseUp:
 							action = UIAction::RightButtonUp;
 							break;
-						case NSRightMouseDragged:
+						case NSEventTypeRightMouseDragged:
 							action = UIAction::RightButtonDrag;
 							break;
-						case NSOtherMouseDown:
+						case NSEventTypeOtherMouseDown:
 							action = UIAction::MiddleButtonDown;
 							break;
-						case NSOtherMouseUp:
+						case NSEventTypeOtherMouseUp:
 							action = UIAction::MiddleButtonUp;
 							break;
-						case NSOtherMouseDragged:
+						case NSEventTypeOtherMouseDragged:
 							action = UIAction::MiddleButtonDrag;
 							break;
 						default:

@@ -28,7 +28,7 @@
 
 #import <Foundation/Foundation.h>
 
-#include <sys/syscall.h>
+#include <pthread.h>
 
 @interface SLIBThread : NSObject
 
@@ -141,11 +141,9 @@ namespace slib
 
 	sl_uint64 Thread::getCurrentThreadId()
 	{
-#ifndef SLIB_PLATFORM_IS_IOS_CATALYST
-		return syscall(SYS_thread_selfid);
-#else
-		return getCurrentThreadUniqueId();
-#endif
+		uint64_t threadId;
+		pthread_threadid_np(NULL, &threadId);
+		return (sl_uint64)threadId;
 	}
 
 }

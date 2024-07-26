@@ -687,7 +687,7 @@ namespace slib
 			params.add_NoLock("refresh_token", payload.refreshToken);
 		}
 		params.add_NoLock("scope", String::join(payload.scopes, " "));
-		return Move(params);
+		return params;
 	}
 
 	String OAuthServer::getErrorCodeText(ErrorCode err)

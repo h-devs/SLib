@@ -49,12 +49,11 @@ namespace slib
 				}
 				info.interface = DiskInterface::IDE;
 				info.type = DiskType::Fixed;
-				info.model = apple::IOKit::getRegistryEntryProperty(disk, CFSTR("Model")).getString();
+				info.model = apple::IOKit::getRegistryEntryProperty(disk, CFSTR("Model")).getString().trim();
 				info.serialNumber = Disk::normalizeSerialNumber(apple::IOKit::getRegistryEntryProperty(disk, CFSTR("Serial Number")).getString());
 				info.capacity = apple::IOKit::getRegistryEntryProperty(media, CFSTR("Size")).getUint64();
-				sl_bool flagContinue = callback(info);
 				IOObjectRelease(media);
-				return flagContinue;
+				return callback(info);
 			});
 		}
 
@@ -73,12 +72,11 @@ namespace slib
 				}
 				info.interface = DiskInterface::SCSI;
 				info.type = DiskType::Fixed;
-				info.model = apple::IOKit::getRegistryEntryProperty(disk, CFSTR("Model Number")).getString();
+				info.model = apple::IOKit::getRegistryEntryProperty(disk, CFSTR("Model Number")).getString().trim();
 				info.serialNumber = Disk::normalizeSerialNumber(apple::IOKit::getRegistryEntryProperty(disk, CFSTR("Serial Number")).getString());
 				info.capacity = apple::IOKit::getRegistryEntryProperty(media, CFSTR("Size")).getUint64();
-				sl_bool flagContinue = callback(info);
 				IOObjectRelease(media);
-				return flagContinue;
+				return callback(info);
 			});
 		}
 
@@ -97,7 +95,7 @@ namespace slib
 				}
 				info.interface = DiskInterface::USB;
 				info.type = apple::IOKit::getRegistryEntryProperty(media, CFSTR("Removable")).getBoolean() ? DiskType::Removable : DiskType::External;
-				info.model = apple::IOKit::getRegistryEntryProperty(disk, CFSTR("USB Product Name")).getString();
+				info.model = apple::IOKit::getRegistryEntryProperty(disk, CFSTR("USB Product Name")).getString().trim();
 				info.serialNumber = Disk::normalizeSerialNumber(apple::IOKit::getRegistryEntryProperty(disk, CFSTR("kUSBSerialNumberString")).getString());
 				info.capacity = apple::IOKit::getRegistryEntryProperty(media, CFSTR("Size")).getUint64();
 				sl_bool flagContinue = callback(info);

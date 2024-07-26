@@ -28,14 +28,22 @@
 
 #include "view_macos.h"
 
-namespace slib {
-	namespace {
+namespace slib
+{
+	namespace
+	{
 		class EditViewInstance;
 		class TextAreaInstance;
 	}
 }
 
 @interface SLIBEditViewHandle : NSTextField<NSTextFieldDelegate>
+{
+	@public slib::WeakRef<slib::EditViewInstance> m_viewInstance;
+}
+@end
+
+@interface SLIBPasswordViewHandle : NSSecureTextField<NSTextFieldDelegate>
 {
 	@public slib::WeakRef<slib::EditViewInstance> m_viewInstance;
 }
@@ -59,17 +67,18 @@ namespace slib {
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
 		static NSTextAlignment TranslateAlignment(Alignment _align)
 		{
 			Alignment align = _align & Alignment::HorizontalMask;
 			if (align == Alignment::Left) {
-				return NSLeftTextAlignment;
+				return NSTextAlignmentLeft;
 			} else if (align == Alignment::Right) {
-				return NSRightTextAlignment;
+				return NSTextAlignmentRight;
 			} else {
-				return NSCenterTextAlignment;
+				return NSTextAlignmentCenter;
 			}
 		}
 
@@ -117,16 +126,9 @@ namespace slib
 			{
 				NSTextField* handle = getHandle();
 				EditView* view = (EditView*)_view;
-
-				if (view->isPassword()) {
-					handle.cell = [[NSSecureTextFieldCell alloc] init];
-				} else {
-					handle.cell = [[NSTextFieldCell alloc] init];
-				}
 				if (!(view->isEnabled())) {
 					handle.enabled = NO;
 				}
-
 				setHandleFont(handle, view->getFont());
 				setText(view, view->getText());
 				setGravity(view, view->getGravity());
@@ -204,19 +206,6 @@ namespace slib
 
 			void setPassword(EditView* view, sl_bool flag) override
 			{
-				NSTextField* handle = getHandle();
-				if (handle != nil) {
-					if (flag) {
-						if ([handle.cell isKindOfClass:[NSSecureTextFieldCell class]]) {
-							return;
-						}
-					} else {
-						if (!([handle.cell isKindOfClass:[NSSecureTextFieldCell class]])) {
-							return;
-						}
-					}
-					initialize(view);
-				}
 			}
 
 			void setMultiLine(EditView* view, MultiLineMode mode) override
@@ -302,7 +291,11 @@ namespace slib
 
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* parent)
 	{
-		return macOS_ViewInstance::create<EditViewInstance, SLIBEditViewHandle>(this, parent);
+		if (isPassword()) {
+			return macOS_ViewInstance::create<EditViewInstance, SLIBPasswordViewHandle>(this, parent);
+		} else {
+			return macOS_ViewInstance::create<EditViewInstance, SLIBEditViewHandle>(this, parent);
+		}
 	}
 
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
@@ -562,6 +555,34 @@ namespace slib
 using namespace slib;
 
 @implementation SLIBEditViewHandle
+
+MACOS_VIEW_DEFINE_ON_CHILD_VIEW
+
+-(id)initWithFrame:(NSRect)frame
+{
+	self = [super initWithFrame:frame];
+	if (self != nil) {
+		[self setDelegate:self];
+	}
+	return self;
+}
+
+- (BOOL)acceptsFirstResponder
+{
+	return TRUE;
+}
+
+- (void)controlTextDidChange:(NSNotification *)obj
+{
+	Ref<EditViewInstance> instance = m_viewInstance;
+	if (instance.isNotNull()) {
+		instance->onChange(self);
+	}
+}
+
+@end
+
+@implementation SLIBPasswordViewHandle
 
 MACOS_VIEW_DEFINE_ON_CHILD_VIEW
 

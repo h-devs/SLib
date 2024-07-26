@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_systemVersion);
 		static sl_uint32 g_systemVersionMajor = 0;
@@ -136,9 +137,15 @@ namespace slib
 
 	String System::getLocalAppDataDirectory()
 	{
-		String dir = getHomeDirectory() + "/Library/Application Support";
-		File::createDirectory(dir);
-		return dir;
+		if (getUserName() == StringView::literal("root")) {
+			SLIB_RETURN_STRING("/Library/Application Support")
+		} else {
+			String dir = getHomeDirectory() + "/Library/Application Support";
+			if (!(File::isDirectory(dir))) {
+				File::createDirectory(dir);
+			}
+			return dir;
+		}
 	}
 
 	String System::getTempDirectory()

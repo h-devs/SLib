@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -42,8 +42,8 @@ namespace slib
 
 	using namespace priv;
 
-	namespace {
-
+	namespace
+	{
 		class ScreenImpl : public Screen
 		{
 		public:
@@ -99,9 +99,7 @@ namespace slib
 				}
 				return [arr objectAtIndex:0];
 			}
-
 		};
-
 	}
 
 	Ref<Screen> UIPlatform::createScreen(NSScreen* screen)
@@ -161,7 +159,8 @@ namespace slib
 		return [NSThread isMainThread];
 	}
 
-	namespace {
+	namespace
+	{
 		class DispatchContext
 		{
 		public:
@@ -187,7 +186,15 @@ namespace slib
 		if (!context) {
 			return;
 		}
-		if (delayMillis == 0) {
+		if (delayMillis) {
+			Function<void()> refCallback(callback);
+			dispatch_time_t t = dispatch_time(DISPATCH_TIME_NOW, (sl_int64)(delayMillis) * NSEC_PER_MSEC);
+			dispatch_after(t, dispatch_get_main_queue(), ^{
+				if (UIDispatcher::addCallback(refCallback)) {
+					[NSApp postEvent:context->dispatchEvent atStart:YES];
+				}
+			});
+		} else {
 			if (UIDispatcher::addCallback(callback)) {
 				if ([NSThread isMainThread]) {
 					[NSApp postEvent:context->dispatchEvent atStart:YES];
@@ -197,27 +204,19 @@ namespace slib
 					});
 				}
 			}
-		} else {
-			Function<void()> refCallback(callback);
-			dispatch_time_t t = dispatch_time(DISPATCH_TIME_NOW, (sl_int64)(delayMillis) * NSEC_PER_MSEC);
-			dispatch_after(t, dispatch_get_main_queue(), ^{
-				if (UIDispatcher::addCallback(refCallback)) {
-					[NSApp postEvent:context->dispatchEvent atStart:YES];
-				}
-			});
 		}
 	}
 
 	void UI::dispatchToUiThreadUrgently(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		Function<void()> refCallback(callback);
-		if (delayMillis == 0) {
-			dispatch_async(dispatch_get_main_queue(), ^{
+		if (delayMillis) {
+			dispatch_time_t t = dispatch_time(DISPATCH_TIME_NOW, (sl_int64)(delayMillis) * NSEC_PER_MSEC);
+			dispatch_after(t, dispatch_get_main_queue(), ^{
 				refCallback();
 			});
 		} else {
-			dispatch_time_t t = dispatch_time(DISPATCH_TIME_NOW, (sl_int64)(delayMillis) * NSEC_PER_MSEC);
-			dispatch_after(t, dispatch_get_main_queue(), ^{
+			dispatch_async(dispatch_get_main_queue(), ^{
 				refCallback();
 			});
 		}
@@ -243,26 +242,30 @@ namespace slib
 
 	String UI::getActiveWindowTitle(sl_int32 timeout)
 	{
-		String ret;
-		NSRunningApplication* app = [[NSWorkspace sharedWorkspace] frontmostApplication];
-		if (app != nil) {
-			AXUIElementRef axApp = AXUIElementCreateApplication([app processIdentifier]);
-			if (axApp) {
-				AXUIElementRef axWindow = NULL;
-				AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute, (CFTypeRef*)&axWindow);
-				if (axWindow) {
-					CFStringRef title = NULL;
-					AXUIElementCopyAttributeValue(axWindow, kAXTitleAttribute, (CFTypeRef*)&title);
-					if (title) {
-						ret = Apple::getStringFromNSString((__bridge NSString*)title);
-						CFRelease(title);
+		if (UI::isUiThread()) {
+			String ret;
+			NSRunningApplication* app = [[NSWorkspace sharedWorkspace] frontmostApplication];
+			if (app != nil) {
+				AXUIElementRef axApp = AXUIElementCreateApplication([app processIdentifier]);
+				if (axApp) {
+					AXUIElementRef axWindow = NULL;
+					AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute, (CFTypeRef*)&axWindow);
+					if (axWindow) {
+						CFStringRef title = NULL;
+						AXUIElementCopyAttributeValue(axWindow, kAXTitleAttribute, (CFTypeRef*)&title);
+						if (title) {
+							ret = Apple::getStringFromNSString((__bridge NSString*)title);
+							CFRelease(title);
+						}
+						CFRelease(axWindow);
 					}
-					CFRelease(axWindow);
+					CFRelease(axApp);
 				}
-				CFRelease(axApp);
 			}
+			return ret;
+		} else {
+			return Apple::runAppleScript("tell application \"System Events\" to get the title of the front window of (first process whose frontmost is true)", sl_true);
 		}
-		return ret;
 	}
 
 	void UIPlatform::runLoop(sl_uint32 level)
@@ -270,9 +273,9 @@ namespace slib
 		for (;;) {
 			@autoreleasepool {
 				NSDate* date = [NSDate dateWithTimeIntervalSinceNow:1000];
-				NSEvent* ev = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES];
+				NSEvent* ev = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES];
 				if (ev != nil) {
-					if ([ev type] == NSApplicationDefined && [ev subtype] == NSPowerOffEventType) {
+					if ([ev type] == NSEventTypeApplicationDefined && [ev subtype] == NSEventSubtypePowerOff) {
 						break;
 					}
 					[NSApp sendEvent:ev];
@@ -283,13 +286,13 @@ namespace slib
 
 	void UIPlatform::quitLoop()
 	{
-		NSEvent* ev = [NSEvent otherEventWithType: NSApplicationDefined
+		NSEvent* ev = [NSEvent otherEventWithType: NSEventTypeApplicationDefined
 											location: NSMakePoint(0,0)
 									modifierFlags: 0
 										timestamp: 0.0
 										windowNumber: 0
 											context: nil
-											subtype: NSPowerOffEventType
+										  subtype: NSEventSubtypePowerOff
 											data1: 0
 											data2: 0];
 		[NSApp postEvent:ev atStart:YES];
@@ -301,15 +304,15 @@ namespace slib
 
 		[[NSBundle mainBundle] loadNibNamed:@"MainMenu" owner:NSApp topLevelObjects:nil];
 
-		SLIBAppDelegate * delegate = [[SLIBAppDelegate alloc] init];
+		SLIBAppDelegate* delegate = [[SLIBAppDelegate alloc] init];
 		[NSApp setDelegate:delegate];
 
-		[NSEvent addLocalMonitorForEventsMatchingMask:(NSApplicationDefinedMask | NSKeyDownMask) handler:^(NSEvent* event){
+		[NSEvent addLocalMonitorForEventsMatchingMask:(NSEventMaskApplicationDefined | NSEventMaskKeyDown) handler:^(NSEvent* event){
 			NSEventType type = [event type];
-			if (type == NSKeyDown) {
-				NSEventModifierFlags modifiers = [event modifierFlags] & NSDeviceIndependentModifierFlagsMask;
+			if (type == NSEventTypeKeyDown) {
+				NSEventModifierFlags modifiers = [event modifierFlags] & NSEventModifierFlagDeviceIndependentFlagsMask;
 				NSString* key = [event charactersIgnoringModifiers];
-				if (modifiers == NSCommandKeyMask) {
+				if (modifiers == NSEventModifierFlagCommand) {
 					if ([key isEqualToString:@"x"]) {
 						if ([NSApp sendAction:NSSelectorFromString(@"cut:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
@@ -331,14 +334,14 @@ namespace slib
 							return (NSEvent*)nil;
 						}
 					}
-				} else if (modifiers == (NSCommandKeyMask | NSShiftKeyMask)) {
+				} else if (modifiers == (NSEventModifierFlagCommand | NSEventModifierFlagShift)) {
 					if ([key isEqualToString:@"Z"]) {
 						if ([NSApp sendAction:NSSelectorFromString(@"redo:") to:nil from:NSApp]) {
 							return (NSEvent*)nil;
 						}
 					}
 				}
-			} else if (type == NSApplicationDefined) {
+			} else if (type == NSEventTypeApplicationDefined) {
 				UIDispatcher::processCallbacks();
 				return (NSEvent*)nil;
 			}
@@ -346,7 +349,8 @@ namespace slib
 		}];
 	}
 
-	namespace {
+	namespace
+	{
 		SLIB_GLOBAL_ZERO_INITIALIZED(Function<void()>, g_customMessageLoop)
 		SLIB_GLOBAL_ZERO_INITIALIZED(Function<void()>, g_customQuitApp)
 	}
@@ -390,7 +394,8 @@ namespace slib
 		});
 	}
 
-	namespace {
+	namespace
+	{
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSNotification*)>, g_callbackDidFinishLaunching);
 	}
 

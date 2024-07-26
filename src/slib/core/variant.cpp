@@ -2248,18 +2248,18 @@ namespace slib
 			case VariantType::String8:
 				{
 					String s = REF_VAR(String const, _value);
-					return Move(s);
+					return s;
 				}
 			case VariantType::String16:
 				{
 					String16 s = REF_VAR(String16 const, _value);
-					return Move(s);
-			}
+					return s;
+				}
 			case VariantType::String32:
 				{
 					String32 s = REF_VAR(String32 const, _value);
-					return Move(s);
-			}
+					return s;
+				}
 			case VariantType::Sz8:
 				return REF_VAR(sl_char8 const* const, _value);
 			case VariantType::Sz16:
@@ -2278,7 +2278,7 @@ namespace slib
 				{
 					String s = getString();
 					if (s.isNotNull()) {
-						return Move(s);
+						return s;
 					}
 				}
 				break;

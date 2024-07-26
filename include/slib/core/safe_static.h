@@ -46,9 +46,9 @@
 		static sl_int32 _static_safeflag_##NAME = 0; \
 		static sl_bool _static_freeflag_##NAME = sl_false; \
 		SLIB_STATIC_SPINLOCK(_static_safelock_##NAME); \
-		if (_static_safeflag_##NAME == 0) { \
+		if (!_static_safeflag_##NAME) { \
 			_static_safelock_##NAME.lock(); \
-			if (_static_safeflag_##NAME == 0) { \
+			if (!_static_safeflag_##NAME) { \
 				slib::priv::safe_static::FreeObjectOnExit(&NAME, &_static_freeflag_##NAME); \
 				_static_safeflag_##NAME = 1; \
 			} \
@@ -62,9 +62,9 @@
 	static sl_bool _static_freeflag_##NAME = sl_false; \
 	static TYPE& NAME = *(reinterpret_cast<TYPE*>(_static_safemem_##NAME)); \
 	SLIB_STATIC_SPINLOCK(_static_safelock_##NAME); \
-	if (_static_safeflag_##NAME == 0) { \
+	if (!_static_safeflag_##NAME) { \
 		_static_safelock_##NAME.lock(); \
-		if (_static_safeflag_##NAME == 0) { \
+		if (!_static_safeflag_##NAME) { \
 			new (&NAME) TYPE(__VA_ARGS__); \
 			PRIV_SLIB_SAFE_LOCAL_STATIC_DESTRUCTOR(NAME) \
 			_static_safeflag_##NAME = 1; \

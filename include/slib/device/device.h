@@ -107,6 +107,13 @@ namespace slib
 
 		static void vibrate(sl_uint32 durationMillis = 500);
 
+		static sl_bool isUsingCamera();
+		
+		static sl_bool isUsingMicrophone();
+
+		static List<String> getApplicationsUsingCamera();
+
+		static List<String> getApplicationsUsingMicrophone();
 
 		// Works on Android
 		static sl_uint32 getSimSlotCount();
