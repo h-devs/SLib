@@ -43,7 +43,8 @@ namespace slib
 
 	using namespace priv;
 
-	namespace {
+	namespace
+	{
 		class ScreenImpl : public Screen
 		{
 		public:
@@ -104,7 +105,8 @@ namespace slib
 		gdk_event_put(&event);
 	}
 
-	namespace {
+	namespace
+	{
 		static gboolean DispatchUrgentlyCallback(gpointer user_data)
 		{
 			Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(user_data);
@@ -147,7 +149,8 @@ namespace slib
 		gtk_show_uri(NULL, url.getData(), GDK_CURRENT_TIME, &error);
 	}
 
-	namespace {
+	namespace
+	{
 		static sl_bool GetActiveWindowInfo(String& cls, String& title)
 		{
 			auto funcCallSync = gio::getApi_g_dbus_connection_call_sync();
@@ -308,7 +311,8 @@ namespace slib
 		gtk_main_quit();
 	}
 
-	namespace {
+	namespace
+	{
 
 		static GtkApplication* g_app = sl_null;
 		static sl_bool g_flagRunningAppLoop = sl_false;

@@ -30,7 +30,7 @@ namespace slib
 {
 
 	template <class T>
-	class Nullable
+	class SLIB_EXPORT Nullable
 	{
 	public:
 		Nullable(): flagNull(sl_true), flagUndefined(sl_true) {}
