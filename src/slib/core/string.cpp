@@ -2257,6 +2257,16 @@ namespace slib
 			if (!len) {
 				return STRING::getEmpty();
 			}
+			sl_bool flagUpper = sl_true;
+			for (sl_size i = 0; i < len; i++) {
+				typename STRING::Char ch = data[i];
+				if (ch != SLIB_CHAR_LOWER_TO_UPPER(ch)) {
+					flagUpper = sl_false;
+				}
+			}
+			if (flagUpper) {
+				return str;
+			}
 			STRING ret = STRING::allocate(len);
 			if (ret.isNull()) {
 				return ret;
@@ -2298,6 +2308,16 @@ namespace slib
 			typename STRING::Char const* data = str.getData(len);
 			if (!len) {
 				return STRING::getEmpty();
+			}
+			sl_bool flagLower = sl_true;
+			for (sl_size i = 0; i < len; i++) {
+				typename STRING::Char ch = data[i];
+				if (ch != SLIB_CHAR_UPPER_TO_LOWER(ch)) {
+					flagLower = sl_false;
+				}
+			}
+			if (flagLower) {
+				return str;
 			}
 			STRING ret = STRING::allocate(len);
 			if (ret.isNull()) {
