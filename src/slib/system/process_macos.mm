@@ -204,17 +204,13 @@ namespace slib
 
 	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam& commandLine)
 	{
-		String source = String::concat("do shell script \"", FixArgument(pathExecutable.toString()), " ", commandLine, "\" with administrator privileges");
-		NSAppleScript* script = [[NSAppleScript alloc] initWithSource:(Apple::getNSStringFromString(source))];
-		[script executeAndReturnError:nil];
+		Apple::runAppleScript(String::concat("do shell script \"", FixArgument(pathExecutable.toString()), " ", commandLine, "\" with administrator privileges"));
 	}
 
 	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		String command = BuildCommand(pathExecutable, arguments, nArguments);
-		String source = String::concat("do shell script \"", command, "\" with administrator privileges");
-		NSAppleScript* script = [[NSAppleScript alloc] initWithSource:(Apple::getNSStringFromString(source))];
-		[script executeAndReturnError:nil];
+		Apple::runAppleScript(String::concat("do shell script \"", command, "\" with administrator privileges"));
 	}
 
 	void Process::setAppNapEnabled(sl_bool flag)

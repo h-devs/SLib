@@ -172,7 +172,9 @@ int main(int argc, const char * argv[])
 			if (!(doc->simulateLayoutInWindow(layoutName, param))) {
 				return -1;
 			}
-			UIApp::activate();
+			UI::dispatchToUiThread([]() {
+				UIApp::activate();
+			});
 			UI::runApp();
 		} else {
 			Println("Not supported file: %s", path);

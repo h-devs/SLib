@@ -467,6 +467,7 @@ using namespace slib;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
+	UIDispatcher::processCallbacks();
 	UIApp::Current::invokeStart();
 	g_callbackDidFinishLaunching(aNotification);
 }
