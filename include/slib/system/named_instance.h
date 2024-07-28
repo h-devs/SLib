@@ -39,10 +39,10 @@ namespace slib
 		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(NamedInstance, HNamedInstance, m_handle, SLIB_NAMED_INSTANCE_INVALID_HANDLE)
 
 	public:
-		NamedInstance(const StringParam& name);
+		NamedInstance(const StringParam& name, sl_bool flagGlobal = sl_true);
 
 	public:
-		static sl_bool exists(const StringParam& name);
+		static sl_bool exists(const StringParam& name, sl_bool flagGlobal = sl_true);
 
 	};
 

@@ -46,9 +46,13 @@ namespace slib
 	namespace {
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-		static String16 MakeInstanceName(const StringParam& _name)
+		static String16 MakeInstanceName(const StringParam& _name, sl_bool flagGlobal)
 		{
-			return String16::concat("Global\\", _name);
+			if (flagGlobal) {
+				return String16::concat(StringView16::literal(u"Global\\"), _name);
+			} else {
+				return String16::concat(StringView16::literal(u"Local\\"), _name);
+			}
 		}
 #else
 		struct Container
@@ -61,23 +65,38 @@ namespace slib
 
 		SLIB_SAFE_STATIC_GETTER(NameMap, GetNameMap)
 
-		static String MakeInstancePath(const StringParam& name)
+		static String MakeInstancePath(const StringParam& name, sl_bool flagGlobal)
 		{
-			String pathRoot = String::concat(System::getHomeDirectory(), "/.local/.named_inst");
+			String pathRoot;
+			if (flagGlobal) {
+				SLIB_STATIC_STRING(s, "/var/tmp/.named_inst")
+				pathRoot = s;
+			} else {
+#if defined(SLIB_PLATFORM_IS_MACOS)
+				if (System::getUserName() == StringView::literal("root")) {
+					SLIB_STATIC_STRING(s, "/Library/Application Support/.named_inst")
+					pathRoot = s;
+				} else {
+					pathRoot = File::concatPath(System::getHomeDirectory(), StringView::literal("Library/Application Support/.named_inst"));
+				}
+#else
+				pathRoot = File::concatPath(System::getHomeDirectory(), StringView::literal(".named_inst"));
+#endif
+			}
 			if (!(File::exists(pathRoot))) {
 				File::createDirectories(pathRoot);
 			}
-			return String::concat(pathRoot, "/", name);
+			return File::concatPath(pathRoot, name);
 		}
 #endif
 
-		static HNamedInstance CreateInstanceHandle(const StringParam& _name)
+		static HNamedInstance CreateInstanceHandle(const StringParam& _name, sl_bool flagGlobal)
 		{
 			if (_name.isEmpty()) {
 				return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
 			}
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-			String16 name = MakeInstanceName(_name);
+			String16 name = MakeInstanceName(_name, flagGlobal);
 			HANDLE hMutex = OpenMutexW(MUTEX_ALL_ACCESS, FALSE, (LPCWSTR)(name.getData()));
 			if (hMutex) {
 				CloseHandle(hMutex);
@@ -100,8 +119,8 @@ namespace slib
 				return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
 			}
 
-			String path = MakeInstancePath(name);
-			int handle = open(path.getData(), O_RDWR | O_CREAT | O_EXCL, 0644);
+			String path = MakeInstancePath(name, flagGlobal);
+			int handle = open(path.getData(), O_RDWR | O_CREAT | O_EXCL, 0777);
 			if (handle == -1) {
 				handle = open(path.getData(), O_RDWR);
 				if (handle == -1) {
@@ -156,18 +175,18 @@ namespace slib
 
 	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(NamedInstance, HNamedInstance, m_handle, SLIB_NAMED_INSTANCE_INVALID_HANDLE, CloseInstanceHandle)
 
-	NamedInstance::NamedInstance(const StringParam& name)
+	NamedInstance::NamedInstance(const StringParam& name, sl_bool flagGlobal)
 	{
-		m_handle = CreateInstanceHandle(name);
+		m_handle = CreateInstanceHandle(name, flagGlobal);
 	}
 
-	sl_bool NamedInstance::exists(const StringParam& _name)
+	sl_bool NamedInstance::exists(const StringParam& _name, sl_bool flagGlobal)
 	{
 		if (_name.isEmpty()) {
 			return sl_false;
 		}
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-		String16 name = MakeInstanceName(_name);
+		String16 name = MakeInstanceName(_name, flagGlobal);
 		HANDLE hMutex = OpenMutexW(MUTEX_ALL_ACCESS, FALSE, (LPCWSTR)(name.getData()));
 		if (hMutex != NULL) {
 			CloseHandle(hMutex);
@@ -175,7 +194,7 @@ namespace slib
 		}
 		return sl_false;
 #else
-		return NamedInstance(_name).isNone();
+		return NamedInstance(_name, flagGlobal).isNone();
 #endif
 	}
 
