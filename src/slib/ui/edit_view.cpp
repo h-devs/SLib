@@ -137,6 +137,11 @@ namespace slib
 
 	sl_bool EditView::isChangeEventEnabled()
 	{
+#ifndef SLIB_PLATFORM_IS_WIN32
+		if (m_flagUppercase || m_flagLowercase) {
+			return sl_true;
+		}
+#endif
 		return m_flagChangeEvent;
 	}
 
@@ -588,7 +593,8 @@ namespace slib
 		box->draw(canvas, param);
 	}
 
-	namespace {
+	namespace
+	{
 
 		class EditViewHelper : public EditView
 		{
@@ -851,7 +857,18 @@ namespace slib
 		ev->accept();
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(EditView, Changing, (String& value, UIEvent* ev /* nullable */), value, ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(EditView, Changing, (String& value, UIEvent* ev /* nullable */), value, ev)
+
+	void EditView::onChanging(String& value, UIEvent* ev)
+	{
+#ifndef SLIB_PLATFORM_IS_WIN32
+		if (m_flagUppercase) {
+			value = value.toUpper();
+		} else if (m_flagLowercase) {
+			value = value.toLower();
+		}
+#endif
+	}
 
 	SLIB_DEFINE_EVENT_HANDLER(EditView, Change, (const String& value, UIEvent* ev /* nullable */), value, ev)
 
