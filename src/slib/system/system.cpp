@@ -107,6 +107,10 @@ namespace slib
 	void System::setCrashHandler(SIGNAL_HANDLER handler)
 	{
 	}
+
+	void System::setTerminationHandler(SIGNAL_HANDLER handler)
+	{
+	}
 #endif
 
 #if !defined(SLIB_PLATFORM_IS_WIN32)

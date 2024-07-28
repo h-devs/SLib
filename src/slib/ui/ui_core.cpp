@@ -29,12 +29,9 @@
 #include "slib/network/url.h"
 #include "slib/device/device.h"
 #include "slib/io/file.h"
+#include "slib/system/system.h"
 #include "slib/core/safe_static.h"
 #include "slib/ui/platform.h"
-
-#ifndef SLIB_PLATFORM_IS_WINDOWS
-#include <signal.h>
-#endif
 
 namespace slib
 {
@@ -55,7 +52,8 @@ namespace slib
 	}
 
 
-	namespace {
+	namespace
+	{
 
 		class DefaultContext
 		{
@@ -643,7 +641,8 @@ namespace slib
 		}
 	}
 
-	namespace {
+	namespace
+	{
 		class UICallback : public Callable<void()>
 		{
 		public:
@@ -672,7 +671,8 @@ namespace slib
 		return sl_null;
 	}
 
-	namespace {
+	namespace
+	{
 		class DispatcherImpl : public Dispatcher
 		{
 		public:
@@ -692,7 +692,8 @@ namespace slib
 		return new DispatcherImpl();
 	}
 
-	namespace {
+	namespace
+	{
 		static sl_bool g_flagInitializedApp = sl_false;
 		static sl_bool g_flagRunningApp = sl_false;
 		static sl_int32 g_nLevelRunLoop = 0;
@@ -716,7 +717,7 @@ namespace slib
 			QuitLoop();
 		}
 
-		static void TermHandler(int signum)
+		static void TerminationHandler(int signum)
 		{
 			QuitApp();
 		}
@@ -762,12 +763,7 @@ namespace slib
 		if (g_flagQuitApp) {
 			return;
 		}
-#ifndef SLIB_PLATFORM_IS_WINDOWS
-		struct sigaction sa;
-		Base::zeroMemory(&sa, sizeof(sa));
-		sa.sa_handler = &TermHandler;
-		sigaction(SIGTERM, &sa, sl_null);
-#endif
+		System::setTerminationHandler(&TerminationHandler);
 		g_flagRunningApp = sl_true;
 		UIPlatform::runApp();
 	#if !defined(SLIB_PLATFORM_IS_ANDROID)

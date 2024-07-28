@@ -32,8 +32,6 @@
 #include "slib/core/console.h"
 #include "slib/platform/win32/windows.h"
 #include <conio.h>
-#else
-#include <signal.h>
 #endif
 
 #define TAG "Service"
@@ -412,8 +410,9 @@ namespace slib
 		return -1;
 	}
 
-	namespace {
-		static void TermHandler(int signum)
+	namespace
+	{
+		static void TerminationHandler(int signum)
 		{
 			Service::quitApp();
 		}
@@ -430,12 +429,7 @@ namespace slib
 			return -1;
 		}
 
-#ifndef SLIB_PLATFORM_IS_WINDOWS
-		struct sigaction sa;
-		Base::zeroMemory(&sa, sizeof(sa));
-		sa.sa_handler = &TermHandler;
-		sigaction(SIGTERM, &sa, sl_null);
-#endif
+		System::setTerminationHandler(&TerminationHandler);
 
 		String appName = getServiceId();
 

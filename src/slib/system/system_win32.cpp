@@ -71,7 +71,8 @@ namespace slib
 	}
 
 #ifdef SLIB_PLATFORM_IS_WIN32
-	namespace {
+	namespace
+	{
 		static volatile double g_signal_fpe_dummy = 0.0f;
 	}
 #endif
@@ -628,7 +629,8 @@ namespace slib
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
-	namespace {
+	namespace
+	{
 
 		static SIGNAL_HANDLER g_handlerSignalCrash;
 
@@ -682,6 +684,11 @@ namespace slib
 		signal(SIGABRT_COMPAT, handler);
 	}
 
+	void System::setTerminationHandler(SIGNAL_HANDLER handler)
+	{
+		signal(SIGTERM, handler);
+	}
+
 	void System::setDebugFlags()
 	{
 #ifdef SLIB_DEBUG
@@ -693,7 +700,8 @@ namespace slib
 #endif
 	}
 
-	namespace {
+	namespace
+	{
 
 		static DEBUG_ALLOC_HOOK g_debugAllocHook;
 

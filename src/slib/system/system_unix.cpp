@@ -74,7 +74,8 @@ namespace slib
 		}
 	}
 
-	namespace {
+	namespace
+	{
 
 #if !defined(SLIB_PLATFORM_IS_ANDROID) && !defined(SLIB_PLATFORM_IS_APPLE)
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strSystemName)
@@ -393,7 +394,8 @@ namespace slib
 	}
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-	namespace {
+	namespace
+	{
 		static volatile double g_signal_fpe_dummy = 0.0f;
 	}
 
@@ -401,9 +403,9 @@ namespace slib
 	{
 		g_signal_fpe_dummy = 0.0f;
 		struct sigaction sa;
+		sigemptyset(&(sa.sa_mask));
 		sa.sa_flags = SA_NODEFER;
 		sa.sa_handler = handler;
-		sigemptyset(&(sa.sa_mask));
 		sigaction(SIGFPE, &sa, sl_null);
 		sigaction(SIGSEGV, &sa, sl_null);
 		sigaction(SIGBUS, &sa, sl_null);
@@ -414,6 +416,14 @@ namespace slib
 		sigaction(SIGEMT, &sa, sl_null);
 #	endif
 		sigaction(SIGSYS, &sa, sl_null);
+	}
+
+	void System::setTerminationHandler(SIGNAL_HANDLER handler)
+	{
+		struct sigaction sa;
+		Base::zeroMemory(&sa, sizeof(sa));
+		sa.sa_handler = handler;
+		sigaction(SIGTERM, &sa, sl_null);
 	}
 #endif
 
