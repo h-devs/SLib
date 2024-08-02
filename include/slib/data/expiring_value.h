@@ -89,8 +89,8 @@ namespace slib
 			value = T();
 		}
 
-		template <class OUT>
-		sl_bool release(OUT& _out) noexcept
+		template <class OUTPUT>
+		sl_bool release(OUTPUT& _out) noexcept
 		{
 			if (isValid()) {
 				lastUpdatedTick = 0;

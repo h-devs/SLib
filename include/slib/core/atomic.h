@@ -121,8 +121,8 @@ namespace slib
 			return value;
 		}
 
-		template <class OUT>
-		void release(OUT& _out)
+		template <class OUTPUT>
+		void release(OUTPUT& _out)
 		{
 			m_lock.lock();
 			_out = Move(*((T*)m_value));
