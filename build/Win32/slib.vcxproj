@@ -202,6 +202,7 @@
     <ClCompile Include="..\..\src\slib\db\rocksdb.cpp" />
     <ClCompile Include="..\..\src\slib\db\sqlite.cpp" />
     <ClCompile Include="..\..\src\slib\device\device.cpp" />
+    <ClCompile Include="..\..\src\slib\device\device_audio.cpp" />
     <ClCompile Include="..\..\src\slib\device\device_win32.cpp" />
     <ClCompile Include="..\..\src\slib\device\disk.cpp" />
     <ClCompile Include="..\..\src\slib\device\disk_win32.cpp" />
