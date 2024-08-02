@@ -10735,7 +10735,9 @@ namespace slib
 	void View::_processClick(UIEvent* ev)
 	{
 		if (isNativeWidget()) {
-			return;
+			if (!(IsInstanceOf<RenderView>(this))) {
+				return;
+			}
 		}
 		UIAction action = ev->getAction();
 		switch (action) {
