@@ -33,7 +33,6 @@
 #include "slib/ui/cursor.h"
 #include "slib/ui/resource.h"
 #include "slib/ui/scroll_view.h"
-#include "slib/ui/render_view.h"
 #include "slib/ui/sound.h"
 
 #include "slib/math/transform2d.h"
@@ -10735,7 +10734,7 @@ namespace slib
 	void View::_processClick(UIEvent* ev)
 	{
 		if (isNativeWidget()) {
-			if (!(IsInstanceOf<RenderView>(this))) {
+			if (!(isRendering())) {
 				return;
 			}
 		}

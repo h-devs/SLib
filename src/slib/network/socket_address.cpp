@@ -372,7 +372,7 @@ namespace slib
 		flagAbstract = sl_true;
 	}
 
-	AbstractDomainSocketPath::AbstractDomainSocketPath(const StringParam& path) noexcept : DomainSocketPath(path, sl_true)
+	AbstractDomainSocketPath::AbstractDomainSocketPath(const StringParam& path) noexcept: DomainSocketPath(path, sl_true)
 	{
 	}
 
