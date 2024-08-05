@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -47,6 +47,9 @@ namespace slib
 	public:
 		String filePath; // path in zip file
 		Time lastModifiedTime;
+		sl_bool flagValidCrc; // Used in Unarchive
+		sl_bool flagDirectory; // Used in Unarchive
+		sl_uint32 attributes;
 		ZipCompressionMethod compressionMethod;
 		Nullable<sl_int32> compressionLevel; // 0-9 (Deflate)
 		StringParam password; // for archive
@@ -74,6 +77,8 @@ namespace slib
 	{
 	public:
 		static Memory archive(const ListParam<ZipElement>& elements);
+
+		static List<ZipElement> unarchive(const MemoryView& zip);
 
 	};
 

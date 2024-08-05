@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,12 +22,13 @@
 
 #include "slib/doc/zip.h"
 
-#include "slib/core/mio.h"
 #include "slib/io/file.h"
+#include "slib/io/memory_reader.h"
 #include "slib/io/memory_output.h"
 #include "slib/data/crc32.h"
 #include "slib/data/zlib.h"
 #include "slib/data/zstd.h"
+#include "slib/core/mio.h"
 
 #define ZIP_VERSION 64 //6.4
 
@@ -107,19 +108,30 @@ namespace slib
 			}
 		}
 
+		template <class HEADER>
+		static Time ParseModifiedTime(HEADER* header)
+		{
+			sl_uint16 lastModifiedTime = MIO::readUint16LE(header->lastModifiedTime);
+			sl_uint16 lastModifiedDate = MIO::readUint16LE(header->lastModifiedDate);
+			if (lastModifiedTime || lastModifiedDate) {
+				sl_uint16 hour = lastModifiedTime >> 11;
+				sl_uint16 minute = (lastModifiedTime >> 5) & 63;
+				sl_uint16 second = (lastModifiedTime << 1) & 63;
+				sl_uint16 year = 1980 + (lastModifiedDate >> 9);
+				sl_uint16 month = (lastModifiedTime >> 5) & 15;
+				sl_uint16 day = lastModifiedTime & 31;
+				return Time(year, month, day, hour, minute, second);
+			} else {
+				return Time::zero();
+			}
+		}
+
 		class ZipArchiver
 		{
 		public:
-			sl_uint32 m_nTotalFiles;
-			sl_uint64 m_offsetCurrent;
+			sl_uint32 m_nTotalFiles = 0;
+			sl_uint64 m_offsetCurrent = 0;
 			MemoryBuffer m_bufCenteralDir;
-
-		public:
-			ZipArchiver()
-			{
-				m_nTotalFiles = 0;
-				m_offsetCurrent = 0;
-			}
 
 		public:
 			sl_bool writeEntry(IWriter* writer, const ZipElement& element)
@@ -221,7 +233,7 @@ namespace slib
 					MIO::writeUint16LE(header.lenFileName, (sl_uint16)lenFilePath);
 					MIO::writeUint16LE(header.lenExtraField, 0);
 					MIO::writeUint16LE(header.lenComment, 0);
-					MIO::writeUint32LE(header.exteralFileAttrs, 0);
+					MIO::writeUint32LE(header.exteralFileAttrs, element.attributes);
 					MIO::writeUint32LE(header.relativeOffsetOfLocalHeader, (sl_uint32)offsetLocalHeader);
 
 					if (!(m_bufCenteralDir.addNew(&header, ZIP_CENTRAL_DIR_HEADER_SIZE))) {
@@ -269,6 +281,153 @@ namespace slib
 
 		};
 
+		class ZipUnarchiver
+		{
+		public:
+			sl_uint32 m_nTotalFiles = 0;
+			sl_uint32 m_offsetDir = 0;
+			sl_uint32 m_endDir = 0;
+
+		public:
+			sl_bool start(IReader* reader, ISeekable* seeker)
+			{
+				// End of Central Dir Header
+				{
+					if (!(seeker->seek(-ZIP_END_OF_CENTRAL_DIR_SIZE, SeekPosition::End))) {
+						return sl_false;
+					}
+					ZipEndOfCentralDirRecord header;
+					if (reader->readFully(&header, ZIP_END_OF_CENTRAL_DIR_SIZE) != ZIP_END_OF_CENTRAL_DIR_SIZE) {
+						return sl_false;
+					}
+					if (MIO::readUint32LE(header.signature) != ZIP_END_OF_CENTRAL_DIR_SIG) {
+						return sl_false;
+					}
+					m_nTotalFiles = MIO::readUint16LE(header.totalFilesOnDisk);
+					m_offsetDir = MIO::readUint32LE(header.offsetStart);
+					m_endDir = m_offsetDir + MIO::readUint32LE(header.size);
+				}
+				return sl_true;
+			}
+
+			sl_bool readEntry(IReader* reader, ISeekable* seeker, ZipElement& element)
+			{
+				sl_uint32 crc = 0;
+				sl_uint32 sizeCompressed = 0;
+				sl_uint32 offsetLocalHeader = 0;
+
+				// Central Dir Header
+				{
+					if (m_offsetDir + sizeof(ZipCentralDirHeader) > m_endDir) {
+						return sl_false;
+					}
+					if (!(seeker->seek(m_offsetDir, SeekPosition::Begin))) {
+						return sl_false;
+					}
+					ZipCentralDirHeader header;
+					if (reader->readFully(&header, sizeof(header)) != sizeof(header)) {
+						return sl_false;
+					}
+					if (MIO::readUint32LE(header.signature) != ZIP_CENTRAL_DIR_HEADER_SIG) {
+						return sl_false;
+					}
+					element.compressionMethod = (ZipCompressionMethod)(MIO::readUint16LE(header.compressionMethod));
+					element.lastModifiedTime = ParseModifiedTime(&header);
+					element.attributes = MIO::readUint32LE(header.exteralFileAttrs);
+					crc = MIO::readUint32LE(header.crc32);
+					sizeCompressed = MIO::readUint32LE(header.compressedSize);
+					offsetLocalHeader = MIO::readUint32LE(header.relativeOffsetOfLocalHeader);
+					m_offsetDir += sizeof(header);
+
+					sl_uint16 lenFilePath = MIO::readUint16LE(header.lenFileName);
+					if (lenFilePath) {
+						if (m_offsetDir + lenFilePath > m_endDir) {
+							return sl_false;
+						}
+						element.filePath = String::allocate(lenFilePath);
+						if (element.filePath.isNull()) {
+							return sl_false;
+						}
+						if (reader->readFully(element.filePath.getData(), lenFilePath) != lenFilePath) {
+							return sl_false;
+						}
+						m_offsetDir += lenFilePath;
+					}
+					sl_uint16 lenExtra = MIO::readUint16LE(header.lenExtraField);
+					if (lenExtra) {
+						if (m_offsetDir + lenExtra > m_endDir) {
+							return sl_false;
+						}
+						if (!(seeker->seek(lenExtra, SeekPosition::Current))) {
+							return sl_false;
+						}
+						m_offsetDir += lenExtra;
+					}
+					sl_uint16 lenComment = MIO::readUint16LE(header.lenComment);
+					if (lenComment) {
+						if (m_offsetDir + lenComment > m_endDir) {
+							return sl_false;
+						}
+						if (!(seeker->seek(lenComment, SeekPosition::Current))) {
+							return sl_false;
+						}
+						m_offsetDir += lenComment;
+					}
+				}
+
+				// Local File Header
+				{
+					if (!(seeker->seek(offsetLocalHeader, SeekPosition::Begin))) {
+						return sl_false;
+					}
+					ZipLocalFileHeader header;
+					if (reader->readFully(&header, ZIP_LOCAL_FILE_HEADER_SIZE) != ZIP_LOCAL_FILE_HEADER_SIZE) {
+						return sl_false;
+					}
+					sl_uint32 signature = MIO::readUint32LE(header.signature);
+					if (signature != ZIP_LOCAL_FILE_HEADER_SIG) {
+						return sl_false;
+					}
+					sl_uint16 lenFilePath = MIO::readUint16LE(header.lenFileName);
+					if (lenFilePath) {
+						if (!(seeker->seek(lenFilePath, SeekPosition::Current))) {
+							return sl_false;
+						}
+					}
+					sl_uint16 lenExtra = MIO::readUint16LE(header.lenExtraField);
+					if (lenExtra) {
+						if (!(seeker->seek(lenExtra, SeekPosition::Current))) {
+							return sl_false;
+						}
+					}
+				}
+
+				// Content
+				if (sizeCompressed) {
+					Memory memCompressed = reader->readFully(sizeCompressed);
+					if (memCompressed.isNull()) {
+						return sl_false;
+					}
+					if (element.compressionMethod == ZipCompressionMethod::Store) {
+						element.content = Move(memCompressed);
+					} else if (element.compressionMethod == ZipCompressionMethod::Deflated) {
+						element.content = Zlib::decompressRaw(memCompressed.getData(), memCompressed.getSize());
+					} else if (element.compressionMethod == ZipCompressionMethod::Zstandard) {
+						element.content = Zstd::decompress(memCompressed.getData(), memCompressed.getSize());
+					} else {
+						return sl_false;
+					}
+					if (element.content.isNull()) {
+						return sl_false;
+					}
+				}
+				element.flagValidCrc = crc == Crc32::get(element.content);
+				element.flagDirectory = element.filePath.endsWith('/') || element.filePath.endsWith('\\');
+				return sl_true;
+			}
+
+		};
+
 	}
 
 
@@ -277,6 +436,8 @@ namespace slib
 	ZipFileInfo::ZipFileInfo()
 	{
 		compressionMethod = ZipCompressionMethod::Deflated;
+		attributes = 0;
+		flagValidCrc = sl_false;
 	}
 
 
@@ -301,6 +462,26 @@ namespace slib
 			return sl_null;
 		}
 		return output.merge();
+	}
+
+	List<ZipElement> Zip::unarchive(const MemoryView& zip)
+	{
+		MemoryReader input(zip.data, zip.size);
+		ZipUnarchiver unarchiver;
+		if (!(unarchiver.start(&input, &input))) {
+			return sl_null;
+		}
+		List<ZipElement> ret;
+		for (;;) {
+			ZipElement element;
+			if (!(unarchiver.readEntry(&input, &input, element))) {
+				break;
+			}
+			if (!(ret.add_NoLock(Move(element)))) {
+				break;
+			}
+		}
+		return ret;
 	}
 
 }
