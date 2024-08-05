@@ -57,6 +57,8 @@ namespace slib
 
 		String getApplicationId() override;
 
+		sl_bool isGlobalUniqueInstance() override;
+
 	public:
 		sl_bool startService();
 

@@ -481,6 +481,11 @@ namespace slib
 		return getServiceId();
 	}
 
+	sl_bool Service::isGlobalUniqueInstance()
+	{
+		return sl_true;
+	}
+
 #if !defined(SLIB_PLATFORM_IS_WIN32)
 	sl_bool Service::_tryPlatformService()
 	{

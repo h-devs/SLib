@@ -121,7 +121,9 @@ namespace slib
 
 		virtual String getApplicationId();
 
-		void setApplicationId(const StringParam& _id);
+		void setApplicationId(const StringParam& _id, sl_bool flagGlobal = sl_true);
+
+		virtual sl_bool isGlobalUniqueInstance();
 
 		String getExecutablePath();
 
@@ -243,6 +245,7 @@ namespace slib
 		List<String> m_arguments;
 
 		AtomicString m_applicationId;
+		sl_bool m_flagGlobalUnique;
 		NamedInstance m_uniqueInstance;
 
 		sl_bool m_flagCrashRecoverySupport;

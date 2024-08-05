@@ -40,6 +40,7 @@ namespace slib
 	Application::Application()
 	{
 		m_flagInitialized = sl_false;
+		m_flagGlobalUnique = sl_true;
 		m_flagCrashRecoverySupport = sl_false;
 	}
 
@@ -73,9 +74,15 @@ namespace slib
 		return m_applicationId;
 	}
 
-	void Application::setApplicationId(const StringParam& _id)
+	void Application::setApplicationId(const StringParam& _id, sl_bool flagGlobal)
 	{
 		m_applicationId = _id.toString();
+		m_flagGlobalUnique = flagGlobal;
+	}
+
+	sl_bool Application::isGlobalUniqueInstance()
+	{
+		return m_flagGlobalUnique;
 	}
 
 	String Application::getExecutablePath()
@@ -178,7 +185,7 @@ namespace slib
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 		String instanceId = getApplicationId();
 		if (instanceId.isNotEmpty()) {
-			m_uniqueInstance = NamedInstance(instanceId);
+			m_uniqueInstance = NamedInstance(instanceId, isGlobalUniqueInstance());
 			if (m_uniqueInstance.isNone()) {
 				return onExistingInstance();
 			}
@@ -220,7 +227,7 @@ namespace slib
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 		String instanceId = getApplicationId();
 		if (instanceId.isNotEmpty()) {
-			return NamedInstance::exists(instanceId);
+			return NamedInstance::exists(instanceId, isGlobalUniqueInstance());
 		}
 #endif
 		return sl_false;
