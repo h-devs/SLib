@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -120,16 +120,17 @@ namespace slib
 
 		using Canvas::drawLine;
 		void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen) override;
+		void drawLine(const Point& pt1, const Point& pt2, const Color& color, sl_real width = 1.0f, sl_bool flagUseLinePrimitive = sl_true);
 
 		using Canvas::drawLines;
-		void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override;
+		void drawLines(const Point* points, sl_size pointCount, const Ref<Pen>& pen) override;
+		void drawLines(const Point* points, sl_size pointCount, const Color& color, sl_real width = 1.0f, sl_bool flagClosePath = sl_false, sl_bool flagUseLinePrimitive = sl_true);
 
 		using Canvas::drawArc;
 		void drawArc(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen) override;
 
 		using Canvas::drawRectangle;
 		void drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
-
 		void drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor) override;
 
 		using Canvas::drawRoundRect;
@@ -139,7 +140,8 @@ namespace slib
 		void drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
 
 		using Canvas::drawPolygon;
-		void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode = FillMode::Alternate) override;
+		void drawPolygon(const Point* points, sl_size pointCount, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode = FillMode::Alternate) override;
+		void drawPolygon(const Point* points, sl_size pointCount, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode = FillMode::Alternate) override;
 
 		using Canvas::drawPie;
 		void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
@@ -179,6 +181,11 @@ namespace slib
 
 		void drawRectangle(const Rectangle& rect, RenderProgramState2D_Position* programState, const DrawParam& param);
 
+
+		sl_bool isUsingLinePrimitive();
+
+		void setUsingLinePrimitive(sl_bool flag = sl_true);
+
 	protected:
 		void onDrawText(const StringParam& text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param) override;
 
@@ -195,13 +202,19 @@ namespace slib
 
 		void _fillRectangle(const Rectangle& rect, const Color& color);
 
+		void _fillPolygon(const Point* points, sl_size nPoints, const Color& color);
+
+		void _drawLineByRect(const Point& pt1, const Point& pt2, const Color& color, sl_real width);
+
 	protected:
 		Ref<RenderEngine> m_engine;
 		sl_real m_width;
 		sl_real m_height;
 		Matrix3 m_matViewport;
+
 		Ref<RenderCanvasState> m_state;
 		LinkedStack< Ref<RenderCanvasState> > m_stackStates;
+		sl_bool m_flagUseLinePrimitive;
 
 	};
 

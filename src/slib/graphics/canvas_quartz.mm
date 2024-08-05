@@ -149,15 +149,15 @@ namespace slib
 				}
 			}
 
-			void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
+			void drawLines(const Point* points, sl_size nPoints, const Ref<Pen>& pen) override
 			{
-				if (countPoints < 2) {
+				if (nPoints < 2) {
 					return;
 				}
 				if (pen.isNotNull()) {
 					CGContextBeginPath(m_graphics);
 					CGContextMoveToPoint(m_graphics, points[0].x, points[0].y);
-					for (sl_uint32 i = 1; i < countPoints; i++) {
+					for (sl_size i = 1; i < nPoints; i++) {
 						CGContextAddLineToPoint(m_graphics, points[i].x, points[i].y);
 					}
 					_applyPen(pen.get());
@@ -231,15 +231,15 @@ namespace slib
 				}
 			}
 
-			void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
+			void drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
 			{
-				if (countPoints <= 2) {
+				if (nPoints <= 2) {
 					return;
 				}
 				Ref<GraphicsPath> path = GraphicsPath::create();
 				if (path.isNotNull()) {
 					path->moveTo(points[0]);
-					for (sl_uint32 i = 1; i < countPoints; i++) {
+					for (sl_size i = 1; i < nPoints; i++) {
 						path->lineTo(points[i]);
 					}
 					path->closeSubpath();

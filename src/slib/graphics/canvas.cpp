@@ -213,7 +213,7 @@ namespace slib
 	void Canvas::drawLines(const List<Point>& _points, const Ref<Pen>& pen)
 	{
 		ListLocker<Point> points(_points);
-		drawLines(points.data, (sl_uint32)(points.count), pen);
+		drawLines(points.data, points.count, pen);
 	}
 
 	void Canvas::drawArc(sl_real x, sl_real y, sl_real width, sl_real height, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen)
@@ -344,46 +344,46 @@ namespace slib
 	void Canvas::drawPolygon(const List<Point>& _points, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode)
 	{
 		ListLocker<Point> points(_points);
-		drawPolygon(points.data, (sl_uint32)(points.count), pen, brush, fillMode);
+		drawPolygon(points.data, points.count, pen, brush, fillMode);
 	}
 
 	void Canvas::drawPolygon(const List<Point>& _points, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode)
 	{
 		ListLocker<Point> points(_points);
-		drawPolygon(points.data, (sl_uint32)(points.count), pen,fillColor, fillMode);
+		drawPolygon(points.data, points.count, pen,fillColor, fillMode);
 	}
 
-	void Canvas::drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen)
+	void Canvas::drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen)
 	{
-		drawPolygon(points, countPoints, pen, Ref<Brush>::null());
+		drawPolygon(points, nPoints, pen, Ref<Brush>::null());
 	}
 
 	void Canvas::drawPolygon(const List<Point>& _points, const Ref<Pen>& pen)
 	{
 		ListLocker<Point> points(_points);
-		drawPolygon(points.data, (sl_uint32)(points.count), pen, Ref<Brush>::null());
+		drawPolygon(points.data, points.count, pen, Ref<Brush>::null());
 	}
 
-	void Canvas::fillPolygon(const Point* points, sl_uint32 countPoints, const Ref<Brush>& brush, FillMode fillMode)
+	void Canvas::fillPolygon(const Point* points, sl_size nPoints, const Ref<Brush>& brush, FillMode fillMode)
 	{
-		drawPolygon(points, countPoints, Ref<Pen>::null(), brush, fillMode);
+		drawPolygon(points, nPoints, Ref<Pen>::null(), brush, fillMode);
 	}
 
-	void Canvas::fillPolygon(const Point* points, sl_uint32 countPoints, const Color& color, FillMode fillMode)
+	void Canvas::fillPolygon(const Point* points, sl_size nPoints, const Color& color, FillMode fillMode)
 	{
-		drawPolygon(points, countPoints, Ref<Pen>::null(), color, fillMode);
+		drawPolygon(points, nPoints, Ref<Pen>::null(), color, fillMode);
 	}
 
 	void Canvas::fillPolygon(const List<Point>& _points, const Ref<Brush>& brush, FillMode fillMode)
 	{
 		ListLocker<Point> points(_points);
-		drawPolygon(points.data, (sl_uint32)(points.count), Ref<Pen>::null(), brush, fillMode);
+		drawPolygon(points.data, points.count, Ref<Pen>::null(), brush, fillMode);
 	}
 
 	void Canvas::fillPolygon(const List<Point>& _points, const Color& color, FillMode fillMode)
 	{
 		ListLocker<Point> points(_points);
-		drawPolygon(points.data, (sl_uint32)(points.count), Ref<Pen>::null(), color, fillMode);
+		drawPolygon(points.data, points.count, Ref<Pen>::null(), color, fillMode);
 	}
 
 	void Canvas::drawPie(sl_real x, sl_real y, sl_real width, sl_real height, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush)

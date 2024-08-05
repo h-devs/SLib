@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -155,7 +155,7 @@ namespace slib
 		void drawLine(sl_real x1, sl_real y1, sl_real x2, sl_real y2, const Ref<Pen>& pen);
 
 
-		virtual void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) = 0;
+		virtual void drawLines(const Point* points, sl_size pointCount, const Ref<Pen>& pen) = 0;
 
 		void drawLines(const List<Point>& points, const Ref<Pen>& pen);
 
@@ -228,21 +228,21 @@ namespace slib
 		void fillEllipse(sl_real x, sl_real y, sl_real width, sl_real height, const Color& color);
 
 
-		virtual void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode = FillMode::Alternate) = 0;
+		virtual void drawPolygon(const Point* points, sl_size pointCount, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode = FillMode::Alternate) = 0;
 
-		virtual void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode = FillMode::Alternate) = 0;
+		virtual void drawPolygon(const Point* points, sl_size pointCount, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode = FillMode::Alternate) = 0;
 
 		void drawPolygon(const List<Point>& points, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode = FillMode::Alternate);
 
 		void drawPolygon(const List<Point>& points, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode = FillMode::Alternate);
 
-		void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen);
+		void drawPolygon(const Point* points, sl_size pointCount, const Ref<Pen>& pen);
 
 		void drawPolygon(const List<Point>& points, const Ref<Pen>& pen);
 
-		void fillPolygon(const Point* points, sl_uint32 countPoints, const Ref<Brush>& brush, FillMode fillMode = FillMode::Alternate);
+		void fillPolygon(const Point* points, sl_size pointCount, const Ref<Brush>& brush, FillMode fillMode = FillMode::Alternate);
 
-		void fillPolygon(const Point* points, sl_uint32 countPoints, const Color& color, FillMode fillMode = FillMode::Alternate);
+		void fillPolygon(const Point* points, sl_size pointCount, const Color& color, FillMode fillMode = FillMode::Alternate);
 
 		void fillPolygon(const List<Point>& points, const Ref<Brush>& brush, FillMode fillMode = FillMode::Alternate);
 
@@ -377,7 +377,7 @@ namespace slib
 		void drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor) override;
 
 		using Canvas::drawPolygon;
-		void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode = FillMode::Alternate) override;
+		void drawPolygon(const Point* points, sl_size pointCount, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode = FillMode::Alternate) override;
 
 		using Canvas::drawPie;
 		void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Color& fillColor) override;

@@ -141,16 +141,16 @@ namespace slib
 				}
 			}
 
-			void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
+			void drawLines(const Point* points, sl_size nPoints, const Ref<Pen>& pen) override
 			{
-				if (countPoints < 2) {
+				if (nPoints < 2) {
 					return;
 				}
 				jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 				if (hPen) {
-					JniLocal<jfloatArray> jarr = Jni::newFloatArray(countPoints*2);
+					JniLocal<jfloatArray> jarr = Jni::newFloatArray((sl_uint32)(nPoints*2));
 					if (jarr.isNotNull()) {
-						Jni::setFloatArrayRegion(jarr, 0, countPoints*2, (jfloat*)(points));
+						Jni::setFloatArrayRegion(jarr, 0, (sl_uint32)(nPoints*2), (jfloat*)(points));
 						JGraphics::drawLines.call(m_canvas, jarr.get(), hPen);
 					}
 				}
@@ -200,17 +200,17 @@ namespace slib
 				}
 			}
 
-			void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
+			void drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
 			{
-				if (countPoints <= 2) {
+				if (nPoints <= 2) {
 					return;
 				}
 				jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
 				jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
 				if (hPen || hBrush) {
-					JniLocal<jfloatArray> jarr = Jni::newFloatArray(countPoints*2);
+					JniLocal<jfloatArray> jarr = Jni::newFloatArray((sl_uint32)(nPoints*2));
 					if (jarr.isNotNull()) {
-						Jni::setFloatArrayRegion(jarr, 0, countPoints*2, (jfloat*)(points));
+						Jni::setFloatArrayRegion(jarr, 0, (sl_uint32)(nPoints*2), (jfloat*)(points));
 						JGraphics::drawPolygon.call(m_canvas, jarr.get(), hPen, hBrush, fillMode);
 					}
 				}

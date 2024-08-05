@@ -230,15 +230,15 @@ namespace slib
 				DRAW_PEN_END
 			}
 
-			void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
+			void drawLines(const Point* points, sl_size nPoints, const Ref<Pen>& pen) override
 			{
-				if (countPoints < 2) {
+				if (nPoints < 2) {
 					return;
 				}
 				DRAW_PEN_BEGIN
 				if (hPen) {
 					Gdiplus::PointF* pts = (Gdiplus::PointF*)points;
-					m_graphics->DrawLines(hPen, pts, countPoints);
+					m_graphics->DrawLines(hPen, pts, (INT)nPoints);
 				}
 				DRAW_PEN_END
 			}
@@ -294,9 +294,9 @@ namespace slib
 				DRAW_PEN_BRUSH_END
 			}
 
-			void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
+			void drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
 			{
-				if (countPoints <= 2) {
+				if (nPoints <= 2) {
 					return;
 				}
 
@@ -313,11 +313,11 @@ namespace slib
 						break;
 					}
 					Gdiplus::PointF* pts = (Gdiplus::PointF*)points;
-					graphics->FillPolygon(hBrush, pts, countPoints, mode);
+					graphics->FillPolygon(hBrush, pts, (INT)nPoints, mode);
 				}
 				if (hPen) {
 					Gdiplus::PointF* pts = (Gdiplus::PointF*)points;
-					graphics->DrawPolygon(hPen, pts, countPoints);
+					graphics->DrawPolygon(hPen, pts, (INT)nPoints);
 				}
 				DRAW_PEN_BRUSH_END
 

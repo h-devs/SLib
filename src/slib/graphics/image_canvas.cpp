@@ -95,9 +95,9 @@ namespace slib
 				_drawLine(pt1, pt2, color);
 			}
 
-			void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
+			void drawLines(const Point* points, sl_size nPoints, const Ref<Pen>& pen) override
 			{
-				if (countPoints < 2) {
+				if (nPoints < 2) {
 					return;
 				}
 				if (pen.isNull()) {
@@ -107,7 +107,7 @@ namespace slib
 				if (color.isZero()) {
 					return;
 				}
-				for (sl_uint32 i = 1; i < countPoints; i++) {
+				for (sl_size i = 1; i < nPoints; i++) {
 					_drawLine(points[i - 1], points[i], color);
 				}
 			}
@@ -150,7 +150,7 @@ namespace slib
 				}
 			}
 
-			void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
+			void drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
 			{
 			}
 

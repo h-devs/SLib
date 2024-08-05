@@ -160,9 +160,9 @@ namespace slib
 		((Canvas*)this)->drawEllipse(rect, pen, Brush::createSolidBrush(fillColor));
 	}
 
-	void CanvasExt::drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode)
+	void CanvasExt::drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode)
 	{
-		((Canvas*)this)->drawPolygon(points, countPoints, pen, Brush::createSolidBrush(fillColor), fillMode);
+		((Canvas*)this)->drawPolygon(points, nPoints, pen, Brush::createSolidBrush(fillColor), fillMode);
 	}
 
 	void CanvasExt::drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Color& fillColor)
