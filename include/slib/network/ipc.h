@@ -40,6 +40,7 @@ namespace slib
 	{
 	public:
 		StringParam targetName;
+		sl_bool flagGlobal;
 		IPCRequestMessage message;
 
 		Ref<AsyncIoLoop> ioLoop;
@@ -107,6 +108,7 @@ namespace slib
 	{
 	public:
 		StringParam name;
+		sl_bool flagGlobal;
 		Ref<AsyncIoLoop> ioLoop;
 		Ref<Dispatcher> dispatcher; // usually ThreadPool
 

@@ -36,6 +36,7 @@ namespace slib
 
 	IPCRequestParam::IPCRequestParam()
 	{
+		flagGlobal = sl_true;
 		timeout = -1;
 		flagSelfAlive = sl_true;
 		maximumMessageSize = 0x7fffffff;
@@ -144,6 +145,7 @@ namespace slib
 
 	IPCServerParam::IPCServerParam()
 	{
+		flagGlobal = sl_true;
 		maximumMessageSize = 0x7fffffff;
 		messageSegmentSize = 0;
 		flagAcceptOtherUsers = sl_true;
@@ -280,17 +282,40 @@ namespace slib
 	{
 
 #if defined(SLIB_PLATFORM_IS_LINUX)
-#	define DOMAIN_PATH(NAME) AbstractDomainSocketPath(NAME)
+#	define DOMAIN_PATH(NAME, GLOBAL) AbstractDomainSocketPath(GLOBAL ? NAME : StringParam(String::concat(System::getUserId(), "_", NAME)))
 #else
-		static String GetDomainName(const StringParam& name)
+		static String GetDomainName(const StringParam& name, sl_bool flagGlobal)
 		{
+			String dir;
 #if defined(SLIB_PLATFORM_IS_WIN32)
-			return String::concat(System::getWindowsDirectory(), "/Temp/IPC__", name);
+			if (flagGlobal) {
+				dir = File::concatPath(System::getWindowsDirectory(), "Temp/.ipc");
+			} else {
+				dir = File::concatPath(System::getLocalAppDataDirectory(), "Temp/.ipc");
+			}
 #else
-			return String::concat("/var/tmp/IPC__", name);
+			if (flagGlobal) {
+				SLIB_STATIC_STRING(s, "/var/tmp/.ipc")
+				dir = s;
+			} else {
+#if defined(SLIB_PLATFORM_IS_MACOS)
+				if (System::getUserName() == StringView::literal("root")) {
+					SLIB_STATIC_STRING(s, "/Library/Application Support/.ipc")
+					dir = s;
+				} else {
+					dir = File::concatPath(System::getHomeDirectory(), StringView::literal("Library/Application Support/.ipc"));
+				}
+#else
+				dir = File::concatPath(System::getHomeDirectory(), StringView::literal(".ipc"));
 #endif
+			}
+#endif
+			if (!(File::exists(dir))) {
+				File::createDirectories(dir);
+			}
+			return File::concatPath(dir, name);
 		}
-#	define DOMAIN_PATH(NAME) DomainSocketPath(GetDomainName(NAME))
+#	define DOMAIN_PATH(NAME, GLOBAL) DomainSocketPath(GetDomainName(NAME, GLOBAL))
 #endif
 
 		class SocketRequest : public IPCRequest
@@ -298,7 +323,7 @@ namespace slib
 		public:
 			void connect(const IPCRequestParam& param)
 			{
-				((AsyncDomainSocket*)(m_stream.get()))->connect(DOMAIN_PATH(param.targetName), SLIB_FUNCTION_WEAKREF(this, onConnect), param.timeout);
+				((AsyncDomainSocket*)(m_stream.get()))->connect(DOMAIN_PATH(param.targetName, param.flagGlobal), SLIB_FUNCTION_WEAKREF(this, onConnect), param.timeout);
 			}
 
 			void onConnect(AsyncDomainSocket* socket, sl_bool flagError)
@@ -324,9 +349,9 @@ namespace slib
 					if (ret->initialize(param)) {
 						AsyncDomainSocketServerParam serverParam;
 #if defined(SLIB_PLATFORM_IS_LINUX)
-						serverParam.bindPath = AbstractDomainSocketPath(param.name);
+						serverParam.bindPath = DOMAIN_PATH(param.name, param.flagGlobal);
 #else
-						String path = GetDomainName(param.name);
+						String path = GetDomainName(param.name, param.flagGlobal);
 						File::deleteFile(path);
 						serverParam.bindPath = DomainSocketPath(path);
 #endif
@@ -395,7 +420,7 @@ namespace slib
 		}
 		sl_int32 timeout = param.timeout;
 		sl_int64 tickEnd = GetTickFromTimeout(timeout);
-		if (!(socket.connectAndWait(DOMAIN_PATH(param.targetName), timeout))) {
+		if (!(socket.connectAndWait(DOMAIN_PATH(param.targetName, param.flagGlobal), timeout))) {
 			return sl_false;
 		}
 		if (!(ChunkIO::write(&socket, MemoryView(param.message.data, param.message.size), GetTimeoutFromTick(tickEnd)))) {

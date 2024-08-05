@@ -40,13 +40,22 @@ namespace slib
 	namespace
 	{
 
-		static HANDLE CreatePipe(const StringParam& _targetName, sl_int32 timeout)
+		static String16 GetPipeName(const StringParam& _targetName, sl_bool flagGlobal)
+		{
+			if (flagGlobal) {
+				return String16::concat(L"\\\\.\\pipe\\", _targetName);
+			} else {
+				return String16::concat(L"\\\\.\\pipe\\", System::getUserId(), "_", _targetName);
+			}
+		}
+
+		static HANDLE CreatePipe(const StringParam& _targetName, sl_bool flagGlobal, sl_int32 timeout)
 		{
 			if (_targetName.isEmpty()) {
 				return INVALID_HANDLE_VALUE;
 			}
 			for (;;) {
-				String16 targetName = String16::concat(L"\\\\.\\pipe\\", _targetName);
+				String16 targetName = GetPipeName(_targetName, flagGlobal);
 				HANDLE hPipe = CreateFileW(
 					(LPCWSTR)(targetName.getData()),
 					GENERIC_READ | GENERIC_WRITE,
@@ -81,7 +90,7 @@ namespace slib
 				Ref<PipeRequest> request = new PipeRequest;
 				if (request.isNotNull()) {
 					sl_int64 tickEnd = GetTickFromTimeout(param.timeout);
-					HANDLE hPipe = CreatePipe(param.targetName, param.timeout);
+					HANDLE hPipe = CreatePipe(param.targetName, param.flagGlobal, param.timeout);
 					if (hPipe != INVALID_HANDLE_VALUE) {
 						AsyncFileStreamParam streamParam;
 						streamParam.handle = hPipe;
@@ -128,7 +137,7 @@ namespace slib
 					if (ret->initialize(param)) {
 						Ref<Thread> thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), runListen));
 						if (thread.isNotNull()) {
-							ret->m_name = String16::concat(L"\\\\.\\pipe\\", param.name);
+							ret->m_name = GetPipeName(param.name, param.flagGlobal);
 							ret->m_threadListen = Move(thread);
 							ret->m_ioLoop->start();
 							ret->m_threadListen->start();
@@ -238,7 +247,7 @@ namespace slib
 	sl_bool IPC::sendMessageSynchronous(const RequestParam& param, ResponseMessage& response)
 	{
 		sl_int64 tickEnd = GetTickFromTimeout(param.timeout);
-		ScopedHandle hPipe = CreatePipe(param.targetName, param.timeout);
+		ScopedHandle hPipe = CreatePipe(param.targetName, param.flagGlobal, param.timeout);
 		if (hPipe.isNone()) {
 			return sl_false;
 		}
