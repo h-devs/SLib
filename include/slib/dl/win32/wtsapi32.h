@@ -60,6 +60,13 @@ namespace slib
 			VOID, WINAPI,
 			PVOID pMemory
 		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			WTSQueryUserToken,
+			BOOL, WINAPI,
+			ULONG SessionId,
+			PHANDLE phToken
+		)
 	SLIB_IMPORT_LIBRARY_END
 
 }

@@ -227,6 +227,17 @@ namespace slib
 		return count;
 	}
 
+	void ScreenCapture::switchToCurrentDesktop()
+	{
+		String16 inputDesktopName = Win32::getInputDesktopName();
+		if (!inputDesktopName) {
+			return;
+		}
+		if (inputDesktopName != Win32::getCurrentDesktopName()) {
+			Win32::switchToInputDesktop();
+		}
+	}
+
 }
 
 #endif

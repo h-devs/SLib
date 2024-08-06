@@ -45,6 +45,8 @@ namespace slib
 
 		static void requestScreenRecordingAccess();
 
+		static void switchToCurrentDesktop();
+
 	};
 
 }

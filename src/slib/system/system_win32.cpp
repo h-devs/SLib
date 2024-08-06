@@ -495,8 +495,8 @@ namespace slib
 
 	String System::getActiveUserName(String* outActiveSessionName)
 	{
-		auto apiEnumSessions = wtsapi32::getApi_WTSEnumerateSessionsW();
-		if (!apiEnumSessions) {
+		auto apiGetCurrentSession = kernel32::getApi_WTSGetActiveConsoleSessionId();
+		if (!apiGetCurrentSession) {
 			return sl_null;
 		}
 		auto apiQuerySessionInfo = wtsapi32::getApi_WTSQuerySessionInformationW();
@@ -508,29 +508,33 @@ namespace slib
 			return sl_null;
 		}
 		String ret;
-		WTS_SESSION_INFOW* pSessionInfos = sl_null;
-		DWORD nSessions = 0;
-		if (apiEnumSessions(WTS_CURRENT_SERVER_HANDLE, 0, 1, &pSessionInfos, &nSessions)) {
-			for (DWORD iSession = 0; iSession < nSessions; iSession++) {
-				WTS_SESSION_INFOW& si = pSessionInfos[iSession];
-				if (si.State == WTSActive && si.SessionId != -1 && ret.isNull()) {
-					if (outActiveSessionName) {
-						*outActiveSessionName = String::create(si.pWinStationName);
+		DWORD sessionId = apiGetCurrentSession();
+		// User Name
+		{
+			WCHAR* buf = sl_null;
+			DWORD size = 0;
+			if (apiQuerySessionInfo(WTS_CURRENT_SERVER_HANDLE, sessionId, WTSUserName, &buf, &size)) {
+				if (buf) {
+					sl_size len = (sl_size)(size >> 1);
+					if (len) {
+						ret = String::create(buf, len - 1);
 					}
-					WCHAR* bufUserName = sl_null;
-					DWORD sizeUserName = 0;
-					if (apiQuerySessionInfo(WTS_CURRENT_SERVER_HANDLE, si.SessionId, WTSUserName, &bufUserName, &sizeUserName)) {
-						if (bufUserName) {
-							sl_size lenUserName = (sl_size)(sizeUserName >> 1);
-							if (lenUserName) {
-								ret = String::create(bufUserName, lenUserName - 1);
-							}
-							apiFreeMemory(bufUserName);
-						}
-					}
+					apiFreeMemory(buf);
 				}
 			}
-			apiFreeMemory(pSessionInfos);
+		}
+		if (outActiveSessionName) {
+			WCHAR* buf = sl_null;
+			DWORD size = 0;
+			if (apiQuerySessionInfo(WTS_CURRENT_SERVER_HANDLE, sessionId, WTSWinStationName, &buf, &size)) {
+				if (buf) {
+					sl_size len = (sl_size)(size >> 1);
+					if (len) {
+						*outActiveSessionName = String::create(buf, len - 1);
+					}
+					apiFreeMemory(buf);
+				}
+			}
 		}
 		return ret;
 	}
