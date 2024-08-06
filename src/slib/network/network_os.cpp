@@ -689,8 +689,8 @@ namespace slib
 #elif defined(SLIB_PLATFORM_IS_LINUX)
 		System::execute(StringView::literal("dhclient -r"));
 #elif defined(SLIB_PLATFORM_IS_MACOS)
-		System::execute(StringView::concat("ifconfig ", interfaceName, " down"));
-		System::execute(StringView::concat("ifconfig ", interfaceName, " up"));
+		System::execute(String::concat(StringView::literal("ifconfig "), interfaceName, StringView::literal(" down")));
+		System::execute(String::concat(StringView::literal("ifconfig "), interfaceName, StringView::literal(" up")));
 #endif
 	}
 
