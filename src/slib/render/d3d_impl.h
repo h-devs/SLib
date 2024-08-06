@@ -1734,7 +1734,7 @@ namespace slib
 			desc.DepthClipEnable = TRUE;
 			desc.ScissorEnable = FALSE;
 			desc.MultisampleEnable = param.flagMultiSample ? TRUE : FALSE;
-			desc.AntialiasedLineEnable = FALSE;
+			desc.AntialiasedLineEnable = param.flagMultiSample ? TRUE : FALSE;
 			device->CreateRasterizerState(&desc, state);
 		}
 

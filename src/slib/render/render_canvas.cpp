@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,8 @@
 #include "slib/render/engine.h"
 #include "slib/render/opengl.h"
 #include "slib/math/transform2d.h"
+#include "slib/math/triangle.h"
+#include "slib/math/geometry_helper.h"
 #include "slib/graphics/util.h"
 #include "slib/graphics/font_atlas.h"
 #include "slib/core/string_buffer.h"
@@ -38,7 +40,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
 		SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderCanvasProgramState, RenderVertex2D_Position)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
@@ -587,17 +590,27 @@ namespace slib
 		public:
 			CHashMap< String, Ref<RenderCanvasProgram> > programs;
 			Ref<VertexBuffer> vbRectangle;
+			Ref<VertexBuffer> vbLine;
 
 		public:
 			EngineContext()
 			{
-				static RenderVertex2D_Position v[] = {
-					{ { 0, 0 } }
-					, { { 1, 0 } }
-					, { { 0, 1 } }
-					, { { 1, 1 } }
-				};
-				vbRectangle = VertexBuffer::create(v, sizeof(v));
+				{
+					static RenderVertex2D_Position v[] = {
+						{ { 0, 0 } },
+						{ { 1, 0 } },
+						{ { 0, 1 } },
+						{ { 1, 1 } }
+					};
+					vbRectangle = VertexBuffer::create(v, sizeof(v));
+				}
+				{
+					static RenderVertex2D_Position v[] = {
+						{ { 0, 0 } },
+						{ { 1, 1 } }
+					};
+					vbLine = VertexBuffer::create(v, sizeof(v));
+				}
 			}
 
 			Ref<RenderCanvasProgram> getProgram(const RenderCanvasProgramParam& param)
@@ -672,6 +685,7 @@ namespace slib
 	{
 		m_width = 0;
 		m_height = 0;
+		m_flagUseLinePrimitive = sl_true;
 	}
 
 	RenderCanvas::~RenderCanvas()
@@ -698,6 +712,7 @@ namespace slib
 
 					ret->setType(CanvasType::Render);
 					ret->setSize(Size(width, height));
+					ret->m_flagAntiAlias = sl_false;
 
 					return ret;
 				}
@@ -892,28 +907,23 @@ namespace slib
 		return fa->measureText(text, flagMultiLine);
 	}
 
-	void RenderCanvas::drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen)
+	void RenderCanvas::_drawLineByRect(const Point& pt1, const Point& pt2, const Color& color, sl_real penWidth)
 	{
-		if (pen.isNull()) {
-			return;
-		}
-
-		sl_real penWidth = pen->getWidth();
 		sl_real penWidthHalf = penWidth / 2;
 
 		RenderCanvasState* state = m_state.get();
 		if (penWidth < 1.0000001f && Vector2(state->matrix.m00, state->matrix.m10).getLength2p() <= 1.000001f && Vector2(state->matrix.m01, state->matrix.m11).getLength2p() <= 1.000001f) {
 			if (Math::abs(pt1.x - pt2.x) < 0.0000001f) {
-				_fillRectangle(Rectangle(pt1.x, pt1.y, pt1.x + 1, pt2.y), pen->getColor());
+				_fillRectangle(Rectangle(pt1.x, pt1.y, pt1.x + 1, pt2.y), color);
 				return;
 			}
 			if (Math::abs(pt1.y - pt2.y) < 0.0000001f) {
-				_fillRectangle(Rectangle(pt1.x, pt1.y, pt2.x, pt1.y + 1), pen->getColor());
+				_fillRectangle(Rectangle(pt1.x, pt1.y, pt2.x, pt1.y + 1), color);
 				return;
 			}
 		} else {
 			if (Math::abs(pt1.x - pt2.x) < 0.0000001f || Math::abs(pt1.y - pt2.y) < 0.0000001f) {
-				_fillRectangle(Rectangle(pt1.x - penWidthHalf, pt1.y - penWidthHalf, pt2.x + penWidthHalf, pt2.y + penWidthHalf), pen->getColor());
+				_fillRectangle(Rectangle(pt1.x - penWidthHalf, pt1.y - penWidthHalf, pt2.x + penWidthHalf, pt2.y + penWidthHalf), color);
 				return;
 			}
 		}
@@ -924,23 +934,79 @@ namespace slib
 
 		sl_real centerX = (pt1.x + pt2.x) / 2;
 		sl_real centerY = (pt1.y + pt2.y) / 2;
-
 		sl_real newX1 = centerX + (pt1.x - centerX) * c - (pt1.y - centerY) * s;
 		sl_real newY1 = centerY + (pt1.x - centerX) * s + (pt1.y - centerY) * c;
-
 		sl_real newX2 = centerX + (pt2.x - centerX) * c - (pt2.y - centerY) * s;
 		sl_real newY2 = centerY + (pt2.x - centerX) * s + (pt2.y - centerY) * c;
+		if (newX1 > newX2) {
+			Swap(newX1, newX2);
+		}
+		if (newY1 > newY2) {
+			Swap(newY1, newY2);
+		}
 
 		CanvasStateScope scope(this);
 		rotate(centerX, centerY, angle);
-		_fillRectangle(Rectangle(newX1 - penWidthHalf, newY1 - penWidthHalf, newX2 + penWidthHalf, newY2 + penWidthHalf), pen->getColor());
-
+		_fillRectangle(Rectangle(newX1 - penWidthHalf, newY1 - penWidthHalf, newX2 + penWidthHalf, newY2 + penWidthHalf), color);
 	}
 
-	void RenderCanvas::drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen)
+	void RenderCanvas::drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen)
 	{
-		for (sl_uint32 i = 1; i < countPoints; i++) {
-			drawLine(points[i - 1], points[i], pen);
+		if (pen.isNull()) {
+			return;
+		}
+		drawLine(pt1, pt2, pen->getColor(), pen->getWidth(), m_flagUseLinePrimitive);
+	}
+
+	void RenderCanvas::drawLine(const Point& pt1, const Point& pt2, const Color& _color, sl_real penWidth, sl_bool flagUsePrimitive)
+	{
+		if (!flagUsePrimitive) {
+			_drawLineByRect(pt1, pt2, _color, penWidth);
+			return;
+		}
+
+		EngineContext* context = GetEngineContext(this);
+		if (!context) {
+			return;
+		}
+
+		RenderCanvasState* state = m_state.get();
+		RenderCanvasProgramParam pp;
+		pp.prepare(state, sl_true);
+
+		RenderProgramScope<RenderCanvasProgramState> scope;
+		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
+			Matrix3 mat;
+			mat.m00 = pt2.x - pt1.x; mat.m10 = 0; mat.m20 = pt1.x;
+			mat.m01 = 0; mat.m11 = pt2.y - pt1.y; mat.m21 = pt1.y;
+			mat.m02 = 0; mat.m12 = 0; mat.m22 = 1;
+			pp.applyToProgramState(scope.getState(), mat);
+			mat *= state->matrix;
+			mat *= m_matViewport;
+			scope->setTransform(mat);
+			Color4F color = _color;
+			color.w *= getAlpha();
+			scope->setColor(color);
+			m_engine->setLineWidth(penWidth);
+			m_engine->drawPrimitive(2, context->vbLine, PrimitiveType::Line);
+		}
+	}
+
+	void RenderCanvas::drawLines(const Point* points, sl_size nPoints, const Ref<Pen>& pen)
+	{
+		if (pen.isNull()) {
+			return;
+		}
+		drawLines(points, nPoints, pen->getColor(), pen->getWidth(), sl_false, m_flagUseLinePrimitive);
+	}
+
+	void RenderCanvas::drawLines(const Point* points, sl_size nPoints, const Color& color, sl_real width, sl_bool flagClosePath, sl_bool flagUseLinePrimitive)
+	{
+		for (sl_size i = 1; i < nPoints; i++) {
+			drawLine(points[i - 1], points[i], color, width, flagUseLinePrimitive);
+		}
+		if (flagClosePath && nPoints) {
+			drawLine(points[nPoints - 1], *points, color, width, flagUseLinePrimitive);
 		}
 	}
 
@@ -960,25 +1026,27 @@ namespace slib
 
 	void RenderCanvas::drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor)
 	{
+		sl_real penWidthHalf = 0;
+		if (pen.isNotNull()) {
+			penWidthHalf = pen->getWidth() / 2.0f;
+		}
 		if (fillColor.a > 0) {
 			if (pen.isNotNull()) {
-				sl_real penWidth = pen->getWidth();
-				_fillRectangle(Rectangle(rect.left + penWidth, rect.top + penWidth, rect.right - penWidth, rect.bottom - penWidth), fillColor);
+				_fillRectangle(Rectangle(rect.left + penWidthHalf, rect.top + penWidthHalf, rect.right - penWidthHalf, rect.bottom - penWidthHalf), fillColor);
 			} else {
 				_fillRectangle(rect, fillColor);
 			}
 		}
 		if (pen.isNotNull()) {
 			Color color = pen->getColor();
-			sl_real penWidth = pen->getWidth();
 			// top
-			_fillRectangle(Rectangle(rect.left, rect.top, rect.right, rect.top + penWidth), color);
+			_fillRectangle(Rectangle(rect.left - penWidthHalf, rect.top - penWidthHalf, rect.right + penWidthHalf, rect.top + penWidthHalf), color);
 			// bottom
-			_fillRectangle(Rectangle(rect.left, rect.bottom - penWidth, rect.right, rect.bottom), color);
+			_fillRectangle(Rectangle(rect.left - penWidthHalf, rect.bottom - penWidthHalf, rect.right + penWidthHalf, rect.bottom + penWidthHalf), color);
 			// left
-			_fillRectangle(Rectangle(rect.left, rect.top + penWidth, rect.left + penWidth, rect.bottom - penWidth), color);
+			_fillRectangle(Rectangle(rect.left - penWidthHalf, rect.top + penWidthHalf, rect.left + penWidthHalf, rect.bottom - penWidthHalf), color);
 			// right
-			_fillRectangle(Rectangle(rect.right - penWidth, rect.top + penWidth, rect.right, rect.bottom - penWidth), color);
+			_fillRectangle(Rectangle(rect.right - penWidthHalf, rect.top + penWidthHalf, rect.right + penWidthHalf, rect.bottom - penWidthHalf), color);
 		}
 	}
 
@@ -1016,7 +1084,6 @@ namespace slib
 			scope->setColor(color);
 			m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 		}
-
 	}
 
 	void RenderCanvas::drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush)
@@ -1065,8 +1132,62 @@ namespace slib
 		}
 	}
 
-	void RenderCanvas::drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode)
+	void RenderCanvas::drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode)
 	{
+		if (brush.isNotNull()) {
+			drawPolygon(points, nPoints, pen, brush->getColor(), fillMode);
+		} else {
+			drawPolygon(points, nPoints, pen, Color::zero(), fillMode);
+		}
+	}
+
+	void RenderCanvas::drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode)
+	{
+		if (fillColor.a > 0) {
+			_fillPolygon(points, nPoints, fillColor);
+		}
+		if (pen.isNotNull()) {
+			drawLines(points, nPoints, pen->getColor(), pen->getWidth(), sl_true, m_flagUseLinePrimitive);
+		}
+	}
+
+	void RenderCanvas::_fillPolygon(const Point* points, sl_size nPoints, const Color& _color)
+	{
+		EngineContext* context = GetEngineContext(this);
+		if (!context) {
+			return;
+		}
+		if (!(_color.a)) {
+			return;
+		}
+
+		List<Triangle> triangles = GeometryHelper::splitPolygonToTriangles(points, nPoints);
+		if (triangles.isEmpty()) {
+			return;
+		}
+		Memory mem = Memory::createStatic(triangles.getData(), sizeof(Triangle) * triangles.getCount(), triangles.ref.ptr);
+		if (mem.isNull()) {
+			return;
+		}
+		Ref<VertexBuffer> vb = VertexBuffer::create(mem);
+		if (vb.isNull()) {
+			return;
+		}
+
+		RenderCanvasState* state = m_state.get();
+		RenderCanvasProgramParam pp;
+		pp.prepare(state, sl_false);
+		RenderProgramScope<RenderCanvasProgramState> scope;
+		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
+			pp.applyToProgramState(scope.getState(), Matrix3::identity());
+			Matrix3 mat = state->matrix;
+			mat *= m_matViewport;
+			scope->setTransform(mat);
+			Color4F color = _color;
+			color.w *= getAlpha();
+			scope->setColor(color);
+			m_engine->drawPrimitive((sl_uint32)(mem.getSize() / sizeof(Point)), vb, PrimitiveType::Triangle);
+		}
 	}
 
 	void RenderCanvas::drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush)
@@ -1460,6 +1581,16 @@ namespace slib
 		} else {
 			CanvasExt::onDrawAll(rectDst, src, param);
 		}
+	}
+
+	sl_bool RenderCanvas::isUsingLinePrimitive()
+	{
+		return m_flagUseLinePrimitive;
+	}
+
+	void RenderCanvas::setUsingLinePrimitive(sl_bool flag)
+	{
+		m_flagUseLinePrimitive = flag;
 	}
 
 	void RenderCanvas::_setAlpha(sl_real alpha)
