@@ -29,6 +29,7 @@
 #include "slib/system/system.h"
 #include "slib/system/process.h"
 #include "slib/core/string_buffer.h"
+#include "slib/core/stringx.h"
 #include "slib/io/file.h"
 
 namespace slib
@@ -76,6 +77,7 @@ namespace slib
 		if (!(Process::isCurrentProcessAdmin())) {
 			return sl_false;
 		}
+		System::execute(String::concat("chcon -t bin_t ", Stringx::applyBackslashEscapes(param.path.toString())));
 		StringBuffer sb;
 		sb.addStatic("[Unit]\nDescription=");
 		sb.add(param.displayName.toString());
