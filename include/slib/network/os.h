@@ -128,6 +128,8 @@ namespace slib
 
 		static void disableIPv6();
 
+		static void renewDhcp(const StringView& interfaceName);
+
 		static HashMap<IPv4Address, MacAddress> getArpTable();
 
 		static sl_bool removeArpEntry(sl_uint32 index, const IPv4Address& ip);

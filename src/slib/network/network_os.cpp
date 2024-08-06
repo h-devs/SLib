@@ -26,6 +26,7 @@
 #include "slib/system/system.h"
 #include "slib/core/endian.h"
 #include "slib/core/hash_map.h"
+#include "slib/core/stringx.h"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
@@ -667,8 +668,29 @@ namespace slib
 	void Network::disableIPv6()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-		System::execute("powershell.exe -command Disable-NetAdapterBinding -Name * -ComponentID ms_tcpip6", sl_true);
-		win32::Registry::setValue(HKEY_LOCAL_MACHINE, u"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", u"DisabledComponents", (sl_uint32)0xFF);
+		System::execute(StringView::literal("powershell.exe -command Disable-NetAdapterBinding -Name * -ComponentID ms_tcpip6"), sl_true);
+		win32::Registry::setValue(HKEY_LOCAL_MACHINE, StringView16::literal(u"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters"), StringView16::literal(u"DisabledComponents"), (sl_uint32)0xFF);
+#elif defined(SLIB_PLATFORM_IS_LINUX)
+		System::execute(StringView::literal("sysctl -w net.ipv6.conf.all.disable_ipv6=1"));
+		System::execute(StringView::literal("sysctl -w net.ipv6.conf.default.disable_ipv6=1")
+#elif defined(SLIB_PLATFORM_IS_MACOS)
+		for (auto&& service : Stringx::splitLines(System::getCommandOutput(StringView::literal("networksetup -listallnetworkservices")))) {
+			if (!service.contains('*')) {
+				System::execute(String::concat("networksetup -setv6off ", service));
+			}
+		}
+#endif
+	}
+
+	void Network::renewDhcp(const StringView& interfaceName)
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		System::execute(StringView::literal("ipconfig /renew"), sl_true);
+#elif defined(SLIB_PLATFORM_IS_LINUX)
+		System::execute(StringView::literal("dhclient -r"));
+#elif defined(SLIB_PLATFORM_IS_MACOS)
+		System::execute(StringView::concat("ifconfig ", interfaceName, " down"));
+		System::execute(StringView::concat("ifconfig ", interfaceName, " up"));
 #endif
 	}
 
