@@ -287,7 +287,7 @@ namespace slib
 		static String GetDomainName(const StringParam& name, sl_bool flagGlobal)
 		{
 			String dir;
-#if defined(SLIB_PLATFORM_IS_WIN32)
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
 			if (flagGlobal) {
 				dir = File::concatPath(System::getWindowsDirectory(), "Temp/.ipc");
 			} else {
@@ -348,7 +348,7 @@ namespace slib
 				if (ret.isNotNull()) {
 					if (ret->initialize(param)) {
 						AsyncDomainSocketServerParam serverParam;
-#if defined(SLIB_PLATFORM_IS_LINUX)
+#ifdef SLIB_PLATFORM_IS_LINUX
 						serverParam.bindPath = DOMAIN_PATH(param.name, param.flagGlobal);
 #else
 						String path = GetDomainName(param.name, param.flagGlobal);
@@ -361,7 +361,7 @@ namespace slib
 						if (server.isNotNull()) {
 							ret->m_server = server;
 							ret->m_ioLoop->start();
-#if !defined(SLIB_PLATFORM_IS_WINDOWS)
+#if !defined(SLIB_PLATFORM_IS_LINUX) && !defined(SLIB_PLATFORM_IS_WINDOWS)
 							if (param.flagAcceptOtherUsers) {
 								File::setAttributes(path, FileAttributes::AllAccess);
 							}

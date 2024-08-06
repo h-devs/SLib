@@ -672,7 +672,7 @@ namespace slib
 		win32::Registry::setValue(HKEY_LOCAL_MACHINE, StringView16::literal(u"SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters"), StringView16::literal(u"DisabledComponents"), (sl_uint32)0xFF);
 #elif defined(SLIB_PLATFORM_IS_LINUX)
 		System::execute(StringView::literal("sysctl -w net.ipv6.conf.all.disable_ipv6=1"));
-		System::execute(StringView::literal("sysctl -w net.ipv6.conf.default.disable_ipv6=1")
+		System::execute(StringView::literal("sysctl -w net.ipv6.conf.default.disable_ipv6=1"));
 #elif defined(SLIB_PLATFORM_IS_MACOS)
 		for (auto&& service : Stringx::splitLines(System::getCommandOutput(StringView::literal("networksetup -listallnetworkservices")))) {
 			if (!service.contains('*')) {

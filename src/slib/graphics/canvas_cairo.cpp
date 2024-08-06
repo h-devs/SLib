@@ -394,7 +394,7 @@ namespace slib
 				}
 			}
 
-			void drawPolygon(const Point* points, sl_uint32 nPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
+			void drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
 			{
 				if (nPoints <= 2) {
 					return;

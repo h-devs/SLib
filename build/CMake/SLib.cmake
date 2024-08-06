@@ -221,6 +221,7 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/media/video_frame.cpp"
  
  "${SLIB_PATH}/src/slib/device/device.cpp"
+ "${SLIB_PATH}/src/slib/device/device_audio.cpp"
  "${SLIB_PATH}/src/slib/device/disk.cpp"
  "${SLIB_PATH}/src/slib/device/performance.cpp"
  "${SLIB_PATH}/src/slib/device/sensor.cpp"
