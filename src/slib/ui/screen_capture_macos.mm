@@ -40,15 +40,17 @@ namespace slib
 		class Helper
 		{
 		public:
-			Ref<Image> getImage(CGImageRef cgImage)
+			Ref<Image> getImage(CGImageRef cgImage, CGFloat scale)
 			{
-				sl_uint32 width = (sl_uint32)(CGImageGetWidth(cgImage));
-				sl_uint32 height = (sl_uint32)(CGImageGetHeight(cgImage));
+				sl_uint32 srcWidth = (sl_uint32)(CGImageGetWidth(cgImage));
+				sl_uint32 srcHeight = (sl_uint32)(CGImageGetHeight(cgImage));
+				sl_uint32 dstWidth = (sl_uint32)(srcWidth * scale);
+				sl_uint32 dstHeight = (sl_uint32)(srcHeight * scale);
 				Ref<Bitmap>& bitmap = m_bitmapCache;
 				Ref<Canvas>& canvas = m_canvasCache;
 				CGContextRef& context = m_contextCache;
-				if (bitmap.isNull() || canvas.isNull() || bitmap->getWidth() < width || bitmap->getHeight() < height) {
-					bitmap = Bitmap::create(width, height);
+				if (bitmap.isNull() || canvas.isNull() || bitmap->getWidth() < dstWidth || bitmap->getHeight() < dstHeight) {
+					bitmap = Bitmap::create(dstWidth, dstHeight);
 					if (bitmap.isNull()) {
 						return sl_null;
 					}
@@ -57,11 +59,11 @@ namespace slib
 						return sl_null;
 					}
 					context = GraphicsPlatform::getCanvasHandle(canvas.get());
-					CGContextTranslateCTM(context, 0, (CGFloat)height);
+					CGContextTranslateCTM(context, 0, (CGFloat)dstHeight);
 					CGContextScaleCTM(context, 1, -1);
 				}
 				if (context) {
-					CGContextDrawImage(context, CGRectMake(0, 0, (CGFloat)width, (CGFloat)height), cgImage);
+					CGContextDrawImage(context, CGRectMake(0, 0, (CGFloat)dstWidth, (CGFloat)dstHeight), cgImage);
 					return bitmap->toImage();
 				}
 				return sl_null;
@@ -85,7 +87,7 @@ namespace slib
 			if (display) {
 				CGImageRef cgImage = CGDisplayCreateImage(display);
 				if (cgImage) {
-					Ref<Image> image = helper->getImage(cgImage);
+					Ref<Image> image = helper->getImage(cgImage, 1 / [screen backingScaleFactor]);
 					CGImageRelease(cgImage);
 					return image;
 				}
@@ -140,11 +142,10 @@ namespace slib
 
 	sl_bool ScreenCapture::isScreenRecordingEnabled()
 	{
-		BOOL canRecordScreen = YES;
 		if (@available(macOS 10.15, *)) {
 			return CGPreflightScreenCaptureAccess();
 		}
-		return canRecordScreen;
+		return YES;
 	}
 
 	void ScreenCapture::openSystemPreferencesForScreenRecording()
