@@ -69,7 +69,7 @@ namespace slib
 		{
 			String pathRoot;
 			if (flagGlobal) {
-				SLIB_STATIC_STRING(s, "/var/tmp/.named_inst")
+				SLIB_STATIC_STRING(s, "/var/tmp")
 				pathRoot = s;
 			} else {
 #if defined(SLIB_PLATFORM_IS_MACOS)
@@ -86,7 +86,7 @@ namespace slib
 			if (!(File::exists(pathRoot))) {
 				File::createDirectories(pathRoot);
 			}
-			return File::concatPath(pathRoot, name);
+			return File::concatPath(pathRoot, String::concat("NI__", name));
 		}
 #endif
 

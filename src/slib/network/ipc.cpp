@@ -289,13 +289,13 @@ namespace slib
 			String dir;
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 			if (flagGlobal) {
-				dir = File::concatPath(System::getWindowsDirectory(), "Temp/.ipc");
+				dir = File::concatPath(System::getWindowsDirectory(), "Temp");
 			} else {
-				dir = File::concatPath(System::getLocalAppDataDirectory(), "Temp/.ipc");
+				dir = File::concatPath(System::getLocalAppDataDirectory(), "Temp");
 			}
 #else
 			if (flagGlobal) {
-				SLIB_STATIC_STRING(s, "/var/tmp/.ipc")
+				SLIB_STATIC_STRING(s, "/var/tmp")
 				dir = s;
 			} else {
 #if defined(SLIB_PLATFORM_IS_MACOS)
@@ -313,7 +313,7 @@ namespace slib
 			if (!(File::exists(dir))) {
 				File::createDirectories(dir);
 			}
-			return File::concatPath(dir, name);
+			return File::concatPath(dir, String::concat("IPC__", name));
 		}
 #	define DOMAIN_PATH(NAME, GLOBAL) DomainSocketPath(GetDomainName(NAME, GLOBAL))
 #endif
