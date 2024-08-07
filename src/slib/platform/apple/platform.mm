@@ -107,6 +107,9 @@ namespace slib
 					[data enumerateByteRangesUsingBlock:^(const void* bytes, NSRange byteRange, BOOL* stop) {
 						Base::copyMemory(p + byteRange.location, bytes, byteRange.length);
 					}];
+					if (!(p[n - 1])) {
+						str.setLength(n - 1);
+					}
 					return str;
 				}
 			}
