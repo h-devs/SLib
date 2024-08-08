@@ -151,9 +151,9 @@ namespace slib
 		if (hFont == nil) {
 			return sl_false;
 		}
-		_out.ascent = hFont.ascender;
-		_out.descent = hFont.descender;
-		_out.leading = hFont.leading;
+		_out.ascent = (sl_real)(hFont.ascender);
+		_out.descent = -((sl_real)(hFont.descender));
+		_out.leading = (sl_real)(hFont.leading);
 		return sl_true;
 	}
 

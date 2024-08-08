@@ -303,7 +303,8 @@ namespace slib
 		return CastRef<EditViewInstance>(getViewInstance());
 	}
 
-	namespace {
+	namespace
+	{
 
 		class TextAreaInstance : public macOS_ViewInstance, public IEditViewInstance
 		{

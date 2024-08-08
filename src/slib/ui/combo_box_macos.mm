@@ -28,13 +28,15 @@
 
 #include "view_macos.h"
 
-namespace slib {
-	namespace {
+namespace slib
+{
+	namespace
+	{
 		class ComboBoxInstance;
 	}
 }
 
-@interface SLIBComboBoxHandle : NSComboBox
+@interface SLIBComboBoxHandle : NSComboBox<NSComboBoxDelegate>
 {
 	@public slib::WeakRef<slib::ComboBoxInstance> m_viewInstance;
 }
@@ -43,7 +45,8 @@ namespace slib {
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
 		class ComboBoxHelper : public ComboBox
 		{
@@ -159,6 +162,21 @@ namespace slib
 				Ref<ComboBoxHelper> view = CastRef<ComboBoxHelper>(getView());
 				if (view.isNotNull()) {
 					view->_onSelectItem_NW((sl_uint32)([handle indexOfSelectedItem]));
+					
+				}
+			}
+
+			void onChange(NSComboBox* control)
+			{
+				Ref<ComboBoxHelper> view = CastRef<ComboBoxHelper>(getView());
+				if (view.isNotNull()) {
+					String text = Apple::getStringFromNSString([control stringValue]);
+					String textNew = text;
+					((ComboBoxHelper*)(view.get()))->_onChange_NW(this, textNew);
+					if (text != textNew) {
+						NSString* str = Apple::getNSStringFromString(textNew, @"");
+						[control setStringValue:str];
+					}
 				}
 			}
 
@@ -186,21 +204,28 @@ using namespace slib;
 
 MACOS_VIEW_DEFINE_ON_CHILD_VIEW
 
--(id)initWithFrame:(NSRect)frame
+- (id)initWithFrame:(NSRect)frame
 {
 	self = [super initWithFrame:frame];
 	if (self != nil) {
-		[self setAction: @selector(onSelect)];
-		[self setTarget:self];
+		[self setDelegate:self];
 	}
 	return self;
 }
 
--(void)onSelect
+- (void)comboBoxSelectionDidChange:(NSNotification *)notification
 {
 	Ref<ComboBoxInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		instance->onSelectItem(self);
+	}
+}
+
+- (void)controlTextDidChange:(NSNotification *)obj
+{
+	Ref<ComboBoxInstance> instance = m_viewInstance;
+	if (instance.isNotNull()) {
+		instance->onChange(self);
 	}
 }
 

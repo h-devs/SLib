@@ -169,9 +169,8 @@ namespace slib
 		public:
 			DispatchContext()
 			{
-				dispatchEvent = [NSEvent otherEventWithType:NSEventTypeApplicationDefined location:NSMakePoint(0, 0) modifierFlags:0 timestamp:0 windowNumber:0 context:nil subtype:0 data1:0 data2:0];
+				dispatchEvent = [NSEvent keyEventWithType:NSEventTypeKeyUp location:NSMakePoint(0, 0) modifierFlags:0 timestamp:1 windowNumber:0 context:nil characters:@"" charactersIgnoringModifiers:@"" isARepeat:NO keyCode:0xffff];
 			}
-
 		};
 
 		SLIB_SAFE_STATIC_GETTER(DispatchContext, GetDispatchContext)
@@ -286,15 +285,7 @@ namespace slib
 
 	void UIPlatform::quitLoop()
 	{
-		NSEvent* ev = [NSEvent otherEventWithType: NSEventTypeApplicationDefined
-											location: NSMakePoint(0,0)
-									modifierFlags: 0
-										timestamp: 0.0
-										windowNumber: 0
-											context: nil
-										  subtype: NSEventSubtypePowerOff
-											data1: 0
-											data2: 0];
+		NSEvent* ev = [NSEvent otherEventWithType: NSEventTypeApplicationDefined location:NSMakePoint(0,0) modifierFlags:0 timestamp:0.0 windowNumber:0 context:nil subtype:NSEventSubtypePowerOff data1:0 data2:0];
 		[NSApp postEvent:ev atStart:YES];
 	}
 
@@ -307,43 +298,33 @@ namespace slib
 		SLIBAppDelegate* delegate = [[SLIBAppDelegate alloc] init];
 		[NSApp setDelegate:delegate];
 
-		[NSEvent addLocalMonitorForEventsMatchingMask:(NSEventMaskApplicationDefined | NSEventMaskKeyDown) handler:^(NSEvent* event){
+		[NSEvent addLocalMonitorForEventsMatchingMask:(NSEventMaskKeyDown | NSEventMaskKeyUp) handler:^(NSEvent* event){
 			NSEventType type = [event type];
-			if (type == NSEventTypeKeyDown) {
+			if (type == NSEventTypeKeyUp) {
+				if ([event keyCode] == 0xffff && [event timestamp] == 1) {
+					UIDispatcher::processCallbacks();
+					return (NSEvent*)nil;
+				}
+			} else if (type == NSEventTypeKeyDown) {
 				NSEventModifierFlags modifiers = [event modifierFlags] & NSEventModifierFlagDeviceIndependentFlagsMask;
 				NSString* key = [event charactersIgnoringModifiers];
 				if (modifiers == NSEventModifierFlagCommand) {
 					if ([key isEqualToString:@"x"]) {
-						if ([NSApp sendAction:NSSelectorFromString(@"cut:") to:nil from:NSApp]) {
-							return (NSEvent*)nil;
-						}
+						[NSApp sendAction:NSSelectorFromString(@"cut:") to:nil from:NSApp];
 					} else if ([key isEqualToString:@"c"]) {
-						if ([NSApp sendAction:NSSelectorFromString(@"copy:") to:nil from:NSApp]) {
-							return (NSEvent*)nil;
-						}
+						[NSApp sendAction:NSSelectorFromString(@"copy:") to:nil from:NSApp];
 					} else if ([key isEqualToString:@"v"]) {
-						if ([NSApp sendAction:NSSelectorFromString(@"paste:") to:nil from:NSApp]) {
-							return (NSEvent*)nil;
-						}
+						[NSApp sendAction:NSSelectorFromString(@"paste:") to:nil from:NSApp];
 					} else if ([key isEqualToString:@"z"]) {
-						if ([NSApp sendAction:NSSelectorFromString(@"undo:") to:nil from:NSApp]) {
-							return (NSEvent*)nil;
-						}
+						[NSApp sendAction:NSSelectorFromString(@"undo:") to:nil from:NSApp];
 					} else if ([key isEqualToString:@"a"]) {
-						if ([NSApp sendAction:NSSelectorFromString(@"selectAll:") to:nil from:NSApp]) {
-							return (NSEvent*)nil;
-						}
+						[NSApp sendAction:NSSelectorFromString(@"selectAll:") to:nil from:NSApp];
 					}
 				} else if (modifiers == (NSEventModifierFlagCommand | NSEventModifierFlagShift)) {
 					if ([key isEqualToString:@"Z"]) {
-						if ([NSApp sendAction:NSSelectorFromString(@"redo:") to:nil from:NSApp]) {
-							return (NSEvent*)nil;
-						}
+						[NSApp sendAction:NSSelectorFromString(@"redo:") to:nil from:NSApp];
 					}
 				}
-			} else if (type == NSEventTypeApplicationDefined) {
-				UIDispatcher::processCallbacks();
-				return (NSEvent*)nil;
 			}
 			return event;
 		}];

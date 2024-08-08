@@ -253,6 +253,11 @@ namespace slib
 							if (_color.isNotZero()) {
 								NSColor* color = GraphicsPlatform::getNSColorFromColor(_color);
 								[handle setBackgroundColor:color];
+							} else {
+								if (window->isLayered()) {
+									[handle setBackgroundColor:[NSColor clearColor]];
+									[handle setHasShadow:NO];
+								}
 							}
 
 							if (window->isFullScreenButtonEnabled()) {
@@ -273,6 +278,10 @@ namespace slib
 
 							if (window->isAlwaysOnTop()) {
 								[handle setLevel:NSFloatingWindowLevel];
+							}
+
+							if (window->isExcludingFromCapture()) {
+								[handle setSharingType:NSWindowSharingNone];
 							}
 						}
 
@@ -942,8 +951,8 @@ using namespace slib;
 						[self makeFirstResponder:view];
 					}
 				}
+				break;
 			}
-			break;
 		case NSEventTypeMouseMoved:
 			{
 				NSPoint pt = [event locationInWindow];
@@ -967,9 +976,10 @@ using namespace slib;
 				}
 				if (hit != nil) {
 					[hit mouseMoved:event];
+					return;
 				}
+				break;
 			}
-			return;
 		default:
 			break;
 	}
