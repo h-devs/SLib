@@ -135,8 +135,6 @@ namespace slib
 
 		void setInitialized(sl_bool flag);
 
-		void initialize(const StringParam& commandLine);
-
 		void initialize(int argc, const char* argv[]);
 
 		void initialize(int argc, char** argv);

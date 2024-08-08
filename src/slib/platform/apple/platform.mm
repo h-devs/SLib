@@ -27,7 +27,7 @@
 #include "slib/platform.h"
 
 #include "slib/system/system.h"
-#include "slib/core/stringx.h"
+#include "slib/core/command_line.h"
 #include "slib/core/variant.h"
 
 namespace slib
@@ -225,7 +225,7 @@ namespace slib
 	{
 		if (flagExternalProcess) {
 			StringData s(script);
-			return System::getCommandOutput("osascript -e " + Stringx::applyBackslashEscapes(s));
+			return System::getCommandOutput("osascript -e " + CommandLine::makeSafeArgument(s));
 		} else {
 			NSAppleScript* as = [[NSAppleScript alloc] initWithSource:getNSStringFromString(script)];
 			if (as != nil) {

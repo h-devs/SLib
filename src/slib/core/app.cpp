@@ -110,13 +110,6 @@ namespace slib
 		m_flagInitialized = flag;
 	}
 
-	void Application::initialize(const StringParam& commandLine)
-	{
-		m_commandLine = commandLine.toString();
-		m_arguments = CommandLine::parse(commandLine);
-		_initApp();
-	}
-
 	void Application::initialize(int argc, const char* argv[])
 	{
 		List<String> list;
