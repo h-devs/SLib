@@ -26,6 +26,7 @@
 
 #include "slib/core/app.h"
 
+#include "slib/system/system.h"
 #include "slib/platform.h"
 
 namespace slib
@@ -45,6 +46,11 @@ namespace slib
 	void Application::openSystemPreferencesForAccessibility()
 	{
 		[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"]];
+	}
+
+	void Application::resetAccessibility(const StringParam& appBundleId)
+	{
+		System::execute(String::concat(StringView::literal("tccutil reset Accessibility "), appBundleId));
 	}
 
 }

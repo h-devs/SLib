@@ -219,6 +219,10 @@ namespace slib
 		// macOS only
 		static void openSystemPreferencesForAccessibility();
 
+#ifdef SLIB_PLATFORM_IS_MACOS
+		static void resetAccessibility(const StringParam& appBundleId);
+#endif
+
 	public:
 		static void registerRunAtStartup(const StringParam& appName, const StringParam& path);
 
