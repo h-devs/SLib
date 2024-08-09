@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,6 @@ namespace slib
 
 	namespace
 	{
-
 		struct MacAudioDeviceInfo
 		{
 			AudioDeviceID id;
@@ -180,7 +179,6 @@ namespace slib
 				return sl_false;
 			}
 		}
-
 	}
 
 	List<AudioRecorderDeviceInfo> AudioRecorder::getDevices()
@@ -209,7 +207,8 @@ namespace slib
 		return ret;
 	}
 
-	namespace {
+	namespace
+	{
 		class AudioRecorderImpl : public AudioRecorder
 		{
 		public:
@@ -239,6 +238,10 @@ namespace slib
 		public:
 			static Ref<AudioRecorderImpl> create(const AudioRecorderParam& param)
 			{
+				if (param.flagLoopback) {
+					// Not support loopback recording
+					return sl_null;
+				}
 				if (param.channelCount != 1 && param.channelCount != 2) {
 					return sl_null;
 				}
@@ -274,14 +277,11 @@ namespace slib
 					return sl_null;
 				}
 
-				UInt32 sizeFrame = param.getFrameLengthInMilliseconds() * formatSrc.mSampleRate * formatSrc.mBytesPerFrame / 1000;
-				if (sizeFrame < rangeBufferSize.mMinimum) {
-					LOG_ERROR("Required frame size(%d) is smaller than minimum %d", sizeFrame, rangeBufferSize.mMinimum);
-					return sl_null;
-				}
-				if (sizeFrame > rangeBufferSize.mMaximum) {
-					LOG_ERROR("Required frame size(%d) is bigger than minimum %d", sizeFrame, rangeBufferSize.mMaximum);
-					return sl_null;
+				UInt32 frameSize = param.getFrameLengthInMilliseconds() * formatSrc.mSampleRate * formatSrc.mBytesPerFrame / 1000;
+				if (frameSize < rangeBufferSize.mMinimum) {
+					frameSize = rangeBufferSize.mMinimum;
+				} else if (frameSize > rangeBufferSize.mMaximum) {
+					frameSize = rangeBufferSize.mMaximum;
 				}
 
 				// Create Audio Converter
@@ -299,9 +299,9 @@ namespace slib
 				if (AudioConverterNew(&formatSrc, &formatDst, &converter) == kAudioHardwareNoError) {
 
 					prop.mSelector = kAudioDevicePropertyBufferSize;
-					sizeValue = sizeof(sizeFrame);
+					sizeValue = sizeof(frameSize);
 
-					if (AudioObjectSetPropertyData(deviceID, &prop, 0, NULL, sizeValue, &sizeFrame) == kAudioHardwareNoError) {
+					if (AudioObjectSetPropertyData(deviceID, &prop, 0, NULL, sizeValue, &frameSize) == kAudioHardwareNoError) {
 
 						Ref<AudioRecorderImpl> ret = new AudioRecorderImpl();
 
@@ -343,7 +343,6 @@ namespace slib
 				}
 
 				return sl_null;
-
 			}
 
 			void _release() override
@@ -375,11 +374,7 @@ namespace slib
 				sl_bool flagUsed;
 			};
 
-			static OSStatus ConverterProc(AudioConverterRef               inAudioConverter,
-											UInt32*                         ioNumberDataPackets,
-											AudioBufferList*                ioData,
-											AudioStreamPacketDescription**  outDataPacketDescription,
-											void*                           inUserData)
+			static OSStatus ConverterProc(AudioConverterRef inAudioConverter, UInt32* ioNumberDataPackets, AudioBufferList* ioData, AudioStreamPacketDescription**  outDataPacketDescription, void* inUserData)
 			{
 				ConverterContext* context = (ConverterContext*)inUserData;
 				if (context->flagUsed) {
@@ -431,13 +426,7 @@ namespace slib
 				}
 			}
 
-			static OSStatus DeviceIOProc(AudioObjectID           inDevice,
-											const AudioTimeStamp*   inNow,
-											const AudioBufferList*  inInputData,
-											const AudioTimeStamp*   inInputTime,
-											AudioBufferList*        outOutputData,
-											const AudioTimeStamp*   inOutputTime,
-											void*                   inClientData)
+			static OSStatus DeviceIOProc(AudioObjectID inDevice, const AudioTimeStamp* inNow, const AudioBufferList*  inInputData, const AudioTimeStamp*   inInputTime, AudioBufferList* outOutputData, const AudioTimeStamp* inOutputTime, void* inClientData)
 			{
 				AudioRecorderImpl* object = (AudioRecorderImpl*)(inClientData);
 				if (object->m_flagInitialized) {
@@ -447,8 +436,6 @@ namespace slib
 			}
 
 		};
-
-
 	}
 
 	Ref<AudioRecorder> AudioRecorder::create(const AudioRecorderParam& param)
@@ -456,7 +443,8 @@ namespace slib
 		return AudioRecorderImpl::create(param);
 	}
 
-	namespace {
+	namespace
+	{
 		class AudioPlayerImpl : public AudioPlayer
 		{
 		public:
@@ -624,11 +612,7 @@ namespace slib
 				data->mBuffers[0].mNumberChannels = (UInt32)nChannels;
 			}
 
-			static OSStatus ConverterProc(AudioConverterRef               inAudioConverter,
-										UInt32*                         ioNumberDataPackets,
-										AudioBufferList*                ioData,
-										AudioStreamPacketDescription**  outDataPacketDescription,
-										void*                           inUserData)
+			static OSStatus ConverterProc(AudioConverterRef inAudioConverter, UInt32* ioNumberDataPackets, AudioBufferList* ioData, AudioStreamPacketDescription** outDataPacketDescription, void* inUserData)
 			{
 				AudioPlayerImpl* object = (AudioPlayerImpl*)inUserData;
 				object->onConvert(*ioNumberDataPackets, ioData);
@@ -642,12 +626,7 @@ namespace slib
 				return 0;
 			}
 
-			static OSStatus DeviceIOProc(AudioDeviceID, const AudioTimeStamp*,
-												const AudioBufferList* inputData,
-												const AudioTimeStamp* inputTime,
-												AudioBufferList* outputData,
-												const AudioTimeStamp* outputTime,
-												void *clientData)
+			static OSStatus DeviceIOProc(AudioDeviceID, const AudioTimeStamp*, const AudioBufferList* inputData, const AudioTimeStamp* inputTime, AudioBufferList* outputData, const AudioTimeStamp* outputTime, void *clientData)
 			{
 				AudioPlayerImpl* object = (AudioPlayerImpl*)(clientData);
 				if (object->m_flagInitialized) {
@@ -689,7 +668,6 @@ namespace slib
 			{
 				return AudioPlayerImpl::create(m_deviceID, param);
 			}
-
 		};
 	}
 

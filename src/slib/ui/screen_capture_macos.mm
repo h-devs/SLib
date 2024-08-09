@@ -64,7 +64,7 @@ namespace slib
 				}
 				if (context) {
 					CGContextDrawImage(context, CGRectMake(0, 0, (CGFloat)dstWidth, (CGFloat)dstHeight), cgImage);
-					return bitmap->toImage();
+					return Image::createCopyBitmap(bitmap, 0, bitmap->getHeight() - dstHeight, dstWidth, dstHeight);
 				}
 				return sl_null;
 			}
@@ -139,29 +139,30 @@ namespace slib
 		return count;
 	}
 
-	sl_bool ScreenCapture::isScreenRecordingEnabled()
+	sl_bool ScreenCapture::isEnabled()
 	{
 		if (@available(macOS 10.15, *)) {
 			return CGPreflightScreenCaptureAccess();
+		} else {
+			return sl_true;
 		}
-		return YES;
 	}
 
-	void ScreenCapture::openSystemPreferencesForScreenRecording()
+	void ScreenCapture::openSystemPreferences()
 	{
 		if (@available(macos 10.15, *)) {
 			[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"]];
 		}
 	}
 
-	void ScreenCapture::requestScreenRecordingAccess()
+	void ScreenCapture::requestAccess()
 	{
 		if (@available(macos 10.15, *)) {
 			ScreenCapture::takeScreenshot();
 		}
 	}
 
-	void ScreenCapture::resetScreenRecordingAccess(const StringParam& appBundleId)
+	void ScreenCapture::resetAccess(const StringParam& appBundleId)
 	{
 		if (@available(macos 10.15, *)) {
 			System::execute(String::concat(StringView::literal("tccutil reset ScreenCapture "), appBundleId));

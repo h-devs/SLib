@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 
 #include "slib/media/camera.h"
 
+#include "slib/system/system.h"
 #include "slib/core/endian.h"
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
@@ -38,8 +39,10 @@
 #define LOG_ERROR(...) LogError(TAG, ##__VA_ARGS__)
 #define LOG_NSERROR(...) LogNSError(__VA_ARGS__)
 
-namespace slib {
-	namespace {
+namespace slib
+{
+	namespace
+	{
 		class CameraImpl;
 	}
 }
@@ -63,8 +66,8 @@ namespace slib
 	using namespace priv;
 #endif
 
-	namespace {
-
+	namespace
+	{
 		static void LogNSError(const String& error, NSError* err)
 		{
 			LOG_ERROR("%s: [%s]", error, Apple::getStringFromNSString([err localizedDescription]));
@@ -684,6 +687,37 @@ namespace slib
 			}
 		}
 #endif
+	}
+#endif
+
+#if defined(SLIB_PLATFORM_IS_MACOS)
+	sl_bool Camera::isEnabled()
+	{
+		if (@available(macos 10.14, *)) {
+			AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
+			return status == AVAuthorizationStatusNotDetermined || status == AVAuthorizationStatusAuthorized;
+		} else {
+			return sl_true;
+		}
+	}
+
+	void Camera::requestAccess(const Function<void(sl_bool flagGranted)>& callback)
+	{
+		if (@available(macos 10.14, *)) {
+			Function<void(sl_bool flagGranted)> _callback = callback;
+			[AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
+				_callback(granted ? sl_true : sl_false);
+			}];
+		} else {
+			callback(sl_true);
+		}
+	}
+
+	void Camera::resetAccess(const StringParam& appBundleId)
+	{
+		if (@available(macos 10.14, *)) {
+			System::execute(String::concat(StringView::literal("tccutil reset Camera "), appBundleId));
+		}
 	}
 #endif
 

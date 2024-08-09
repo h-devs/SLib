@@ -39,14 +39,14 @@ namespace slib
 
 		static sl_uint32 getScreenCount();
 
-		static sl_bool isScreenRecordingEnabled();
+		static sl_bool isEnabled();
 
-		static void openSystemPreferencesForScreenRecording();
+		static void openSystemPreferences();
 
-		static void requestScreenRecordingAccess();
+		static void requestAccess();
 
 #ifdef SLIB_PLATFORM_IS_MACOS
-		static void resetScreenRecordingAccess(const StringParam& appBundleId);
+		static void resetAccess(const StringParam& appBundleId);
 #endif
 
 		static void switchToCurrentDesktop();

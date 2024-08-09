@@ -206,4 +206,21 @@ namespace slib
 	}
 #endif
 
+#if !defined(SLIB_PLATFORM_IS_MACOS)
+	sl_bool Camera::isEnabled()
+	{
+		return sl_true;
+	}
+
+	void Camera::requestAccess(const Function<void(sl_bool flagGranted)>& callback)
+	{
+		callback(sl_true);
+	}
+#endif
+
+	void Camera::requestAccess()
+	{
+		requestAccess(sl_null);
+	}
+
 }

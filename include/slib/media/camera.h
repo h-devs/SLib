@@ -167,6 +167,16 @@ namespace slib
 
 		static void setMobileDeviceTorchMode(CameraTorchMode mode, float level = 1.0f);
 
+		static sl_bool isEnabled();
+
+		static void requestAccess(const Function<void(sl_bool flagGranted)>& callback);
+
+		static void requestAccess();
+
+#ifdef SLIB_PLATFORM_IS_MACOS
+		static void resetAccess(const StringParam& appBundleId);
+#endif
+
 	protected:
 		void onCaptureVideoFrame(VideoCaptureFrame& frame) override;
 

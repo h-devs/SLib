@@ -263,7 +263,7 @@ namespace slib
 			}
 			return ret;
 		} else {
-			return Apple::runAppleScript("tell application \"System Events\" to get the title of the front window of (first process whose frontmost is true)", sl_true);
+			return Apple::runAppleScript("tell application \"System Events\" to get the title of the front window of (first process whose frontmost is true)", sl_true).trimRight();
 		}
 	}
 

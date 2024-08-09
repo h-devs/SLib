@@ -266,7 +266,7 @@ namespace slib
 
 	sl_uint64 System::getTickCount64()
 	{
-		return clock_gettime_nsec_np(CLOCK_UPTIME_RAW) / 1000000;
+		return clock_gettime_nsec_np(CLOCK_MONOTONIC) / 1000000;
 	}
 
 	sl_uint64 System::getUptime()

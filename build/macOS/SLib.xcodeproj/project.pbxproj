@@ -404,6 +404,7 @@
 		D7342F132C4A5C16007838C5 /* iokit.mm in Sources */ = {isa = PBXBuildFile; fileRef = D7342F122C4A5C16007838C5 /* iokit.mm */; };
 		D738404B28F1A7A8005F5ED8 /* group_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D738404A28F1A7A8005F5ED8 /* group_box.cpp */; };
 		D765664A28F1B501002ED52F /* storage_volume_macos.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D765664928F1B501002ED52F /* storage_volume_macos.cpp */; };
+		D77ACB862C6650A300EECF6B /* audio_av_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = D77ACB852C6650A300EECF6B /* audio_av_macos.mm */; };
 		D793008B2C5F28C4009ED3FF /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF11B21AEE6BE004E58CB /* Cocoa.framework */; };
 		D79300922C5F29A4009ED3FF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D79300912C5F29A4009ED3FF /* main.cpp */; };
 		D79300992C5F29B2009ED3FF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D79300982C5F29B2009ED3FF /* main.cpp */; };
@@ -909,6 +910,7 @@
 		D7342F122C4A5C16007838C5 /* iokit.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = iokit.mm; sourceTree = "<group>"; };
 		D738404A28F1A7A8005F5ED8 /* group_box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = group_box.cpp; sourceTree = "<group>"; };
 		D765664928F1B501002ED52F /* storage_volume_macos.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = storage_volume_macos.cpp; sourceTree = "<group>"; };
+		D77ACB852C6650A300EECF6B /* audio_av_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = audio_av_macos.mm; sourceTree = "<group>"; };
 		D79300902C5F28C4009ED3FF /* BinaryToArray */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = BinaryToArray; sourceTree = BUILT_PRODUCTS_DIR; };
 		D79300912C5F29A4009ED3FF /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../tool/src/GenerateAppIcons/main.cpp; sourceTree = "<group>"; };
 		D79300982C5F29B2009ED3FF /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
@@ -1276,6 +1278,7 @@
 		266DD4A41C11940A00D47AB0 /* media */ = {
 			isa = PBXGroup;
 			children = (
+				D77ACB852C6650A300EECF6B /* audio_av_macos.mm */,
 				266DD4A51C11940A00D47AB0 /* audio_codec.cpp */,
 				26D028641C48847E0083F1F3 /* audio_data.cpp */,
 				266DD4A71C11940A00D47AB0 /* audio_device.cpp */,
@@ -2307,6 +2310,7 @@
 				26C1B64020D51D1D00E36539 /* font_quartz.mm in Sources */,
 				26D9D9391E9645CE005F7BD3 /* aes.cpp in Sources */,
 				D72E79152C4E77E3005576C5 /* chunk.cpp in Sources */,
+				D77ACB862C6650A300EECF6B /* audio_av_macos.mm in Sources */,
 				D72A0889263B504D00BCD333 /* mongodb.cpp in Sources */,
 				26C795A122154CBE0053C5A1 /* clipboard_macos.mm in Sources */,
 				D70C65602BC86FD2001D670F /* preference_apple.mm in Sources */,

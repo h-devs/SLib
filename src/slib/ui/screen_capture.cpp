@@ -48,7 +48,7 @@ namespace slib
 #endif
 
 #if !defined(SLIB_UI_IS_MACOS)
-	sl_bool ScreenCapture::isScreenRecordingEnabled()
+	sl_bool ScreenCapture::isEnabled()
 	{
 #	if defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_GTK)
 		return sl_true;
@@ -57,11 +57,11 @@ namespace slib
 #	endif
 	}
 
-	void ScreenCapture::openSystemPreferencesForScreenRecording()
+	void ScreenCapture::openSystemPreferences()
 	{
 	}
 
-	void ScreenCapture::requestScreenRecordingAccess()
+	void ScreenCapture::requestAccess()
 	{
 	}
 #endif
