@@ -216,12 +216,16 @@ namespace slib
 	void Process::setAppNapEnabled(sl_bool flag)
 	{
 		if (flag) {
-			NSProcessInfo* info = [NSProcessInfo processInfo];
-			if ([info performSelector:@selector(beginActivityWithOptions:reason:)]) {
-				g_activityDisableAppNap = [info beginActivityWithOptions:NSActivityUserInitiated reason:@"User Request"];
+			if (g_activityDisableAppNap == nil) {
+				return;
 			}
-		} else {
+			[[NSProcessInfo processInfo] endActivity:g_activityDisableAppNap];
 			g_activityDisableAppNap = nil;
+		} else {
+			if (g_activityDisableAppNap != nil) {
+				return;
+			}
+			g_activityDisableAppNap = [[NSProcessInfo processInfo] beginActivityWithOptions:NSActivityUserInitiated reason:@"Prevent App Nap"];
 		}
 	}
 
