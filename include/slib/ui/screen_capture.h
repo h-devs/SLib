@@ -45,6 +45,10 @@ namespace slib
 
 		static void requestScreenRecordingAccess();
 
+#ifdef SLIB_PLATFORM_IS_MACOS
+		static void resetScreenRecordingAccess(const StringParam& appBundleId);
+#endif
+
 		static void switchToCurrentDesktop();
 
 	};

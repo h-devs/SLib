@@ -28,15 +28,15 @@
 
 #include "slib/core/safe_static.h"
 #include "slib/graphics/platform.h"
+#include "slib/system/system.h"
 
 #include <AppKit/AppKit.h>
-#include <libproc.h>
 
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		class Helper
 		{
 		public:
@@ -94,7 +94,6 @@ namespace slib
 			}
 			return sl_null;
 		}
-
 	}
 
 	Ref<Image> ScreenCapture::takeScreenshot()
@@ -159,6 +158,13 @@ namespace slib
 	{
 		if (@available(macos 10.15, *)) {
 			ScreenCapture::takeScreenshot();
+		}
+	}
+
+	void ScreenCapture::resetScreenRecordingAccess(const StringParam& appBundleId)
+	{
+		if (@available(macos 10.15, *)) {
+			System::execute(String::concat(StringView::literal("tccutil reset ScreenCapture "), appBundleId));
 		}
 	}
 
