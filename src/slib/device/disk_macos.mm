@@ -26,6 +26,7 @@
 
 #include "slib/device/disk.h"
 
+#include "slib/system/system.h"
 #include "slib/platform/apple/iokit.h"
 
 namespace slib
@@ -155,6 +156,20 @@ namespace slib
 			return sl_true;
 		});
 		return ret;
+	}
+
+	void Disk::ejectAllUsbDevices()
+	{
+		apple::IOKit::findServices("IOUSBMassStorageInterfaceNub", [](io_service_t disk) {
+			io_registry_entry_t media = apple::IOKit::findRegistryEntry(disk, kIOServicePlane, "IOMedia");
+			if (!media) {
+				return sl_true;
+			}
+			String name = apple::IOKit::getRegistryEntryProperty(media, CFSTR("BSD Name")).getString();
+			System::execute(String::concat(StringView::literal("diskutil eject /dev/"), name));
+			IOObjectRelease(media);
+			return sl_true;
+		});
 	}
 
 }

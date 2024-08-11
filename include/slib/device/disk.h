@@ -83,6 +83,10 @@ namespace slib
 
 		static String normalizeSerialNumber(const StringParam& sn);
 
+#ifdef SLIB_PLATFORM_IS_MACOS
+		static void ejectAllUsbDevices();
+#endif
+
 	};
 
 }
