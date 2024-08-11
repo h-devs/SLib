@@ -73,7 +73,7 @@ namespace slib
 		static NSString* getSystemLocalizedNSString(NSString* key);
 #endif
 
-		static String runAppleScript(const StringParam& script, sl_bool flagExternalProcess = sl_true);
+		static String runAppleScript(const StringParam& script, sl_bool flagExternalProcess = sl_true, sl_bool flagErrorOutput = sl_false);
 
 	};
 

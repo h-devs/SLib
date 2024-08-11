@@ -221,17 +221,32 @@ namespace slib
 		return str;
 	}
 
-	String Apple::runAppleScript(const StringParam& script, sl_bool flagExternalProcess)
+	String Apple::runAppleScript(const StringParam& script, sl_bool flagExternalProcess, sl_bool flagErrorOutput)
 	{
 		if (flagExternalProcess) {
 			StringData s(script);
-			return System::getCommandOutput("osascript -e " + CommandLine::makeSafeArgument(s));
+			if (flagErrorOutput) {
+				return System::getCommandOutput("osascript -s o -e " + CommandLine::makeSafeArgument(s));
+			} else {
+				return System::getCommandOutput("osascript -e " + CommandLine::makeSafeArgument(s));
+			}
 		} else {
 			NSAppleScript* as = [[NSAppleScript alloc] initWithSource:getNSStringFromString(script)];
 			if (as != nil) {
-				NSAppleEventDescriptor* desc = [as executeAndReturnError:nil];
-				if (desc != nil) {
-					return getStringFromNSString([desc stringValue]);
+				if (flagErrorOutput) {
+					NSDictionary* error = nil;
+					NSAppleEventDescriptor* desc = [as executeAndReturnError:&error];
+					if (error) {
+						return getStringFromNSString(error[@"NSAppleScriptErrorMessage"]);
+					}
+					if (desc != nil) {
+						return getStringFromNSString([desc stringValue]);
+					}
+				} else {
+					NSAppleEventDescriptor* desc = [as executeAndReturnError:NULL];
+					if (desc != nil) {
+						return getStringFromNSString([desc stringValue]);
+					}
 				}
 			}
 		}
