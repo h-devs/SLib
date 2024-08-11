@@ -53,6 +53,11 @@ namespace slib
 		System::execute(String::concat(StringView::literal("tccutil reset Accessibility "), appBundleId));
 	}
 
+	void Application::resetAutomationAccess(const StringParam& appBundleId)
+	{
+		System::execute(String::concat(StringView::literal("tccutil reset AppleEvents "), appBundleId));
+	}
+
 }
 
 #endif

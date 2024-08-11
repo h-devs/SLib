@@ -221,6 +221,8 @@ namespace slib
 
 #ifdef SLIB_PLATFORM_IS_MACOS
 		static void resetAccessibility(const StringParam& appBundleId);
+
+		static void resetAutomationAccess(const StringParam& appBundleId);
 #endif
 
 	public:
