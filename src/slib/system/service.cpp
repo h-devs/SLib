@@ -430,6 +430,7 @@ namespace slib
 		}
 
 		System::setTerminationHandler(&TerminationHandler);
+		System::setChildTerminationHandler();
 
 		String appName = getServiceId();
 

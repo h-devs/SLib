@@ -159,6 +159,8 @@ namespace slib
 
 		static void setTerminationHandler(SIGNAL_HANDLER handler);
 
+		static void setChildTerminationHandler();
+
 		static void setDebugFlags();
 
 		static void setDebugAllocHook(DEBUG_ALLOC_HOOK hook);

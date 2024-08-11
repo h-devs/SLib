@@ -412,18 +412,35 @@ namespace slib
 		sigaction(SIGILL, &sa, sl_null);
 		sigaction(SIGABRT, &sa, sl_null);
 		sigaction(SIGIOT, &sa, sl_null);
-#	if defined(SLIB_PLATFORM_IS_MACOS)
+#if defined(SLIB_PLATFORM_IS_MACOS)
 		sigaction(SIGEMT, &sa, sl_null);
-#	endif
+#endif
 		sigaction(SIGSYS, &sa, sl_null);
 	}
 
 	void System::setTerminationHandler(SIGNAL_HANDLER handler)
 	{
-		struct sigaction sa;
-		Base::zeroMemory(&sa, sizeof(sa));
+		struct sigaction sa = {0};
 		sa.sa_handler = handler;
 		sigaction(SIGTERM, &sa, sl_null);
+	}
+
+	namespace
+	{
+		static void ChildTerminationHandler(int sig)
+		{
+			int e = errno;
+			while (waitpid(-1, sl_null, WNOHANG) > 0);
+			errno = e;
+		}
+	}
+
+	void System::setChildTerminationHandler()
+	{
+		struct sigaction sa = {0};
+		sa.sa_handler = &ChildTerminationHandler;
+		sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+		sigaction(SIGCHLD, &sa, sl_null);
 	}
 #endif
 

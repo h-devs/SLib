@@ -764,6 +764,7 @@ namespace slib
 			return;
 		}
 		System::setTerminationHandler(&TerminationHandler);
+		System::setChildTerminationHandler();
 		g_flagRunningApp = sl_true;
 		UIPlatform::runApp();
 	#if !defined(SLIB_PLATFORM_IS_ANDROID)

@@ -113,6 +113,12 @@ namespace slib
 	}
 #endif
 
+#if defined(SLIB_PLATFORM_IS_MOBILE) || defined(SLIB_PLATFORM_IS_WINDOWS)
+	void System::setChildTerminationHandler()
+	{
+	}
+#endif
+
 #if !defined(SLIB_PLATFORM_IS_WIN32)
 	void System::setDebugFlags()
 	{
