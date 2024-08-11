@@ -31,7 +31,6 @@
 #include "slib/core/safe_static.h"
 #include "slib/io/file.h"
 #include "slib/data/ini.h"
-#include "slib/dl/linux/rt.h"
 
 #include <string.h>
 #include <time.h>
@@ -46,6 +45,7 @@
 
 #include <sys/time.h>
 #include <sys/utsname.h>
+#include <sys/wait.h>
 
 #ifdef assert
 #undef assert
