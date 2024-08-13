@@ -96,7 +96,9 @@ namespace slib
 				HWND handle = m_handle;
 				if (handle) {
 					if (!flagInit) {
+						String16 text = UIPlatform::getWindowText16(handle);
 						SendMessageW(handle, CB_RESETCONTENT, 0, 0);
+						UIPlatform::setWindowText(handle, text);
 					}
 					sl_uint32 n = view->getItemCount();
 					for (sl_uint32 i = 0; i < n; i++) {
