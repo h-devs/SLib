@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +26,17 @@
 
 #include "slib/ui/screen_capture.h"
 
+#include "slib/system/system.h"
+#include "slib/core/event.h"
+#include "slib/core/shared.h"
 #include "slib/core/safe_static.h"
 #include "slib/graphics/platform.h"
-#include "slib/system/system.h"
 
 #include <AppKit/AppKit.h>
+#ifdef __MAC_14_0
+#include <ScreenCaptureKit/ScreenCaptureKit.h>
+#define USE_SCREEN_CAPTURE_KIT
+#endif
 
 namespace slib
 {
@@ -76,16 +82,107 @@ namespace slib
 
 		public:
 			Mutex m_lock;
-
+#ifdef USE_SCREEN_CAPTURE_KIT
+			Mutex m_lockShareableContent;
+			id m_shareableContent;
+#endif
 		};
 
 		SLIB_SAFE_STATIC_GETTER(Helper, GetHelper)
 
+#ifdef USE_SCREEN_CAPTURE_KIT
+		API_AVAILABLE(macos(14.0))
+		static Ref<Image> TakeScreenshot(Helper* helper, SCDisplay* display)
+		{
+			SCContentFilter* filter = [[SCContentFilter alloc] initWithDisplay:display excludingWindows:@[]];
+			SCStreamConfiguration* config = [[SCStreamConfiguration alloc] init];
+			[config setWidth:(sl_uint32)([display width])];
+			[config setHeight:(sl_uint32)([display height])];
+			Ref<Event> ev = Event::create();
+			if (ev.isNull()) {
+				return nil;
+			}
+			Shared< AtomicRef<Image> > ret = Shared< AtomicRef<Image> >::create();
+			if (ret.isNull()) {
+				return nil;
+			}
+			[SCScreenshotManager captureImageWithFilter:filter configuration:config completionHandler:^(CGImageRef cgImage, NSError* error) {
+				if (cgImage) {
+					Ref<Image> image = helper->getImage(cgImage, 1.0);
+					CGImageRelease(cgImage);
+					*ret = Move(image);
+				}
+				ev->set();
+			}];
+			ev->wait(5000);
+			return ret->release();
+		}
+
+		API_AVAILABLE(macos(14.0))
+		static SCShareableContent* GetShareableContent(Helper* helper)
+		{
+			Ref<Event> ev = Event::create();
+			if (ev.isNull()) {
+				return nil;
+			}
+			[SCShareableContent getShareableContentWithCompletionHandler:^(SCShareableContent* content, NSError* err) {
+				{
+					MutexLocker lock(&(helper->m_lockShareableContent));
+					helper->m_shareableContent = content;
+				}
+				ev->set();
+			}];
+			ev->wait(3000);
+			MutexLocker lock(&(helper->m_lockShareableContent));
+			return helper->m_shareableContent;
+		}
+
+		API_AVAILABLE(macos(14.0))
+		static SCDisplay* GetShareableDisplay(Helper* helper, CGDirectDisplayID displayId)
+		{
+			SCShareableContent* content = GetShareableContent(helper);
+			if (content == nil) {
+				return nil;
+			}
+			for (SCDisplay* display in [content displays]) {
+				if ([display displayID] == displayId) {
+					return display;
+				}
+			}
+			return nil;
+		}
+#endif
+
+		static sl_bool GetDisplayID(NSScreen* screen, CGDirectDisplayID& ret)
+		{
+			NSDictionary* desc = [screen deviceDescription];
+			if (desc == nil) {
+				return sl_false;
+			}
+			NSNumber* num = [desc objectForKey:@"NSScreenNumber"];
+			if (num == nil) {
+				return sl_false;
+			}
+			ret = (CGDirectDisplayID)([num unsignedIntValue]);
+			return sl_true;
+		}
+
 		static Ref<Image> TakeScreenshot(Helper* helper, NSScreen* screen)
 		{
-			CGDirectDisplayID display = (CGDirectDisplayID)([[[screen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue]);
-			if (display) {
-				CGImageRef cgImage = CGDisplayCreateImage(display);
+			CGDirectDisplayID displayId;
+			if (!(GetDisplayID(screen, displayId))) {
+				return sl_null;
+			}
+#ifdef USE_SCREEN_CAPTURE_KIT
+			if (@available(macos 14.0, *)) {
+				SCDisplay* display = GetShareableDisplay(helper, displayId);
+				if (display != nil) {
+					return TakeScreenshot(helper, display);
+				}
+			} else
+#endif
+			{
+				CGImageRef cgImage = CGDisplayCreateImage(displayId);
 				if (cgImage) {
 					Ref<Image> image = helper->getImage(cgImage, 1 / [screen backingScaleFactor]);
 					CGImageRelease(cgImage);
@@ -94,6 +191,7 @@ namespace slib
 			}
 			return sl_null;
 		}
+
 	}
 
 	Ref<Image> ScreenCapture::takeScreenshot()
@@ -124,10 +222,23 @@ namespace slib
 		}
 		MutexLocker lock(&(helper->m_lock));
 		List< Ref<Image> > ret;
-		for (NSScreen* screen in [NSScreen screens]) {
-			Ref<Image> image = TakeScreenshot(helper, screen);
-			if (image.isNotNull()) {
-				ret.add_NoLock(Move(image));
+#ifdef USE_SCREEN_CAPTURE_KIT
+		if (@available(macos 14.0, *)) {
+			SCShareableContent* content = GetShareableContent(helper);
+			for (SCDisplay* display in content.displays) {
+				Ref<Image> image = TakeScreenshot(helper, display);
+				if (image.isNotNull()) {
+					ret.add_NoLock(Move(image));
+				}
+			}
+		} else
+#endif
+		{
+			for (NSScreen* screen in [NSScreen screens]) {
+				Ref<Image> image = TakeScreenshot(helper, screen);
+				if (image.isNotNull()) {
+					ret.add_NoLock(Move(image));
+				}
 			}
 		}
 		return ret;
@@ -157,6 +268,11 @@ namespace slib
 
 	void ScreenCapture::requestAccess()
 	{
+#ifdef USE_SCREEN_CAPTURE_KIT
+		if (@available(macos 14.0, *)) {
+			[SCShareableContent getShareableContentWithCompletionHandler:^(SCShareableContent*, NSError*) {}];
+		} else
+#endif
 		if (@available(macos 10.15, *)) {
 			ScreenCapture::takeScreenshot();
 		}
@@ -170,4 +286,5 @@ namespace slib
 	}
 
 }
+
 #endif
