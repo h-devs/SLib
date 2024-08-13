@@ -117,9 +117,14 @@ namespace slib
 		std::char_traits<sl_base_char32>::assign((sl_base_char32*)dst, count, (sl_base_char32)value);
 	}
 
-	void Base::resetMemory8(void* dst, sl_size count, sl_uint64 value) noexcept
+	void Base::resetMemory8(void* _dst, sl_size count, sl_uint64 value) noexcept
 	{
-		std::char_traits<sl_uint64>::assign((sl_uint64*)dst, count, value);
+		sl_uint64* dst = (sl_uint64*)_dst;
+		sl_uint64* end = dst + count;
+		while (dst < end) {
+			*dst = value;
+			dst++;
+		}
 	}
 
 	sl_bool Base::equalsMemory(const void* m1, const void* m2, sl_size count) noexcept
@@ -142,9 +147,23 @@ namespace slib
 		return (sl_compare_result)(std::char_traits<sl_base_char32>::compare((sl_base_char32*)m1, (sl_base_char32*)m2, count));
 	}
 
-	sl_compare_result Base::compareMemory8(const void* m1, const void* m2, sl_size count) noexcept
+	sl_compare_result Base::compareMemory8(const void* _m1, const void* _m2, sl_size count) noexcept
 	{
-		return (sl_compare_result)(std::char_traits<sl_uint64>::compare((sl_uint64*)m1, (sl_uint64*)m2, count));
+		sl_uint64* m1 = (sl_uint64*)_m1;
+		sl_uint64* m2 = (sl_uint64*)_m2;
+		sl_uint64* e = m1 + count;
+		while (m1 < e) {
+			sl_uint64 v1 = *m1;
+			sl_uint64 v2 = *m2;
+			if (v1 < v2) {
+				return -1;
+			} else if (v1 > v2) {
+				return 1;
+			}
+			m1++;
+			m2++;
+		}
+		return 0;
 	}
 
 	sl_bool Base::equalsMemoryZero(const void* m, sl_size size) noexcept
@@ -217,9 +236,17 @@ namespace slib
 		return (sl_uint32*)(std::char_traits<sl_base_char32>::find((sl_base_char32*)m, count, (sl_base_char32)pattern));
 	}
 
-	sl_uint64* Base::findMemory8(const void* m, sl_size count, sl_uint64 pattern) noexcept
+	sl_uint64* Base::findMemory8(const void* _m, sl_size count, sl_uint64 pattern) noexcept
 	{
-		return (sl_uint64*)(std::char_traits<sl_uint64>::find((sl_uint64*)m, count, pattern));
+		sl_uint64* m = (sl_uint64*)_m;
+		sl_uint64* e = m + count;
+		while (m < e) {
+			if (*m == pattern) {
+				return m;
+			}
+			m++;
+		}
+		return sl_null;
 	}
 
 	sl_uint8* Base::findMemory(const void* m, sl_size size, const void* pattern, sl_size nPattern) noexcept
