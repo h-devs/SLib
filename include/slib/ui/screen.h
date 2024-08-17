@@ -45,6 +45,8 @@ namespace slib
 
 		virtual UIRect getWorkingRegion();
 
+		virtual float getScaleFactor();
+
 	};
 
 }

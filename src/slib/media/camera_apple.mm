@@ -60,7 +60,8 @@ namespace slib
 namespace slib
 {
 #if defined(SLIB_PLATFORM_IS_IOS)
-	namespace priv {
+	namespace priv
+	{
 		extern UIInterfaceOrientation g_screenOrientation;
 	}
 	using namespace priv;
@@ -388,6 +389,9 @@ namespace slib
 			void _onFrame(CMSampleBufferRef sampleBuffer)
 			{
 				CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+				if (!imageBuffer) {
+					return;
+				}
 				if (CVPixelBufferLockBaseAddress(imageBuffer, kCVPixelBufferLock_ReadOnly) == kCVReturnSuccess) {
 					VideoCaptureFrame frame;
 					_getFrame(frame, imageBuffer);

@@ -74,6 +74,11 @@ namespace slib
 				return convertRect(rect);
 			}
 
+			float getScaleFactor() override
+			{
+				return (float)([m_screen backingScaleFactor]);
+			}
+
 			static UIRect convertRect(const NSRect& rect)
 			{
 				sl_ui_pos leftBottom = 0;

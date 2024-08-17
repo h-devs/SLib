@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -223,8 +223,8 @@ namespace slib
 		return ret;
 	}
 
-	namespace {
-
+	namespace
+	{
 		static sl_bool IsValidBitsPerComponent(sl_uint32 bitsPerComponent) noexcept
 		{
 			switch (bitsPerComponent) {
@@ -475,7 +475,6 @@ namespace slib
 				dst += dst_stride;
 			}
 		}
-
 	}
 
 #define DEFINE_CREATE_FROM_FUNC(FUNC_PREFIX, ...) \
@@ -536,7 +535,8 @@ namespace slib
 		DEFINE_CREATE_FROM_FUNC(CopyIndexed, indices, nIndices)
 	}
 
-	namespace {
+	namespace
+	{
 		template <sl_uint32 BYTES_PER_COMP>
 		static void CopyCMYK(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
 		{
@@ -917,8 +917,8 @@ namespace slib
 		}
 	}
 
-	namespace {
-
+	namespace
+	{
 		template <int BITS_PER_COMP>
 		static void CopyOnlyAlpha_Bits(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
 		{
@@ -948,7 +948,6 @@ namespace slib
 				dst += dst_stride;
 			}
 		}
-
 	}
 
 	void Image::writeAlphaFromGray(sl_uint32 width, sl_uint32 height, const void* _data, sl_uint32 bitsPerComponent, sl_reg pitch)
@@ -993,8 +992,8 @@ namespace slib
 		}
 	}
 
-	namespace {
-
+	namespace
+	{
 		template <int BITS_PER_COMP>
 		static void MultiplyAlpha_Bits(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
 		{
@@ -1024,7 +1023,6 @@ namespace slib
 				dst += dst_stride;
 			}
 		}
-
 	}
 
 	void Image::multiplyAlphaFromGray(sl_uint32 width, sl_uint32 height, const void* _data, sl_uint32 bitsPerComponent, sl_reg pitch)
@@ -1069,8 +1067,8 @@ namespace slib
 		}
 	}
 
-	namespace {
-
+	namespace
+	{
 		class ColorOp_None
 		{
 		public:
@@ -1925,8 +1923,8 @@ namespace slib
 		Draw(dst, src, ColorOp_None(), blend, stretch);
 	}
 
-	namespace {
-
+	namespace
+	{
 		template <class COLOR_OP>
 		static void DrawImage(
 			ImageDesc& dst, sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
@@ -2057,7 +2055,6 @@ namespace slib
 				src, ColorOp_ColorMatrix(&cm), sx, sy, sw, sh,
 				blend, stretch);
 		}
-
 	}
 
 	void Image::drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
@@ -2494,8 +2491,8 @@ namespace slib
 		}
 	}
 
-	namespace {
-
+	namespace
+	{
 		template <class BLEND>
 		SLIB_INLINE static void SetPixel(const BLEND& blend, ImageDesc& dst, sl_int32 x, sl_int32 y, const Color& color)
 		{
@@ -2967,7 +2964,6 @@ namespace slib
 				break;
 			}
 		}
-
 	}
 
 	void Image::drawLine(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend)
@@ -2985,8 +2981,8 @@ namespace slib
 		DrawLineF(m_desc, x1, y1, x2, y2, color, blend);
 	}
 
-	namespace {
-
+	namespace
+	{
 		template <class BLEND>
 		static void FillRectangle(const BLEND& blend, ImageDesc& dst, sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color)
 		{
@@ -3049,7 +3045,6 @@ namespace slib
 				break;
 			}
 		}
-
 	}
 
 	void Image::drawRectangle(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend)
@@ -3083,8 +3078,8 @@ namespace slib
 		FillRectangle(m_desc, x1, y1, x2, y2, color, blend);
 	}
 
-	namespace {
-
+	namespace
+	{
 		template <class BLEND>
 		static void DrawEllipse(const BLEND& blend, ImageDesc& dst, sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, sl_bool flagAntialias)
 		{
@@ -3252,7 +3247,6 @@ namespace slib
 				break;
 			}
 		}
-
 	}
 
 	void Image::drawEllipse(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend)
@@ -3265,8 +3259,8 @@ namespace slib
 		DrawEllipse(m_desc, x1, y1, x2, y2, color, blend, sl_true);
 	}
 
-	namespace {
-
+	namespace
+	{
 		template <class BLEND>
 		static void DrawImage(const BLEND& blend, ImageDesc& dst, ImageDesc& src, const Matrix3& transform, StretchMode stretch)
 		{
@@ -3423,7 +3417,6 @@ namespace slib
 		{
 			DrawImage(dst, src, ColorOp_ColorMatrix(&cm), transform, blend, stretch);
 		}
-
 	}
 
 	void Image::drawImage(const Ref<Image>& src, const Matrix3& transform, BlendMode blend, StretchMode stretch)

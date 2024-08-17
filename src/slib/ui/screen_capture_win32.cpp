@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
 		class Helper
 		{
@@ -152,11 +153,11 @@ namespace slib
 
 	}
 
-	Ref<Image> ScreenCapture::takeScreenshot()
+	Ref<Image> ScreenCapture::takeScreenshot(sl_uint32 maxWidth, sl_uint32 maxHeight)
 	{
 		HDC hDC = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
 		if (hDC) {
-			POINT pt = { 0, 0 };
+			POINT pt = {0, 0};
 			HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
 			if (hMonitor) {
 				return CaptureScreen(hDC, hMonitor);
@@ -166,7 +167,7 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<Image> ScreenCapture::takeScreenshotFromCurrentMonitor()
+	Ref<Image> ScreenCapture::takeScreenshotFromCurrentMonitor(sl_uint32 maxWidth, sl_uint32 maxHeight)
 	{
 		HDC hDC = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
 		if (hDC) {
@@ -181,7 +182,8 @@ namespace slib
 		return sl_null;
 	}
 
-	namespace {
+	namespace
+	{
 		struct CaptureScreensContext
 		{
 			HDC hDC;
@@ -199,7 +201,7 @@ namespace slib
 		}
 	}
 
-	List< Ref<Image> > ScreenCapture::takeScreenshotsFromAllMonitors()
+	List< Ref<Image> > ScreenCapture::takeScreenshotsFromAllMonitors(sl_uint32 maxWidth, sl_uint32 maxHeight)
 	{
 		CaptureScreensContext context;
 		context.hDC = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
@@ -211,7 +213,8 @@ namespace slib
 		return context.list;
 	}
 
-	namespace {
+	namespace
+	{
 		static BOOL CALLBACK EnumDisplayMonitorsCallbackForGetScreenCount(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
 		{
 			sl_uint32 *count = (sl_uint32*)lParam;

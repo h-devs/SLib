@@ -22,21 +22,101 @@
 
 #include "slib/ui/screen_capture.h"
 
+#include "slib/media/audio_data.h"
+#include "slib/core/scoped_buffer.h"
+
 namespace slib
 {
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CaptureScreenInfo)
+
+	CaptureScreenInfo::CaptureScreenInfo()
+	{
+		screenWidth = 0;
+		screenHeight = 0;
+		scaleFactor = 1.0f;
+	}
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Screenshot)
+
+	Screenshot::Screenshot()
+	{
+	}
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CaptureScreenResult)
+
+	CaptureScreenResult::CaptureScreenResult()
+	{
+		screenIndex = 0;
+	}
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CaptureAudioResult)
+
+	CaptureAudioResult::CaptureAudioResult()
+	{
+	}
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ScreenCaptureParam)
+
+	ScreenCaptureParam::ScreenCaptureParam()
+	{
+		flagCaptureScreen = sl_true;
+		maxWidth = 0; // Maximum value
+		maxHeight = 0; // Maximum value
+		flagShowCursor = sl_true;
+
+		screenInterval = 0; // Maximum supported frame rate
+		flagCaptureAudio = sl_false;
+		audioSamplesPerSecond = 16000;
+		audioChannelCount = 1;
+		audioFramesPerCallback = 0;
+		flagExcludeCurrentProcessAudio = sl_false;
+	}
+
+
+	ScreenCapture::ScreenCapture()
+	{
+		m_flagCaptureScreen = sl_false;
+		m_flagCaptureAudio = sl_false;
+		m_nAudioChannels = 1;
+		m_nAudioFramesPerCallback = 0;
+		m_nAudioFramesInCallbackBuffer = 0;
+	}
+
+	ScreenCapture::~ScreenCapture()
+	{
+	}
+
+	Ref<Image> ScreenCapture::takeScreenshot(sl_uint32 maxWidth, sl_uint32 maxHeight)
+	{
+		Screenshot ret;
+		if (takeScreenshot(ret, maxWidth, maxHeight)) {
+			return ret.image;
+		}
+		return sl_null;
+	}
+
+	Ref<Image> ScreenCapture::takeScreenshotFromCurrentMonitor(sl_uint32 maxWidth, sl_uint32 maxHeight)
+	{
+		Screenshot ret;
+		if (takeScreenshotFromCurrentMonitor(ret, maxWidth, maxHeight)) {
+			return ret.image;
+		}
+		return sl_null;
+	}
+
 #if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_GTK)
-	Ref<Image> ScreenCapture::takeScreenshot()
+	sl_bool ScreenCapture::takeScreenshot(Screenshot& _out, sl_uint32 maxWidth, sl_uint32 maxHeight)
 	{
-		return sl_null;
+		return sl_false;
 	}
 
-	Ref<Image> ScreenCapture::takeScreenshotFromCurrentMonitor()
+sl_bool ScreenCapture::takeScreenshotFromCurrentMonitor(Screenshot& _out, sl_uint32 maxWidth, sl_uint32 maxHeight)
 	{
-		return sl_null;
+		return sl_false;
 	}
 
-	List< Ref<Image> >  ScreenCapture::takeScreenshotsFromAllMonitors()
+	List<Screenshot>  ScreenCapture::takeScreenshotsFromAllMonitors(sl_uint32 maxWidth, sl_uint32 maxHeight)
 	{
 		return sl_null;
 	}
@@ -71,5 +151,121 @@ namespace slib
 	{
 	}
 #endif
+
+	void ScreenCapture::_init(const ScreenCaptureParam& param)
+	{
+		m_flagCaptureScreen = param.flagCaptureScreen;
+		m_flagCaptureAudio = param.flagCaptureAudio;
+		m_nAudioChannels = param.audioChannelCount;
+		m_nAudioFramesPerCallback = param.audioFramesPerCallback;
+		m_onCaptureScreen = param.onCaptureScreen;
+		m_onCaptureAudio = param.onCaptureAudio;
+	}
+
+	Array<sl_int16> ScreenCapture::_getAudioCallbackBuffer(sl_uint32 nSamples)
+	{
+		Array<sl_int16> buf = m_bufAudioCallback;
+		if (buf.getCount() != nSamples) {
+			buf = Array<sl_int16>::create(nSamples);
+			if (buf.isNull()) {
+				return sl_null;
+			}
+			m_bufAudioCallback = buf;
+		}
+		return buf;
+	}
+
+	void ScreenCapture::_processAudioFrame(AudioData& input)
+	{
+		sl_uint32 nFrames = (sl_uint32)(input.count);
+		if (!nFrames) {
+			return;
+		}
+		if (m_onCaptureAudio.isNull()) {
+			return;
+		}
+
+		sl_uint32 nFramesPerCallback = m_nAudioFramesPerCallback;
+		if (!nFramesPerCallback) {
+			CaptureAudioResult result;
+			result.data = Move(input);
+			m_onCaptureAudio(this, result);
+			return;
+		}
+
+		sl_uint32 nChannels = m_nAudioChannels;
+		sl_uint32 nSamplesPerCallback = nFramesPerCallback * nChannels;
+		sl_uint32 nFramesInBuffer = m_nAudioFramesInCallbackBuffer;
+
+		CaptureAudioResult result;
+		AudioData& audio = result.data;
+		if (nChannels == 1) {
+			audio.format = AudioFormat::Int16_Mono;
+		} else {
+			audio.format = AudioFormat::Int16_Stereo;
+		}
+
+		if (nFramesInBuffer >= nFramesPerCallback) {
+			nFramesInBuffer = 0;
+		}
+		if (!nFramesInBuffer && nFramesPerCallback == nFrames) {
+			audio.count = nFrames;
+			Array<sl_int16> buf;
+			if (audio.format != input.format) {
+				buf = _getAudioCallbackBuffer(nSamplesPerCallback);
+				if (buf.isNull()) {
+					return;
+				}
+				audio.data = buf.getData();
+				audio.copySamplesFrom(input, nFrames);
+			} else {
+				audio.data = input.data;
+			}
+			CaptureAudioResult result;
+			result.data = Move(audio);
+			m_onCaptureAudio(this, result);
+			return;
+		}
+		Array<sl_int16> buf = _getAudioCallbackBuffer(nSamplesPerCallback);
+		if (buf.isNull()) {
+			return;
+		}
+		sl_int16* pData = buf.getData();
+		sl_uint32 iOffset = 0;
+		if (nFramesInBuffer) {
+			if (nFramesInBuffer + nFrames < nFramesPerCallback) {
+				audio.data = pData + nFramesInBuffer * nChannels;
+				audio.copySamplesFrom(input, nFrames);
+				m_nAudioFramesInCallbackBuffer = nFramesInBuffer + nFrames;
+				return;
+			} else {
+				sl_uint32 nRemain = nFramesPerCallback - nFramesInBuffer;
+				audio.data = pData + nFramesInBuffer * nChannels;
+				audio.copySamplesFrom(input, nRemain);
+				audio.data = pData;
+				audio.count = nFramesPerCallback;
+				m_onCaptureAudio(this, result);
+				iOffset = nRemain;
+				nFrames -= iOffset;
+			}
+		}
+		sl_uint32 nCallbacks = nFrames / nFramesPerCallback;
+		for (sl_uint32 i = 0; i < nCallbacks; i++) {
+			audio.data = pData;
+			audio.count = nFramesPerCallback;
+			audio.copySamplesFrom(input, iOffset, nFramesPerCallback);
+			m_onCaptureAudio(this, result);
+			iOffset += nFramesPerCallback;
+		}
+		if (iOffset < nFrames) {
+			sl_uint32 nRemain = nFrames - iOffset;
+			audio.data = pData;
+			audio.count = nFramesPerCallback;
+			audio.copySamplesFrom(input, iOffset, nRemain);
+			m_nAudioFramesInCallbackBuffer = nRemain;
+		} else {
+			m_nAudioFramesInCallbackBuffer = 0;
+		}
+	}
 
 }

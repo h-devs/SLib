@@ -51,10 +51,13 @@ namespace slib
 		return getRegion();
 	}
 
+	float Screen::getScaleFactor()
+	{
+		return 1.0f;
+	}
 
 	namespace
 	{
-
 		class DefaultContext
 		{
 		public:
@@ -80,7 +83,6 @@ namespace slib
 		};
 
 		SLIB_SAFE_STATIC_GETTER(DefaultContext, GetDefaultContext)
-
 	}
 
 	Ref<Font> UI::getDefaultFont()

@@ -32,8 +32,10 @@
 
 #include "view_ios.h"
 
-namespace slib {
-	namespace {
+namespace slib
+{
+	namespace
+	{
 		class iOS_WindowInstance;
 	}
 }
@@ -64,8 +66,8 @@ namespace slib
 
 	using namespace priv;
 
-	namespace {
-
+	namespace
+	{
 		static __weak SLIBWindowRootViewController* g_currentRootController = nil;
 		static __weak UIScrollView* g_keyboardCurrentScrollView = nil;
 		static CGRect g_keyboardCurrentScrollViewOriginalFrame;
@@ -341,7 +343,6 @@ namespace slib
 			}
 
 		};
-
 	}
 
 	Ref<WindowInstance> Window::createWindowInstance()
@@ -406,7 +407,8 @@ namespace slib
 		return UIPlatform::getMainWindow();
 	}
 
-	namespace {
+	namespace
+	{
 		static ScreenOrientation ConvertScreenOrientation(UIInterfaceOrientation orientation)
 		{
 			switch (orientation) {
@@ -473,7 +475,8 @@ namespace slib
 #endif
 	}
 
-	namespace {
+	namespace
+	{
 		static sl_bool g_flagSetStatusBarStyle = sl_false;
 		static StatusBarStyle g_currentStatusBarStyle = StatusBarStyle::Dark;
 	}

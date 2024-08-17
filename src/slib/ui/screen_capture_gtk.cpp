@@ -32,7 +32,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 
 		static Ref<Image> DoCaptureFromGnomeShell()
 		{
@@ -140,28 +141,38 @@ namespace slib
 
 	}
 
-	Ref<Image> ScreenCapture::takeScreenshot()
+	sl_bool ScreenCapture::takeScreenshot(Screenshot& _out, sl_uint32 maxWidth, sl_uint32 maxHeight)
 	{
 		Ref<Image> image = DoCaptureFromGnomeShell();
-		if (image.isNotNull()) {
-			return image;
+		if (image.isNull()) {
+			gtk_init_check(sl_null, sl_null);
+			GdkScreen* screen = gdk_screen_get_default();
+			if (!screen) {
+				return sl_false;
+			}
+			image = DoCapture(screen);
+			if (image.isNull()) {
+				return sl_false;
+			}
 		}
-		gtk_init_check(sl_null, sl_null);
-		GdkScreen* screen = gdk_screen_get_default();
-		if (screen) {
-			return DoCapture(screen);
+		_out.screenWidth = image->getWidth();
+		_out.screenHeight = image->getHeight();
+		_out.image = Move(image);
+		return sl_true;
+	}
+
+	sl_bool ScreenCapture::takeScreenshotFromCurrentMonitor(Screenshot& _out, sl_uint32 maxWidth, sl_uint32 maxHeight)
+	{
+		return takeScreenshot(_out, maxWidth, maxHeight);
+	}
+
+	List<Screenshot> ScreenCapture::takeScreenshotsFromAllMonitors(sl_uint32 maxWidth, sl_uint32 maxHeight)
+	{
+		Screenshot screenshot;
+		if (takeScreenshot(screenshot, maxWidth, maxHeight)) {
+			return List< Ref<Image> >::createFromElement(screenshot);
 		}
 		return sl_null;
-	}
-
-	Ref<Image> ScreenCapture::takeScreenshotFromCurrentMonitor()
-	{
-		return takeScreenshot();
-	}
-
-	List< Ref<Image> > ScreenCapture::takeScreenshotsFromAllMonitors()
-	{
-		return List< Ref<Image> >::createFromElement(takeScreenshot());
 	}
 
 	sl_uint32 ScreenCapture::getScreenCount()

@@ -223,6 +223,7 @@ namespace slib
 
 	String Apple::runAppleScript(const StringParam& script, sl_bool flagExternalProcess, sl_bool flagErrorOutput)
 	{
+#ifdef SLIB_PLATFORM_IS_MACOS
 		if (flagExternalProcess) {
 			StringData s(script);
 			if (flagErrorOutput) {
@@ -250,6 +251,7 @@ namespace slib
 				}
 			}
 		}
+#endif
 		return sl_null;
 	}
 

@@ -27,15 +27,30 @@
 #include "slib/ui/screen_capture.h"
 
 #include "slib/system/system.h"
+#include "slib/media/audio_data.h"
+#include "slib/graphics/util.h"
+#include "slib/graphics/platform.h"
 #include "slib/core/event.h"
 #include "slib/core/shared.h"
 #include "slib/core/safe_static.h"
-#include "slib/graphics/platform.h"
+#include "slib/core/scoped_buffer.h"
 
 #include <AppKit/AppKit.h>
+#ifdef __MAC_13_0
+#	include <ScreenCaptureKit/ScreenCaptureKit.h>
+#	define USE_SCREEN_CAPTURE_KIT
+#endif
 #ifdef __MAC_14_0
-#include <ScreenCaptureKit/ScreenCaptureKit.h>
-#define USE_SCREEN_CAPTURE_KIT
+#	define USE_SCREENSHOT_MANAGER
+#endif
+
+#ifdef USE_SCREEN_CAPTURE_KIT
+API_AVAILABLE(macos(13.0))
+@interface SLIBScreenCapture : NSObject<SCStreamOutput>
+{
+	@public slib::WeakRef<slib::CRef> m_capture;
+}
+@end
 #endif
 
 namespace slib
@@ -46,12 +61,8 @@ namespace slib
 		class Helper
 		{
 		public:
-			Ref<Image> getImage(CGImageRef cgImage, CGFloat scale)
+			Ref<Image> getImage(CGImageRef cgImage, sl_uint32 dstWidth, sl_uint32 dstHeight)
 			{
-				sl_uint32 srcWidth = (sl_uint32)(CGImageGetWidth(cgImage));
-				sl_uint32 srcHeight = (sl_uint32)(CGImageGetHeight(cgImage));
-				sl_uint32 dstWidth = (sl_uint32)(srcWidth * scale);
-				sl_uint32 dstHeight = (sl_uint32)(srcHeight * scale);
 				Ref<Bitmap>& bitmap = m_bitmapCache;
 				Ref<Canvas>& canvas = m_canvasCache;
 				CGContextRef& context = m_contextCache;
@@ -91,13 +102,46 @@ namespace slib
 		SLIB_SAFE_STATIC_GETTER(Helper, GetHelper)
 
 #ifdef USE_SCREEN_CAPTURE_KIT
+		static void ProcessCapturedScreen(CMSampleBufferRef sampleBuffer, const Function<void(BitmapData&)>& callback)
+		{
+			CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+			if (!imageBuffer) {
+				return;
+			}
+			OSType pixelFormat = CVPixelBufferGetPixelFormatType(imageBuffer);
+			if (pixelFormat != kCVPixelFormatType_32BGRA) {
+				return;
+			}
+			sl_uint32 width = (sl_uint32)(CVPixelBufferGetWidth(imageBuffer));
+			if (!width) {
+				return;
+			}
+			sl_uint32 height = (sl_uint32)(CVPixelBufferGetHeight(imageBuffer));
+			if (!width || !height) {
+				return;
+			}
+			if (CVPixelBufferLockBaseAddress(imageBuffer, kCVPixelBufferLock_ReadOnly) == kCVReturnSuccess) {
+				BitmapData bd;
+				bd.format = BitmapFormat::BGRA;
+				bd.width = width;
+				bd.height = height;
+				bd.data = CVPixelBufferGetBaseAddress(imageBuffer);
+				bd.pitch = (sl_uint32)(CVPixelBufferGetBytesPerRow(imageBuffer));
+				callback(bd);
+				CVPixelBufferUnlockBaseAddress(imageBuffer, kCVPixelBufferLock_ReadOnly);
+			}
+		}
+#endif
+
+#ifdef USE_SCREENSHOT_MANAGER
 		API_AVAILABLE(macos(14.0))
-		static Ref<Image> TakeScreenshot(Helper* helper, SCDisplay* display)
+		static Ref<Image> TakeScreenshot(Helper* helper, SCDisplay* display, sl_uint32 width, sl_uint32 height)
 		{
 			SCContentFilter* filter = [[SCContentFilter alloc] initWithDisplay:display excludingWindows:@[]];
 			SCStreamConfiguration* config = [[SCStreamConfiguration alloc] init];
-			[config setWidth:(sl_uint32)([display width])];
-			[config setHeight:(sl_uint32)([display height])];
+			[config setWidth:width];
+			[config setHeight:height];
+			[config setPixelFormat:kCVPixelFormatType_32BGRA];
 			Ref<Event> ev = Event::create();
 			if (ev.isNull()) {
 				return nil;
@@ -106,19 +150,22 @@ namespace slib
 			if (ret.isNull()) {
 				return nil;
 			}
-			[SCScreenshotManager captureImageWithFilter:filter configuration:config completionHandler:^(CGImageRef cgImage, NSError* error) {
-				if (cgImage) {
-					Ref<Image> image = helper->getImage(cgImage, 1.0);
-					CGImageRelease(cgImage);
-					*ret = Move(image);
+			[SCScreenshotManager captureSampleBufferWithFilter:filter configuration:config completionHandler:^(CMSampleBufferRef sampleBuffer, NSError* error) {
+				if (sampleBuffer) {
+					ProcessCapturedScreen(sampleBuffer, [&ret](BitmapData& bd) {
+						*ret = Image::create(bd);
+					});
+					CFRelease(sampleBuffer);
 				}
 				ev->set();
 			}];
 			ev->wait(5000);
 			return ret->release();
 		}
+#endif
 
-		API_AVAILABLE(macos(14.0))
+#ifdef USE_SCREEN_CAPTURE_KIT
+		API_AVAILABLE(macos(13.0))
 		static SCShareableContent* GetShareableContent(Helper* helper)
 		{
 			Ref<Event> ev = Event::create();
@@ -137,7 +184,7 @@ namespace slib
 			return helper->m_shareableContent;
 		}
 
-		API_AVAILABLE(macos(14.0))
+		API_AVAILABLE(macos(13.0))
 		static SCDisplay* GetShareableDisplay(Helper* helper, CGDirectDisplayID displayId)
 		{
 			SCShareableContent* content = GetShareableContent(helper);
@@ -167,77 +214,404 @@ namespace slib
 			return sl_true;
 		}
 
-		static Ref<Image> TakeScreenshot(Helper* helper, NSScreen* screen)
+		static void GetScreenInfo(NSScreen* screen, CaptureScreenInfo& info)
 		{
-			CGDirectDisplayID displayId;
-			if (!(GetDisplayID(screen, displayId))) {
-				return sl_null;
+			NSSize size = screen.frame.size;
+			info.screenWidth = size.width;
+			info.screenHeight = size.height;
+			info.scaleFactor = (float)([screen backingScaleFactor]);
+		}
+
+		static sl_bool TakeScreenshot(Screenshot& _out, Helper* helper, NSScreen* screen, sl_uint32 maxWidth, sl_uint32 maxHeight)
+		{
+			CGDirectDisplayID displayID;
+			if (!(GetDisplayID(screen, displayID))) {
+				return sl_false;
 			}
-#ifdef USE_SCREEN_CAPTURE_KIT
+			GetScreenInfo(screen, _out);
+			sl_uint32 width = (sl_uint32)(_out.screenWidth * _out.scaleFactor);
+			sl_uint32 height = (sl_uint32)(_out.screenHeight * _out.scaleFactor);
+			GraphicsUtil::toSmallSize(width, height, maxWidth, maxHeight);
+#ifdef USE_SCREENSHOT_MANAGER
 			if (@available(macos 14.0, *)) {
-				SCDisplay* display = GetShareableDisplay(helper, displayId);
+				SCDisplay* display = GetShareableDisplay(helper, displayID);
 				if (display != nil) {
-					return TakeScreenshot(helper, display);
+					_out.image = TakeScreenshot(helper, display, width, height);
+					return _out.image.isNotNull();
 				}
 			} else
 #endif
 			{
-				CGImageRef cgImage = CGDisplayCreateImage(displayId);
+				CGImageRef cgImage = CGDisplayCreateImage(displayID);
 				if (cgImage) {
-					Ref<Image> image = helper->getImage(cgImage, 1 / [screen backingScaleFactor]);
+					_out.image = helper->getImage(cgImage, width, height);
 					CGImageRelease(cgImage);
-					return image;
+					return _out.image.isNotNull();
 				}
 			}
-			return sl_null;
+			return sl_false;
 		}
 
-	}
-
-	Ref<Image> ScreenCapture::takeScreenshot()
-	{
-		Helper* helper = GetHelper();
-		if (!helper) {
-			return sl_null;
-		}
-		MutexLocker lock(&(helper->m_lock));
-		return TakeScreenshot(helper, [[NSScreen screens] objectAtIndex:0]);
-	}
-
-	Ref<Image> ScreenCapture::takeScreenshotFromCurrentMonitor()
-	{
-		Helper* helper = GetHelper();
-		if (!helper) {
-			return sl_null;
-		}
-		MutexLocker lock(&(helper->m_lock));
-		return TakeScreenshot(helper, [NSScreen mainScreen]);
-	}
-
-	List< Ref<Image> > ScreenCapture::takeScreenshotsFromAllMonitors()
-	{
-		Helper* helper = GetHelper();
-		if (!helper) {
-			return sl_null;
-		}
-		MutexLocker lock(&(helper->m_lock));
-		List< Ref<Image> > ret;
 #ifdef USE_SCREEN_CAPTURE_KIT
+		class API_AVAILABLE(macos(13.0)) ScreenCaptureImpl : public ScreenCapture
+		{
+		public:
+			SLIBScreenCapture* m_object;
+			NSArray<SCStream*>* m_streams;
+			List<CaptureScreenInfo> m_screenInfos;
+
+			dispatch_queue_t m_queueScreen;
+			dispatch_queue_t m_queueAudio;
+
+		public:
+			ScreenCaptureImpl()
+			{
+			}
+
+			~ScreenCaptureImpl()
+			{
+				release();
+			}
+
+		public:
+			static Ref<ScreenCaptureImpl> create(const ScreenCaptureParam& param)
+			{
+				if (!(param.flagCaptureScreen || param.flagCaptureAudio)) {
+					return sl_null;
+				}
+				Helper* helper = GetHelper();
+				if (!helper) {
+					return sl_null;
+				}
+				SLIBScreenCapture* object = [[SLIBScreenCapture alloc] init];
+				if (object == nil) {
+					return sl_null;
+				}
+				dispatch_queue_t queueScreen = dispatch_queue_create(sl_null, DISPATCH_QUEUE_SERIAL);
+				if (queueScreen == nil) {
+					return sl_null;
+				}
+				dispatch_queue_t queueAudio = nil;
+				if (param.flagCaptureAudio) {
+					queueAudio = dispatch_queue_create(sl_null, DISPATCH_QUEUE_SERIAL);
+					if (queueAudio == nil) {
+						return sl_null;
+					}
+				}
+				SCShareableContent* content = GetShareableContent(helper);
+				if (content == nil) {
+					return sl_null;
+				}
+				NSArray* displays = [content displays];
+				if (![[content displays] count]) {
+					return sl_null;
+				}
+				NSMutableArray* streams = [[NSMutableArray alloc] init];
+				List<CaptureScreenInfo> screenInfos;
+				sl_bool flagFirst = sl_true;
+				for (NSScreen* screen in [NSScreen screens]) {
+					CGDirectDisplayID displayID;
+					if (!(GetDisplayID(screen, displayID))) {
+						continue;
+					}
+					SCDisplay* display = nil;
+					{
+						for (SCDisplay* item in displays) {
+							if ([item displayID] == displayID) {
+								display = item;
+							}
+						}
+					}
+					if (display == nil) {
+						continue;
+					}
+					SCContentFilter* filter = [[SCContentFilter alloc] initWithDisplay:display excludingWindows:@[]];
+					if (filter == nil) {
+						return sl_null;
+					}
+					SCStreamConfiguration* config = [[SCStreamConfiguration alloc] init];
+					if (config == nil) {
+						return sl_null;
+					}
+					if (param.flagCaptureScreen) {
+						CaptureScreenInfo info;
+						GetScreenInfo(screen, info);
+						sl_uint32 width = (sl_uint32)(info.screenWidth * info.scaleFactor);
+						sl_uint32 height = (sl_uint32)(info.screenHeight * info.scaleFactor);
+						GraphicsUtil::toSmallSize(width, height, param.maxWidth, param.maxHeight);
+						[config setWidth:width];
+						[config setHeight:height];
+						[config setPixelFormat:kCVPixelFormatType_32BGRA];
+						[config setShowsCursor:(param.flagShowCursor ? YES : NO)];
+						if (param.screenInterval) {
+							[config setMinimumFrameInterval:CMTimeMake(param.screenInterval, 1000)];
+						}
+						screenInfos.add_NoLock(Move(info));
+					} else {
+						[config setMinimumFrameInterval:CMTimeMake(3600, 1)];
+					}
+					if (flagFirst) {
+						if (param.flagCaptureAudio) {
+							[config setCapturesAudio:YES];
+							[config setSampleRate:(NSInteger)(param.audioSamplesPerSecond)];
+							[config setChannelCount:(NSInteger)(param.audioChannelCount)];
+							[config setExcludesCurrentProcessAudio:(param.flagExcludeCurrentProcessAudio ? YES : NO)];
+						}
+					}
+					SCStream* stream = [[SCStream alloc] initWithFilter:filter configuration:config delegate:nil];
+					if (stream == nil) {
+						return sl_null;
+					}
+					if (!([stream addStreamOutput:object type:SCStreamOutputTypeScreen sampleHandlerQueue:queueScreen error:nil])) {
+						return sl_null;
+					}
+					if (flagFirst) {
+						flagFirst = sl_false;
+						if (param.flagCaptureAudio) {
+							if (!([stream addStreamOutput:object type:SCStreamOutputTypeAudio sampleHandlerQueue:queueAudio error:nil])) {
+								return sl_null;
+							}
+						}
+					}
+					[streams addObject:stream];
+					if (!(param.flagCaptureScreen)) {
+						break;
+					}
+				}
+				if (flagFirst) {
+					return sl_null;
+				}
+				Ref<ScreenCaptureImpl> ret = new ScreenCaptureImpl;
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				ret->m_object = object;
+				ret->m_streams = streams;
+				ret->m_screenInfos = Move(screenInfos);
+				ret->m_queueScreen = queueScreen;
+				ret->m_queueAudio = queueAudio;
+				ret->_init(param);
+				object->m_capture = ret;
+				ret->start();
+				return ret;
+			}
+
+			void release() override
+			{
+				ObjectLocker lock(this);
+				sl_bool flagFirst = sl_true;
+				for (SCStream* stream in m_streams) {
+					sl_bool flagCaptureAudio = sl_false;
+					if (flagFirst) {
+						flagFirst = sl_false;
+						if (m_flagCaptureAudio) {
+							flagCaptureAudio = sl_true;
+						}
+					}
+					[stream stopCaptureWithCompletionHandler:^(NSError* error) {
+						[stream removeStreamOutput:m_object type:SCStreamOutputTypeScreen error:NULL];
+						if (flagCaptureAudio) {
+							[stream removeStreamOutput:m_object type:SCStreamOutputTypeAudio error:NULL];
+						}
+					}];
+				}
+			}
+
+			void start()
+			{
+				ObjectLocker lock(this);
+				for (SCStream* stream in m_streams) {
+					[stream startCaptureWithCompletionHandler:nil];
+				}
+			}
+
+			void stop()
+			{
+				ObjectLocker lock(this);
+				for (SCStream* stream in m_streams) {
+					[stream startCaptureWithCompletionHandler:nil];
+				}
+			}
+
+			void onCaptureScreen(SCStream* stream, CMSampleBufferRef sampleBuffer)
+			{
+				if (!m_flagCaptureScreen) {
+					return;
+				}
+				NSArray* infos = (__bridge NSArray*)(CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, NO));
+				if (infos == nil) {
+					return;
+				}
+				if (!(infos.count)) {
+					return;
+				}
+				NSDictionary* info = [infos firstObject];
+				if (info == nil) {
+					return;
+				}
+				NSNumber* status = info[SCStreamFrameInfoStatus];
+				if (status == nil) {
+					return;
+				}
+				if ([status intValue] != SCFrameStatusComplete) {
+					return;
+				}
+				ProcessCapturedScreen(sampleBuffer, [this, stream](BitmapData& data) {
+					NSInteger _index = [m_streams indexOfObject:stream];
+					if (_index == NSNotFound) {
+						return;
+					}
+					sl_uint32 index = (sl_uint32)_index;
+					CaptureScreenResult result;
+					if (!(m_screenInfos.getAt_NoLock(index, &result))) {
+						return;
+					}
+					result.screenIndex = index;
+					result.data = Move(data);
+					m_onCaptureScreen(this, result);
+				});
+			}
+
+			void onCaptureAudio(CMSampleBufferRef sampleBuffer)
+			{
+				CMFormatDescriptionRef fmt = CMSampleBufferGetFormatDescription(sampleBuffer);
+				if (!fmt) {
+					return;
+				}
+				const AudioStreamBasicDescription* desc = CMAudioFormatDescriptionGetStreamBasicDescription(fmt);
+				if (!desc) {
+					return;
+				}
+				if (desc->mChannelsPerFrame != 2 && desc->mChannelsPerFrame != 1) {
+					return;
+				}
+				if (desc->mBytesPerFrame != 4 || !(desc->mFormatFlags & kAudioFormatFlagIsFloat)) {
+					return;
+				}
+				size_t sizeAudioList = 0;
+				OSStatus result = CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sampleBuffer, &sizeAudioList, NULL, 0, NULL, NULL, 0, NULL);
+				if (result != noErr && result != kCMSampleBufferError_ArrayTooSmall) {
+					return;
+				}
+				SLIB_SCOPED_BUFFER(sl_uint8, 128, bufAudioList, sizeAudioList);
+				AudioBufferList& audioList = *((AudioBufferList*)bufAudioList);
+				CMBlockBufferRef blockBuffer = NULL;
+				result = CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sampleBuffer, NULL, &audioList, sizeAudioList, NULL, NULL, 0, &blockBuffer);
+				if (result != noErr) {
+					return;
+				}
+				if (!blockBuffer) {
+					return;
+				}
+				AudioData ad;
+				if (desc->mChannelsPerFrame == 2) {
+					if (audioList.mNumberBuffers == 2) {
+						AudioBuffer& audioBuffer1 = *(audioList.mBuffers);
+						AudioBuffer& audioBuffer2 = *(audioList.mBuffers + 1);
+						if (audioBuffer1.mDataByteSize != audioBuffer2.mDataByteSize) {
+							return;
+						}
+						ad.format = AudioFormat::Float_Stereo_NonInterleaved;
+						ad.data = (float*)(audioBuffer1.mData);
+						ad.data1 = (float*)(audioBuffer2.mData);
+						ad.count = (sl_uint32)(audioBuffer1.mDataByteSize >> 2);
+						_processAudioFrame(ad);
+					}
+				} else {
+					if (audioList.mNumberBuffers == 1) {
+						AudioBuffer& audioBuffer = *(audioList.mBuffers);
+						ad.format = AudioFormat::Float_Mono;
+						ad.data = (float*)(audioBuffer.mData);
+						ad.count = (sl_uint32)(audioBuffer.mDataByteSize >> 2);
+						_processAudioFrame(ad);
+					}
+				}
+				CFRelease(blockBuffer);
+			}
+		};
+#endif
+	}
+
+#if defined(USE_SCREEN_CAPTURE_KIT)
+	Ref<ScreenCapture> ScreenCapture::create(const ScreenCaptureParam& param)
+	{
+		if (@available(macos 13.0, *)) {
+			return Ref<ScreenCapture>::cast(ScreenCaptureImpl::create(param));
+		} else {
+			return sl_null;
+		}
+	}
+#else
+	Ref<ScreenCapture> ScreenCapture::create(const ScreenCaptureParam& param)
+	{
+		return sl_null;
+	}
+#endif
+
+	sl_bool ScreenCapture::takeScreenshot(Screenshot& _out, sl_uint32 maxWidth, sl_uint32 maxHeight)
+	{
+		Helper* helper = GetHelper();
+		if (!helper) {
+			return sl_false;
+		}
+		MutexLocker lock(&(helper->m_lock));
+		return TakeScreenshot(_out, helper, [[NSScreen screens] objectAtIndex:0], maxWidth, maxHeight);
+	}
+
+	sl_bool ScreenCapture::takeScreenshotFromCurrentMonitor(Screenshot& _out, sl_uint32 maxWidth, sl_uint32 maxHeight)
+	{
+		Helper* helper = GetHelper();
+		if (!helper) {
+			return sl_false;
+		}
+		MutexLocker lock(&(helper->m_lock));
+		return TakeScreenshot(_out, helper, [NSScreen mainScreen], maxWidth, maxHeight);
+	}
+
+	List<Screenshot> ScreenCapture::takeScreenshotsFromAllMonitors(sl_uint32 maxWidth, sl_uint32 maxHeight)
+	{
+		Helper* helper = GetHelper();
+		if (!helper) {
+			return sl_null;
+		}
+		MutexLocker lock(&(helper->m_lock));
+		List<Screenshot> ret;
+#ifdef USE_SCREENSHOT_MANAGER
 		if (@available(macos 14.0, *)) {
 			SCShareableContent* content = GetShareableContent(helper);
-			for (SCDisplay* display in content.displays) {
-				Ref<Image> image = TakeScreenshot(helper, display);
-				if (image.isNotNull()) {
-					ret.add_NoLock(Move(image));
+			NSArray* displays = [content displays];
+			for (NSScreen* screen in [NSScreen screens]) {
+				CGDirectDisplayID displayID;
+				if (!(GetDisplayID(screen, displayID))) {
+					continue;
+				}
+				SCDisplay* display = nil;
+				{
+					for (SCDisplay* item in displays) {
+						if ([item displayID] == displayID) {
+							display = item;
+						}
+					}
+				}
+				if (display != nil) {
+					Screenshot screenshot;
+					GetScreenInfo(screen, screenshot);
+					sl_uint32 width = (sl_uint32)(screenshot.screenWidth * screenshot.scaleFactor);
+					sl_uint32 height = (sl_uint32)(screenshot.screenHeight * screenshot.scaleFactor);
+					GraphicsUtil::toSmallSize(width, height, maxWidth, maxHeight);
+					screenshot.image = TakeScreenshot(helper, display, width, height);
+					if (screenshot.image.isNotNull()) {
+						ret.add_NoLock(Move(screenshot));
+					}
 				}
 			}
 		} else
 #endif
 		{
 			for (NSScreen* screen in [NSScreen screens]) {
-				Ref<Image> image = TakeScreenshot(helper, screen);
-				if (image.isNotNull()) {
-					ret.add_NoLock(Move(image));
+				Screenshot screenshot;
+				if (TakeScreenshot(screenshot, helper, screen, maxWidth, maxHeight)) {
+					ret.add_NoLock(Move(screenshot));
 				}
 			}
 		}
@@ -269,7 +643,7 @@ namespace slib
 	void ScreenCapture::requestAccess()
 	{
 #ifdef USE_SCREEN_CAPTURE_KIT
-		if (@available(macos 14.0, *)) {
+		if (@available(macos 13.0, *)) {
 			[SCShareableContent getShareableContentWithCompletionHandler:^(SCShareableContent*, NSError*) {}];
 		} else
 #endif
@@ -286,5 +660,28 @@ namespace slib
 	}
 
 }
+
+#if defined(USE_SCREEN_CAPTURE_KIT)
+API_AVAILABLE(macos(13.0))
+@implementation SLIBScreenCapture
+- (void)stream:(SCStream*)stream didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer ofType:(SCStreamOutputType)type
+{
+	if (!sampleBuffer) {
+		return;
+	}
+	if (!(CMSampleBufferIsValid(sampleBuffer))) {
+		return;
+	}
+	slib::Ref<slib::ScreenCaptureImpl> capture = slib::WeakRef<slib::ScreenCaptureImpl>::cast(m_capture);
+	if (capture.isNotNull()) {
+		if (type == SCStreamOutputTypeScreen) {
+			capture->onCaptureScreen(stream, sampleBuffer);
+		} else if (type == SCStreamOutputTypeAudio) {
+			capture->onCaptureAudio(sampleBuffer);
+		}
+	}
+}
+@end
+#endif
 
 #endif
