@@ -257,11 +257,30 @@ namespace slib
 
 	String System::getActiveUserName(String* outActiveSessionName)
 	{
+#ifdef SLIB_PLATFORM_IS_MACOS
 		if (outActiveSessionName) {
 			SLIB_STATIC_STRING(sessionName, "console")
 			*outActiveSessionName = sessionName;
 		}
 		return File::getOwnerName("/dev/console");
+#else
+		return sl_null;
+#endif
+	}
+
+	sl_bool System::isScreenLocked()
+	{
+#ifdef SLIB_PLATFORM_IS_MACOS
+		CFDictionaryRef cdict = CGSessionCopyCurrentDictionary();
+		if (cdict) {
+			NSDictionary* dict = (__bridge NSDictionary*)cdict;
+			if ([((NSNumber*)(dict[@"CGSSessionScreenIsLocked"])) boolValue] == YES) {
+				return sl_true;
+			}
+			CFRelease(cdict);
+		}
+#endif
+		return sl_false;
 	}
 
 	sl_uint64 System::getTickCount64()

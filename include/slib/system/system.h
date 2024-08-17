@@ -123,6 +123,8 @@ namespace slib
 
 		static String getActiveUserName(String* outActiveSessionName = sl_null);
 
+		static sl_bool isScreenLocked();
+
 
 		static sl_uint32 getTickCount();
 
