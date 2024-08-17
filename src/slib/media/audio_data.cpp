@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -113,8 +113,8 @@ namespace slib
 		return 0;
 	}
 
-	namespace {
-
+	namespace
+	{
 		class AUDIO_INT8_PROC
 		{
 		public:
@@ -411,10 +411,9 @@ namespace slib
 					break;
 			}
 		}
-
 	}
 
-	void AudioData::copySamplesFrom(const AudioData& other, sl_size countSamples) const
+	void AudioData::copySamplesFrom(const AudioData& other, sl_size iSrc, sl_size nFrames) const
 	{
 		if (format == AudioFormat::None) {
 			return;
@@ -422,13 +421,16 @@ namespace slib
 		if (other.format == AudioFormat::None) {
 			return;
 		}
-		if (countSamples > count) {
-			countSamples = count;
+		if (iSrc >= other.count) {
+			return;
 		}
-		if (countSamples > other.count) {
-			countSamples = other.count;
+		if (iSrc + nFrames > other.count) {
+			nFrames = other.count - iSrc;
 		}
-		if (countSamples == 0) {
+		if (nFrames > count) {
+			nFrames = count;
+		}
+		if (!nFrames) {
 			return;
 		}
 
@@ -440,31 +442,47 @@ namespace slib
 
 		sl_uint8* data_in = (sl_uint8*)(other.data);
 		sl_uint8* data_in1 = (sl_uint8*)(other.data1);
-		if (AudioFormatHelper::isNonInterleaved(other.format) && !data_in1) {
-			data_in1 = data_in + other.getSizeForChannel();
+		if (AudioFormatHelper::isNonInterleaved(other.format)) {
+			if (!data_in1) {
+				data_in1 = data_in + other.getSizeForChannel();
+			}
+			if (iSrc) {
+				sl_size off = (iSrc * AudioFormatHelper::getBitsPerSample(format) + 7) >> 3;
+				data_in += off;
+				data_in1 += off;
+			}
+		} else {
+			if (iSrc) {
+				data_in += (iSrc * AudioFormatHelper::getBitsPerSample(format) * AudioFormatHelper::getChannelCount(format) + 7) >> 3;
+			}
 		}
 
 		if (format == other.format) {
 			if (AudioFormatHelper::isNonInterleaved(format)) {
-				sl_size n = (countSamples * AudioFormatHelper::getBitsPerSample(format) + 7) >> 3;
+				sl_size n = (nFrames * AudioFormatHelper::getBitsPerSample(format) + 7) >> 3;
 				Base::copyMemory(data_out, data_in, n);
 				Base::copyMemory(data_out1, data_in1, n);
 			} else {
-				sl_size n = (countSamples * AudioFormatHelper::getBitsPerSample(format) * AudioFormatHelper::getChannelCount(format) + 7) >> 3;
+				sl_size n = (nFrames * AudioFormatHelper::getBitsPerSample(format) * AudioFormatHelper::getChannelCount(format) + 7) >> 3;
 				Base::copyMemory(data_out, data_in, n);
 			}
 			return;
 		}
 
-		CopySamples(countSamples, other.format, data_in, data_in1, format, data_out, data_out1);
+		CopySamples(nFrames, other.format, data_in, data_in1, format, data_out, data_out1);
+	}
+
+	void AudioData::copySamplesFrom(const AudioData& other, sl_size nFrames) const
+	{
+		copySamplesFrom(other, 0, nFrames);
 	}
 
 	void AudioData::copySamplesFrom(const AudioData& other) const
 	{
-		copySamplesFrom(other, count);
+		copySamplesFrom(other, 0, count);
 	}
 
-	sl_int16 AudioData::getSample(sl_uint32 sampleIndex, sl_uint32 channelIndex)
+	sl_int16 AudioData::getSample(sl_uint32 sampleIndex, sl_uint32 channelIndex) const
 	{
 		AudioSampleType type = AudioFormatHelper::getSampleType(format);
 		sl_uint32 nChannels = AudioFormatHelper::getChannelCount(format);
@@ -508,7 +526,7 @@ namespace slib
 		return 0;
 	}
 
-	sl_int16 AudioData::getPeakSample(sl_uint32 startSampleIndex, sl_uint32 endSampleIndex, sl_bool flagPositive, sl_uint32 channelIndex)
+	sl_int16 AudioData::getPeakSample(sl_uint32 startSampleIndex, sl_uint32 endSampleIndex, sl_bool flagPositive, sl_uint32 channelIndex) const
 	{
 		sl_int16 peakValue = 0;
 		for (sl_uint32 index = startSampleIndex; index < endSampleIndex; index++) {
@@ -524,6 +542,22 @@ namespace slib
 			}
 		}
 		return peakValue;
+	}
+
+	void AudioData::seek(sl_reg nFrames)
+	{
+		if (!nFrames) {
+			return;
+		}
+		if (AudioFormatHelper::isNonInterleaved(format)) {
+			sl_reg offset = (nFrames * AudioFormatHelper::getBitsPerSample(format) + 7) >> 3;
+			data = (sl_uint8*)data + offset;
+			if (data1) {
+				data1 = (sl_uint8*)data1 + offset;
+			}
+		} else {
+			data = (sl_uint8*)data + ((nFrames * AudioFormatHelper::getBitsPerSample(format) * AudioFormatHelper::getChannelCount(format) + 7) >> 3);
+		}
 	}
 
 }

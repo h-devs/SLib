@@ -25,16 +25,15 @@
 
 #include "audio_data.h"
 
-#include "../data/loop_queue.h"
+#include "../core/object.h"
 #include "../core/event.h"
 #include "../core/function.h"
+#include "../data/loop_queue.h"
 
 #include "priv/audio_device.h"
 
 namespace slib
 {
-
-	class Event;
 
 	typedef AudioDeviceInfo AudioRecorderDeviceInfo;
 
@@ -48,10 +47,10 @@ namespace slib
 
 		sl_uint32 samplesPerSecond; // per channel
 		sl_uint32 channelCount;
-		sl_uint32 samplesPerFrame; // samples per frame (per channel)
-		sl_uint32 frameLengthInMilliseconds; // required when `samplesPerFrame` is not set
+		sl_uint32 framesPerPacket; // frames per packet
+		sl_uint32 packetLengthInMilliseconds; // required when `framesPerPacket` is not set
 		sl_uint32 bufferLengthInMilliseconds;
-		sl_uint32 samplesPerCallback; // samples per callback (per channel)
+		sl_uint32 framesPerCallback; // samples per callback (per channel)
 
 		sl_bool flagAutoStart;
 
@@ -64,9 +63,9 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioRecorderParam)
 
 	public:
-		sl_uint32 getSamplesPerFrame() const;
+		sl_uint32 getFramesPerPacket() const;
 
-		sl_uint32 getFrameLengthInMilliseconds() const;
+		sl_uint32 getPacketLengthInMilliseconds() const;
 
 	};
 

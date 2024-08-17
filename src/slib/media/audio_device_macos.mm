@@ -277,7 +277,7 @@ namespace slib
 					return sl_null;
 				}
 
-				UInt32 frameSize = param.getFrameLengthInMilliseconds() * formatSrc.mSampleRate * formatSrc.mBytesPerFrame / 1000;
+				UInt32 frameSize = param.getPacketLengthInMilliseconds() * formatSrc.mSampleRate * formatSrc.mBytesPerFrame / 1000;
 				if (frameSize < rangeBufferSize.mMinimum) {
 					frameSize = rangeBufferSize.mMinimum;
 				} else if (frameSize > rangeBufferSize.mMaximum) {
@@ -310,7 +310,6 @@ namespace slib
 							AudioDeviceIOProcID callback;
 
 							if (AudioDeviceCreateIOProcID(deviceID, DeviceIOProc, ret.get(), &callback) == kAudioHardwareNoError) {
-
 								ret->m_deviceID = deviceID;
 								ret->m_converter = converter;
 								ret->m_formatSrc = formatSrc;
@@ -318,15 +317,12 @@ namespace slib
 								ret->m_callback = callback;
 
 								ret->_init(param);
-
 								ret->m_flagInitialized = sl_true;
 
 								if (param.flagAutoStart) {
 									ret->start();
 								}
-
 								return ret;
-
 							} else {
 								LOG_ERROR("Failed to create io proc");
 							}
@@ -374,7 +370,7 @@ namespace slib
 				sl_bool flagUsed;
 			};
 
-			static OSStatus ConverterProc(AudioConverterRef inAudioConverter, UInt32* ioNumberDataPackets, AudioBufferList* ioData, AudioStreamPacketDescription**  outDataPacketDescription, void* inUserData)
+			static OSStatus ConverterProc(AudioConverterRef inAudioConverter, UInt32* ioNumberDataPackets, AudioBufferList* ioData, AudioStreamPacketDescription** outDataPacketDescription, void* inUserData)
 			{
 				ConverterContext* context = (ConverterContext*)inUserData;
 				if (context->flagUsed) {
@@ -392,7 +388,7 @@ namespace slib
 					*ioNumberDataPackets = ioData->mBuffers[0].mDataByteSize / context->nBytesPerPacket;
 					context->flagUsed = sl_true;
 				}
-				return 0;
+				return noErr;
 			}
 
 			void onFrame(const AudioBufferList* data)
@@ -426,13 +422,13 @@ namespace slib
 				}
 			}
 
-			static OSStatus DeviceIOProc(AudioObjectID inDevice, const AudioTimeStamp* inNow, const AudioBufferList*  inInputData, const AudioTimeStamp*   inInputTime, AudioBufferList* outOutputData, const AudioTimeStamp* inOutputTime, void* inClientData)
+			static OSStatus DeviceIOProc(AudioObjectID inDevice, const AudioTimeStamp* inNow, const AudioBufferList* inInputData, const AudioTimeStamp* inInputTime, AudioBufferList* outOutputData, const AudioTimeStamp* inOutputTime, void* inClientData)
 			{
 				AudioRecorderImpl* object = (AudioRecorderImpl*)(inClientData);
 				if (object->m_flagInitialized) {
 					object->onFrame(inInputData);
 				}
-				return 0;
+				return noErr;
 			}
 
 		};
@@ -500,13 +496,13 @@ namespace slib
 					return sl_null;
 				}
 
-				UInt32 sizeFrame = param.frameLengthInMilliseconds * formatDst.mSampleRate * formatDst.mBytesPerFrame / 1000;
-				if (sizeFrame < rangeBufferSize.mMinimum) {
-					LOG_ERROR("Required frame size(%d) is smaller than minimum %d", sizeFrame, rangeBufferSize.mMinimum);
+				UInt32 sizePacket = param.packetLengthInMilliseconds * formatDst.mSampleRate * formatDst.mBytesPerFrame / 1000;
+				if (sizePacket < rangeBufferSize.mMinimum) {
+					LOG_ERROR("Required frame size(%d) is smaller than minimum %d", sizePacket, rangeBufferSize.mMinimum);
 					return sl_null;
 				}
-				if (sizeFrame > rangeBufferSize.mMaximum) {
-					LOG_ERROR("Required frame size(%d) is bigger than maximum %d", sizeFrame, rangeBufferSize.mMaximum);
+				if (sizePacket > rangeBufferSize.mMaximum) {
+					LOG_ERROR("Required frame size(%d) is bigger than maximum %d", sizePacket, rangeBufferSize.mMaximum);
 					return sl_null;
 				}
 
@@ -525,9 +521,9 @@ namespace slib
 				if (AudioConverterNew(&formatSrc, &formatDst, &converter) == kAudioHardwareNoError) {
 
 					prop.mSelector = kAudioDevicePropertyBufferSize;
-					sizeValue = sizeof(sizeFrame);
+					sizeValue = sizeof(sizePacket);
 
-					if (AudioObjectSetPropertyData(deviceID, &prop, 0, NULL, sizeValue, &sizeFrame) == kAudioHardwareNoError) {
+					if (AudioObjectSetPropertyData(deviceID, &prop, 0, NULL, sizeValue, &sizePacket) == kAudioHardwareNoError) {
 
 						Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
 
@@ -536,7 +532,6 @@ namespace slib
 							AudioDeviceIOProcID callback;
 
 							if (AudioDeviceCreateIOProcID(deviceID, DeviceIOProc, ret.get(), &callback) == kAudioHardwareNoError) {
-
 								ret->m_deviceID = deviceID;
 								ret->m_converter = converter;
 								ret->m_formatSrc = formatSrc;
@@ -544,15 +539,11 @@ namespace slib
 								ret->m_callback = callback;
 
 								ret->_init(param);
-
 								ret->m_flagInitialized = sl_true;
-
 								if (param.flagAutoStart) {
 									ret->start();
 								}
-
 								return ret;
-
 							} else {
 								LOG_ERROR("Failed to create io proc");
 							}
@@ -623,7 +614,7 @@ namespace slib
 			{
 				UInt32 size = outputData->mBuffers->mDataByteSize / m_formatDst.mBytesPerFrame;
 				AudioConverterFillComplexBuffer(m_converter, ConverterProc, this, &size, outputData, NULL);
-				return 0;
+				return noErr;
 			}
 
 			static OSStatus DeviceIOProc(AudioDeviceID, const AudioTimeStamp*, const AudioBufferList* inputData, const AudioTimeStamp* inputTime, AudioBufferList* outputData, const AudioTimeStamp* outputTime, void *clientData)
@@ -632,7 +623,7 @@ namespace slib
 				if (object->m_flagInitialized) {
 					return object->onFrame(outputData);
 				}
-				return 0;
+				return noErr;
 			}
 		};
 
@@ -655,7 +646,6 @@ namespace slib
 					LOG_ERROR("Failed to find audio ouptut device: %s", param.deviceId);
 					return sl_null;
 				}
-
 				Ref<AudioPlayerDeviceImpl> ret = new AudioPlayerDeviceImpl();
 				if (ret.isNotNull()) {
 					ret->m_deviceID = deviceInfo.id;
@@ -676,6 +666,19 @@ namespace slib
 		return AudioPlayerDeviceImpl::create(param);
 	}
 
-}
+	Ref<AudioPlayer> AudioPlayer::create(const AudioPlayerParam& param)
+	{
+		Ref<AudioPlayerDevice> player = AudioPlayerDevice::create(param);
+		if (player.isNotNull()) {
+			return player->createPlayer(param);
+		}
+		return sl_null;
+	}
 
+	List<AudioPlayerDeviceInfo> AudioPlayer::getDevices()
+	{
+		return AudioPlayerDevice::getDevices();
+	}
+
+}
 #endif

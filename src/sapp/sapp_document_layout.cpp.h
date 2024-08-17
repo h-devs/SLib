@@ -4689,8 +4689,8 @@ namespace slib
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		LAYOUT_CONTROL_ATTR(GENERIC, samplesPerFrame, setSamplesPerFrame)
-		LAYOUT_CONTROL_ATTR(GENERIC, framesPerWindow, setFramesPerWindow)
+		LAYOUT_CONTROL_ATTR(GENERIC, framesPerPacket, setFramesPerPacket)
+		LAYOUT_CONTROL_ATTR(GENERIC, packetsPerWindow, setPacketsPerWindow)
 		LAYOUT_CONTROL_UI_ATTR(COLOR, amplitudeColor, setAmplitudeColor)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, amplitudeScale, setAmplitudeScale)
 

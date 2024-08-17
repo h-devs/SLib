@@ -16,7 +16,7 @@ void SpectrogramApp::onStart()
 {
 	AudioRecorderParam rp;
 	rp.samplesPerSecond = 16000;
-	rp.frameLengthInMilliseconds = 32;
+	rp.packetLengthInMilliseconds = 32;
 	rp.bufferLengthInMilliseconds = 1600;
 	m_recorder = AudioRecorder::create(rp);
 

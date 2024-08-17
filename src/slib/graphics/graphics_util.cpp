@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -215,6 +215,37 @@ namespace slib
 		ret.right = rectTo.left + (rectInput.right - rectFrom.left) * w2 / w1;
 		ret.bottom = rectTo.top + (rectInput.bottom - rectFrom.top) * h2 / h1;
 		return ret;
+	}
+
+	void GraphicsUtil::toSmallSize(sl_uint32& width, sl_uint32& height, sl_uint32 maxWidth, sl_uint32 maxHeight)
+	{
+		if (!width || !height) {
+			return;
+		}
+		if (maxWidth) {
+			if (maxHeight) {
+				if (maxWidth >= width && maxHeight >= height) {
+					return;
+				}
+				float fw = (float)maxWidth / (float)width;
+				float fh = (float)maxHeight / (float)height;
+				float f = SLIB_MIN(fw, fh);
+				width = (sl_uint32)(width * f);
+				height = (sl_uint32)(height * f);
+			} else {
+				if (maxWidth >= width) {
+					return;
+				}
+				height = height * maxWidth / width;
+			}
+		} else {
+			if (maxHeight) {
+				if (maxHeight >= height) {
+					return;
+				}
+				width = width * maxHeight / height;
+			}
+		}
 	}
 
 	void GraphicsUtil::drawRepeat(Canvas* canvas, const Ref<Drawable>& source, sl_real _dx, sl_real _dy, sl_uint32 nRepeatX, sl_uint32 nRepeatY, const Drawable::DrawParam& param)

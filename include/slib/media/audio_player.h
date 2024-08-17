@@ -35,8 +35,6 @@
 namespace slib
 {
 
-	class Event;
-
 	typedef AudioDeviceInfo AudioPlayerDeviceInfo;
 	typedef AudioDeviceParam AudioPlayerDeviceParam;
 
@@ -49,7 +47,7 @@ namespace slib
 
 		sl_uint32 samplesPerSecond;
 		sl_uint32 channelCount;
-		sl_uint32 frameLengthInMilliseconds;
+		sl_uint32 packetLengthInMilliseconds;
 		sl_uint32 maxBufferLengthInMilliseconds;
 
 		sl_bool flagAutoStart;
@@ -146,8 +144,6 @@ namespace slib
 
 	public:
 		static Ref<AudioPlayerDevice> create(const AudioPlayerDeviceParam& param);
-
-		static Ref<AudioPlayerDevice> create();
 
 		static List<AudioPlayerDeviceInfo> getDevices();
 

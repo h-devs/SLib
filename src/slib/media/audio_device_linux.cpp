@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,6 @@ namespace slib
 
 	namespace
 	{
-
 		SLIB_STATIC_STRING(g_strDefaultDeviceId, "default")
 
 		static sl_bool SetHardwareParameters(snd_pcm_t* handle, snd_pcm_hw_params_t* hwparams, sl_uint32 nChannels, sl_uint32 sampleRate, sl_uint32 nFramesPerPeriod)
@@ -212,7 +211,6 @@ namespace slib
 				}
 			}
 		}
-
 	}
 
 	List<AudioRecorderDeviceInfo> AudioRecorder::getDevices()
@@ -267,7 +265,7 @@ namespace slib
 
 				snd_pcm_t* handle;
 				if (snd_pcm_open(&handle, deviceId.getData(), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK) >= 0) {
-					sl_uint32 nFramesPerPeriod = param.getSamplesPerFrame();
+					sl_uint32 nFramesPerPeriod = param.getFramesPerPacket();
 					if (SetParameters(handle, param.channelCount, param.samplesPerSecond, nFramesPerPeriod)) {
 						Ref<AudioRecorderImpl> ret = new AudioRecorderImpl;
 						if (ret.isNotNull()) {
@@ -347,7 +345,7 @@ namespace slib
 				}
 
 				TimeCounter t;
-				sl_uint32 st = m_param.getFrameLengthInMilliseconds() / 2;
+				sl_uint32 st = m_param.getPacketLengthInMilliseconds() / 2;
 
 				while (thread->isNotStopping()) {
 					sl_bool flagRead = sl_false;
@@ -374,7 +372,6 @@ namespace slib
 					}
 				}
 			}
-
 		};
 	}
 
@@ -385,7 +382,6 @@ namespace slib
 
 	namespace
 	{
-
 		class AudioPlayerImpl: public AudioPlayer
 		{
 		public:
@@ -422,7 +418,7 @@ namespace slib
 
 				snd_pcm_t* handle;
 				if (snd_pcm_open(&handle, deviceId.getData(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) >= 0) {
-					sl_uint32 nFramesPerPeriod = param.samplesPerSecond * param.frameLengthInMilliseconds / 1000;
+					sl_uint32 nFramesPerPeriod = param.samplesPerSecond * param.packetLengthInMilliseconds / 1000;
 					if (SetParameters(handle, param.channelCount, param.samplesPerSecond, nFramesPerPeriod)) {
 						Ref<AudioPlayerImpl> ret = new AudioPlayerImpl;
 						if (ret.isNotNull()) {
@@ -502,7 +498,7 @@ namespace slib
 				}
 
 				TimeCounter t;
-				sl_uint32 st = m_param.frameLengthInMilliseconds / 2;
+				sl_uint32 st = m_param.packetLengthInMilliseconds / 2;
 
 				while (thread->isNotStopping()) {
 					sl_bool flagWritten = sl_false;
@@ -527,7 +523,6 @@ namespace slib
 					}
 				}
 			}
-
 		};
 
 		class AudioPlayerDeviceImpl : public AudioPlayerDevice
@@ -564,9 +559,7 @@ namespace slib
 			{
 				return AudioPlayerImpl::create(m_deviceId, param);
 			}
-
 		};
-
 	}
 
 	Ref<AudioPlayerDevice> AudioPlayerDevice::create(const AudioPlayerDeviceParam& param)

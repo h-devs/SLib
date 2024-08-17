@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,8 @@ namespace slib
 		static sl_bool calculateAlignRectangle(Rectangle& rectOutput, const Rectangle& rectDst, sl_real widthSrc, sl_real heightSrc, ScaleMode scaleMode, const Alignment& alignment);
 
 		static Rectangle transformRectangle(const Rectangle& rectTo, const Rectangle& rectFrom, const Rectangle& rectInput);
+
+		static void toSmallSize(sl_uint32& width, sl_uint32& height, sl_uint32 maxWidth, sl_uint32 maxHeight);
 
 
 		static void drawRepeat(Canvas* canvas, const Ref<Drawable>& source, sl_real _dx, sl_real _dy, sl_uint32 nRepeatX, sl_uint32 nRepeatY, const Drawable::DrawParam& param);

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -56,7 +56,6 @@ namespace slib
 
 	namespace
 	{
-
 		static void InitCOM()
 		{
 			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
@@ -87,7 +86,7 @@ namespace slib
 		public:
 			IDirectSoundCapture8* m_device = NULL;
 			IDirectSoundCaptureBuffer8* m_buffer = NULL;
-			sl_uint32 m_nSamplesPerFrame = 0;
+			sl_uint32 m_nSamplesPerPacket = 0;
 			HANDLE m_events[3] = {0};
 			Ref<Thread> m_thread;
 
@@ -150,9 +149,9 @@ namespace slib
 				wf.nAvgBytesPerSec = wf.nSamplesPerSec * wf.nBlockAlign;
 				wf.cbSize = 0;
 
-				sl_uint32 samplesPerFrame = param.getSamplesPerFrame();
-				sl_uint32 sizeBuffer = samplesPerFrame * wf.nBlockAlign * 2;
-				samplesPerFrame *= param.channelCount;
+				sl_uint32 nFramesPerPacket = param.getFramesPerPacket();
+				sl_uint32 nSamplesPerPacket = nFramesPerPacket * param.channelCount;
+				sl_uint32 sizeBuffer = nFramesPerPacket * wf.nBlockAlign * 2;
 				DSCBUFFERDESC desc;
 				desc.dwSize = sizeof(desc);
 				desc.dwBufferBytes = sizeBuffer;
@@ -207,7 +206,7 @@ namespace slib
 									ret->m_buffer = buffer;
 									ret->m_events[0] = hEvent0;
 									ret->m_events[1] = hEvent1;
-									ret->m_nSamplesPerFrame = samplesPerFrame;
+									ret->m_nSamplesPerPacket = nSamplesPerPacket;
 									ret->_init(param);
 									if (param.flagAutoStart) {
 										ret->start();
@@ -286,7 +285,7 @@ namespace slib
 			void onFrame(int no)
 			{
 				sl_uint32 offset = 0;
-				sl_uint32 size = m_nSamplesPerFrame * 2;
+				sl_uint32 size = m_nSamplesPerPacket * 2;
 				if (no) {
 					offset = size;
 				}
@@ -450,8 +449,8 @@ namespace slib
 				wf.nAvgBytesPerSec = wf.nSamplesPerSec * wf.nBlockAlign;
 				wf.cbSize = 0;
 
-				sl_uint32 samplesPerFrame = wf.nSamplesPerSec * param.frameLengthInMilliseconds / 1000;
-				sl_uint32 sizeBuffer = samplesPerFrame * wf.nBlockAlign * 3;
+				sl_uint32 nFramesPerPacket = wf.nSamplesPerSec * param.packetLengthInMilliseconds / 1000;
+				sl_uint32 sizeBuffer = nFramesPerPacket * wf.nBlockAlign * 3;
 				sl_int32 notifySize = sizeBuffer / NUM_PLAY_NOTIFICATIONS;
 
 				DSBUFFERDESC desc;
@@ -732,7 +731,7 @@ namespace slib
 						if (param.flagLoopback) {
 							flags |= AUDCLNT_STREAMFLAGS_LOOPBACK;
 						}
-						hr = client->Initialize(AUDCLNT_SHAREMODE_SHARED, flags, param.frameLengthInMilliseconds * 10000, 0, &wf, NULL);
+						hr = client->Initialize(AUDCLNT_SHAREMODE_SHARED, flags, param.packetLengthInMilliseconds * 10000, 0, &wf, NULL);
 						if (SUCCEEDED(hr)) {
 							IAudioCaptureClient* capture = NULL;
 							hr = client->GetService(IID_PPV_ARGS(&capture));
@@ -920,7 +919,7 @@ namespace slib
 				wf.nBlockAlign = (wf.wBitsPerSample * wf.nChannels) >> 3;
 				wf.nAvgBytesPerSec = wf.nSamplesPerSec * wf.nBlockAlign;
 				wf.cbSize = 0;
-				hr = client->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY, param.frameLengthInMilliseconds * 10000, 0, &wf, NULL);
+				hr = client->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY, param.packetLengthInMilliseconds * 10000, 0, &wf, NULL);
 				if (SUCCEEDED(hr)) {
 					IAudioRenderClient* renderer = NULL;
 					hr = client->GetService(IID_PPV_ARGS(&renderer));

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ namespace slib
 	class SLIB_EXPORT AudioData
 	{
 	public:
-		sl_size count; // count of samples per channel
+		sl_size count; // count of audio frames (samples per channel)
 		AudioFormat format;
 
 		// main data
@@ -72,13 +72,18 @@ namespace slib
 		// returns the number of channels
 		sl_uint32 getChannelBuffers(AudioChannelBuffer* buffers) const;
 
-		void copySamplesFrom(const AudioData& other, sl_size count) const;
+		void copySamplesFrom(const AudioData& other, sl_size startFrame, sl_size nFrames) const;
+
+		void copySamplesFrom(const AudioData& other, sl_size nFrames) const;
 
 		void copySamplesFrom(const AudioData& other) const;
 
-		sl_int16 getSample(sl_uint32 sampleIndex, sl_uint32 channelIndex = 0);
+		sl_int16 getSample(sl_uint32 sampleIndex, sl_uint32 channelIndex = 0) const;
 
-		sl_int16 getPeakSample(sl_uint32 startSampleIndex, sl_uint32 endSampleIndex, sl_bool flagPositive, sl_uint32 channelIndex = 0);
+		sl_int16 getPeakSample(sl_uint32 startSampleIndex, sl_uint32 endSampleIndex, sl_bool flagPositive, sl_uint32 channelIndex = 0) const;
+
+		void seek(sl_reg nFrames);
+
 	};
 }
 

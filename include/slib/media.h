@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,9 +23,9 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_HEADER
 #define CHECKHEADER_SLIB_MEDIA_HEADER
 
+#include "media/audio_device.h"
 #include "media/video_capture.h"
 #include "media/camera.h"
-#include "media/audio_device.h"
 #include "media/media_player.h"
 #include "media/wave_player.h"
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2025 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -51,28 +51,28 @@ namespace slib
 		flagLoopback = sl_false;
 		samplesPerSecond = 16000;
 		channelCount = 1;
-		samplesPerFrame = 0;
-		frameLengthInMilliseconds = 50;
+		framesPerPacket = 0;
+		packetLengthInMilliseconds = 50;
 		bufferLengthInMilliseconds = 0;
-		samplesPerCallback = 0;
+		framesPerCallback = 0;
 		flagAutoStart = sl_true;
 	}
 
-	sl_uint32 AudioRecorderParam::getSamplesPerFrame() const
+	sl_uint32 AudioRecorderParam::getFramesPerPacket() const
 	{
-		if (samplesPerFrame) {
-			return samplesPerFrame;
+		if (framesPerPacket) {
+			return framesPerPacket;
 		} else {
-			return samplesPerSecond * frameLengthInMilliseconds / 1000;
+			return samplesPerSecond * packetLengthInMilliseconds / 1000;
 		}
 	}
 
-	sl_uint32 AudioRecorderParam::getFrameLengthInMilliseconds() const
+	sl_uint32 AudioRecorderParam::getPacketLengthInMilliseconds() const
 	{
-		if (samplesPerFrame) {
-			return samplesPerFrame * 1000 / samplesPerSecond;
+		if (framesPerPacket) {
+			return framesPerPacket * 1000 / samplesPerSecond;
 		} else {
-			return frameLengthInMilliseconds;
+			return packetLengthInMilliseconds;
 		}
 	}
 
@@ -233,18 +233,18 @@ namespace slib
 		}
 	}
 
-	void AudioRecorder::_processFrame(sl_int16* s, sl_uint32 count)
+	void AudioRecorder::_processFrame(sl_int16* s, sl_uint32 nSamples)
 	{
 		if (m_flagMute) {
 			return;
 		}
-		if (!count) {
+		if (!nSamples) {
 			return;
 		}
 
 		sl_int32 volume = m_volume;
 		if (volume < 256) {
-			for (sl_uint32 i = 0; i < count; i++) {
+			for (sl_uint32 i = 0; i < nSamples; i++) {
 				s[i] = (sl_int16)((((sl_int32)(s[i])) * volume) >> 8);
 			}
 		}
@@ -252,8 +252,8 @@ namespace slib
 		if (m_param.onRecordAudio.isNotNull()) {
 
 			sl_uint32 nChannels = m_param.channelCount;
-			sl_uint32 nSamples = count / nChannels;
-			sl_uint32 nSamplesPerChannel = m_param.samplesPerCallback;
+			sl_uint32 nFrames = nSamples / nChannels;
+			sl_uint32 nFramesPerCallback = m_param.framesPerCallback;
 			sl_uint32 nSamplesInBuf = m_nSamplesInCallbackBuffer;
 
 			AudioData audio;
@@ -263,12 +263,12 @@ namespace slib
 				audio.format = AudioFormat::Int16_Stereo;
 			}
 
-			if (!nSamplesPerChannel || (!nSamplesInBuf && nSamplesPerChannel == nSamples)) {
-				audio.count = nSamples;
+			if (!nFramesPerCallback || (!nSamplesInBuf && nFramesPerCallback == nFrames)) {
+				audio.count = nFrames;
 				audio.data = s;
 				m_param.onRecordAudio(this, audio);
 			} else {
-				sl_uint32 nSamplesPerCallback = nSamplesPerChannel * nChannels;
+				sl_uint32 nSamplesPerCallback = nFramesPerCallback * nChannels;
 				if (nSamplesInBuf >= nSamplesPerCallback) {
 					nSamplesInBuf = 0;
 				}
@@ -282,36 +282,36 @@ namespace slib
 				}
 				sl_int16* pBufData = buf.getData();
 				if (nSamplesInBuf) {
-					if (nSamplesInBuf + count < nSamplesPerCallback) {
-						Base::copyMemory(pBufData + nSamplesInBuf, s, count << 1);
-						m_nSamplesInCallbackBuffer = nSamplesInBuf + count;
+					if (nSamplesInBuf + nSamples < nSamplesPerCallback) {
+						Base::copyMemory(pBufData + nSamplesInBuf, s, nSamples << 1);
+						m_nSamplesInCallbackBuffer = nSamplesInBuf + nSamples;
 						return;
 					} else {
 						sl_uint32 nRemain = nSamplesPerCallback - nSamplesInBuf;
 						Base::copyMemory(pBufData + nSamplesInBuf, s, nRemain << 1);
-						audio.count = nSamplesPerChannel;
+						audio.count = nFramesPerCallback;
 						audio.data = pBufData;
 						m_param.onRecordAudio(this, audio);
 						s += nRemain;
-						count -= nRemain;
+						nSamples -= nRemain;
 					}
 				}
-				sl_uint32 nFrames = count / nSamplesPerCallback;
-				for (sl_uint32 i = 0; i < nFrames; i++) {
-					audio.count = nSamplesPerChannel;
+				sl_uint32 nSegments = nSamples / nSamplesPerCallback;
+				for (sl_uint32 i = 0; i < nSegments; i++) {
+					audio.count = nFramesPerCallback;
 					audio.data = s;
 					m_param.onRecordAudio(this, audio);
 					s += nSamplesPerCallback;
-					count -= nSamplesPerCallback;
+					nSamples -= nSamplesPerCallback;
 				}
-				if (count) {
-					Base::copyMemory(pBufData, s, count << 1);
+				if (nSamples) {
+					Base::copyMemory(pBufData, s, nSamples << 1);
 				}
-				m_nSamplesInCallbackBuffer = count;
+				m_nSamplesInCallbackBuffer = nSamples;
 			}
 		}
 
-		m_queue.pushAll(s, count);
+		m_queue.pushAll(s, nSamples);
 
 		if (m_param.event.isNotNull()) {
 			m_param.event->set();
@@ -328,13 +328,12 @@ namespace slib
 	{
 		callback(sl_true);
 	}
-#endif
 
 	void AudioRecorder::requestAccess()
 	{
 		requestAccess(sl_null);
 	}
-
+#endif
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerParam)
 
@@ -343,7 +342,7 @@ namespace slib
 		streamType = AudioStreamType::Default;
 		samplesPerSecond = 16000;
 		channelCount = 1;
-		frameLengthInMilliseconds = 50;
+		packetLengthInMilliseconds = 50;
 		maxBufferLengthInMilliseconds = 0;
 		flagAutoStart = sl_false;
 	}
@@ -463,8 +462,9 @@ namespace slib
 		} else {
 			format = AudioFormat::Int16_Stereo;
 		}
+		sl_size nFrames = audioIn.count;
+		sl_size nSamples = nChannels * nFrames;
 		sl_size nOriginal = m_buffer.getSize() >> 1;
-		sl_size nSamples = audioIn.count;
 		if (m_lenBufferMax) {
 			if (nOriginal >= m_lenBufferMax) {
 				return;
@@ -473,8 +473,7 @@ namespace slib
 				nSamples = m_lenBufferMax - nOriginal;
 			}
 		}
-		sl_size countTotal = nChannels * nSamples;
-		sl_size sizeTotal = countTotal << 1;
+		sl_size sizeTotal = nSamples << 1;
 		if (audioIn.format == format && (((sl_size)(audioIn.data)) & 1) == 0) {
 			if (audioIn.ref.isNotNull()) {
 				MemoryData m;
@@ -491,8 +490,8 @@ namespace slib
 				AudioData temp;
 				temp.format = format;
 				temp.data = mem.getData();
-				temp.count = nSamples;
-				temp.copySamplesFrom(audioIn, nSamples);
+				temp.count = nFrames;
+				temp.copySamplesFrom(audioIn, nFrames);
 				m_buffer.add(mem);
 			}
 		}
@@ -526,31 +525,31 @@ namespace slib
 		}
 	}
 
-	void AudioPlayer::_processFrame(sl_int16* s, sl_uint32 count)
+	void AudioPlayer::_processFrame(sl_int16* s, sl_uint32 nSamples)
 	{
 		if (m_param.event.isNotNull()) {
 			m_param.event->set();
 		}
-		m_param.onPlayAudio(this, count / m_param.channelCount);
-		sl_uint32 nRead = ((sl_uint32)(m_buffer.pop(s, count << 1))) >> 1;
-		if (nRead != count) {
+		m_param.onPlayAudio(this, nSamples / m_param.channelCount);
+		sl_uint32 nRead = ((sl_uint32)(m_buffer.pop(s, nSamples << 1))) >> 1;
+		if (nRead != nSamples) {
 			if (nRead) {
 				m_lastSample = s[nRead - 1];
 			}
-			for (sl_uint32 i = nRead; i < count; i++) {
+			for (sl_uint32 i = nRead; i < nSamples; i++) {
 				s[i] = m_lastSample;
 			}
 		}
-		m_lastSample = s[count - 1];
+		m_lastSample = s[nSamples - 1];
 
 		if (m_flagMute) {
-			for (sl_uint32 i = 0; i < count; i++) {
+			for (sl_uint32 i = 0; i < nSamples; i++) {
 				s[i] = 0;
 			}
 		} else {
 			sl_int32 volume = m_volume;
 			if (volume < 256) {
-				for (sl_uint32 i = 0; i < count; i++) {
+				for (sl_uint32 i = 0; i < nSamples; i++) {
 					s[i] = (sl_int16)((((sl_int32)(s[i])) * volume) >> 8);
 				}
 			}
@@ -568,12 +567,7 @@ namespace slib
 	{
 	}
 
-	Ref<AudioPlayerDevice> AudioPlayerDevice::create()
-	{
-		AudioPlayerDeviceParam param;
-		return create(param);
-	}
-
+#ifndef SLIB_PLATFORM_IS_APPLE
 	Ref<AudioPlayer> AudioPlayer::create(const AudioPlayerParam& param)
 	{
 		Ref<AudioPlayerDevice> player = AudioPlayerDevice::create(param);
@@ -587,5 +581,6 @@ namespace slib
 	{
 		return AudioPlayerDevice::getDevices();
 	}
+#endif
 
 }

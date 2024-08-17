@@ -31,33 +31,33 @@ namespace slib
 
 	AudioView::AudioView()
 	{
-		m_nSamplesPerFrame = 50;
+		m_nFramesPerPacket = 50;
 		m_colorAmplitude = Color::Blue;
 		m_scaleAmplitude = 1.0f;
 
-		setFramesPerWindow(500);
+		setPacketsPerWindow(500);
 	}
 
 	AudioView::~AudioView()
 	{
 	}
 
-	sl_uint32 AudioView::getSamplesPerFrame()
+	sl_uint32 AudioView::getFramesPerPacket()
 	{
-		return m_nSamplesPerFrame;
+		return m_nFramesPerPacket;
 	}
 
-	void AudioView::setSamplesPerFrame(sl_uint32 n)
+	void AudioView::setFramesPerPacket(sl_uint32 n)
 	{
-		m_nSamplesPerFrame = n;
+		m_nFramesPerPacket = n;
 	}
 
-	sl_uint32 AudioView::getFramesPerWindow()
+	sl_uint32 AudioView::getPacketsPerWindow()
 	{
-		return m_nFramesPerWindow;
+		return m_nPacketsPerWindow;
 	}
 
-	void AudioView::setFramesPerWindow(sl_uint32 n)
+	void AudioView::setPacketsPerWindow(sl_uint32 n)
 	{
 		Array<sl_uint16> arr = Array<sl_uint16>::create(n);
 		if (arr.isNull()) {
@@ -68,10 +68,10 @@ namespace slib
 			return;
 		}
 		ObjectLocker lock(this);
-		if (m_queueFrames.setQueueSize(n)) {
+		if (m_queuePackets.setQueueSize(n)) {
 			m_bufWindow = Move(arr);
 			m_ptsWindow = Move(pts);
-			m_nFramesPerWindow = n;
+			m_nPacketsPerWindow = n;
 		}
 	}
 
@@ -99,8 +99,8 @@ namespace slib
 
 	void AudioView::pushFrames(const AudioData& data, UIUpdateMode mode)
 	{
-		sl_uint32 nSamplesPerFrame = m_nSamplesPerFrame;
-		if (!nSamplesPerFrame) {
+		sl_uint32 nFramesPerPacket = m_nFramesPerPacket;
+		if (!nFramesPerPacket) {
 			return;
 		}
 		if (!(data.count)) {
@@ -123,24 +123,24 @@ namespace slib
 		dataProcess.copySamplesFrom(data);
 
 		sl_int16* samples = (sl_int16*)(dataProcess.data);
-		sl_uint32 nFrames = (sl_uint32)(data.count / nSamplesPerFrame);
-		for (sl_uint32 iFrame = 0; iFrame < nFrames; iFrame++) {
+		sl_uint32 nPackets = (sl_uint32)(data.count / nFramesPerPacket);
+		for (sl_uint32 iFrame = 0; iFrame < nPackets; iFrame++) {
 			sl_int32 avg = 0;
 			sl_uint32 i;
-			for (i = 0; i < nSamplesPerFrame; i++) {
+			for (i = 0; i < nFramesPerPacket; i++) {
 				avg += samples[i];
 			}
-			avg /= (sl_int32)nSamplesPerFrame;
+			avg /= (sl_int32)nFramesPerPacket;
 			sl_uint32 sum = 0;
-			for (i = 0; i < nSamplesPerFrame; i++) {
+			for (i = 0; i < nFramesPerPacket; i++) {
 				sum += (sl_uint32)(Math::abs((sl_int32)(samples[i]) - avg));
 			}
-			sum /= m_nSamplesPerFrame;
+			sum /= m_nFramesPerPacket;
 			if (sum >> 16) {
 				sum = 0xffff;
 			}
-			m_queueFrames.push(sum);
-			samples += nSamplesPerFrame;
+			m_queuePackets.push(sum);
+			samples += nFramesPerPacket;
 		}
 
 		invalidate(mode);
@@ -149,7 +149,7 @@ namespace slib
 	void AudioView::clearFrames(UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
-		m_queueFrames.removeAll();
+		m_queuePackets.removeAll();
 		invalidate(mode);
 	}
 
@@ -157,8 +157,8 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 
-		sl_uint32 nFramesPerWindow = m_nFramesPerWindow;
-		if (!nFramesPerWindow) {
+		sl_uint32 nPacketsPerWindow = m_nPacketsPerWindow;
+		if (!nPacketsPerWindow) {
 			return;
 		}
 		Array<sl_uint16> bufWindow = m_bufWindow;
@@ -173,9 +173,9 @@ namespace slib
 		sl_uint16* window = bufWindow.getData();
 		Point* pts = ptsWindow.getData();
 
-		sl_uint32 nFrames = (sl_uint32)(m_queueFrames.read(window, nFramesPerWindow));
-		sl_uint32 iStart = nFramesPerWindow - nFrames;
-		sl_uint32 iEndPts = (nFramesPerWindow << 1) - 1;
+		sl_uint32 nPackets = (sl_uint32)(m_queuePackets.read(window, nPacketsPerWindow));
+		sl_uint32 iStart = nPacketsPerWindow - nPackets;
+		sl_uint32 iEndPts = (nPacketsPerWindow << 1) - 1;
 
 		UIRect bounds = getBoundsInnerPadding();
 		sl_uint32 width = bounds.getWidth();
@@ -184,10 +184,10 @@ namespace slib
 
 		{
 			for (sl_uint32 i = 0; i < iStart; i++) {
-				if (i + 1 == nFramesPerWindow) {
+				if (i + 1 == nPacketsPerWindow) {
 					pts[i].x = (sl_real)(bounds.left + width);
 				} else {
-					pts[i].x = (sl_real)(bounds.left + i * width / nFramesPerWindow);
+					pts[i].x = (sl_real)(bounds.left + i * width / nPacketsPerWindow);
 				}
 				pts[i].y = (sl_real)(bounds.top + h2);
 				pts[iEndPts - i].x = pts[i].x;
@@ -197,24 +197,24 @@ namespace slib
 		{
 			float scale = m_scaleAmplitude;
 			sl_bool flagScale = !(Math::isAlmostZero(scale - 1.0f));
-			for (sl_uint32 i = iStart; i < nFramesPerWindow; i++) {
+			for (sl_uint32 i = iStart; i < nPacketsPerWindow; i++) {
 				sl_uint16 value = window[i - iStart];
 				if (flagScale) {
 					sl_int32 s = (sl_int32)(((float)value) * scale);
 					value = (sl_uint16)(Math::clamp0_65535(s));
 				}
 				sl_int32 y = h2 - ((sl_uint32)value) * h2 / 0x10000;
-				if (i + 1 == nFramesPerWindow) {
+				if (i + 1 == nPacketsPerWindow) {
 					pts[i].x = (sl_real)(bounds.left + width);
 				} else {
-					pts[i].x = (sl_real)(bounds.left + i * width / nFramesPerWindow);
+					pts[i].x = (sl_real)(bounds.left + i * width / nPacketsPerWindow);
 				}
 				pts[i].y = (sl_real)(bounds.top + y);
 				pts[iEndPts - i].x = pts[i].x;
 				pts[iEndPts - i].y = (sl_real)(bounds.bottom - y);
 			}
 		}
-		canvas->fillPolygon(pts, nFramesPerWindow << 1, m_colorAmplitude);
+		canvas->fillPolygon(pts, nPacketsPerWindow << 1, m_colorAmplitude);
 	}
 
 }

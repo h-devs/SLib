@@ -41,13 +41,13 @@ namespace slib
 		~AudioView();
 
 	public:
-		sl_uint32 getSamplesPerFrame();
+		sl_uint32 getFramesPerPacket();
 
-		void setSamplesPerFrame(sl_uint32 n);
+		void setFramesPerPacket(sl_uint32 n);
 
-		sl_uint32 getFramesPerWindow();
+		sl_uint32 getPacketsPerWindow();
 
-		void setFramesPerWindow(sl_uint32 n);
+		void setPacketsPerWindow(sl_uint32 n);
 
 		const Color& getAmplitudeColor();
 
@@ -65,12 +65,12 @@ namespace slib
 		void onDraw(Canvas* canvas) override;
 
 	protected:
-		sl_uint32 m_nSamplesPerFrame;
-		sl_uint32 m_nFramesPerWindow;
+		sl_uint32 m_nFramesPerPacket;
+		sl_uint32 m_nPacketsPerWindow;
 		Color m_colorAmplitude;
 		float m_scaleAmplitude;
 
-		LoopQueue<sl_uint16> m_queueFrames;
+		LoopQueue<sl_uint16> m_queuePackets;
 		Array<sl_uint16> m_bufProcess;
 		Array<sl_uint16> m_bufWindow;
 		Array<Point> m_ptsWindow;

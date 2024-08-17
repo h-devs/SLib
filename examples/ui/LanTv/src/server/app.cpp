@@ -140,7 +140,7 @@ void LanTvServerApp::doRunServer()
 		param.deviceId = audioId;
 		param.channelCount = 1;
 		param.samplesPerSecond = AUDIO_SAMPLES_PER_SECOND;
-		param.frameLengthInMilliseconds = AUDIO_FRAME_MS;
+		param.packetLengthInMilliseconds = AUDIO_FRAME_MS;
 		param.bufferLengthInMilliseconds = AUDIO_BUFFER_MS;
 		param.onRecordAudio = [socketAudio, encoderAudio, packet](AudioRecorder*, AudioData& data) {
 			Memory mem = encoderAudio->encode(data);

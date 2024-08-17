@@ -62,6 +62,11 @@ namespace slib
 		}
 	}
 
+	void AudioRecorder::requestAccess()
+	{
+		requestAccess(sl_null);
+	}
+
 }
 
 #endif

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -28,23 +28,16 @@
 
 #include "opus/opus.h"
 
-//#define OPUS_RESET_INTERVAL 10000
-
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 		class EncoderImpl : public OpusEncoder
 		{
 		public:
 			sl_size m_sizeEncoder;
 			::OpusEncoder* m_encoder;
-
-#ifdef OPUS_RESET_INTERVAL
-			OpusEncoder* m_encoderBackup;
-			TimeCounter m_timeStartReset;
-#endif
-
 			sl_bool m_flagResetBitrate;
 
 		public:
@@ -58,9 +51,6 @@ namespace slib
 			~EncoderImpl()
 			{
 				Base::freeMemory(m_encoder);
-#ifdef OPUS_RESET_INTERVAL
-				Base::freeMemory(m_encoderBackup);
-#endif
 			}
 
 		public:
@@ -87,50 +77,29 @@ namespace slib
 
 				::OpusEncoder* encoder = (::OpusEncoder*)(Base::createMemory(sizeEncoder));
 				if (encoder) {
-#ifdef OPUS_RESET_INTERVAL
-					::OpusEncoder* encoderBackup = (::OpusEncoder*)(Base::createMemory(sizeEncoder));
-					if (encoderBackup) {
-#endif
-						int app = OPUS_APPLICATION_VOIP;
-						if (param.type != OpusEncoderType::Voice) {
-							app = OPUS_APPLICATION_AUDIO;
-						}
-						int error = opus_encoder_init(encoder, (opus_int32)(param.samplesPerSecond), (opus_int32)(param.channelCount), app);
-						if (error == OPUS_OK) {
-
-							if (param.type == OpusEncoderType::Voice) {
-								opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
-							} else if (param.type == OpusEncoderType::Music) {
-								opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_SIGNAL_MUSIC));
-							} else {
-								opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_AUTO));
-							}
-
-							Ref<EncoderImpl> ret = new EncoderImpl();
-
-							if (ret.isNotNull()) {
-
-								ret->m_sizeEncoder = sizeEncoder;
-								ret->m_encoder = encoder;
-
-#ifdef OPUS_RESET_INTERVAL
-								ret->m_encoderBackup = encoderBackup;
-								Base::copyMemory(encoderBackup, encoder, sizeEncoder);
-								ret->m_timeStartReset.reset();
-#endif
-
-								ret->m_nSamplesPerSecond = param.samplesPerSecond;
-								ret->m_nChannels = param.channelCount;
-
-								ret->setBitrate(param.bitsPerSecond);
-
-								return ret;
-							}
-						}
-#ifdef OPUS_RESET_INTERVAL
-						Base::freeMemory(encoderBackup);
+					int app = OPUS_APPLICATION_VOIP;
+					if (param.type != OpusEncoderType::Voice) {
+						app = OPUS_APPLICATION_AUDIO;
 					}
-#endif
+					int error = opus_encoder_init(encoder, (opus_int32)(param.samplesPerSecond), (opus_int32)(param.channelCount), app);
+					if (error == OPUS_OK) {
+						if (param.type == OpusEncoderType::Voice) {
+							opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
+						} else if (param.type == OpusEncoderType::Music) {
+							opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_SIGNAL_MUSIC));
+						} else {
+							opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_AUTO));
+						}
+						Ref<EncoderImpl> ret = new EncoderImpl();
+						if (ret.isNotNull()) {
+							ret->m_sizeEncoder = sizeEncoder;
+							ret->m_encoder = encoder;
+							ret->m_nSamplesPerSecond = param.samplesPerSecond;
+							ret->m_nChannels = param.channelCount;
+							ret->setBitrate(param.bitsPerSecond);
+							return ret;
+						}
+					}
 					Base::freeMemory(encoder);
 				}
 				return sl_null;
@@ -148,7 +117,6 @@ namespace slib
 						audio.count = input.count;
 
 						sl_bool flagFloat = AudioFormatHelper::isFloat(input.format);
-
 						if (flagFloat) {
 							if (m_nChannels == 2) {
 								audio.format = AudioFormat::Float_Stereo;
@@ -165,11 +133,11 @@ namespace slib
 
 						if (audio.format == input.format) {
 							if (flagFloat) {
-								if (((sl_size)(input.data) & 3) == 0) {
+								if (!((sl_size)(input.data) & 3)) {
 									audio.data = input.data;
 								}
 							} else {
-								if (((sl_size)(input.data) & 1) == 0) {
+								if (!((sl_size)(input.data) & 1)) {
 									audio.data = input.data;
 								}
 							}
@@ -192,12 +160,6 @@ namespace slib
 							opus_encoder_ctl(m_encoder, OPUS_SET_BITRATE(bitrate));
 							m_flagResetBitrate = sl_false;
 						}
-#ifdef OPUS_RESET_INTERVAL
-						if (m_timeStartReset.getElapsedMilliseconds() > OPUS_RESET_INTERVAL || ret <= 0) {
-							Base::copyMemory(m_encoder, m_encoderBackup, m_sizeEncoder);
-							m_timeStartReset.reset();
-						}
-#endif
 
 						sl_uint8 output[4000]; // opus recommends 4000 bytes for output buffer
 						int ret;
@@ -269,7 +231,8 @@ namespace slib
 	}
 
 
-	namespace {
+	namespace
+	{
 		class DecoderImpl : public OpusDecoder
 		{
 		public:
@@ -324,7 +287,6 @@ namespace slib
 				audio.count = output.count;
 
 				sl_bool flagFloat = AudioFormatHelper::isFloat(output.format);
-
 				if (flagFloat) {
 					if (m_nChannels == 2) {
 						audio.format = AudioFormat::Float_Stereo;

@@ -301,7 +301,7 @@ namespace slib
 					AVCodecParameters* params = m_format->streams[m_streamAudio]->codecpar;
 					AudioPlayerParam playerParam;
 					playerParam.flagAutoStart = sl_false;
-					playerParam.frameLengthInMilliseconds = 50;
+					playerParam.packetLengthInMilliseconds = 50;
 					playerParam.samplesPerSecond = params->sample_rate;
 					playerParam.channelCount = params->channels;
 					if (playerParam.channelCount != 1) {

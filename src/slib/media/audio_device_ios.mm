@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 		class AudioRecorderImpl: public AudioRecorder
 		{
 		public:
@@ -89,15 +90,14 @@ namespace slib
 				OSStatus result;
 				AudioComponentInstance audioUnitInput;
 				result = AudioComponentInstanceNew(comp, &audioUnitInput);
+
 				if (result == noErr) {
+
 					UInt32 enableIO = 1;
-					AudioUnitElement bus1 = 1;
-					result = AudioUnitSetProperty(audioUnitInput,
-												kAudioOutputUnitProperty_EnableIO,
-												kAudioUnitScope_Input,
-												bus1, // input bus
-												&enableIO,
-												sizeof(enableIO));
+					AudioUnitElement bus1 = 1; // Input Bus
+
+					result = AudioUnitSetProperty(audioUnitInput, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, bus1, &enableIO, sizeof(enableIO));
+
 					if (result == noErr) {
 
 						AudioStreamBasicDescription formatSrc;
@@ -133,12 +133,8 @@ namespace slib
 									cs.inputProc = CallbackInput;
 									cs.inputProcRefCon = ret.get();
 
-									result = AudioUnitSetProperty(audioUnitInput,
-																kAudioOutputUnitProperty_SetInputCallback,
-																kAudioUnitScope_Input,
-																bus1,
-																&cs,
-																sizeof(cs));
+									result = AudioUnitSetProperty(audioUnitInput, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Input, bus1, &cs, sizeof(cs));
+
 									if (result == noErr) {
 
 										result = AudioUnitInitialize(audioUnitInput);
@@ -221,11 +217,7 @@ namespace slib
 				sl_bool flagUsed;
 			};
 
-			static OSStatus ConverterInputProc(AudioConverterRef          inAudioConverter,
-											UInt32*                         ioNumberDataPackets,
-											AudioBufferList*                ioData,
-											AudioStreamPacketDescription**  outDataPacketDescription,
-											void*                           inUserData)
+			static OSStatus ConverterInputProc(AudioConverterRef inAudioConverter, UInt32* ioNumberDataPackets, AudioBufferList* ioData, AudioStreamPacketDescription**  outDataPacketDescription, void* inUserData)
 			{
 				ConverterContext* context = (ConverterContext*)inUserData;
 				if (context->flagUsed) {
@@ -289,12 +281,7 @@ namespace slib
 				return mem;
 			}
 
-			static OSStatus CallbackInput(void *inRefCon,
-										AudioUnitRenderActionFlags *ioActionFlags,
-										const AudioTimeStamp *inTimeStamp,
-										UInt32 inBusNumber,
-										UInt32 inNumberFrames,
-										AudioBufferList *ioData)
+			static OSStatus CallbackInput(void* inRefCon, AudioUnitRenderActionFlags* ioActionFlags, const AudioTimeStamp* inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList* ioData)
 			{
 				AudioRecorderImpl* object = (AudioRecorderImpl*)(inRefCon);
 				if (!(object->m_flagInitialized)) {
@@ -330,14 +317,10 @@ namespace slib
 					abList.mBuffers[0].mNumberChannels = 1;
 				}
 
-				OSStatus res = AudioUnitRender(object->m_audioUnitInput,
-											ioActionFlags, inTimeStamp,
-											inBusNumber, inNumberFrames, &abList);
-
-				if (res == 0) {
+				OSStatus res = AudioUnitRender(object->m_audioUnitInput, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, &abList);
+				if (res == noErr) {
 					object->onFrame(&abList);
 				}
-
 				return 0;
 			}
 		};
@@ -356,7 +339,8 @@ namespace slib
 		return List<AudioRecorderDeviceInfo>::createFromElement(ret);
 	}
 
-	namespace {
+	namespace
+	{
 		class AudioPlayerImpl : public AudioPlayer
 		{
 		public:
@@ -405,15 +389,13 @@ namespace slib
 				OSStatus result;
 				AudioComponentInstance audioUnitOutput;
 				result = AudioComponentInstanceNew(comp, &audioUnitOutput);
+
 				if (result == noErr) {
+
 					UInt32 enableOutput = 1;
-					AudioUnitElement bus0 = 0;
-					result = AudioUnitSetProperty(audioUnitOutput,
-													kAudioOutputUnitProperty_EnableIO,
-													kAudioUnitScope_Output,
-													bus0, // output bus
-													&enableOutput,
-													sizeof(enableOutput));
+					AudioUnitElement bus0 = 0; // output bus
+					result = AudioUnitSetProperty(audioUnitOutput, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, bus0, &enableOutput, sizeof(enableOutput));
+
 					if (result == noErr) {
 
 						AudioStreamBasicDescription formatDst;
@@ -449,12 +431,8 @@ namespace slib
 									cs.inputProc = CallbackOutput;
 									cs.inputProcRefCon = ret.get();
 
-									result = AudioUnitSetProperty(audioUnitOutput,
-																	kAudioUnitProperty_SetRenderCallback,
-																	kAudioUnitScope_Input,
-																	bus0,
-																	&cs,
-																	sizeof(cs));
+									result = AudioUnitSetProperty(audioUnitOutput, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, bus0, &cs, sizeof(cs));
+
 									if (result == noErr) {
 
 										result = AudioUnitInitialize(audioUnitOutput);
@@ -549,11 +527,7 @@ namespace slib
 
 			}
 
-			static OSStatus ConverterProc(AudioConverterRef               inAudioConverter,
-											UInt32*                         ioNumberDataPackets,
-											AudioBufferList*                ioData,
-											AudioStreamPacketDescription**  outDataPacketDescription,
-											void*                           inUserData)
+			static OSStatus ConverterProc(AudioConverterRef inAudioConverter, UInt32* ioNumberDataPackets, AudioBufferList* ioData, AudioStreamPacketDescription**  outDataPacketDescription, void* inUserData)
 			{
 				AudioPlayerImpl* object = (AudioPlayerImpl*)inUserData;
 				object->onConvert(*ioNumberDataPackets, ioData);
@@ -567,12 +541,7 @@ namespace slib
 				return result;
 			}
 
-			static OSStatus CallbackOutput(void                        *inRefCon,
-											AudioUnitRenderActionFlags  *ioActionFlags,
-											const AudioTimeStamp        *inTimeStamp,
-											UInt32                      inBusNumber,
-											UInt32                      inNumberFrames,
-											AudioBufferList             *ioData)
+			static OSStatus CallbackOutput(void* inRefCon, AudioUnitRenderActionFlags* ioActionFlags, const AudioTimeStamp* inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)
 			{
 				AudioPlayerImpl* object = (AudioPlayerImpl*)(inRefCon);
 				if (object && object->m_flagInitialized) {
@@ -581,7 +550,6 @@ namespace slib
 					return 500;
 				}
 			}
-
 		};
 
 		class AudioPlayerDeviceImpl : public AudioPlayerDevice
@@ -624,6 +592,20 @@ namespace slib
 		SLIB_STATIC_STRING(s, "Internal Speaker");
 		ret.name = s;
 		return List<AudioPlayerDeviceInfo>::createFromElement(ret);
+	}
+
+	Ref<AudioPlayer> AudioPlayer::create(const AudioPlayerParam& param)
+	{
+		Ref<AudioPlayerDevice> player = AudioPlayerDevice::create(param);
+		if (player.isNotNull()) {
+			return player->createPlayer(param);
+		}
+		return sl_null;
+	}
+
+	List<AudioPlayerDeviceInfo> AudioPlayer::getDevices()
+	{
+		return AudioPlayerDevice::getDevices();
 	}
 
 }

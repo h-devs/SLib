@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 		class AudioRecorderImpl : public AudioRecorder
 		{
 		public:
@@ -51,10 +52,10 @@ namespace slib
 			SLRecordItf m_recordInterface;
 			SLAndroidSimpleBufferQueueItf m_bufferQueue;
 
-			Memory m_memFrame;
-			sl_int16* m_bufFrame;
+			Memory m_memPacket;
+			sl_int16* m_bufPacket;
 			sl_uint32 m_indexBuffer;
-			sl_uint32 m_nSamplesFrame;
+			sl_uint32 m_nSamplesPerPacket;
 
 		public:
 			AudioRecorderImpl()
@@ -146,10 +147,10 @@ namespace slib
 
 							if ((*recorderObject)->GetInterface(recorderObject, SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &bufferQueue) == SL_RESULT_SUCCESS) {
 
-								sl_uint32 nSamplesPerFrame = param.getSamplesPerFrame() * param.channelCount;
-								Memory memFrame = Memory::create(nSamplesPerFrame << 2);
+								sl_uint32 nSamplesPerPacket = param.getFramesPerPacket() * param.channelCount;
+								Memory memPacket = Memory::create(nSamplesPerPacket << 2);
 
-								if (memFrame.isNotNull()) {
+								if (memPacket.isNotNull()) {
 
 									Ref<AudioRecorderImpl> ret = new AudioRecorderImpl();
 
@@ -162,10 +163,10 @@ namespace slib
 											ret->m_recorderObject = recorderObject;
 											ret->m_recordInterface = recordInterface;
 											ret->m_bufferQueue = bufferQueue;
-											ret->m_nSamplesFrame = nSamplesPerFrame;
-											ret->m_memFrame = memFrame;
-											ret->m_bufFrame = (sl_int16*)(memFrame.getData());
-											Base::zeroMemory(memFrame.getData(), memFrame.getSize());
+											ret->m_nSamplesPerPacket = nSamplesPerPacket;
+											ret->m_memPacket = memPacket;
+											ret->m_bufPacket = (sl_int16*)(memPacket.getData());
+											Base::zeroMemory(memPacket.getData(), memPacket.getSize());
 
 											ret->_init(param);
 
@@ -232,9 +233,9 @@ namespace slib
 			sl_bool onFrame()
 			{
 				m_indexBuffer = (m_indexBuffer + 1) % 2;
-				if ((*m_bufferQueue)->Enqueue(m_bufferQueue, m_bufFrame + m_indexBuffer * m_nSamplesFrame, m_nSamplesFrame * sizeof(sl_int16)) == SL_RESULT_SUCCESS) {
-					sl_int16* s = m_bufFrame + m_indexBuffer * m_nSamplesFrame;
-					_processFrame(s, m_nSamplesFrame);
+				if ((*m_bufferQueue)->Enqueue(m_bufferQueue, m_bufPacket + m_indexBuffer * m_nSamplesPerPacket, m_nSamplesPerPacket * sizeof(sl_int16)) == SL_RESULT_SUCCESS) {
+					sl_int16* s = m_bufPacket + m_indexBuffer * m_nSamplesPerPacket;
+					_processFrame(s, m_nSamplesPerPacket);
 					return sl_true;
 				} else {
 					LOG_ERROR("Failed to enqueue buffer");
@@ -265,7 +266,8 @@ namespace slib
 		return List<AudioRecorderDeviceInfo>::createFromElement(ret);
 	}
 
-	namespace {
+	namespace
+	{
 		class AudioPlayerDeviceImpl : public AudioPlayerDevice
 		{
 		public:
@@ -340,10 +342,10 @@ namespace slib
 			SLPlayItf m_playerInterface;
 			SLAndroidSimpleBufferQueueItf m_bufferQueue;
 
-			Memory m_memFrame;
-			sl_int16* m_bufFrame;
+			Memory m_memPacket;
+			sl_int16* m_bufPacket;
 			sl_uint32 m_indexBuffer;
-			sl_uint32 m_nSamplesFrame;
+			sl_uint32 m_nSamplesPerPacket;
 
 		public:
 			AudioPlayerImpl()
@@ -416,10 +418,10 @@ namespace slib
 
 							if ((*playerObject)->GetInterface(playerObject, SL_IID_BUFFERQUEUE, &bufferQueue) == SL_RESULT_SUCCESS) {
 
-								sl_uint32 nSamplesPerFrame = param.samplesPerSecond * param.frameLengthInMilliseconds / 1000 * param.channelCount;
-								Memory memFrame = Memory::create(nSamplesPerFrame << 2);
+								sl_uint32 nSamplesPerPacket = param.samplesPerSecond * param.packetLengthInMilliseconds / 1000 * param.channelCount;
+								Memory memPacket = Memory::create(nSamplesPerPacket << 2);
 
-								if (memFrame.isNotNull()) {
+								if (memPacket.isNotNull()) {
 
 									Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
 
@@ -431,9 +433,9 @@ namespace slib
 											ret->m_playerObject = playerObject;
 											ret->m_playerInterface = playerInterface;
 											ret->m_bufferQueue = bufferQueue;
-											ret->m_nSamplesFrame = nSamplesPerFrame;
-											ret->m_bufFrame = (sl_int16*)(memFrame.getData());
-											Base::zeroMemory(memFrame.getData(), memFrame.getSize());
+											ret->m_nSamplesPerPacket = nSamplesPerPacket;
+											ret->m_bufPacket = (sl_int16*)(memPacket.getData());
+											Base::zeroMemory(memPacket.getData(), memPacket.getSize());
 
 											ret->_init(param);
 
@@ -496,9 +498,9 @@ namespace slib
 			sl_bool enqueue()
 			{
 				m_indexBuffer = (m_indexBuffer + 1) % 2;
-				sl_int16* s = m_bufFrame + m_indexBuffer * m_nSamplesFrame;
-				_processFrame(s, m_nSamplesFrame);
-				if ((*m_bufferQueue)->Enqueue(m_bufferQueue, s, m_nSamplesFrame * 2) == SL_RESULT_SUCCESS) {
+				sl_int16* s = m_bufPacket + m_indexBuffer * m_nSamplesPerPacket;
+				_processFrame(s, m_nSamplesPerPacket);
+				if ((*m_bufferQueue)->Enqueue(m_bufferQueue, s, m_nSamplesPerPacket * 2) == SL_RESULT_SUCCESS) {
 					return sl_true;
 				} else {
 					LOG_ERROR("Failed to enqueue buffer");

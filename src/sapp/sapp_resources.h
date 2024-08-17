@@ -899,8 +899,8 @@ namespace slib
 	class SAppLayoutAudioAttributes : public SAppLayoutViewAttributes
 	{
 	public:
-		SAppUint32Value samplesPerFrame;
-		SAppUint32Value framesPerWindow;
+		SAppUint32Value framesPerPacket;
+		SAppUint32Value packetsPerWindow;
 		SAppColorValue amplitudeColor;
 		SAppFloatValue amplitudeScale;
 	};
