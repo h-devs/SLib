@@ -370,13 +370,14 @@ namespace slib
 						return sl_null;
 					}
 					stream->m_index = (sl_uint32)([streams count]);
-					if (!([stream addStreamOutput:object type:SCStreamOutputTypeScreen sampleHandlerQueue:queueScreen error:nil])) {
+					NSError* error = nil;
+					if (!([stream addStreamOutput:object type:SCStreamOutputTypeScreen sampleHandlerQueue:queueScreen error:&error])) {
 						return sl_null;
 					}
 					if (flagFirst) {
 						flagFirst = sl_false;
 						if (param.flagCaptureAudio) {
-							if (!([stream addStreamOutput:object type:SCStreamOutputTypeAudio sampleHandlerQueue:queueAudio error:nil])) {
+							if (!([stream addStreamOutput:object type:SCStreamOutputTypeAudio sampleHandlerQueue:queueAudio error:&error])) {
 								return sl_null;
 							}
 						}
