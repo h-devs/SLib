@@ -27,6 +27,7 @@
 #include "slib/ui/screen_capture.h"
 
 #include "slib/core/safe_static.h"
+#include "slib/graphics/util.h"
 #include "slib/graphics/platform.h"
 #include "slib/dl/win32/shcore.h"
 
@@ -35,7 +36,6 @@ namespace slib
 
 	namespace
 	{
-
 		class Helper
 		{
 		private:
@@ -61,25 +61,25 @@ namespace slib
 			}
 
 		public:
-			Ref<Image> getImage(HDC hdcSource, sl_int32 x, sl_int32 y, sl_int32 _width, sl_int32 _height)
+			Ref<Image> getImage(sl_uint32 dstWidth, sl_uint32 dstHeight, HDC hdcSource, sl_int32 srcX, sl_int32 srcY, sl_int32 srcWidth, sl_int32 srcHeight)
 			{
-				if (_width < 1 || _height < 1) {
+				if (!dstWidth || !dstHeight || !srcWidth || !srcHeight) {
 					return sl_null;
 				}
-				sl_uint32 width = (sl_uint32)_width;
-				sl_uint32 height = (sl_uint32)_height;
-				if (!m_hdcCache || m_widthCache < width || m_heightCache < height) {
+				if (!m_hdcCache || m_widthCache < dstWidth || m_heightCache < dstHeight) {
 					do {
 						HDC hdc = CreateCompatibleDC(hdcSource);
 						if (hdc) {
-							HBITMAP hbm = CreateCompatibleBitmap(hdcSource, (int)width, (int)height);
+							HBITMAP hbm = CreateCompatibleBitmap(hdcSource, (int)dstWidth, (int)dstHeight);
 							if (hbm) {
 								freeCache();
+								SetStretchBltMode(hdc, HALFTONE);
+								SetBrushOrgEx(hdc, 0, 0, NULL);
 								m_hdcCache = hdc;
 								m_hbmCache = hbm;
 								m_hbmCacheOld = (HBITMAP)(SelectObject(hdc, hbm));
-								m_widthCache = width;
-								m_heightCache = height;
+								m_widthCache = dstWidth;
+								m_heightCache = dstHeight;
 								break;
 							}
 							DeleteDC(hdc);
@@ -87,10 +87,14 @@ namespace slib
 					} while (0);
 				}
 				if (m_hdcCache && m_hbmCache) {
-					BitBlt(m_hdcCache, 0, 0, (int)width, (int)height, hdcSource, x, y, SRCCOPY);
+					if (srcWidth == dstWidth && srcHeight == dstHeight) {
+						BitBlt(m_hdcCache, 0, 0, (int)dstWidth, (int)dstHeight, hdcSource, (int)srcX, (int)srcY, SRCCOPY);
+					} else {
+						StretchBlt(m_hdcCache, 0, 0, (int)dstWidth, (int)dstHeight, hdcSource, (int)srcX, (int)srcY, (int)srcWidth, (int)srcHeight, SRCCOPY);
+					}
 					Ref<Bitmap> bitmap = GraphicsPlatform::createBitmap(m_hbmCache);
 					if (bitmap.isNotNull()) {
-						return Image::createCopyBitmap(bitmap, 0, 0, width, height);
+						return Image::createCopyBitmap(bitmap, 0, 0, dstWidth, dstHeight);
 					}
 				}
 				return sl_null;
@@ -114,72 +118,77 @@ namespace slib
 
 		public:
 			Mutex m_lock;
-
 		};
 
 		SLIB_SAFE_STATIC_GETTER(Helper, GetHelper)
 
-		static Ref<Image> CaptureScreen(HDC hDC, HMONITOR hMonitor)
+		static sl_bool CaptureScreen(Screenshot& _out, HDC hDC, HMONITOR hMonitor, sl_uint32 maxWidth, sl_uint32 maxHeight)
 		{
 			Helper* helper = GetHelper();
 			if (!helper) {
-				return sl_null;
+				return sl_false;
 			}
 			MutexLocker lock(&(helper->m_lock));
-			MONITORINFOEXW info;
-			Base::zeroMemory(&info, sizeof(info));
+			MONITORINFOEXW info = {};
 			info.cbSize = sizeof(info);
-			if (GetMonitorInfoW(hMonitor, &info)) {
-				sl_int32 x, y;
-				sl_uint32 width, height;
-				DEVMODEW dm;
-				Base::zeroMemory(&dm, sizeof(dm));
-				dm.dmSize = sizeof(dm);
-				if (EnumDisplaySettingsW(info.szDevice, ENUM_CURRENT_SETTINGS, &dm)) {
-					x = (sl_int32)(dm.dmPosition.x);
-					y = (sl_int32)(dm.dmPosition.y);
-					width = (sl_uint32)(dm.dmPelsWidth);
-					height = (sl_uint32)(dm.dmPelsHeight);
-				} else {
-					x = 0;
-					y = 0;
-					width = (sl_uint32)(GetDeviceCaps(hDC, HORZRES));
-					height = (sl_uint32)(GetDeviceCaps(hDC, VERTRES));
-				}
-				return helper->getImage(hDC, x, y, width, height);
+			if (!(GetMonitorInfoW(hMonitor, &info))) {
+				return sl_false;
 			}
-			return sl_null;
+			sl_int32 x, y;
+			sl_uint32 screenWidth, screenHeight;
+			DEVMODEW dm;
+			Base::zeroMemory(&dm, sizeof(dm));
+			dm.dmSize = sizeof(dm);
+			if (EnumDisplaySettingsW(info.szDevice, ENUM_CURRENT_SETTINGS, &dm)) {
+				x = (sl_int32)(dm.dmPosition.x);
+				y = (sl_int32)(dm.dmPosition.y);
+				screenWidth = (sl_uint32)(dm.dmPelsWidth);
+				screenHeight = (sl_uint32)(dm.dmPelsHeight);
+			} else {
+				x = 0;
+				y = 0;
+				screenWidth = (sl_uint32)(GetDeviceCaps(hDC, HORZRES));
+				screenHeight = (sl_uint32)(GetDeviceCaps(hDC, VERTRES));
+			}
+			_out.screenWidth = screenWidth;
+			_out.screenHeight = screenHeight;
+			sl_uint32 dstWidth = screenWidth;
+			sl_uint32 dstHeight = screenHeight;
+			GraphicsUtil::toSmallSize(dstWidth, dstHeight, maxWidth, maxHeight);
+			_out.image = helper->getImage(dstWidth, dstHeight, hDC, x, y, screenWidth, screenHeight);
+			return _out.image.isNotNull();
 		}
-
 	}
 
-	Ref<Image> ScreenCapture::takeScreenshot(sl_uint32 maxWidth, sl_uint32 maxHeight)
+	sl_bool ScreenCapture::takeScreenshot(Screenshot& _out, sl_uint32 maxWidth, sl_uint32 maxHeight)
 	{
+		sl_bool bRet = sl_false;
 		HDC hDC = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
 		if (hDC) {
 			POINT pt = {0, 0};
 			HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
 			if (hMonitor) {
-				return CaptureScreen(hDC, hMonitor);
+				bRet = CaptureScreen(_out, hDC, hMonitor, maxWidth, maxHeight);
 			}
 			DeleteDC(hDC);
 		}
-		return sl_null;
+		return bRet;
 	}
 
-	Ref<Image> ScreenCapture::takeScreenshotFromCurrentMonitor(sl_uint32 maxWidth, sl_uint32 maxHeight)
+	sl_bool ScreenCapture::takeScreenshotFromCurrentMonitor(Screenshot& _out, sl_uint32 maxWidth, sl_uint32 maxHeight)
 	{
+		sl_bool bRet = sl_false;
 		HDC hDC = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
 		if (hDC) {
 			POINT pt;
 			GetCursorPos(&pt);
 			HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
 			if (hMonitor) {
-				return CaptureScreen(hDC, hMonitor);
+				bRet = CaptureScreen(_out, hDC, hMonitor, maxWidth, maxHeight);
 			}
 			DeleteDC(hDC);
 		}
-		return sl_null;
+		return bRet;
 	}
 
 	namespace
@@ -187,27 +196,31 @@ namespace slib
 		struct CaptureScreensContext
 		{
 			HDC hDC;
-			List< Ref<Image> > list;
+			sl_uint32 maxWidth;
+			sl_uint32 maxHeight;
+			List<Screenshot> list;
 		};
 
 		static BOOL CALLBACK EnumDisplayMonitorsCallbackForCaptureScreens(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
 		{
 			CaptureScreensContext& context = *((CaptureScreensContext*)lParam);
-			Ref<Image> image = CaptureScreen(context.hDC, hMonitor);
-			if (image.isNotNull()) {
-				context.list.add_NoLock(Move(image));
+			Screenshot screenshot;
+			if (CaptureScreen(screenshot, context.hDC, hMonitor, context.maxWidth, context.maxHeight)) {
+				context.list.add_NoLock(Move(screenshot));
 			}
 			return TRUE;
 		}
 	}
 
-	List< Ref<Image> > ScreenCapture::takeScreenshotsFromAllMonitors(sl_uint32 maxWidth, sl_uint32 maxHeight)
+	List<Screenshot> ScreenCapture::takeScreenshotsFromAllMonitors(sl_uint32 maxWidth, sl_uint32 maxHeight)
 	{
 		CaptureScreensContext context;
 		context.hDC = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
 		if (!(context.hDC)) {
 			return sl_null;
 		}
+		context.maxWidth = maxWidth;
+		context.maxHeight = maxHeight;
 		EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallbackForCaptureScreens, (LPARAM)&context);
 		DeleteDC(context.hDC);
 		return context.list;
