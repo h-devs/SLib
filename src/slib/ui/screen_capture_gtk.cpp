@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -170,7 +170,7 @@ namespace slib
 	{
 		Screenshot screenshot;
 		if (takeScreenshot(screenshot, maxWidth, maxHeight)) {
-			return List< Ref<Image> >::createFromElement(screenshot);
+			return List<Screenshot>::createFromElement(screenshot);
 		}
 		return sl_null;
 	}
