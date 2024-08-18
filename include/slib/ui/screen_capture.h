@@ -34,6 +34,15 @@ namespace slib
 
 	class ScreenCapture;
 
+	enum class CaptureScreenStatus
+	{
+		None = 0,
+		OK = 1,
+		Idle = 2,
+		Stopped = 3,
+		Error = 15
+	};
+
 	class SLIB_EXPORT CaptureScreenInfo
 	{
 	public:
@@ -64,6 +73,7 @@ namespace slib
 	{
 	public:
 		sl_uint32 screenIndex;
+		CaptureScreenStatus status;
 		BitmapData data;
 
 	public:

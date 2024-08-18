@@ -48,6 +48,7 @@ namespace slib
 	CaptureScreenResult::CaptureScreenResult()
 	{
 		screenIndex = 0;
+		status = CaptureScreenStatus::OK;
 	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CaptureAudioResult)
@@ -171,6 +172,7 @@ sl_bool ScreenCapture::takeScreenshotFromCurrentMonitor(Screenshot& _out, sl_uin
 				return sl_null;
 			}
 			m_bufAudioCallback = buf;
+			m_nAudioFramesInCallbackBuffer = 0;
 		}
 		return buf;
 	}
@@ -197,8 +199,7 @@ sl_bool ScreenCapture::takeScreenshotFromCurrentMonitor(Screenshot& _out, sl_uin
 		sl_uint32 nSamplesPerCallback = nFramesPerCallback * nChannels;
 		sl_uint32 nFramesInBuffer = m_nAudioFramesInCallbackBuffer;
 
-		CaptureAudioResult result;
-		AudioData& audio = result.data;
+		AudioData audio;
 		if (nChannels == 1) {
 			audio.format = AudioFormat::Int16_Mono;
 		} else {
@@ -222,7 +223,7 @@ sl_bool ScreenCapture::takeScreenshotFromCurrentMonitor(Screenshot& _out, sl_uin
 				audio.data = input.data;
 			}
 			CaptureAudioResult result;
-			result.data = Move(audio);
+			result.data = audio;
 			m_onCaptureAudio(this, result);
 			return;
 		}
@@ -230,37 +231,38 @@ sl_bool ScreenCapture::takeScreenshotFromCurrentMonitor(Screenshot& _out, sl_uin
 		if (buf.isNull()) {
 			return;
 		}
+		audio.count = nFramesPerCallback;
 		sl_int16* pData = buf.getData();
 		sl_uint32 iOffset = 0;
+		nFramesInBuffer = m_nAudioFramesInCallbackBuffer;
 		if (nFramesInBuffer) {
+			audio.data = pData + nFramesInBuffer * nChannels;
 			if (nFramesInBuffer + nFrames < nFramesPerCallback) {
-				audio.data = pData + nFramesInBuffer * nChannels;
 				audio.copySamplesFrom(input, nFrames);
 				m_nAudioFramesInCallbackBuffer = nFramesInBuffer + nFrames;
 				return;
 			} else {
 				sl_uint32 nRemain = nFramesPerCallback - nFramesInBuffer;
-				audio.data = pData + nFramesInBuffer * nChannels;
 				audio.copySamplesFrom(input, nRemain);
 				audio.data = pData;
-				audio.count = nFramesPerCallback;
-				m_onCaptureAudio(this, result);
 				iOffset = nRemain;
-				nFrames -= iOffset;
+				CaptureAudioResult result;
+				result.data = audio;
+				m_onCaptureAudio(this, result);
 			}
-		}
-		sl_uint32 nCallbacks = nFrames / nFramesPerCallback;
-		for (sl_uint32 i = 0; i < nCallbacks; i++) {
+		} else {
 			audio.data = pData;
-			audio.count = nFramesPerCallback;
+		}
+		sl_uint32 nCallbacks = (nFrames - iOffset) / nFramesPerCallback;
+		for (sl_uint32 i = 0; i < nCallbacks; i++) {
 			audio.copySamplesFrom(input, iOffset, nFramesPerCallback);
-			m_onCaptureAudio(this, result);
 			iOffset += nFramesPerCallback;
+			CaptureAudioResult result;
+			result.data = audio;
+			m_onCaptureAudio(this, result);
 		}
 		if (iOffset < nFrames) {
 			sl_uint32 nRemain = nFrames - iOffset;
-			audio.data = pData;
-			audio.count = nFramesPerCallback;
 			audio.copySamplesFrom(input, iOffset, nRemain);
 			m_nAudioFramesInCallbackBuffer = nRemain;
 		} else {

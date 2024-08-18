@@ -46,9 +46,16 @@
 
 #ifdef USE_SCREEN_CAPTURE_KIT
 API_AVAILABLE(macos(13.0))
-@interface SLIBScreenCapture : NSObject<SCStreamOutput>
+@interface SLIBScreenCapture : NSObject<SCStreamDelegate, SCStreamOutput>
 {
 	@public slib::WeakRef<slib::CRef> m_capture;
+}
+@end
+
+API_AVAILABLE(macos(13.0))
+@interface SLIBSCStream : SCStream
+{
+	@public sl_uint32 m_index;
 }
 @end
 #endif
@@ -257,7 +264,7 @@ namespace slib
 		{
 		public:
 			SLIBScreenCapture* m_object;
-			NSArray<SCStream*>* m_streams;
+			NSArray<SLIBSCStream*>* m_streams;
 			List<CaptureScreenInfo> m_screenInfos;
 
 			dispatch_queue_t m_queueScreen;
@@ -358,10 +365,11 @@ namespace slib
 							[config setExcludesCurrentProcessAudio:(param.flagExcludeCurrentProcessAudio ? YES : NO)];
 						}
 					}
-					SCStream* stream = [[SCStream alloc] initWithFilter:filter configuration:config delegate:nil];
+					SLIBSCStream* stream = [[SLIBSCStream alloc] initWithFilter:filter configuration:config delegate:object];
 					if (stream == nil) {
 						return sl_null;
 					}
+					stream->m_index = (sl_uint32)([streams count]);
 					if (!([stream addStreamOutput:object type:SCStreamOutputTypeScreen sampleHandlerQueue:queueScreen error:nil])) {
 						return sl_null;
 					}
@@ -433,43 +441,57 @@ namespace slib
 				}
 			}
 
-			void onCaptureScreen(SCStream* stream, CMSampleBufferRef sampleBuffer)
+			static int GetScreenBufferStatus(CMSampleBufferRef sampleBuffer)
+			{
+				NSArray* infos = (__bridge NSArray*)(CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, NO));
+				if (infos != nil) {
+					if (infos.count) {
+						NSDictionary* info = [infos firstObject];
+						if (info != nil) {
+							NSNumber* status = info[SCStreamFrameInfoStatus];
+							if (status != nil) {
+								return [status intValue];
+							}
+						}
+					}
+				}
+				return SCFrameStatusSuspended;
+			}
+
+			void onCaptureScreen(SLIBSCStream* stream, CMSampleBufferRef sampleBuffer, CaptureScreenStatus status)
 			{
 				if (!m_flagCaptureScreen) {
 					return;
 				}
-				NSArray* infos = (__bridge NSArray*)(CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, NO));
-				if (infos == nil) {
+				CaptureScreenResult result;
+				sl_uint32 index = (sl_uint32)(stream->m_index);
+				if (!(m_screenInfos.getAt_NoLock(index, &result))) {
 					return;
 				}
-				if (!(infos.count)) {
-					return;
-				}
-				NSDictionary* info = [infos firstObject];
-				if (info == nil) {
-					return;
-				}
-				NSNumber* status = info[SCStreamFrameInfoStatus];
-				if (status == nil) {
-					return;
-				}
-				if ([status intValue] != SCFrameStatusComplete) {
-					return;
-				}
-				ProcessCapturedScreen(sampleBuffer, [this, stream](BitmapData& data) {
-					NSInteger _index = [m_streams indexOfObject:stream];
-					if (_index == NSNotFound) {
+				result.screenIndex = index;
+				if (status != CaptureScreenStatus::None) {
+					result.status = status;
+				} else {
+					int iStatus = GetScreenBufferStatus(sampleBuffer);
+					if (iStatus == SCFrameStatusComplete || iStatus == SCFrameStatusStarted) {
+						ProcessCapturedScreen(sampleBuffer, [this, &result](BitmapData& data) {
+							result.data = Move(data);
+							m_onCaptureScreen(this, result);
+						});
 						return;
 					}
-					sl_uint32 index = (sl_uint32)_index;
-					CaptureScreenResult result;
-					if (!(m_screenInfos.getAt_NoLock(index, &result))) {
+					if (iStatus == SCFrameStatusBlank) {
 						return;
 					}
-					result.screenIndex = index;
-					result.data = Move(data);
-					m_onCaptureScreen(this, result);
-				});
+					if (iStatus == SCFrameStatusIdle) {
+						result.status = CaptureScreenStatus::Idle;
+					} else if (iStatus == SCFrameStatusStopped) {
+						result.status = CaptureScreenStatus::Stopped;
+					} else {
+						result.status = CaptureScreenStatus::Error;
+					}
+				}
+				m_onCaptureScreen(this, result);
 			}
 
 			void onCaptureAudio(CMSampleBufferRef sampleBuffer)
@@ -508,21 +530,24 @@ namespace slib
 					if (audioList.mNumberBuffers == 2) {
 						AudioBuffer& audioBuffer1 = *(audioList.mBuffers);
 						AudioBuffer& audioBuffer2 = *(audioList.mBuffers + 1);
-						if (audioBuffer1.mDataByteSize != audioBuffer2.mDataByteSize) {
-							return;
+						if (audioBuffer1.mDataByteSize == audioBuffer2.mDataByteSize) {
+							if (!(Base::equalsMemoryZero(audioBuffer1.mData, audioBuffer1.mDataByteSize) && Base::equalsMemoryZero(audioBuffer2.mData, audioBuffer2.mDataByteSize))) {
+								ad.format = AudioFormat::Float_Stereo_NonInterleaved;
+								ad.data = (float*)(audioBuffer1.mData);
+								ad.data1 = (float*)(audioBuffer2.mData);
+								ad.count = (sl_uint32)(audioBuffer1.mDataByteSize >> 2);
+								_processAudioFrame(ad);
+							}
 						}
-						ad.format = AudioFormat::Float_Stereo_NonInterleaved;
-						ad.data = (float*)(audioBuffer1.mData);
-						ad.data1 = (float*)(audioBuffer2.mData);
-						ad.count = (sl_uint32)(audioBuffer1.mDataByteSize >> 2);
-						_processAudioFrame(ad);
 					}
 				} else {
 					if (audioList.mNumberBuffers == 1) {
 						AudioBuffer& audioBuffer = *(audioList.mBuffers);
-						ad.format = AudioFormat::Float_Mono;
-						ad.data = (float*)(audioBuffer.mData);
-						ad.count = (sl_uint32)(audioBuffer.mDataByteSize >> 2);
+						if (!(Base::equalsMemoryZero(audioBuffer.mData, audioBuffer.mDataByteSize))) {
+							ad.format = AudioFormat::Float_Mono;
+							ad.data = (float*)(audioBuffer.mData);
+							ad.count = (sl_uint32)(audioBuffer.mDataByteSize >> 2);
+						}
 						_processAudioFrame(ad);
 					}
 				}
@@ -664,6 +689,14 @@ namespace slib
 #if defined(USE_SCREEN_CAPTURE_KIT)
 API_AVAILABLE(macos(13.0))
 @implementation SLIBScreenCapture
+- (void)stream:(SCStream *)stream didStopWithError:(NSError *)error
+{
+	slib::Ref<slib::ScreenCaptureImpl> capture = slib::WeakRef<slib::ScreenCaptureImpl>::cast(m_capture);
+	if (capture.isNotNull()) {
+		capture->onCaptureScreen((SLIBSCStream*)stream, NULL, slib::CaptureScreenStatus::Stopped);
+	}
+}
+
 - (void)stream:(SCStream*)stream didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer ofType:(SCStreamOutputType)type
 {
 	if (!sampleBuffer) {
@@ -675,12 +708,16 @@ API_AVAILABLE(macos(13.0))
 	slib::Ref<slib::ScreenCaptureImpl> capture = slib::WeakRef<slib::ScreenCaptureImpl>::cast(m_capture);
 	if (capture.isNotNull()) {
 		if (type == SCStreamOutputTypeScreen) {
-			capture->onCaptureScreen(stream, sampleBuffer);
+			capture->onCaptureScreen((SLIBSCStream*)stream, sampleBuffer, slib::CaptureScreenStatus::None);
 		} else if (type == SCStreamOutputTypeAudio) {
 			capture->onCaptureAudio(sampleBuffer);
 		}
 	}
 }
+@end
+
+API_AVAILABLE(macos(13.0))
+@implementation SLIBSCStream
 @end
 #endif
 
