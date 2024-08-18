@@ -130,7 +130,7 @@ namespace slib
 			}
 			AudioObjectPropertyAddress address;
 			address.mSelector = kAudioDevicePropertyMute;
-			address.mScope = kAudioDevicePropertyScopeOutput;
+			address.mScope = scope;
 			address.mElement = kAudioObjectPropertyElementMain;
 			if (!(AudioObjectHasProperty(deviceID, &address))) {
 				return;
@@ -179,24 +179,14 @@ namespace slib
 
 	sl_bool Device::isMicrophoneMute()
 	{
-		return getMicrophoneVolume() < SLIB_EPSILON;
+		AudioDeviceID deviceID = GetDefaultInputDeviceID();
+		return IsDeviceMute(deviceID, kAudioDevicePropertyScopeInput);
 	}
 
 	void Device::setMicrophoneMute(sl_bool flag)
 	{
-		static float savedVolume = 1.0f;
-		if (flag) {
-			float volume = getMicrophoneVolume();
-			if (volume >= SLIB_EPSILON) {
-				savedVolume = volume;
-				setMicrophoneVolume(0);
-			}
-		} else {
-			float volume = getMicrophoneVolume();
-			if (volume < SLIB_EPSILON) {
-				setMicrophoneVolume(savedVolume);
-			}
-		}
+		AudioDeviceID deviceID = GetDefaultInputDeviceID();
+		SetDeviceMute(deviceID, kAudioDevicePropertyScopeInput, flag);
 	}
 
 	sl_bool Device::isUsingMicrophone()

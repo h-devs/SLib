@@ -164,7 +164,7 @@ namespace slib
 
 		Array<sl_int16> _getAudioCallbackBuffer(sl_uint32 nSamples);
 
-		void _processAudioFrame(AudioData& data);
+		void _processAudioFrame(AudioData& data, sl_bool flagMute);
 
 	protected:
 		sl_bool m_flagCaptureScreen;

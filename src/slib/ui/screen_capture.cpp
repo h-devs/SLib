@@ -177,8 +177,15 @@ sl_bool ScreenCapture::takeScreenshotFromCurrentMonitor(Screenshot& _out, sl_uin
 		return buf;
 	}
 
-	void ScreenCapture::_processAudioFrame(AudioData& input)
+	void ScreenCapture::_processAudioFrame(AudioData& input, sl_bool flagMute)
 	{
+		sl_uint32 nFramesInBuffer = m_nAudioFramesInCallbackBuffer;
+		if (!nFramesInBuffer) {
+			if (flagMute) {
+				return;
+			}
+		}
+
 		sl_uint32 nFrames = (sl_uint32)(input.count);
 		if (!nFrames) {
 			return;
@@ -197,7 +204,6 @@ sl_bool ScreenCapture::takeScreenshotFromCurrentMonitor(Screenshot& _out, sl_uin
 
 		sl_uint32 nChannels = m_nAudioChannels;
 		sl_uint32 nSamplesPerCallback = nFramesPerCallback * nChannels;
-		sl_uint32 nFramesInBuffer = m_nAudioFramesInCallbackBuffer;
 
 		AudioData audio;
 		if (nChannels == 1) {
@@ -252,6 +258,10 @@ sl_bool ScreenCapture::takeScreenshotFromCurrentMonitor(Screenshot& _out, sl_uin
 			}
 		} else {
 			audio.data = pData;
+		}
+		if (flagMute) {
+			m_nAudioFramesInCallbackBuffer = 0;
+			return;
 		}
 		sl_uint32 nCallbacks = (nFrames - iOffset) / nFramesPerCallback;
 		for (sl_uint32 i = 0; i < nCallbacks; i++) {

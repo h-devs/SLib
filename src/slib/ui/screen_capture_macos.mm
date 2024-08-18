@@ -418,9 +418,10 @@ namespace slib
 						}
 					}
 					[stream stopCaptureWithCompletionHandler:^(NSError* error) {
-						[stream removeStreamOutput:m_object type:SCStreamOutputTypeScreen error:NULL];
+						NSError* _error = nil;
+						[stream removeStreamOutput:m_object type:SCStreamOutputTypeScreen error:&_error];
 						if (flagCaptureAudio) {
-							[stream removeStreamOutput:m_object type:SCStreamOutputTypeAudio error:NULL];
+							[stream removeStreamOutput:m_object type:SCStreamOutputTypeAudio error:&_error];
 						}
 					}];
 				}
@@ -532,24 +533,22 @@ namespace slib
 						AudioBuffer& audioBuffer1 = *(audioList.mBuffers);
 						AudioBuffer& audioBuffer2 = *(audioList.mBuffers + 1);
 						if (audioBuffer1.mDataByteSize == audioBuffer2.mDataByteSize) {
-							if (!(Base::equalsMemoryZero(audioBuffer1.mData, audioBuffer1.mDataByteSize) && Base::equalsMemoryZero(audioBuffer2.mData, audioBuffer2.mDataByteSize))) {
-								ad.format = AudioFormat::Float_Stereo_NonInterleaved;
-								ad.data = (float*)(audioBuffer1.mData);
-								ad.data1 = (float*)(audioBuffer2.mData);
-								ad.count = (sl_uint32)(audioBuffer1.mDataByteSize >> 2);
-								_processAudioFrame(ad);
-							}
+							sl_bool flagMute = Base::equalsMemoryZero(audioBuffer1.mData, audioBuffer1.mDataByteSize) && Base::equalsMemoryZero(audioBuffer2.mData, audioBuffer2.mDataByteSize);
+							ad.format = AudioFormat::Float_Stereo_NonInterleaved;
+							ad.data = (float*)(audioBuffer1.mData);
+							ad.data1 = (float*)(audioBuffer2.mData);
+							ad.count = (sl_uint32)(audioBuffer1.mDataByteSize >> 2);
+							_processAudioFrame(ad, flagMute);
 						}
 					}
 				} else {
 					if (audioList.mNumberBuffers == 1) {
 						AudioBuffer& audioBuffer = *(audioList.mBuffers);
-						if (!(Base::equalsMemoryZero(audioBuffer.mData, audioBuffer.mDataByteSize))) {
-							ad.format = AudioFormat::Float_Mono;
-							ad.data = (float*)(audioBuffer.mData);
-							ad.count = (sl_uint32)(audioBuffer.mDataByteSize >> 2);
-						}
-						_processAudioFrame(ad);
+						sl_bool flagMute = Base::equalsMemoryZero(audioBuffer.mData, audioBuffer.mDataByteSize);
+						ad.format = AudioFormat::Float_Mono;
+						ad.data = (float*)(audioBuffer.mData);
+						ad.count = (sl_uint32)(audioBuffer.mDataByteSize >> 2);
+						_processAudioFrame(ad, flagMute);
 					}
 				}
 				CFRelease(blockBuffer);
