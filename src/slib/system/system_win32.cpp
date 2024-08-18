@@ -539,6 +539,39 @@ namespace slib
 		return ret;
 	}
 
+	sl_bool System::isScreenLocked()
+	{
+		auto apiGetCurrentSession = kernel32::getApi_WTSGetActiveConsoleSessionId();
+		if (!apiGetCurrentSession) {
+			return sl_null;
+		}
+		auto apiQuerySessionInfo = wtsapi32::getApi_WTSQuerySessionInformationW();
+		if (!apiQuerySessionInfo) {
+			return sl_null;
+		}
+		auto apiFreeMemory = wtsapi32::getApi_WTSFreeMemory();
+		if (!apiFreeMemory) {
+			return sl_null;
+		}
+		DWORD sessionId = apiGetCurrentSession();
+		sl_bool bRet = sl_false;
+		WTSINFOEXW* info = sl_null;
+		DWORD size = 0;
+		if (apiQuerySessionInfo(WTS_CURRENT_SERVER_HANDLE, sessionId, WTSSessionInfoEx, (LPWSTR*)&info, &size)) {
+			if (info) {
+				const WindowsVersion& version = Win32::getVersion();
+				if (version.majorVersion == 6 && version.minorVersion == 1) {
+					// Windows Server 2008 R2 and Windows 7: Due to a code defect, the usage of the WTS_SESSIONSTATE_LOCK and WTS_SESSIONSTATE_UNLOCK flags is reversed
+					bRet = info->Data.WTSInfoExLevel1.SessionFlags == WTS_SESSIONSTATE_UNLOCK;
+				} else {
+					bRet = info->Data.WTSInfoExLevel1.SessionFlags == WTS_SESSIONSTATE_LOCK;
+				}
+				apiFreeMemory(info);
+			}
+		}
+		return bRet;
+	}
+
 	sl_uint32 System::getTickCount()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
