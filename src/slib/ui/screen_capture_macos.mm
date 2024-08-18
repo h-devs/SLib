@@ -190,7 +190,8 @@ namespace slib
 			MutexLocker lock(&(helper->m_lockShareableContent));
 			return helper->m_shareableContent;
 		}
-
+#endif
+#ifdef USE_SCREENSHOT_MANAGER
 		API_AVAILABLE(macos(13.0))
 		static SCDisplay* GetShareableDisplay(Helper* helper, CGDirectDisplayID displayId)
 		{
@@ -260,6 +261,18 @@ namespace slib
 		}
 
 #ifdef USE_SCREEN_CAPTURE_KIT
+		static sl_bool IsMutedFloatData(const void* data, sl_size n)
+		{
+			sl_uint32 m = (sl_uint32)(n >> 2);
+			float* f = (float*)data;
+			for (sl_uint32 i = 0; i < m; i++) {
+				if (f[i] != 0.0f) {
+					return sl_false;
+				}
+			}
+			return sl_true;
+		}
+
 		class API_AVAILABLE(macos(13.0)) ScreenCaptureImpl : public ScreenCapture
 		{
 		public:
@@ -533,7 +546,7 @@ namespace slib
 						AudioBuffer& audioBuffer1 = *(audioList.mBuffers);
 						AudioBuffer& audioBuffer2 = *(audioList.mBuffers + 1);
 						if (audioBuffer1.mDataByteSize == audioBuffer2.mDataByteSize) {
-							sl_bool flagMute = Base::equalsMemoryZero(audioBuffer1.mData, audioBuffer1.mDataByteSize) && Base::equalsMemoryZero(audioBuffer2.mData, audioBuffer2.mDataByteSize);
+							sl_bool flagMute = IsMutedFloatData(audioBuffer1.mData, audioBuffer1.mDataByteSize) && IsMutedFloatData(audioBuffer2.mData, audioBuffer2.mDataByteSize);
 							ad.format = AudioFormat::Float_Stereo_NonInterleaved;
 							ad.data = (float*)(audioBuffer1.mData);
 							ad.data1 = (float*)(audioBuffer2.mData);
@@ -544,7 +557,7 @@ namespace slib
 				} else {
 					if (audioList.mNumberBuffers == 1) {
 						AudioBuffer& audioBuffer = *(audioList.mBuffers);
-						sl_bool flagMute = Base::equalsMemoryZero(audioBuffer.mData, audioBuffer.mDataByteSize);
+						sl_bool flagMute = IsMutedFloatData(audioBuffer.mData, audioBuffer.mDataByteSize);
 						ad.format = AudioFormat::Float_Mono;
 						ad.data = (float*)(audioBuffer.mData);
 						ad.count = (sl_uint32)(audioBuffer.mDataByteSize >> 2);
