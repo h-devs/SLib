@@ -145,6 +145,8 @@ namespace slib
 
 		void setDropTarget(View* view, sl_bool flag) override;
 
+		void updateToolTip(sl_uint64 ownerId, const String& toolTip);
+
 	public:
 		static NSRect getViewFrameAndTransform(const UIRect& frame, const Matrix3& transform, sl_real& rotation);
 
@@ -183,6 +185,8 @@ namespace slib
 
 	protected:
 		NSView* m_handle;
+
+		id m_toolTip;
 
 	public:
 		UIRect m_frame;

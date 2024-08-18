@@ -37,6 +37,14 @@
 }
 @end
 
+@interface SLIBToolTip : NSObject
+{
+	@public sl_uint64 m_id;
+	@public slib::String m_text;
+	@public NSString* m_content;
+}
+@end
+
 namespace slib
 {
 
@@ -66,7 +74,8 @@ namespace slib
 		UIPlatform::registerViewInstance(handle, this);
 	}
 
-	namespace {
+	namespace
+	{
 		static void SetDropTarget(NSView* handle, sl_bool flag)
 		{
 			if (flag) {
@@ -417,6 +426,35 @@ namespace slib
 		}
 	}
 
+	void macOS_ViewInstance::updateToolTip(sl_uint64 ownerId, const String& toolTip)
+	{
+		NSView* handle = m_handle;
+		if (handle == nil) {
+			return;
+		}
+		if (toolTip.isEmpty()) {
+			if (m_toolTip != nil) {
+				[handle removeAllToolTips];
+				m_toolTip = nil;
+			}
+			return;
+		}
+		SLIBToolTip* obj = m_toolTip;
+		if (obj != nil && obj->m_id == ownerId && obj->m_text == toolTip) {
+			return;
+		}
+		if (obj == nil) {
+			obj = [[SLIBToolTip alloc] init];
+			m_toolTip = obj;
+		}
+		obj->m_id = ownerId;
+		obj->m_text = toolTip;
+		obj->m_content = Apple::getNSStringFromString(toolTip);
+		NSSize size = [handle frame].size;
+		[handle removeAllToolTips];
+		[handle addToolTipRect:NSMakeRect(0, 0, size.width, size.height) owner:obj userData:NULL];
+	}
+
 	NSRect macOS_ViewInstance::getViewFrameAndTransform(const UIRect& frame, const Matrix3& transform, sl_real& rotation)
 	{
 		rotation = Transform2::getRotationAngleFromMatrix(transform);
@@ -647,13 +685,15 @@ namespace slib
 			Ref<UIEvent> ev = UIEvent::createSetCursorEvent(x, y, t);
 			if (ev.isNotNull()) {
 				onSetCursor(ev.get());
+				updateToolTip(ev->getToolTipOwnerId(), ev->getToolTip());
 				return ev->getFlags();
 			}
 		}
 		return 0;
 	}
 
-	namespace {
+	namespace
+	{
 		static NSDragOperation ToNSDragOperation(int op)
 		{
 			NSDragOperation ret = 0;
@@ -1315,6 +1355,15 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 			view->dispatchDragDropEvent(ev.get());
 		}
 	}
+}
+
+@end
+
+@implementation SLIBToolTip
+
+-(NSString*)view:(NSView*)view stringForToolTip:(NSToolTipTag)tag point:(NSPoint)point userData:(void*)data
+{
+	return m_content;
 }
 
 @end
