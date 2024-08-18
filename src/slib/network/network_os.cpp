@@ -742,4 +742,29 @@ namespace slib
 		return sl_false;
 	}
 
+	void Network::flushArpTable()
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		System::execute(StringView::literal("arp -d *"), sl_true);
+#elif defined(SLIB_PLATFORM_IS_MACOS)
+		System::execute(StringView::literal("arp -d -a"));
+#elif defined(SLIB_PLATFORM_IS_LINUX)
+		System::execute(StringView::literal("arp -a | egrep -o '\\(.+\\)' | egrep -o '[0-9\\.]+' | xargs -n1 arp -d"));
+#endif
+	}
+
+	void Network::flushDnsCache()
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		System::execute(StringView::literal("ipconfig /flushdns"), sl_true);
+#elif defined(SLIB_PLATFORM_IS_MACOS)
+		System::execute(StringView::literal("dscacheutil -flushcache"));
+		System::execute(StringView::literal("killall -HUP mDNSResponder"));
+#elif defined(SLIB_PLATFORM_IS_LINUX)
+		System::execute(StringView::literal("service nscd restart"));
+		System::execute(StringView::literal("systemd-resolve --flush-caches"));
+		System::execute(StringView::literal("resolvectl flush-caches"));
+#endif
+	}
+
 }

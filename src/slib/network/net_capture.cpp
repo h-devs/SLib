@@ -63,6 +63,8 @@ namespace slib
 	{
 		m_timeDeviceAddress = 0;
 		m_timeIP = 0;
+		m_timeDisplayName = 0;
+		m_timeIndex = 0;
 		m_index = 0;
 	}
 
@@ -132,18 +134,39 @@ namespace slib
 		return m_ip;
 	}
 
+	String NetCapture::getDisplayName()
+	{
+		sl_uint64 now = System::getTickCount64();
+		if (m_timeDisplayName && now >= m_timeDisplayName && now < m_timeDisplayName + 5000) {
+			return m_displayName;
+		}
+		String name;
+		NetworkInterfaceInfo info;
+		if (GetDeviceInfo(m_deviceName, info)) {
+			name = info.displayName;
+		}
+		if (name.isEmpty()) {
+			name = m_deviceName;
+		}
+		m_displayName = name;
+		m_timeDisplayName = now;
+		return name;
+	}
+
 	sl_uint32 NetCapture::getInterfaceIndex()
 	{
-		if (m_index) {
+		sl_uint64 now = System::getTickCount64();
+		if (m_timeIndex && now >= m_timeIndex && now < m_timeIndex + 5000) {
 			return m_index;
 		}
 		NetworkInterfaceInfo info;
 		if (GetDeviceInfo(m_deviceName, info)) {
 			m_index = info.index;
-			return info.index;
 		} else {
-			return 0;
+			m_index = 0;
 		}
+		m_timeIndex = now;
+		return m_index;
 	}
 
 	void NetCapture::_initWithParam(const NetCaptureParam& param)

@@ -123,6 +123,8 @@ namespace slib
 
 		const IPv4Address& getIPv4Address();
 
+		String getDisplayName();
+
 		sl_uint32 getInterfaceIndex();
 
 	protected:
@@ -139,6 +141,9 @@ namespace slib
 		MacAddress m_deviceAddress;
 		sl_uint64 m_timeIP;
 		IPv4Address m_ip;
+		sl_uint64 m_timeDisplayName;
+		AtomicString m_displayName;
+		sl_uint64 m_timeIndex;
 		sl_uint32 m_index;
 
 		Function<void(NetCapture*, NetCapturePacket&)> m_onCapturePacket;

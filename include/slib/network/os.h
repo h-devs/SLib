@@ -134,6 +134,10 @@ namespace slib
 
 		static sl_bool removeArpEntry(sl_uint32 index, const IPv4Address& ip);
 
+		static void flushArpTable();
+
+		static void flushDnsCache();
+
 	};
 
 }
