@@ -219,6 +219,8 @@ namespace slib
 
 		sl_bool bind(const SocketAddress& address) const noexcept;
 
+		sl_bool bind(const SocketAddress& address, sl_bool flagIPv6) const noexcept;
+
 		sl_bool bind(const DomainSocketPath& path) const noexcept;
 
 		// SO_BINDTODEVICE

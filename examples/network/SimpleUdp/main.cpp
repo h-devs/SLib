@@ -10,11 +10,11 @@ int main(int argc, const char * argv[])
 	// Receiving Thread
 	Thread::start([]() {
 #ifdef USE_IPV6
-		auto socket = Socket::openUdp_IPv6();
+		auto socket = Socket::openUdp_IPv6(SocketAddress(PORT));
 #else
-		auto socket = Socket::openUdp();
+		auto socket = Socket::openUdp(SocketAddress(PORT));
 #endif
-		if (!(socket.bind(SocketAddress(PORT)))) {
+		if (socket.isNone()) {
 			Println("%s", Socket::getLastErrorMessage());
 			return;
 		}

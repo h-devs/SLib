@@ -342,7 +342,7 @@ namespace slib
 				return sl_null;
 			}
 			if (param.bindAddress.ip.isNotNone() || param.bindAddress.port != 0) {
-				if (!(socket.bind(param.bindAddress))) {
+				if (!(socket.bind(param.bindAddress, flagIPv6))) {
 					if (param.flagLogError) {
 						LogError(TAG, "AsyncTcpSocket bind error: %s, %s", param.bindAddress.toString(), Socket::getLastErrorMessage());
 					}
@@ -475,7 +475,7 @@ namespace slib
 			if (param.flagReusingPort) {
 				socket.setReusingPort();
 			}
-			if (!(socket.bind(param.bindAddress))) {
+			if (!(socket.bind(param.bindAddress, flagIPv6))) {
 				if (param.flagLogError) {
 					LogError(TAG, "AsyncTcpServer bind error: %s, %s", param.bindAddress.toString(), Socket::getLastErrorMessage());
 				}
@@ -808,7 +808,7 @@ namespace slib
 				socket.setReusingPort();
 			}
 			if (param.bindAddress.ip.isNotNone() || param.bindAddress.port != 0) {
-				if (!(socket.bind(param.bindAddress))) {
+				if (!(socket.bind(param.bindAddress, flagIPv6))) {
 					if (param.flagLogError) {
 						LogError(TAG, "AsyncTcpSocket bind error: %s, %s", param.bindAddress.toString(), Socket::getLastErrorMessage());
 					}

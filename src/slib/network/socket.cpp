@@ -71,6 +71,8 @@
 #	define IPV6_DROP_MEMBERSHIP IPV6_LEAVE_GROUP
 #endif
 
+#define IS_OPENED (m_socket != SLIB_SOCKET_INVALID_HANDLE)
+
 namespace slib
 {
 
@@ -270,7 +272,7 @@ namespace slib
 				socket = openTcp();
 			}
 			if (socket.isOpened()) {
-				if (socket.bind(bindAddress)) {
+				if (socket.bind(bindAddress, sl_false)) {
 					return socket;
 				}
 			}
@@ -283,7 +285,7 @@ namespace slib
 		if (bindAddress.port) {
 			Socket socket = openTcp_IPv6();
 			if (socket.isOpened()) {
-				if (socket.bind(bindAddress)) {
+				if (socket.bind(bindAddress, sl_true)) {
 					return socket;
 				}
 			}
@@ -359,7 +361,7 @@ namespace slib
 				socket = openUdp();
 			}
 			if (socket.isOpened()) {
-				if (socket.bind(bindAddress)) {
+				if (socket.bind(bindAddress, sl_false)) {
 					return socket;
 				}
 			}
@@ -372,7 +374,7 @@ namespace slib
 		if (bindAddress.port) {
 			Socket socket = openUdp_IPv6();
 			if (socket.isOpened()) {
-				if (socket.bind(bindAddress)) {
+				if (socket.bind(bindAddress, sl_true)) {
 					return socket;
 				}
 			}
@@ -449,7 +451,7 @@ namespace slib
 
 	sl_bool Socket::shutdown(SocketShutdownMode mode) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 			int ret = ::shutdown(m_socket, mode == SocketShutdownMode::Receive ? SD_RECEIVE : mode == SocketShutdownMode::Send ? SD_SEND : SD_BOTH);
 #else
@@ -468,7 +470,7 @@ namespace slib
 
 	sl_bool Socket::bind(const SocketAddress& address) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			sockaddr_storage addr;
 			if (address.ip.isNotNone()) {
 				int sizeAddr = (int)(address.getSystemSocketAddress(&addr));
@@ -484,20 +486,23 @@ namespace slib
 				}
 			} else {
 				SocketAddress addrAny;
-				addrAny.ip = IPv4Address::Any;
+				addrAny.ip = IPv6Address::zero();
 				addrAny.port = address.port;
 				int sizeAddr = (int)(addrAny.getSystemSocketAddress(&addr));
 				int ret = ::bind(m_socket, (sockaddr*)&addr, sizeAddr);
 				if (ret != SOCKET_ERROR) {
 					return sl_true;
 				} else {
-					addrAny.ip = IPv6Address::zero();
-					int sizeAddr = (int)(addrAny.getSystemSocketAddress(&addr));
-					int ret = ::bind(m_socket, (sockaddr*)&addr, sizeAddr);
-					if (ret != SOCKET_ERROR) {
-						return sl_true;
-					} else {
-						_checkError();
+					SocketError err = _checkError();
+					if (err == SocketError::AddressFamilyNotSupported) {
+						addrAny.ip = IPv4Address::Any;
+						int sizeAddr = (int)(addrAny.getSystemSocketAddress(&addr));
+						int ret = ::bind(m_socket, (sockaddr*)&addr, sizeAddr);
+						if (ret != SOCKET_ERROR) {
+							return sl_true;
+						} else {
+							_checkError();
+						}
 					}
 				}
 			}
@@ -507,9 +512,50 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool Socket::bind(const SocketAddress& address, sl_bool flagIPv6) const noexcept
+	{
+		if (IS_OPENED) {
+			sockaddr_storage addr;
+			int sizeAddr = 0;
+			if (address.ip.isNotNone()) {
+				if (flagIPv6) {
+					if (address.ip.isIPv6()) {
+						sizeAddr = (int)(address.getSystemSocketAddress(&addr));
+					}
+				} else {
+					if (address.ip.isIPv4()) {
+						sizeAddr = (int)(address.getSystemSocketAddress(&addr));
+					}
+				}
+			} else {
+				SocketAddress addrAny;
+				if (flagIPv6) {
+					addrAny.ip = IPv6Address::zero();
+				} else {
+					addrAny.ip = IPv4Address::Any;
+				}
+				addrAny.port = address.port;
+				sizeAddr = (int)(addrAny.getSystemSocketAddress(&addr));
+			}
+			if (sizeAddr) {
+				int ret = ::bind(m_socket, (sockaddr*)&addr, sizeAddr);
+				if (ret != SOCKET_ERROR) {
+					return sl_true;
+				} else {
+					_checkError();
+				}
+			} else {
+				_setError(SocketError::Invalid);
+			}
+		} else {
+			_setError(SocketError::Closed);
+		}
+		return sl_false;
+	}
+
 	sl_bool Socket::bind(const DomainSocketPath& path) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			sockaddr_un addr;
 			sl_uint32 len = path.getSystemSocketAddress(&addr);
 			if (len) {
@@ -541,7 +587,7 @@ namespace slib
 
 	sl_bool Socket::listen() const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			int ret = ::listen(m_socket, SOMAXCONN);
 			if (ret != SOCKET_ERROR) {
 				return sl_true;
@@ -561,7 +607,7 @@ namespace slib
 
 	sl_bool Socket::accept(Socket& socket, SocketAddress& address) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			sockaddr_storage addr = { 0 };
 			socklen_t len = sizeof(addr);
 			Socket client = ::accept(m_socket, (sockaddr*)&addr, &len);
@@ -590,7 +636,7 @@ namespace slib
 
 	sl_bool Socket::accept(Socket& socket, DomainSocketPath& path) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			sockaddr_un addr = { 0 };
 			socklen_t len = sizeof(addr);
 			Socket client = ::accept(m_socket, (sockaddr*)&addr, &len);
@@ -619,7 +665,7 @@ namespace slib
 
 	sl_bool Socket::connect(const SocketAddress& address, sl_bool* pFlagWouldBlock) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			sockaddr_storage addr;
 			int sizeAddr = address.getSystemSocketAddress(&addr);
 			if (sizeAddr) {
@@ -656,7 +702,7 @@ namespace slib
 
 	sl_bool Socket::connect(const DomainSocketPath& path, sl_bool* pFlagWouldBlock) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			sockaddr_un addr;
 			sl_uint32 sizeAddr = path.getSystemSocketAddress(&addr);
 			if (sizeAddr) {
@@ -693,7 +739,7 @@ namespace slib
 
 	sl_int32 Socket::send(const void* buf, sl_size size) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			if (size > 0x40000000) {
 				size = 0x40000000;
 			}
@@ -791,7 +837,7 @@ namespace slib
 
 	sl_int32 Socket::receive(void* buf, sl_size size) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			if (size > 0x40000000) {
 				size = 0x40000000;
 			}
@@ -888,7 +934,7 @@ namespace slib
 
 	sl_int32 Socket::sendTo(const SocketAddress& address, const void* buf, sl_size size) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			sockaddr_storage addr;
 			int sizeAddr = address.getSystemSocketAddress(&addr);
 			if (sizeAddr) {
@@ -925,7 +971,7 @@ namespace slib
 			}
 		}
 #endif
-		if (!(isOpened())) {
+		if (!IS_OPENED) {
 			_setError(SocketError::Closed);
 			return SLIB_IO_ERROR;
 		}
@@ -1009,7 +1055,7 @@ namespace slib
 
 	sl_int32 Socket::sendTo(const DomainSocketPath& path, const void* buf, sl_size size) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			sockaddr_un addr;
 			sl_uint32 sizeAddr = path.getSystemSocketAddress(&addr);
 			if (sizeAddr) {
@@ -1026,7 +1072,7 @@ namespace slib
 
 	sl_int32 Socket::receiveFrom(SocketAddress& address, void* buf, sl_size _size) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			int size = (int)_size;
 			if (!size) {
 				return SLIB_IO_EMPTY_CONTENT;
@@ -1088,7 +1134,7 @@ namespace slib
 			}
 		}
 #endif
-		if (!(isOpened())) {
+		if (!IS_OPENED) {
 			_setError(SocketError::Closed);
 			return SLIB_IO_ERROR;
 		}
@@ -1164,7 +1210,7 @@ namespace slib
 
 	sl_int32 Socket::receiveFrom(DomainSocketPath& path, void* buf, sl_size _size) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			int size = (int)_size;
 			if (!size) {
 				return SLIB_IO_EMPTY_CONTENT;
@@ -1190,7 +1236,7 @@ namespace slib
 	sl_int32 Socket::sendPacket(const void* buf, sl_size _size, const L2PacketInfo& info) const noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_LINUX)
-		if (isOpened()) {
+		if (IS_OPENED) {
 			int size = (int)_size;
 			if (!size) {
 				return SLIB_IO_EMPTY_CONTENT;
@@ -1220,7 +1266,7 @@ namespace slib
 	sl_int32 Socket::receivePacket(const void* buf, sl_size _size, L2PacketInfo& info) const noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_LINUX)
-		if (isOpened()) {
+		if (IS_OPENED) {
 			int size = (int)_size;
 			if (!size) {
 				return SLIB_IO_EMPTY_CONTENT;
@@ -1275,7 +1321,7 @@ namespace slib
 
 	sl_bool Socket::setNonBlockingMode(sl_bool flagEnable) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			if (SetNonBlocking(m_socket, flagEnable)) {
 				return sl_true;
 			}
@@ -1311,7 +1357,7 @@ namespace slib
 	sl_bool Socket::setPromiscuousMode(const StringParam& _deviceName, sl_bool flagEnable) const noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_LINUX)
-		if (isOpened()) {
+		if (IS_OPENED) {
 			StringCstr deviceName = _deviceName;
 			if (deviceName.isNotEmpty()) {
 				if (SetPromiscuousMode(m_socket, deviceName.getData(), flagEnable)) {
@@ -1327,7 +1373,7 @@ namespace slib
 
 	sl_bool Socket::getLocalAddress(SocketAddress& out) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			sockaddr_storage addr;
 			socklen_t size = sizeof(addr);
 			if (!(getsockname(m_socket, (sockaddr*)(&addr), &size))) {
@@ -1343,7 +1389,7 @@ namespace slib
 
 	sl_bool Socket::getRemoteAddress(SocketAddress& out) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			sockaddr_storage addr;
 			socklen_t size = sizeof(addr);
 			if (!(getpeername(m_socket, (sockaddr*)(&addr), &size))) {
@@ -1359,7 +1405,7 @@ namespace slib
 
 	sl_bool Socket::getLocalPath(DomainSocketPath& out) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			sockaddr_un addr;
 			socklen_t size = sizeof(addr);
 			if (!(getsockname(m_socket, (sockaddr*)(&addr), &size))) {
@@ -1375,7 +1421,7 @@ namespace slib
 
 	sl_bool Socket::getRemotePath(DomainSocketPath& out) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			sockaddr_un addr;
 			socklen_t size = sizeof(addr);
 			if (!(getpeername(m_socket, (sockaddr*)(&addr), &size))) {
@@ -1391,7 +1437,7 @@ namespace slib
 
 	sl_bool Socket::setOption(int level, int option, const void* buf, sl_uint32 bufSize) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			int ret = setsockopt(m_socket, level, option, (char*)buf, (int)bufSize);
 			if (ret != SOCKET_ERROR) {
 				return sl_true;
@@ -1402,7 +1448,7 @@ namespace slib
 
 	sl_bool Socket::getOption(int level, int option, void* buf, sl_uint32 bufSize) const noexcept
 	{
-		if (isOpened()) {
+		if (IS_OPENED) {
 			socklen_t len = (socklen_t)bufSize;
 			int ret = getsockopt(m_socket, level, option, (char*)buf, &len);
 			if (ret != SOCKET_ERROR) {
