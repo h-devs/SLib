@@ -658,12 +658,12 @@ namespace slib
 
 	HttpServerRoute* HttpServerRoute::createRoute(const String& path)
 	{
+		if (path.isEmpty()) {
+			return this;
+		}
 		sl_reg indexStart = 0;
 		if (path.startsWith('/')) {
 			indexStart = 1;
-		}
-		if (indexStart == path.getLength()) {
-			return this;
 		}
 		sl_reg indexSubpath = path.indexOf('/', indexStart);
 		String name;
@@ -719,12 +719,12 @@ namespace slib
 
 	HttpServerRoute* HttpServerRoute::getRoute(const String& path, HashMap<String, String>& parameters)
 	{
+		if (path.isEmpty()) {
+			return this;
+		}
 		sl_reg indexStart = 0;
 		if (path.startsWith('/')) {
 			indexStart = 1;
-		}
-		if (indexStart == path.getLength()) {
-			return this;
 		}
 		sl_reg indexSubpath = path.indexOf('/', indexStart);
 		String name;
@@ -1441,6 +1441,11 @@ namespace slib
 					return sl_true;
 				}
 				if (processFile(context, pathFile + "index.htm")) {
+					return sl_true;
+				}
+			} else {
+				if (File::isDirectory(pathFile)) {
+					context->setResponseRedirect(path + "/");
 					return sl_true;
 				}
 			}
