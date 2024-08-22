@@ -53,7 +53,7 @@ namespace slib
 			return ::CreatePipe(pRead, pWrite, &saAttr, 0) != 0;
 		}
 
-		static sl_bool Execute(const StringParam& _pathExecutable, const StringParam& _commandLine, PROCESS_INFORMATION* pi, STARTUPINFOW* si, DWORD flags, sl_bool flagInheritHandles)
+		static sl_bool Execute(const StringParam& _pathExecutable, const StringParam& _commandLine, const ProcessFlags& pf, PROCESS_INFORMATION* pi, STARTUPINFOW* si, DWORD flags, sl_bool flagInheritHandles)
 		{
 			StringCstr16 pathExecutable(_pathExecutable);
 			StringCstr16 cmd;
@@ -66,12 +66,16 @@ namespace slib
 				sb.addStatic(commandLine.getData(), commandLine.getLength());
 				cmd = sb.merge();
 			}
+			if (pf & ProcessFlags::HideWindow) {
+				si->wShowWindow = SW_HIDE;
+				si->dwFlags |= STARTF_USESHOWWINDOW;
+			}
 			return CreateProcessW(
 				(LPCWSTR)(pathExecutable.getData()),
 				(LPWSTR)(cmd.getData()),
 				NULL, // process security attributes
 				NULL, // thread security attributes
-				flagInheritHandles, // handles are inherited,
+				flagInheritHandles || (pf & ProcessFlags::InheritHandles),
 				flags,
 				NULL, // Environment (uses parent's environment)
 				NULL, // Current Directory (uses parent's current directory)
@@ -173,20 +177,14 @@ namespace slib
 					SetHandleInformation(hStdinWrite, HANDLE_FLAG_INHERIT, 0);
 					if (CreatePipe(&hStdoutRead, &hStdoutWrite)) {
 						SetHandleInformation(hStdoutRead, HANDLE_FLAG_INHERIT, 0);
-						PROCESS_INFORMATION pi;
-						Base::zeroMemory(&pi, sizeof(pi));
-						STARTUPINFOW si;
-						Base::zeroMemory(&si, sizeof(si));
+						PROCESS_INFORMATION pi = {0};
+						STARTUPINFOW si = {0};
 						si.cb = sizeof(si);
 						si.hStdInput = hStdinRead;
 						si.hStdOutput = hStdoutWrite;
 						si.hStdError = hStdoutWrite;
 						si.dwFlags = STARTF_USESTDHANDLES;
-						if (flags & ProcessFlags::HideWindow) {
-							si.wShowWindow = SW_HIDE;
-							si.dwFlags |= STARTF_USESHOWWINDOW;
-						}
-						if (Execute(pathExecutable, commandLine, &pi, &si, NORMAL_PRIORITY_CLASS, sl_true)) {
+						if (Execute(pathExecutable, commandLine, flags, &pi, &si, NORMAL_PRIORITY_CLASS, sl_true)) {
 							CloseHandle(pi.hThread);
 							CloseHandle(hStdinRead);
 							CloseHandle(hStdoutWrite);
@@ -415,18 +413,10 @@ namespace slib
 
 	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags)
 	{
-		PROCESS_INFORMATION pi;
-		ZeroMemory(&pi, sizeof(pi));
-
-		STARTUPINFOW si;
-		ZeroMemory(&si, sizeof(si));
+		PROCESS_INFORMATION pi = {0};
+		STARTUPINFOW si = {0};
 		si.cb = sizeof(si);
-		if (flags & ProcessFlags::HideWindow) {
-			si.wShowWindow = SW_HIDE;
-			si.dwFlags |= STARTF_USESHOWWINDOW;
-		}
-
-		if (Execute(pathExecutable, commandLine, &pi, &si, NORMAL_PRIORITY_CLASS | DETACHED_PROCESS, sl_false)) {
+		if (Execute(pathExecutable, commandLine, flags, &pi, &si, NORMAL_PRIORITY_CLASS | DETACHED_PROCESS, sl_false)) {
 			CloseHandle(pi.hThread);
 			Ref<ProcessImpl> ret = new ProcessImpl;
 			if (ret.isNotNull()) {

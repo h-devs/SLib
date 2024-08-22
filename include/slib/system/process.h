@@ -44,7 +44,8 @@ namespace slib
 	class IStream;
 
 	SLIB_DEFINE_FLAGS(ProcessFlags, {
-		HideWindow = 1
+		HideWindow = 1,
+		InheritHandles = 2
 	})
 
 	class SLIB_EXPORT Process : public Object
