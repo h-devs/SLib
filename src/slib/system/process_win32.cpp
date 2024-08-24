@@ -45,7 +45,6 @@ namespace slib
 
 	namespace
 	{
-
 		static sl_bool CreatePipe(HANDLE* pRead, HANDLE* pWrite)
 		{
 			SECURITY_ATTRIBUTES saAttr;
@@ -153,7 +152,6 @@ namespace slib
 					m_hWrite = INVALID_HANDLE_VALUE;
 				}
 			}
-
 		};
 
 		class ProcessImpl : public Process
@@ -277,9 +275,7 @@ namespace slib
 					m_hProcess = INVALID_HANDLE_VALUE;
 				}
 			}
-
 		};
-
 	}
 
 	List<sl_uint32> Process::getAllProcessIds()
@@ -432,11 +428,10 @@ namespace slib
 		pp.prepareArgumentString();
 		ShellExecuteParam sep;
 		sep.flagRunAsAdmin = sl_true;
-		if (!(pp.flags & ProcessFlags::NoWait)) {
-			sep.flagWait = sl_true;
-		}
 		sep.path = pp.executable;
 		sep.parameters = pp.argumentString;
+		sep.currentDirectory = pp.currentDirectory;
+		sep.flagWait = !(pp.flags & ProcessFlags::NoWait);
 		if (pp.flags & ProcessFlags::HideWindow) {
 			sep.nShow = SW_HIDE;
 		}
@@ -497,6 +492,9 @@ namespace slib
 	void Process::exec(const ProcessParam& param)
 	{
 		param.prepareArgumentList();
+		if (param.currentDirectory.isNotNull()) {
+			System::setCurrentDirectory(param.currentDirectory);
+		}
 		StringCstr pathExecutable(param.executable);
 		char* exe = pathExecutable.getData();
 		char* args[MAX_ARGUMENT_COUNT + 2];
@@ -526,7 +524,6 @@ namespace slib
 	{
 		::exit(code);
 	}
-
 
 	namespace
 	{

@@ -28,6 +28,7 @@
 
 #include "slib/system/system.h"
 #include "slib/io/file.h"
+#include "slib/core/command_line.h"
 #include "slib/core/handle_ptr.h"
 
 #include <stdlib.h>
@@ -46,10 +47,12 @@ namespace slib
 
 	namespace
 	{
-
 		static void Exec(const ProcessParam& param)
 		{
 			param.prepareArgumentList();
+			if (param.currentDirectory.isNotNull()) {
+				System::setCurrentDirectory(param.currentDirectory);
+			}
 			StringCstr executable(param.executable);
 			char* exe = executable.getData();
 			char* args[MAX_ARGUMENT_COUNT + 2];
@@ -257,9 +260,7 @@ namespace slib
 			{
 				return &m_stream;
 			}
-
 		};
-
 	}
 
 	sl_bool Process::kill(sl_uint32 processId)
@@ -331,9 +332,17 @@ namespace slib
 		arguments.add_NoLock(StringView::literal("env"));
 		arguments.add_NoLock(String::concat(StringView::literal("DISPLAY="), System::getEnvironmentVariable(StringView::literal("DISPLAY"))));
 		arguments.add_NoLock(String::concat(StringView::literal("XAUTHORITY="), System::getEnvironmentVariable(StringView::literal("XAUTHORITY"))));
-		arguments.add_NoLock(input.executable);
-		input.prepareArgumentList();
-		arguments.addElements_NoLock(input.arguments.getData(), input.arguments.getCount());
+		if (input.currentDirectory.isNotNull()) {
+			arguments.add_NoLock(StringView::literal("/bin/sh"));
+			arguments.add_NoLock(StringView::literal("-c"));
+			input.prepareArgumentString();
+			String command = String::concat(StringView::literal("cd "), CommandLine::makeSafeArgumentForUnix(input.currentDirectory), StringView::literal(" && "), CommandLine::makeSafeArgumentForUnix(input.executable), StringView::literal(" "), input.argumentString);
+			arguments.add_NoLock(Move(command));
+		} else {
+			arguments.add_NoLock(input.executable);
+			input.prepareArgumentList();
+			arguments.addElements_NoLock(input.arguments.getData(), input.arguments.getCount());
+		}
 		param.arguments = Move(arguments);
 		param.flags = input.flags;
 		if (input.flags & ProcessFlags::NoWait) {
