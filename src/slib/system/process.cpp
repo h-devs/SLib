@@ -24,10 +24,8 @@
 
 #include "slib/io/io.h"
 #include "slib/system/system.h"
-#include "slib/core/list.h"
 #include "slib/core/memory.h"
 #include "slib/core/command_line.h"
-#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {
@@ -56,8 +54,27 @@ namespace slib
 			return;
 		}
 		if (argumentString.isNotNull()) {
-			((ProcessParam*)this)->arguments = List<StringParam>::createCopy(CommandLine::parse(argumentString));
+			List<StringParam> argList;
+			ListElements<String> list(CommandLine::parse(argumentString));
+			for (sl_size i = 0; i < list.count; i++) {
+				argList.add_NoLock(Move(list[i]));
+			}
+			((ProcessParam*)this)->arguments = Move(argList);
 		}
+	}
+
+	void ProcessParam::setCommand(StringParam&& command)
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		executable = System::getSystemDirectory() + "\\cmd.exe";
+		argumentString = String::concat("/C ", command);
+#else
+		executable = StringView::literal("/bin/sh");
+		List<StringParam> argList;
+		argList.add_NoLock(StringView::literal("-c"));
+		argList.add_NoLock(Move(command));
+		arguments = Move(argList);
+#endif
 	}
 
 
@@ -126,14 +143,7 @@ namespace slib
 	{
 		ProcessParam param;
 		param.flags = flags;
-#ifdef SLIB_PLATFORM_IS_WIN32
-		param.executable = System::getSystemDirectory() + "\\cmd.exe";
-		param.argumentString = String::concat("/C ", command);
-#else
-		param.executable = "/bin/sh";
-		param.arguments.add("-c");
-		param.arguments.add(command);
-#endif
+		param.setCommand(command);
 		return run(param);
 	}
 
@@ -142,14 +152,7 @@ namespace slib
 		ProcessParam param;
 		param.flags = flags;
 		param.timeout = timeout;
-#ifdef SLIB_PLATFORM_IS_WIN32
-		param.executable = System::getSystemDirectory() + "\\cmd.exe";
-		param.argumentString = String::concat("/C ", command);
-#else
-		param.executable = "/bin/sh";
-		param.arguments.add("-c");
-		param.arguments.add(command);
-#endif
+		param.setCommand(command);
 		return getOutput(param);
 	}
 

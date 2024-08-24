@@ -38,6 +38,8 @@
 #include <process.h>
 #include <tlhelp32.h>
 
+#define MAX_ARGUMENT_COUNT 128
+
 namespace slib
 {
 
@@ -497,18 +499,20 @@ namespace slib
 		param.prepareArgumentList();
 		StringCstr pathExecutable(param.executable);
 		char* exe = pathExecutable.getData();
-		char* args[64];
-		StringCstr _args[60];
-		args[0] = exe;
-		ListElements<StringParam> arguments(param.arguments);
-		if (arguments.count > 60) {
-			arguments.count = 60;
+		char* args[MAX_ARGUMENT_COUNT + 2];
+		StringCstr _args[MAX_ARGUMENT_COUNT];
+		{
+			args[0] = exe;
+			ListElements<StringParam> list(param.arguments);
+			if (list.count > MAX_ARGUMENT_COUNT) {
+				list.count = MAX_ARGUMENT_COUNT;
+			}
+			for (sl_size i = 0; i < list.count; i++) {
+				_args[i] = list[i];
+				args[i + 1] = _args[i].getData();
+			}
+			args[list.count + 1] = 0;
 		}
-		for (sl_size i = 0; i < arguments.count; i++) {
-			_args[i] = arguments[i];
-			args[i + 1] = _args[i].getData();
-		}
-		args[arguments.count + 1] = 0;
 		_execvp(exe, args);
 		::abort();
 	}

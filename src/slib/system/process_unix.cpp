@@ -28,10 +28,7 @@
 
 #include "slib/system/system.h"
 #include "slib/io/file.h"
-#include "slib/core/command_line.h"
-#include "slib/core/list.h"
 #include "slib/core/handle_ptr.h"
-#include "slib/core/scoped_buffer.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -41,6 +38,8 @@
 #include <signal.h>
 
 #include <sys/wait.h>
+
+#define MAX_ARGUMENT_COUNT 128
 
 namespace slib
 {
@@ -53,19 +52,19 @@ namespace slib
 			param.prepareArgumentList();
 			StringCstr executable(param.executable);
 			char* exe = executable.getData();
-			char* args[64];
-			StringCstr _args[60];
+			char* args[MAX_ARGUMENT_COUNT + 2];
+			StringCstr _args[MAX_ARGUMENT_COUNT];
 			{
 				args[0] = exe;
 				ListElements<StringParam> list(param.arguments);
-				if (list.count > 60) {
-					list.count = 60;
+				if (list.count > MAX_ARGUMENT_COUNT) {
+					list.count = MAX_ARGUMENT_COUNT;
 				}
 				for (sl_size i = 0; i < list.count; i++) {
 					_args[i] = list[i];
 					args[i+1] = _args[i].getData();
 				}
-				args[nArguments+1] = 0;
+				args[list.count+1] = 0;
 			}
 			execvp(exe, args);
 			::abort();
@@ -141,22 +140,8 @@ namespace slib
 		class ProcessImpl : public Process
 		{
 		public:
-			pid_t m_pid;
+			pid_t m_pid = -1;
 			ProcessStream m_stream;
-
-		public:
-			ProcessImpl()
-			{
-				m_pid = -1;
-			}
-
-			~ProcessImpl()
-			{
-				if (m_pid != -1) {
-					int status = 0;
-					waitpid(m_pid, &status, WNOHANG | WUNTRACED | WCONTINUED);
-				}
-			}
 
 		public:
 			static Ref<ProcessImpl> create(const ProcessParam& param)
@@ -308,7 +293,7 @@ namespace slib
 			close(0);
 			close(1);
 			close(2);
-			int handle = ::open(StringView::literal("/dev/null"), O_RDWR);
+			int handle = ::open("/dev/null", O_RDWR);
 			if (handle >= 0) {
 				if (handle) {
 					dup2(handle, 0);
@@ -347,10 +332,8 @@ namespace slib
 		arguments.add_NoLock(String::concat(StringView::literal("DISPLAY="), System::getEnvironmentVariable(StringView::literal("DISPLAY"))));
 		arguments.add_NoLock(String::concat(StringView::literal("XAUTHORITY="), System::getEnvironmentVariable(StringView::literal("XAUTHORITY"))));
 		arguments.add_NoLock(input.executable);
-		{
-			ListElements<StringParam> list(input.arguments);
-			arguments.addElements_NoLock(list.data, list.count);
-		}
+		input.prepareArgumentList();
+		arguments.addElements_NoLock(input.arguments.getData(), input.arguments.getCount());
 		param.arguments = Move(arguments);
 		param.flags = input.flags;
 		if (input.flags & ProcessFlags::NoWait) {

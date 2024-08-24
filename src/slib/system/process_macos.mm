@@ -28,8 +28,6 @@
 
 #include "slib/core/app.h"
 #include "slib/core/string_buffer.h"
-#include "slib/core/command_line.h"
-#include "slib/core/scoped_buffer.h"
 #include "slib/platform.h"
 
 #include <sys/sysctl.h>

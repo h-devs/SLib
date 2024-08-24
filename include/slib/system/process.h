@@ -70,6 +70,14 @@ namespace slib
 
 		void prepareArgumentList() const;
 
+		void setCommand(StringParam&& command);
+
+		template <class T>
+		void setCommand(T&& command)
+		{
+			setCommand(StringParam(command));
+		}
+
 	};
 
 	class SLIB_EXPORT Process : public Object
