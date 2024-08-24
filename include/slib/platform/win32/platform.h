@@ -103,7 +103,7 @@ namespace slib
 	public:
 		StringParam operation;
 		StringParam path;
-		StringParam params;
+		StringParam parameters;
 		sl_bool flagRunAsAdmin; // `shellExecute` returns sl_false if the user refused the elevation
 		sl_bool flagWait;
 		StringParam currentDirectory;

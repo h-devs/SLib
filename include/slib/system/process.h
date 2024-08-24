@@ -27,6 +27,7 @@
 
 #include "../core/object.h"
 #include "../core/string.h"
+#include "../core/list.h"
 #include "../core/flags.h"
 
 namespace slib
@@ -45,8 +46,31 @@ namespace slib
 
 	SLIB_DEFINE_FLAGS(ProcessFlags, {
 		HideWindow = 1,
-		InheritHandles = 2
+		InheritHandles = 2,
+		NoWait = 4 // Used in `runAsAdmin()`
 	})
+
+	class SLIB_EXPORT ProcessParam
+	{
+	public:
+		StringParam executable;
+		ListParam<StringParam> arguments;
+		StringParam argumentString;
+		StringParam currentDirectory;
+		ProcessFlags flags;
+		sl_int32 timeout; // Used for `getOutput()`
+
+	public:
+		ProcessParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ProcessParam)
+
+	public:
+		void prepareArgumentString() const;
+
+		void prepareArgumentList() const;
+
+	};
 
 	class SLIB_EXPORT Process : public Object
 	{
@@ -73,43 +97,46 @@ namespace slib
 		static sl_bool quit(sl_uint32 processId);
 
 
-		static Ref<Process> openBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags = 0);
+		static Ref<Process> open(const ProcessParam& param);
 
-		static Ref<Process> openBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags = 0);
-
-		static Ref<Process> open(const StringParam& pathExecutable);
+		static Ref<Process> open(const StringParam& executable);
 
 		template <class ARG, class... ARGS>
-		static Ref<Process> open(const StringParam& pathExecutable, ARGS&&... args)
+		static Ref<Process> open(const StringParam& executable, ARGS&&... _args)
 		{
-			StringParam params[] = { Forward<ARGS>(args)... };
-			return openBy(pathExecutable, params, sizeof...(args));
+			StringParam args[] = { Forward<ARGS>(_args)... };
+			ProcessParam param;
+			param.executable = executable;
+			param.arguments = args;
+			return open(param);
 		}
 
-		static Ref<Process> runBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags = 0);
+		static Ref<Process> run(const ProcessParam& param);
 
-		static Ref<Process> runBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags = 0);
-
-		static Ref<Process> run(const StringParam& pathExecutable);
+		static Ref<Process> run(const StringParam& executable);
 
 		template <class... ARGS>
-		static Ref<Process> run(const StringParam& pathExecutable, ARGS&&... args)
+		static Ref<Process> run(const StringParam& executable, ARGS&&... _args)
 		{
-			StringParam params[] = { Forward<ARGS>(args)... };
-			return runBy(pathExecutable, params, sizeof...(args));
+			StringParam args[] = { Forward<ARGS>(_args)... };
+			ProcessParam param;
+			param.executable = executable;
+			param.arguments = args;
+			return run(param);
 		}
 
-		static void runAsAdminBy(const StringParam& pathExecutable, const StringParam& commandLine);
+		static void runAsAdmin(const ProcessParam& param);
 
-		static void runAsAdminBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs);
-
-		static void runAsAdmin(const StringParam& pathExecutable);
+		static void runAsAdmin(const StringParam& executable);
 
 		template <class... ARGS>
-		static void runAsAdmin(const StringParam& pathExecutable, ARGS&&... args)
+		static void runAsAdmin(const StringParam& executable, ARGS&&... _args)
 		{
-			StringParam params[] = { Forward<ARGS>(args)... };
-			return runAsAdminBy(pathExecutable, params, sizeof...(args));
+			StringParam args[] = { Forward<ARGS>(_args)... };
+			ProcessParam param;
+			param.executable = executable;
+			param.arguments = args;
+			runAsAdmin(param);
 		}
 
 		// check administrative privilege (effective root user on Unix)
@@ -117,38 +144,39 @@ namespace slib
 
 		static sl_bool isCurrentProcessInAdminGroup();
 
-		static String getOutputBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags = 0, sl_int32 timeout = -1);
+		static String getOutput(const ProcessParam& param);
 
-		static String getOutputBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags = 0, sl_int32 timeout = -1);
-
-		static String getOutput(const StringParam& pathExecutable);
+		static String getOutput(const StringParam& executable);
 
 		template <class... ARGS>
-		static String getOutput(const StringParam& pathExecutable, ARGS&&... args)
+		static String getOutput(const StringParam& executable, ARGS&&... _args)
 		{
-			StringParam params[] = { Forward<ARGS>(args)... };
-			return getOutputBy(pathExecutable, params, sizeof...(args));
+			StringParam args[] = { Forward<ARGS>(_args)... };
+			ProcessParam param;
+			param.executable = executable;
+			param.arguments = args;
+			return getOutput(param);
 		}
 
-		static void runCommand(const StringParam& command, const ProcessFlags& flags = 0);
+		static Ref<Process> runCommand(const StringParam& command, const ProcessFlags& flags = 0);
 
 		static String getCommandOutput(const StringParam& command, const ProcessFlags& flags = 0, sl_int32 timeout = -1);
 
 		// replace current process context
-		static void execBy(const StringParam& pathExecutable, const StringParam& commandLine);
+		static void exec(const ProcessParam& param);
 
 		// replace current process context
-		static void execBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs);
-
-		// replace current process context
-		static void exec(const StringParam& pathExecutable);
+		static void exec(const StringParam& executable);
 
 		// replace current process context
 		template <class... ARGS>
-		static void exec(const StringParam& pathExecutable, ARGS&&... args)
+		static void exec(const StringParam& executable, ARGS&&... _args)
 		{
-			StringParam params[] = { Forward<ARGS>(args)... };
-			return execBy(pathExecutable, params, sizeof...(args));
+			StringParam args[] = { Forward<ARGS>(_args)... };
+			ProcessParam param;
+			param.executable = executable;
+			param.arguments = args;
+			exec(param);
 		}
 
 		static void exit(int code);
