@@ -791,6 +791,38 @@ namespace slib
 		return ret;
 	}
 
+	HashMap<String, String> System::getEnvironmentVariables()
+	{
+		HashMap<String, String> ret;
+		LPWCH env = GetEnvironmentStringsW();
+		if (env) {
+			WCHAR* s = env;
+			for (;;) {
+				WCHAR c = *s;
+				if (!c) {
+					break;
+				}
+				WCHAR* e = s;
+				WCHAR* v = NULL;
+				do {
+					if (!v) {
+						if (c == '=') {
+							v = e + 1;
+						}
+					}
+					e++;
+					c = *e;
+				} while (c);
+				if (v) {
+					ret.add_NoLock(String::from(s, v - 1 - s), String::from(v, e - v));
+				}
+				s = e + 1;
+			}
+			FreeEnvironmentStringsW(env);
+		}
+		return ret;
+	}
+
 	String System::getEnvironmentVariable(const StringParam& _name)
 	{
 		if (_name.isNull()) {

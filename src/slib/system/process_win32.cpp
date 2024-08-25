@@ -68,6 +68,28 @@ namespace slib
 				sb.addStatic(args.getData(), args.getLength());
 				cmd = sb.merge();
 			}
+			String16 env;
+			if (param.environment.isNotNull()) {
+				StringBuffer16 sb;
+				HashMapNode<String, String>* node = param.environment.getFirstNode();
+				while (node) {
+					if (node->key.isNotEmpty()) {
+						sb.add(String16::from(node->key));
+						sb.addStatic(u"=");
+						sb.add(String16::from(node->value));
+						sb.addStatic(u"\0");
+					}
+					node = node->getNext();
+				}
+				if (sb.isEmpty()) {
+					SLIB_STATIC_STRING16(empty, "\0\0")
+					env = empty;
+				} else {
+					sb.addStatic(u"\0");
+					env = sb.merge();
+				}
+				flags |= CREATE_UNICODE_ENVIRONMENT;
+			}
 			if (param.flags & ProcessFlags::HideWindow) {
 				si->wShowWindow = SW_HIDE;
 				si->dwFlags |= STARTF_USESHOWWINDOW;
@@ -75,13 +97,13 @@ namespace slib
 			StringCstr16 currentDirectory(param.currentDirectory);
 			return CreateProcessW(
 				(LPCWSTR)(executable.getData()),
-				(LPWSTR)(cmd.getData()),
+				cmd ? (LPWSTR)(cmd.getData()) : NULL,
 				NULL, // process security attributes
 				NULL, // thread security attributes
 				flagInheritHandles || (param.flags & ProcessFlags::InheritHandles),
 				flags,
-				NULL, // Environment (uses parent's environment)
-				param.currentDirectory.isNotNull() ? (LPCWSTR)(currentDirectory.getData()) : sl_null,
+				env ? env.getData() : NULL,
+				param.currentDirectory.isNotNull() ? (LPCWSTR)(currentDirectory.getData()) : NULL,
 				si,
 				pi) != 0;
 		}

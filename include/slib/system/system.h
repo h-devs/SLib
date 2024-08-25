@@ -36,6 +36,12 @@ namespace slib
 
 	template <class T>
 	class List;
+	template <class KT, class VT, class HASH, class KEY_COMPARE>
+	class HashMap;
+	template <class T>
+	class Hash;
+	template <class T1, class T2>
+	class Compare;
 
 	typedef void (*SIGNAL_HANDLER)(int signal);
 	typedef sl_bool(*DEBUG_ALLOC_HOOK)(void* ptr, sl_size size, sl_uint32 requestNumber);
@@ -178,6 +184,8 @@ namespace slib
 
 		static String formatErrorCode(sl_uint32 errorCode);
 
+
+		static HashMap< String, String, Hash<String>, Compare<String, String> > getEnvironmentVariables();
 
 		static String getEnvironmentVariable(const StringParam& name);
 

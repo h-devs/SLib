@@ -27,7 +27,7 @@
 
 #include "../core/object.h"
 #include "../core/string.h"
-#include "../core/list.h"
+#include "../core/hash_map.h"
 #include "../core/flags.h"
 
 namespace slib
@@ -57,8 +57,9 @@ namespace slib
 		ListParam<StringParam> arguments;
 		StringParam argumentString;
 		StringParam currentDirectory;
+		HashMap<String, String> environment; // Used in `open()`, `run()`, `getOutput()`
 		ProcessFlags flags;
-		sl_int32 timeout; // Used for `getOutput()`
+		sl_int32 timeout; // Used in `getOutput()`
 
 	public:
 		ProcessParam();
