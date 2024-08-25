@@ -385,17 +385,28 @@ namespace slib
 	String Socket::getTypeText(SocketType type) noexcept
 	{
 		switch (type) {
-			case SocketType::Stream:			SLIB_RETURN_STRING("Stream/IPv4")
-			case SocketType::Datagram:			SLIB_RETURN_STRING("Datagram/IPv4")
-			case SocketType::Raw:				SLIB_RETURN_STRING("Raw/IPv4")
-			case SocketType::StreamIPv6:		SLIB_RETURN_STRING("Stream/IPv6")
-			case SocketType::DatagramIPv6:		SLIB_RETURN_STRING("Datagram/IPv6")
-			case SocketType::RawIPv6:			SLIB_RETURN_STRING("Raw/IPv6")
-			case SocketType::DomainStream:		SLIB_RETURN_STRING("Stream/Domain")
-			case SocketType::DomainDatagram:	SLIB_RETURN_STRING("Datagram/Domain")
-			case SocketType::PacketRaw:			SLIB_RETURN_STRING("Raw/Packet")
-			case SocketType::PacketDatagram:	SLIB_RETURN_STRING("Datagram/Packet")
-			default:							SLIB_RETURN_STRING("None")
+			case SocketType::Stream:
+				SLIB_RETURN_STRING("Stream/IPv4")
+			case SocketType::Datagram:
+				SLIB_RETURN_STRING("Datagram/IPv4")
+			case SocketType::Raw:
+				SLIB_RETURN_STRING("Raw/IPv4")
+			case SocketType::StreamIPv6:
+				SLIB_RETURN_STRING("Stream/IPv6")
+			case SocketType::DatagramIPv6:
+				SLIB_RETURN_STRING("Datagram/IPv6")
+			case SocketType::RawIPv6:
+				SLIB_RETURN_STRING("Raw/IPv6")
+			case SocketType::DomainStream:
+				SLIB_RETURN_STRING("Stream/Domain")
+			case SocketType::DomainDatagram:
+				SLIB_RETURN_STRING("Datagram/Domain")
+			case SocketType::PacketRaw:
+				SLIB_RETURN_STRING("Raw/Packet")
+			case SocketType::PacketDatagram:
+				SLIB_RETURN_STRING("Datagram/Packet")
+			default:
+				SLIB_RETURN_STRING("None")
 		}
 	}
 
@@ -1754,60 +1765,60 @@ namespace slib
 	String Socket::getErrorMessage(SocketError error) noexcept
 	{
 		switch (error) {
-		case SocketError::None:
-			return sl_null;
-		case SocketError::NetworkDown:
-			SLIB_RETURN_STRING("NETDOWN - Network is down")
-		case SocketError::NetworkReset:
-			SLIB_RETURN_STRING("NETRESET - Network dropped connection on reset")
-		case SocketError::ConnectionReset:
-			SLIB_RETURN_STRING("CONNRESET - Connection reset by peer")
-		case SocketError::ConnectionAbort:
-			SLIB_RETURN_STRING("CONNABORTED - Software caused connection abort")
-		case SocketError::ConnectionRefused:
-			SLIB_RETURN_STRING("CONNREFUSED - Connection refused")
-		case SocketError::Timeout:
-			SLIB_RETURN_STRING("TIMEOUT - Connection timed out")
-		case SocketError::NotSocket:
-			SLIB_RETURN_STRING("NOTSOCK - Socket operation on nonsocket")
-		case SocketError::AddressAlreadyInUse:
-			SLIB_RETURN_STRING("ADDRINUSE - Address already in use")
-		case SocketError::NoBufs:
-			SLIB_RETURN_STRING("NOBUFS - No buffer space available")
-		case SocketError::NoMem:
-			SLIB_RETURN_STRING("NOMEM - Insufficient memory available")
-		case SocketError::InProgress:
-			SLIB_RETURN_STRING("INPROGRESS - Operation now in progress")
-		case SocketError::DestinationAddressRequired:
-			SLIB_RETURN_STRING("DESTADDRREQ - Destination address required")
-		case SocketError::ProtocolFamilyNotSupported:
-			SLIB_RETURN_STRING("PFNOSUPPORT - Protocol family not supported")
-		case SocketError::AddressFamilyNotSupported:
-			SLIB_RETURN_STRING("AFNOSUPPORT - Address family not supported by protocol family")
-		case SocketError::AddressNotAvailable:
-			SLIB_RETURN_STRING("ADDRNOTAVAIL - Cannot assign requested address")
-		case SocketError::NotConnected:
-			SLIB_RETURN_STRING("NOTCONN - Socket is not connected")
-		case SocketError::Shutdown:
-			SLIB_RETURN_STRING("SHUTDOWN - Cannot send after socket shutdown")
-		case SocketError::Access:
-			SLIB_RETURN_STRING("ACCESS - Permission denied")
-		case SocketError::NotPermitted:
-			SLIB_RETURN_STRING("EPERM - Operation not permitted")
-		case SocketError::Invalid:
-			SLIB_RETURN_STRING("EINVAL - An invalid argument was supplied")
-		case SocketError::Fault:
-			SLIB_RETURN_STRING("EFAULT - Invalid pointer address")
-		case SocketError::Interrupted:
-			SLIB_RETURN_STRING("EINTR - Operation is interrupted")
-		case SocketError::Closed:
-			SLIB_RETURN_STRING("Closed Socket")
-		case SocketError::UnexpectedResult:
-			SLIB_RETURN_STRING("Unexpected Result")
-		case SocketError::NotSupported:
-			SLIB_RETURN_STRING("Not Supported")
-		default:
-			break;
+			case SocketError::None:
+				return sl_null;
+			case SocketError::NetworkDown:
+				SLIB_RETURN_STRING("NETDOWN - Network is down")
+			case SocketError::NetworkReset:
+				SLIB_RETURN_STRING("NETRESET - Network dropped connection on reset")
+			case SocketError::ConnectionReset:
+				SLIB_RETURN_STRING("CONNRESET - Connection reset by peer")
+			case SocketError::ConnectionAbort:
+				SLIB_RETURN_STRING("CONNABORTED - Software caused connection abort")
+			case SocketError::ConnectionRefused:
+				SLIB_RETURN_STRING("CONNREFUSED - Connection refused")
+			case SocketError::Timeout:
+				SLIB_RETURN_STRING("TIMEOUT - Connection timed out")
+			case SocketError::NotSocket:
+				SLIB_RETURN_STRING("NOTSOCK - Socket operation on nonsocket")
+			case SocketError::AddressAlreadyInUse:
+				SLIB_RETURN_STRING("ADDRINUSE - Address already in use")
+			case SocketError::NoBufs:
+				SLIB_RETURN_STRING("NOBUFS - No buffer space available")
+			case SocketError::NoMem:
+				SLIB_RETURN_STRING("NOMEM - Insufficient memory available")
+			case SocketError::InProgress:
+				SLIB_RETURN_STRING("INPROGRESS - Operation now in progress")
+			case SocketError::DestinationAddressRequired:
+				SLIB_RETURN_STRING("DESTADDRREQ - Destination address required")
+			case SocketError::ProtocolFamilyNotSupported:
+				SLIB_RETURN_STRING("PFNOSUPPORT - Protocol family not supported")
+			case SocketError::AddressFamilyNotSupported:
+				SLIB_RETURN_STRING("AFNOSUPPORT - Address family not supported by protocol family")
+			case SocketError::AddressNotAvailable:
+				SLIB_RETURN_STRING("ADDRNOTAVAIL - Cannot assign requested address")
+			case SocketError::NotConnected:
+				SLIB_RETURN_STRING("NOTCONN - Socket is not connected")
+			case SocketError::Shutdown:
+				SLIB_RETURN_STRING("SHUTDOWN - Cannot send after socket shutdown")
+			case SocketError::Access:
+				SLIB_RETURN_STRING("ACCESS - Permission denied")
+			case SocketError::NotPermitted:
+				SLIB_RETURN_STRING("EPERM - Operation not permitted")
+			case SocketError::Invalid:
+				SLIB_RETURN_STRING("EINVAL - An invalid argument was supplied")
+			case SocketError::Fault:
+				SLIB_RETURN_STRING("EFAULT - Invalid pointer address")
+			case SocketError::Interrupted:
+				SLIB_RETURN_STRING("EINTR - Operation is interrupted")
+			case SocketError::Closed:
+				SLIB_RETURN_STRING("Closed Socket")
+			case SocketError::UnexpectedResult:
+				SLIB_RETURN_STRING("Unexpected Result")
+			case SocketError::NotSupported:
+				SLIB_RETURN_STRING("Not Supported")
+			default:
+				break;
 		}
 		if (error >= SocketError::Unknown) {
 			return "Unknown System Error: " + String::fromUint32((sl_uint32)error - (sl_uint32)(SocketError::Unknown));
