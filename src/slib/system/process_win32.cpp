@@ -69,9 +69,18 @@ namespace slib
 				cmd = sb.merge();
 			}
 			String16 env;
-			if (param.environment.isNotNull()) {
+			if (param.environment.isNotNull() || (param.flags & ProcessFlags::ResetEnvironment)) {
+				HashMap<String, String> newEnv;
+				const HashMap<String, String>* pEnv;
+				if (param.flags & ProcessFlags::ResetEnvironment) {
+					pEnv = &(param.environment);
+				} else {
+					newEnv = System::getEnvironmentVariables();
+					newEnv.putAll_NoLock(param.environment);
+					pEnv = &newEnv;
+				}
 				StringBuffer16 sb;
-				HashMapNode<String, String>* node = param.environment.getFirstNode();
+				HashMapNode<String, String>* node = pEnv->getFirstNode();
 				while (node) {
 					if (node->key.isNotEmpty()) {
 						sb.add(String16::from(node->key));
@@ -79,7 +88,7 @@ namespace slib
 						sb.add(String16::from(node->value));
 						sb.addStatic(u"\0");
 					}
-					node = node->getNext();
+					node = node->next;
 				}
 				if (sb.isEmpty()) {
 					SLIB_STATIC_STRING16(empty, "\0\0")
