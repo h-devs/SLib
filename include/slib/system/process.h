@@ -47,7 +47,8 @@ namespace slib
 	SLIB_DEFINE_FLAGS(ProcessFlags, {
 		HideWindow = 1,
 		InheritHandles = 2,
-		NoWait = 4 // Used in `runAsAdmin()`
+		NoWait = 4, // Used in `runAsAdmin()`
+		ResetEnvironment = 8 // Not supported in `runAsAdmin()`
 	})
 
 	class SLIB_EXPORT ProcessParam
@@ -57,7 +58,7 @@ namespace slib
 		ListParam<StringParam> arguments;
 		StringParam argumentString;
 		StringParam currentDirectory;
-		HashMap<String, String> environment; // Used in `open()`, `run()`, `getOutput()`
+		HashMap<String, String> environment; // Not supported in `runAsAdmin()`
 		ProcessFlags flags;
 		sl_int32 timeout; // Used in `getOutput()`
 

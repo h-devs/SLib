@@ -53,6 +53,18 @@ namespace slib
 			if (param.currentDirectory.isNotNull()) {
 				System::setCurrentDirectory(param.currentDirectory);
 			}
+			if (param.flags & ProcessFlags::ResetEnvironment) {
+				clearenv();
+			}
+			if (param.environment.isNotNull()) {
+				HashMapNode<String, String>* node = param.environment.getFirstNode();
+				while (node) {
+					StringCstr name(node->key);
+					StringCstr value(node->value);
+					setenv(name.getData(), value.getData(), 1);
+					node = node->next;
+				}
+			}
 			StringCstr executable(param.executable);
 			char* exe = executable.getData();
 			char* args[MAX_ARGUMENT_COUNT + 2];
