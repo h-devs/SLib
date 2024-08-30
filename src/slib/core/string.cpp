@@ -4425,12 +4425,11 @@ namespace slib
 	}
 
 #define DEFINE_STRING_CONTAINER_IMPL(CONTAINER) \
-	SLIB_INLINE sl_reg CONTAINER::increaseReference() noexcept \
+	SLIB_INLINE void CONTAINER::increaseReference_NoSync() noexcept \
 	{ \
 		if (ref >= 0) { \
-			return CRef::increaseReference(ref); \
+			CRef::increaseReference_NoSync(ref); \
 		} \
-		return -1; \
 	} \
 	\
 	SLIB_INLINE sl_reg CONTAINER::decreaseReference() noexcept \
@@ -4475,7 +4474,7 @@ namespace slib
 		m_lock.lock(); \
 		Container* container = m_container; \
 		if (container) { \
-			container->increaseReference(); \
+			container->increaseReference_NoSync(); \
 		} \
 		m_lock.unlock(); \
 		return container; \
@@ -4503,7 +4502,7 @@ namespace slib
 	{ \
 		Container* container = src.m_container; \
 		if (container) { \
-			container->increaseReference(); \
+			container->increaseReference_NoSync(); \
 		} \
 		m_container= container; \
 	} \
@@ -6032,7 +6031,7 @@ DEFINE_ATOMIC_STRING_FUNC_IMPL(String32)
 		Container* container = other.m_container; \
 		if (m_container != container) { \
 			if (container) { \
-				container->increaseReference(); \
+				container->increaseReference_NoSync(); \
 			} \
 			_replaceContainer(container); \
 		} \

@@ -65,6 +65,15 @@ namespace slib
 		}
 	}
 
+	void CRef::increaseReference_NoSync(volatile sl_reg& refCount) noexcept
+	{
+		if (refCount) {
+			Base::interlockedIncrement_Relaxed(&refCount);
+		} else {
+			refCount = 1;
+		}
+	}
+
 	sl_reg CRef::decreaseReference(volatile sl_reg& refCount) noexcept
 	{
 		sl_reg n = refCount;
@@ -86,6 +95,16 @@ namespace slib
 			m_nRefCount = 1;
 			init();
 			return 1;
+		}
+	}
+
+	void CRef::increaseReference_NoSync() noexcept
+	{
+		if (m_nRefCount) {
+			Base::interlockedIncrement_Relaxed(&m_nRefCount);
+		} else {
+			m_nRefCount = 1;
+			init();
 		}
 	}
 

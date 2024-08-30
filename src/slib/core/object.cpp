@@ -92,7 +92,7 @@ namespace slib
 	void Object::setOnFree(const Function<void()>& callback)
 	{
 		m_onFree = callback.ref.ptr;
-		((Callable<void()>*)m_onFree)->increaseReference();
+		((Callable<void()>*)m_onFree)->increaseReference_NoSync();
 	}
 
 	Variant Object::getProperty(const String& name)

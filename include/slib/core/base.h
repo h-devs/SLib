@@ -127,19 +127,29 @@ namespace slib
 
 		// Interlocked Functions (Synchronization of Atom Operations)
 		static sl_int32 interlockedIncrement32(volatile sl_int32* pValue) noexcept;
+		static sl_int32 interlockedIncrement32_Relaxed(volatile sl_int32* pValue) noexcept;
 		static sl_int32 interlockedDecrement32(volatile sl_int32* pValue) noexcept;
+		static sl_int32 interlockedDecrement32_Relaxed(volatile sl_int32* pValue) noexcept;
 		static sl_int32 interlockedAdd32(volatile sl_int32* pDst, sl_int32 value) noexcept;
+		static sl_int32 interlockedAdd32_Relaxed(volatile sl_int32* pDst, sl_int32 value) noexcept;
 		static sl_bool interlockedCompareExchange32(volatile sl_int32* pDst, sl_int32 value, sl_int32 comparand) noexcept;
 		static sl_int64 interlockedIncrement64(volatile sl_int64* pValue) noexcept;
+		static sl_int64 interlockedIncrement64_Relaxed(volatile sl_int64* pValue) noexcept;
 		static sl_int64 interlockedDecrement64(volatile sl_int64* pValue) noexcept;
+		static sl_int64 interlockedDecrement64_Relaxed(volatile sl_int64* pValue) noexcept;
 		static sl_int64 interlockedAdd64(volatile sl_int64* pDst, sl_int64 value) noexcept;
+		static sl_int64 interlockedAdd64_Relaxed(volatile sl_int64* pDst, sl_int64 value) noexcept;
 		static sl_bool interlockedCompareExchange64(volatile sl_int64* pDst, sl_int64 value, sl_int64 comparand) noexcept;
 
 		static sl_reg interlockedIncrement(volatile sl_reg* pValue) noexcept;
+		static sl_reg interlockedIncrement_Relaxed(volatile sl_reg* pValue) noexcept;
 		static sl_reg interlockedDecrement(volatile sl_reg* pValue) noexcept;
+		static sl_reg interlockedDecrement_Relaxed(volatile sl_reg* pValue) noexcept;
 		static sl_reg interlockedAdd(volatile sl_reg* pDst, sl_reg value) noexcept;
+		static sl_reg interlockedAdd_Relaxed(volatile sl_reg* pDst, sl_reg value) noexcept;
 		static sl_bool interlockedCompareExchange(volatile sl_reg* pDst, sl_reg value, sl_reg comparand) noexcept;
 		static void* interlockedAddPtr(volatile void** pDst, sl_reg value) noexcept;
+		static void* interlockedAddPtr_Relaxed(volatile void** pDst, sl_reg value) noexcept;
 		static sl_bool interlockedCompareExchangePtr(volatile void** pDst, const void* value, const void* comparand) noexcept;
 
 	};

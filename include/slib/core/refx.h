@@ -215,7 +215,7 @@ namespace slib
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		T* o = other.ptr;
 		if (o) {
-			o->increaseReference();
+			o->increaseReference_NoSync();
 		}
 		ptr = o;
 	}
@@ -226,7 +226,7 @@ namespace slib
 	{
 		T* o = other;
 		if (o) {
-			o->increaseReference();
+			o->increaseReference_NoSync();
 		}
 		ptr = o;
 	}
@@ -255,7 +255,7 @@ namespace slib
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		T* o = other.ptr;
 		if (o) {
-			o->increaseReference();
+			o->increaseReference_NoSync();
 		}
 		_ptr = o;
 	}
@@ -266,7 +266,7 @@ namespace slib
 	{
 		T* o = other;
 		if (o) {
-			o->increaseReference();
+			o->increaseReference_NoSync();
 		}
 		_ptr = o;
 	}

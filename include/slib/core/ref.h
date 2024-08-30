@@ -224,9 +224,13 @@ namespace slib
 	public:
 		static sl_reg increaseReference(volatile sl_reg& refCount) noexcept;
 
+		static void increaseReference_NoSync(volatile sl_reg& refCount) noexcept;
+
 		static sl_reg decreaseReference(volatile sl_reg& refCount) noexcept;
 
 		sl_reg increaseReference() noexcept;
+
+		void increaseReference_NoSync() noexcept;
 
 		sl_reg decreaseReference() noexcept;
 
@@ -293,7 +297,7 @@ namespace slib
 		Ref(T* other) noexcept
 		{
 			if (other) {
-				other->increaseReference();
+				other->increaseReference_NoSync();
 			}
 			ptr = other;
 		}
@@ -308,7 +312,7 @@ namespace slib
 		{
 			T* o = other.ptr;
 			if (o) {
-				o->increaseReference();
+				o->increaseReference_NoSync();
 			}
 			ptr = o;
 		}
@@ -326,7 +330,7 @@ namespace slib
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 			T* o = other.ptr;
 			if (o) {
-				o->increaseReference();
+				o->increaseReference_NoSync();
 			}
 			ptr = o;
 		}
@@ -578,7 +582,7 @@ namespace slib
 		{
 			if (ptr != other) {
 				if (other) {
-					other->increaseReference();
+					other->increaseReference_NoSync();
 				}
 				_replace(other);
 			}
@@ -609,7 +613,7 @@ namespace slib
 		Atomic(T* other) noexcept
 		{
 			if (other) {
-				other->increaseReference();
+				other->increaseReference_NoSync();
 			}
 			_ptr = other;
 		}
@@ -651,7 +655,7 @@ namespace slib
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 			T* o = other.ptr;
 			if (o) {
-				o->increaseReference();
+				o->increaseReference_NoSync();
 			}
 			_ptr = o;
 		}
@@ -876,7 +880,7 @@ namespace slib
 			m_lock.lock();
 			T* o = _ptr;
 			if (o) {
-				o->increaseReference();
+				o->increaseReference_NoSync();
 			}
 			m_lock.unlock();
 			return o;
@@ -897,7 +901,7 @@ namespace slib
 		{
 			if (_ptr != other) {
 				if (other) {
-					other->increaseReference();
+					other->increaseReference_NoSync();
 				}
 				_replace(other);
 			}

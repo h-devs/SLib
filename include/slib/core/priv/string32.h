@@ -44,7 +44,7 @@ namespace slib
 		volatile sl_reg ref;
 
 	public:
-		sl_reg increaseReference() noexcept;
+		void increaseReference_NoSync() noexcept;
 
 		sl_reg decreaseReference() noexcept;
 

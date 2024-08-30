@@ -43,7 +43,7 @@ public: \
 	{ \
 		Container* o = other.container; \
 		if (o) { \
-			o->increaseReference(); \
+			o->increaseReference_NoSync(); \
 		} \
 		container = o; \
 	} \
@@ -85,7 +85,7 @@ public: \
 		Container* o = other.container; \
 		if (container != o) { \
 			if (o) { \
-				o->increaseReference(); \
+				o->increaseReference_NoSync(); \
 			} \
 			_replace(o); \
 		} \
@@ -154,7 +154,7 @@ public: \
 	{ \
 		Container* o = other.container; \
 		if (o) { \
-			o->increaseReference(); \
+			o->increaseReference_NoSync(); \
 		} \
 		_container = o; \
 	} \
@@ -204,7 +204,7 @@ public: \
 			return sl_true; \
 		} else { \
 			if (before) { \
-				before->increaseReference(); \
+				before->increaseReference_NoSync(); \
 			} \
 			m_lock.unlock(); \
 			if (expected.container) { \
@@ -242,7 +242,7 @@ public: \
 		Container* o = other.container; \
 		if (_container != o) { \
 			if (o) { \
-				o->increaseReference(); \
+				o->increaseReference_NoSync(); \
 			} \
 			_replace(o); \
 		} \
@@ -293,7 +293,7 @@ public: \
 		m_lock.lock(); \
 		Container* p = _container; \
 		if (p) { \
-			p->increaseReference(); \
+			p->increaseReference_NoSync(); \
 		} \
 		m_lock.unlock(); \
 		return p; \
@@ -344,9 +344,9 @@ namespace slib
 				ValueContainer(ARGS&&... args) noexcept: value(Forward<ARGS>(args)...), refCount(1) {}
 
 			public:
-				sl_reg increaseReference() noexcept
+				void increaseReference_NoSync() noexcept
 				{
-					return CRef::increaseReference(refCount);
+					CRef::increaseReference_NoSync(refCount);
 				}
 
 				sl_reg decreaseReference()
@@ -401,9 +401,9 @@ namespace slib
 				virtual ~PtrContainer();
 
 			public:
-				sl_reg increaseReference() noexcept
+				void increaseReference_NoSync() noexcept
 				{
-					return CRef::increaseReference(refCount);
+					CRef::increaseReference_NoSync(refCount);
 				}
 
 				sl_reg decreaseReference()
