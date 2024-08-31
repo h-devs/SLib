@@ -767,7 +767,7 @@ namespace slib
 			if (clip.flagTransform) {
 				r.transform(clip.transform.inverse());
 			}
-			if (!(rect.intersectRectangle(r, &rect))) {
+			if (!(rect.intersect(r, &rect))) {
 				return Rectangle::zero();
 			}
 		}
@@ -778,7 +778,7 @@ namespace slib
 	{
 		RenderCanvasState* state = m_state.get();
 		if (state->flagClipRect) {
-			state->clipRect.intersectRectangle(rect, &(state->clipRect));
+			state->clipRect.intersect(rect, &(state->clipRect));
 		} else {
 			state->flagClipRect = sl_true;
 			state->clipRect = rect;
@@ -1061,7 +1061,7 @@ namespace slib
 
 		Rectangle rect = _rect;
 		if (state->flagClipRect) {
-			if (!(state->clipRect.intersectRectangle(rect, &rect))) {
+			if (!(state->clipRect.intersect(rect, &rect))) {
 				return;
 			}
 		}
@@ -1102,7 +1102,7 @@ namespace slib
 
 		if (brush.isNotNull()) {
 			if (state->flagClipRect) {
-				if (!(state->clipRect.intersectRectangle(rect, sl_null))) {
+				if (!(state->clipRect.intersect(rect, sl_null))) {
 					return;
 				}
 			}
@@ -1290,7 +1290,7 @@ namespace slib
 		sl_real sh = (sl_real)(texture->getHeight());
 		if (state->flagClipRect) {
 			Rectangle rectIntersectClip;
-			if (state->clipRect.intersectRectangle(rectDst, &rectIntersectClip)) {
+			if (state->clipRect.intersect(rectDst, &rectIntersectClip)) {
 				if (!(rectDst.isAlmostEqual(rectIntersectClip))) {
 					rectSrc = GraphicsUtil::transformRectangle(rectSrc, rectDst, rectIntersectClip);
 					rectDst = rectIntersectClip;
@@ -1485,7 +1485,7 @@ namespace slib
 						if (state->clipRect.right <= fx) {
 							return;
 						}
-						if (state->clipRect.intersectRectangle(rcDst, &rcClip)) {
+						if (state->clipRect.intersect(rcDst, &rcClip)) {
 							if (!fontItalic) {
 								if (!(state->clipRect.containsRectangle(rcDst))) {
 									flagClip = sl_true;

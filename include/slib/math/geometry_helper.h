@@ -24,7 +24,9 @@
 #define CHECKHEADER_SLIB_MATH_POLYGON_HELPER
 
 #include "triangle.h"
+
 #include "../core/list.h"
+#include "../math.h"
 
 namespace slib
 {
@@ -35,18 +37,17 @@ namespace slib
 		template <class T>
 		static List< TriangleT<T> > splitPolygonToTriangles(const PointT<T>* points, sl_size nPoints)
 		{
-			sl_bool flagConvex;
-			{
-				List< TriangleT<T> > ret;
-				if (!(_splitPolygonToTriangles(ret, points, nPoints, sl_true, sl_false, flagConvex))) {
-					return sl_null;
-				}
-				if (flagConvex) {
-					return ret;
-				}
+			if (nPoints < 3) {
+				return sl_null;
 			}
 			List< TriangleT<T> > ret;
-			if (!(_splitPolygonToTriangles(ret, points, nPoints, sl_false, sl_true, flagConvex))) {
+			if (nPoints == 3) {
+				if (!ret.add_NoLock(points[0], points[1], points[2])) {
+					return sl_null;
+				}
+				return ret;
+			}
+			if (!(_splitPolygonToTriangles(ret, points, nPoints))) {
 				return sl_null;
 			}
 			return ret;
@@ -54,92 +55,108 @@ namespace slib
 
 	private:
 		template <class T>
-		static sl_bool _splitPolygonToTriangles(List< TriangleT<T> >& ret, const PointT<T>* _points, sl_size _nPoints, sl_bool flagClockWise, sl_bool flagFillHollow, sl_bool& outFlagConvex)
+		static sl_bool _splitPolygonToTriangles(List< TriangleT<T> >& ret, const PointT<T>* _points, sl_size _nPoints)
 		{
-			outFlagConvex = sl_false;
 			List<Point> pointList;
+			List<LineSegment> lineList;
 			{
 				for (sl_size i = 0; i < _nPoints; i++) {
+					LineSegment line;
+					line.point1 = _points[i];
+					line.point2 = _points[(i + 1) % _nPoints];
+
+					if (!(lineList.add_NoLock(line))) {
+						return sl_false;
+					}
+
 					if (!(pointList.add_NoLock(_points[i]))) {
 						return sl_false;
 					}
 				}
 			}
-			sl_bool flagConvex = sl_true;
-			sl_size indexBase = 0;
-			for (;;) {
-				ListElements<Point> pts(pointList);
-				if (pts.count < 3) {
-					break;
-				}
-				if (indexBase + 2 >= pts.count) {
-					flagConvex = sl_false;
-					if (flagFillHollow) {
-						Point ptBase = *(pts.data);
-						for (sl_size i = 1; i + 1 < pts.count; i++) {
-							if (flagClockWise) {
-								if (!(ret.add_NoLock(ptBase, pts[i + 1], pts[i]))) {
-									return sl_false;
-								}
-							} else {
-								if (!(ret.add_NoLock(ptBase, pts[i], pts[i + 1]))) {
-									return sl_false;
-								}
-							}
-						}
-					}
-					break;
-				}
-				Point ptBase = pts[indexBase];
-				sl_size indexInvalid = 0;
-				{
-					for (sl_size i = indexBase + 1; i + 1 < pts.count; i++) {
-						if (_isValidTriangle(ptBase, pts[i], pts[i + 1], flagClockWise)) {
-							if (flagClockWise) {
-								if (!(ret.add_NoLock(ptBase, pts[i], pts[i + 1]))) {
-									return sl_false;
-								}
-							} else {
-								if (!(ret.add_NoLock(ptBase, pts[i + 1], pts[i]))) {
-									return sl_false;
-								}
-							}
-						} else {
-							indexInvalid = i;
-							break;
-						}
+
+			// check if pointlist can form a right polygon.
+			{
+				sl_bool isPolygon = sl_true;
+				for (sl_size i = 1; i < _nPoints - 2; i++) {
+					if (lineList[i].intersect(lineList[_nPoints - 1], sl_null)) {
+						isPolygon = sl_false;
+						break;
 					}
 				}
-				if (indexInvalid == indexBase + 1) {
-					indexBase = indexInvalid;
-				} else {
-					if (indexInvalid) {
-						if (!(pointList.removeRange_NoLock(indexBase + 1, indexInvalid - indexBase - 1))) {
-							return sl_false;
-						}
-					} else {
-						if (!(pointList.removeRange_NoLock(indexBase + 1, pts.count - indexBase - 2))) {
-							return sl_false;
-						}
-					}
-					if (indexBase) {
-						indexBase--;
-					}
+				if (!isPolygon) {
+					return sl_false;
 				}
 			}
-			outFlagConvex = flagConvex;
+
+			// ear cutting algorithm.
+			while (pointList.getCount() > 3) {
+
+				sl_size initCount = pointList.getCount();
+
+				for (sl_reg i = 0; i < pointList.getCount(); i++) {
+
+					// point_1, point_2, point_3 : three vertex of focused triangle.
+					// point_0 : located just before point_1 in list.
+
+					sl_bool earCondition1 = sl_false;
+					sl_bool earCondition2 = sl_true;
+
+					sl_reg point_0 = (i - 1) < 0 ? (pointList.getCount() - 1) : (i - 1);
+					sl_reg point_1 = i;
+					sl_reg point_2 = (i + 1) % pointList.getCount();
+					sl_reg point_3 = (i + 2) % pointList.getCount();
+
+					{
+						Vector2 v1 = pointList[point_2] - pointList[point_1];
+						Vector2 v2 = pointList[point_0] - pointList[point_1];
+						Vector2 v3 = pointList[point_3] - pointList[point_1];
+
+						sl_real angle_v1v2 = v1.getAngleBetween(v2);
+						sl_real angle_v1v3 = v1.getAngleBetween(v3);
+						sl_real angle_v3v2 = v3.getAngleBetween(v2);
+
+						angle_v1v2 = angle_v1v2 < 0 ? 2 * SLIB_PI + angle_v1v2 : angle_v1v2;
+						angle_v1v3 = angle_v1v3 < 0 ? 2 * SLIB_PI + angle_v1v3 : angle_v1v3;
+						angle_v3v2 = angle_v3v2 < 0 ? 2 * SLIB_PI + angle_v3v2 : angle_v3v2;
+
+						if (Math::abs(angle_v1v2 - angle_v1v3 - angle_v3v2) < 0.0001f) {
+							earCondition1 = sl_true;
+						}
+					}
+					{
+						LineSegment earLine;
+						earLine.point1 = pointList[point_1];
+						earLine.point2 = pointList[point_3];
+						for (sl_size i = 0; i < lineList.getCount(); i++) {
+							Point intersectPoint;
+							if (earLine.intersect(lineList[i], &intersectPoint)) {
+								if (intersectPoint.isAlmostEqual(earLine.point1) || intersectPoint.isAlmostEqual(earLine.point2)) {
+									continue;
+								}
+								earCondition2 = sl_false;
+								break;
+							}
+						}
+
+					}
+					if (earCondition1 && earCondition2) {
+						if (!ret.add_NoLock(pointList[point_1], pointList[point_2], pointList[point_3])) {
+							return sl_false;
+						}
+						Point temp;
+						pointList.removeAt_NoLock(point_2);
+						break;
+					}
+				}
+				sl_size changedCount = pointList.getCount();
+				if (initCount == changedCount) break;
+			}
+			if (!(ret.add_NoLock(pointList[0], pointList[1], pointList[2]))) {
+				return sl_false;
+			}
 			return sl_true;
 		}
-
-		static sl_bool _isValidTriangle(const Point& pt1, const Point& pt2, const Point& pt3, sl_bool flagCW)
-		{
-			if (flagCW) {
-				return Triangle::getCross(pt1, pt2, pt3) >= 0;
-			} else {
-				return Triangle::getCross(pt1, pt2, pt3) <= 0;
-			}
-		}
-
 	};
 
 }
