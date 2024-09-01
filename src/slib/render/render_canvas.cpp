@@ -928,7 +928,7 @@ namespace slib
 			}
 		}
 
-		sl_real angle = Math::arctan((pt1.y - pt2.y) / (pt1.x - pt2.x));
+		sl_real angle = Math::arctan2(pt1.y - pt2.y, pt1.x - pt2.x);
 		sl_real c = Math::cos(-angle);
 		sl_real s = Math::sin(-angle);
 

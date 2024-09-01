@@ -154,7 +154,7 @@ namespace slib
 			ip[1] = 1;
 			if (nw > 2) {
 				nwh = nw >> 1;
-				delta = Math::arctan((sl_real)1) / nwh;
+				delta = SLIB_PI_QUARTER / (sl_real)nwh;
 				w[0] = 1;
 				w[1] = 0;
 				w[nwh] = Math::cos(delta * (sl_real)nwh);
@@ -698,7 +698,7 @@ namespace slib
 			ip[1] = nc;
 			if (nc > 1) {
 				nch = nc >> 1;
-				delta = Math::arctan((sl_real)1) / nch;
+				delta = SLIB_PI_QUARTER / (sl_real)nch;
 				c[0] = Math::cos(delta * (sl_real)nch);
 				c[nch] = 0.5f * c[0];
 				for (j = 1; j < nch; j++) {
