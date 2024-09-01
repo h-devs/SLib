@@ -346,7 +346,7 @@ namespace slib
 		static CList* createFromElements(ARGS&&... _values) noexcept
 		{
 			T values[] = {Forward<ARGS>(_values)...};
-			return create(values, sizeof...(_values));
+			return createByMovingElements(values, sizeof...(_values));
 		}
 
 		template <class VALUE>
@@ -1503,7 +1503,7 @@ namespace slib
 		static List createFromElements(ARGS&&... args) noexcept
 		{
 			T values[] = {Forward<ARGS>(args)...};
-			return CList<T>::create(values, sizeof...(args));
+			return CList<T>::createByMovingElements(values, sizeof...(args));
 		}
 
 		template <class VALUE>

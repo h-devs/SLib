@@ -24,13 +24,59 @@
 
 #include "slib/io/io.h"
 #include "slib/system/system.h"
-#include "slib/core/list.h"
 #include "slib/core/memory.h"
 #include "slib/core/command_line.h"
-#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ProcessParam)
+
+	ProcessParam::ProcessParam()
+	{
+		timeout = -1;
+	}
+
+	void ProcessParam::prepareArgumentString() const
+	{
+		if (argumentString.isNotNull()) {
+			return;
+		}
+		if (arguments.isNotNull()) {
+			ListElements<StringParam> list(arguments);
+			((ProcessParam*)this)->argumentString = CommandLine::build(list.data, list.count);
+		}
+	}
+
+	void ProcessParam::prepareArgumentList() const
+	{
+		if (arguments.isNotNull()) {
+			return;
+		}
+		if (argumentString.isNotNull()) {
+			List<StringParam> argList;
+			ListElements<String> list(CommandLine::parse(argumentString));
+			for (sl_size i = 0; i < list.count; i++) {
+				argList.add_NoLock(Move(list[i]));
+			}
+			((ProcessParam*)this)->arguments = Move(argList);
+		}
+	}
+
+	void ProcessParam::setCommand(StringParam&& command)
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		executable = System::getSystemDirectory() + "\\cmd.exe";
+		argumentString = String::concat("/C ", command);
+#else
+		executable = StringView::literal("/bin/sh");
+		List<StringParam> argList;
+		argList.add_NoLock(StringView::literal("-c"));
+		argList.add_NoLock(Move(command));
+		arguments = Move(argList);
+#endif
+	}
+
 
 	SLIB_DEFINE_OBJECT(Process, Object)
 
@@ -52,89 +98,69 @@ namespace slib
 		return m_exitStatus;
 	}
 
-	Ref<Process> Process::open(const StringParam& pathExecutable)
+	Ref<Process> Process::open(const StringParam& executable)
 	{
-		return openBy(pathExecutable, sl_null, 0);
+		ProcessParam param;
+		param.executable = executable;
+		return open(param);
 	}
 
-	Ref<Process> Process::run(const StringParam& pathExecutable)
+	Ref<Process> Process::run(const StringParam& executable)
 	{
-		return runBy(pathExecutable, sl_null, 0);
+		ProcessParam param;
+		param.executable = executable;
+		return run(param);
 	}
 
-	void Process::runAsAdmin(const StringParam& pathExecutable)
+	void Process::runAsAdmin(const StringParam& executable)
 	{
-		runAsAdminBy(pathExecutable, sl_null);
+		ProcessParam param;
+		param.executable = executable;
+		runAsAdmin(param);
 	}
 
-	String Process::getOutputBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags, sl_int32 timeout)
+	String Process::getOutput(const ProcessParam& param)
 	{
-		Ref<Process> process = openBy(pathExecutable, commandLine, flags);
+		Ref<Process> process = open(param);
 		if (process.isNotNull()) {
 			IStream* stream = process->getStream();
 			if (stream) {
-				Memory mem = stream->readFully(SLIB_SIZE_MAX, 0, timeout);
+				Memory mem = stream->readFully(SLIB_SIZE_MAX, 0, param.timeout);
 				return String::fromMemory(mem);
 			}
 		}
 		return sl_null;
 	}
 
-	String Process::getOutputBy(const StringParam& pathExecutable, const StringParam* args, sl_size nArgs, const ProcessFlags& flags, sl_int32 timeout)
+	String Process::getOutput(const StringParam& executable)
 	{
-		Ref<Process> process = openBy(pathExecutable, args, nArgs, flags);
-		if (process.isNotNull()) {
-			IStream* stream = process->getStream();
-			if (stream) {
-				Memory mem = stream->readFully(SLIB_SIZE_MAX, 0, timeout);
-				return String::fromMemory(mem);
-			}
-		}
-		return sl_null;
+		ProcessParam param;
+		param.executable = executable;
+		return getOutput(param);
 	}
 
-	String Process::getOutput(const StringParam& pathExecutable)
+	Ref<Process> Process::runCommand(const StringParam& command, const ProcessFlags& flags)
 	{
-		return getOutputBy(pathExecutable, sl_null, 0);
-	}
-
-	void Process::runCommand(const StringParam& command, const ProcessFlags& flags)
-	{
-#ifdef SLIB_PLATFORM_IS_WIN32
-		runBy(System::getSystemDirectory() + "\\cmd.exe", String::concat("/C ", command), flags);
-#else
-		StringParam args[] = { "-c", command };
-		runBy("/bin/sh", args, 2, flags);
-#endif
+		ProcessParam param;
+		param.flags = flags;
+		param.setCommand(command);
+		return run(param);
 	}
 
 	String Process::getCommandOutput(const StringParam& command, const ProcessFlags& flags, sl_int32 timeout)
 	{
-#ifdef SLIB_PLATFORM_IS_WIN32
-		return getOutputBy(System::getSystemDirectory() + "\\cmd.exe", String::concat("/C ", command), flags, timeout);
-#else
-		StringParam args[] = { "-c", command };
-		return getOutputBy("/bin/sh", args, 2, flags, timeout);
-#endif
+		ProcessParam param;
+		param.flags = flags;
+		param.timeout = timeout;
+		param.setCommand(command);
+		return getOutput(param);
 	}
 
-	void Process::execBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	void Process::exec(const StringParam& executable)
 	{
-		ListElements<String> args(CommandLine::parse(commandLine));
-		if (!(args.count)) {
-			execBy(pathExecutable, sl_null, 0);
-			return;
-		}
-		SLIB_SCOPED_BUFFER(StringParam, 64, params, args.count)
-		for (sl_size i = 0; i < args.count; i++) {
-			params[i] = args[i];
-		}
-		execBy(pathExecutable, params, args.count);
-	}
-
-	void Process::exec(const StringParam& pathExecutable)
-	{
-		execBy(pathExecutable, sl_null);
+		ProcessParam param;
+		param.executable = executable;
+		return exec(param);
 	}
 
 #if !defined(SLIB_PLATFORM_IS_MACOS)

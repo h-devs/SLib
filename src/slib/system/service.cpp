@@ -287,9 +287,10 @@ namespace slib
 			}
 			if (!(Process::isCurrentProcessAdmin())) {
 				if (flagRequireAdmin) {
-					List<StringParam> args;
-					args.addAll_NoLock(getArguments().slice_NoLock(1));
-					Process::runAsAdminBy(getApplicationPath(), args.getData(), args.getCount());
+					ProcessParam param;
+					param.executable = getExecutablePath();
+					param.arguments = List<StringParam>::createCopy(getArguments().slice_NoLock(1));
+					Process::runAsAdmin(param);
 					return 0;
 				} else {
 					Log(TAG, "RUN AS ADMIN!");

@@ -28,8 +28,6 @@
 
 #include "slib/core/app.h"
 #include "slib/core/string_buffer.h"
-#include "slib/core/command_line.h"
-#include "slib/core/scoped_buffer.h"
 #include "slib/platform.h"
 
 #include <sys/sysctl.h>
@@ -40,7 +38,7 @@ namespace slib
 	namespace {
 
 		static id g_activityDisableAppNap;
-	
+
 		static String FixArgument(const StringParam& arg)
 		{
 			String s = arg.toString();
@@ -56,7 +54,7 @@ namespace slib
 			return s;
 		}
 
-		static String BuildCommand(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+		static String BuildCommand(const ProcessParam& param)
 		{
 			StringBuffer commandLine;
 			commandLine.add(FixArgument(pathExecutable.toString()));
@@ -166,27 +164,18 @@ namespace slib
 		return sl_false;
 	}
 
-	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags)
-	{
-		ListElements<String> args(CommandLine::parse(commandLine));
-		if (!(args.count)) {
-			return runBy(pathExecutable, sl_null, 0);
-		}
-		SLIB_SCOPED_BUFFER(StringParam, 64, params, args.count)
-		for (sl_size i = 0; i < args.count; i++) {
-			params[i] = args[i];
-		}
-		return runBy(pathExecutable, params, args.count, flags);
-	}
-
-	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam* strArguments, sl_size nArguments, const ProcessFlags& flags)
+	Ref<Process> Process::run(const ProcessParam& param)
 	{
 		@try {
+			param.prepareArgumentList();
 			NSMutableArray* arguments = [NSMutableArray array];
-			for (sl_uint32 i = 0; i < nArguments; i++) {
-				[arguments addObject:(Apple::getNSStringFromString(strArguments[i]))];
+			{
+				ListElements<StringParam> list(param.arguments);
+				for (sl_size i = 0; i < list.count; i++) {
+					[arguments addObject:(Apple::getNSStringFromString(list[i]))];
+				}
 			}
-			NSTask* task = [NSTask launchedTaskWithLaunchPath:(Apple::getNSStringFromString(pathExecutable)) arguments:arguments];
+			NSTask* task = [NSTask launchedTaskWithLaunchPath:(Apple::getNSStringFromString(param.executable)) arguments:arguments];
 			if (task != nil) {
 				Ref<TaskProcessImpl> ret = new TaskProcessImpl;
 				if (ret.isNotNull()) {
@@ -202,14 +191,9 @@ namespace slib
 		return sl_null;
 	}
 
-	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	void Process::runAsAdmin(const ProcessParam& param)
 	{
-		Apple::runAppleScript(String::concat("do shell script \"", FixArgument(pathExecutable.toString()), " ", commandLine, "\" with administrator privileges"));
-	}
-
-	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
-	{
-		String command = BuildCommand(pathExecutable, arguments, nArguments);
+		String command = BuildCommand(param);
 		Apple::runAppleScript(String::concat("do shell script \"", command, "\" with administrator privileges"));
 	}
 

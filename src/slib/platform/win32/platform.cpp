@@ -179,8 +179,8 @@ namespace slib
 		}
 		StringCstr16 path(param.path);
 		sei.lpFile = (LPCWSTR)(path.getData());
-		StringCstr16 params(param.params);
-		if (param.params.isNotEmpty()) {
+		StringCstr16 params(param.parameters);
+		if (param.parameters.isNotEmpty()) {
 			sei.lpParameters = (LPCWSTR)(params.getData());
 		}
 		StringCstr16 currentDirectory(param.currentDirectory);

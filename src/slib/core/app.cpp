@@ -164,7 +164,10 @@ namespace slib
 				List<StringParam> args;
 				args.addAll_NoLock(app->getArguments());
 				if (args.isNotEmpty()) {
-					Process::execBy(app->getExecutablePath(), args.getData() + 1, args.getCount() - 1);
+					ProcessParam param;
+					param.executable = app->getExecutablePath();
+					param.arguments = args.slice_NoLock(1);
+					Process::exec(param);
 				} else {
 					Process::exec(app->getExecutablePath());
 				}
@@ -568,49 +571,97 @@ Microsoft Specific
 		}
 	}
 
+	namespace
+	{
+		template <class STRING>
+		static String BuildCommandLine(const STRING* argv, sl_size argc)
+		{
+			if (!argc) {
+				return sl_null;
+			}
+			StringBuffer buf;
+			for (sl_size i = 0; i < argc; i++) {
+				if (i > 0) {
+					buf.addStatic(" ");
+				}
+				buf.add(CommandLine::makeSafeArgument(argv[i]));
+			}
+			return buf.merge();
+		}
+	}
+
 	String CommandLine::build(const StringParam* argv, sl_size argc)
 	{
-		if (!argc) {
-			return sl_null;
-		}
-		StringBuffer buf;
-		for (sl_size i = 0; i < argc; i++) {
-			if (i > 0) {
-				buf.addStatic(" ");
+		return BuildCommandLine(argv, argc);
+	}
+
+	String CommandLine::build(const String* argv, sl_size argc)
+	{
+		return BuildCommandLine(argv, argc);
+	}
+
+	namespace
+	{
+		template <class STRING>
+		static String BuildCommandLineForWin32(const STRING* argv, sl_size argc)
+		{
+			if (!argc) {
+				return sl_null;
 			}
-			buf.add(makeSafeArgument(argv[i]));
+			StringBuffer buf;
+			for (sl_size i = 0; i < argc; i++) {
+				if (i > 0) {
+					buf.addStatic(" ");
+				}
+				buf.add(CommandLine::makeSafeArgumentForWin32(argv[i]));
+			}
+			return buf.merge();
 		}
-		return buf.merge();
 	}
 
 	String CommandLine::buildForWin32(const StringParam* argv, sl_size argc)
 	{
-		StringBuffer buf;
-		for (sl_size i = 0; i < argc; i++) {
-			if (i > 0) {
-				buf.addStatic(" ");
+		return BuildCommandLineForWin32(argv, argc);
+	}
+
+	String CommandLine::buildForWin32(const String* argv, sl_size argc)
+	{
+		return BuildCommandLineForWin32(argv, argc);
+	}
+
+	namespace
+	{
+		template <class STRING>
+		static String BuildCommandLineForUnix(const STRING* argv, sl_size argc)
+		{
+			if (!argc) {
+				return sl_null;
 			}
-			buf.add(makeSafeArgumentForWin32(argv[i]));
+			StringBuffer buf;
+			for (sl_size i = 0; i < argc; i++) {
+				if (i > 0) {
+					buf.addStatic(" ");
+				}
+				buf.add(CommandLine::makeSafeArgumentForUnix(argv[i]));
+			}
+			return buf.merge();
 		}
-		return buf.merge();
 	}
 
 	String CommandLine::buildForUnix(const StringParam* argv, sl_size argc)
 	{
-		StringBuffer buf;
-		for (sl_size i = 0; i < argc; i++) {
-			if (i > 0) {
-				buf.addStatic(" ");
-			}
-			buf.add(makeSafeArgumentForUnix(argv[i]));
-		}
-		return buf.merge();
+		return BuildCommandLineForUnix(argv, argc);
 	}
 
-	String CommandLine::build(const StringParam& pathExecutable, const StringParam* argv, sl_size argc)
+	String CommandLine::buildForUnix(const String* argv, sl_size argc)
+	{
+		return BuildCommandLineForUnix(argv, argc);
+	}
+
+	String CommandLine::build(const StringParam& executable, const StringParam* argv, sl_size argc)
 	{
 		StringBuffer buf;
-		buf.add(makeSafeArgument(pathExecutable));
+		buf.add(makeSafeArgument(executable));
 		for (sl_size i = 0; i < argc; i++) {
 			buf.addStatic(" ");
 			buf.add(makeSafeArgument(argv[i]));
@@ -618,10 +669,10 @@ Microsoft Specific
 		return buf.merge();
 	}
 
-	String CommandLine::buildForWin32(const StringParam& pathExecutable, const StringParam* argv, sl_size argc)
+	String CommandLine::buildForWin32(const StringParam& executable, const StringParam* argv, sl_size argc)
 	{
 		StringBuffer buf;
-		buf.add(makeSafeArgumentForWin32(pathExecutable));
+		buf.add(makeSafeArgumentForWin32(executable));
 		for (sl_size i = 0; i < argc; i++) {
 			buf.addStatic(" ");
 			buf.add(makeSafeArgumentForWin32(argv[i]));
@@ -629,10 +680,10 @@ Microsoft Specific
 		return buf.merge();
 	}
 
-	String CommandLine::buildForUnix(const StringParam& pathExecutable, const StringParam* argv, sl_size argc)
+	String CommandLine::buildForUnix(const StringParam& executable, const StringParam* argv, sl_size argc)
 	{
 		StringBuffer buf;
-		buf.add(makeSafeArgumentForUnix(pathExecutable));
+		buf.add(makeSafeArgumentForUnix(executable));
 		for (sl_size i = 0; i < argc; i++) {
 			buf.addStatic(" ");
 			buf.add(makeSafeArgumentForUnix(argv[i]));

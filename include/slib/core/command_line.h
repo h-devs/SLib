@@ -44,6 +44,7 @@ namespace slib
 		static String makeSafeArgumentForUnix(const StringParam& arg);
 
 		static String build(const StringParam* argv, sl_size argc);
+		static String build(const String* argv, sl_size argc);
 
 		template <class... ARGS>
 		static String build(const StringParam& arg0, const StringParam& arg1, ARGS&&... args)
@@ -53,6 +54,7 @@ namespace slib
 		}
 
 		static String buildForWin32(const StringParam* argv, sl_size argc);
+		static String buildForWin32(const String* argv, sl_size argc);
 
 		template <class... ARGS>
 		static String buildForWin32(const StringParam& arg0, const StringParam& arg1, ARGS&&... args)
@@ -62,6 +64,7 @@ namespace slib
 		}
 
 		static String buildForUnix(const StringParam* argv, sl_size argc);
+		static String buildForUnix(const String* argv, sl_size argc);
 
 		template <class... ARGS>
 		static String buildForUnix(const StringParam& arg0, const StringParam& arg1, ARGS&&... args)
@@ -70,11 +73,11 @@ namespace slib
 			return buildForUnix(params, 2 + sizeof...(args));
 		}
 
-		static String build(const StringParam& pathExecutable, const StringParam* argv = sl_null, sl_size argc = 0);
+		static String build(const StringParam& executable, const StringParam* argv = sl_null, sl_size argc = 0);
 
-		static String buildForWin32(const StringParam& pathExecutable, const StringParam* argv = sl_null, sl_size argc = 0);
+		static String buildForWin32(const StringParam& executable, const StringParam* argv = sl_null, sl_size argc = 0);
 
-		static String buildForUnix(const StringParam& pathExecutable, const StringParam* argv = sl_null, sl_size argc = 0);
+		static String buildForUnix(const StringParam& executable, const StringParam* argv = sl_null, sl_size argc = 0);
 
 	};
 

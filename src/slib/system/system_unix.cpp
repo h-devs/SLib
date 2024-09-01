@@ -463,6 +463,37 @@ namespace slib
 		return ret;
 	}
 
+	HashMap<String, String> System::getEnvironmentVariables()
+	{
+		HashMap<String, String> ret;
+		char** env = environ;
+		for (;;) {
+			char* s = *env;
+			if (!s) {
+				break;
+			}
+			char* e = s;
+			char* v = sl_null;
+			for (;;) {
+				char c = *e;
+				if (!c) {
+					break;
+				}
+				if (!v) {
+					if (c == '=') {
+						v = e + 1;
+					}
+				}
+				e++;
+			}
+			if (v) {
+				ret.add_NoLock(String::from(s, v - 1 - s), String::from(v, e - v));
+			}
+			env++;
+		}
+		return ret;
+	}
+
 	String System::getEnvironmentVariable(const StringParam& _name)
 	{
 		if (_name.isNull()) {
@@ -478,7 +509,6 @@ namespace slib
 			return sl_false;
 		}
 		StringCstr name(_name);
-		StringCstr value(_value);
 		if (_value.isNotNull()) {
 			StringCstr value(_value);
 			return !(setenv(name.getData(), value.getData(), 1));

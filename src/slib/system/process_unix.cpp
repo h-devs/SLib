@@ -29,9 +29,7 @@
 #include "slib/system/system.h"
 #include "slib/io/file.h"
 #include "slib/core/command_line.h"
-#include "slib/core/list.h"
 #include "slib/core/handle_ptr.h"
-#include "slib/core/scoped_buffer.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,28 +40,47 @@
 
 #include <sys/wait.h>
 
+#define MAX_ARGUMENT_COUNT 128
+
 namespace slib
 {
 
 	namespace
 	{
-
-		static void Exec(const StringParam& _pathExecutable, const StringParam* arguments, sl_size nArguments)
+		static void Exec(const ProcessParam& param)
 		{
-			StringCstr pathExecutable(_pathExecutable);
-			char* exe = pathExecutable.getData();
-			char* args[64];
-			StringCstr _args[60];
-			args[0] = exe;
-			if (nArguments > 60) {
-				nArguments = 60;
+			param.prepareArgumentList();
+			if (param.currentDirectory.isNotNull()) {
+				System::setCurrentDirectory(param.currentDirectory);
 			}
-			for (sl_size i = 0; i < nArguments; i++) {
-				_args[i] = arguments[i];
-				args[i+1] = _args[i].getData();
+			if (param.flags & ProcessFlags::ResetEnvironment) {
+				clearenv();
 			}
-			args[nArguments+1] = 0;
-
+			if (param.environment.isNotNull()) {
+				HashMapNode<String, String>* node = param.environment.getFirstNode();
+				while (node) {
+					StringCstr name(node->key);
+					StringCstr value(node->value);
+					setenv(name.getData(), value.getData(), 1);
+					node = node->next;
+				}
+			}
+			StringCstr executable(param.executable);
+			char* exe = executable.getData();
+			char* args[MAX_ARGUMENT_COUNT + 2];
+			StringCstr _args[MAX_ARGUMENT_COUNT];
+			{
+				args[0] = exe;
+				ListElements<StringParam> list(param.arguments);
+				if (list.count > MAX_ARGUMENT_COUNT) {
+					list.count = MAX_ARGUMENT_COUNT;
+				}
+				for (sl_size i = 0; i < list.count; i++) {
+					_args[i] = list[i];
+					args[i+1] = _args[i].getData();
+				}
+				args[list.count+1] = 0;
+			}
 			execvp(exe, args);
 			::abort();
 		}
@@ -138,25 +155,11 @@ namespace slib
 		class ProcessImpl : public Process
 		{
 		public:
-			pid_t m_pid;
+			pid_t m_pid = -1;
 			ProcessStream m_stream;
 
 		public:
-			ProcessImpl()
-			{
-				m_pid = -1;
-			}
-
-			~ProcessImpl()
-			{
-				if (m_pid != -1) {
-					int status = 0;
-					waitpid(m_pid, &status, WNOHANG | WUNTRACED | WCONTINUED);
-				}
-			}
-
-		public:
-			static Ref<ProcessImpl> create(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+			static Ref<ProcessImpl> create(const ProcessParam& param)
 			{
 				int hStdin[2], hStdout[2];
 				if (pipe(hStdin) == 0) {
@@ -170,7 +173,7 @@ namespace slib
 							dup2(hStdout[1], 1); // STDOUT
 							::close(hStdin[0]);
 							::close(hStdout[1]);
-							Exec(pathExecutable, arguments, nArguments);
+							Exec(param);
 							return sl_null;
 						} else if (pid > 0) {
 							// parent process
@@ -269,9 +272,7 @@ namespace slib
 			{
 				return &m_stream;
 			}
-
 		};
-
 	}
 
 	sl_bool Process::kill(sl_uint32 processId)
@@ -289,46 +290,19 @@ namespace slib
 		return getpid();
 	}
 
-	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags)
+	Ref<Process> Process::open(const ProcessParam& param)
 	{
-		ListElements<String> args(CommandLine::parse(commandLine));
-		if (!(args.count)) {
-			return openBy(pathExecutable, sl_null, 0);
-		}
-		SLIB_SCOPED_BUFFER(StringParam, 64, params, args.count)
-		for (sl_size i = 0; i < args.count; i++) {
-			params[i] = args[i];
-		}
-		return openBy(pathExecutable, params, args.count);
-	}
-
-	Ref<Process> Process::openBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments, const ProcessFlags& flags)
-	{
-		return Ref<Process>::cast(ProcessImpl::create(pathExecutable, arguments, nArguments));
+		return Ref<Process>::cast(ProcessImpl::create(param));
 	}
 
 #if !defined(SLIB_PLATFORM_IS_MACOS)
-	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam& commandLine, const ProcessFlags& flags)
-	{
-		ListElements<String> args(CommandLine::parse(commandLine));
-		if (!(args.count)) {
-			return runBy(pathExecutable, sl_null, 0);
-		}
-		SLIB_SCOPED_BUFFER(StringParam, 64, params, args.count)
-		for (sl_size i = 0; i < args.count; i++) {
-			params[i] = args[i];
-		}
-		return runBy(pathExecutable, params, args.count, flags);
-	}
-
-	Ref<Process> Process::runBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments, const ProcessFlags& flags)
+	Ref<Process> Process::run(const ProcessParam& param)
 	{
 		pid_t pid = fork();
 		if (!pid) {
 			// Child process
 			// Daemonize
 			setsid();
-
 			close(0);
 			close(1);
 			close(2);
@@ -340,10 +314,8 @@ namespace slib
 				dup2(handle, 1);
 				dup2(handle, 2);
 			}
-
 			signal(SIGHUP, SIG_IGN);
-
-			Exec(pathExecutable, arguments, nArguments);
+			Exec(param);
 		} else if (pid > 0) {
 			// Parent process
 			Ref<ProcessImpl> ret = new ProcessImpl;
@@ -355,44 +327,43 @@ namespace slib
 		return sl_null;
 	}
 
-	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam& commandLine)
+	void Process::runAsAdmin(const ProcessParam& input)
 	{
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-		ListElements<String> args(CommandLine::parse(commandLine));
-		if (!(args.count)) {
-			runAsAdminBy(pathExecutable, sl_null, 0);
-			return;
-		}
-		SLIB_SCOPED_BUFFER(StringParam, 64, params, args.count)
-		for (sl_size i = 0; i < args.count; i++) {
-			params[i] = args[i];
-		}
-		runAsAdminBy(pathExecutable, params, args.count);
-#endif
-	}
-
-	void Process::runAsAdminBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
-	{
-#if !defined(SLIB_PLATFORM_IS_MOBILE)
-		String command;
-		if (File::isFile("/usr/bin/pkexec")) {
-			command = "/usr/bin/pkexec";
-		} else if (File::isFile("/usr/bin/kdesu")) {
-			command = "/usr/bin/kdesu";
-		} else if (File::isFile("/usr/bin/gksu")) {
-			command = "/usr/bin/gksu";
+		ProcessParam param;
+		if (File::isFile(StringView::literal("/usr/bin/pkexec"))) {
+			param.executable = StringView::literal("/usr/bin/pkexec");
+		} else if (File::isFile(StringView::literal("/usr/bin/kdesu"))) {
+			param.executable = StringView::literal("/usr/bin/kdesu");
+		} else if (File::isFile(StringView::literal("/usr/bin/gksu"))) {
+			param.executable = StringView::literal("/usr/bin/gksu");
 		} else {
 			return;
 		}
-		List<StringParam> list;
-		list.add_NoLock("env");
-		list.add_NoLock(String::concat("DISPLAY=", System::getEnvironmentVariable("DISPLAY")));
-		list.add_NoLock(String::concat("XAUTHORITY=", System::getEnvironmentVariable("XAUTHORITY")));
-		list.add_NoLock(pathExecutable.toString());
-		list.addElements_NoLock(arguments, nArguments);
-		Ref<Process> process = openBy(command, list.getData(), list.getCount());
-		if (process.isNotNull()) {
-			process->wait();
+		List<StringParam> arguments;
+		arguments.add_NoLock(StringView::literal("env"));
+		arguments.add_NoLock(String::concat(StringView::literal("DISPLAY="), System::getEnvironmentVariable(StringView::literal("DISPLAY"))));
+		arguments.add_NoLock(String::concat(StringView::literal("XAUTHORITY="), System::getEnvironmentVariable(StringView::literal("XAUTHORITY"))));
+		if (input.currentDirectory.isNotNull()) {
+			arguments.add_NoLock(StringView::literal("/bin/sh"));
+			arguments.add_NoLock(StringView::literal("-c"));
+			input.prepareArgumentString();
+			String command = String::concat(StringView::literal("cd "), CommandLine::makeSafeArgumentForUnix(input.currentDirectory), StringView::literal(" && "), CommandLine::makeSafeArgumentForUnix(input.executable), StringView::literal(" "), input.argumentString);
+			arguments.add_NoLock(Move(command));
+		} else {
+			arguments.add_NoLock(input.executable);
+			input.prepareArgumentList();
+			arguments.addElements_NoLock(input.arguments.getData(), input.arguments.getCount());
+		}
+		param.arguments = Move(arguments);
+		param.flags = input.flags;
+		if (input.flags & ProcessFlags::NoWait) {
+			run(param);
+		} else {
+			Ref<Process> process = run(param);
+			if (process.isNotNull()) {
+				process->wait();
+			}
 		}
 #endif
 	}
@@ -403,9 +374,9 @@ namespace slib
 		return !(geteuid());
 	}
 
-	void Process::execBy(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+	void Process::exec(const ProcessParam& param)
 	{
-		Exec(pathExecutable, arguments, nArguments);
+		Exec(param);
 	}
 
 	void Process::abort()
