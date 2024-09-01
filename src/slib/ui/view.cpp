@@ -1480,7 +1480,7 @@ namespace slib
 
 		if (flagDrawOutside) {
 			UIRect rectIntersect;
-			if (getBounds().intersectRectangle(rect, &rectIntersect)) {
+			if (getBounds().intersect(rect, &rectIntersect)) {
 				invalidateLayer(rectIntersect);
 			}
 			Ref<View> parent = m_parent;
@@ -1491,7 +1491,7 @@ namespace slib
 		}
 
 		UIRect rectIntersect;
-		if (getBounds().intersectRectangle(rect, &rectIntersect)) {
+		if (getBounds().intersect(rect, &rectIntersect)) {
 
 			invalidateLayer(rectIntersect);
 
@@ -1533,7 +1533,7 @@ namespace slib
 		if (Math::isAlmostZero(boundsOld.getWidth()) || Math::isAlmostZero(boundsOld.getHeight())) {
 			parent->invalidate(boundsNew, mode);
 		} else {
-			if (boundsOld.intersectRectangle(boundsNew)) {
+			if (boundsOld.intersect(boundsNew)) {
 				boundsNew.mergeRectangle(boundsOld);
 				parent->invalidate(boundsNew, mode);
 			} else {
@@ -1906,7 +1906,7 @@ namespace slib
 				return sl_false;
 			}
 			boundsParent = convertCoordinateFromParent(boundsParent);
-			return getBounds().intersectRectangle(boundsParent, outBounds);
+			return getBounds().intersect(boundsParent, outBounds);
 		} else {
 			if (outBounds) {
 				*outBounds = getBounds();
@@ -8831,7 +8831,7 @@ namespace slib
 				}
 				if (flagTranslation) {
 					UIRect rcInvalidated(rcInvalidatedParent.left - offx, rcInvalidatedParent.top - offy, rcInvalidatedParent.right - offx, rcInvalidatedParent.bottom - offy);
-					if (rcInvalidated.intersectRectangle(child->getBoundsIncludingShadow(), &rcInvalidated) || child->isForcedDraw()) {
+					if (rcInvalidated.intersect(child->getBoundsIncludingShadow(), &rcInvalidated) || child->isForcedDraw()) {
 						CanvasStateScope scope(canvas);
 						canvas->translate((sl_real)(offx), (sl_real)(offy));
 						canvas->setAlpha(alphaParent * child->getAlpha());
@@ -8844,7 +8844,7 @@ namespace slib
 					rcInvalidated.top -= 1;
 					rcInvalidated.right += 1;
 					rcInvalidated.bottom += 1;
-					if (rcInvalidated.intersectRectangle(child->getBoundsIncludingShadow(), &rcInvalidated) || child->isForcedDraw()) {
+					if (rcInvalidated.intersect(child->getBoundsIncludingShadow(), &rcInvalidated) || child->isForcedDraw()) {
 						CanvasStateScope scope(canvas);
 						sl_real ax = (sl_real)(child->getWidth()) / 2;
 						sl_real ay = (sl_real)(child->getHeight()) / 2;
@@ -8901,7 +8901,7 @@ namespace slib
 				}
 				if (flagTranslation) {
 					UIRect rcInvalidated(rcInvalidatedParent.left - offx, rcInvalidatedParent.top - offy, rcInvalidatedParent.right - offx, rcInvalidatedParent.bottom - offy);
-					if (rcInvalidated.intersectRectangle(child->getBoundsIncludingShadow(), &rcInvalidated) || child->isForcedDraw()) {
+					if (rcInvalidated.intersect(child->getBoundsIncludingShadow(), &rcInvalidated) || child->isForcedDraw()) {
 						if (flagTransformed) {
 							*currentState = savedState;
 							flagTransformed = sl_false;
@@ -8917,7 +8917,7 @@ namespace slib
 					rcInvalidated.top -= 1;
 					rcInvalidated.right += 1;
 					rcInvalidated.bottom += 1;
-					if (rcInvalidated.intersectRectangle(child->getBoundsIncludingShadow(), &rcInvalidated) || child->isForcedDraw()) {
+					if (rcInvalidated.intersect(child->getBoundsIncludingShadow(), &rcInvalidated) || child->isForcedDraw()) {
 						sl_real ax = (sl_real)(child->getWidth()) / 2;
 						sl_real ay = (sl_real)(child->getHeight()) / 2;
 						mat.m20 = -ax * mat.m00 - ay * mat.m10 + mat.m20 + ax + (sl_real)(offx);
@@ -9079,7 +9079,7 @@ namespace slib
 					invokeDrawShadow(canvas);
 				}
 				Rectangle rcInvalidated = canvas->getInvalidatedRect();
-				if (rcInvalidated.intersectRectangle(getBounds(), &rcInvalidated)) {
+				if (rcInvalidated.intersect(getBounds(), &rcInvalidated)) {
 					canvas->draw(rcInvalidated, bitmap, rcInvalidated);
 				}
 			}

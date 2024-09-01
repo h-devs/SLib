@@ -2124,7 +2124,7 @@ namespace slib
 					Rectangle frame = item->getLayoutFrame();
 					frame.top += style->yOffset;
 					frame.bottom += style->yOffset;
-					if (rc.intersectRectangle(frame)) {
+					if (rc.intersect(frame)) {
 						Ref<Font> font = style->font;
 						if (font.isNotNull()) {
 							Color backColor = style->backgroundColor;
@@ -2155,7 +2155,7 @@ namespace slib
 						Rectangle frame = item->getLayoutFrame();
 						frame.top += style->yOffset;
 						frame.bottom += style->yOffset;
-						if (rc.intersectRectangle(frame)) {
+						if (rc.intersect(frame)) {
 							Ref<Font> font = style->font;
 							if (font.isNotNull()) {
 								Ref<Pen> pen = Pen::createSolidPen(param.lineThickness, param.lineColor);

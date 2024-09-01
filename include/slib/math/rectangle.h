@@ -293,7 +293,7 @@ namespace slib
 			return left <= other.left && right >= other.right && top <= other.top && bottom >= other.bottom;
 		}
 
-		sl_bool intersectRectangle(const RectangleT<T, FT>& other, RectangleT<T, FT>* outIntersect = sl_null) const noexcept
+		sl_bool intersect(const RectangleT<T, FT>& other, RectangleT<T, FT>* outIntersect = sl_null) const noexcept
 		{
 			if (outIntersect) {
 				T _left = Math::max(left, other.left);
