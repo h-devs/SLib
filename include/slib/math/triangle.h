@@ -63,6 +63,18 @@ namespace slib
 			return getCross(point1, point2, point3) / 2;
 		}
 
+		SLIB_CONSTEXPR sl_bool isClockwise() const
+		{
+			return getCross() >= 0;
+		}
+
+		void makeClockwise()
+		{
+			if (getCross() < 0) {
+				Swap(point2, point3);
+			}
+		}
+
 		void transform(Matrix3T<T>& mat) noexcept
 		{
 			point1 = mat.transformPosition(point1);

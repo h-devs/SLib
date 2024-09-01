@@ -334,7 +334,7 @@ namespace slib
 			T cx = sx2 + (cos_r * cx1 - sin_r * cy1);
 			T cy = sy2 + (sin_r * cx1 + cos_r * cy1);
 
-			// Calculate the startAngle (angle1) and the sweep_angle (dangle)
+			// Calculate the startAngle and the sweepAngle
 			T ux = (x3 - cx1) / rx;
 			T uy = (y3 - cy1) / ry;
 			T vx = (-x3 - cx1) / rx;

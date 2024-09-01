@@ -1161,7 +1161,7 @@ namespace slib
 			return;
 		}
 
-		List<Triangle> triangles = GeometryHelper::splitPolygonToTriangles(points, nPoints);
+		List<Triangle> triangles = GeometryHelper::splitPolygonToTriangles(points, nPoints, sl_true);
 		if (triangles.isEmpty()) {
 			return;
 		}

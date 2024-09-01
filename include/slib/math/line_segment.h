@@ -104,6 +104,23 @@ namespace slib
 			return proj.getLength(point);
 		}
 
+		sl_bool intersect(const LineSegmentT& other, PointT<T>* _out = sl_null) const
+		{
+			T divider = (point1.x - point2.x) * (other.point1.y - other.point2.y) - (point1.y - point2.y) * (other.point1.x - other.point2.x);
+			if (Math::isAlmostZero(divider)) {
+				return sl_false;
+			}
+			T t = ((point1.x - other.point1.x) * (other.point1.y - other.point2.y) - (point1.y - other.point1.y) * (other.point1.x - other.point2.x)) / divider;
+			T u = ((point1.x - other.point1.x) * (point1.y - point2.y) - (point1.y - other.point1.y) * (point1.x - point2.x)) / divider;
+			if ((0 <= t && t <= (T)1) && (0 <= u && u <= (T)1)) {
+				if (_out) {
+					_out->x = point1.x + t * (point2.x - point1.x);
+					_out->y = point1.y + t * (point2.y - point1.y);
+				}
+				return sl_true;
+			}
+			return sl_false;
+		}
 
 	public:
 		template <class O>
@@ -112,25 +129,6 @@ namespace slib
 			point1 = other.point1;
 			point2 = other.point2;
 			return *this;
-		}
-
-		template <class O>
-		sl_bool intersect(const LineSegmentT<O>& other, Point* _out = sl_null) const
-		{
-			sl_real divider = (point1.x - point2.x) * (other.point1.y - other.point2.y) - (point1.y - point2.y) * (other.point1.x - other.point2.x);
-			if (Math::isAlmostZero(divider)) {
-				return sl_false;
-			}
-			sl_real t = ((point1.x - other.point1.x) * (other.point1.y - other.point2.y) - (point1.y - other.point1.y) * (other.point1.x - other.point2.x)) / divider;
-			sl_real u = ((point1.x - other.point1.x) * (point1.y - point2.y) - (point1.y - other.point1.y) * (point1.x - point2.x)) / divider;
-			if ((0 <= t && t <= 1.0f) && (0 <= u && u <= 1.0f)) {
-				if (_out) {
-					_out->x = point1.x + t * (point2.x - point1.x);
-					_out->y = point1.y + t * (point2.y - point1.y);
-				}
-				return sl_true;
-			}
-			return sl_false;
 		}
 
 	};
