@@ -106,16 +106,19 @@ namespace slib
 
 		sl_bool intersect(const LineSegmentT& other, PointT<T>* _out = sl_null) const
 		{
-			T divider = (point1.x - point2.x) * (other.point1.y - other.point2.y) - (point1.y - point2.y) * (other.point1.x - other.point2.x);
+			Vector2T<T> d1 = point1 - point2;
+			Vector2T<T> d2 = other.point1 - other.point2;
+			T divider = d1.x * d2.y - d1.y * d2.x;
 			if (Math::isAlmostZero(divider)) {
 				return sl_false;
 			}
-			T t = ((point1.x - other.point1.x) * (other.point1.y - other.point2.y) - (point1.y - other.point1.y) * (other.point1.x - other.point2.x)) / divider;
-			T u = ((point1.x - other.point1.x) * (point1.y - point2.y) - (point1.y - other.point1.y) * (point1.x - point2.x)) / divider;
+			Vector2T<T> v = point1 - other.point1;
+			T t = (v.x * d2.y - v.y * d2.x) / divider;
+			T u = (v.x * d1.y - v.y * d1.x) / divider;
 			if ((0 <= t && t <= (T)1) && (0 <= u && u <= (T)1)) {
 				if (_out) {
-					_out->x = point1.x + t * (point2.x - point1.x);
-					_out->y = point1.y + t * (point2.y - point1.y);
+					_out->x = point1.x - t * d1.x;
+					_out->y = point1.y - t * d1.y;
 				}
 				return sl_true;
 			}
