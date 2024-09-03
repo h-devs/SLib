@@ -20,16 +20,52 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_MATH_JSON
-#define CHECKHEADER_SLIB_MATH_JSON
+#ifndef CHECKHEADER_SLIB_MATH_SERIALIZE_RECTANGLE
+#define CHECKHEADER_SLIB_MATH_SERIALIZE_RECTANGLE
 
-#include "json/bigint.h"
-#include "json/int128.h"
-#include "json/decimal128.h"
-#include "json/vector.h"
-#include "json/matrix.h"
-#include "json/rectangle.h"
-#include "json/triangle.h"
-#include "json/line_segment.h"
+#include "../rectangle.h"
+
+#include "../../data/serialize/io.h"
+
+namespace slib
+{
+
+	template <class OUTPUT, class T>
+	static sl_bool Serialize(OUTPUT* output, const RectangleT<T>& _in)
+	{
+		if (!(Serialize(output, _in.left))) {
+			return sl_false;
+		}
+		if (!(Serialize(output, _in.top))) {
+			return sl_false;
+		}
+		if (!(Serialize(output, _in.right))) {
+			return sl_false;
+		}
+		if (!(Serialize(output, _in.bottom))) {
+			return sl_false;
+		}
+		return sl_true;
+	}
+
+	template <class INPUT, class T>
+	static sl_bool Deserialize(INPUT* input, RectangleT<T>& _out)
+	{
+		if (!(Deserialize(input, _out.left))) {
+			return sl_false;
+		}
+		if (!(Deserialize(input, _out.top))) {
+			return sl_false;
+		}
+		if (!(Deserialize(input, _out.right))) {
+			return sl_false;
+		}
+		if (!(Deserialize(input, _out.bottom))) {
+			return sl_false;
+		}
+		return sl_true;
+	}
+
+}
 
 #endif

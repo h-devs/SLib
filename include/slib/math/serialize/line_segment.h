@@ -20,16 +20,40 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_MATH_JSON
-#define CHECKHEADER_SLIB_MATH_JSON
+#ifndef CHECKHEADER_SLIB_MATH_SERIALIZE_LINE_SEGMENT
+#define CHECKHEADER_SLIB_MATH_SERIALIZE_LINE_SEGMENT
 
-#include "json/bigint.h"
-#include "json/int128.h"
-#include "json/decimal128.h"
-#include "json/vector.h"
-#include "json/matrix.h"
-#include "json/rectangle.h"
-#include "json/triangle.h"
-#include "json/line_segment.h"
+#include "../line_segment.h"
+
+#include "vector.h"
+
+namespace slib
+{
+
+	template <class OUTPUT, class T>
+	static sl_bool Serialize(OUTPUT* output, const LineSegmentT<T>& _in)
+	{
+		if (!(Serialize(output, _in.point1))) {
+			return sl_false;
+		}
+		if (!(Serialize(output, _in.point2))) {
+			return sl_false;
+		}
+		return sl_true;
+	}
+
+	template <class INPUT, class T>
+	static sl_bool Deserialize(INPUT* input, LineSegmentT<T>& _out)
+	{
+		if (!(Deserialize(input, _out.point1))) {
+			return sl_false;
+		}
+		if (!(Deserialize(input, _out.point2))) {
+			return sl_false;
+		}
+		return sl_true;
+	}
+
+}
 
 #endif

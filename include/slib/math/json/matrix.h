@@ -20,16 +20,51 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_MATH_JSON
-#define CHECKHEADER_SLIB_MATH_JSON
+#ifndef CHECKHEADER_SLIB_MATH_JSON_MATRIX
+#define CHECKHEADER_SLIB_MATH_JSON_MATRIX
 
-#include "json/bigint.h"
-#include "json/int128.h"
-#include "json/decimal128.h"
-#include "json/vector.h"
-#include "json/matrix.h"
-#include "json/rectangle.h"
-#include "json/triangle.h"
-#include "json/line_segment.h"
+#include "../vector.h"
+
+#include "../../data/json/core.h"
+
+namespace slib
+{
+
+	template <sl_uint32 ROWS, sl_uint32 COLS, class T>
+	static void FromJson(const Json& json, MatrixT<ROWS, COLS, T>& _out)
+	{
+		if (json.isUndefined()) {
+			return;
+		}
+		ListElements<Json> rows(json.getJsonList());
+		if (rows.count != ROWS) {
+			return;
+		}
+		for (sl_uint32 i = 0; i < ROWS; i++) {
+			ListElements<Json> items(rows[i].getJsonList());
+			if (items.count != COLS) {
+				return;
+			}
+			for (sl_uint32 j = 0; j < COLS; j++) {
+				FromJson(items[j], _out.m[i][j]);
+			}
+		}
+	}
+
+	template <sl_uint32 ROWS, sl_uint32 COLS, class T>
+	static Json ToJson(const MatrixT<ROWS, COLS, T>& _in)
+	{
+		JsonList rows;
+		for (sl_uint32 i = 0; i < ROWS; i++) {
+			JsonList row;
+			for (sl_uint32 j = 0; j < COLS; j++) {
+				row.add_NoLock(Json(_in.m[i][j]));
+			}
+			rows.add_NoLock(Move(row));
+		}
+		return rows;
+	}
+
+}
 
 #endif

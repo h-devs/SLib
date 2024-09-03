@@ -36,13 +36,12 @@ namespace slib
 		if (json.isUndefined()) {
 			return;
 		}
-		ListLocker<Json> list(json.getJsonList());
+		ListElements<Json> list(json.getJsonList());
+		if (list.count != N) {
+			return;
+		}
 		for (sl_uint32 i = 0; i < N; i++) {
-			if (i < list.count) {
-				FromJson(list[i], _out.m[i]);
-			} else {
-				FromJson(Json(), _out.m[i]);
-			}
+			FromJson(list[i], _out.m[i]);
 		}
 	}
 

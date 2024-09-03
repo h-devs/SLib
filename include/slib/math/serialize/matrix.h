@@ -20,16 +20,42 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_MATH_JSON
-#define CHECKHEADER_SLIB_MATH_JSON
+#ifndef CHECKHEADER_SLIB_MATH_SERIALIZE_MATRIX
+#define CHECKHEADER_SLIB_MATH_SERIALIZE_MATRIX
 
-#include "json/bigint.h"
-#include "json/int128.h"
-#include "json/decimal128.h"
-#include "json/vector.h"
-#include "json/matrix.h"
-#include "json/rectangle.h"
-#include "json/triangle.h"
-#include "json/line_segment.h"
+#include "../vector.h"
+
+#include "../../data/serialize/io.h"
+
+namespace slib
+{
+
+	template <class OUTPUT, sl_uint32 ROWS, sl_uint32 COLS, class T>
+	static sl_bool Serialize(OUTPUT* output, const MatrixT<ROWS, COLS, T>& _in)
+	{
+		for (sl_uint32 i = 0; i < ROWS; i++) {
+			for (sl_uint32 j = 0; j < COLS; j++) {
+				if (!(Serialize(output, _in.m[i][j]))) {
+					return sl_false;
+				}
+			}
+		}
+		return sl_true;
+	}
+
+	template <class INPUT, sl_uint32 ROWS, sl_uint32 COLS, class T>
+	static sl_bool Deserialize(INPUT* input, MatrixT<ROWS, COLS, T>& _out)
+	{
+		for (sl_uint32 i = 0; i < ROWS; i++) {
+			for (sl_uint32 j = 0; j < COLS; j++) {
+				if (!(Deserialize(input, _out.m[i][j]))) {
+					return sl_false;
+				}
+			}
+		}
+		return sl_true;
+	}
+
+}
 
 #endif

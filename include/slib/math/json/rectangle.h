@@ -20,16 +20,43 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_MATH_JSON
-#define CHECKHEADER_SLIB_MATH_JSON
+#ifndef CHECKHEADER_SLIB_MATH_JSON_RECTANGLE
+#define CHECKHEADER_SLIB_MATH_JSON_RECTANGLE
 
-#include "json/bigint.h"
-#include "json/int128.h"
-#include "json/decimal128.h"
-#include "json/vector.h"
-#include "json/matrix.h"
-#include "json/rectangle.h"
-#include "json/triangle.h"
-#include "json/line_segment.h"
+#include "../rectangle.h"
+
+#include "../../data/json/core.h"
+
+namespace slib
+{
+
+	template <class T>
+	static void FromJson(const Json& json, RectangleT<T>& _out)
+	{
+		if (json.isUndefined()) {
+			return;
+		}
+		ListLocker<Json> list(json.getJsonList());
+		if (list.count != 4) {
+			return;
+		}
+		FromJson(list[0], _out.left);
+		FromJson(list[1], _out.top);
+		FromJson(list[2], _out.right);
+		FromJson(list[3], _out.bottom);
+	}
+
+	template <class T>
+	static Json ToJson(const RectangleT<T>& _in)
+	{
+		JsonList ret;
+		ret.add_NoLock(Json(_in.left));
+		ret.add_NoLock(Json(_in.top));
+		ret.add_NoLock(Json(_in.right));
+		ret.add_NoLock(Json(_in.bottom));
+		return ret;
+	}
+
+}
 
 #endif

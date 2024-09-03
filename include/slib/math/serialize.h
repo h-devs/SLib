@@ -27,5 +27,9 @@
 #include "serialize/decimal128.h"
 #include "serialize/int128.h"
 #include "serialize/vector.h"
+#include "serialize/matrix.h"
+#include "serialize/rectangle.h"
+#include "serialize/triangle.h"
+#include "serialize/line_segment.h"
 
 #endif
