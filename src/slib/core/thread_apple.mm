@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -106,7 +106,8 @@ namespace slib
 		return sl_true;
 	}
 
-	namespace {
+	namespace
+	{
 		static double GetThreadPriority(ThreadPriority priority)
 		{
 			double min = 0;
@@ -144,6 +145,11 @@ namespace slib
 		uint64_t threadId;
 		pthread_threadid_np(NULL, &threadId);
 		return (sl_uint64)threadId;
+	}
+
+	sl_bool Thread::isMainThread()
+	{
+		return [NSThread isMainThread];
 	}
 
 }

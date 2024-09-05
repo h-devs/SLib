@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,13 @@
 #include "slib/device/device.h"
 #include "slib/io/file.h"
 #include "slib/system/system.h"
+#include "slib/core/thread.h"
 #include "slib/core/safe_static.h"
 #include "slib/ui/platform.h"
+
+#if defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_GTK) || defined(SLIB_UI_IS_EFL)
+#define SUPPORT_SET_UI_THREAD
+#endif
 
 namespace slib
 {
@@ -623,6 +628,39 @@ namespace slib
 			}
 		};
 		alert.show();
+	}
+
+#ifdef SUPPORT_SET_UI_THREAD
+	namespace
+	{
+		static sl_uint64 g_uiThreadId = 0;
+		static sl_bool g_flagSetUiThread = sl_false;
+	}
+#endif
+
+	sl_bool UI::isUiThread()
+	{
+#ifdef SUPPORT_SET_UI_THREAD
+		if (g_flagSetUiThread) {
+			return g_uiThreadId == Thread::getCurrentThreadId();
+		}
+#endif
+		return Thread::isMainThread();
+	}
+
+	void UI::setUiThread()
+	{
+#ifdef SUPPORT_SET_UI_THREAD
+		g_uiThreadId = Thread::getCurrentThreadId();
+		g_flagSetUiThread = sl_true;
+#endif
+	}
+
+	void UI::resetUiThread()
+	{
+#ifdef SUPPORT_SET_UI_THREAD
+		g_flagSetUiThread = sl_false;
+#endif
 	}
 
 #if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_GTK)

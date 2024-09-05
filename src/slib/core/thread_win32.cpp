@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		static DWORD g_tlsCurrentThread = TLS_OUT_OF_INDEXES;
 		static DWORD g_tlsUniqueId = TLS_OUT_OF_INDEXES;
 
@@ -107,7 +107,6 @@ namespace slib
 
 		};
 		static TLSInit g_tlsInit;
-
 	}
 
 	Thread* Thread::_nativeGetCurrentThread()
@@ -130,7 +129,8 @@ namespace slib
 		SetTLSUint64(g_tlsUniqueId, n);
 	}
 
-	namespace {
+	namespace
+	{
 		static DWORD CALLBACK ThreadProc(LPVOID lpParam)
 		{
 			Thread* pThread = (Thread*)lpParam;
@@ -196,6 +196,32 @@ namespace slib
 	sl_uint64 Thread::getCurrentThreadId()
 	{
 		return (sl_uint32)(GetCurrentThreadId());
+	}
+
+	namespace
+	{
+		static sl_bool g_bSetThreadMain = sl_false;
+		static DWORD g_threadMain = 0;
+
+		class MainThreadSetter
+		{
+		public:
+			MainThreadSetter()
+			{
+				g_threadMain = GetCurrentThreadId();
+				g_bSetThreadMain = sl_true;
+			}
+		};
+		static MainThreadSetter g_setterMainThread;
+	}
+
+	sl_bool Thread::isMainThread()
+	{
+		if (g_bSetThreadMain) {
+			return g_threadMain == GetCurrentThreadId();
+		} else {
+			return sl_true;
+		}
 	}
 
 }

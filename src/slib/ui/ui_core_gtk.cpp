@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -80,11 +80,6 @@ namespace slib
 	List< Ref<Screen> > UI::getScreens()
 	{
 		return List< Ref<Screen> >::createFromElement(getPrimaryScreen());
-	}
-
-	sl_bool UI::isUiThread()
-	{
-		return getpid() == syscall(SYS_gettid);
 	}
 
 	void UI::dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis)
@@ -313,7 +308,6 @@ namespace slib
 
 	namespace
 	{
-
 		static GtkApplication* g_app = sl_null;
 		static sl_bool g_flagRunningAppLoop = sl_false;
 
@@ -366,7 +360,6 @@ namespace slib
 		};
 
 		SLIB_SAFE_STATIC_GETTER(IpcContext, GetIpcContext)
-
 	}
 
 	void UIPlatform::initApp()

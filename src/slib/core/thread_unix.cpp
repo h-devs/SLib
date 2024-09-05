@@ -142,10 +142,19 @@ namespace slib
 
 	sl_uint64 Thread::getCurrentThreadId()
 	{
-#if defined(SLIB_PLATFORM_IS_ANDROID)
+#if defined(SLIB_PLATFORM_IS_ANDROID) || defined(SLIB_PLATFORM_IS_TIZEN)
 		return (sl_uint64)(gettid());
 #else
 		return (sl_uint64)(syscall(SYS_gettid));
+#endif
+	}
+
+	sl_bool Thread::isMainThread()
+	{
+#if defined(SLIB_PLATFORM_IS_ANDROID) || defined(SLIB_PLATFORM_IS_TIZEN)
+		return getpid() == gettid();
+#else
+		return getpid() == syscall(SYS_gettid);
 #endif
 	}
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -44,8 +44,8 @@ namespace slib
 
 	using namespace priv;
 
-	namespace {
-
+	namespace
+	{
 		SLIB_JNI_BEGIN_CLASS(JRect, "android/graphics/Rect")
 			SLIB_JNI_INT_FIELD(left);
 			SLIB_JNI_INT_FIELD(top);
@@ -70,7 +70,6 @@ namespace slib
 		static void DispatchDelayedCallback(JNIEnv* env, jobject _this, jlong ptr);
 
 		SLIB_JNI_BEGIN_CLASS(JUiThread, "slib/android/ui/UiThread")
-			SLIB_JNI_STATIC_METHOD(isUiThread, "isUiThread", "()Z");
 			SLIB_JNI_STATIC_METHOD(dispatch, "dispatch", "()V");
 			SLIB_JNI_STATIC_METHOD(dispatchDelayed, "dispatchDelayed", "(JI)V");
 			SLIB_JNI_STATIC_METHOD(runLoop, "runLoop", "()V");
@@ -224,11 +223,6 @@ namespace slib
 		return ret;
 	}
 
-	sl_bool UI::isUiThread()
-	{
-		return JUiThread::isUiThread.callBoolean(sl_null) != 0;
-	}
-
 	void UI::dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		if (delayMillis == 0) {
@@ -280,8 +274,9 @@ namespace slib
 		JUiThread::quitLoop.call(sl_null);
 	}
 
-	namespace {
-		static Ref<UIApp> g_app;
+	namespace
+	{
+		SLIB_GLOBAL_ZERO_INITIALIZED(Ref<UIApp>, g_app)
 	}
 
 	void UIPlatform::initApp()

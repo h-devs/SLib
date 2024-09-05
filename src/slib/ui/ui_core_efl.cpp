@@ -47,7 +47,8 @@ namespace slib
 
 	using namespace priv;
 
-	namespace {
+	namespace
+	{
 		class ScreenImpl : public Screen
 		{
 		public:
@@ -137,13 +138,8 @@ namespace slib
 		}
 	}
 
-	sl_bool UI::isUiThread()
+	namespace
 	{
-		return getpid() == gettid();
-	}
-
-	namespace {
-
 		static volatile sl_int32 g_nLevelMainLoop = 0;
 
 		static void DispatchCallback(void* data)
@@ -158,7 +154,6 @@ namespace slib
 			callable->decreaseReference();
 			return ECORE_CALLBACK_CANCEL;
 		}
-
 	}
 
 	void UI::dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis)
@@ -185,7 +180,8 @@ namespace slib
 		}
 	}
 
-	namespace {
+	namespace
+	{
 		static void QuitCallback(void* data)
 		{
 		}
@@ -201,7 +197,8 @@ namespace slib
 	{
 	}
 
-	namespace {
+	namespace
+	{
 		static bool CreateCallback(void* data)
 		{
 			Log("App", "Create");

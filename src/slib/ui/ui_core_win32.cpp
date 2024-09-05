@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -56,8 +56,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		static sl_bool g_bFlagQuit = sl_false;
 
 		struct CUSTOM_EVENT
@@ -79,7 +79,6 @@ namespace slib
 			}
 			return sl_false;
 		}
-
 	}
 
 	namespace priv
@@ -189,7 +188,8 @@ namespace slib
 
 	using namespace priv;
 
-	namespace {
+	namespace
+	{
 		class MonitorScreen : public Screen
 		{
 		public:
@@ -246,7 +246,6 @@ namespace slib
 			}
 			return TRUE;
 		}
-
 	}
 
 	List< Ref<Screen> > UI::getScreens()
@@ -256,7 +255,8 @@ namespace slib
 		return ret;
 	}
 
-	namespace {
+	namespace
+	{
 		class PrimaryScreen : public Screen
 		{
 		public:
@@ -329,22 +329,8 @@ namespace slib
 		return sl_null;
 	}
 
-	namespace {
-
-		static sl_bool g_bSetThreadMain = sl_false;
-		static DWORD g_threadMain = 0;
-
-		class MainThreadSetter
-		{
-		public:
-			MainThreadSetter()
-			{
-				g_threadMain = GetCurrentThreadId();
-				g_bSetThreadMain = sl_true;
-			}
-		};
-		static MainThreadSetter g_seterMainThread;
-
+	namespace
+	{
 		static void PostGlobalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			Win32_UI_Shared* shared = Win32_UI_Shared::get();
@@ -352,16 +338,6 @@ namespace slib
 				return;
 			}
 			PostMessageW(shared->hWndMessage, uMsg, wParam, lParam);
-		}
-
-	}
-
-	sl_bool UI::isUiThread()
-	{
-		if (g_bSetThreadMain) {
-			return g_threadMain == GetCurrentThreadId();
-		} else {
-			return sl_true;
 		}
 	}
 
@@ -859,8 +835,8 @@ namespace slib
 		}
 	}
 
-	namespace {
-
+	namespace
+	{
 		static sl_uint32 g_nBadgeNumber = 0;
 
 		static void ApplyBadgeNumber()
@@ -915,7 +891,6 @@ namespace slib
 				pList->Release();
 			}
 		}
-
 	}
 
 	void UIApp::setBadgeNumber(sl_uint32 num)
@@ -925,8 +900,8 @@ namespace slib
 	}
 
 
-	namespace {
-
+	namespace
+	{
 		static sl_bool g_flagInitializedSharedUIContext = sl_false;
 
 		static Win32_UI_Shared* GetSharedUIContextInternal()
@@ -990,7 +965,6 @@ namespace slib
 			}
 			return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 		}
-
 	}
 
 	Win32_UI_Shared::Win32_UI_Shared()

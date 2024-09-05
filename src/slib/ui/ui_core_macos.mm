@@ -159,11 +159,6 @@ namespace slib
 		return UIRect::zero();
 	}
 
-	sl_bool UI::isUiThread()
-	{
-		return [NSThread isMainThread];
-	}
-
 	namespace
 	{
 		class DispatchContext

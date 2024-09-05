@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -114,6 +114,8 @@ namespace slib
 		static sl_uint64 getCurrentThreadId();
 
 		static sl_uint64 getCurrentThreadUniqueId();
+
+		static sl_bool isMainThread();
 
 		// attached objects are removed when the thread is exited
 		Ref<CRef> getAttachedObject(const String& name);
