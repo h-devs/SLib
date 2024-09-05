@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "../core/string.h"
+#include "../core/cast.h"
 
 namespace slib
 {
@@ -85,19 +86,27 @@ namespace slib
 
 }
 
-#define SLIB_IMPORT_FUNCTION_FROM_LIBRARY(LIB, NAME, RET_TYPE, MODIFIER, ...) \
-		typedef RET_TYPE (MODIFIER *DL_FUNC_TYPE_##NAME)(__VA_ARGS__); \
-		DL_FUNC_TYPE_##NAME getApi_##NAME() {  \
-			void* _dl_library = LIB; \
-			if (!_dl_library) { \
-				return sl_null; \
+#define SLIB_DEFINE_GET_LIBRARY(NAME, ...) \
+	void* NAME() \
+	{ \
+		static void* _lib = sl_null; \
+		if (!_lib) { \
+			_lib = DynamicLibrary::loadLibrary(__VA_ARGS__); \
+		} \
+		return _lib; \
+	}
+
+#define SLIB_DEFINE_GET_FUNCTION_ADDRESS(RET, NAME, LIB, FUNC_NAME) \
+	RET NAME() \
+	{ \
+		static RET _func = sl_null; \
+		if (!_func) { \
+			void* _lib = LIB; \
+			if (_lib) { \
+				_func = ForcedCast<RET>(DynamicLibrary::getFunctionAddress(_lib, FUNC_NAME)); \
 			} \
-			static DL_FUNC_TYPE_##NAME func = sl_null; \
-			if (func) { \
-				return func; \
-			} \
-			func = (DL_FUNC_TYPE_##NAME)(DynamicLibrary::getFunctionAddress(_dl_library, #NAME)); \
-			return func; \
-		}
+		} \
+		return _func; \
+	}
 
 #endif

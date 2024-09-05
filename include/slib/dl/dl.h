@@ -29,24 +29,18 @@
 
 #define SLIB_IMPORT_LIBRARY_BEGIN(NAME, ...) \
 	namespace NAME { \
-		void* getLibrary() { \
-			static void* library = sl_null; \
-			if (library) { \
-				return library; \
-			} \
-			library = DynamicLibrary::loadLibrary(__VA_ARGS__); \
-			return library; \
-		} \
+		SLIB_DEFINE_GET_LIBRARY(getLibrary, __VA_ARGS__) \
 		void* getApi(const char* name) { \
-			void* library = getLibrary(); \
-			if (library) { \
-				return DynamicLibrary::getFunctionAddress(library, name); \
+			void* _lib = getLibrary(); \
+			if (_lib) { \
+				return DynamicLibrary::getFunctionAddress(_lib, name); \
 			} \
 			return sl_null; \
 		}
 
 #define SLIB_IMPORT_LIBRARY_FUNCTION(NAME, RET_TYPE, MODIFIER, ...) \
-		SLIB_IMPORT_FUNCTION_FROM_LIBRARY(getLibrary(), NAME, RET_TYPE, MODIFIER, ##__VA_ARGS__)
+		typedef RET_TYPE (MODIFIER *DL_FUNC_TYPE_##NAME)(__VA_ARGS__); \
+		SLIB_DEFINE_GET_FUNCTION_ADDRESS(DL_FUNC_TYPE_##NAME, getApi_##NAME, getLibrary(), #NAME)
 
 #define SLIB_IMPORT_LIBRARY_WRAP_FUNCTION(NAME, RET_TYPE, MODIFIER, ...) \
 		SLIB_IMPORT_LIBRARY_FUNCTION(NAME, RET_TYPE, MODIFIER, ##__VA_ARGS__)
