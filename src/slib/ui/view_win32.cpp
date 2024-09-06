@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -47,8 +47,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Bitmap>, g_bitmapDoubleBuffer)
 		SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Canvas>, g_canvasDoubleBuffer)
 
@@ -138,7 +138,6 @@ namespace slib
 			}
 			return sl_false;
 		}
-
 	}
 
 	namespace priv
@@ -363,7 +362,8 @@ namespace slib
 		}
 	}
 
-	namespace {
+	namespace
+	{
 		static sl_bool g_flagDuringPaint = sl_false;
 	}
 
@@ -484,7 +484,8 @@ namespace slib
 	{
 	}
 
-	namespace {
+	namespace
+	{
 		static void SetLayeredAttributes(HWND hWnd, sl_real alpha, const Color& colorKey)
 		{
 			sl_uint8 a = UIPlatform::getWindowAlpha(alpha);
@@ -711,8 +712,8 @@ namespace slib
 		return sl_false;
 	}
 
-	namespace {
-
+	namespace
+	{
 		static DWORD ToDropEffect(int op)
 		{
 			DWORD ret = 0;
@@ -946,7 +947,6 @@ namespace slib
 
 				return flagValid;
 			}
-
 		};
 
 		class ViewDropSource : public IDropSource
@@ -1023,9 +1023,7 @@ namespace slib
 				}
 				return DRAGDROP_S_USEDEFAULTCURSORS;
 			}
-
 		};
-
 	}
 
 	void Win32_ViewInstance::setDropTarget(View* view, sl_bool flag)

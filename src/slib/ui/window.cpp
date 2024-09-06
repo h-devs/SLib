@@ -91,6 +91,7 @@ namespace slib
 		m_flagRequestClose = sl_false;
 		m_flagDispatchedDestroy = sl_false;
 
+		m_parentHandle = sl_null;
 		m_viewContent = new WindowContentView;
 
 		m_result = sl_null;
@@ -180,6 +181,77 @@ namespace slib
 		} else {
 			m_parent = parent;
 		}
+	}
+
+	Ref<WindowInstance> Window::getParentInstance()
+	{
+		if (m_parent.isNotNull()) {
+			Ref<Window> parent = m_parent;
+			if (parent.isNotNull()) {
+				return parent->getWindowInstance();
+			}
+			return sl_null;
+		} else {
+			return m_parentInstance;
+		}
+	}
+
+	void Window::setParentInstance(const Ref<WindowInstance>& parent)
+	{
+		if (m_parent.isNull()) {
+			Ref<WindowInstance> instance = m_instance;
+			if (instance.isNotNull()) {
+				SLIB_VIEW_RUN_ON_UI_THREAD(setParentInstance, parent)
+				m_parentInstance = parent;
+				if (parent.isNotNull()) {
+					instance->setParent(parent);
+				} else {
+					instance->setParent(Ref<WindowInstance>::null());
+				}
+				return;
+			}
+		}
+		m_parentInstance = parent;
+	}
+
+	void* Window::getParentHandle(Ref<WindowInstance>& instance)
+	{
+		if (m_parent.isNotNull() || m_parentInstance.isNotNull()) {
+			instance = getWindowInstance();
+			if (instance.isNotNull()) {
+				return instance->getHandle();
+			}
+			return sl_null;
+		} else {
+			return m_parentHandle;
+		}
+	}
+
+	void* Window::getParentHandle()
+	{
+		if (m_parent.isNotNull() || m_parentInstance.isNotNull()) {
+			Ref<WindowInstance> instance = getWindowInstance();
+			if (instance.isNotNull()) {
+				return instance->getHandle();
+			}
+			return sl_null;
+		} else {
+			return m_parentHandle;
+		}
+	}
+
+	void Window::setParentHandle(void* parent)
+	{
+		if (m_parent.isNull()) {
+			Ref<WindowInstance> instance = m_instance;
+			if (instance.isNotNull()) {
+				SLIB_VIEW_RUN_ON_UI_THREAD(setParentHandle, parent)
+				m_parentHandle = parent;
+				instance->setParentHandle(parent);
+				return;
+			}
+		}
+		m_parentHandle = parent;
 	}
 
 	Ref<Screen> Window::getScreen()
@@ -1362,6 +1434,15 @@ namespace slib
 		return m_instance;
 	}
 
+	void* Window::getWindowHandle()
+	{
+		Ref<WindowInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			return instance->getHandle();
+		}
+		return sl_null;
+	}
+
 	void Window::create()
 	{
 		_create(sl_false);
@@ -1433,15 +1514,15 @@ namespace slib
 			UISize sizeOld = getClientSize();
 			UISize sizeMeasured = m_viewContent->measureLayoutWrappingSize(m_flagWidthWrapping, m_flagHeightWrapping);
 			if (m_flagWidthWrapping) {
-				if (sizeMeasured.x < 100) {
-					sizeMeasured.x = 100;
+				if (sizeMeasured.x < 1) {
+					sizeMeasured.x = 1;
 				}
 			} else {
 				sizeMeasured.x = sizeOld.x;
 			}
 			if (m_flagHeightWrapping) {
-				if (sizeMeasured.y < 100) {
-					sizeMeasured.y = 100;
+				if (sizeMeasured.y < 1) {
+					sizeMeasured.y = 1;
 				}
 			} else {
 				sizeMeasured.y = sizeOld.y;
@@ -1831,10 +1912,16 @@ namespace slib
 
 	UIRect Window::_makeFrame()
 	{
+		UIRect frame = getFrame();
+		_adjustFrame(frame);
+		return frame;
+	}
+
+	void Window::_adjustFrame(UIRect& frame)
+	{
 		if (m_flagFullScreen) {
-			return UI::getScreenRegion(m_screen);
+			frame = UI::getScreenRegion(m_screen);
 		} else {
-			UIRect frame = getFrame();
 			Alignment gravity = m_gravity;
 			Alignment horz = gravity & Alignment::HorizontalMask;
 			Alignment vert = gravity & Alignment::VerticalMask;
@@ -1867,7 +1954,6 @@ namespace slib
 				}
 			}
 			frame.fixSizeError();
-			return frame;
 		}
 	}
 
@@ -1908,6 +1994,15 @@ namespace slib
 	void WindowInstance::setKeepWindow(sl_bool flag)
 	{
 		m_flagKeepWindow = flag;
+	}
+
+	void WindowInstance::setParent(const Ref<WindowInstance>& parent)
+	{
+		if (parent.isNotNull()) {
+			setParentHandle(parent->getHandle());
+		} else {
+			setParentHandle(sl_null);
+		}
 	}
 
 	void WindowInstance::setTitle(const String& title)
@@ -2181,19 +2276,10 @@ namespace slib
 			return;
 		}
 		if (window->getWindowInstance().isNotNull()) {
-			if (window->isCenterScreen() && (Time::now() - window->getCreationTime()).getMillisecondCount() < 500) {
-				UISize sizeWindow = window->getWindowSizeFromClientSize(sizeNew);
-				UISize sizeScreen;
-				Ref<Screen> screen = window->getScreen();
-				if (screen.isNotNull()) {
-					sizeScreen = screen->getRegion().getSize();
-				} else {
-					sizeScreen = UI::getScreenSize();
-				}
-				UIRect frame;
-				frame.left = (sizeScreen.x - sizeWindow.x) / 2;
-				frame.top = (sizeScreen.y - sizeWindow.y) / 2;
-				frame.setSize(sizeWindow);
+			if (window->getGravity() != Alignment::Default && (Time::now() - window->getCreationTime()).getMillisecondCount() < 500) {
+				UIRect frame(window->getFrame());
+				frame.setSize(window->getWindowSizeFromClientSize(sizeNew));
+				window->_adjustFrame(frame);
 				window->setFrame(frame);
 				return;
 			}

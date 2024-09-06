@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -35,21 +35,21 @@
 namespace slib
 {
 
-	namespace {
-
-		static void SetWindowSize(GtkWindow* window, sl_bool flagResizable, sl_ui_len width, sl_ui_len height)
+	namespace
+	{
+		static void SetWindowSize(GtkWindow* handle, sl_bool flagResizable, sl_ui_len width, sl_ui_len height)
 		{
 			if (flagResizable) {
-				gtk_window_resize(window, (gint)width, (gint)height);
+				gtk_window_resize(handle, (gint)width, (gint)height);
 			} else {
-				gtk_window_set_default_size(window, (gint)width, (gint)height);
+				gtk_window_set_default_size(handle, (gint)width, (gint)height);
 			}
 		}
 
 		class GTK_WindowInstance : public WindowInstance
 		{
 		public:
-			GtkWindow* m_window;
+			GtkWindow* m_handle;
 			GtkWidget* m_widgetMenu;
 			GtkWidget* m_widgetContent;
 			GtkWidget* m_widgetContentBox;
@@ -68,9 +68,10 @@ namespace slib
 		public:
 			GTK_WindowInstance()
 			{
-				m_window = sl_null;
+				m_handle = sl_null;
 				m_widgetMenu = sl_null;
 				m_widgetContent = sl_null;
+				m_widgetContentBox = sl_null;
 
 				m_flagResizable = sl_true;
 
@@ -87,56 +88,56 @@ namespace slib
 			}
 
 		public:
-			static Ref<GTK_WindowInstance> create(GtkWindow* window)
+			static Ref<GTK_WindowInstance> create(GtkWindow* handle)
 			{
-				if (window) {
+				if (handle) {
 					Ref<GTK_WindowInstance> ret = new GTK_WindowInstance();
 					if (ret.isNotNull()) {
-						ret->_init(window);
+						ret->_init(handle);
 						return ret;
 					}
 				}
 				return sl_null;
 			}
 
-			void _init(GtkWindow* window)
+			void _init(GtkWindow* handle)
 			{
-				g_object_ref_sink(window);
+				g_object_ref_sink(handle);
 
-				m_window = window;
+				m_handle = handle;
 				m_flagClosed = sl_false;
 
-				UIPlatform::registerWindowInstance(window, this);
+				UIPlatform::registerWindowInstance(handle, this);
 
-				g_signal_connect(window, "destroy", G_CALLBACK(_callback_destroy_cb), NULL);
-				g_signal_connect(window, "delete-event", G_CALLBACK(_callback_close_cb), NULL);
-				g_signal_connect(window, "window-state-event", G_CALLBACK(_callback_window_state_cb), NULL);
-				g_signal_connect(window, "configure-event", G_CALLBACK(_callback_configure_event_cb), NULL);
-				g_signal_connect(window, "notify::is-active", G_CALLBACK(_callback_notify_is_active_cb), NULL);
+				g_signal_connect(handle, "destroy", G_CALLBACK(_callback_destroy_cb), NULL);
+				g_signal_connect(handle, "delete-event", G_CALLBACK(_callback_close_cb), NULL);
+				g_signal_connect(handle, "window-state-event", G_CALLBACK(_callback_window_state_cb), NULL);
+				g_signal_connect(handle, "configure-event", G_CALLBACK(_callback_configure_event_cb), NULL);
+				g_signal_connect(handle, "notify::is-active", G_CALLBACK(_callback_notify_is_active_cb), NULL);
 
 			}
 
-			static void _release_handle(GtkWindow* window)
+			static void _release_handle(GtkWindow* handle)
 			{
-				gtk_widget_destroy((GtkWidget*)window);
-				g_object_unref(window);
+				gtk_widget_destroy((GtkWidget*)handle);
+				g_object_unref(handle);
 			}
 
 			void _release()
 			{
-				GtkWindow* window = m_window;
-				if (window) {
-					m_window = sl_null;
+				GtkWindow* handle = m_handle;
+				if (handle) {
+					m_handle = sl_null;
 					if (m_flagClosed) {
-						g_object_unref(window);
+						g_object_unref(handle);
 					} else {
 						if (UI::isUiThread()) {
-							_release_handle(window);
+							_release_handle(handle);
 						} else {
-							UI::dispatchToUiThread(Function<void()>::bind(&_release_handle, window));
+							UI::dispatchToUiThread(Function<void()>::bind(&_release_handle, handle));
 						}
 					}
-					UIPlatform::removeWindowInstance(window);
+					UIPlatform::removeWindowInstance(handle);
 				}
 				m_viewContent.setNull();
 				m_flagClosed = sl_true;
@@ -149,12 +150,10 @@ namespace slib
 					return sl_null;
 				}
 
-				Ref<Window> parent = window->getParent();
-				if (parent.isNotNull()) {
-					GtkWindow* hParent = UIPlatform::getWindowHandle(window);
-					if (hParent) {
-						gtk_window_set_transient_for(handle, hParent);
-					}
+				Ref<WindowInstance> parent;
+				GtkWindow* hParent = (GtkWindow*)(window->getParentHandle(parent));
+				if (hParent) {
+					gtk_window_set_transient_for(handle, hParent);
 				}
 
 				if (window->isBorderless() || window->isFullScreen() || !(window->isTitleBarVisible())) {
@@ -271,6 +270,12 @@ namespace slib
 				return ret;
 			}
 
+		public:
+			void* getHandle() override
+			{
+				return (void*)m_handle;
+			}
+
 			void close() override
 			{
 				if (!m_flagClosed) {
@@ -278,10 +283,10 @@ namespace slib
 						UI::dispatchToUiThread(SLIB_FUNCTION_WEAKREF(this, close));
 						return;
 					}
-					GtkWindow* window = m_window;
-					if (window) {
-						UIPlatform::removeWindowInstance(window);
-						gtk_widget_destroy((GtkWidget*)window);
+					GtkWindow* handle = m_handle;
+					if (handle) {
+						UIPlatform::removeWindowInstance(handle);
+						gtk_widget_destroy((GtkWidget*)handle);
 					}
 					m_flagClosed = sl_true;
 				}
@@ -293,14 +298,14 @@ namespace slib
 				return m_flagClosed;
 			}
 
-			void setParent(const Ref<WindowInstance>& windowParent) override
+			void setParentHandle(void* parent) override
 			{
-				GtkWindow* window = m_window;
-				if (window && !m_flagClosed) {
-					if (windowParent.isNotNull()) {
-						gtk_window_set_transient_for(window, UIPlatform::getWindowHandle(windowParent.get()));
+				GtkWindow* handle = m_handle;
+				if (handle && !m_flagClosed) {
+					if (parent) {
+						gtk_window_set_transient_for(handle, (GtkWindow*)parent);
 					} else {
-						gtk_window_set_transient_for(window, sl_null);
+						gtk_window_set_transient_for(handle, sl_null);
 					}
 				}
 			}
@@ -323,8 +328,8 @@ namespace slib
 			void setFrame(const UIRect& frame) override
 			{
 				if (!m_flagClosed) {
-					GtkWindow* window = m_window;
-					if (window) {
+					GtkWindow* handle = m_handle;
+					if (handle) {
 						m_location = frame.getLocation();
 						m_size = frame.getSize();
 						sl_ui_len width = m_size.x;
@@ -334,8 +339,8 @@ namespace slib
 							width -= insets.left + insets.right;
 							height -= insets.top + insets.bottom - _getMenuHeight();
 						}
-						SetWindowSize(window, m_flagResizable, width, height);
-						gtk_window_move(window, (gint)(frame.left), (gint)(frame.top));
+						SetWindowSize(handle, m_flagResizable, width, height);
+						gtk_window_move(handle, (gint)(frame.left), (gint)(frame.top));
 					}
 				}
 			}
@@ -343,28 +348,28 @@ namespace slib
 			void setTitle(const String& _title) override
 			{
 				if (!m_flagClosed) {
-					GtkWindow* window = m_window;
-					if (window) {
+					GtkWindow* handle = m_handle;
+					if (handle) {
 						StringCstr title(_title);
-						gtk_window_set_title(window, title.getData());
+						gtk_window_set_title(handle, title.getData());
 					}
 				}
 			}
 
 			void setIcon(const Ref<Drawable>& icon) override
 			{
-				GtkWindow* window = m_window;
-				if (!window) {
+				GtkWindow* handle = m_handle;
+				if (!handle) {
 					return;
 				}
 				if (icon.isNotNull()) {
 					GdkPixbuf* pixbuf = UIPlatform::createPixbuf(icon->toImage());
 					if (pixbuf) {
-						gtk_window_set_icon((GtkWindow*)window, pixbuf);
+						gtk_window_set_icon((GtkWindow*)handle, pixbuf);
 						return;
 					}
 				}
-				gtk_window_set_icon((GtkWindow*)window, sl_null);
+				gtk_window_set_icon((GtkWindow*)handle, sl_null);
 			}
 
 			void setMenu(const Ref<Menu>& menu) override
@@ -372,8 +377,8 @@ namespace slib
 				if (m_flagClosed) {
 					return;
 				}
-				GtkWindow* window = m_window;
-				if (!window) {
+				GtkWindow* handle = m_handle;
+				if (!handle) {
 					return;
 				}
 				GtkWidget* hMenu = sl_null;
@@ -388,18 +393,18 @@ namespace slib
 					return;
 				}
 				g_object_ref(contentBox);
-				gtk_container_foreach((GtkContainer*)window, &_callback_remove_child, window);
+				gtk_container_foreach((GtkContainer*)handle, &_callback_remove_child, handle);
 				if (hMenu) {
 					GtkWidget* box = gtk_vbox_new(0, 0);
 					if(box){
 						gtk_widget_show(box);
 						gtk_box_pack_start((GtkBox*)box, hMenu, 0, 0, 0);
 						gtk_box_pack_start((GtkBox*)box, contentBox, 1, 1, 0);
-						gtk_container_add((GtkContainer*)window, box);
+						gtk_container_add((GtkContainer*)handle, box);
 						m_widgetMenu = hMenu;
 					}
 				} else {
-					gtk_container_add((GtkContainer*)window, contentBox);
+					gtk_container_add((GtkContainer*)handle, contentBox);
 				}
 				g_object_unref(contentBox);
 			}
@@ -407,9 +412,9 @@ namespace slib
 			sl_bool isActive() override
 			{
 				if (!m_flagClosed) {
-					GtkWindow* window = m_window;
-					if (window) {
-						return gtk_window_is_active(window);
+					GtkWindow* handle = m_handle;
+					if (handle) {
+						return gtk_window_is_active(handle);
 					}
 				}
 				return sl_false;
@@ -418,9 +423,9 @@ namespace slib
 			void activate() override
 			{
 				if (!m_flagClosed) {
-					GtkWindow* window = m_window;
-					if (window) {
-						gtk_window_present(window);
+					GtkWindow* handle = m_handle;
+					if (handle) {
+						gtk_window_present(handle);
 					}
 				}
 			}
@@ -429,9 +434,9 @@ namespace slib
 			{
 				if (!m_flagClosed) {
 					if (UIPlatform::isSupportedGtk(3)) {
-						GtkWindow* window = m_window;
-						if (window) {
-							UIPlatform::setWidgetBackgroundColor((GtkWidget*)window, color);
+						GtkWindow* handle = m_handle;
+						if (handle) {
+							UIPlatform::setWidgetBackgroundColor((GtkWidget*)handle, color);
 						}
 					} else {
 						GtkWidget* content = m_widgetContent;
@@ -450,17 +455,17 @@ namespace slib
 			void setMinimized(sl_bool flag) override
 			{
 				if (!m_flagClosed) {
-					GtkWindow* window = m_window;
-					if (window) {
+					GtkWindow* handle = m_handle;
+					if (handle) {
 						if (m_flagMinimized) {
 							if (!flag) {
 								m_flagMinimized = sl_false;
-								gtk_window_deiconify(window);
+								gtk_window_deiconify(handle);
 							}
 						} else {
 							if (flag) {
 								m_flagMinimized = sl_true;
-								gtk_window_iconify(window);
+								gtk_window_iconify(handle);
 							}
 						}
 					}
@@ -475,17 +480,17 @@ namespace slib
 			void setMaximized(sl_bool flag) override
 			{
 				if (!m_flagClosed) {
-					GtkWindow* window = m_window;
-					if (window) {
+					GtkWindow* handle = m_handle;
+					if (handle) {
 						if (m_flagMaximized) {
 							if (!flag) {
 								m_flagMaximized = sl_false;
-								gtk_window_unmaximize(window);
+								gtk_window_unmaximize(handle);
 							}
 						} else {
 							if (flag) {
 								m_flagMaximized = sl_true;
-								gtk_window_maximize(window);
+								gtk_window_maximize(handle);
 							}
 						}
 					}
@@ -495,13 +500,13 @@ namespace slib
 			void setVisible(sl_bool flag) override
 			{
 				if (!m_flagClosed) {
-					GtkWindow* window = m_window;
-					if (window) {
+					GtkWindow* handle = m_handle;
+					if (handle) {
 						if (flag) {
-							gtk_window_move(window, m_location.x, m_location.y);
-							gtk_widget_show((GtkWidget*)window);
+							gtk_window_move(handle, m_location.x, m_location.y);
+							gtk_widget_show((GtkWidget*)handle);
 						} else {
-							gtk_widget_hide((GtkWidget*)window);
+							gtk_widget_hide((GtkWidget*)handle);
 						}
 					}
 				}
@@ -510,12 +515,12 @@ namespace slib
 			void setAlwaysOnTop(sl_bool flag) override
 			{
 				if (!m_flagClosed) {
-					GtkWindow* window = m_window;
-					if (window) {
+					GtkWindow* handle = m_handle;
+					if (handle) {
 						if (flag) {
-							gtk_window_set_keep_above(window, sl_true);
+							gtk_window_set_keep_above(handle, sl_true);
 						} else {
-							gtk_window_set_keep_above(window, sl_false);
+							gtk_window_set_keep_above(handle, sl_false);
 						}
 					}
 				}
@@ -524,12 +529,12 @@ namespace slib
 			void setCloseButtonEnabled(sl_bool flag) override
 			{
 				if (!m_flagClosed) {
-					GtkWindow* window = m_window;
-					if (window) {
+					GtkWindow* handle = m_handle;
+					if (handle) {
 						if (flag) {
-							gtk_window_set_deletable(window, sl_true);
+							gtk_window_set_deletable(handle, sl_true);
 						} else {
-							gtk_window_set_deletable(window, sl_false);
+							gtk_window_set_deletable(handle, sl_false);
 						}
 					}
 				}
@@ -538,15 +543,15 @@ namespace slib
 			void setAlpha(sl_real alpha) override
 			{
 				if (!m_flagClosed) {
-					GtkWindow* window = m_window;
-					if (window) {
+					GtkWindow* handle = m_handle;
+					if (handle) {
 						if (alpha < 0) {
 							alpha = 0;
 						}
 						if (alpha >= 1.0f) {
 							alpha = 1.0f;
 						}
-						gtk_window_set_opacity(window, alpha);
+						gtk_window_set_opacity(handle, alpha);
 					}
 				}
 			}
@@ -556,19 +561,19 @@ namespace slib
 				if (m_flagClosed) {
 					return sl_false;
 				}
-				GtkWindow* handle = m_window;
+				GtkWindow* handle = m_handle;
 				if (!handle) {
 					return sl_false;
 				}
-				GdkWindow* window = gtk_widget_get_window((GtkWidget*)handle);
-				if (!window) {
+				GdkWindow* _handle = gtk_widget_get_window((GtkWidget*)handle);
+				if (!_handle) {
 					return sl_false;
 				}
 				GdkRectangle rect;
-				gdk_window_get_frame_extents(window, &rect);
+				gdk_window_get_frame_extents(_handle, &rect);
 				gint x = 0, y = 0, width, height;
-				gdk_window_get_origin(window, &x, &y);
-				gdk_window_get_geometry(window, sl_null, sl_null, &width, &height, sl_null);
+				gdk_window_get_origin(_handle, &x, &y);
+				gdk_window_get_geometry(_handle, sl_null, sl_null, &width, &height, sl_null);
 				_out.left = (sl_ui_len)(x - rect.x);
 				_out.top = (sl_ui_len)(y + _getMenuHeight() - rect.y);
 				_out.right = (sl_ui_len)(rect.x + rect.width - (x + width));
@@ -581,8 +586,8 @@ namespace slib
 				if (m_flagClosed) {
 					return;
 				}
-				GtkWindow* window = m_window;
-				if (!window) {
+				GtkWindow* handle = m_handle;
+				if (!handle) {
 					return;
 				}
 				if (!m_flagResizable) {
@@ -623,7 +628,7 @@ namespace slib
 					}
 					geometry.max_aspect = r;
 				}
-				gtk_window_set_geometry_hints(window, (GtkWidget*)window, &geometry, (GdkWindowHints)(hints));
+				gtk_window_set_geometry_hints(handle, (GtkWidget*)handle, &geometry, (GdkWindowHints)(hints));
 			}
 
 			sl_ui_len _getMenuHeight()
@@ -645,18 +650,18 @@ namespace slib
 				m_flagClosed = sl_true;
 			}
 
-			static void _callback_destroy_cb(GtkWindow* window, gpointer user_data)
+			static void _callback_destroy_cb(GtkWindow* handle, gpointer user_data)
 			{
-				Ref<WindowInstance> instance = UIPlatform::getWindowInstance(window);
+				Ref<WindowInstance> instance = UIPlatform::getWindowInstance(handle);
 				if (instance.isNotNull()) {
 					((GTK_WindowInstance*)(instance.get()))->_on_destroy();
 				}
-				UIPlatform::removeWindowInstance(window);
+				UIPlatform::removeWindowInstance(handle);
 			}
 
-			static gboolean _callback_close_cb(GtkWindow* window, GdkEvent* event, gpointer user_data)
+			static gboolean _callback_close_cb(GtkWindow* handle, GdkEvent* event, gpointer user_data)
 			{
-				Ref<WindowInstance> instance = UIPlatform::getWindowInstance(window);
+				Ref<WindowInstance> instance = UIPlatform::getWindowInstance(handle);
 				if (instance.isNotNull()) {
 					GTK_WindowInstance* _instance = static_cast<GTK_WindowInstance*>(instance.get());
 					if (_instance->onClose()) {
@@ -688,9 +693,9 @@ namespace slib
 				}
 			}
 
-			static gboolean _callback_window_state_cb(GtkWindow* window, GdkEventWindowState* event, gpointer user_data)
+			static gboolean _callback_window_state_cb(GtkWindow* handle, GdkEventWindowState* event, gpointer user_data)
 			{
-				Ref<WindowInstance> instance = UIPlatform::getWindowInstance(window);
+				Ref<WindowInstance> instance = UIPlatform::getWindowInstance(handle);
 				if (instance.isNotNull()) {
 					((GTK_WindowInstance*)(instance.get()))->_on_window_state(event);
 				}
@@ -699,13 +704,13 @@ namespace slib
 
 			void _on_process_configure()
 			{
-				GtkWindow* window = m_window;
-				if (!window) {
+				GtkWindow* handle = m_handle;
+				if (!handle) {
 					return;
 				}
 				gint x, y, width, height;
-				gtk_window_get_position(window, &x, &y);
-				gtk_window_get_size(window, &width, &height);
+				gtk_window_get_position(handle, &x, &y);
+				gtk_window_get_size(handle, &width, &height);
 				height -= (gint)(_getMenuHeight());
 
 				sl_bool flagMove = !(Math::isAlmostZero(x - m_location.x) && Math::isAlmostZero(y - m_location.y));
@@ -728,7 +733,7 @@ namespace slib
 				}
 			}
 
-			void _on_configure_event(GtkWindow* window, GdkEventConfigure* event)
+			void _on_configure_event(GtkWindow* handle, GdkEventConfigure* event)
 			{
 				if (UIPlatform::isSupportedGtk(3)) {
 					// call after animation
@@ -738,29 +743,29 @@ namespace slib
 				}
 			}
 
-			static gboolean _callback_configure_event_cb(GtkWindow* window, GdkEventConfigure* event, gpointer user_data)
+			static gboolean _callback_configure_event_cb(GtkWindow* handle, GdkEventConfigure* event, gpointer user_data)
 			{
-				Ref<WindowInstance> instance = UIPlatform::getWindowInstance(window);
+				Ref<WindowInstance> instance = UIPlatform::getWindowInstance(handle);
 				if (instance.isNotNull()) {
-					((GTK_WindowInstance*)(instance.get()))->_on_configure_event(window, event);
+					((GTK_WindowInstance*)(instance.get()))->_on_configure_event(handle, event);
 				}
 				return sl_false;
 			}
 
-			void _on_notify_is_active(GtkWindow* window)
+			void _on_notify_is_active(GtkWindow* handle)
 			{
-				if (gtk_window_is_active(window)) {
+				if (gtk_window_is_active(handle)) {
 					onActivate();
 				} else {
 					onDeactivate();
 				}
 			}
 
-			static void _callback_notify_is_active_cb(GtkWindow* window, GParamSpec* pspec, gpointer user_data)
+			static void _callback_notify_is_active_cb(GtkWindow* handle, GParamSpec* pspec, gpointer user_data)
 			{
-				Ref<WindowInstance> instance = UIPlatform::getWindowInstance(window);
+				Ref<WindowInstance> instance = UIPlatform::getWindowInstance(handle);
 				if (instance.isNotNull()) {
-					((GTK_WindowInstance*)(instance.get()))->_on_notify_is_active(window);
+					((GTK_WindowInstance*)(instance.get()))->_on_notify_is_active(handle);
 				}
 			}
 
@@ -772,9 +777,7 @@ namespace slib
 				}
 				return 0;
 			}
-
 		};
-
 	}
 
 	Ref<WindowInstance> Window::createWindowInstance()
@@ -809,35 +812,35 @@ namespace slib
 	}
 
 
-	Ref<WindowInstance> UIPlatform::createWindowInstance(GtkWindow* window)
+	Ref<WindowInstance> UIPlatform::createWindowInstance(GtkWindow* handle)
 	{
-		Ref<WindowInstance> ret = UIPlatform::_getWindowInstance(window);
+		Ref<WindowInstance> ret = UIPlatform::_getWindowInstance(handle);
 		if (ret.isNotNull()) {
 			return ret;
 		}
-		return GTK_WindowInstance::create(window);
+		return GTK_WindowInstance::create(handle);
 	}
 
-	void UIPlatform::registerWindowInstance(GtkWindow* window, WindowInstance* instance)
+	void UIPlatform::registerWindowInstance(GtkWindow* handle, WindowInstance* instance)
 	{
-		UIPlatform::_registerWindowInstance(window, instance);
+		UIPlatform::_registerWindowInstance(handle, instance);
 	}
 
-	Ref<WindowInstance> UIPlatform::getWindowInstance(GtkWindow* window)
+	Ref<WindowInstance> UIPlatform::getWindowInstance(GtkWindow* handle)
 	{
-		return UIPlatform::_getWindowInstance(window);
+		return UIPlatform::_getWindowInstance(handle);
 	}
 
-	void UIPlatform::removeWindowInstance(GtkWindow* window)
+	void UIPlatform::removeWindowInstance(GtkWindow* handle)
 	{
-		UIPlatform::_removeWindowInstance(window);
+		UIPlatform::_removeWindowInstance(handle);
 	}
 
-	GtkWindow* UIPlatform::getWindowHandle(WindowInstance* instance)
+	GtkWindow* UIPlatform::getWindowHandle(WindowInstance* _instance)
 	{
-		GTK_WindowInstance* window = static_cast<GTK_WindowInstance*>(instance);
-		if (window) {
-			return window->m_window;
+		GTK_WindowInstance* instance = (GTK_WindowInstance*)_instance;
+		if (instance) {
+			return window->m_handle;
 		} else {
 			return sl_null;
 		}
@@ -848,8 +851,8 @@ namespace slib
 		if (window) {
 			Ref<WindowInstance> _instance = window->getWindowInstance();
 			if (_instance.isNotNull()) {
-				GTK_WindowInstance* instance = static_cast<GTK_WindowInstance*>(_instance.get());
-				return instance->m_window;
+				GTK_WindowInstance* instance = (GTK_WindowInstance*)(_instance.get());
+				return instance->m_handle;
 			}
 		}
 		return sl_null;

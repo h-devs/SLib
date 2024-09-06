@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ namespace slib
 
 @interface SLIBWindowRootViewController : UIViewController
 {
-	@public slib::WeakRef<slib::iOS_WindowInstance> m_window;
+	@public slib::WeakRef<slib::iOS_WindowInstance> m_instance;
 
 	@public slib::UISize m_sizeClient;
 	@public slib::UISize m_sizeClientResizedByKeyboard;
@@ -75,12 +75,13 @@ namespace slib
 		class iOS_WindowInstance : public WindowInstance
 		{
 		public:
-			UIView* m_window;
+			UIView* m_handle;
 			AtomicRef<ViewInstance> m_viewContent;
 
 		public:
 			iOS_WindowInstance()
 			{
+				m_handle = nil;
 			}
 
 			~iOS_WindowInstance()
@@ -89,17 +90,17 @@ namespace slib
 			}
 
 		public:
-			static Ref<iOS_WindowInstance> create(UIView* window)
+			static Ref<iOS_WindowInstance> create(UIView* handle)
 			{
-				if (window != nil) {
+				if (handle != nil) {
 					Ref<iOS_WindowInstance> ret = new iOS_WindowInstance();
 					if (ret.isNotNull()) {
-						ret->m_window = window;
+						ret->m_handle = handle;
 						UIView* view;
-						if ([window isKindOfClass:[UIWindow class]]) {
-							view = ((UIWindow*)window).rootViewController.view;
+						if ([handle isKindOfClass:[UIWindow class]]) {
+							view = ((UIWindow*)handle).rootViewController.view;
 						} else {
-							view = window;
+							view = handle;
 						}
 						if (view != nil) {
 							Ref<ViewInstance> content = UIPlatform::createViewInstance(view);
@@ -111,7 +112,7 @@ namespace slib
 								}
 							}
 						}
-						UIPlatform::registerWindowInstance(window, ret.get());
+						UIPlatform::registerWindowInstance(handle, ret.get());
 						return ret;
 					}
 				}
@@ -174,7 +175,7 @@ namespace slib
 							handle.rootViewController = controller;
 							Ref<iOS_WindowInstance> ret = create(handle);
 							if (ret.isNotNull()) {
-								controller->m_window = ret;
+								controller->m_instance = ret;
 								ret->activate();
 								return ret;
 							}
@@ -186,38 +187,44 @@ namespace slib
 
 			void release()
 			{
-				UIView* window = m_window;
-				if (window != nil) {
-					UIPlatform::removeWindowInstance(window);
+				UIView* handle = m_handle;
+				if (handle != nil) {
+					UIPlatform::removeWindowInstance(handle);
 				}
-				if (!([window isKindOfClass:[UIWindow class]])) {
-					[window removeFromSuperview];
+				if (!([handle isKindOfClass:[UIWindow class]])) {
+					[handle removeFromSuperview];
 				}
 				m_viewContent.setNull();
-				m_window = nil;
+				m_handle = nil;
+			}
+
+		public:
+			void* getHandle() override
+			{
+				return (__bridge void*)m_handle;
 			}
 
 			void close() override
 			{
-				UIView* view = m_window;
-				if (view != nil) {
-					if ([view isKindOfClass:[UIWindow class]]) {
-						UIWindow* window = (UIWindow*)view;
-						window.hidden = TRUE;
+				UIView* handle = m_handle;
+				if (handle != nil) {
+					if ([handle isKindOfClass:[UIWindow class]]) {
+						UIWindow* _handle = (UIWindow*)handle;
+						_handle.hidden = TRUE;
 					} else {
-						[view removeFromSuperview];
+						[handle removeFromSuperview];
 					}
 				}
-				m_window = nil;
+				m_handle = nil;
 				m_viewContent.setNull();
 			}
 
 			sl_bool isClosed() override
 			{
-				return m_window == nil;
+				return m_handle == nil;
 			}
 
-			void setParent(const Ref<WindowInstance>& window) override
+			void setParentHandle(void* parent) override
 			{
 			}
 
@@ -228,9 +235,9 @@ namespace slib
 
 			sl_bool getFrame(UIRect& _out) override
 			{
-				UIView* window = m_window;
-				if (window != nil) {
-					CGRect rect = [window frame];
+				UIView* handle = m_handle;
+				if (handle != nil) {
+					CGRect rect = [handle frame];
 					CGFloat f = UIPlatform::getGlobalScaleFactor();
 					_out.left = (sl_ui_pos)(rect.origin.x * f);
 					_out.top = (sl_ui_pos)(rect.origin.y * f);
@@ -243,17 +250,17 @@ namespace slib
 
 			void setFrame(const UIRect& frame) override
 			{
-				UIView* window = m_window;
-				if (window != nil) {
+				UIView* handle = m_handle;
+				if (handle != nil) {
 					CGFloat f = UIPlatform::getGlobalScaleFactor();
 					CGRect rect;
 					rect.origin.x = (CGFloat)(frame.left) / f;
 					rect.origin.y = (CGFloat)(frame.top) / f;
 					rect.size.width = (CGFloat)(frame.getWidth()) / f;
 					rect.size.height = (CGFloat)(frame.getHeight()) / f;
-					[window setFrame:rect];
-					if ([window isKindOfClass:[UIWindow class]]) {
-						UIViewController* controller = ((UIWindow*)window).rootViewController;
+					[handle setFrame:rect];
+					if ([handle isKindOfClass:[UIWindow class]]) {
+						UIViewController* controller = ((UIWindow*)handle).rootViewController;
 						if (controller != nil && [controller isKindOfClass:[SLIBWindowRootViewController class]]) {
 							UISize size = frame.getSize();
 							((SLIBWindowRootViewController*)controller)->m_sizeClient = size;
@@ -265,13 +272,13 @@ namespace slib
 
 			sl_bool isActive() override
 			{
-				UIView* view = m_window;
-				if (view != nil) {
-					if ([view isKindOfClass:[UIWindow class]]) {
-						UIWindow* window = (UIWindow*)view;
-						return [window isKeyWindow];
+				UIView* handle = m_handle;
+				if (handle != nil) {
+					if ([handle isKindOfClass:[UIWindow class]]) {
+						UIWindow* _handle = (UIWindow*)handle;
+						return [_handle isKeyWindow];
 					} else {
-						return [view isFirstResponder];
+						return [handle isFirstResponder];
 					}
 				}
 				return sl_false;
@@ -279,49 +286,49 @@ namespace slib
 
 			void activate() override
 			{
-				UIView* view = m_window;
-				if (view != nil) {
-					if ([view isKindOfClass:[UIWindow class]]) {
-						UIWindow* window = (UIWindow*)view;
-						[window makeKeyAndVisible];
+				UIView* handle = m_handle;
+				if (handle != nil) {
+					if ([handle isKindOfClass:[UIWindow class]]) {
+						UIWindow* _handle = (UIWindow*)handle;
+						[_handle makeKeyAndVisible];
 					} else {
-						[view becomeFirstResponder];
+						[handle becomeFirstResponder];
 					}
 				}
 			}
 
 			void setBackgroundColor(const Color& _color) override
 			{
-				UIView* window = m_window;
-				if (window != nil) {
+				UIView* handle = m_handle;
+				if (handle != nil) {
 					UIColor* color;
 					if (_color.isZero()) {
 						color = nil;
 					} else {
 						color = GraphicsPlatform::getUIColorFromColor(_color);
 					}
-					[window setBackgroundColor:color];
+					[handle setBackgroundColor:color];
 				}
 			}
 
 			void setVisible(sl_bool flag) override
 			{
-				UIView* window = m_window;
-				if (window != nil) {
-					[window setHidden:(flag ? NO : YES)];
+				UIView* handle = m_handle;
+				if (handle != nil) {
+					[handle setHidden:(flag ? NO : YES)];
 				}
 			}
 
 			void setAlwaysOnTop(sl_bool flag) override
 			{
-				UIView* view = m_window;
-				if (view != nil) {
-					if ([view isKindOfClass:[UIWindow class]]) {
-						UIWindow* window = (UIWindow*)view;
+				UIView* handle = m_handle;
+				if (handle != nil) {
+					if ([handle isKindOfClass:[UIWindow class]]) {
+						UIWindow* _handle = (UIWindow*)handle;
 						if (flag) {
-							window.windowLevel = UIWindowLevelAlert + 1;
+							_handle.windowLevel = UIWindowLevelAlert + 1;
 						} else {
-							window.windowLevel = UIWindowLevelNormal + 1;
+							_handle.windowLevel = UIWindowLevelNormal + 1;
 						}
 					}
 				}
@@ -329,8 +336,8 @@ namespace slib
 
 			void setAlpha(sl_real _alpha) override
 			{
-				UIView* window = m_window;
-				if (window != nil) {
+				UIView* handle = m_handle;
+				if (handle != nil) {
 					sl_real alpha = _alpha;
 					if (alpha < 0) {
 						alpha = 0;
@@ -338,7 +345,7 @@ namespace slib
 					if (alpha > 1) {
 						alpha = 1;
 					}
-					window.alpha = alpha;
+					handle.alpha = alpha;
 				}
 			}
 
@@ -362,35 +369,35 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<WindowInstance> UIPlatform::createWindowInstance(UIView* window)
+	Ref<WindowInstance> UIPlatform::createWindowInstance(UIView* handle)
 	{
-		Ref<WindowInstance> ret = UIPlatform::_getWindowInstance((__bridge void*)window);
+		Ref<WindowInstance> ret = UIPlatform::_getWindowInstance((__bridge void*)handle);
 		if (ret.isNotNull()) {
 			return ret;
 		}
-		return iOS_WindowInstance::create(window);
+		return iOS_WindowInstance::create(handle);
 	}
 
-	void UIPlatform::registerWindowInstance(UIView* window, WindowInstance* instance)
+	void UIPlatform::registerWindowInstance(UIView* handle, WindowInstance* instance)
 	{
-		UIPlatform::_registerWindowInstance((__bridge void*)window, instance);
+		UIPlatform::_registerWindowInstance((__bridge void*)handle, instance);
 	}
 
-	Ref<WindowInstance> UIPlatform::getWindowInstance(UIView* window)
+	Ref<WindowInstance> UIPlatform::getWindowInstance(UIView* handle)
 	{
-		return UIPlatform::_getWindowInstance((__bridge void*)window);
+		return UIPlatform::_getWindowInstance((__bridge void*)handle);
 	}
 
-	void UIPlatform::removeWindowInstance(UIView* window)
+	void UIPlatform::removeWindowInstance(UIView* handle)
 	{
-		UIPlatform::_removeWindowInstance((__bridge void*)window);
+		UIPlatform::_removeWindowInstance((__bridge void*)handle);
 	}
 
-	UIView* UIPlatform::getWindowHandle(WindowInstance* instance)
+	UIView* UIPlatform::getWindowHandle(WindowInstance* _instance)
 	{
-		iOS_WindowInstance* window = (iOS_WindowInstance*)instance;
-		if (window) {
-			return window->m_window;
+		iOS_WindowInstance* instance = (iOS_WindowInstance*)_instance;
+		if (instance) {
+			return instance->m_handle;
 		} else {
 			return nil;
 		}
@@ -399,9 +406,9 @@ namespace slib
 	UIWindow* UIPlatform::getKeyWindow()
 	{
 #ifndef SLIB_PLATFORM_IS_IOS_CATALYST
-		UIWindow* window = [[UIApplication sharedApplication] keyWindow];
-		if (window != nil) {
-			return window;
+		UIWindow* handle = [[UIApplication sharedApplication] keyWindow];
+		if (handle != nil) {
+			return handle;
 		}
 #endif
 		return UIPlatform::getMainWindow();
@@ -547,9 +554,9 @@ using namespace slib;
 	if (g_flagSetStatusBarStyle) {
 		[self setNeedsStatusBarAppearanceUpdate];
 	}
-	Ref<iOS_WindowInstance> window = m_window;
-	if (window.isNotNull()) {
-		UIView* handle = window->m_window;
+	Ref<iOS_WindowInstance> instance = m_instance;
+	if (instance.isNotNull()) {
+		UIView* handle = instance->m_handle;
 		if (handle != nil) {
 			CGFloat f = UIPlatform::getGlobalScaleFactor();
 			CGSize _size = handle.frame.size;
@@ -558,7 +565,7 @@ using namespace slib;
 			size.y = (sl_ui_pos)(_size.height * f);
 			self->m_sizeClient = size;
 			self->m_sizeClientResizedByKeyboard = size;
-			window->onResize(size.x, size.y);
+			instance->onResize(size.x, size.y);
 		}
 	}
 }
@@ -581,9 +588,9 @@ using namespace slib;
 		sizeContent.y = (sl_ui_pos)(size.height * f);
 		self->m_sizeClient = sizeContent;
 		self->m_sizeClientResizedByKeyboard = sizeContent;
-		Ref<iOS_WindowInstance> window = self->m_window;
-		if (window.isNotNull()) {
-			window->onResize(sizeContent.x, sizeContent.y);
+		Ref<iOS_WindowInstance> instance = self->m_instance;
+		if (instance.isNotNull()) {
+			instance->onResize(sizeContent.x, sizeContent.y);
 		}
 	});
 }
@@ -630,20 +637,20 @@ using namespace slib;
 	}
 
 	UIKeyboardAdjustMode adjustMode = MobileApp::getKeyboardAdjustMode();
-	Ref<iOS_WindowInstance> window = self->m_window;
-	if (window.isNotNull()) {
+	Ref<iOS_WindowInstance> instance = self->m_instance;
+	if (instance.isNotNull()) {
 		if (adjustMode == UIKeyboardAdjustMode::Resize) {
 			NSDictionary* info = [aNotification userInfo];
 			sl_ui_len heightKeyboard = (sl_ui_len)([[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size.height * UIPlatform::getGlobalScaleFactor());
 			UISize size = self->m_sizeClient;
 			size.y -= heightKeyboard;
 			self->m_sizeClientResizedByKeyboard = size;
-			window->onResize(size.x, size.y);
+			instance->onResize(size.x, size.y);
 		} else {
 			if (self->m_sizeClient.y != self->m_sizeClientResizedByKeyboard.y) {
 				UISize size = self->m_sizeClient;
 				self->m_sizeClientResizedByKeyboard = size;
-				window->onResize(size.x, size.y);
+				instance->onResize(size.x, size.y);
 			}
 		}
 	}
@@ -708,12 +715,12 @@ using namespace slib;
 	}
 	[self restoreKeyboardScrollView];
 
-	Ref<iOS_WindowInstance> window = self->m_window;
-	if (window.isNotNull()) {
+	Ref<iOS_WindowInstance> instance = self->m_instance;
+	if (instance.isNotNull()) {
 		if (self->m_sizeClient.y != self->m_sizeClientResizedByKeyboard.y) {
 			UISize size = self->m_sizeClient;
 			self->m_sizeClientResizedByKeyboard = size;
-			window->onResize(size.x, size.y);
+			instance->onResize(size.x, size.y);
 		}
 	}
 }
@@ -722,28 +729,16 @@ using namespace slib;
 {
 	[super viewWillAppear:animated];
 
-	[[NSNotificationCenter defaultCenter] addObserver:self
-											 selector:@selector(keyboardWillShow:)
-												 name:UIKeyboardWillShowNotification
-											   object:nil];
-
-	[[NSNotificationCenter defaultCenter] addObserver:self
-											 selector:@selector(keyboardWillHide)
-												 name:UIKeyboardWillHideNotification
-											   object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide) name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
 	[super viewWillDisappear:animated];
 
-	[[NSNotificationCenter defaultCenter] removeObserver:self
-													name:UIKeyboardWillShowNotification
-												  object:nil];
-
-	[[NSNotificationCenter defaultCenter] removeObserver:self
-													name:UIKeyboardWillHideNotification
-												  object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillShowNotification object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)viewSafeAreaInsetsDidChange

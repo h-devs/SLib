@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -39,8 +39,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		static volatile sl_int32 g_nCountActiveWindows = 0;
 
 		class EFL_WindowInstance;
@@ -49,13 +49,13 @@ namespace slib
 		class EFL_WindowInstance : public WindowInstance
 		{
 		public:
-			Evas_Object* m_window;
+			Evas_Object* m_handle;
 			AtomicRef<ViewInstance> m_viewContent;
 
 		public:
 			EFL_WindowInstance()
 			{
-				m_window = sl_null;
+				m_handle = sl_null;
 			}
 
 			~EFL_WindowInstance()
@@ -66,15 +66,10 @@ namespace slib
 		public:
 			static Ref<EFL_WindowInstance> create(Evas_Object* window)
 			{
-
 				if (window) {
-
 					Ref<EFL_WindowInstance> ret = new EFL_WindowInstance();
-
 					if (ret.isNotNull()) {
-
-						ret->m_window = window;
-
+						ret->m_handle = window;
 						Ref<ViewInstance> content = UIPlatform::createViewInstance(EFL_ViewType::Window, window, sl_false);
 						if (content.isNotNull()) {
 							content->setWindowContent(sl_true);
@@ -95,20 +90,16 @@ namespace slib
 						UIPlatform::registerWindowInstance(window, ret.get());
 
 						return ret;
-
 					}
-
 				}
-
 				return sl_null;
-
 			}
 
 			static void _ui_win_delete_request_cb(void* data, Evas_Object* win, void* event_info)
 			{
 				Ref<WindowInstance> instance = UIPlatform::getWindowInstance(win);
 				if (instance.isNotNull()) {
-					(static_cast<EFL_WindowInstance*>(instance.get()))->m_window = sl_null;
+					(static_cast<EFL_WindowInstance*>(instance.get()))->m_handle = sl_null;
 				}
 				UIPlatform::removeWindowInstance(win);
 				sl_int32 n = Base::interlockedDecrement32(&g_nCountActiveWindows);
@@ -167,49 +158,55 @@ namespace slib
 				return sl_null;
 			}
 
-			static void _release_handle(Evas_Object* window)
+			static void _release_handle(Evas_Object* handle)
 			{
-				elm_win_lower(window);
-				evas_object_del(window);
+				elm_win_lower(handle);
+				evas_object_del(handle);
 			}
 
 			void _release()
 			{
-				Evas_Object* window = m_window;
-				if (window) {
-					UIPlatform::removeWindowInstance(window);
+				Evas_Object* handle = m_handle;
+				if (handle) {
+					UIPlatform::removeWindowInstance(handle);
 					if (UI::isUiThread()) {
-						_release_handle(window);
+						_release_handle(handle);
 					} else {
-						UI::dispatchToUiThread(Function<void()>::bind(&_release_handle, window));
+						UI::dispatchToUiThread(Function<void()>::bind(&_release_handle, handle));
 					}
 				}
 				m_viewContent.setNull();
-				m_window = sl_null;
+				m_handle = sl_null;
+			}
+
+		public:
+			void* getHandle() override
+			{
+				return (void*)m_handle;
 			}
 
 			void close() override
 			{
-				Evas_Object* window = m_window;
-				if (window) {
+				Evas_Object* handle = m_handle;
+				if (handle) {
 					if (!(UI::isUiThread())) {
 						UI::dispatchToUiThread(SLIB_FUNCTION_WEAKREF(this, close));
 						return;
 					}
-					UIPlatform::removeWindowInstance(window);
-					elm_win_lower(window);
-					evas_object_del(window);
+					UIPlatform::removeWindowInstance(handle);
+					elm_win_lower(handle);
+					evas_object_del(handle);
 				}
-				m_window = sl_null;
+				m_handle = sl_null;
 				m_viewContent.setNull();
 			}
 
 			sl_bool isClosed() override
 			{
-				return m_window == sl_null;
+				return m_handle == sl_null;
 			}
 
-			void setParent(const Ref<WindowInstance>& window) override
+			void setParentHandle(void* parent) override
 			{
 			}
 
@@ -230,20 +227,20 @@ namespace slib
 
 			void activate() override
 			{
-				Evas_Object* window = m_window;
-				if (window) {
-					elm_win_raise(window);
+				Evas_Object* handle = m_handle;
+				if (handle) {
+					elm_win_raise(handle);
 				}
 			}
 
 			void setVisible(sl_bool flag) override
 			{
-				Evas_Object* window = m_window;
-				if (window) {
+				Evas_Object* handle = m_handle;
+				if (handle) {
 					if (flag) {
-						evas_object_show(window);
+						evas_object_show(handle);
 					} else {
-						evas_object_hide(window);
+						evas_object_hide(handle);
 					}
 				}
 			}
@@ -255,7 +252,6 @@ namespace slib
 			}
 
 		};
-
 	}
 
 	Ref<WindowInstance> Window::createWindowInstance()
@@ -264,35 +260,35 @@ namespace slib
 	}
 
 
-	Ref<WindowInstance> UIPlatform::createWindowInstance(Evas_Object* window)
+	Ref<WindowInstance> UIPlatform::createWindowInstance(Evas_Object* handle)
 	{
-		Ref<WindowInstance> ret = UIPlatform::_getWindowInstance(window);
+		Ref<WindowInstance> ret = UIPlatform::_getWindowInstance(handle);
 		if (ret.isNotNull()) {
 			return ret;
 		}
-		return EFL_WindowInstance::create(window);
+		return EFL_WindowInstance::create(handle);
 	}
 
-	void UIPlatform::registerWindowInstance(Evas_Object* window, WindowInstance* instance)
+	void UIPlatform::registerWindowInstance(Evas_Object* handle, WindowInstance* instance)
 	{
-		UIPlatform::_registerWindowInstance(window, instance);
+		UIPlatform::_registerWindowInstance(handle, instance);
 	}
 
-	Ref<WindowInstance> UIPlatform::getWindowInstance(Evas_Object* window)
+	Ref<WindowInstance> UIPlatform::getWindowInstance(Evas_Object* handle)
 	{
-		return UIPlatform::_getWindowInstance(window);
+		return UIPlatform::_getWindowInstance(handle);
 	}
 
-	void UIPlatform::removeWindowInstance(Evas_Object* window)
+	void UIPlatform::removeWindowInstance(Evas_Object* handle)
 	{
-		UIPlatform::_removeWindowInstance(window);
+		UIPlatform::_removeWindowInstance(handle);
 	}
 
-	Evas_Object* UIPlatform::getWindowHandle(WindowInstance* instance)
+	Evas_Object* UIPlatform::getWindowHandle(WindowInstance* _instance)
 	{
-		EFL_WindowInstance* window = static_cast<EFL_WindowInstance*>(instance);
-		if (window) {
-			return window->m_window;
+		EFL_WindowInstance* instance = (EFL_WindowInstance*)_instance;
+		if (instance) {
+			return instance->m_handle;
 		} else {
 			return sl_null;
 		}
@@ -303,8 +299,8 @@ namespace slib
 		if (window) {
 			Ref<WindowInstance> _instance = window->getWindowInstance();
 			if (_instance.isNotNull()) {
-				EFL_WindowInstance* instance = static_cast<EFL_WindowInstance*>(_instance.get());
-				return instance->m_window;
+				EFL_WindowInstance* instance = (EFL_WindowInstance*)(_instance.get());
+				return instance->m_handle;
 			}
 		}
 		return sl_null;
@@ -313,7 +309,7 @@ namespace slib
 	Evas_Object* UIPlatform::getMainWindow()
 	{
 		if (g_windowMain.isNotNull()) {
-			return g_windowMain->m_window;
+			return g_windowMain->m_handle;
 		}
 		return sl_null;
 	}

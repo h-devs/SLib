@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -91,6 +91,17 @@ namespace slib
 		Ref<Window> getParent();
 
 		void setParent(const Ref<Window>& parent);
+
+		Ref<WindowInstance> getParentInstance();
+
+		void setParentInstance(const Ref<WindowInstance>& parent);
+
+		void* getParentHandle(Ref<WindowInstance>& _out);
+
+		void* getParentHandle();
+
+		void setParentHandle(void* parent);
+
 
 		Ref<Screen> getScreen();
 
@@ -462,6 +473,8 @@ namespace slib
 	public:
 		Ref<WindowInstance> getWindowInstance();
 
+		void* getWindowHandle();
+
 		void create();
 
 		void createAndKeep();
@@ -543,11 +556,15 @@ namespace slib
 
 		UIRect _makeFrame();
 
+		void _adjustFrame(UIRect& frame);
+
 		sl_bool _getClientInsets(UIEdgeInsets& _out);
 
 	protected:
 		AtomicRef<WindowInstance> m_instance;
 		AtomicWeakRef<Window> m_parent;
+		AtomicWeakRef<WindowInstance> m_parentInstance;
+		void* m_parentHandle;
 		Ref<WindowContentView> m_viewContent;
 		AtomicRef<Screen> m_screen;
 		AtomicRef<Menu> m_menu;
@@ -616,7 +633,7 @@ namespace slib
 #endif
 
 		friend class WindowInstance;
-
+		friend class WindowContentView;
 	};
 
 
@@ -637,12 +654,16 @@ namespace slib
 		void setKeepWindow(sl_bool flag);
 
 	public:
+		virtual void* getHandle() = 0;
+
 		virtual void close() = 0;
 
 		virtual sl_bool isClosed() = 0;
 
 
-		virtual void setParent(const Ref<WindowInstance>& parent) = 0;
+		virtual void setParentHandle(void* parent) = 0;
+
+		void setParent(const Ref<WindowInstance>& parent);
 
 		virtual Ref<ViewInstance> getContentView() = 0;
 

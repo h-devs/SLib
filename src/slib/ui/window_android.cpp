@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		SLIB_JNI_BEGIN_CLASS(JPoint, "android/graphics/Point")
 			SLIB_JNI_INT_FIELD(x);
 			SLIB_JNI_INT_FIELD(y);
@@ -73,7 +73,7 @@ namespace slib
 		class Android_WindowInstance : public WindowInstance
 		{
 		public:
-			JniGlobal<jobject> m_window;
+			JniGlobal<jobject> m_handle;
 			AtomicRef<ViewInstance> m_viewContent;
 			sl_bool m_flagClosed;
 
@@ -96,15 +96,15 @@ namespace slib
 				}
 				JniLocal<jobject> jcontent = JWindow::getContentView.callObject(jwindow);
 				if (jcontent.isNotNull()) {
-					JniGlobal<jobject> window = JniGlobal<jobject>::create(jwindow);
-					if (window.isNotNull()) {
+					JniGlobal<jobject> handle = JniGlobal<jobject>::create(jwindow);
+					if (handle.isNotNull()) {
 						Ref<ViewInstance> content = UIPlatform::createViewInstance(jcontent);
 						if (content.isNotNull()) {
 							Ref<Android_WindowInstance> ret = new Android_WindowInstance();
 							if (ret.isNotNull()) {
 								content->setWindowContent(sl_true);
-								jwindow = window.get();
-								ret->m_window = Move(window);
+								jwindow = handle.get();
+								ret->m_handle = Move(handle);
 								ret->m_viewContent = Move(content);
 								jlong instance = (jlong)(jwindow);
 								JWindow::instance.set(jwindow, instance);
@@ -144,6 +144,12 @@ namespace slib
 				return sl_null;
 			}
 
+		public:
+			void* getHandle() override
+			{
+				return m_handle;
+			}
+
 			void close() override
 			{
 				ObjectLocker lock(this);
@@ -152,20 +158,20 @@ namespace slib
 					return;
 				}
 				m_flagClosed = sl_true;
-				jobject jwindow = m_window;
+				jobject jwindow = m_handle;
 				if (jwindow) {
 					UIPlatform::removeWindowInstance(jwindow);
 					JWindow::close.call(jwindow);
-					m_window.setNull();
+					m_handle.setNull();
 				}
 			}
 
 			sl_bool isClosed() override
 			{
-				return m_window.isNull();
+				return m_handle.isNull();
 			}
 
-			void setParent(const Ref<WindowInstance>& window) override
+			void setParentHandle(void* parent) override
 			{
 			}
 
@@ -179,7 +185,7 @@ namespace slib
 				if (m_flagClosed) {
 					return sl_false;
 				}
-				jobject jwindow = m_window;
+				jobject jwindow = m_handle;
 				if (jwindow) {
 					JniLocal<jobject> rect = JWindow::getFrame.callObject(jwindow);
 					if (rect.isNotNull()) {
@@ -199,7 +205,7 @@ namespace slib
 				if (m_flagClosed) {
 					return;
 				}
-				jobject jwindow = m_window;
+				jobject jwindow = m_handle;
 				if (jwindow) {
 					JWindow::setFrame.call(jwindow, (int)(frame.left), (int)(frame.top), (int)(frame.right), (int)(frame.bottom));
 				}
@@ -210,7 +216,7 @@ namespace slib
 				if (m_flagClosed) {
 					return sl_false;
 				}
-				jobject jwindow = m_window;
+				jobject jwindow = m_handle;
 				if (jwindow) {
 					return JWindow::isActive.callBoolean(jwindow);
 				}
@@ -222,7 +228,7 @@ namespace slib
 				if (m_flagClosed) {
 					return;
 				}
-				jobject jwindow = m_window;
+				jobject jwindow = m_handle;
 				if (jwindow) {
 					JWindow::activate.call(jwindow);
 				}
@@ -233,7 +239,7 @@ namespace slib
 				if (m_flagClosed) {
 					return;
 				}
-				jobject jwindow = m_window;
+				jobject jwindow = m_handle;
 				if (jwindow) {
 					JWindow::setBackgroundColor.call(jwindow, color.getARGB());
 				}
@@ -244,7 +250,7 @@ namespace slib
 				if (m_flagClosed) {
 					return;
 				}
-				jobject jwindow = m_window;
+				jobject jwindow = m_handle;
 				if (jwindow) {
 					JWindow::setVisible.call(jwindow, flag);
 				}
@@ -255,7 +261,7 @@ namespace slib
 				if (m_flagClosed) {
 					return;
 				}
-				jobject jwindow = m_window;
+				jobject jwindow = m_handle;
 				if (jwindow) {
 					JWindow::setAlwaysOnTop.call(jwindow, flag);
 				}
@@ -266,12 +272,11 @@ namespace slib
 				if (m_flagClosed) {
 					return;
 				}
-				jobject jwindow = m_window;
+				jobject jwindow = m_handle;
 				if (jwindow) {
 					JWindow::setAlpha.call(jwindow, (jfloat)alpha);
 				}
 			}
-
 		};
 
 		SLIB_INLINE static Ref<Android_WindowInstance> GetWindowInstance(jlong instance)
@@ -279,23 +284,22 @@ namespace slib
 			return Ref<Android_WindowInstance>::cast(UIPlatform::getWindowInstance((jobject)instance));
 		}
 
-		void JNICALL OnResize(JNIEnv* env, jobject _this, jlong instance, int w, int h)
+		void JNICALL OnResize(JNIEnv* env, jobject _this, jlong _instance, int w, int h)
 		{
-			Ref<Android_WindowInstance> window = GetWindowInstance(instance);
-			if (window.isNotNull()) {
-				window->onResize((sl_ui_pos)w, (sl_ui_pos)h);
+			Ref<Android_WindowInstance> instance = GetWindowInstance(_instance);
+			if (instance.isNotNull()) {
+				instance->onResize((sl_ui_pos)w, (sl_ui_pos)h);
 			}
 		}
 
-		jboolean JNICALL OnClose(JNIEnv* env, jobject _this, jlong instance)
+		jboolean JNICALL OnClose(JNIEnv* env, jobject _this, jlong _instance)
 		{
-			Ref<Android_WindowInstance> window = GetWindowInstance(instance);
-			if (window.isNotNull()) {
-				return window->onClose();
+			Ref<Android_WindowInstance> instance = GetWindowInstance(_instance);
+			if (instance.isNotNull()) {
+				return instance->onClose();
 			}
 			return 1;
 		}
-
 	}
 
 	Ref<WindowInstance> Window::createWindowInstance()
@@ -310,9 +314,9 @@ namespace slib
 
 	Ref<WindowInstance> UIPlatform::createWindowInstance(jobject jwindow)
 	{
-		Ref<WindowInstance> window = UIPlatform::_getWindowInstance((void*)jwindow);
-		if (window.isNotNull()) {
-			return window;
+		Ref<WindowInstance> instance = UIPlatform::_getWindowInstance((void*)jwindow);
+		if (instance.isNotNull()) {
+			return instance;
 		}
 		return Android_WindowInstance::create(jwindow);
 	}
@@ -332,11 +336,11 @@ namespace slib
 		UIPlatform::_removeWindowInstance((void*)jwindow);
 	}
 
-	jobject UIPlatform::getWindowHandle(WindowInstance* instance)
+	jobject UIPlatform::getWindowHandle(WindowInstance* _instance)
 	{
-		Android_WindowInstance* window = (Android_WindowInstance*)instance;
-		if (window) {
-			return window->m_window.get();
+		Android_WindowInstance* instance = (Android_WindowInstance*)_instance;
+		if (instance) {
+			return instance->m_handle.get();
 		} else {
 			return 0;
 		}

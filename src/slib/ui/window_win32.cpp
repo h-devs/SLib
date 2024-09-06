@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -43,8 +43,8 @@ namespace slib
 
 	using namespace priv;
 
-	namespace {
-
+	namespace
+	{
 		static void MakeWindowStyle(Window* window, DWORD& style, DWORD& styleEx, HMENU& hMenu)
 		{
 			Ref<Menu> menu = window->getMenu();
@@ -166,8 +166,8 @@ namespace slib
 					atom = shared->getWndClassForWindowNoClose();
 				}
 
-				Ref<Window> parent = window->getParent();
-				HWND hParent = UIPlatform::getWindowHandle(parent.get());
+				Ref<WindowInstance> parent;
+				HWND hParent = (HWND)(window->getParentHandle(parent));
 
 				HMENU hMenu;
 				DWORD style;
@@ -254,6 +254,12 @@ namespace slib
 				PostCustomEvent(SLIB_UI_EVENT_CLOSE_WINDOW, hWnd);
 			}
 
+		public:
+			void* getHandle() override
+			{
+				return m_handle;
+			}
+
 			void close() override
 			{
 				ObjectLocker lock(this);
@@ -276,16 +282,12 @@ namespace slib
 				return m_handle == NULL;
 			}
 
-			void setParent(const Ref<WindowInstance>& window) override
+			void setParentHandle(void* parent) override
 			{
 				HWND hWnd = m_handle;
 				if (hWnd) {
-					if (window.isNotNull()) {
-						Win32_WindowInstance* w = static_cast<Win32_WindowInstance*>(window.get());
-						HWND hWndParent = w->m_handle;
-						if (hWndParent) {
-							SetWindowLongPtrW(hWnd, GWLP_HWNDPARENT, (LONG_PTR)hWndParent);
-						}
+					if (parent) {
+						SetWindowLongPtrW(hWnd, GWLP_HWNDPARENT, (LONG_PTR)parent);
 					} else {
 						SetWindowLongPtrW(hWnd, GWLP_HWNDPARENT, (LONG_PTR)NULL);
 					}
@@ -909,9 +911,7 @@ namespace slib
 				}
 				return sl_false;
 			}
-
 		};
-
 	}
 
 	Ref<WindowInstance> Window::createWindowInstance()
@@ -977,13 +977,13 @@ namespace slib
 		UIPlatform::_removeWindowInstance((void*)hWnd);
 	}
 
-	HWND UIPlatform::getWindowHandle(WindowInstance* instance)
+	HWND UIPlatform::getWindowHandle(WindowInstance* _instance)
 	{
-		Win32_WindowInstance* window = (Win32_WindowInstance*)instance;
-		if (window) {
-			return window->m_handle;
+		Win32_WindowInstance* instance = (Win32_WindowInstance*)_instance;
+		if (instance) {
+			return instance->m_handle;
 		} else {
-			return 0;
+			return NULL;
 		}
 	}
 
@@ -996,9 +996,8 @@ namespace slib
 				return instance->m_handle;
 			}
 		}
-		return 0;
+		return NULL;
 	}
-
 
 	namespace priv
 	{

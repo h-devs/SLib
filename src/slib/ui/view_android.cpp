@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -33,8 +33,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		SLIB_JNI_BEGIN_CLASS(JPoint, "android/graphics/Point")
 			SLIB_JNI_INT_FIELD(x);
 			SLIB_JNI_INT_FIELD(y);
@@ -250,7 +250,6 @@ namespace slib
 			SLIB_JNI_NATIVE(onSwipe, "nativeOnSwipe", "(JI)V", OnSwipe);
 
 		SLIB_JNI_END_CLASS
-
 	}
 
 	SLIB_DEFINE_OBJECT(Android_ViewInstance, ViewInstance)
