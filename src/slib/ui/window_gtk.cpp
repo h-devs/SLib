@@ -840,7 +840,7 @@ namespace slib
 	{
 		GTK_WindowInstance* instance = (GTK_WindowInstance*)_instance;
 		if (instance) {
-			return window->m_handle;
+			return instance->m_handle;
 		} else {
 			return sl_null;
 		}
