@@ -442,7 +442,11 @@ namespace slib
 		PROCESS_INFORMATION pi = {0};
 		STARTUPINFOW si = {0};
 		si.cb = sizeof(si);
-		if (Execute(param, &pi, &si, NORMAL_PRIORITY_CLASS | DETACHED_PROCESS, sl_false)) {
+		DWORD flags = NORMAL_PRIORITY_CLASS;
+		if (!(param.flags & ProcessFlags::InheritConsole)) {
+			flags |= DETACHED_PROCESS;
+		}
+		if (Execute(param, &pi, &si, flags, sl_false)) {
 			CloseHandle(pi.hThread);
 			Ref<ProcessImpl> ret = new ProcessImpl;
 			if (ret.isNotNull()) {
