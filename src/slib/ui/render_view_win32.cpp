@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		class RenderViewInstance : public Win32_ViewInstance, public IRenderViewInstance
 		{
 			SLIB_DECLARE_OBJECT
@@ -137,7 +137,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(RenderViewInstance, Win32_ViewInstance)
-
 	}
 
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
@@ -156,19 +155,19 @@ namespace slib
 				if (SLIB_RENDER_CHECK_ENGINE_TYPE(engineType, OpenGL_ES)) {
 					EGL::loadEntries();
 					GLES::loadEntries();
-					if (!(EGL::isAvailable() && GLES::isAvailable())) {
-						engineType = RenderEngineType::OpenGL;
+					if (EGL::isAvailable() && GLES::isAvailable()) {
+						RendererParam rp;
+						rp.onFrame = SLIB_FUNCTION_WEAKREF(ret, onFrame);
+						Ref<Renderer> renderer = EGL::createRenderer((void*)(ret->getHandle()), rp);
+						if (renderer.isNotNull()) {
+							ret->setRenderer(renderer, m_redrawMode);
+							return ret;
+						} else {
+							return sl_null;
+						}
 					}
 				}
-				if (SLIB_RENDER_CHECK_ENGINE_TYPE(engineType, OpenGL_ES)) {
-					RendererParam rp;
-					rp.onFrame = SLIB_FUNCTION_WEAKREF(ret, onFrame);
-					Ref<Renderer> renderer = EGL::createRenderer((void*)(ret->getHandle()), rp);
-					if (renderer.isNotNull()) {
-						ret->setRenderer(renderer, m_redrawMode);
-						return ret;
-					}
-				} else {
+				{
 					RendererParam rp;
 					rp.onFrame = SLIB_FUNCTION_WEAKREF(ret, onFrame);
 					Ref<Renderer> renderer = WGL::createRenderer((void*)(ret->getHandle()), rp);

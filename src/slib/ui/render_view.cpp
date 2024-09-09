@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,11 @@ namespace slib
 		setRendering(sl_true);
 
 #ifdef SLIB_PLATFORM_IS_DESKTOP
+#	ifdef SLIB_PLATFORM_IS_WIN32
+		m_preferredEngineType = RenderEngineType::D3D;
+#	else
 		m_preferredEngineType = RenderEngineType::OpenGL;
+#	endif
 #else
 		m_preferredEngineType = RenderEngineType::OpenGL_ES;
 #endif
@@ -87,7 +91,8 @@ namespace slib
 	{
 	}
 
-	namespace {
+	namespace
+	{
 		class AnimationLoopImpl : public AnimationLoop
 		{
 		public:
@@ -286,7 +291,8 @@ namespace slib
 		}
 	}
 
-	namespace {
+	namespace
+	{
 		class DispatcherImpl : public Dispatcher
 		{
 		public:

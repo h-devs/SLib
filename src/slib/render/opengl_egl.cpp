@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 		class RendererImpl : public Renderer
 		{
 		public:
@@ -67,12 +68,11 @@ namespace slib
 			}
 
 		public:
-
 #	if defined(SLIB_PLATFORM_IS_WIN32)
 			static EGLNativeDisplayType createDisplay(EGLNativeWindowType window)
 			{
 				HWND hWnd = (HWND)window;
-				HDC hDC = ::GetDC(hWnd);
+				HDC hDC = GetDC(hWnd);
 				return (EGLNativeDisplayType)hDC;
 			}
 
@@ -80,7 +80,7 @@ namespace slib
 			{
 				HWND hWnd = (HWND)window;
 				HDC hDC = (HDC)display;
-				::ReleaseDC(hWnd, hDC);
+				ReleaseDC(hWnd, hDC);
 			}
 
 			static sl_bool isWindowVisible(EGLNativeWindowType window)
@@ -91,15 +91,17 @@ namespace slib
 			static SizeI getWindowSize(EGLNativeWindowType window)
 			{
 				RECT rc;
-				::GetClientRect((HWND)window, &rc);
+				GetClientRect((HWND)window, &rc);
 				return SizeI((sl_int32)(rc.right), (sl_int32)(rc.bottom));
 			}
 #	endif
 
 			static Ref<RendererImpl> create(void* _windowHandle, const RendererParam& _param)
 			{
+				EGL::loadEntries();
+
 				EGLNativeWindowType windowHandle = (EGLNativeWindowType)_windowHandle;
-				if (windowHandle == 0) {
+				if (!windowHandle) {
 					return sl_null;
 				}
 
@@ -333,19 +335,20 @@ namespace slib
 	{
 		namespace egl
 		{
-
 			EntryPoints g_entries;
-
-			static sl_bool g_flagLoadedEntryPoints = sl_false;
-
 		}
 	}
 
 	using namespace priv::egl;
 
+	namespace
+	{
+		static sl_bool g_flagLoadedEntryPoints = sl_false;
+	}
+
 #undef PRIV_SLIB_RENDER_EGL_ENTRY
 #define PRIV_SLIB_RENDER_EGL_ENTRY(TYPE, name, ...) \
-	proc = ::GetProcAddress(hDll, #name); \
+	proc = GetProcAddress(hDll, #name); \
 	if (proc == 0) { \
 		LogError("EGL", "Failed to get function entry point - " #name); \
 		return; \
@@ -364,9 +367,8 @@ namespace slib
 			}
 		}
 		HMODULE hDll;
-		hDll = ::LoadLibraryW((LPCWSTR)(pathDll.getData()));
+		hDll = LoadLibraryW((LPCWSTR)(pathDll.getData()));
 		if (!hDll) {
-			//LogError("GLES", "Failed to load EGL dll - %s", pathEGL);
 			return;
 		}
 		FARPROC proc;
