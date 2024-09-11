@@ -26,7 +26,6 @@
 #include "definition.h"
 
 #include "../core/string.h"
-#include "../core/cast.h"
 
 namespace slib
 {

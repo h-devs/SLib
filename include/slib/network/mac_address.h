@@ -27,7 +27,6 @@
 
 #include "../core/common_members.h"
 #include "../core/hash.h"
-#include "../core/cast.h"
 
 namespace slib
 {

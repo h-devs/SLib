@@ -23,7 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_STRING_CAST
 #define CHECKHEADER_SLIB_CORE_STRING_CAST
 
-#include "../cast.h"
 #include "../string.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES

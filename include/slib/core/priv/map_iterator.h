@@ -24,7 +24,6 @@
 #define CHECKHEADER_SLIB_CORE_MAP_ITERATOR
 
 #include "../iterator.h"
-#include "../cast.h"
 
 namespace slib
 {

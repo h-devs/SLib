@@ -24,7 +24,7 @@
 #define CHECKHEADER_SLIB_CORE_REF
 
 #include "atomic.h"
-#include "convert.h"
+#include "cast.h"
 #include "common_members.h"
 
 #define SLIB_DECLARE_OBJECT \
@@ -87,7 +87,8 @@ public: \
 	WRAPPER& operator=(sl_null_t) noexcept { ref.setNull(); return *this; } \
 	WRAPPER& operator=(__VA_ARGS__* obj) noexcept { ref = obj; return *this; } \
 	WRAPPER& operator=(WRAPPER&& other) noexcept { ref = Move(other.ref); return *this; } \
-	WRAPPER& operator=(const WRAPPER& other) noexcept { ref = other.ref; return *this; }
+	WRAPPER& operator=(const WRAPPER& other) noexcept { ref = other.ref; return *this; } \
+	SLIB_DEFINE_CAST_REF_FUNCTIONS(class... TYPES, WRAPPER, Ref<TYPES...>)
 
 #define SLIB_REF_WRAPPER_NO_OP(WRAPPER, ...) \
 public: \
@@ -136,7 +137,8 @@ public: \
 	Atomic& operator=(const Atomic& other) noexcept { ref = other.ref; return *this; } \
 	Atomic& operator=(typename RemoveAtomic<Atomic>::Type&& other) noexcept { ref = Move(*(reinterpret_cast<Ref<__VA_ARGS__>*>(&other))); return *this; } \
 	Atomic& operator=(typename RemoveAtomic<Atomic>::Type const& other) noexcept { ref = *(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other)); return *this; } \
-	typename RemoveAtomic<Atomic>::Type release() noexcept { return (priv::ref::DummyContainer*)((void*)(ref._release())); }
+	typename RemoveAtomic<Atomic>::Type release() noexcept { return (priv::ref::DummyContainer*)((void*)(ref._release())); } \
+	SLIB_DEFINE_CAST_REF_FUNCTIONS(class OTHER, Atomic, AtomicRef<OTHER>)
 
 #define SLIB_ATOMIC_REF_WRAPPER(...) \
 	SLIB_ATOMIC_REF_WRAPPER_NO_OP(__VA_ARGS__) \

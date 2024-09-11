@@ -25,7 +25,6 @@
 
 #include "base.h"
 #include "string.h"
-#include "cast.h"
 
 namespace slib
 {

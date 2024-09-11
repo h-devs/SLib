@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,42 @@
 #define CHECKHEADER_SLIB_CORE_CAST
 
 #include "cpp_helper.h"
+#include "macro_arg.h"
+
+#if defined(SLIB_COMPILER_IS_VC)
+#	define SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO
+#elif defined(SLIB_COMPILER_IS_GCC)
+#	if defined(__has_feature)
+#		if __has_feature(is_convertible_to)
+#			define SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO
+#		endif
+#	endif
+#endif
+
+#if defined(SLIB_HAS_FEATURE_IS_CONVERTIBLE_TO)
+#	define SLIB_IS_CONVERTIBLE(FROM, TO) __is_convertible_to(FROM, TO)
+#else
+#	define SLIB_IS_CONVERTIBLE(FROM, TO) slib::IsConvertible<FROM, TO>::value
+#endif
+
+#define SLIB_TRY_CONVERT_TYPE(FROM, TO) { static_assert(SLIB_IS_CONVERTIBLE(FROM, TO), "Cannot convert from '" #FROM "' to '" #TO "'"); }
+
+#define SLIB_DEFINE_CAST_REF_FUNCTIONS(TEMPLATE, RET, ARG) \
+	template <TEMPLATE> \
+	static const RET& cast(const ARG& other) noexcept \
+	{ \
+		return *(reinterpret_cast<RET const*>(&other)); \
+	} \
+	template <TEMPLATE> \
+	static RET& cast(ARG& other) noexcept \
+	{ \
+		return *(reinterpret_cast<RET*>(&other)); \
+	} \
+	template <TEMPLATE> \
+	static RET&& cast(ARG&& other) noexcept \
+	{ \
+		return static_cast<RET&&>(*(reinterpret_cast<RET*>(&other))); \
+	}
 
 namespace slib
 {
@@ -54,6 +90,31 @@ namespace slib
 			return v;
 		}
 	};
+
+	namespace priv
+	{
+		template <class T> T&& DeclaredValue() noexcept;
+	}
+
+	template <class FROM, class TO>
+	class IsConvertibleHelper
+	{
+	private:
+		template<class T> static void _test_implicit(T);
+
+		template<class OTHER_FROM, class OTHER_TO, class OTHER_T = decltype(_test_implicit<OTHER_TO>(priv::DeclaredValue<OTHER_FROM>()))>
+		static ConstValue<bool, true> _test(int);
+
+		template <class OTHER_FROM, class OTHER_TO>
+		static ConstValue<bool, false> _test(...);
+
+	public:
+		typedef decltype(_test<FROM, TO>(0)) type;
+
+	};
+
+	template <typename FROM, typename TO>
+	struct IsConvertible : public IsConvertibleHelper<FROM, TO>::type {};
 
 }
 
