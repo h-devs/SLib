@@ -28,7 +28,15 @@
 namespace slib
 {
 
-	namespace {
+	namespace object_types
+	{
+		enum {
+			PopupBackground = ViewPage + 1
+		};
+	}
+
+	namespace
+	{
 		static TransitionType g_defaultOpeningPopupTransitionType = TransitionType::Zoom;
 		static TransitionDirection g_defaultOpeningPopupTransitionDirection = TransitionDirection::FromBottomToTop;
 		static float g_defaultOpeningPopupTransitionDuration = 0.25f;
@@ -210,7 +218,8 @@ namespace slib
 		return window;
 	}
 
-	namespace {
+	namespace
+	{
 		class PopupBackground : public ViewGroup
 		{
 			SLIB_DECLARE_OBJECT

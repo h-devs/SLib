@@ -1347,7 +1347,7 @@ namespace slib
 			data[i] *= (sl_int16)(table.quant[i]);
 		}
 	}
-	
+
 	#define MULTIPLY(VAR, CONST) ((int)(VAR) * (CONST))
 	#define FIX_0_298631336 ((int)2446)
 	#define FIX_0_390180644 ((int)3196)

@@ -144,7 +144,7 @@ namespace slib
 			GTK_ViewInstance,
 			ViewPager,
 			ViewPage,
-			PopupBackground,
+			ViewPage_End = ViewPage + 5,
 			ViewPageNavigationController,
 			WebView,
 			WebViewInstance,
@@ -152,7 +152,9 @@ namespace slib
 			WindowInstance,
 			WindowContentView,
 			PdfView,
-			GroupBox
+			GroupBox,
+			MapView,
+			MapView_End = MapView + 20
 		};
 
 	}
