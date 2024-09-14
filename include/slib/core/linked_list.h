@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -167,11 +167,13 @@ namespace slib
 		}
 
 	public:
+		// unsynchronized function
 		Link<T>* getFront() const noexcept
 		{
 			return m_front;
 		}
 
+		// unsynchronized function
 		Link<T>* getBack() const noexcept
 		{
 			return m_back;
@@ -248,12 +250,50 @@ namespace slib
 		}
 
 		template <class... ARGS>
+		static Link<T>* createLink(ARGS&&... args) noexcept
+		{
+			Link<T>* link = (Link<T>*)(Base::createMemory(sizeof(Link<T>)));
+			if (!link) {
+				return sl_null;
+			}
+			link->next = sl_null;
+			link->before = sl_null;
+			new (&(link->value)) T(Forward<ARGS>(args)...);
+			return link;
+		}
+
+		static void deleteLink(Link<T>* link) noexcept
+		{
+			link->value.T::~T();
+			Base::freeMemory(link);
+		}
+
+		void pushLinkAtBack_NoLock(Link<T>* link) noexcept
+		{
+			if (m_back) {
+				m_back->next = link;
+				link->before = m_back;
+				m_back = link;
+			} else {
+				m_front = link;
+				m_back = link;
+			}
+			m_count++;
+		}
+
+		void pushLinkAtBack(Link<T>* link) noexcept
+		{
+			ObjectLocker lock(this);
+			pushLinkAtBack_NoLock(link);
+		}
+
+		template <class... ARGS>
 		Link<T>* pushBack_NoLock(ARGS&&... args) noexcept
 		{
-			Link<T>* item = _createItem(Forward<ARGS>(args)...);
-			if (item) {
-				_pushBackItem(item);
-				return item;
+			Link<T>* link = createLink(Forward<ARGS>(args)...);
+			if (link) {
+				pushLinkAtBack_NoLock(link);
+				return link;
 			}
 			return sl_null;
 		}
@@ -261,10 +301,9 @@ namespace slib
 		template <class... ARGS>
 		sl_bool pushBack(ARGS&&... args) noexcept
 		{
-			Link<T>* item = _createItem(Forward<ARGS>(args)...);
-			if (item) {
-				ObjectLocker lock(this);
-				_pushBackItem(item);
+			Link<T>* link = createLink(Forward<ARGS>(args)...);
+			if (link) {
+				pushLinkAtBack(link);
 				return sl_true;
 			}
 			return sl_false;
@@ -290,14 +329,37 @@ namespace slib
 			return pushBackAll_NoLock(other);
 		}
 
+		Link<T>* popLinkFromBack_NoLock() noexcept
+		{
+			Link<T>* back = m_back;
+			if (back) {
+				m_count--;
+				Link<T>* before = back->before;
+				if (before) {
+					before->next = sl_null;
+					m_back = before;
+				} else {
+					m_front = sl_null;
+					m_back = sl_null;
+				}
+			}
+			return back;
+		}
+
+		Link<T>* popLinkFromBack() noexcept
+		{
+			ObjectLocker lock(this);
+			return popLinkFromBack_NoLock();
+		}
+
 		sl_bool popBack_NoLock(T* _out = sl_null) noexcept
 		{
-			Link<T>* old = _popBackItem();
+			Link<T>* old = popLinkFromBack_NoLock();
 			if (old) {
 				if (_out) {
 					*_out = Move(old->value);
 				}
-				_freeItem(old);
+				deleteLink(old);
 				return sl_true;
 			} else {
 				return sl_false;
@@ -306,29 +368,44 @@ namespace slib
 
 		sl_bool popBack(T* _out = sl_null) noexcept
 		{
-			Link<T>* old;
-			{
-				ObjectLocker lock(this);
-				old = _popBackItem();
-			}
+			Link<T>* old = popLinkFromBack();
 			if (old) {
 				if (_out) {
 					*_out = Move(old->value);
 				}
-				_freeItem(old);
+				deleteLink(old);
 				return sl_true;
 			} else {
 				return sl_false;
 			}
 		}
 
+		void pushLinkAtFront_NoLock(Link<T>* link) noexcept
+		{
+			if (m_front) {
+				link->next = m_front;
+				m_front->before = link;
+				m_front = link;
+			} else {
+				m_front = link;
+				m_back = link;
+			}
+			m_count++;
+		}
+
+		void pushLinkAtFront(Link<T>* link) noexcept
+		{
+			ObjectLocker lock(this);
+			pushLinkAtFront_NoLock(link);
+		}
+
 		template <class... ARGS>
 		Link<T>* pushFront_NoLock(ARGS&&... args) noexcept
 		{
-			Link<T>* item = _createItem(Forward<ARGS>(args)...);
-			if (item) {
-				_pushFrontItem(item);
-				return item;
+			Link<T>* link = createLink(Forward<ARGS>(args)...);
+			if (link) {
+				pushLinkAtFront_NoLock(link);
+				return link;
 			}
 			return sl_null;
 		}
@@ -336,10 +413,9 @@ namespace slib
 		template <class... ARGS>
 		sl_bool pushFront(ARGS&&... args) noexcept
 		{
-			Link<T>* item = _createItem(Forward<ARGS>(args)...);
-			if (item) {
-				ObjectLocker lock(this);
-				_pushFrontItem(item);
+			Link<T>* link = createLink(Forward<ARGS>(args)...);
+			if (link) {
+				pushLinkAtFront(link);
 				return sl_false;
 			}
 			return sl_true;
@@ -365,14 +441,37 @@ namespace slib
 			return pushFrontAll_NoLock(other);
 		}
 
+		Link<T>* popLinkFromFront_NoLock() noexcept
+		{
+			Link<T>* front = m_front;
+			if (front) {
+				m_count--;
+				Link<T>* next = front->next;
+				if (next) {
+					next->before = sl_null;
+					m_front = next;
+				} else {
+					m_front = sl_null;
+					m_back = sl_null;
+				}
+			}
+			return front;
+		}
+
+		Link<T>* popLinkFromFront() noexcept
+		{
+			ObjectLocker lock(this);
+			return popLinkFromFront_NoLock();
+		}
+
 		sl_bool popFront_NoLock(T* _out = sl_null) noexcept
 		{
-			Link<T>* old = _popFrontItem();
+			Link<T>* old = popLinkFromFront_NoLock();
 			if (old) {
 				if (_out) {
 					*_out = Move(old->value);
 				}
-				_freeItem(old);
+				deleteLink(old);
 				return sl_true;
 			} else {
 				return sl_false;
@@ -381,16 +480,12 @@ namespace slib
 
 		sl_bool popFront(T* _out = sl_null) noexcept
 		{
-			Link<T>* old;
-			{
-				ObjectLocker lock(this);
-				old = _popFrontItem();
-			}
+			Link<T>* old = popLinkFromFront();
 			if (old) {
 				if (_out) {
 					*_out = Move(old->value);
 				}
-				_freeItem(old);
+				deleteLink(old);
 				return sl_true;
 			} else {
 				return sl_false;
@@ -398,13 +493,28 @@ namespace slib
 		}
 
 		// unsynchronized function
+		void insertLinkBefore(Link<T>* itemWhere, Link<T>* itemNew) noexcept
+		{
+			itemNew->next = itemWhere;
+			Link<T>* before = itemWhere->before;
+			itemNew->before = before;
+			itemWhere->before = itemNew;
+			if (before) {
+				before->next = itemNew;
+			} else {
+				m_front = itemNew;
+			}
+			m_count++;
+		}
+
+		// unsynchronized function
 		template <class... ARGS>
 		Link<T>* insertBefore(Link<T>* itemWhere, ARGS&&... args) noexcept
 		{
 			if (itemWhere) {
-				Link<T>* itemNew = _createItem(Forward<ARGS>(args)...);
+				Link<T>* itemNew = createLink(Forward<ARGS>(args)...);
 				if (itemNew) {
-					_insertBefore(itemWhere, itemNew);
+					insertLinkBefore(itemWhere, itemNew);
 				}
 				return itemNew;
 			} else {
@@ -413,13 +523,28 @@ namespace slib
 		}
 
 		// unsynchronized function
+		void insertLinkAfter(Link<T>* itemWhere, Link<T>* itemNew) noexcept
+		{
+			itemNew->before = itemWhere;
+			Link<T>* next = itemWhere->next;
+			itemNew->next = next;
+			itemWhere->next = itemNew;
+			if (next) {
+				next->before = itemNew;
+			} else {
+				m_back = itemNew;
+			}
+			m_count++;
+		}
+
+		// unsynchronized function
 		template <class... ARGS>
 		Link<T>* insertAfter(Link<T>* itemWhere, ARGS&&... args) noexcept
 		{
 			if (itemWhere) {
-				Link<T>* itemNew = _createItem(Forward<ARGS>(args)...);
+				Link<T>* itemNew = createLink(Forward<ARGS>(args)...);
 				if (itemNew) {
-					_insertAfter(itemWhere, itemNew);
+					insertLinkAfter(itemWhere, itemNew);
 				}
 				return itemNew;
 			} else {
@@ -427,16 +552,43 @@ namespace slib
 			}
 		}
 
-		/* unsynchronized function.*/
-		Link<T>* removeAt(Link<T>* item) noexcept
+		// unsynchronized function
+		void removeLink(Link<T>* link) noexcept
 		{
-			if (item) {
-				Link<T>* next = item->next;
-				_removeItem(item);
-				_freeItem(item);
+			m_count--;
+			Link<T>* before = link->before;
+			Link<T>* next = link->next;
+			if (before) {
+				before->next = next;
+			} else {
+				m_front = next;
+			}
+			if (next) {
+				next->before = before;
+			} else {
+				m_back = before;
+			}
+		}
+
+		// unsynchronized function. returns next link
+		Link<T>* removeAt(Link<T>* link) noexcept
+		{
+			if (link) {
+				Link<T>* next = link->next;
+				removeLink(link);
+				deleteLink(link);
 				return next;
 			} else {
 				return sl_null;
+			}
+		}
+
+		static void deleteAll(Link<T>* link) noexcept
+		{
+			while (link) {
+				Link<T>* next = link->next;
+				deleteLink(link);
+				link = next;
 			}
 		}
 
@@ -445,10 +597,9 @@ namespace slib
 			Link<T>* front = m_front;
 			sl_size count = m_count;
 			initialize();
-			freeLink(front);
+			deleteAll(front);
 			return count;
 		}
-
 
 		sl_size removeAll() noexcept
 		{
@@ -460,7 +611,7 @@ namespace slib
 				count = m_count;
 				initialize();
 			}
-			freeLink(front);
+			deleteAll(front);
 			return count;
 		}
 
@@ -626,140 +777,6 @@ namespace slib
 		LinkPosition<T> end() const noexcept
 		{
 			return LinkPosition<T>();
-		}
-
-		static void freeLink(Link<T>* link) noexcept
-		{
-			while (link) {
-				Link<T>* next = link->next;
-				_freeItem(link);
-				link = next;
-			}
-		}
-
-	protected:
-		template <class... ARGS>
-		static Link<T>* _createItem(ARGS&&... args) noexcept
-		{
-			Link<T>* item = (Link<T>*)(Base::createMemory(sizeof(Link<T>)));
-			if (!item) {
-				return sl_null;
-			}
-			item->next = sl_null;
-			item->before = sl_null;
-			new (&(item->value)) T(Forward<ARGS>(args)...);
-			return item;
-		}
-
-		static void _freeItem(Link<T>* item) noexcept
-		{
-			item->value.T::~T();
-			Base::freeMemory(item);
-		}
-
-		void _pushBackItem(Link<T>* item) noexcept
-		{
-			if (m_back) {
-				m_back->next = item;
-				item->before = m_back;
-				m_back = item;
-			} else {
-				m_front = item;
-				m_back = item;
-			}
-			m_count++;
-		}
-
-		Link<T>* _popBackItem() noexcept
-		{
-			Link<T>* back = m_back;
-			if (back) {
-				m_count--;
-				Link<T>* before = back->before;
-				if (before) {
-					before->next = sl_null;
-					m_back = before;
-				} else {
-					m_front = sl_null;
-					m_back = sl_null;
-				}
-			}
-			return back;
-		}
-
-		void _pushFrontItem(Link<T>* item) noexcept
-		{
-			if (m_front) {
-				item->next = m_front;
-				m_front->before = item;
-				m_front = item;
-			} else {
-				m_front = item;
-				m_back = item;
-			}
-			m_count++;
-		}
-
-		Link<T>* _popFrontItem() noexcept
-		{
-			Link<T>* front = m_front;
-			if (front) {
-				m_count--;
-				Link<T>* next = front->next;
-				if (next) {
-					next->before = sl_null;
-					m_front = next;
-				} else {
-					m_front = sl_null;
-					m_back = sl_null;
-				}
-			}
-			return front;
-		}
-
-		void _removeItem(Link<T>* item) noexcept
-		{
-			m_count--;
-			Link<T>* before = item->before;
-			Link<T>* next = item->next;
-			if (before) {
-				before->next = next;
-			} else {
-				m_front = next;
-			}
-			if (next) {
-				next->before = before;
-			} else {
-				m_back = before;
-			}
-		}
-
-		void _insertBefore(Link<T>* itemWhere, Link<T>* itemNew) noexcept
-		{
-			itemNew->next = itemWhere;
-			Link<T>* before = itemWhere->before;
-			itemNew->before = before;
-			itemWhere->before = itemNew;
-			if (before) {
-				before->next = itemNew;
-			} else {
-				m_front = itemNew;
-			}
-			m_count++;
-		}
-
-		void _insertAfter(Link<T>* itemWhere, Link<T>* itemNew) noexcept
-		{
-			itemNew->before = itemWhere;
-			Link<T>* next = itemWhere->next;
-			itemNew->next = next;
-			itemWhere->next = itemNew;
-			if (next) {
-				next->before = itemNew;
-			} else {
-				m_back = itemNew;
-			}
-			m_count++;
 		}
 
 	};
@@ -1103,11 +1120,11 @@ namespace slib
 		}
 
 		// unsynchronized function
-		Link<T>* removeAt(Link<T>* item) const noexcept
+		Link<T>* removeAt(Link<T>* link) const noexcept
 		{
 			CLinkedList<T>* obj = ref.ptr;
 			if (obj) {
-				return obj->removeAt(item);
+				return obj->removeAt(link);
 			}
 			return sl_null;
 		}
