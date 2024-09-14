@@ -36,6 +36,9 @@ namespace slib
 	class SLIB_EXPORT ExpiringMap : public Lockable
 	{
 	public:
+		typedef typename HashMap<KT, VT>::NODE NODE;
+
+	public:
 		ExpiringMap()
 		{
 			m_duration = 0;
@@ -117,9 +120,8 @@ namespace slib
 			return getCount() != 0;
 		}
 
-		sl_bool get(const KT& key, VT* _out = sl_null, sl_bool flagUpdateLifetime = sl_true)
+		sl_bool get_NoLock(const KT& key, VT* _out = sl_null, sl_bool flagUpdateLifetime = sl_true)
 		{
-			ObjectLocker lock(this);
 			VT* p = m_mapCurrent.getItemPointer(key);
 			if (p) {
 				if (_out) {
@@ -141,9 +143,36 @@ namespace slib
 			return sl_false;
 		}
 
-		VT getValue(const KT& key, const VT& def, sl_bool flagUpdateLifetime = sl_true)
+		sl_bool get(const KT& key, VT* _out = sl_null, sl_bool flagUpdateLifetime = sl_true)
 		{
 			ObjectLocker lock(this);
+			return get_NoLock(key, _out, flagUpdateLifetime);
+		}
+
+		// unsynchronized function
+		VT* getItemPointer(const KT& key, sl_bool flagUpdateLifetime = sl_true)
+		{
+			VT* p = m_mapCurrent.getItemPointer(key);
+			if (p) {
+				return p;
+			}
+			auto node = m_mapBackup.find_NoLock(key);
+			if (node) {
+				if (flagUpdateLifetime) {
+					auto newNode = m_mapCurrent.add_NoLock(key, Move(node->value));
+					m_mapBackup.removeAt(node);
+					if (newNode) {
+						return &(newNode->value);
+					}
+				} else {
+					return &(node->value);
+				}
+			}
+			return sl_null;
+		}
+
+		VT getValue_NoLock(const KT& key, const VT& def, sl_bool flagUpdateLifetime = sl_true)
+		{
 			VT* p = m_mapCurrent.getItemPointer(key);
 			if (p) {
 				return *p;
@@ -163,46 +192,81 @@ namespace slib
 			return def;
 		}
 
+		VT getValue(const KT& key, const VT& def, sl_bool flagUpdateLifetime = sl_true)
+		{
+			ObjectLocker lock(this);
+			return getValue_NoLock(key, def, flagUpdateLifetime);
+		}
+
+		template <class KEY, class VALUE>
+		NODE* put_NoLock(KEY&& key, VALUE&& value)
+		{
+			m_mapBackup.remove_NoLock(key);
+			auto node = m_mapCurrent.put_NoLock(Forward<KEY>(key), Forward<VALUE>(value));
+			if (node) {
+				if (m_timer.isNull()) {
+					_setupTimer();
+				}
+				return node;
+			}
+			return sl_null;
+		}
+
 		template <class KEY, class VALUE>
 		sl_bool put(KEY&& key, VALUE&& value)
 		{
 			ObjectLocker lock(this);
-			m_mapBackup.remove_NoLock(key);
-			if (m_mapCurrent.put_NoLock(Forward<KEY>(key), Forward<VALUE>(value))) {
+			return put_NoLock(key, value) != sl_null;
+		}
+
+		template <class KEY, class... VALUE_ARGS>
+		NODE* add_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			auto node = m_mapCurrent.add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			if (node) {
 				if (m_timer.isNull()) {
 					_setupTimer();
 				}
-				return sl_true;
+				return node;
 			}
-			return sl_false;
+			return sl_null;
 		}
 
 		template <class KEY, class... VALUE_ARGS>
 		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
 			ObjectLocker lock(this);
-			if (m_mapCurrent.add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...)) {
-				if (m_timer.isNull()) {
-					_setupTimer();
-				}
-				return sl_true;
-			}
-			return sl_false;
+			return add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
 
-		sl_bool remove(const KT& key, VT* outValue = sl_null)
+		sl_bool remove_NoLock(const KT& key, VT* outValue = sl_null)
 		{
-			ObjectLocker lock(this);
 			if (m_mapCurrent.remove_NoLock(key, outValue)) {
 				return sl_true;
 			}
 			return m_mapBackup.remove_NoLock(key, outValue);
 		}
 
+		sl_bool remove(const KT& key, VT* outValue = sl_null)
+		{
+			ObjectLocker lock(this);
+			return remove_NoLock(key, outValue);
+		}
+
+		void removeAll_NoLock()
+		{
+			m_mapCurrent.removeAll_NoLock();
+			m_mapBackup.removeAll_NoLock();
+		}
+
 		void removeAll()
 		{
 			ObjectLocker lock(this);
-			m_mapCurrent.removeAll_NoLock();
+			removeAll_NoLock();
+		}
+
+		void removeOld_NoLock()
+		{
 			m_mapBackup.removeAll_NoLock();
 		}
 
@@ -212,9 +276,8 @@ namespace slib
 			m_mapBackup.removeAll_NoLock();
 		}
 
-		sl_bool contains(const KT& key) const
+		sl_bool contains_NoLock(const KT& key) const
 		{
-			ObjectLocker lock(this);
 			if (m_mapCurrent.find_NoLock(key)) {
 				return sl_true;
 			}
@@ -224,28 +287,61 @@ namespace slib
 			return sl_false;
 		}
 
+		sl_bool contains(const KT& key) const
+		{
+			ObjectLocker lock(this);
+			return contains_NoLock(key);
+		}
+
+		List<KT> getAllKeys_NoLock() const
+		{
+			List<KT> ret = m_mapCurrent.getAllKeys_NoLock();
+			ret.addAll_NoLock(m_mapBackup.getAllKeys_NoLock());
+			return ret;
+		}
+
 		List<KT> getAllKeys() const
 		{
 			ObjectLocker lock(this);
-			List<KT> ret = m_mapCurrent.getAllKeys_NoLock();
-			ret.addAll_NoLock(m_mapBackup.getAllKeys_NoLock());
+			return getAllKeys_NoLock();
+		}
+
+		List<VT> getAllValues_NoLock() const
+		{
+			List<VT> ret = m_mapCurrent.getAllValues_NoLock();
+			ret.addAll_NoLock(m_mapBackup.getAllValues_NoLock());
 			return ret;
 		}
 
 		List<VT> getAllValues() const
 		{
 			ObjectLocker lock(this);
-			List<VT> ret = m_mapCurrent.getAllValues_NoLock();
-			ret.addAll_NoLock(m_mapBackup.getAllValues_NoLock());
+			return getAllValues_NoLock();
+		}
+
+		List< Pair<KT, VT> > toList_NoLock() const
+		{
+			List< Pair<KT, VT> > ret = m_mapCurrent.toList_NoLock();
+			ret.addAll_NoLock(m_mapBackup.toList_NoLock());
 			return ret;
 		}
 
 		List< Pair<KT, VT> > toList() const
 		{
 			ObjectLocker lock(this);
-			List< Pair<KT, VT> > ret = m_mapCurrent.toList_NoLock();
-			ret.addAll_NoLock(m_mapBackup.toList_NoLock());
-			return ret;
+			return toList_NoLock();
+		}
+
+		// unsynchronized function
+		const HashMap<KT, VT>& getInternalMap0() const
+		{
+			return m_mapCurrent;
+		}
+
+		// unsynchronized function
+		const HashMap<KT, VT>& getInternalMap1() const
+		{
+			return m_mapBackup;
 		}
 
 	protected:
