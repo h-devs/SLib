@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,8 @@ namespace slib
 		~ThreadPool();
 
 	public:
+		static Ref<ThreadPool> create(const Function<sl_bool()>& task, sl_uint32 minThreads = 0, sl_uint32 maxThreads = 30);
+
 		static Ref<ThreadPool> create(sl_uint32 minThreads = 0, sl_uint32 maxThreads = 30);
 
 	public:
@@ -50,6 +52,7 @@ namespace slib
 
 		sl_uint32 getMaximumThreadCount();
 
+		// 0 means unlimited count
 		void setMaximumThreadCount(sl_uint32 n);
 
 
@@ -64,16 +67,27 @@ namespace slib
 
 		sl_uint32 getThreadCount();
 
-		sl_bool addTask(const Function<void()>& task);
+
+		sl_size getQueuedTaskCount();
+
+		sl_bool addTask(const Function<void()>& task, sl_bool flagUrgent = sl_false);
 
 		sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis = 0) override;
 
+		void wake();
+
 	protected:
-		void onRunWorker();
+		void _wake();
+
+		sl_bool _processTask();
+
+		void _runWorker();
 
 	protected:
 		CList< Ref<Thread> > m_threadWorkers;
 		LinkedQueue< Ref<Thread> > m_threadSleeping;
+
+		Function<sl_bool()> m_task;
 		LinkedQueue< Function<void()> > m_tasks;
 
 		sl_uint32 m_minimumThreadCount;

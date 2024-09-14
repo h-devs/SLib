@@ -455,14 +455,21 @@ namespace slib
 		release();
 	}
 
-	Ref<ThreadPool> ThreadPool::create(sl_uint32 minThreads, sl_uint32 maxThreads)
+	Ref<ThreadPool> ThreadPool::create(const Function<sl_bool()>& task, sl_uint32 minThreads, sl_uint32 maxThreads)
 	{
 		Ref<ThreadPool> ret = new ThreadPool();
 		if (ret.isNotNull()) {
-			ret->setMinimumThreadCount(minThreads);
-			ret->setMaximumThreadCount(maxThreads);
+			ret->m_task = task;
+			ret->m_minimumThreadCount = minThreads;
+			ret->m_maximumThreadCount = maxThreads;
+			return ret;
 		}
-		return ret;
+		return sl_null;
+	}
+
+	Ref<ThreadPool> ThreadPool::create(sl_uint32 minThreads, sl_uint32 maxThreads)
+	{
+		return create(Function<sl_bool()>::null(), minThreads, maxThreads);
 	}
 
 	sl_uint32 ThreadPool::getMinimumThreadCount()
@@ -523,7 +530,12 @@ namespace slib
 		return (sl_uint32)(m_threadWorkers.getCount());
 	}
 
-	sl_bool ThreadPool::addTask(const Function<void()>& task)
+	sl_size ThreadPool::getQueuedTaskCount()
+	{
+		return m_tasks.getCount();
+	}
+
+	sl_bool ThreadPool::addTask(const Function<void()>& task, sl_bool flagUrgent)
 	{
 		if (task.isNull()) {
 			return sl_false;
@@ -532,31 +544,26 @@ namespace slib
 		if (!m_flagRunning) {
 			return sl_false;
 		}
-		// add task
-		if (!(m_tasks.push(task))) {
-			return sl_false;
-		}
-
-		// wake a sleeping worker
-		{
-			Ref<Thread> thread;
-			if (m_threadSleeping.pop_NoLock(&thread)) {
-				thread->wakeSelfEvent();
-				return sl_true;
+		if (flagUrgent) {
+			if (!(m_tasks.pushFront(task))) {
+				return sl_false;
+			}
+		} else {
+			if (!(m_tasks.pushBack(task))) {
+				return sl_false;
 			}
 		}
-
-		// increase workers
-		{
-			sl_size nThreads = m_threadWorkers.getCount();
-			if (nThreads == 0 || (nThreads < getMaximumThreadCount())) {
-				Ref<Thread> worker = Thread::start(SLIB_FUNCTION_MEMBER(this, onRunWorker), getThreadStackSize());
-				if (worker.isNotNull()) {
-					m_threadWorkers.add_NoLock(worker);
-				}
-			}
-		}
+		_wake();
 		return sl_true;
+	}
+
+	void ThreadPool::wake()
+	{
+		ObjectLocker lock(this);
+		if (!m_flagRunning) {
+			return;
+		}
+		_wake();
 	}
 
 	sl_bool ThreadPool::dispatch(const Function<void()>& callback, sl_uint64 delayMillis)
@@ -567,20 +574,52 @@ namespace slib
 		return addTask(callback);
 	}
 
-	void ThreadPool::onRunWorker()
+	void ThreadPool::_wake()
+	{
+		// wake a sleeping worker
+		{
+			Ref<Thread> thread;
+			if (m_threadSleeping.pop_NoLock(&thread)) {
+				thread->wakeSelfEvent();
+				return;
+			}
+		}
+		// increase workers
+		{
+			sl_size nThreads = m_threadWorkers.getCount();
+			if (!nThreads || nThreads < m_maximumThreadCount) {
+				Ref<Thread> worker = Thread::start(SLIB_FUNCTION_MEMBER(this, _runWorker), m_threadStackSize);
+				if (worker.isNotNull()) {
+					m_threadWorkers.add_NoLock(worker);
+				}
+			}
+		}
+	}
+
+	sl_bool ThreadPool::_processTask()
+	{
+		Function<void()> task;
+		if (m_tasks.pop(&task)) {
+			task();
+			return sl_true;
+		}
+		if (m_task.isNotNull()) {
+			return m_task();
+		}
+		return sl_false;
+	}
+
+	void ThreadPool::_runWorker()
 	{
 		Thread* thread = Thread::getCurrent();
 		if (!thread) {
 			return;
 		}
 		while (m_flagRunning && thread->isNotStopping()) {
-			Function<void()> task;
-			if (m_tasks.pop(&task)) {
-				task();
-			} else {
+			if (!(_processTask())) {
 				ObjectLocker lock(this);
 				sl_size nThreads = m_threadWorkers.getCount();
-				if (nThreads > getMinimumThreadCount()) {
+				if (nThreads > m_minimumThreadCount) {
 					m_threadWorkers.remove_NoLock(thread);
 					return;
 				} else {
