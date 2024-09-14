@@ -59,6 +59,10 @@ namespace slib
 	public:
 		UTM();
 
+		UTM(double referenceLongitude);
+
+		UTM(double referenceLongitude, double scaleFactor);
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(UTM)
 
 	public:

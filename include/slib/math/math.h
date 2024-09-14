@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -56,6 +56,8 @@
 #define SLIB_POW10_17 SLIB_UINT64(100000000000000000)
 #define SLIB_POW10_18 SLIB_UINT64(1000000000000000000)
 #define SLIB_POW10_19 SLIB_UINT64(10000000000000000000)
+
+#define SLIB_DMS(DEGREE, MINUTE, SECOND) ((double)(DEGREE) + (double)(MINUTE) / 60.0 + (double)(SECOND) / 3600.0)
 
 #define PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS(PREFIX, FUNCTION_NAME, SUFFIX) \
 	static PREFIX FUNCTION_NAME(sl_uint8 n) SUFFIX { return FUNCTION_NAME((sl_uint32)n); } \

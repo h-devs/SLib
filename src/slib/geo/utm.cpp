@@ -24,6 +24,8 @@
 
 #include "slib/math/math.h"
 
+#define DEFAULT_SCALE_FACTOR 0.9996
+
 namespace slib
 {
 
@@ -40,7 +42,15 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(UTM)
 
-	UTM::UTM(): referenceLongitude(0), scaleFactor(0.9996)
+	UTM::UTM(): referenceLongitude(0), scaleFactor(DEFAULT_SCALE_FACTOR)
+	{
+	}
+
+	UTM::UTM(double _referenceLongitude): referenceLongitude(_referenceLongitude), scaleFactor(DEFAULT_SCALE_FACTOR)
+	{
+	}
+
+	UTM::UTM(double _referenceLongitude, double _scaleFactor): referenceLongitude(_referenceLongitude), scaleFactor(_scaleFactor)
 	{
 	}
 
