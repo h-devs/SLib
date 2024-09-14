@@ -80,7 +80,6 @@
 #include "ui/render_view.h"
 #include "ui/web_view.h"
 #include "ui/video_view.h"
-#include "ui/audio_view.h"
 #include "ui/camera_view.h"
 
 #include "ui/transition.h"
@@ -99,7 +98,10 @@
 
 #include "ui/notification.h"
 
+#include "ui/audio_view.h"
 #include "ui/pdf_view.h"
+#include "ui/map_view.h"
+
 #include "ui/chromium.h"
 
 #endif

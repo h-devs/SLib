@@ -282,6 +282,7 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/ui/list_box.cpp"
  "${SLIB_PATH}/src/slib/ui/list_control.cpp"
  "${SLIB_PATH}/src/slib/ui/list_view.cpp"
+ "${SLIB_PATH}/src/slib/ui/map_view.cpp"
  "${SLIB_PATH}/src/slib/ui/mobile_app.cpp"
  "${SLIB_PATH}/src/slib/ui/mobile_game.cpp"
  "${SLIB_PATH}/src/slib/ui/motion_tracker.cpp"

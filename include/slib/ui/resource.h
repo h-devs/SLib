@@ -419,6 +419,7 @@ namespace slib
 	class GridViewRow;
 	class PdfView;
 	class AudioView;
+	class MapView;
 
 }
 

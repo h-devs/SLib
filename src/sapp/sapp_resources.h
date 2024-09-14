@@ -970,6 +970,12 @@ namespace slib
 	public:
 	};
 
+	class SAppLayoutMapAttributes : public SAppLayoutRenderAttributes
+	{
+	public:
+		SAppBooleanValue globe;
+	};
+
 	class SAppLayoutGroupBoxAttributes : public SAppLayoutViewAttributes
 	{
 	public:
@@ -1239,6 +1245,7 @@ namespace slib
 		Pdf = 0x0271,
 		Grid = 0x0272,
 		Audio = 0x0273,
+		Map = 0x0274,
 
 		NoView = 0xF000,
 		TreeItem = 0xF001
@@ -1373,6 +1380,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNamePdf = 0;
 		sl_uint32 nAutoIncreaseNameGroupBox = 0;
 		sl_uint32 nAutoIncreaseNameGrid = 0;
+		sl_uint32 nAutoIncreaseNameMap = 0;
 
 		sl_uint32 nAutoIncreaseNameChildLayout = 0;
 

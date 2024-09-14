@@ -714,6 +714,10 @@ namespace slib
 				prefix = "groupBox";
 				pN = &nAutoIncreaseNameGroupBox;
 				break;
+			case SAppLayoutItemType::Map:
+				prefix = "map";
+				pN = &nAutoIncreaseNameMap;
+				break;
 			case SAppLayoutItemType::Grid:
 				prefix = "grid";
 				pN = &nAutoIncreaseNameGrid;
@@ -825,6 +829,8 @@ namespace slib
 			type = SAppLayoutItemType::Pdf;
 		} else if (strType == "groupbox" || strType == "group-box") {
 			type = SAppLayoutItemType::GroupBox;
+		} else if (strType == "map") {
+			type = SAppLayoutItemType::Map;
 		} else if (strType == "grid") {
 			type = SAppLayoutItemType::Grid;
 		}

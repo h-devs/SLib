@@ -428,6 +428,7 @@
     <ClCompile Include="..\..\src\slib\ui\list_control.cpp" />
     <ClCompile Include="..\..\src\slib\ui\list_control_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\list_view.cpp" />
+    <ClCompile Include="..\..\src\slib\ui\map_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\mobile_app.cpp" />
     <ClCompile Include="..\..\src\slib\ui\mobile_game.cpp" />
     <ClCompile Include="..\..\src\slib\ui\motion_tracker.cpp" />
