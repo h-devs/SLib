@@ -167,12 +167,9 @@ namespace slib
 		class MapTileCacheImpl : public MapTileCache
 		{
 		public:
-			struct Item
-			{
-				Ref<CRef> object;
-				sl_uint64 lastAccessTick;
-			};
-			ExpiringMap<MapTileAddress, Item> m_map;
+			HashMap< MapTileAddress, Ref<CRef> > m_drawingObjects;
+			HashMap< MapTileAddress, Ref<CRef> > m_lastDrawnObjects;
+			ExpiringMap< MapTileAddress, Ref<CRef> > m_expiringObjects;
 			sl_uint32 m_nMaxObjects = 0;
 
 		public:
@@ -193,17 +190,58 @@ namespace slib
 				if (!context) {
 					return;
 				}
-				m_map.setupTimer(expiringMilliseconds, context->dispatchLoop);
+				m_expiringObjects.setupTimer(expiringMilliseconds, context->dispatchLoop);
 				m_nMaxObjects = nMaxCount;
+			}
+
+			void startDrawing() override
+			{
+				ObjectLocker lock(this);
+				m_lastDrawnObjects = Move(m_drawingObjects);
+			}
+
+			void endDrawing() override
+			{
+				HashMap< MapTileAddress, Ref<CRef> > temp;
+				{
+					ObjectLocker lock(this);
+					temp = Move(m_lastDrawnObjects);
+				}
+				ObjectLocker lock(&m_expiringObjects);
+				if (m_expiringObjects.getCount() < m_nMaxObjects) {
+					auto node = temp.getFirstNode();
+					while (node) {
+						m_expiringObjects.put_NoLock(node->key, Move(node->value));
+						node = node->next;
+					}
+				} else {
+					temp = m_expiringObjects.pushInternalMap(Move(temp));
+					SharedContext* context = GetSharedContext();
+					if (context) {
+						// Free on dispatch loop
+						context->dispatchLoop->dispatch([temp]() {});
+					}
+				}
 			}
 
 			sl_bool getObject(const MapTileAddress& address, Ref<CRef>& _out) override
 			{
-				ObjectLocker lock(&m_map);
-				Item* item = m_map.getItemPointer(address);
-				if (item) {
-					item->lastAccessTick = System::getTickCount64();
-					_out = item->object;
+				{
+					ObjectLocker lock(this);
+					if (m_drawingObjects.get_NoLock(address, &_out)) {
+						return sl_true;
+					}
+					auto node = m_lastDrawnObjects.find_NoLock(address);
+					if (node) {
+						_out = Move(node->value);
+						m_drawingObjects.put_NoLock(address, _out);
+						m_lastDrawnObjects.removeAt(node);
+						return sl_true;
+					}
+				}
+				if (m_expiringObjects.remove(address, &_out)) {
+					ObjectLocker lock(this);
+					m_drawingObjects.put_NoLock(address, _out);
 					return sl_true;
 				}
 				return sl_false;
@@ -211,46 +249,11 @@ namespace slib
 
 			void saveObject(const MapTileAddress& address, const Ref<CRef>& object) override
 			{
-				ObjectLocker lock(&m_map);
-				if (m_map.getCount() >= m_nMaxObjects * 2) {
-					HashMap<MapTileAddress, Item> const* maps[2];
-					maps[0] = &(m_map.getInternalMap0());
-					maps[1] = &(m_map.getInternalMap1());
-					sl_uint64 minTick = 0, maxTick = 0;
-					{
-						for (sl_uint32 i = 0; i < 2; i++) {
-							auto node = maps[i]->getFirstNode();
-							while (node) {
-								sl_uint64 tick = node->value.lastAccessTick;
-								if (tick > maxTick) {
-									maxTick = tick;
-								}
-								if (!minTick || tick < minTick) {
-									minTick = tick;
-								}
-								node = node->next;
-							}
-						}
-					}
-					sl_uint64 meanTick = (minTick + maxTick) / 2;
-					{
-						for (sl_uint32 i = 0; i < 2; i++) {
-							const HashMap<MapTileAddress, Item>* map = maps[i];
-							auto node = map->getFirstNode();
-							while (node) {
-								auto next = node->next;
-								if (node->value.lastAccessTick >= meanTick) {
-									map->removeAt(node);
-								}
-								node = next;
-							}
-						}
-					}
+				if (m_drawingObjects.getCount() > m_nMaxObjects) {
+					return;
 				}
-				Item item;
-				item.object = object;
-				item.lastAccessTick = System::getTickCount64();
-				m_map.put_NoLock(address, Move(item));
+				ObjectLocker lock(this);
+				m_drawingObjects.put_NoLock(address, object);
 			}
 		};
 	}
@@ -265,6 +268,7 @@ namespace slib
 	MapTileLoadParam::MapTileLoadParam()
 	{
 		timeout = 10000;
+		flagLoadNow = sl_false;
 	}
 
 	SLIB_DEFINE_OBJECT(MapTileLoader, Object)
@@ -314,31 +318,39 @@ namespace slib
 			}
 
 		public:
-			Ref<CRef> load(const MapTileLoadParam& param, sl_bool flagImage, const Function<Ref<CRef>(Memory&)>& loader, const Function<void(Ref<CRef>&)>& onComplete) override
+			sl_bool load(Ref<CRef>& _out, const MapTileLoadParam& param, sl_bool flagImage, const Function<Ref<CRef>(Memory&)>& loader, const Function<void(Ref<CRef>&)>& onComplete) override
 			{
-				Ref<CRef> ret;
 				if (param.reader.isNull()) {
-					return sl_null;
+					return sl_true;
 				}
 				if (param.cache.isNotNull()) {
-					if (param.cache->getObject(param.address, ret)) {
+					if (param.cache->getObject(param.address, _out)) {
 						if (flagImage) {
-							if (IsInstanceOf<Image>(ret)) {
-								onComplete(ret);
-								return ret;
+							if (IsInstanceOf<Image>(_out)) {
+								onComplete(_out);
+								return sl_true;
 							}
 						} else {
 							if (loader.isNotNull()) {
-								onComplete(ret);
-								return ret;
+								onComplete(_out);
+								return sl_true;
 							} else {
-								if (IsInstanceOf<CMemory>(ret)) {
-									onComplete(ret);
-									return ret;
+								if (IsInstanceOf<CMemory>(_out)) {
+									onComplete(_out);
+									return sl_true;
 								}
 							}
 						}
 					}
+				}
+				if (param.cache.isNull()) {
+					load(_out, param, flagImage, loader);
+					return sl_true;
+				}
+				if (param.flagLoadNow) {
+					load(_out, param, flagImage, loader);
+					param.cache->saveObject(param.address, _out);
+					return sl_true;
 				}
 				{
 					ObjectLocker lock(&m_requests);
@@ -348,7 +360,7 @@ namespace slib
 						if (request.reader == param.reader && request.address == param.address) {
 							m_requests.removeLink(link);
 							m_requests.pushLinkAtFront_NoLock(link);
-							return sl_null;
+							return sl_false;
 						}
 						link = link->next;
 					}
@@ -362,7 +374,27 @@ namespace slib
 						m_requests.popBack_NoLock();
 					}
 				}
-				return sl_null;
+				return sl_false;
+			}
+
+			sl_bool load(Ref<CRef>& _out, const MapTileLoadParam& param, sl_bool flagImage, const Function<Ref<CRef>(Memory&)>& loader)
+			{
+				if (flagImage) {
+					return param.reader->readImage(*(reinterpret_cast<Ref<Image>*>(&_out)), param.address, param.timeout);
+				} else {
+					Memory mem;
+					if (param.reader->readData(mem, param.address, param.timeout)) {
+						if (mem.isNotNull()) {
+							if (loader.isNotNull()) {
+								_out = loader(mem);
+							} else {
+								_out = Move(mem.ref);
+							}
+						}
+						return sl_true;
+					}
+					return sl_false;
+				}
 			}
 
 			sl_bool onLoad()
@@ -373,21 +405,7 @@ namespace slib
 				}
 				Request& request = link->value;
 				Ref<CRef> ret;
-				sl_bool flagSuccess = sl_false;
-				if (request.flagImage) {
-					flagSuccess = request.reader->readImage(*(reinterpret_cast<Ref<Image>*>(&ret)), request.address, request.timeout);
-				} else {
-					Memory mem;
-					flagSuccess = request.reader->readData(mem, request.address, request.timeout);
-					if (flagSuccess) {
-						if (request.loader.isNotNull()) {
-							ret = request.loader(mem);
-						} else {
-							ret = Move(mem.ref);
-						}
-					}
-				}
-				if (flagSuccess) {
+				if (load(ret, request, request.flagImage, request.loader)) {
 					if (request.cache.isNotNull()) {
 						request.cache->saveObject(request.address, ret);
 					}
@@ -404,19 +422,19 @@ namespace slib
 		return Ref<MapTileLoader>::cast(MapTileLoaderImpl::create(nThreads, nMaxQueue));
 	}
 
-	Memory MapTileLoader::loadData(const MapTileLoadParam& param, const Function<void(Memory&)>& onComplete)
+	sl_bool MapTileLoader::loadData(Memory& _out, const MapTileLoadParam& param, const Function<void(Memory&)>& onComplete)
 	{
-		return Memory::cast(load(param, sl_false, sl_null, Function<void(Ref<CRef>&)>::cast(onComplete)));
+		return load(Ref<CRef>::cast(_out.ref), param, sl_false, sl_null, Function<void(Ref<CRef>&)>::cast(onComplete));
 	}
 
-	Ref<Image> MapTileLoader::loadImage(const MapTileLoadParam& param, const Function<void(Ref<Image>&)>& onComplete)
+	sl_bool MapTileLoader::loadImage(Ref<Image>& _out, const MapTileLoadParam& param, const Function<void(Ref<Image>&)>& onComplete)
 	{
-		return Ref<Image>::cast(load(param, sl_true, sl_null, Function<void(Ref<CRef>&)>::cast(onComplete)));
+		return load(Ref<CRef>::cast(_out), param, sl_true, sl_null, Function<void(Ref<CRef>&)>::cast(onComplete));
 	}
 
-	Ref<CRef> MapTileLoader::loadObject(const MapTileLoadParam& param, const Function<Ref<CRef>(Memory&)>& loader, const Function<void(Ref<CRef>&)>& onComplete)
+	sl_bool MapTileLoader::loadObject(Ref<CRef>& _out, const MapTileLoadParam& param, const Function<Ref<CRef>(Memory&)>& loader, const Function<void(Ref<CRef>&)>& onComplete)
 	{
-		return load(param, sl_false, loader, onComplete);
+		return load(_out, param, sl_false, loader, onComplete);
 	}
 
 
@@ -424,14 +442,14 @@ namespace slib
 
 	MapPlane::MapPlane()
 	{
-		m_viewX = 0.0;
-		m_viewY = 0.0;
-		m_viewWidth = 1.0;
-		m_viewHeight = 1.0;
+		m_center.E = 0.0;
+		m_center.N = 0.0;
+		m_viewSize.x = 1.0;
+		m_viewSize.y = 1.0;
 		m_range.left = -180.0;
-		m_range.top = -90.0;
+		m_range.bottom = -90.0;
 		m_range.right = 180.0;
-		m_range.bottom = 90.0;
+		m_range.top = 90.0;
 		m_scale = 1.0;
 		m_scaleMin = 0.0;
 		m_scaleMax = 10000000000.0;
@@ -441,36 +459,40 @@ namespace slib
 	{
 	}
 
-	Double2 MapPlane::getViewportLocation()
+	const MapLocation& MapPlane::getCenterLocation()
 	{
-		return Double2(m_viewX, m_viewY);
+		return m_center;
 	}
 
-	void MapPlane::setViewportLocation(double x, double y)
+	void MapPlane::setCenterLocation(double E, double N)
 	{
-		m_viewX = x;
-		m_viewY = y;
+		double w = m_viewSize.x * m_scale / 2.0;
+		double h = m_viewSize.y * m_scale / 2.0;
+		m_center.E = Math::clamp(E, m_range.left + w, m_range.right - w);
+		m_center.N = Math::clamp(N, m_range.bottom + h, m_range.top - h);
 	}
 
-	Double2 MapPlane::getViewportSize()
+	const Double2& MapPlane::getViewportSize()
 	{
-		return Double2(m_viewWidth, m_viewHeight);
+		return m_viewSize;
 	}
 
 	void MapPlane::setViewportSize(double width, double height)
 	{
-		m_viewWidth = width;
-		m_viewHeight = height;
+		m_viewSize.x = width;
+		m_viewSize.y = height;
+		setCenterLocation(m_center.E, m_center.N);
 	}
 
-	const Rectangle& MapPlane::getMapRange()
+	const MapRange& MapPlane::getMapRange()
 	{
 		return m_range;
 	}
 
-	void MapPlane::setMapRange(const Rectangle& rect)
+	void MapPlane::setMapRange(const MapRange& rect)
 	{
 		m_range = rect;
+		setCenterLocation(m_center.E, m_center.N);
 	}
 
 	double MapPlane::getScale()
@@ -503,6 +525,16 @@ namespace slib
 	{
 		m_scaleMax = scale;
 		setScale(m_scale);
+	}
+
+	Double2 MapPlane::toViewport(const MapLocation& location)
+	{
+		return { m_viewSize.x / 2.0 + (location.E - m_center.E) / m_scale, m_viewSize.y / 2.0 - (location.N - m_center.N) / m_scale };
+	}
+
+	MapLocation MapPlane::fromViewport(const Double2& point)
+	{
+		return { m_center.E + (point.x - m_viewSize.x / 2.0) * m_scale, m_center.N - (point.y - m_viewSize.y / 2.0) * m_scale };
 	}
 
 
@@ -546,6 +578,7 @@ namespace slib
 	MapViewData::MapViewData()
 	{
 		m_view = sl_null;
+		m_flagGlobeMode = sl_false;
 		m_tileLoader = MapTileLoader::create();
 		m_eyeLocation.altitude = 10000;
 	}
@@ -554,44 +587,83 @@ namespace slib
 	{
 	}
 
+	sl_bool MapViewData::isGlobeMode() const
+	{
+		return m_flagGlobeMode;
+	}
+
+	void MapViewData::setGlobeMode(sl_bool flag, UIUpdateMode mode)
+	{
+		MutexLocker locker(&m_lock);
+		if (m_flagGlobeMode == flag) {
+			return;
+		}
+		m_flagGlobeMode = flag;
+		if (flag) {
+			if (m_plane.isNotNull()) {
+				m_eyeLocation = m_plane->getEyeLocation();
+			}
+		} else {
+			if (m_plane.isNotNull()) {
+				m_plane->setEyeLocation(m_eyeLocation);
+			}
+		}
+		invalidate(mode);
+	}
+
+	MapPlane* MapViewData::_getPlane() const
+	{
+		if (m_plane.isNotNull()) {
+			return m_plane.get();
+		}
+		return m_surface.get();
+	}
+
 	Ref<MapPlane> MapViewData::getPlane() const
 	{
-		ObjectLocker locker(this);
-		if (m_plane.isNotNull()) {
-			return m_plane;
-		}
-		return m_surface;
+		MutexLocker locker(&m_lock);
+		return _getPlane();
 	}
 
 	void MapViewData::setPlane(const Ref<MapPlane>& plane, UIUpdateMode mode)
 	{
-		ObjectLocker locker(this);
+		MutexLocker locker(&m_lock);
+		if (m_plane == plane) {
+			return;
+		}
+		if (m_plane.isNotNull()) {
+			m_eyeLocation = m_plane->getEyeLocation();
+		}
 		m_plane = plane;
+		if (plane.isNotNull()) {
+			plane->setEyeLocation(m_eyeLocation);
+			plane->setViewportSize(m_viewSize.x, m_viewSize.y);
+		}
 		invalidate(mode);
 	}
 
 	Ref<MapSurface> MapViewData::getSurface() const
 	{
-		ObjectLocker locker(this);
+		MutexLocker locker(&m_lock);
 		return m_surface;
 	}
 
 	void MapViewData::setSurface(const Ref<MapSurface>& surface, UIUpdateMode mode)
 	{
-		ObjectLocker locker(this);
+		MutexLocker locker(&m_lock);
 		m_surface = surface;
 		invalidate(mode);
 	}
 
 	List< Ref<MapLayer> > MapViewData::getLayers() const
 	{
-		ObjectLocker locker(this);
+		MutexLocker locker(&m_lock);
 		return m_layers.getAllValues_NoLock();
 	}
 
 	void MapViewData::putLayer(const String& name, const Ref<MapLayer>& layer, UIUpdateMode mode)
 	{
-		ObjectLocker locker(this);
+		MutexLocker locker(&m_lock);
 		if (layer.isNotNull()) {
 			m_layers.put_NoLock(name, layer);
 		} else {
@@ -602,40 +674,105 @@ namespace slib
 
 	GeoLocation MapViewData::getEyeLocation() const
 	{
+		MutexLocker locker(&m_lock);
+		if (!m_flagGlobeMode) {
+			MapPlane* plane = _getPlane();
+			if (plane) {
+				return plane->getEyeLocation();
+			}
+		}
 		return m_eyeLocation;
 	}
 
 	void MapViewData::setEyeLocation(const GeoLocation& location, UIUpdateMode mode)
 	{
+		MutexLocker locker(&m_lock);
 		m_eyeLocation = location;
-		Ref<MapPlane> plane = getPlane();
-		if (plane.isNotNull()) {
-			plane->setEyeLocation(location);
+		if (!m_flagGlobeMode) {
+			MapPlane* plane = _getPlane();
+			if (plane) {
+				plane->setEyeLocation(location);
+			}
 		}
 		invalidate(mode);
+	}
+
+	const Double2& MapViewData::getViewportSize()
+	{
+		return m_viewSize;
+	}
+
+	void MapViewData::setViewportSize(double width, double height, UIUpdateMode mode)
+	{
+		MutexLocker locker(&m_lock);
+		m_viewSize.x = width;
+		m_viewSize.y = height;
+		MapPlane* plane = _getPlane();
+		if (plane) {
+			plane->setViewportSize(width, height);
+		}
+		invalidate(mode);
+	}
+
+	sl_bool MapViewData::toLatLon(const Double2& point, LatLon& _out) const
+	{
+		MutexLocker locker(&m_lock);
+		if (m_flagGlobeMode) {
+		} else {
+			MapPlane* plane = _getPlane();
+			if (plane) {
+				_out = plane->toLatLon(plane->fromViewport(point));
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	Double2 MapViewData::toViewport(const LatLon& location) const
+	{
+		MutexLocker locker(&m_lock);
+		if (m_flagGlobeMode) {
+		} else {
+			MapPlane* plane = _getPlane();
+			if (plane) {
+				return plane->toViewport(plane->fromLatLon(location));
+			}
+		}
+		return { 0.0, 0.0 };
 	}
 
 	void MapViewData::zoom(double scale, UIUpdateMode mode)
 	{
 	}
 
-	void MapViewData::draw(Canvas* canvas, const Point& pt)
+	MapTileLoader* MapViewData::getTileLoader()
 	{
-		Ref<MapPlane> plane = getPlane();
-		if (plane.isNull()) {
+		return m_tileLoader.get();
+	}
+
+	void MapViewData::drawPlane(Canvas* canvas, const Point& pt)
+	{
+		MutexLocker locker(&m_lock);
+		if (m_flagGlobeMode) {
+			return;
+		}
+		MapPlane* plane = _getPlane();
+		if (!plane) {
 			return;
 		}
 		plane->draw(canvas, pt, this);
-
-		ObjectLocker locker(this);
 		auto node = m_layers.getFirstNode();
 		while (node) {
 			Ref<MapLayer>& layer = node->value;
 			if (layer->isSupportingPlaneMode()) {
-				layer->draw(canvas, pt, this, plane.get());
+				layer->draw(canvas, pt, this, plane);
 			}
 			node = node->next;
 		}
+	}
+
+	void MapViewData::renderGlobe(RenderEngine* engine)
+	{
 	}
 
 	void MapViewData::invalidate(UIUpdateMode mode)
@@ -651,7 +788,6 @@ namespace slib
 	MapView::MapView()
 	{
 		m_view = this;
-		m_flagGlobeMode = sl_false;
 		setRedrawMode(RedrawMode::WhenDirty);
 	}
 
@@ -659,28 +795,20 @@ namespace slib
 	{
 	}
 
-	sl_bool MapView::isGlobeMode()
+	void MapView::onResize(sl_ui_len width, sl_ui_len height)
 	{
-		return m_flagGlobeMode;
-	}
-
-	void MapView::setGlobeMode(sl_bool flag, UIUpdateMode mode)
-	{
-		m_flagGlobeMode = flag;
-		invalidate(mode);
+		RenderView::onResize(width, height);
+		setViewportSize((double)width, (double)height);
 	}
 
 	void MapView::onDraw(Canvas* canvas)
 	{
-		if (!m_flagGlobeMode) {
-			MapViewData::draw(canvas, Point::zero());
-		}
+		drawPlane(canvas, Point::zero());
 	}
 
 	void MapView::onFrame(RenderEngine* engine)
 	{
-		if (m_flagGlobeMode) {
-		}
+		renderGlobe(engine);
 		RenderView::onFrame(engine);
 	}
 
