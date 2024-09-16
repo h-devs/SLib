@@ -276,6 +276,22 @@ namespace slib
 			m_mapBackup.removeAll_NoLock();
 		}
 
+		template <class MAP>
+		HashMap<KT, VT> pushInternalMap_NoLock(MAP&& map)
+		{
+			HashMap<KT, VT> ret = Move(m_mapBackup);
+			m_mapBackup = Move(m_mapCurrent);
+			m_mapCurrent = Forward<MAP>(map);
+			return ret;
+		}
+
+		template <class MAP>
+		HashMap<KT, VT> pushInternalMap(MAP&& map)
+		{
+			ObjectLocker lock(this);
+			return pushInternalMap_NoLock(Forward<MAP>(map));
+		}
+
 		sl_bool contains_NoLock(const KT& key) const
 		{
 			if (m_mapCurrent.find_NoLock(key)) {
