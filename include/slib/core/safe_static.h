@@ -40,20 +40,23 @@
 #define PRIV_SLIB_SAFE_GLOBAL_DESTRUCTOR(TYPE, NAME) \
 		static sl_bool _static_freeflag_##NAME = sl_false; \
 		static slib::priv::safe_static::FreeGlobal<TYPE> _safe_static_free_##NAME(&NAME, &_static_freeflag_##NAME);
+
 #define PRIV_SLIB_SAFE_LOCAL_STATIC_DESTRUCTOR(NAME) \
 		slib::priv::safe_static::FreeObjectOnExit(&NAME, &_static_freeflag_##NAME);
+
 #define PRIV_SLIB_ZERO_LOCAL_STATIC_DESTRUCTOR(NAME) \
 		static sl_int32 _static_safeflag_##NAME = 0; \
 		static sl_bool _static_freeflag_##NAME = sl_false; \
-		SLIB_STATIC_SPINLOCK(_static_safelock_##NAME); \
 		if (!_static_safeflag_##NAME) { \
-			_static_safelock_##NAME.lock(); \
+			SLIB_STATIC_SPINLOCK(locker); \
+			locker.lock(); \
 			if (!_static_safeflag_##NAME) { \
 				slib::priv::safe_static::FreeObjectOnExit(&NAME, &_static_freeflag_##NAME); \
 				_static_safeflag_##NAME = 1; \
 			} \
-			_static_safelock_##NAME.unlock(); \
+			locker.unlock(); \
 		}
+
 #define SLIB_SAFE_STATIC_CHECK_FREED(NAME) _static_freeflag_##NAME
 
 #define SLIB_SAFE_LOCAL_STATIC(TYPE, NAME, ...) \
@@ -61,15 +64,15 @@
 	static sl_int32 _static_safeflag_##NAME = 0; \
 	static sl_bool _static_freeflag_##NAME = sl_false; \
 	static TYPE& NAME = *(reinterpret_cast<TYPE*>(_static_safemem_##NAME)); \
-	SLIB_STATIC_SPINLOCK(_static_safelock_##NAME); \
 	if (!_static_safeflag_##NAME) { \
-		_static_safelock_##NAME.lock(); \
+		SLIB_STATIC_SPINLOCK(locker); \
+		locker.lock(); \
 		if (!_static_safeflag_##NAME) { \
 			new (&NAME) TYPE(__VA_ARGS__); \
 			PRIV_SLIB_SAFE_LOCAL_STATIC_DESTRUCTOR(NAME) \
 			_static_safeflag_##NAME = 1; \
 		} \
-		_static_safelock_##NAME.unlock(); \
+		locker.unlock(); \
 	}
 
 #define SLIB_SAFE_STATIC_GETTER(TYPE, FUNC, ...) \
