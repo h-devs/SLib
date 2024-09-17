@@ -116,7 +116,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_COMPARE_HASH_MEMBERS(MapTileAddress)
 	};
 
-	// Map Coordinate (bottom < top)
+	// bottom < top
 	class SLIB_EXPORT MapRange
 	{
 	public:
@@ -228,7 +228,6 @@ namespace slib
 		sl_bool loadObject(Ref<CRef>& _out, const MapTileLoadParam& param, const Function<Ref<CRef>(Memory&)>& loader, const Function<void(Ref<CRef>&)>& onComplete);
 
 	protected:
-		// Returns false on loading
 		virtual sl_bool load(Ref<CRef>& _out, const MapTileLoadParam& param, sl_bool flagImage, const Function<Ref<CRef>(Memory&)>& loader, const Function<void(Ref<CRef>&)>& onComplete) = 0;
 
 	};
@@ -243,22 +242,12 @@ namespace slib
 		~MapPlane();
 
 	public:
-		// Map Coordinate
 		const MapLocation& getCenterLocation();
 
-		// Map Coordinate
 		void setCenterLocation(double E, double N);
 
-		// Screen Coordinate
-		const Double2& getViewportSize();
-
-		// Screen Coordinate
-		void setViewportSize(double width, double height);
-
-		// Map Coordinate
 		const MapRange& getMapRange();
 
-		// Map Coordinate
 		void setMapRange(const MapRange& rect);
 
 		// Reduced Scale
@@ -275,9 +264,16 @@ namespace slib
 
 		void setMaximumScale(double scale);
 
+		Ref<Drawable> getBackground();
+
+		void setBackground(const Ref<Drawable>& background);
+
+	public:
 		Double2 toViewport(const MapLocation& location);
 
 		MapLocation fromViewport(const Double2& point);
+
+		void draw(Canvas* canvas, const Rectangle& rect, MapViewData* data);
 
 	public:
 		virtual GeoLocation getEyeLocation() = 0;
@@ -288,15 +284,16 @@ namespace slib
 
 		virtual MapLocation fromLatLon(const LatLon& location) = 0;
 
-		virtual void draw(Canvas* canvas, const Point& pt, MapViewData* data) = 0;
+	protected:
+		virtual void onDraw(Canvas* canvas, const Rectangle& rect, MapViewData* data) = 0;
 
 	protected:
-		MapLocation m_center; // Map Coordinate
-		Double2 m_viewSize; // Screen Coordinate
-		MapRange m_range; // Map Coordinate
+		MapLocation m_center;
+		MapRange m_range;
 		double m_scale;
 		double m_scaleMin;
 		double m_scaleMax;
+		AtomicRef<Drawable> m_background;
 	};
 
 	class SLIB_EXPORT MapSurface : public MapPlane
@@ -331,7 +328,7 @@ namespace slib
 		void setSupportingPlaneMode(sl_bool flag = sl_true);
 
 	public:
-		virtual void draw(Canvas* canvas, const Point& pt, MapViewData* data, MapPlane* plane);
+		virtual void draw(Canvas* canvas, const Rectangle& rect, MapViewData* data, MapPlane* plane);
 
 	protected:
 		sl_bool m_flagSupportGlobe;
@@ -368,10 +365,6 @@ namespace slib
 
 		void setEyeLocation(const GeoLocation& location, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		const Double2& getViewportSize();
-
-		void setViewportSize(double width, double height, UIUpdateMode mode = UIUpdateMode::Redraw);
-
 		sl_bool toLatLon(const Double2& point, LatLon& _out) const;
 
 		Double2 toViewport(const LatLon& location) const;
@@ -381,7 +374,7 @@ namespace slib
 	public:
 		MapTileLoader* getTileLoader();
 
-		void drawPlane(Canvas* canvas, const Point& pt);
+		void drawPlane(Canvas* canvas, const Rectangle& rect);
 
 		void renderGlobe(RenderEngine* engine);
 
@@ -399,7 +392,6 @@ namespace slib
 		CHashMap< String, Ref<MapLayer> > m_layers;
 
 		GeoLocation m_eyeLocation;
-		Double2 m_viewSize;
 
 		Ref<MapTileLoader> m_tileLoader;
 
@@ -420,8 +412,6 @@ namespace slib
 		using RenderView::invalidate;
 
 	protected:
-		void onResize(sl_ui_len width, sl_ui_len height) override;
-
 		void onDraw(Canvas* canvas) override;
 
 		void onFrame(RenderEngine* engine) override;

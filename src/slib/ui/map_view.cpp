@@ -321,36 +321,44 @@ namespace slib
 			sl_bool load(Ref<CRef>& _out, const MapTileLoadParam& param, sl_bool flagImage, const Function<Ref<CRef>(Memory&)>& loader, const Function<void(Ref<CRef>&)>& onComplete) override
 			{
 				if (param.reader.isNull()) {
-					return sl_true;
+					return sl_false;
 				}
-				if (param.cache.isNotNull()) {
-					if (param.cache->getObject(param.address, _out)) {
-						if (flagImage) {
-							if (IsInstanceOf<Image>(_out)) {
-								onComplete(_out);
-								return sl_true;
-							}
+				if (param.cache.isNull()) {
+					if (doLoad(_out, param, flagImage, loader)) {
+						onComplete(_out);
+						return sl_true;
+					}
+					return sl_false;
+				}
+				if (param.cache->getObject(param.address, _out)) {
+					if (_out.isNull()) {
+						onComplete(_out);
+						return sl_true;
+					}
+					if (flagImage) {
+						if (IsInstanceOf<Image>(_out)) {
+							onComplete(_out);
+							return sl_true;
+						}
+					} else {
+						if (loader.isNotNull()) {
+							onComplete(_out);
+							return sl_true;
 						} else {
-							if (loader.isNotNull()) {
+							if (IsInstanceOf<CMemory>(_out)) {
 								onComplete(_out);
 								return sl_true;
-							} else {
-								if (IsInstanceOf<CMemory>(_out)) {
-									onComplete(_out);
-									return sl_true;
-								}
 							}
 						}
 					}
 				}
-				if (param.cache.isNull()) {
-					load(_out, param, flagImage, loader);
-					return sl_true;
-				}
 				if (param.flagLoadNow) {
-					load(_out, param, flagImage, loader);
-					param.cache->saveObject(param.address, _out);
-					return sl_true;
+					if (doLoad(_out, param, flagImage, loader)) {
+						param.cache->saveObject(param.address, _out);
+						onComplete(_out);
+						return sl_true;
+					}
+					return sl_false;
 				}
 				{
 					ObjectLocker lock(&m_requests);
@@ -360,7 +368,7 @@ namespace slib
 						if (request.reader == param.reader && request.address == param.address) {
 							m_requests.removeLink(link);
 							m_requests.pushLinkAtFront_NoLock(link);
-							return sl_false;
+							return sl_true;
 						}
 						link = link->next;
 					}
@@ -374,10 +382,10 @@ namespace slib
 						m_requests.popBack_NoLock();
 					}
 				}
-				return sl_false;
+				return sl_true;
 			}
 
-			sl_bool load(Ref<CRef>& _out, const MapTileLoadParam& param, sl_bool flagImage, const Function<Ref<CRef>(Memory&)>& loader)
+			sl_bool doLoad(Ref<CRef>& _out, const MapTileLoadParam& param, sl_bool flagImage, const Function<Ref<CRef>(Memory&)>& loader)
 			{
 				if (flagImage) {
 					return param.reader->readImage(*(reinterpret_cast<Ref<Image>*>(&_out)), param.address, param.timeout);
@@ -405,11 +413,10 @@ namespace slib
 				}
 				Request& request = link->value;
 				Ref<CRef> ret;
-				if (load(ret, request, request.flagImage, request.loader)) {
+				if (doLoad(ret, request, request.flagImage, request.loader)) {
 					if (request.cache.isNotNull()) {
 						request.cache->saveObject(request.address, ret);
 					}
-					request.onComplete(ret);
 				}
 				Queue<Request>::deleteLink(link);
 				return sl_true;
@@ -444,8 +451,6 @@ namespace slib
 	{
 		m_center.E = 0.0;
 		m_center.N = 0.0;
-		m_viewSize.x = 1.0;
-		m_viewSize.y = 1.0;
 		m_range.left = -180.0;
 		m_range.bottom = -90.0;
 		m_range.right = 180.0;
@@ -466,22 +471,20 @@ namespace slib
 
 	void MapPlane::setCenterLocation(double E, double N)
 	{
-		double w = m_viewSize.x * m_scale / 2.0;
-		double h = m_viewSize.y * m_scale / 2.0;
-		m_center.E = Math::clamp(E, m_range.left + w, m_range.right - w);
-		m_center.N = Math::clamp(N, m_range.bottom + h, m_range.top - h);
-	}
-
-	const Double2& MapPlane::getViewportSize()
-	{
-		return m_viewSize;
-	}
-
-	void MapPlane::setViewportSize(double width, double height)
-	{
-		m_viewSize.x = width;
-		m_viewSize.y = height;
-		setCenterLocation(m_center.E, m_center.N);
+		double w = m_scale;
+		double h = m_scale;
+		if (w < m_range.right - m_range.left) {
+			w /= 2.0;
+			m_center.E = Math::clamp(E, m_range.left + w, m_range.right - w);
+		} else {
+			m_center.E = (m_range.left + m_range.right) / 2.0;
+		}
+		if (h < m_range.top - m_range.bottom) {
+			h /= 2.0;
+			m_center.N = Math::clamp(N, m_range.bottom + h, m_range.top - h);
+		} else {
+			m_center.N = (m_range.bottom + m_range.top) / 2.0;
+		}
 	}
 
 	const MapRange& MapPlane::getMapRange()
@@ -527,14 +530,35 @@ namespace slib
 		setScale(m_scale);
 	}
 
+	Ref<Drawable> MapPlane::getBackground()
+	{
+		return m_background;
+	}
+
+	void MapPlane::setBackground(const Ref<Drawable>& background)
+	{
+		m_background = background;
+	}
+
 	Double2 MapPlane::toViewport(const MapLocation& location)
 	{
-		return { m_viewSize.x / 2.0 + (location.E - m_center.E) / m_scale, m_viewSize.y / 2.0 - (location.N - m_center.N) / m_scale };
+		return { 0.5 + (location.E - m_center.E) / m_scale, 0.5 - (location.N - m_center.N) / m_scale };
 	}
 
 	MapLocation MapPlane::fromViewport(const Double2& point)
 	{
-		return { m_center.E + (point.x - m_viewSize.x / 2.0) * m_scale, m_center.N - (point.y - m_viewSize.y / 2.0) * m_scale };
+		return { m_center.E + (point.x - 0.5) * m_scale, m_center.N - (point.y - 0.5) * m_scale };
+	}
+
+	void MapPlane::draw(Canvas* canvas, const Rectangle& rect, MapViewData* data)
+	{
+		if (m_background.isNotNull()) {
+			Ref<Drawable> background = m_background;
+			if (background.isNotNull()) {
+				canvas->draw(rect, background);
+			}
+		}
+		onDraw(canvas, rect, data);
 	}
 
 
@@ -570,7 +594,7 @@ namespace slib
 		m_flagSupportPlane = flag;
 	}
 
-	void MapLayer::draw(Canvas* canvas, const Point& pt, MapViewData* data, MapPlane* plane)
+	void MapLayer::draw(Canvas* canvas, const Rectangle& rect, MapViewData* data, MapPlane* plane)
 	{
 	}
 
@@ -637,7 +661,6 @@ namespace slib
 		m_plane = plane;
 		if (plane.isNotNull()) {
 			plane->setEyeLocation(m_eyeLocation);
-			plane->setViewportSize(m_viewSize.x, m_viewSize.y);
 		}
 		invalidate(mode);
 	}
@@ -697,23 +720,6 @@ namespace slib
 		invalidate(mode);
 	}
 
-	const Double2& MapViewData::getViewportSize()
-	{
-		return m_viewSize;
-	}
-
-	void MapViewData::setViewportSize(double width, double height, UIUpdateMode mode)
-	{
-		MutexLocker locker(&m_lock);
-		m_viewSize.x = width;
-		m_viewSize.y = height;
-		MapPlane* plane = _getPlane();
-		if (plane) {
-			plane->setViewportSize(width, height);
-		}
-		invalidate(mode);
-	}
-
 	sl_bool MapViewData::toLatLon(const Double2& point, LatLon& _out) const
 	{
 		MutexLocker locker(&m_lock);
@@ -743,6 +749,15 @@ namespace slib
 
 	void MapViewData::zoom(double scale, UIUpdateMode mode)
 	{
+		MutexLocker locker(&m_lock);
+		if (m_flagGlobeMode) {
+		} else {
+			MapPlane* plane = _getPlane();
+			if (plane) {
+				plane->setScale(plane->getScale() * scale);
+			}
+		}
+		invalidate(mode);
 	}
 
 	MapTileLoader* MapViewData::getTileLoader()
@@ -750,22 +765,25 @@ namespace slib
 		return m_tileLoader.get();
 	}
 
-	void MapViewData::drawPlane(Canvas* canvas, const Point& pt)
+	void MapViewData::drawPlane(Canvas* canvas, const Rectangle& rect)
 	{
 		MutexLocker locker(&m_lock);
 		if (m_flagGlobeMode) {
+			return;
+		}
+		if (rect.getHeight() < 1.0f) {
 			return;
 		}
 		MapPlane* plane = _getPlane();
 		if (!plane) {
 			return;
 		}
-		plane->draw(canvas, pt, this);
+		plane->draw(canvas, rect, this);
 		auto node = m_layers.getFirstNode();
 		while (node) {
 			Ref<MapLayer>& layer = node->value;
 			if (layer->isSupportingPlaneMode()) {
-				layer->draw(canvas, pt, this, plane);
+				layer->draw(canvas, rect, this, plane);
 			}
 			node = node->next;
 		}
@@ -789,21 +807,16 @@ namespace slib
 	{
 		m_view = this;
 		setRedrawMode(RedrawMode::WhenDirty);
+		setFocusable();
 	}
 
 	MapView::~MapView()
 	{
 	}
 
-	void MapView::onResize(sl_ui_len width, sl_ui_len height)
-	{
-		RenderView::onResize(width, height);
-		setViewportSize((double)width, (double)height);
-	}
-
 	void MapView::onDraw(Canvas* canvas)
 	{
-		drawPlane(canvas, Point::zero());
+		drawPlane(canvas, getBounds());
 	}
 
 	void MapView::onFrame(RenderEngine* engine)
@@ -814,6 +827,10 @@ namespace slib
 
 	void MapView::onMouseEvent(UIEvent* ev)
 	{
+		UIAction action = ev->getAction();
+		if (action == UIAction::LeftButtonDown) {
+			invalidate();
+		}
 		RenderView::onMouseEvent(ev);
 	}
 
