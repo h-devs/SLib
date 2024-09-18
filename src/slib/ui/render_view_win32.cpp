@@ -139,7 +139,7 @@ namespace slib
 		SLIB_DEFINE_OBJECT(RenderViewInstance, Win32_ViewInstance)
 	}
 
-	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
+	Ref<ViewInstance> RenderView::createInstance(ViewInstance* parent)
 	{
 		Win32_UI_Shared* shared = Win32_UI_Shared::get();
 		if (!shared) {

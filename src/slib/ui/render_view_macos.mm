@@ -95,7 +95,7 @@ namespace slib
 
 	}
 
-	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
+	Ref<ViewInstance> RenderView::createInstance(ViewInstance* parent)
 	{
 		return macOS_ViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
 	}

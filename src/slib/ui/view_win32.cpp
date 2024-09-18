@@ -2030,7 +2030,7 @@ namespace slib
 	}
 
 
-	Ref<ViewInstance> View::createGenericInstance(ViewInstance* parent)
+	Ref<ViewInstance> View::createTypicalInstance(ViewInstance* parent)
 	{
 		Win32_UI_Shared* shared = Win32_UI_Shared::get();
 		if (!shared) {

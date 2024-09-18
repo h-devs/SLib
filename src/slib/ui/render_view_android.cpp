@@ -131,7 +131,7 @@ namespace slib
 
 	}
 
-	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* _parent)
+	Ref<ViewInstance> RenderView::createInstance(ViewInstance* _parent)
 	{
 		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
 		JniLocal<jobject> handle = JGLView::create.callObject(sl_null, parent->getContext());

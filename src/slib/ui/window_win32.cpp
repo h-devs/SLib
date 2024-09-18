@@ -576,8 +576,8 @@ namespace slib
 							if (GetClientRect(hWnd, &rcClient)) {
 								_out.left = (sl_ui_len)(pt.x - rcWindow.left);
 								_out.top = (sl_ui_len)(pt.y - rcWindow.top);
-								_out.right = (sl_ui_len)(rcWindow.right - (pt.x + rcClient.right - rcClient.left));
-								_out.bottom = (sl_ui_len)(rcWindow.bottom - (pt.y + rcClient.bottom - rcClient.top));
+								_out.right = (sl_ui_len)(rcWindow.right - (pt.x + rcClient.right));
+								_out.bottom = (sl_ui_len)(rcWindow.bottom - (pt.y + rcClient.bottom));
 								return sl_true;
 							}
 						}
@@ -611,7 +611,7 @@ namespace slib
 					if (GetWindowLongW(hWnd, GWL_STYLE) & WS_POPUP) {
 						RECT rc = { 0 };
 						GetClientRect(hWnd, &rc);
-						WindowInstance::onResize((sl_ui_len)(rc.right - rc.left), (sl_ui_len)(rc.bottom - rc.top));
+						WindowInstance::onResize((sl_ui_len)(rc.right), (sl_ui_len)(rc.bottom));
 					}
 				}
 			}
@@ -729,8 +729,8 @@ namespace slib
 				RECT rcWindow = { 0 };
 				GetClientRect(handle, &rcClient);
 				GetWindowRect(handle, &rcWindow);
-				sl_ui_len dw = (sl_ui_len)(rcWindow.right - rcWindow.left - (rcClient.right - rcClient.left));
-				sl_ui_len dh = (sl_ui_len)(rcWindow.bottom - rcWindow.top - (rcClient.bottom - rcClient.top));
+				sl_ui_len dw = (sl_ui_len)(rcWindow.right - rcWindow.left - rcClient.right);
+				sl_ui_len dh = (sl_ui_len)(rcWindow.bottom - rcWindow.top - rcClient.bottom);
 
 				RECT& rect = *(RECT*)(lParam);
 				UISize size((sl_ui_pos)(rect.right - rect.left), (sl_ui_pos)(rect.bottom - rect.top));

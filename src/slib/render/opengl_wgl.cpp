@@ -184,7 +184,7 @@ namespace slib
 				if (flagUpdate) {
 					RECT rect;
 					GetClientRect(m_hWindow, &rect);
-					if (rect.right != 0 && rect.bottom != 0) {
+					if (rect.right && rect.bottom) {
 						engine->setViewport(0, 0, rect.right, rect.bottom);
 						handleFrame(engine);
 						if (m_hDC) {

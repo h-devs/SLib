@@ -1423,6 +1423,8 @@ namespace slib
 
 		void drawBorder(Canvas* canvas, const Ref<Pen>& pen);
 
+		void drawPadding(Canvas* canvas);
+
 		void drawChildren(Canvas* canvas, const Ref<View>* children, sl_size count);
 
 		virtual void renderChildren(Canvas* canvas, const Ref<View>* children, sl_size count);
@@ -1465,9 +1467,11 @@ namespace slib
 		Ref<Timer> startTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms);
 
 	protected:
-		virtual Ref<ViewInstance> createGenericInstance(ViewInstance* parent);
+		Ref<ViewInstance> createTypicalInstance(ViewInstance* parent);
 
 		virtual Ref<ViewInstance> createNativeWidget(ViewInstance* parent);
+
+		virtual Ref<ViewInstance> createInstance(ViewInstance* parent);
 
 	protected:
 		virtual void onChangeParent(View* oldParent, View* newParent);
@@ -1812,6 +1816,10 @@ namespace slib
 
 		void setView(View* view);
 
+		sl_bool isTypical();
+
+		void setTypical(sl_bool flag);
+
 		sl_bool isNativeWidget();
 
 		void setNativeWidget(sl_bool flag);
@@ -1923,9 +1931,10 @@ namespace slib
 
 	protected:
 		AtomicWeakRef<View> m_view;
-		sl_bool m_flagNativeWidget;
-		sl_bool m_flagWindowContent;
-		sl_bool m_flagSettingFocus;
+		sl_bool m_flagTypical : 1;
+		sl_bool m_flagNativeWidget : 1;
+		sl_bool m_flagWindowContent : 1;
+		sl_bool m_flagSettingFocus : 1;
 
 	};
 

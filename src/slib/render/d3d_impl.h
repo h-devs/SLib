@@ -45,41 +45,30 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		class RendererImpl : public Renderer
 		{
 		public:
 			RendererParam m_param;
-			sl_bool m_flagRequestRender;
+			sl_bool m_flagRequestRender = sl_true;
 
-			ID3DDevice* m_device;
+			ID3DDevice* m_device = sl_null;
 #if D3D_VERSION_MAJOR >= 11
-			ID3DDeviceContext* m_context;
+			ID3DDeviceContext* m_context = sl_null;
 #endif
 #if D3D_VERSION_MAJOR >= 10
-			IDXGISwapChain* m_pSwapChain;
-			ID3DRenderTargetView* m_pRenderTarget;
+			IDXGISwapChain* m_pSwapChain = sl_null;
+			ID3DRenderTargetView* m_pRenderTarget = sl_null;
 #endif
 
-			HWND m_hWnd;
+			HWND m_hWnd = sl_null;
 
 			AtomicRef<Thread> m_threadRender;
 
 		public:
 			RendererImpl()
 			{
-				m_flagRequestRender = sl_true;
-
-				m_device = sl_null;
-#if D3D_VERSION_MAJOR >= 11
-				m_context = sl_null;
-#endif
-#if D3D_VERSION_MAJOR >= 10
-				m_pSwapChain = sl_null;
-				m_pRenderTarget = sl_null;
-#endif
-				m_hWnd = sl_null;
 			}
 
 			~RendererImpl()
@@ -134,35 +123,10 @@ namespace slib
 					IDirect3D8* d3d = funcCreateD3D(D3D_SDK_VERSION);
 #	endif
 					if (d3d) {
-
+						D3DPRESENT_PARAMETERS d3dpp = {};
+						preparePresentParams(d3dpp, param);
+						d3dpp.hDeviceWindow = hWnd;
 						ID3DDevice* device = sl_null;
-
-						D3DPRESENT_PARAMETERS d3dpp;
-						Base::zeroMemory(&d3dpp, sizeof(d3dpp));
-						d3dpp.Windowed = TRUE;
-						d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-						d3dpp.BackBufferFormat = D3DFMT_A8R8G8B8;
-						if (param.nDepthBits || param.nStencilBits) {
-							d3dpp.EnableAutoDepthStencil = TRUE;
-							if (param.nStencilBits) {
-								if (param.nDepthBits == 15 && param.nStencilBits == 1) {
-									d3dpp.AutoDepthStencilFormat = D3DFMT_D15S1;
-								} else if (param.nDepthBits == 24 && param.nStencilBits == 4) {
-									d3dpp.AutoDepthStencilFormat = D3DFMT_D24X4S4;
-								} else {
-									d3dpp.AutoDepthStencilFormat = D3DFMT_D24S8;
-								}
-							} else {
-								if (param.nDepthBits == 32) {
-									d3dpp.AutoDepthStencilFormat = D3DFMT_D32;
-								} else if (param.nDepthBits == 24) {
-									d3dpp.AutoDepthStencilFormat = D3DFMT_D24X8;
-								} else if (param.nDepthBits == 16) {
-									d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
-								}
-							}
-						}
-
 						HRESULT hr = d3d->CreateDevice(
 							D3DADAPTER_DEFAULT,
 							D3DDEVTYPE_HAL,
@@ -170,13 +134,10 @@ namespace slib
 							D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
 							&d3dpp,
 							&device);
-
 						d3d->Release();
-
 						if (SUCCEEDED(hr)) {
 							return create(device, param, windowHandle, sl_true);
 						}
-
 					}
 				}
 #endif
@@ -188,96 +149,150 @@ namespace slib
 				if (!device) {
 					return sl_null;
 				}
-#if D3D_VERSION_MAJOR >= 11
-				ID3DDeviceContext* context = sl_null;
-				device->GetImmediateContext(&context);
-				if (context) {
-#endif
-#if D3D_VERSION_MAJOR >= 10
-					IDXGISwapChain* pSwapChain = sl_null;
-					auto funcCreateDXGIFactory = dxgi::getApi_CreateDXGIFactory();
-					if (funcCreateDXGIFactory) {
-						IDXGIFactory* pFactory = sl_null;
-						funcCreateDXGIFactory(IID_PPV_ARGS(&pFactory));
-						if (pFactory) {
-							DXGI_SWAP_CHAIN_DESC desc;
-							Base::zeroMemory(&desc, sizeof(desc));
-							desc.BufferCount = 1;
-							desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-							desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-							desc.OutputWindow = (HWND)windowHandle;
-							desc.SampleDesc.Count = 1;
-							desc.Windowed = TRUE;
-							pFactory->CreateSwapChain(device, &desc, &pSwapChain);
-							pFactory->Release();
-						}
+				Ref<RendererImpl> ret = new RendererImpl();
+				if (ret.isNotNull()) {
+					ret->m_device = device;
+					ret->m_hWnd = (HWND)windowHandle;
+					ret->m_param = param;
+					if (ret->createResources()) {
+						ret->initWithParam(param);
+						ret->m_threadRender = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), run));
+						return ret;
 					}
-
-					if (pSwapChain) {
-
-						ID3DRenderTargetView* pRenderTarget = sl_null;
-						ID3DTexture2D* pBackBuffer = sl_null;
-						pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
-
-						if (pBackBuffer) {
-							device->CreateRenderTargetView(pBackBuffer, NULL, &pRenderTarget);
-							pBackBuffer->Release();
-						}
-
-						if (pRenderTarget) {
-#endif
-							Ref<RendererImpl> ret = new RendererImpl();
-
-							if (ret.isNotNull()) {
-
-								ret->m_device = device;
-#if D3D_VERSION_MAJOR >= 11
-								ret->m_context = context;
-#endif
-#if D3D_VERSION_MAJOR >= 10
-								ret->m_pSwapChain = pSwapChain;
-								ret->m_pRenderTarget = pRenderTarget;
-
-								ret->m_context->OMSetRenderTargets(1, &pRenderTarget, NULL);
-#endif
-
-								ret->m_hWnd = (HWND)windowHandle;
-
-								ret->initWithParam(param);
-								ret->m_param = param;
-
-								ret->m_threadRender = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), run));
-
-								return ret;
-							}
-#if D3D_VERSION_MAJOR >= 10
-							pRenderTarget->Release();
-						}
-						pSwapChain->Release();
+				} else {
+					if (flagFreeOnFailure) {
+						device->Release();
 					}
-#endif
-#if D3D_VERSION_MAJOR >= 11
-					context->Release();
 				}
-#endif
-
-				if (flagFreeOnFailure) {
-					device->Release();
-				}
-
 				return sl_null;
 			}
+
+#if D3D_VERSION_MAJOR <= 9
+			static void preparePresentParams(D3DPRESENT_PARAMETERS& d3dpp, const RendererParam& param)
+			{
+				d3dpp.Windowed = TRUE;
+				d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
+				d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;
+				if (param.nDepthBits || param.nStencilBits) {
+					d3dpp.EnableAutoDepthStencil = TRUE;
+					if (param.nStencilBits) {
+						if (param.nDepthBits == 15 && param.nStencilBits == 1) {
+							d3dpp.AutoDepthStencilFormat = D3DFMT_D15S1;
+						} else if (param.nDepthBits == 24 && param.nStencilBits == 4) {
+							d3dpp.AutoDepthStencilFormat = D3DFMT_D24X4S4;
+						} else {
+							d3dpp.AutoDepthStencilFormat = D3DFMT_D24S8;
+						}
+					} else {
+						if (param.nDepthBits == 32) {
+							d3dpp.AutoDepthStencilFormat = D3DFMT_D32;
+						} else if (param.nDepthBits == 24) {
+							d3dpp.AutoDepthStencilFormat = D3DFMT_D24X8;
+						} else if (param.nDepthBits == 16) {
+							d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
+						}
+					}
+				}
+			}
+
+			sl_bool recreateDevice()
+			{
+				if (!m_device) {
+					return sl_false;
+				}
+#	if D3D_VERSION_MAJOR >= 9
+				IDirect3D9* d3d = sl_null;
+#	else
+				IDirect3D8* d3d = sl_null;
+#	endif
+				m_device->GetDirect3D(&d3d);
+				if (!d3d) {
+					return sl_false;
+				}
+				m_device->Release();
+				m_device = sl_null;
+				D3DPRESENT_PARAMETERS d3dpp = {};
+				preparePresentParams(d3dpp, m_param);
+				d3dpp.hDeviceWindow = m_hWnd;
+				ID3DDevice* device = sl_null;
+				HRESULT hr = d3d->CreateDevice(
+					D3DADAPTER_DEFAULT,
+					D3DDEVTYPE_HAL,
+					m_hWnd,
+					D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
+					&d3dpp,
+					&device);
+				m_device = device;
+				return SUCCEEDED(hr);
+			}
+#endif
 
 			void release()
 			{
 				ObjectLocker lock(this);
-
 				Ref<Thread> thread = m_threadRender;
 				if (thread.isNotNull()) {
 					thread->finishAndWait();
 					m_threadRender.setNull();
 				}
+				releaseResources();
+				if (m_device) {
+					m_device->Release();
+					m_device = sl_null;
+				}
+			}
 
+			sl_bool createResources()
+			{
+#if D3D_VERSION_MAJOR >= 11
+				m_device->GetImmediateContext(&m_context);
+				if (!m_context) {
+					return sl_false;
+				}
+#endif
+#if D3D_VERSION_MAJOR >= 10
+				{
+					auto funcCreateDXGIFactory = dxgi::getApi_CreateDXGIFactory();
+					if (!funcCreateDXGIFactory) {
+						return sl_false;
+					}
+					IDXGIFactory* pFactory = sl_null;
+					funcCreateDXGIFactory(IID_PPV_ARGS(&pFactory));
+					if (!pFactory) {
+						return sl_false;
+					}
+					DXGI_SWAP_CHAIN_DESC desc = {};
+					desc.BufferCount = 1;
+					desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+					desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+					desc.OutputWindow = m_hWnd;
+					desc.SampleDesc.Count = 1;
+					desc.Windowed = TRUE;
+					pFactory->CreateSwapChain(m_device, &desc, &m_pSwapChain);
+					pFactory->Release();
+					if (!m_pSwapChain) {
+						return sl_false;
+					}
+				}
+				{
+					ID3DTexture2D* pBackBuffer = sl_null;
+					m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+					if (!pBackBuffer) {
+						return sl_false;
+					}
+					m_device->CreateRenderTargetView(pBackBuffer, NULL, &m_pRenderTarget);
+					pBackBuffer->Release();
+					if (!m_pRenderTarget) {
+						return sl_false;
+					}
+				}
+				m_context->OMSetRenderTargets(1, &m_pRenderTarget, NULL);
+#endif
+				return sl_true;
+			}
+
+			void releaseResources()
+			{
 #if D3D_VERSION_MAJOR >= 10
 				if (m_pRenderTarget) {
 					m_pRenderTarget->Release();
@@ -294,10 +309,16 @@ namespace slib
 					m_context = sl_null;
 				}
 #endif
-				if (m_device) {
-					m_device->Release();
-					m_device = sl_null;
-				}
+			}
+
+			sl_bool resize()
+			{
+#if D3D_VERSION_MAJOR >= 10
+				releaseResources();
+				return createResources();
+#else
+				return recreateDevice();
+#endif
 			}
 
 			void run();
@@ -321,7 +342,7 @@ namespace slib
 				if (flagUpdate) {
 					RECT rect;
 					GetClientRect(m_hWnd, &rect);
-					if (rect.right != 0 && rect.bottom != 0) {
+					if (rect.right && rect.bottom) {
 						engine->setViewport(0, 0, rect.right, rect.bottom);
 						handleFrame(engine);
 #if D3D_VERSION_MAJOR >= 10
@@ -1571,8 +1592,7 @@ namespace slib
 				if (handle) {
 #if D3D_VERSION_MAJOR >= 10
 					ID3DShaderResourceView* view = sl_null;
-					D3D_(SHADER_RESOURCE_VIEW_DESC) view_desc;
-					Base::zeroMemory(&view_desc, sizeof(view_desc));
+					D3D_(SHADER_RESOURCE_VIEW_DESC) view_desc = {};
 					view_desc.Format = desc.Format;
 					view_desc.ViewDimension = D3D_(SRV_DIMENSION_TEXTURE2D);
 					view_desc.Texture2D.MipLevels = desc.MipLevels;
@@ -1723,8 +1743,7 @@ namespace slib
 
 		static void CreateState(ID3DDevice* device, const RenderRasterizerParam& param, ID3DRasterizerState** state)
 		{
-			D3D_(RASTERIZER_DESC) desc;
-			Base::zeroMemory(&desc, sizeof(desc));
+			D3D_(RASTERIZER_DESC) desc = {};
 			desc.FillMode = param.flagWireFrame ? D3D_(FILL_WIREFRAME) : D3D_(FILL_SOLID);
 			desc.CullMode = param.flagCull ? (param.flagCullCCW ? D3D_(CULL_BACK) : D3D_(CULL_FRONT)) : D3D_(CULL_NONE);
 			desc.FrontCounterClockwise = FALSE;
@@ -1795,8 +1814,7 @@ namespace slib
 
 		void CreateState(ID3DDevice* device, const RenderBlendParam& param, ID3DBlendState** state)
 		{
-			D3D_(BLEND_DESC) desc;
-			Base::zeroMemory(&desc, sizeof(desc));
+			D3D_(BLEND_DESC) desc = {};
 #if D3D_VERSION_MAJOR >= 11
 			for (sl_uint k = 0; k < 8; k++) {
 				desc.RenderTarget[k].DestBlend = D3D_(BLEND_ZERO);
@@ -1851,8 +1869,7 @@ namespace slib
 
 		static void CreateState(ID3DDevice* device, const RenderSamplerParam& param, ID3DSamplerState** state)
 		{
-			D3D_(SAMPLER_DESC) desc;
-			Base::zeroMemory(&desc, sizeof(desc));
+			D3D_(SAMPLER_DESC) desc = {};
 			if (param.magFilter == TextureFilterMode::Point) {
 				if (param.minFilter == TextureFilterMode::Point) {
 					desc.Filter = D3D_(FILTER_MIN_MAG_MIP_POINT);
@@ -1927,30 +1944,18 @@ namespace slib
 		class EngineImpl : public RenderEngine
 		{
 		public:
-			RendererImpl* m_renderer;
+			RendererImpl* m_renderer = sl_null;
 
 			Ref<RenderProgram> m_currentProgram;
 			Ref<RenderProgramInstanceImpl> m_currentProgramInstance;
 #if D3D_VERSION_MAJOR >= 9
 			Ref<RenderInputLayoutImpl> m_currentInputLayout;
 #endif
-			sl_uint32 m_currentVertexStride;
+			sl_uint32 m_currentVertexStride = 0;
 			Ref<VertexBufferInstanceImpl> m_currentVertexBufferInstance;
 			Ref<IndexBufferInstanceImpl> m_currentIndexBufferInstance;
 			Ref<RenderProgram> m_currentProgramRendering;
 			Ref<RenderProgramInstanceImpl> m_currentProgramInstanceRendering;
-
-		public:
-			EngineImpl()
-			{
-				m_renderer = sl_null;
-
-				m_currentVertexStride = 0;
-			}
-
-			~EngineImpl()
-			{
-			}
 
 		public:
 			RendererParam* getRendererParam()
@@ -1981,6 +1986,15 @@ namespace slib
 			}
 
 #if D3D_VERSION_MAJOR >= 10
+			IDXGISwapChain* getSwapChain()
+			{
+				RendererImpl* renderer = m_renderer;
+				if (renderer) {
+					return renderer->m_pSwapChain;
+				}
+				return sl_null;
+			}
+
 			ID3DRenderTargetView* getRenderTarget()
 			{
 				RendererImpl* renderer = m_renderer;
@@ -2671,12 +2685,29 @@ namespace slib
 			if (engine.isNull()) {
 				return;
 			}
-
 			engine->m_renderer = this;
+
+			RECT rect;
+			GetClientRect(m_hWnd, &rect);
+			LONG lastWidth = rect.right;
+			LONG lastHeight = rect.bottom;
 
 			TimeCounter timer;
 			while (thread->isNotStopping()) {
 				Ref<RendererImpl> thiz = this;
+				GetClientRect(m_hWnd, &rect);
+				if (lastWidth != rect.right || lastHeight != rect.bottom) {
+					lastWidth = rect.right;
+					lastHeight = rect.bottom;
+					engine = new EngineImpl;
+					if (engine.isNull()) {
+						return;
+					}
+					engine->m_renderer = this;
+					if (!(resize())) {
+						return;
+					}
+				}
 				runStep(engine.get());
 				if (thread->isNotStopping()) {
 					sl_uint64 t = timer.getElapsedMilliseconds();
@@ -2691,7 +2722,6 @@ namespace slib
 
 			engine->m_renderer = sl_null;
 		}
-
 	}
 
 	namespace priv

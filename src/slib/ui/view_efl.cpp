@@ -450,7 +450,7 @@ namespace slib
 		}
 	}
 
-	Ref<ViewInstance> View::createGenericInstance(ViewInstance* _parent)
+	Ref<ViewInstance> View::createTypicalInstance(ViewInstance* _parent)
 	{
 		EFL_ViewInstance* parent = static_cast<EFL_ViewInstance*>(_parent);
 		if (parent) {

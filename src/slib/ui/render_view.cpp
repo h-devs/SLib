@@ -29,9 +29,9 @@
 #include "slib/core/dispatch.h"
 
 #if defined(SLIB_UI)
-#	define HAS_NATIVE_WIDGET_IMPL 1
+#	define HAS_INSTANCE 1
 #else
-#	define HAS_NATIVE_WIDGET_IMPL 0
+#	define HAS_INSTANCE 0
 #endif
 
 namespace slib
@@ -41,9 +41,7 @@ namespace slib
 
 	RenderView::RenderView()
 	{
-		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
-		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
-
+		setCreatingInstance(HAS_INSTANCE);
 		setCreatingChildInstances(sl_false);
 		setRendering(sl_true);
 
@@ -367,6 +365,7 @@ namespace slib
 					drawBackground(canvas, background);
 				}
 			}
+			drawPadding(canvas);
 		} else {
 			ViewGroup::onDrawBackground(canvas);
 		}
@@ -525,8 +524,8 @@ namespace slib
 		ViewGroup::dispatchKeyEvent(ev.get());
 	}
 
-#if !HAS_NATIVE_WIDGET_IMPL
-	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
+#if !HAS_INSTANCE
+	Ref<ViewInstance> RenderView::createInstance(ViewInstance* parent)
 	{
 		return sl_null;
 	}

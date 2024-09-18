@@ -550,7 +550,7 @@ namespace slib
 	}
 
 
-	Ref<ViewInstance> View::createGenericInstance(ViewInstance* parent)
+	Ref<ViewInstance> View::createTypicalInstance(ViewInstance* parent)
 	{
 		if (m_flagCreatingEmptyContent) {
 			return iOS_ViewInstance::create<iOS_ViewInstance, SLIBEmptyContentViewHandle>(this, parent);

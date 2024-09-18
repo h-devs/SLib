@@ -187,7 +187,7 @@ namespace slib
 
 	}
 
-	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
+	Ref<ViewInstance> RenderView::createInstance(ViewInstance* parent)
 	{
 		Evas_Object* handleParent = UIPlatform::getViewHandle(parent);
 		Evas_Object* handle = elm_glview_version_add(handleParent, EVAS_GL_GLES_2_X);

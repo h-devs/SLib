@@ -515,7 +515,7 @@ namespace slib
 	}
 
 
-	Ref<ViewInstance> View::createGenericInstance(ViewInstance* _parent)
+	Ref<ViewInstance> View::createTypicalInstance(ViewInstance* _parent)
 	{
 		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
 		if (parent) {

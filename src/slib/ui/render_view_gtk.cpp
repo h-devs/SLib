@@ -120,7 +120,7 @@ namespace slib
 
 	}
 
-	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* _parent)
+	Ref<ViewInstance> RenderView::createInstance(ViewInstance* _parent)
 	{
 		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
 		GtkWidget* handle = gtk_drawing_area_new();

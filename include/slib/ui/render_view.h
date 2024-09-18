@@ -114,7 +114,7 @@ namespace slib
 		void onDrawBackground(Canvas* canvas) override;
 
 	protected:
-		Ref<ViewInstance> createNativeWidget(ViewInstance* _parent) override;
+		Ref<ViewInstance> createInstance(ViewInstance* _parent) override;
 
 		virtual Ptr<IRenderViewInstance> getRenderViewInstance();
 

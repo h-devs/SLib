@@ -787,7 +787,7 @@ namespace slib
 	}
 
 
-	Ref<ViewInstance> View::createGenericInstance(ViewInstance* parent)
+	Ref<ViewInstance> View::createTypicalInstance(ViewInstance* parent)
 	{
 		return macOS_ViewInstance::create<macOS_ViewInstance, SLIBViewHandle>(this, parent);
 	}

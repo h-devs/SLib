@@ -679,7 +679,7 @@ namespace slib
 		return SLIB_GTK_EVENT_MASK_DEFAULT;
 	}
 
-	Ref<ViewInstance> View::createGenericInstance(ViewInstance* _parent)
+	Ref<ViewInstance> View::createTypicalInstance(ViewInstance* _parent)
 	{
 		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
 

@@ -532,9 +532,13 @@ namespace slib
 
 	Ref<ViewInstance> View::getNativeWidget()
 	{
-		Ref<ViewInstance> instance = m_instance;
-		if (instance.isNotNull() && instance->isNativeWidget()) {
-			return instance;
+		if (m_instance.isNotNull()) {
+			Ref<ViewInstance> instance = m_instance;
+			if (instance.isNotNull()) {
+				if (instance->isNativeWidget()) {
+					return instance;
+				}
+			}
 		}
 		return sl_null;
 	}
@@ -716,8 +720,7 @@ namespace slib
 	}
 
 #if !defined(SLIB_UI)
-	// Run on UI thread
-	Ref<ViewInstance> View::createGenericInstance(ViewInstance* parent)
+	Ref<ViewInstance> View::createTypicalInstance(ViewInstance* parent)
 	{
 		return sl_null;
 	}
@@ -726,6 +729,24 @@ namespace slib
 	// Run on UI thread
 	Ref<ViewInstance> View::createNativeWidget(ViewInstance* parent)
 	{
+		return sl_null;
+	}
+
+	// Run on UI thread
+	Ref<ViewInstance> View::createInstance(ViewInstance* parent)
+	{
+		if (m_flagCreatingNativeWidget) {
+			Ref<ViewInstance> ret = createNativeWidget(parent);
+			if (ret.isNotNull()) {
+				ret->setNativeWidget(sl_true);
+				return ret;
+			}
+		}
+		Ref<ViewInstance> ret = createTypicalInstance(parent);
+		if (ret.isNotNull()) {
+			ret->setTypical(sl_true);
+			return ret;
+		}
 		return sl_null;
 	}
 
@@ -876,15 +897,7 @@ namespace slib
 	Ref<ViewInstance> View::_createInstance(ViewInstance* parent)
 	{
 		m_flagCurrentCreatingInstance = sl_true;
-		if (m_flagCreatingNativeWidget) {
-			Ref<ViewInstance> ret = createNativeWidget(parent);
-			if (ret.isNotNull()) {
-				ret->setNativeWidget(sl_true);
-				m_flagCurrentCreatingInstance = sl_false;
-				return ret;
-			}
-		}
-		Ref<ViewInstance> ret = createGenericInstance(parent);
+		Ref<ViewInstance> ret = createInstance(parent);
 		m_flagCurrentCreatingInstance = sl_false;
 		return ret;
 	}
@@ -8798,6 +8811,28 @@ namespace slib
 		}
 	}
 
+	void View::drawPadding(Canvas* canvas)
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			Color color = attrs->paddingColors.evaluate(getState());
+			if (color.isNotZero()) {
+				Ref<Brush> brush = Brush::createSolidBrush(color);
+				if (brush.isNotNull()) {
+					CanvasAntiAliasScope scope(canvas, sl_false);
+					UIEdgeInsets padding = getPadding();
+					sl_ui_len w = m_frame.getWidth();
+					sl_ui_len h = m_frame.getHeight();
+					canvas->fillRectangle(0, 0, (sl_real)w, (sl_real)(padding.top), brush);
+					sl_ui_len h2 = h - padding.bottom - padding.top;
+					canvas->fillRectangle(0, (sl_real)(padding.top), (sl_real)(padding.left), (sl_real)h2, brush);
+					canvas->fillRectangle((sl_real)(w - padding.right), (sl_real)(padding.top), (sl_real)(padding.right), (sl_real)h2, brush);
+					canvas->fillRectangle(0, (sl_real)(h - padding.bottom), (sl_real)w, (sl_real)(padding.bottom), brush);
+				}
+			}
+		}
+	}
+
 	void View::drawChildren(Canvas* canvas, const Ref<View>* children, sl_size count)
 	{
 		if (!count) {
@@ -9398,24 +9433,7 @@ namespace slib
 	void View::onDrawBackground(Canvas* canvas)
 	{
 		drawBackground(canvas, getCurrentBackground());
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			Color color = attrs->paddingColors.evaluate(getState());
-			if (color.isNotZero()) {
-				Ref<Brush> brush = Brush::createSolidBrush(color);
-				if (brush.isNotNull()) {
-					CanvasAntiAliasScope scope(canvas, sl_false);
-					UIEdgeInsets padding = getPadding();
-					sl_ui_len w = m_frame.getWidth();
-					sl_ui_len h = m_frame.getHeight();
-					canvas->fillRectangle(0, 0, (sl_real)w, (sl_real)(padding.top), brush);
-					sl_ui_len h2 = h - padding.bottom - padding.top;
-					canvas->fillRectangle(0, (sl_real)(padding.top), (sl_real)(padding.left), (sl_real)h2, brush);
-					canvas->fillRectangle((sl_real)(w - padding.right), (sl_real)(padding.top), (sl_real)(padding.right), (sl_real)h2, brush);
-					canvas->fillRectangle(0, (sl_real)(h - padding.bottom), (sl_real)w, (sl_real)(padding.bottom), brush);
-				}
-			}
-		}
+		drawPadding(canvas);
 	}
 
 	void View::onDrawBorder(Canvas* canvas)
@@ -10734,9 +10752,7 @@ namespace slib
 	void View::_processClick(UIEvent* ev)
 	{
 		if (isNativeWidget()) {
-			if (!(isRendering())) {
-				return;
-			}
+			return;
 		}
 		UIAction action = ev->getAction();
 		switch (action) {
@@ -11374,6 +11390,7 @@ namespace slib
 
 	ViewInstance::ViewInstance()
 	{
+		m_flagTypical = sl_false;
 		m_flagNativeWidget = sl_false;
 		m_flagWindowContent = sl_false;
 		m_flagSettingFocus = sl_false;
@@ -11391,6 +11408,16 @@ namespace slib
 	void ViewInstance::setView(View* view)
 	{
 		m_view = view;
+	}
+
+	sl_bool ViewInstance::isTypical()
+	{
+		return m_flagTypical;
+	}
+
+	void ViewInstance::setTypical(sl_bool flag)
+	{
+		m_flagTypical = flag;
 	}
 
 	sl_bool ViewInstance::isNativeWidget()
