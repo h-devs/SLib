@@ -9649,13 +9649,13 @@ namespace slib
 			}
 
 			if (!(ev->isAccepted())) {
-				if (m_flagFocusable) {
-					if (action == UIAction::LeftButtonDown || action == UIAction::RightButtonDown || action == UIAction::MiddleButtonDown) {
-						setFocus();
-						ev->accept();
-					}
+				if (m_flagFocusable && (action == UIAction::LeftButtonDown || action == UIAction::RightButtonDown || action == UIAction::MiddleButtonDown || action == UIAction::TouchBegin)) {
+					setFocus();
+					invokeMouseEvent(ev);
+					ev->accept();
+				} else {
+					invokeMouseEvent(ev);
 				}
-				invokeMouseEvent(ev);
 			}
 		}
 
