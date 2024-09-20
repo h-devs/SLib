@@ -2391,8 +2391,10 @@ namespace slib
 				return loadJpeg(mem, size);
 			case ImageFileType::PNG:
 				return loadPng(mem, size);
+			case ImageFileType::DDS:
+				return loadStb_DDS(mem, size);
 			default:
-				return loadStb(mem, size);
+				return loadStb(mem, size); 
 		}
 	}
 
@@ -2418,7 +2420,7 @@ namespace slib
 	Ref<AnimationDrawable> Image::loadAnimationFromMemory(ImageFileType type, const void* mem, sl_size size)
 	{
 		if (type == ImageFileType::GIF) {
-			return loadStbGif(mem, size);
+			return loadStb_GIF(mem, size);
 		}
 		return sl_null;
 	}

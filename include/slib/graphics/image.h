@@ -232,7 +232,9 @@ namespace slib
 
 		static Ref<Image> loadStb(const void* content, sl_size size);
 
-		static Ref<AnimationDrawable> loadStbGif(const void* content, sl_size size);
+		static Ref<AnimationDrawable> loadStb_GIF(const void* content, sl_size size);
+
+		static Ref<Image> loadStb_DDS(const void* content, sl_size size);
 
 
 		static Ref<Image> loadPng(const void* content, sl_size size);

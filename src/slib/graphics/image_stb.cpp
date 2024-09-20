@@ -24,19 +24,23 @@
 
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
+#define STBI_NO_STDIO
 
 #if defined(_MSC_VER)
 #	pragma warning(disable : 4312)
 #	pragma warning(disable : 4996)
 #	include "stb/stb_image.h"
+#	include "stb/stbi_dds.h"
 #elif defined(SLIB_PLATFORM_IS_APPLE)
 #	pragma clang diagnostic push
 #	pragma clang diagnostic ignored "-Wcomma"
 #	pragma clang diagnostic ignored "-Wunused-function"
 #	include "stb/stb_image.h"
+#	include "stb/stbi_dds.h"
 #	pragma clang diagnostic pop
 #else
 #	include "stb/stb_image.h"
+#	include "stb/stbi_dds.h"
 #endif
 
 namespace slib
@@ -51,7 +55,7 @@ namespace slib
 		int width = 0;
 		int height = 0;
 		int nComponents = 0;
-		unsigned char * colors = stbi_load_from_memory((stbi_uc*)content, (int)size, &width, &height, &nComponents, 4);
+		unsigned char* colors = stbi_load_from_memory((stbi_uc*)content, (int)size, &width, &height, &nComponents, 4);
 		if (colors) {
 			if (width > 0 && height > 0) {
 				ret = Image::create(width, height);
@@ -64,7 +68,29 @@ namespace slib
 		return ret;
 	}
 
-	Ref<AnimationDrawable> Image::loadStbGif(const void* content, sl_size size)
+	Ref<Image> Image::loadStb_DDS(const void* content, sl_size size)
+	{
+		if (!content || !size) {
+			return sl_null;
+		}
+		Ref<Image> ret;
+		int width = 0;
+		int height = 0;
+		int nComponents = 0;
+		unsigned char* colors = stbi__dds_load_from_memory((stbi_uc*)content, (int)size, &width, &height, &nComponents, 4);
+		if (colors) {
+			if (width > 0 && height > 0) {
+				ret = Image::create(width, height);
+				if (ret.isNotNull()) {
+					Base::copyMemory(ret->getColors(), colors, width * height * 4);
+				}
+			}
+			stbi_image_free(colors);
+		}
+		return ret;
+	}
+
+	Ref<AnimationDrawable> Image::loadStb_GIF(const void* content, sl_size size)
 	{
 		if (!content || !size) {
 			return sl_null;
