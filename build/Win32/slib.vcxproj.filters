@@ -1319,5 +1319,8 @@
     <ClCompile Include="..\..\src\slib\ui\map_view.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\geo\dem.cpp">
+      <Filter>src\geo</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

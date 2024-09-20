@@ -247,6 +247,7 @@ set (SLIB_SOURCE_FILES
 
  "${SLIB_PATH}/src/slib/script/ginger.cpp"
 
+ "${SLIB_PATH}/src/slib/geo/dem.cpp"
  "${SLIB_PATH}/src/slib/geo/earth.cpp"
  "${SLIB_PATH}/src/slib/geo/geo_line.cpp"
  "${SLIB_PATH}/src/slib/geo/geo_location.cpp"

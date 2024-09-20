@@ -27,6 +27,8 @@
 
 #include "../geo/geo_location.h"
 
+#define SLIB_MAP_VIEW_LAYER_COUNT 5
+
 namespace slib
 {
 
@@ -38,39 +40,39 @@ namespace slib
 	{
 	public:
 		sl_uint32 level;
-		T y; // latitude
-		T x; // longitude
+		T E; // longitude
+		T N; // latitude
 
 	public:
 		MapTileLocationT() {}
 
-		MapTileLocationT(sl_uint32 _level, T _y, T _x)
+		MapTileLocationT(sl_uint32 _level, T e, T n)
 		{
 			level = _level;
-			y = _y;
-			x = _x;
+			E = e;
+			N = n;
 		}
 
 		template <class O>
 		MapTileLocationT(const MapTileLocationT<O>& other)
 		{
 			level = other.level;
-			y = (T)(other.y);
-			x = (T)(other.x);
+			E = (T)(other.E);
+			N = (T)(other.N);
 		}
 
 		template <class O>
 		MapTileLocationT& operator=(const MapTileLocationT<O>& other)
 		{
 			level = other.level;
-			y = (T)(other.y);
-			x = (T)(other.x);
+			E = (T)(other.E);
+			N = (T)(other.N);
 			return *this;
 		}
 
 		sl_bool equals(const MapTileLocationT& other) const
 		{
-			return level == other.level && y == other.y && x == other.x;
+			return level == other.level && E == other.E && N == other.N;
 		}
 
 		sl_compare_result compare(const MapTileLocationT& other) const
@@ -79,11 +81,11 @@ namespace slib
 			if (c) {
 				return c;
 			}
-			c = ComparePrimitiveValues(x, other.x);
+			c = ComparePrimitiveValues(E, other.E);
 			if (c) {
 				return c;
 			}
-			c = ComparePrimitiveValues(y, other.y);
+			c = ComparePrimitiveValues(N, other.N);
 			return c;
 		}
 
@@ -91,20 +93,20 @@ namespace slib
 	};
 
 	typedef MapTileLocationT<double> MapTileLocation;
-	typedef MapTileLocationT<sl_int32> MapTileLocationi;
+	typedef MapTileLocationT<sl_int32> MapTileLocationI;
 
 	template <>
-	SLIB_INLINE sl_size Hash<MapTileLocationi>::operator()(const MapTileLocationi& location) const noexcept
+	SLIB_INLINE sl_size Hash<MapTileLocationI>::operator()(const MapTileLocationI& location) const noexcept
 	{
 		sl_uint64 c = location.level;
 		c <<= 29;
-		c ^= location.y;
+		c ^= location.E;
 		c <<= 29;
-		c ^= location.x;
+		c ^= location.N;
 		return HashPrimitiveValue(c);
 	}
 
-	class SLIB_EXPORT MapTileAddress : public MapTileLocationi
+	class SLIB_EXPORT MapTileAddress : public MapTileLocationI
 	{
 	public:
 		String subPath;
@@ -130,7 +132,7 @@ namespace slib
 	{
 	public:
 		double E; // Easting
-		double N; // northing
+		double N; // Northing
 	};
 
 	class SLIB_EXPORT MapTileReader : public Object
@@ -147,6 +149,8 @@ namespace slib
 
 		virtual sl_bool readImage(Ref<Image>& _out, const MapTileAddress& address, sl_uint32 timeout);
 
+		virtual sl_bool readObject(Ref<CRef>& _out, const MapTileAddress& address, const Function<Ref<CRef>(Memory&)>& loader, sl_uint32 timeout);
+
 	};
 
 	class SLIB_EXPORT MapTileDirectory : public MapTileReader
@@ -159,14 +163,14 @@ namespace slib
 		~MapTileDirectory();
 
 	public:
-		static Ref<MapTileDirectory> open(const String& rootPath, const String& pathFormat);
+		static Ref<MapTileDirectory> open(const String& rootPath, const Function<String(MapTileLocationI&)>& formator);
 
 	public:
 		sl_bool readData(Memory& _out, const MapTileAddress& address, sl_uint32 timeout) override;
 
 	private:
 		String m_root;
-		String m_format;
+		Function<String(MapTileLocationI&)> m_formator;
 	};
 
 	class SLIB_EXPORT MapTileCache : public Object
@@ -179,17 +183,24 @@ namespace slib
 		~MapTileCache();
 
 	public:
-		static Ref<MapTileCache> create(sl_uint32 nMaxCount = 1000, sl_uint32 expiringMilliseconds = 30000);
+		static Ref<MapTileCache> create(sl_uint32 nMaxActiveCount = 100, sl_uint32 expiringMilliseconds = 10000);
 
 	public:
-		virtual void startDrawing() = 0;
+		sl_uint32 getMaximumActiveCount();
 
-		virtual void endDrawing() = 0;
+	public:
+		virtual sl_uint32 getLastActiveCount() = 0;
+
+		virtual void endStep() = 0;
 
 		virtual sl_bool getObject(const MapTileAddress& address, Ref<CRef>& _out) = 0;
 
-		virtual void saveObject(const MapTileAddress& address, const Ref<CRef>& object) = 0;
+		virtual sl_bool saveObject(const MapTileAddress& address, const Ref<CRef>& object, sl_bool flagEndless = sl_false) = 0;
 
+		virtual void clear() = 0;
+
+	protected:
+		sl_uint32 m_nMaxCount;
 	};
 
 	class SLIB_EXPORT MapTileLoadParam
@@ -200,6 +211,7 @@ namespace slib
 		MapTileAddress address;
 		sl_uint32 timeout;
 		sl_bool flagLoadNow;
+		sl_bool flagEndless;
 
 	public:
 		MapTileLoadParam();
@@ -218,17 +230,26 @@ namespace slib
 		~MapTileLoader();
 
 	public:
+		static Ref<MapTileLoader> create(const Function<void()>& onCompleteLazyLoading, sl_uint32 nThreads = 0, sl_uint32 nMaxQueue = 100);
+
 		static Ref<MapTileLoader> create(sl_uint32 nThreads = 0, sl_uint32 nMaxQueue = 100);
 
 	public:
-		sl_bool loadData(Memory& _out, const MapTileLoadParam& param, const Function<void(Memory&)>& onComplete);
+		enum TYPE
+		{
+			DATA,
+			IMAGE,
+			OBJECT
+		};
 
-		sl_bool loadImage(Ref<Image>& _out, const MapTileLoadParam& param, const Function<void(Ref<Image>&)>& onComplete);
+		sl_bool loadData(Memory& _out, const MapTileLoadParam& param, const Function<void(Memory&)>& onCompleteLazyLoading);
 
-		sl_bool loadObject(Ref<CRef>& _out, const MapTileLoadParam& param, const Function<Ref<CRef>(Memory&)>& loader, const Function<void(Ref<CRef>&)>& onComplete);
+		sl_bool loadImage(Ref<Image>& _out, const MapTileLoadParam& param, const Function<void(Ref<Image>&)>& onCompleteLazyLoading);
+
+		sl_bool loadObject(Ref<CRef>& _out, const MapTileLoadParam& param, const Function<Ref<CRef>(Memory&)>& loader, const Function<void(Ref<CRef>&)>& onCompleteLazyLoading);
 
 	protected:
-		virtual sl_bool load(Ref<CRef>& _out, const MapTileLoadParam& param, sl_bool flagImage, const Function<Ref<CRef>(Memory&)>& loader, const Function<void(Ref<CRef>&)>& onComplete) = 0;
+		virtual sl_bool load(Ref<CRef>& _out, TYPE type, const MapTileLoadParam& param, const Function<Ref<CRef>(Memory&)>& loader, const Function<void(Ref<CRef>&)>& onCompleteLazyLoading) = 0;
 
 	};
 
@@ -264,14 +285,18 @@ namespace slib
 
 		void setMaximumScale(double scale);
 
+		const RectangleT<double>& getViewport();
+
+		void setViewport(const RectangleT<double>& rect);
+
 		Ref<Drawable> getBackground();
 
 		void setBackground(const Ref<Drawable>& background);
 
 	public:
-		Double2 toViewport(const MapLocation& location);
+		Double2 getViewPointFromMapLocation(const MapLocation& location);
 
-		MapLocation fromViewport(const Double2& point);
+		MapLocation getMapLocationFromViewPoint(const Double2& point);
 
 		void draw(Canvas* canvas, const Rectangle& rect, MapViewData* data);
 
@@ -280,9 +305,11 @@ namespace slib
 
 		virtual void setEyeLocation(const GeoLocation& location) = 0;
 
-		virtual LatLon toLatLon(const MapLocation& location) = 0;
+		virtual LatLon getLatLonFromMapLocation(const MapLocation& location) = 0;
 
-		virtual MapLocation fromLatLon(const LatLon& location) = 0;
+		virtual MapLocation getMapLocationFromLatLon(const LatLon& location) = 0;
+
+		virtual void clearCache() = 0;
 
 	protected:
 		virtual void onDraw(Canvas* canvas, const Rectangle& rect, MapViewData* data) = 0;
@@ -293,7 +320,31 @@ namespace slib
 		double m_scale;
 		double m_scaleMin;
 		double m_scaleMax;
+		RectangleT<double> m_viewport;
 		AtomicRef<Drawable> m_background;
+	};
+
+	class SLIB_EXPORT MapSurfaceParam
+	{
+	public:
+		sl_uint32 baseLevel;
+		sl_uint32 maxLevel;
+		sl_uint32 baseTileCountE; // Easting
+		sl_uint32 baseTileCountN; // Northing
+		double degreeLengthE; // Easting
+		double degreeLengthN; // Northing
+		sl_uint32 tileLength; // Pixels
+		Function<void(MapTileLocationI&)> toReaderLocation;
+
+		Ref<MapTileReader> picture;
+		Ref<MapTileReader> dem;
+		Ref<MapTileReader> layers[SLIB_MAP_VIEW_LAYER_COUNT];
+
+	public:
+		MapSurfaceParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MapSurfaceParam)
+
 	};
 
 	class SLIB_EXPORT MapSurface : public MapPlane
@@ -306,17 +357,94 @@ namespace slib
 		~MapSurface();
 
 	public:
+		static Ref<MapSurface> create(const MapSurfaceParam& param);
 
+	public:
+		sl_uint32 getBaseLevel();
+
+		sl_uint32 getMaximumLevel();
+
+		sl_uint32 getBaseTileCountE();
+
+		sl_uint32 getBaseTileCountN();
+
+		double getDegreeLengthE();
+
+		double getDegreeLengthN();
+
+		sl_uint32 getTileLength();
+
+		Ref<MapTileReader> getPictureReader();
+
+		void setPictureReader(const Ref<MapTileReader>& reader);
+
+		Ref<MapTileReader> getDemReader();
+
+		void setDemReader(const Ref<MapTileReader>& reader);
+
+		Ref<MapTileReader> getLayerReader(sl_uint32 layer);
+
+		void setLayerReader(sl_uint32 layer, const Ref<MapTileReader>& reader);
+
+		sl_bool isLayerVisible(sl_uint32 layer);
+
+		void setLayerVisible(sl_uint32 layer, sl_bool flag = sl_true);
+
+		float getLayerOpacity(sl_uint32 layer);
+
+		void setLayerOpacity(sl_uint32 layer, float opacity);
+
+		GeoLocation getEyeLocation() override;
+
+		void setEyeLocation(const GeoLocation& location) override;
+
+		LatLon getLatLonFromMapLocation(const MapLocation& location) override;
+
+		MapLocation getMapLocationFromLatLon(const LatLon& location) override;
+
+		// Normalized tile location (No reader location)
+		LatLon getLatLonFromTileLocation(const MapTileLocationI& location);
+
+		// Normalized tile location (No reader location)
+		MapTileLocation getTileLocationFromLatLon(sl_uint32 level, const LatLon& latLon);
+		
+		// Normalized tile location (No reader location)
+		MapLocation getMapLocationFromTileLocation(const MapTileLocationI& location);
+
+		// Normalized tile location (No reader location)
+		MapTileLocation getTileLocationFromMapLocation(sl_uint32 level, const MapLocation& location);
+
+		MapTileLocationI getReaderLocation(const MapTileLocationI& location);
+
+	protected:
+		sl_uint32 m_maxLevel;
+		sl_uint32 m_baseLevel;
+		sl_uint32 m_baseTileCountE;
+		sl_uint32 m_baseTileCountN;
+		double m_degreeLengthE;
+		double m_degreeLengthN;
+		sl_uint32 m_tileLength; // Pixels
+		Function<void(MapTileLocationI&)> m_toReaderLocation;
+
+		AtomicRef<MapTileReader> m_readerPicture;
+		AtomicRef<MapTileReader> m_readerDEM;
+		struct Layer
+		{
+			AtomicRef<MapTileReader> reader;
+			sl_bool flagVisible;
+			float opacity;
+		};
+		Layer m_layers[SLIB_MAP_VIEW_LAYER_COUNT];
 	};
 
-	class SLIB_EXPORT MapLayer : public Object
+	class SLIB_EXPORT MapViewObject : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
 	protected:
-		MapLayer();
+		MapViewObject();
 
-		~MapLayer();
+		~MapViewObject();
 
 	public:
 		sl_bool isSupportingGlobeMode();
@@ -333,8 +461,6 @@ namespace slib
 	protected:
 		sl_bool m_flagSupportGlobe;
 		sl_bool m_flagSupportPlane;
-
-		friend class MapView;
 	};
 
 	class SLIB_EXPORT MapViewData
@@ -357,19 +483,31 @@ namespace slib
 
 		void setSurface(const Ref<MapSurface>& surface, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		List< Ref<MapLayer> > getLayers() const;
+		List< Ref<MapViewObject> > getObjects() const;
 
-		void putLayer(const String& name, const Ref<MapLayer>& layer, UIUpdateMode mode = UIUpdateMode::Redraw);
+		Ref<MapViewObject> getObject(const String& key) const;
+
+		void putObject(const String& name, const Ref<MapViewObject>& object, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		GeoLocation getEyeLocation() const;
 
 		void setEyeLocation(const GeoLocation& location, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_bool toLatLon(const Double2& point, LatLon& _out) const;
+		sl_bool getLatLonFromViewPoint(const Double2& point, LatLon& _out) const;
 
-		Double2 toViewport(const LatLon& location) const;
+		Double2 getViewPointFromLatLon(const LatLon& location) const;
+
+		void resize(double width, double height, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void movePlane(double dx, double dy, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void zoom(double scale, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void zoomAt(const Double2& point, double scale, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void click(const Double2& pt, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void stopMoving();
 
 	public:
 		MapTileLoader* getTileLoader();
@@ -381,7 +519,9 @@ namespace slib
 		void invalidate(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	protected:
-		MapPlane* _getPlane() const;
+		void _resizePlane(MapPlane* plane, double width, double height);
+
+		void _onCompleteLazyLoading();
 
 	protected:
 		Mutex m_lock;
@@ -389,9 +529,11 @@ namespace slib
 		sl_bool m_flagGlobeMode;
 		Ref<MapPlane> m_plane;
 		Ref<MapSurface> m_surface;
-		CHashMap< String, Ref<MapLayer> > m_layers;
+		CHashMap< String, Ref<MapViewObject> > m_objects;
 
 		GeoLocation m_eyeLocation;
+		double m_width;
+		double m_height;
 
 		Ref<MapTileLoader> m_tileLoader;
 
@@ -420,6 +562,16 @@ namespace slib
 
 		void onMouseWheelEvent(UIEvent* ev) override;
 
+		void onResize(sl_ui_len width, sl_ui_len height) override;
+
+	protected:
+		sl_uint32 m_nLastTouches;
+		Point m_ptLastEvent;
+		sl_bool m_flagMouseDown;
+		Point m_ptMouseDown;
+		sl_uint64 m_tickMouseDown;
+		sl_bool m_flagClicking;
+		sl_bool m_flagThrowMoving;
 	};
 
 }
