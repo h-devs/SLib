@@ -36,14 +36,19 @@ namespace slib
 		if (!content || !size) {
 			return sl_null;
 		}
+
+		Ref<Image> ret;
+
 		png_image image;
 		Base::zeroMemory(&image, sizeof(image));
 		image.version = PNG_IMAGE_VERSION;
 
-		Ref<Image> ret;
 		if (png_image_begin_read_from_memory(&image, content, size)) {
 
 			image.format = PNG_FORMAT_RGBA;
+			png_structp png = *((png_structp*)(image.opaque));
+			png_set_crc_action(png, PNG_CRC_QUIET_USE, PNG_CRC_QUIET_USE);
+
 			sl_uint32 pitch = image.width * 4;
 			sl_uint32 size = pitch * image.height;
 
