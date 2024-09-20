@@ -115,8 +115,8 @@ namespace slib
 		return 0x20000;
 	}
 
-	namespace {
-
+	namespace
+	{
 		static DataConvertResult Pass(IDataConverter* converter, const void* input, sl_size size, MemoryBuffer& output, void* chunk, sl_size sizeChunk)
 		{
 			for (;;) {
@@ -155,7 +155,6 @@ namespace slib
 				}
 			}
 		}
-
 	}
 
 #define PREPARE_CHUNK(BUF_NAME, SIZE_NAME, SIZE) \
