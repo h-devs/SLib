@@ -1035,10 +1035,9 @@ namespace slib
 				if (tile.isNull()) {
 					return;
 				}
-				if (!(isTileVisible(state, tile.get()))) {
-					return;
-				}
-				if (isTileExpandable(state, tile.get())) {
+				sl_bool flagExpand, flagRender;
+				getTileState(state, tile.get(), flagExpand, flagRender);
+				if (flagExpand) {
 					sl_uint32 E = location.E << 1;
 					sl_uint32 N = location.N << 1;
 					for (sl_uint32 y = 0; y < 2; y++) {
@@ -1046,6 +1045,9 @@ namespace slib
 							renderTile(engine, state, MapTileLocationI(location.level + 1, E + x, N + y));
 						}
 					}
+					return;
+				}
+				if (!flagRender) {
 					return;
 				}
 				MapTileLoader* loader = state.tileLoader.get();
@@ -1135,69 +1137,102 @@ namespace slib
 				return tile;
 			}
 
-			sl_bool isTileVisible(const MapViewState& state, MapViewTile* tile)
+			void getTileState(const MapViewState& state, MapViewTile* tile, sl_bool& flagExpand, sl_bool& flagRender)
 			{
-				// check normal
-				{
-					sl_bool flagVisible = sl_false;
-					for (sl_uint32 i = 0; i < 4; i++) {
-						Double3 normal = state.viewTransform.transformDirection(tile->points[i]);
-						if (normal.z <= 0.0) {
-							flagVisible = sl_true;
-							break;
-						}
-					}
-					if (!flagVisible) {
-						return sl_false;
-					}
-				}
-				// check frustum
-				if (state.viewFrustum.containsFacets(tile->points, 4) || state.viewFrustum.containsFacets(tile->pointsWithDEM, 4)) {
-					return sl_true;
-				}
-				return sl_false;
-			}
+				flagExpand = sl_false;
+				flagRender = sl_false;
 
-			sl_bool isTileExpandable(const MapViewState& state, MapViewTile* tile)
-			{
-				if (tile->location.level >= m_maxLevel) {
-					return sl_false;
-				}
 				Vector3 ptBL = state.viewTransform.transformPosition(tile->points[0]);
 				Vector3 ptBR = state.viewTransform.transformPosition(tile->points[1]);
 				Vector3 ptTL = state.viewTransform.transformPosition(tile->points[2]);
 				Vector3 ptTR = state.viewTransform.transformPosition(tile->points[3]);
-				sl_uint32 nBehind = 0;
-				if (Math::isLessThanEpsilon(ptBL.z)) {
-					nBehind++;
+
+				// Check Expand
+				do {
+					if (tile->location.level >= m_maxLevel) {
+						break;
+					}
+					// Check Normal
+					{
+						sl_bool f = sl_false;
+						for (sl_uint32 i = 0; i < 4; i++) {
+							Double3 normal = state.viewTransform.transformDirection(tile->points[i]);
+							if (normal.z <= 0.0) {
+								f = sl_true;
+								break;
+							}
+						}
+						if (!f) {
+							break;
+						}
+					}
+
+					// Check Frustum
+					{
+						if (!(state.viewFrustum.containsFacets(tile->points, 4) || state.viewFrustum.containsFacets(tile->pointsWithDEM, 4))) {
+							break;
+						}
+					}
+					// Check Behind
+					{
+						sl_uint32 nBehind = 0;
+						if (Math::isLessThanEpsilon(ptBL.z)) {
+							nBehind++;
+						}
+						if (Math::isLessThanEpsilon(ptBR.z)) {
+							nBehind++;
+						}
+						if (Math::isLessThanEpsilon(ptTL.z)) {
+							nBehind++;
+						}
+						if (Math::isLessThanEpsilon(ptTR.z)) {
+							nBehind++;
+						}
+						if (nBehind == 4) {
+							break;
+						}
+						if (nBehind) {
+							flagExpand = sl_true;
+							break;
+						}
+					}
+					// Check Size
+					{
+						Triangle t;
+						t.point1.x = ptBL.x / ptBL.z;
+						t.point1.y = ptBL.y / ptBL.z;
+						t.point2.x = ptBR.x / ptBR.z;
+						t.point2.y = ptBR.y / ptBR.z;
+						t.point3.x = ptTL.x / ptTL.z;
+						t.point3.y = ptTL.y / ptTL.z;
+						sl_real size = Math::abs(t.getSize());
+						t.point1.x = ptTR.x / ptTR.z;
+						t.point1.y = ptTR.y / ptTR.z;
+						size += Math::abs(t.getSize());
+						if (size > (sl_real)(65536.0 * 25.0 / state.viewportWidth / state.viewportWidth)) {
+							flagExpand = sl_true;
+						}
+					}
+				} while (0);
+				// Check Render (Clockwise)
+				{
+					Triangle triangle;
+					triangle.point1.x = ptTL.x;
+					triangle.point1.y = ptTL.y;
+					triangle.point2.x = ptBL.x;
+					triangle.point2.y = ptBL.y;
+					triangle.point3.x = ptTR.x;
+					triangle.point3.y = ptTR.y;
+					if (triangle.isClockwise()) {
+						flagRender = sl_true;
+						return;
+					}
+					triangle.point1.x = ptBR.x;
+					triangle.point1.y = ptBR.y;
+					if (!(triangle.isClockwise())) {
+						flagRender = sl_true;
+					}
 				}
-				if (Math::isLessThanEpsilon(ptBR.z)) {
-					nBehind++;
-				}
-				if (Math::isLessThanEpsilon(ptTL.z)) {
-					nBehind++;
-				}
-				if (Math::isLessThanEpsilon(ptTR.z)) {
-					nBehind++;
-				}
-				if (nBehind == 4) {
-					return sl_false;
-				}
-				if (nBehind) {
-					return sl_true;
-				}
-				Triangle t;
-				t.point1.x = ptBL.x / ptBL.z;
-				t.point1.y = ptBL.y / ptBL.z;
-				t.point2.x = ptBR.x / ptBR.z;
-				t.point2.y = ptBR.y / ptBR.z;
-				t.point3.x = ptTL.x / ptTL.z;
-				t.point3.y = ptTL.y / ptTL.z;
-				sl_real size = Math::abs(t.getSize());
-				t.point1.x = ptTR.x / ptTR.z;
-				t.point1.y = ptTR.y / ptTR.z;
-				size += Math::abs(t.getSize());
-				return size > (sl_real)(65536.0 * 25.0 / state.viewportWidth / state.viewportWidth);
 			}
 
 			const List< Ref<MapViewTile> >& getTiles() override
@@ -2191,8 +2226,12 @@ namespace slib
 		if (ev->isAccepted()) {
 			return;
 		}
-		double rem = UIResource::getScreenMinimum() / 100.0;
+		double width = (double)(getWidth());
 		double height = (double)(getHeight());
+		if (width < 0.00001 || height < 0.00001) {
+			return;
+		}
+		double rem = UIResource::getScreenMinimum() / 100.0;
 		Point pt = ev->getPoint();
 		Point pt2 = pt;
 		sl_uint32 nTouches = 0;
@@ -2202,6 +2241,7 @@ namespace slib
 			case UIAction::LeftButtonDown:
 			case UIAction::TouchBegin:
 				m_ptMouseDown = pt;
+				m_transformMouseDown = m_state.verticalViewTransform;
 				m_tickMouseDown = System::getTickCount64();
 				m_flagMouseDown = sl_true;
 				m_flagClicking = sl_true;
@@ -2234,7 +2274,17 @@ namespace slib
 					if (dx * dx + dy * dy > rem) {
 						m_flagClicking = sl_false;
 					}
-					movePlane((pt.x - m_ptLastEvent.x) / height, (pt.y - m_ptLastEvent.y) / height);
+					if (m_flagGlobeMode) {
+						GeoLocation eye = m_state.eyeLocation;
+						double alt = eye.altitude;
+						double f = alt / height * 1.3;
+						Vector3 pos = m_transformMouseDown.inverse().transformPosition(-dx * f, dy * f, alt);
+						GeoLocation loc = MapEarth::getGeoLocation(pos);
+						loc.altitude = alt;
+						setEyeLocation(loc);
+					} else {
+						movePlane((pt.x - m_ptLastEvent.x) / height, (pt.y - m_ptLastEvent.y) / height);
+					}
 				}
 				if (!flagDrag) {
 					if (m_flagClicking) {

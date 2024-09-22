@@ -696,6 +696,7 @@ namespace slib
 		Point m_ptLastEvent;
 		sl_bool m_flagMouseDown;
 		Point m_ptMouseDown;
+		Matrix4T<double> m_transformMouseDown;
 		sl_uint64 m_tickMouseDown;
 		sl_bool m_flagClicking;
 		sl_bool m_flagThrowMoving;
