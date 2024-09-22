@@ -177,6 +177,10 @@ namespace slib
 
 		static double sqrt(double f) noexcept;
 
+		static sl_uint32 sqrt(sl_uint32 f) noexcept;
+
+		static sl_uint64 sqrt(sl_uint64 f) noexcept;
+
 		static float cbrt(float f) noexcept;
 
 		static double cbrt(double f) noexcept;

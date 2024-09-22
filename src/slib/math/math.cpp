@@ -101,6 +101,42 @@ namespace slib
 		return ::sqrt(f);
 	}
 
+	namespace
+	{
+		// Digit-by-digit algorithm
+		template <typename T>
+		static T ISqrt(T n)
+		{
+			T x = n;
+			T c = 0;
+			T d = 1;
+			d <<= ((sizeof(T) << 3) - 2);
+			while (d > n) {
+				d >>= 2;
+			}
+			while (d) {
+				if (x >= c + d) {
+					x -= c + d;
+					c = (c >> 1) + d;
+				} else {
+					c >>= 1;
+				}
+				d >>= 2;
+			}
+			return c;
+		}
+	}
+
+	sl_uint32 Math::sqrt(sl_uint32 f) noexcept
+	{
+		return ISqrt(f);
+	}
+
+	sl_uint64 Math::sqrt(sl_uint64 f) noexcept
+	{
+		return ISqrt(f);
+	}
+
 	float Math::cbrt(float f) noexcept
 	{
 		return ::cbrtf(f);
@@ -413,7 +449,6 @@ namespace slib
 	}
 
 #if defined(SLIB_PLATFORM_IS_UWP)
-
 	sl_bool Math::isNaN(float f) noexcept
 	{
 		sl_int32 ret = _isnan(f);
@@ -449,9 +484,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-
 #else
-
 	sl_bool Math::isNaN(float f) noexcept
 	{
 		return isnan(f) != 0;
@@ -471,7 +504,6 @@ namespace slib
 	{
 		return isinf(f) != 0;
 	}
-
 #endif
 
 	sl_bool Math::isPositiveInfinite(float f) noexcept
@@ -524,7 +556,8 @@ namespace slib
 		f = -INFINITY;
 	}
 
-	namespace {
+	namespace
+	{
 		template <class T>
 		SLIB_INLINE static T NormalizeDegree(T v) noexcept
 		{
@@ -566,7 +599,8 @@ namespace slib
 		return NormalizeDegree(v + 180) - 180;
 	}
 
-	namespace {
+	namespace
+	{
 		template <class T>
 		SLIB_INLINE static T ConvertAngleFromEllipseToCircle(T angle, T radiusX, T radiusY) noexcept
 		{
@@ -781,7 +815,6 @@ namespace slib
 		num |= (num >> 16);
 		return num + 1;
 	}
-
 
 	sl_uint64 Math::roundUpToPowerOfTwo(sl_uint64 num) noexcept
 	{
