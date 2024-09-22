@@ -50,11 +50,34 @@ namespace slib
 		return sl_true;
 	}
 
+	sl_bool DEM::initialize(DataType type, const void* data, sl_size size, sl_uint32 n)
+	{
+		switch (type) {
+			case DataType::FloatBE:
+				return initializeFromFloatBE(data, size, n);
+			case DataType::FloatLE:
+				return initializeFromFloatLE(data, size, n);
+			case DataType::Int16BE:
+				return initializeFromInt16BE(data, size, n);
+			case DataType::Int16LE:
+				return initializeFromInt16LE(data, size, n);
+			default:
+				break;
+		}
+		return sl_false;
+	}
+
 	namespace
 	{
 		template <class READER, sl_uint32 ELEMENT_SIZE>
-		static sl_bool InitializeDEM(DEM& dem, sl_uint32 n, const void* _d, sl_size size)
+		static sl_bool InitializeDEM(DEM& dem, const void* _d, sl_size size, sl_uint32 n)
 		{
+			if (!size) {
+				return sl_false;
+			}
+			if (!n) {
+				n = Math::sqrt((sl_uint32)size / ELEMENT_SIZE);
+			}
 			sl_uint32 m = n * n;
 			if (size != m * ELEMENT_SIZE) {
 				return sl_false;
@@ -116,27 +139,27 @@ namespace slib
 		};
 	}
 
-	sl_bool DEM::initializeFromFloatLE(sl_uint32 n, const void* d, sl_size size)
+	sl_bool DEM::initializeFromFloatLE(const void* d, sl_size size, sl_uint32 n)
 	{
-		return InitializeDEM<ReadFloatLE, 4>(*this, n, d, size);
+		return InitializeDEM<ReadFloatLE, 4>(*this, d, size, n);
 	}
 
-	sl_bool DEM::initializeFromFloatBE(sl_uint32 n, const void* d, sl_size size)
+	sl_bool DEM::initializeFromFloatBE(const void* d, sl_size size, sl_uint32 n)
 	{
-		return InitializeDEM<ReadFloatBE, 4>(*this, n, d, size);
+		return InitializeDEM<ReadFloatBE, 4>(*this, d, size, n);
 	}
 
-	sl_bool DEM::initializeFromInt16LE(sl_uint32 n, const void* d, sl_size size)
+	sl_bool DEM::initializeFromInt16LE(const void* d, sl_size size, sl_uint32 n)
 	{
-		return InitializeDEM<ReadInt16LE, 2>(*this, n, d, size);
+		return InitializeDEM<ReadInt16LE, 2>(*this, d, size, n);
 	}
 
-	sl_bool DEM::initializeFromInt16BE(sl_uint32 n, const void* d, sl_size size)
+	sl_bool DEM::initializeFromInt16BE(const void* d, sl_size size, sl_uint32 n)
 	{
-		return InitializeDEM<ReadInt16BE, 2>(*this, n, d, size);
+		return InitializeDEM<ReadInt16BE, 2>(*this, d, size, n);
 	}
 
-	void DEM::scale(float* o, sl_uint32 nOutput, const Rectangle& rcSource) const
+	void DEM::scale(float* _out, sl_uint32 nOutput, const Rectangle& rcSource) const
 	{
 		sl_uint32 M = nOutput;
 		if (M <= 1) {
@@ -148,7 +171,7 @@ namespace slib
 		float my1 = rcSource.bottom * (float)(N - 1);
 		float dmx = mx1 - mx0;
 		float dmy = my1 - my0;
-		float* po = o;
+		float* po = _out;
 		for (sl_uint32 y = 0; y < M; y++) {
 			for (sl_uint32 x = 0; x < M; x++) {
 				float altitude;
@@ -161,24 +184,24 @@ namespace slib
 					float myf;
 					if (mxi < 0) {
 						mxi = 0;
-						mxf = 0;
+						mxf = 0.0f;
 					} else if (mxi >= (sl_int32)N - 1) {
 						mxi = N - 2;
-						mxf = 1;
+						mxf = 1.0f;
 					} else {
 						mxf = mx - mxi;
 					}
 					if (myi < 0) {
 						myi = 0;
-						myf = 0;
+						myf = 0.0f;
 					} else if (myi >= (sl_int32)N - 1) {
 						myi = N - 2;
-						myf = 1;
+						myf = 1.0f;
 					} else {
 						myf = my - myi;
 					}
 					sl_int32 p = mxi + myi * N;
-					altitude = (1 - mxf) * (1 - myf) * pixels[p] + (1 - mxf) * myf * pixels[p + N] + mxf * (1 - myf) * pixels[p + 1] + mxf * myf * pixels[p + 1 + N];
+					altitude = (1.0f - mxf) * (1.0f - myf) * pixels[p] + (1.0f - mxf) * myf * pixels[p + N] + mxf * (1.0f - myf) * pixels[p + 1] + mxf * myf * pixels[p + 1 + N];
 				} else {
 					altitude = 0;
 				}
@@ -204,24 +227,24 @@ namespace slib
 		float myf;
 		if (mxi < 0) {
 			mxi = 0;
-			mxf = 0;
+			mxf = 0.0f;
 		} else if (mxi >= (sl_int32)N - 1) {
 			mxi = N - 2;
-			mxf = 1;
+			mxf = 1.0f;
 		} else {
 			mxf = mx - mxi;
 		}
 		if (myi < 0) {
 			myi = 0;
-			myf = 0;
+			myf = 0.0f;
 		} else if (myi >= (sl_int32)N - 1) {
 			myi = N - 2;
-			myf = 1;
+			myf = 1.0f;
 		} else {
 			myf = my - myi;
 		}
 		sl_int32 p = mxi + myi * N;
-		return (1 - mxf) * (1 - myf) * pixels[p] + (1 - mxf) * myf * pixels[p + N] + mxf * (1 - myf) * pixels[p + 1] + mxf * myf * pixels[p + 1 + N];
+		return (1.0f - mxf) * (1.0f - myf) * pixels[p] + (1.0f - mxf) * myf * pixels[p + N] + mxf * (1.0f - myf) * pixels[p + 1] + mxf * myf * pixels[p + 1 + N];
 	}
 
 }

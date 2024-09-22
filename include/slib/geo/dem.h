@@ -37,6 +37,15 @@ namespace slib
 	class SLIB_EXPORT DEM
 	{
 	public:
+		enum class DataType
+		{
+			FloatLE,
+			FloatBE,
+			Int16LE,
+			Int16BE
+		};
+
+	public:
 		float* pixels;
 		sl_uint32 N;
 		Array<float> data;
@@ -49,13 +58,15 @@ namespace slib
 	public:
 		sl_bool initialize(sl_uint32 N);
 
-		sl_bool initializeFromFloatLE(sl_uint32 N, const void* data, sl_size size);
+		sl_bool initialize(DataType type, const void* data, sl_size size, sl_uint32 N = 0);
 
-		sl_bool initializeFromFloatBE(sl_uint32 N, const void* data, sl_size size);
+		sl_bool initializeFromFloatLE(const void* data, sl_size size, sl_uint32 N = 0);
 
-		sl_bool initializeFromInt16LE(sl_uint32 N, const void* data, sl_size size);
+		sl_bool initializeFromFloatBE( const void* data, sl_size size, sl_uint32 N = 0);
 
-		sl_bool initializeFromInt16BE(sl_uint32 N, const void* data, sl_size size);
+		sl_bool initializeFromInt16LE(const void* data, sl_size size, sl_uint32 N = 0);
+
+		sl_bool initializeFromInt16BE(const void* data, sl_size size, sl_uint32 N = 0);
 
 		void scale(float* _out, sl_uint32 N, const Rectangle& rcSource) const;
 
