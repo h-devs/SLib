@@ -164,6 +164,7 @@ namespace slib
 
 #define SLIB_RENDER_CHECK_ENGINE_TYPE(v, TYPE) ((((sl_uint32)(v)) & ((sl_uint32)(RenderEngineType::MASK_##TYPE))) == (sl_uint32)(RenderEngineType::TYPE))
 
+	// Not Thread-Safe
 	class SLIB_EXPORT RenderEngine : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -211,9 +212,15 @@ namespace slib
 
 		void clearDepth(float depth = 1.0f);
 
+		const Ref<RenderDepthStencilState>& getDepthStencilState();
+
 		void setDepthStencilState(const Ref<RenderDepthStencilState>& state);
 
+		const Ref<RenderRasterizerState>& getRasterizerState();
+
 		void setRasterizerState(const Ref<RenderRasterizerState>& state);
+
+		const Ref<RenderBlendState>& getBlendState();
 
 		void setBlendState(const Ref<RenderBlendState>& state);
 
@@ -327,17 +334,17 @@ namespace slib
 
 		sl_uint32 getCountOfDrawnPrimitivesOnLastScene();
 
-		Ref<VertexBuffer> getDefaultVertexBufferForDrawRectangle2D();
+		const Ref<VertexBuffer>& getDefaultVertexBufferForDrawRectangle2D();
 
-		Ref<RenderProgram2D_Position> getDefaultRenderProgramForDrawRectangle2D();
+		const Ref<RenderProgram2D_Position>& getDefaultRenderProgramForDrawRectangle2D();
 
-		Ref<VertexBuffer> getDefaultVertexBufferForDrawTexture2D();
+		const Ref<VertexBuffer>& getDefaultVertexBufferForDrawTexture2D();
 
-		Ref<RenderProgram2D_PositionTexture> getDefaultRenderProgramForDrawTexture2D();
+		const Ref<RenderProgram2D_PositionTexture>& getDefaultRenderProgramForDrawTexture2D();
 
-		Ref<RenderProgram2D_Position> getDefaultRenderProgramForDrawLine2D();
+		const Ref<RenderProgram2D_Position>& getDefaultRenderProgramForDrawLine2D();
 
-		Ref<RenderProgram3D_Position> getDefaultRenderProgramForDrawLine3D();
+		const Ref<RenderProgram3D_Position>& getDefaultRenderProgramForDrawLine3D();
 
 	protected:
 		virtual Ref<RenderProgramInstance> _createProgramInstance(RenderProgram* program) = 0;
@@ -384,6 +391,10 @@ namespace slib
 		sl_uint32 m_viewportWidth;
 		sl_uint32 m_viewportHeight;
 
+		Ref<RenderDepthStencilState> m_depthStencilState;
+		Ref<RenderRasterizerState> m_rasterizerState;
+		Ref<RenderBlendState> m_blendState;
+
 		Ref<CRef> m_canvasContext;
 
 		// debug
@@ -393,17 +404,17 @@ namespace slib
 		Ref<Texture> m_textureDebug;
 		Ref<Font> m_fontDebug;
 
-		AtomicRef<VertexBuffer> m_defaultVertexBufferForDrawRectangle2D;
-		AtomicRef<RenderProgram2D_Position> m_defaultRenderProgramForDrawRectangle2D;
+		Ref<VertexBuffer> m_defaultVertexBufferForDrawRectangle2D;
+		Ref<RenderProgram2D_Position> m_defaultRenderProgramForDrawRectangle2D;
 
-		AtomicRef<VertexBuffer> m_defaultVertexBufferForDrawTexture2D;
-		AtomicRef<RenderProgram2D_PositionTexture> m_defaultRenderProgramForDrawTexture2D;
+		Ref<VertexBuffer> m_defaultVertexBufferForDrawTexture2D;
+		Ref<RenderProgram2D_PositionTexture> m_defaultRenderProgramForDrawTexture2D;
 
-		AtomicRef<RenderProgram2D_Position> m_defaultRenderProgramForDrawLine2D;
-		AtomicRef<RenderProgram3D_Position> m_defaultRenderProgramForDrawLine3D;
+		Ref<RenderProgram2D_Position> m_defaultRenderProgramForDrawLine2D;
+		Ref<RenderProgram3D_Position> m_defaultRenderProgramForDrawLine3D;
 
-		AtomicRef<RenderDepthStencilState> m_stateDepthStencilForDrawDebug;
-		AtomicRef<RenderSamplerState> m_stateSamplerForDrawDebug;
+		Ref<RenderDepthStencilState> m_stateDepthStencilForDrawDebug;
+		Ref<RenderSamplerState> m_stateSamplerForDrawDebug;
 
 	};
 

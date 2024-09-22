@@ -188,23 +188,45 @@ namespace slib
 		_clear(param);
 	}
 
+	const Ref<RenderDepthStencilState>& RenderEngine::getDepthStencilState()
+	{
+		return m_depthStencilState;
+	}
+
 	void RenderEngine::setDepthStencilState(const Ref<RenderDepthStencilState>& state)
 	{
+		if (m_depthStencilState == state) {
+			return;
+		}
 		if (state.isNotNull()) {
+			m_depthStencilState = state;
 			_setDepthStencilState(state.get());
 		}
 	}
 
+	const Ref<RenderRasterizerState>& RenderEngine::getRasterizerState()
+	{
+		return m_rasterizerState;
+	}
+
 	void RenderEngine::setRasterizerState(const Ref<RenderRasterizerState>& state)
 	{
+		if (m_rasterizerState == state) {
+			return;
+		}
 		if (state.isNotNull()) {
+			m_rasterizerState = state;
 			_setRasterizerState(state.get());
 		}
 	}
 
 	void RenderEngine::setBlendState(const Ref<RenderBlendState>& state)
 	{
+		if (m_blendState == state) {
+			return;
+		}
 		if (state.isNotNull()) {
+			m_blendState = state;
 			_setBlendState(state.get());
 		}
 	}
@@ -387,8 +409,7 @@ namespace slib
 
 	void RenderEngine::drawRectangle2D()
 	{
-		Ref<VertexBuffer> vb = getDefaultVertexBufferForDrawRectangle2D();
-		drawPrimitive(4, vb, PrimitiveType::TriangleStrip);
+		drawPrimitive(4, getDefaultVertexBufferForDrawRectangle2D(), PrimitiveType::TriangleStrip);
 	}
 
 	namespace {
@@ -449,8 +470,7 @@ namespace slib
 
 	void RenderEngine::drawTexture2D()
 	{
-		Ref<VertexBuffer> vb = getDefaultVertexBufferForDrawTexture2D();
-		drawPrimitive(4, vb, PrimitiveType::TriangleStrip);
+		drawPrimitive(4, getDefaultVertexBufferForDrawTexture2D(), PrimitiveType::TriangleStrip);
 	}
 
 	void RenderEngine::drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color)
@@ -560,7 +580,7 @@ namespace slib
 		drawTexture2D(rectDst, texture, Rectangle(0, 0, 1, 1), alpha);
 	}
 
-	Ref<VertexBuffer> RenderEngine::getDefaultVertexBufferForDrawRectangle2D()
+	const Ref<VertexBuffer>& RenderEngine::getDefaultVertexBufferForDrawRectangle2D()
 	{
 		static RenderVertex2D_Position v[] = {
 			{ { 0, 0 } }
@@ -568,25 +588,23 @@ namespace slib
 			, { { 0, 1 } }
 			, { { 1, 1 } }
 		};
-		Ref<VertexBuffer> ret = m_defaultVertexBufferForDrawRectangle2D;
+		Ref<VertexBuffer>& ret = m_defaultVertexBufferForDrawRectangle2D;
 		if (ret.isNull()) {
 			ret = VertexBuffer::create(v, sizeof(v));
-			m_defaultVertexBufferForDrawRectangle2D = ret;
 		}
 		return ret;
 	}
 
-	Ref<RenderProgram2D_Position> RenderEngine::getDefaultRenderProgramForDrawRectangle2D()
+	const Ref<RenderProgram2D_Position>& RenderEngine::getDefaultRenderProgramForDrawRectangle2D()
 	{
-		Ref<RenderProgram2D_Position> ret = m_defaultRenderProgramForDrawRectangle2D;
+		Ref<RenderProgram2D_Position>& ret = m_defaultRenderProgramForDrawRectangle2D;
 		if (ret.isNull()) {
 			ret = new RenderProgram2D_Position;
-			m_defaultRenderProgramForDrawRectangle2D = ret;
 		}
 		return ret;
 	}
 
-	Ref<VertexBuffer> RenderEngine::getDefaultVertexBufferForDrawTexture2D()
+	const Ref<VertexBuffer>& RenderEngine::getDefaultVertexBufferForDrawTexture2D()
 	{
 		static RenderVertex2D_PositionTexture v[] = {
 			{ { 0, 0 }, { 0, 0 } }
@@ -594,20 +612,18 @@ namespace slib
 			, { { 0, 1 }, { 0, 1 } }
 			, { { 1, 1 }, { 1, 1 } }
 		};
-		Ref<VertexBuffer> ret = m_defaultVertexBufferForDrawTexture2D;
+		Ref<VertexBuffer>& ret = m_defaultVertexBufferForDrawTexture2D;
 		if (ret.isNull()) {
 			ret = VertexBuffer::create(v, sizeof(v));
-			m_defaultVertexBufferForDrawTexture2D = ret;
 		}
 		return ret;
 	}
 
-	Ref<RenderProgram2D_PositionTexture> RenderEngine::getDefaultRenderProgramForDrawTexture2D()
+	const Ref<RenderProgram2D_PositionTexture>& RenderEngine::getDefaultRenderProgramForDrawTexture2D()
 	{
-		Ref<RenderProgram2D_PositionTexture> ret = m_defaultRenderProgramForDrawTexture2D;
+		Ref<RenderProgram2D_PositionTexture>& ret = m_defaultRenderProgramForDrawTexture2D;
 		if (ret.isNull()) {
 			ret = new RenderProgram2D_PositionTexture;
-			m_defaultRenderProgramForDrawTexture2D = ret;
 		}
 		return ret;
 	}
@@ -635,12 +651,11 @@ namespace slib
 		drawLines(getDefaultRenderProgramForDrawLine2D(), lines, n, color);
 	}
 
-	Ref<RenderProgram2D_Position> RenderEngine::getDefaultRenderProgramForDrawLine2D()
+	const Ref<RenderProgram2D_Position>& RenderEngine::getDefaultRenderProgramForDrawLine2D()
 	{
-		Ref<RenderProgram2D_Position> ret = m_defaultRenderProgramForDrawLine2D;
+		Ref<RenderProgram2D_Position>& ret = m_defaultRenderProgramForDrawLine2D;
 		if (ret.isNull()) {
 			ret = new RenderProgram2D_Position;
-			m_defaultRenderProgramForDrawLine2D = ret;
 		}
 		return ret;
 	}
@@ -665,12 +680,11 @@ namespace slib
 		drawLines(getDefaultRenderProgramForDrawLine3D(), lines, n, color);
 	}
 
-	Ref<RenderProgram3D_Position> RenderEngine::getDefaultRenderProgramForDrawLine3D()
+	const Ref<RenderProgram3D_Position>& RenderEngine::getDefaultRenderProgramForDrawLine3D()
 	{
-		Ref<RenderProgram3D_Position> ret = m_defaultRenderProgramForDrawLine3D;
+		Ref<RenderProgram3D_Position>& ret = m_defaultRenderProgramForDrawLine3D;
 		if (ret.isNull()) {
 			ret = new RenderProgram3D_Position;
-			m_defaultRenderProgramForDrawLine3D = ret;
 		}
 		return ret;
 	}

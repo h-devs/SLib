@@ -212,13 +212,11 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(BitmapTexture, Texture)
 
-	BitmapTexture::BitmapTexture(const Ref<Bitmap>& bitmap)
-		: Texture(bitmap->getWidth(), bitmap->getHeight()), m_source(bitmap)
+	BitmapTexture::BitmapTexture(const Ref<Bitmap>& bitmap): Texture(bitmap->getWidth(), bitmap->getHeight()), m_source(bitmap)
 	{
 	}
 
-	BitmapTexture::BitmapTexture(const Ref<Bitmap>& bitmap, sl_uint32 width, sl_uint32 height)
-		: Texture(width, height), m_source(bitmap)
+	BitmapTexture::BitmapTexture(const Ref<Bitmap>& bitmap, sl_uint32 width, sl_uint32 height): Texture(width, height), m_source(bitmap)
 	{
 	}
 
@@ -234,13 +232,11 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(WeakBitmapTexture, Texture)
 
-	WeakBitmapTexture::WeakBitmapTexture(const Ref<Bitmap>& bitmap)
-		: Texture(bitmap->getWidth(), bitmap->getHeight()), m_source(bitmap)
+	WeakBitmapTexture::WeakBitmapTexture(const Ref<Bitmap>& bitmap): Texture(bitmap->getWidth(), bitmap->getHeight()), m_source(bitmap)
 	{
 	}
 
-	WeakBitmapTexture::WeakBitmapTexture(const Ref<Bitmap>& bitmap, sl_uint32 width, sl_uint32 height)
-		: Texture(width, height), m_source(bitmap)
+	WeakBitmapTexture::WeakBitmapTexture(const Ref<Bitmap>& bitmap, sl_uint32 width, sl_uint32 height): Texture(width, height), m_source(bitmap)
 	{
 	}
 

@@ -339,7 +339,8 @@ namespace slib
 		}
 	}
 
-	namespace {
+	namespace
+	{
 		class RenderProgramStateTemplate : public RenderProgramState
 		{
 		public:
