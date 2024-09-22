@@ -29,6 +29,8 @@
 #include "slib/device/cpu.h"
 #include "slib/geo/earth.h"
 #include "slib/geo/dem.h"
+#include "slib/math/triangle.h"
+#include "slib/math/transform3d.h"
 #include "slib/ui/resource.h"
 #include "slib/core/thread_pool.h"
 #include "slib/core/stringify.h"
@@ -39,6 +41,8 @@
 #define METER_PER_DEGREE ((double)EARTH_CIRCUMFERENCE / 360.0)
 #define ALTITUDE_PER_METER 0.8660254037844386 // (1 - 0.5^2)^0.5
 
+#define TILE_MIN_VERTEX_COUNT 2
+
 namespace slib
 {
 
@@ -48,6 +52,8 @@ namespace slib
 			MapViewObject = MapView + 1,
 			MapPlane,
 			MapSurface,
+			MapSurfacePlane,
+			MapViewTile,
 			MapTileReader,
 			MapTileDirectory,
 			MapTileCache,
@@ -70,6 +76,8 @@ namespace slib
 		};
 
 		SLIB_SAFE_STATIC_GETTER(SharedContext, GetSharedContext)
+
+		typedef SphericalEarth MapEarth;
 	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MapTileAddress)
@@ -149,7 +157,7 @@ namespace slib
 	{
 	}
 
-	Ref<MapTileDirectory> MapTileDirectory::open(const String& rootPath, const Function<String(MapTileLocationI&)>& formator)
+	Ref<MapTileDirectory> MapTileDirectory::open(const String& rootPath, const Function<String(MapTileAddress&)>& formator)
 	{
 		Ref<MapTileDirectory> ret = new MapTileDirectory;
 		if (ret.isNotNull()) {
@@ -160,10 +168,10 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool MapTileDirectory::readData(Memory& _out, const MapTileAddress& address, sl_uint32 timeout)
+	sl_bool MapTileDirectory::readData(Memory& _out, const MapTileAddress& _address, sl_uint32 timeout)
 	{
-		MapTileLocationI location = address;
-		String path = m_formator(location);
+		MapTileAddress address = _address;
+		String path = m_formator(address);
 		if (address.subPath.isNotNull()) {
 			_out = File::readAllBytes(File::concatPath(m_root, path, address.subPath));
 		} else {
@@ -644,6 +652,163 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_OBJECT(MapViewTile, CRef)
+
+	MapViewTile::MapViewTile()
+	{
+	}
+
+	MapViewTile::~MapViewTile()
+	{
+	}
+
+	sl_bool MapViewTile::build(DEM::DataType demType, const Rectangle* demRect)
+	{
+		DEM model;
+		model.initialize(demType, dem.getData(), dem.getSize());
+		
+		double N0 = region.bottomLeft.latitude;
+		double E0 = region.bottomLeft.longitude;
+		double N1 = region.topRight.latitude;
+		double E1 = region.topRight.longitude;
+		double dN = N1 - N0;
+		double dE = E1 - E0;
+
+		sl_uint32 L = model.N;
+		sl_uint32 M;
+
+		Memory memVertices;
+		if (L >= 2) {
+			float* pixels = model.pixels;
+			if (demRect) {
+				M = (sl_uint32)(L * demRect->getWidth());
+				if (M < TILE_MIN_VERTEX_COUNT) {
+					M = TILE_MIN_VERTEX_COUNT;
+				}
+				memVertices = Memory::create(sizeof(MapViewVertex) * M * M);
+				if (memVertices.isNull()) {
+					return sl_false;
+				}
+				MapViewVertex* v = (MapViewVertex*)(memVertices.getData());
+				float mx0 = demRect->left * (float)(L - 1);
+				float my0 = demRect->top * (float)(L - 1);
+				float mx1 = demRect->right * (float)(L - 1);
+				float my1 = demRect->bottom * (float)(L - 1);
+				float dmx = mx1 - mx0;
+				float dmy = my1 - my0;
+				for (sl_uint32 y = 0; y < M; y++) {
+					for (sl_uint32 x = 0; x < M; x++) {
+						float mx = mx0 + dmx * (float)x / (float)(M - 1);
+						float my = my0 + dmy * (float)y / (float)(M - 1);
+						sl_int32 mxi = (sl_int32)(mx);
+						sl_int32 myi = (sl_int32)(my);
+						float mxf;
+						float myf;
+						if (mxi < 0) {
+							mxi = 0;
+							mxf = 0.0f;
+						} else if (mxi >= (sl_int32)L - 1) {
+							mxi = L - 2;
+							mxf = 1.0f;
+						} else {
+							mxf = mx - mxi;
+						}
+						if (myi < 0) {
+							myi = 0;
+							myf = 0.0f;
+						} else if (myi >= (sl_int32)L - 1) {
+							myi = L - 2;
+							myf = 1.0f;
+						} else {
+							myf = my - myi;
+						}
+						sl_int32 p = mxi + myi * L;
+						float altitude = (1.0f - mxf) * (1.0f - myf) * pixels[p] + (1.0f - mxf) * myf * pixels[p + L] + mxf * (1.0f - myf) * pixels[p + 1] + mxf * myf * pixels[p + 1 + L];
+						buildVertex(*v, N0 + dN * (double)(M - 1 - y) / (double)(M - 1), E0 + dE * (double)x / (double)(M - 1), altitude, (sl_real)x / (sl_real)(M - 1), (sl_real)y / (sl_real)(M - 1));
+						v++;
+					}
+				}
+			} else {
+				M = L;
+				memVertices = Memory::create(sizeof(MapViewVertex) * M * M);
+				if (memVertices.isNull()) {
+					return sl_false;
+				}
+				MapViewVertex* v = (MapViewVertex*)(memVertices.getData());
+				for (sl_uint32 y = 0; y < M; y++) {
+					for (sl_uint32 x = 0; x < M; x++) {
+						buildVertex(*v, N0 + dN * (double)(M - 1 - y) / (double)(M - 1), E0 + dE * (double)x / (double)(M - 1), *pixels, (sl_real)x / (sl_real)(M - 1), (sl_real)y / (sl_real)(M - 1));
+						v++;
+						pixels++;
+					}
+				}
+			}
+		} else {
+			double altitude = 0.0;
+			if (L) {
+				altitude = *(model.pixels);
+			}
+			M = TILE_MIN_VERTEX_COUNT;
+			memVertices = Memory::create(sizeof(MapViewVertex) * M * M);
+			if (memVertices.isNull()) {
+				return sl_false;
+			}
+			MapViewVertex* v = (MapViewVertex*)(memVertices.getData());
+			for (sl_uint32 y = 0; y < M; y++) {
+				for (sl_uint32 x = 0; x < M; x++) {
+					buildVertex(*v, N0 + dN * (double)(M - 1 - y) / (double)(M - 1), E0 + dE * (double)x / (double)(M - 1), altitude, (sl_real)x / (sl_real)(M - 1), (sl_real)y / (sl_real)(M - 1));
+					v++;
+				}
+			}
+		}
+		Ref<VertexBuffer> vb = VertexBuffer::create(memVertices);
+		if (vb.isNull()) {
+			return sl_false;
+		}
+		{
+			MapViewVertex* v = (MapViewVertex*)(memVertices.getData());
+			pointsWithDEM[0] = v[(M - 1) * M].position;
+			pointsWithDEM[1] = v[M * M - 1].position;
+			pointsWithDEM[2] = v[0].position;
+			pointsWithDEM[3] = v[M - 1].position;
+			for (sl_uint32 i = 0; i < 4; i++) {
+				pointsWithDEM[i] += center;
+			}
+		}
+		{
+			primitive.countElements = 6 * (M - 1) * (M - 1);
+			Memory mem = Memory::create(primitive.countElements << 1);
+			if (mem.isNull()) {
+				return sl_false;
+			}
+			sl_uint16* indices = (sl_uint16*)(mem.getData());
+			for (sl_uint32 y = 0; y < M - 1; y++) {
+				for (sl_uint32 x = 0; x < M - 1; x++) {
+					*(indices++) = (sl_uint16)(y * M + x);
+					*(indices++) = (sl_uint16)(y * M + x + 1);
+					*(indices++) = (sl_uint16)(y * M + x + M);
+					*(indices++) = (sl_uint16)(y * M + x + 1);
+					*(indices++) = (sl_uint16)(y * M + x + M);
+					*(indices++) = (sl_uint16)(y * M + x + 1 + M);
+				}
+			}
+			primitive.indexBuffer = IndexBuffer::create(mem);
+			if (primitive.indexBuffer.isNull()) {
+				return sl_false;
+			}
+		}
+		primitive.vertexBuffer = Move(vb);
+		return sl_true;
+	}
+
+	void MapViewTile::buildVertex(MapViewVertex& vertex, double latitude, double longitude, double altitude, sl_real tx, sl_real ty)
+	{
+		vertex.position = MapEarth::getCartesianPosition(latitude, longitude, altitude) - center;
+		vertex.texCoord.x = tx;
+		vertex.texCoord.y = ty;
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MapSurfaceParam)
 
 	MapSurfaceParam::MapSurfaceParam()
@@ -655,9 +820,10 @@ namespace slib
 		degreeLengthE = 360.0;
 		degreeLengthN = 360.0;
 		tileLength = 256;
+		demType = DEM::DataType::FloatLE;
 	}
 
-	SLIB_DEFINE_OBJECT(MapSurface, MapPlane)
+	SLIB_DEFINE_OBJECT(MapSurface, Object)
 
 	MapSurface::MapSurface()
 	{
@@ -668,12 +834,7 @@ namespace slib
 		m_degreeLengthE = 360.0;
 		m_degreeLengthN = 360.0;
 		m_tileLength = 256;
-		m_range.right = EARTH_CIRCUMFERENCE / 2.0;
-		m_range.left = - m_range.right;
-		m_range.top = EARTH_CIRCUMFERENCE / 4.0;
-		m_range.bottom = -m_range.top;
-		m_scaleMin = 50.0;
-		m_scaleMax = EARTH_CIRCUMFERENCE / 2.0;
+		m_demType = DEM::DataType::FloatLE;
 		{
 			for (sl_uint32 i = 0; i < LAYER_COUNT; i++) {
 				m_layers[i].flagVisible = sl_true;
@@ -688,15 +849,7 @@ namespace slib
 
 	namespace
 	{
-		struct SurfaceVertex
-		{
-			Vector3 position;
-			sl_real altitude;
-			Vector2 texCoord;
-			Vector2 texCoordLayers[LAYER_COUNT];
-		};
-
-		SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState_SurfaceTile, SurfaceVertex)
+		SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState_SurfaceTile, MapViewVertex)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture0, u_LayerTexture0, RenderShaderType::Pixel, 1)
@@ -707,13 +860,7 @@ namespace slib
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT_ARRAY(LayerAlpha, u_LayerAlpha)
 
 			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
-			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT(altitude, a_Altitude)
 			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord)
-			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoordLayers[0], a_TexCoordLayer0)
-			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoordLayers[1], a_TexCoordLayer1)
-			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoordLayers[2], a_TexCoordLayer2)
-			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoordLayers[3], a_TexCoordLayer3)
-			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoordLayers[4], a_TexCoordLayer4)
 		SLIB_RENDER_PROGRAM_STATE_END
 
 		class RenderProgram_SurfaceTile : public RenderProgramT<RenderProgramState_SurfaceTile>
@@ -725,26 +872,12 @@ namespace slib
 				source = SLIB_STRINGIFY(
 					uniform mat4 u_Transform;
 					attribute vec3 a_Position;
-					attribute float a_Altitude;
 					attribute vec2 a_TexCoord;
-					attribute vec2 a_TexCoordLayer0;
-					attribute vec2 a_TexCoordLayer1;
-					attribute vec2 a_TexCoordLayer2;
-					attribute vec2 a_TexCoordLayer3;
-					attribute vec2 a_TexCoordLayer4;
-					varying float v_Altitude;
 					varying vec2 v_TexCoord;
-					varying vec2 v_TexCoordLayer[5];
 					void main() {
 						vec4 P = vec4(a_Position, 1.0) * u_Transform;
 						gl_Position = P;
-						v_Altitude = a_Altitude;
 						v_TexCoord = a_TexCoord;
-						v_TexCoordLayer[0] = a_TexCoordLayer0;
-						v_TexCoordLayer[1] = a_TexCoordLayer1;
-						v_TexCoordLayer[2] = a_TexCoordLayer2;
-						v_TexCoordLayer[3] = a_TexCoordLayer3;
-						v_TexCoordLayer[4] = a_TexCoordLayer4;
 					}
 				);
 				return source;
@@ -762,14 +895,13 @@ namespace slib
 					uniform sampler2D u_LayerTexture4;
 					uniform float u_LayerAlpha[5];
 					varying vec2 v_TexCoord;
-					varying vec2 v_TexCoordLayer[5];
 					void main() {
 						vec4 colorTexture = texture2D(u_Texture, v_TexCoord);
-						vec4 colorLayer0 = texture2D(u_LayerTexture0, v_TexCoordLayer[0]);
-						vec4 colorLayer1 = texture2D(u_LayerTexture1, v_TexCoordLayer[1]);
-						vec4 colorLayer2 = texture2D(u_LayerTexture2, v_TexCoordLayer[2]);
-						vec4 colorLayer3 = texture2D(u_LayerTexture3, v_TexCoordLayer[3]);
-						vec4 colorLayer4 = texture2D(u_LayerTexture4, v_TexCoordLayer[4]);
+						vec4 colorLayer0 = texture2D(u_LayerTexture0, v_TexCoord);
+						vec4 colorLayer1 = texture2D(u_LayerTexture1, v_TexCoord);
+						vec4 colorLayer2 = texture2D(u_LayerTexture2, v_TexCoord);
+						vec4 colorLayer3 = texture2D(u_LayerTexture3, v_TexCoord);
+						vec4 colorLayer4 = texture2D(u_LayerTexture4, v_TexCoord);
 
 						float a = colorLayer0.a * u_LayerAlpha[0];
 						colorLayer0.a = 1.0;
@@ -802,6 +934,7 @@ namespace slib
 		{
 		public:
 			Ref<MapTileCache> m_cachePicture;
+			Ref<MapTileCache> m_cacheDEM;
 			Ref<MapTileCache> m_cacheLayers[LAYER_COUNT];
 
 			struct TileImage
@@ -811,15 +944,18 @@ namespace slib
 				Rectangle region;
 			};
 
-			class RenderTile : public CRef
+			struct TileDEM
 			{
-			public:
-				TileImage picture;
-				DEM dem;
-				Primitive primitive;
+				Memory source;
+				sl_bool flagUseWhole = sl_true;
+				Rectangle region;
 			};
-			HashMap<MapTileLocationI, RenderTile> m_renderingTiles;
-			HashMap<MapTileLocationI, RenderTile> m_lastRenderedTiles;
+
+			HashMap< MapTileLocationI, Ref<MapViewTile> > m_currentTiles;
+			HashMap< MapTileLocationI, Ref<MapViewTile> > m_backupTiles;
+			List< Ref<MapViewTile> > m_renderingTiles;
+
+			Ref<RenderProgram> m_programSurfaceTile;
 
 		public:
 			static Ref<MapSurfaceImpl> create(const MapSurfaceParam& param)
@@ -853,6 +989,10 @@ namespace slib
 					if (m_cachePicture.isNull()) {
 						return sl_false;
 					}
+					m_cacheDEM = MapTileCache::create(400, 10000);
+					if (m_cacheDEM.isNull()) {
+						return sl_false;
+					}
 					for (sl_uint32 i = 0; i < LAYER_COUNT; i++) {
 						Ref<MapTileCache> cache = MapTileCache::create(400, 5000);
 						if (cache.isNull()) {
@@ -862,37 +1002,225 @@ namespace slib
 						m_layers[i].reader = param.layers[i];
 					}
 				}
+
+				m_programSurfaceTile = new RenderProgram_SurfaceTile;
+				if (m_programSurfaceTile.isNull()) {
+					return sl_false;
+				}
 				return sl_true;
 			}
 
-			void clearCache() override
+			void render(RenderEngine* engine, MapViewData* data) override
 			{
-				m_cachePicture->clear();
-				for (sl_uint32 i = 0; i < LAYER_COUNT; i++) {
-					m_cacheLayers[i]->clear();
+				m_renderingTiles.setNull();
+				const MapViewState& state = data->getState();
+				for (sl_uint32 y = 0; y < m_baseTileCountN; y++) {
+					for (sl_uint32 x = 0; x < m_baseTileCountE; x++) {
+						renderTile(engine, state, MapTileLocationI(m_baseLevel, x, y));
+					}
+				}
+				{
+					m_backupTiles = Move(m_currentTiles);
+					m_cachePicture->endStep();
+					m_cacheDEM->endStep();
+					for (sl_uint32 i = 0; i < LAYER_COUNT; i++) {
+						m_cacheLayers[i]->endStep();
+					}
 				}
 			}
 
-			void onDraw(Canvas* canvas, const Rectangle& rect, MapViewData* data) override
+			void renderTile(RenderEngine* engine, const MapViewState& state, const MapTileLocationI& location)
 			{
-				MapTileLoader* loader = data->getTileLoader();
-				if (!loader) {
+				Ref<MapViewTile> tile = getTile(location);
+				if (tile.isNull()) {
 					return;
 				}
+				if (!(isTileVisible(state, tile.get()))) {
+					return;
+				}
+				if (isTileExpandable(state, tile.get())) {
+					sl_uint32 E = location.E << 1;
+					sl_uint32 N = location.N << 1;
+					for (sl_uint32 y = 0; y < 2; y++) {
+						for (sl_uint32 x = 0; x < 2; x++) {
+							renderTile(engine, state, MapTileLocationI(location.level + 1, E + x, N + y));
+						}
+					}
+					return;
+				}
+				MapTileLoader* loader = state.tileLoader.get();
+				TileImage image;
+				if (!(loadPicture(image, loader, location))) {
+					return;
+				}
+				TileDEM dem;
+				loadDEM(dem, loader, location);
+				if (tile->primitive.vertexBuffer.isNull() || tile->dem != dem.source) {
+					tile->dem = dem.source;
+					if (!(tile->build(m_demType, dem.flagUseWhole ? sl_null : &(dem.region)))) {
+						return;
+					}
+				}
+				RenderProgramScope<RenderProgramState_SurfaceTile> scope;
+				if (scope.begin(engine, m_programSurfaceTile)) {
+					scope->setTexture(Texture::getBitmapRenderingCache(image.source));
+					float layerAlphas[LAYER_COUNT];
+					Ref<Texture> layerTextures[LAYER_COUNT];
+					for (sl_uint32 iLayer = 0; iLayer < LAYER_COUNT; iLayer++) {
+						layerAlphas[iLayer] = 0;
+						Layer& layer = m_layers[iLayer];
+ 						if (layer.reader.isNull()) {
+							continue;
+						}
+						if (!(layer.flagVisible)) {
+							continue;
+						}
+						if (layer.opacity < 0.001f) {
+							continue;
+						}
+						if (!(loadImage(image, layer.reader, m_cacheLayers[iLayer].get(), loader, location))) {
+							continue;
+						}
+						layerAlphas[iLayer] = layer.opacity;
+						layerTextures[iLayer] = Texture::getBitmapRenderingCache(image.source);
+					}
+					scope->setLayerAlpha(layerAlphas, LAYER_COUNT);
+					scope->setLayerTexture0(layerTextures[0]);
+					scope->setLayerTexture1(layerTextures[1]);
+					scope->setLayerTexture2(layerTextures[2]);
+					scope->setLayerTexture3(layerTextures[3]);
+					scope->setLayerTexture4(layerTextures[4]);
+					scope->setTransform(Transform3T<double>::getTranslationMatrix(tile->center) * state.viewProjectionTransform);
+					engine->drawPrimitive(&(tile->primitive));
+				}
+				m_renderingTiles.add_NoLock(tile);
+			}
 
-				double mpp = m_scale / rect.getHeight();
-				mpp *= 2.5; // factor
-				double p = METER_PER_DEGREE * m_degreeLengthE / (double)(m_baseTileCountE) / (double)m_tileLength;
+			Ref<MapViewTile> getTile(const MapTileLocationI& location)
+			{
+				Ref<MapViewTile> ret;
+				if (m_currentTiles.get_NoLock(location, &ret)) {
+					return ret;
+				}
+				if (m_backupTiles.remove_NoLock(location, &ret)) {
+					m_currentTiles.put_NoLock(location, ret);
+					return ret;
+				}
+				ret = createTile(location);
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				m_currentTiles.put(location, ret);
+				return ret;
+			}
+
+			Ref<MapViewTile> createTile(const MapTileLocationI& location)
+			{
+				Ref<MapViewTile> tile = new MapViewTile;
+				if (tile.isNull()) {
+					return sl_null;
+				}
+				tile->location = location;
+
+				GeoRectangle& region = tile->region;
+				region.bottomLeft = getLatLonFromTileLocation(location);
+				region.topRight = getLatLonFromTileLocation(MapTileLocationI(location.level, location.E + 1, location.N + 1));
+
+				tile->pointsWithDEM[0] = tile->points[0] = MapEarth::getCartesianPosition(region.bottomLeft.latitude, region.bottomLeft.longitude, 0);
+				tile->pointsWithDEM[1] = tile->points[1] = MapEarth::getCartesianPosition(region.bottomLeft.latitude, region.topRight.longitude, 0);
+				tile->pointsWithDEM[2] = tile->points[2] = MapEarth::getCartesianPosition(region.topRight.latitude, region.bottomLeft.longitude, 0);
+				tile->pointsWithDEM[3] = tile->points[3] = MapEarth::getCartesianPosition(region.topRight.latitude, region.topRight.longitude, 0);
+				tile->center = MapEarth::getCartesianPosition((region.bottomLeft.latitude + region.topRight.latitude) / 2.0, (region.topRight.longitude + region.bottomLeft.longitude) / 2.0, 0);
+
+				return tile;
+			}
+
+			sl_bool isTileVisible(const MapViewState& state, MapViewTile* tile)
+			{
+				// check normal
+				{
+					sl_bool flagVisible = sl_false;
+					for (sl_uint32 i = 0; i < 4; i++) {
+						Double3 normal = state.viewTransform.transformDirection(tile->points[i]);
+						if (normal.z <= 0.0) {
+							flagVisible = sl_true;
+							break;
+						}
+					}
+					if (!flagVisible) {
+						return sl_false;
+					}
+				}
+				// check frustum
+				if (state.viewFrustum.containsFacets(tile->points, 4) || state.viewFrustum.containsFacets(tile->pointsWithDEM, 4)) {
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			sl_bool isTileExpandable(const MapViewState& state, MapViewTile* tile)
+			{
+				if (tile->location.level >= m_maxLevel) {
+					return sl_false;
+				}
+				Vector3 ptBL = state.viewTransform.transformPosition(tile->points[0]);
+				Vector3 ptBR = state.viewTransform.transformPosition(tile->points[1]);
+				Vector3 ptTL = state.viewTransform.transformPosition(tile->points[2]);
+				Vector3 ptTR = state.viewTransform.transformPosition(tile->points[3]);
+				sl_uint32 nBehind = 0;
+				if (Math::isLessThanEpsilon(ptBL.z)) {
+					nBehind++;
+				}
+				if (Math::isLessThanEpsilon(ptBR.z)) {
+					nBehind++;
+				}
+				if (Math::isLessThanEpsilon(ptTL.z)) {
+					nBehind++;
+				}
+				if (Math::isLessThanEpsilon(ptTR.z)) {
+					nBehind++;
+				}
+				if (nBehind == 4) {
+					return sl_false;
+				}
+				if (nBehind) {
+					return sl_true;
+				}
+				Triangle t;
+				t.point1.x = ptBL.x / ptBL.z;
+				t.point1.y = ptBL.y / ptBL.z;
+				t.point2.x = ptBR.x / ptBR.z;
+				t.point2.y = ptBR.y / ptBR.z;
+				t.point3.x = ptTL.x / ptTL.z;
+				t.point3.y = ptTL.y / ptTL.z;
+				sl_real size = Math::abs(t.getSize());
+				t.point1.x = ptTR.x / ptTR.z;
+				t.point1.y = ptTR.y / ptTR.z;
+				size += Math::abs(t.getSize());
+				return size > (sl_real)(65536.0 * 25.0 / state.viewportWidth / state.viewportWidth);
+			}
+
+			const List< Ref<MapViewTile> >& getTiles() override
+			{
+				return m_renderingTiles;
+			}
+
+			void onDrawPlane(Canvas* canvas, const Rectangle& rect, MapSurfacePlane* plane, MapViewData* data) override
+			{
+				double planeScale = plane->getScale();
+				double planeMpp = planeScale / rect.getHeight();
+				planeMpp *= 2.5; // factor
+				double tileMpp = METER_PER_DEGREE * m_degreeLengthE / (double)(m_baseTileCountE) / (double)m_tileLength;
 				sl_uint32 level = m_baseLevel;
 				do {
-					if (mpp > p) {
+					if (planeMpp > tileMpp) {
 						break;
 					}
-					p /= 2.0;
+					tileMpp /= 2.0;
 					level++;
 				} while (level < m_maxLevel);
 
-				drawLevel(canvas, rect, loader, level, p);
+				drawLevel(canvas, rect, level, plane->getCenterLocation(), planeScale, data->getState().tileLoader.get(), tileMpp);
 
 				{
 					m_cachePicture->endStep();
@@ -902,12 +1230,12 @@ namespace slib
 				}
 			}
 
-			void drawLevel(Canvas* canvas, const Rectangle& rcView, MapTileLoader* loader, sl_uint32 level, double scale)
+			void drawLevel(Canvas* canvas, const Rectangle& rcView, sl_uint32 level, const MapLocation& center, double planeScale, MapTileLoader* loader, double tileMpp)
 			{
-				double h = m_scale / scale;
+				double h = planeScale / tileMpp;
 				double w = h * rcView.getWidth() / rcView.getHeight();
-				double sx = (m_center.E + METER_PER_DEGREE * m_degreeLengthE / 2.0) / scale - w / 2.0;
-				double sy = (m_center.N + METER_PER_DEGREE * m_degreeLengthN / 2.0) / scale - h / 2.0;
+				double sx = (center.E + METER_PER_DEGREE * m_degreeLengthE / 2.0) / tileMpp - w / 2.0;
+				double sy = (center.N + METER_PER_DEGREE * m_degreeLengthN / 2.0) / tileMpp - h / 2.0;
 				double ex = sx + w;
 				double ey = sy + h;
 				sl_uint64 m = (sl_uint64)1 << level;
@@ -933,45 +1261,53 @@ namespace slib
 				if (iey % m_tileLength) {
 					tey++;
 				}
-				{
-					scale = rcView.getHeight() / h;
-					sl_real ts = (sl_real)(m_tileLength * scale);
-					for (sl_uint32 ty = tsy; ty < tey; ty++) {
-						for (sl_uint32 tx = tsx; tx < tex; tx++) {
-							TileImage image;
-							if (loadPicture(image, loader, level, tx, ty)) {
-								Rectangle rcDst;
-								rcDst.left = rcView.left + (sl_real)(((double)(tx * m_tileLength) - sx) * scale);
-								rcDst.top = rcView.bottom - (sl_real)(((double)((ty + 1) * m_tileLength) - sy) * scale);
-								rcDst.setWidth(ts);
-								rcDst.setHeight(ts);
+				double scale = rcView.getHeight() / h;
+				sl_real ts = (sl_real)(m_tileLength * scale);
+				for (sl_uint32 ty = tsy; ty < tey; ty++) {
+					for (sl_uint32 tx = tsx; tx < tex; tx++) {
+						MapTileLocationI location(level, tx, ty);
+						TileImage image;
+						if (!(loadPicture(image, loader, location))) {
+							continue;
+						}
+						Rectangle rcDst;
+						rcDst.left = rcView.left + (sl_real)(((double)(tx * m_tileLength) - sx) * scale);
+						rcDst.top = rcView.bottom - (sl_real)(((double)((ty + 1) * m_tileLength) - sy) * scale);
+						rcDst.setWidth(ts);
+						rcDst.setHeight(ts);
+						if (image.flagDrawWhole) {
+							canvas->draw(rcDst, image.source);
+						} else {
+							canvas->draw(rcDst, image.source, image.region);
+						}
+						for (sl_uint32 i = 0; i < LAYER_COUNT; i++) {
+							Layer& layer = m_layers[i];
+							if (layer.reader.isNull()) {
+								continue;
+							}
+							if (!(layer.flagVisible)) {
+								continue;
+							}
+							if (layer.opacity < 0.001f) {
+								continue;
+							}
+							if (!(loadImage(image, layer.reader, m_cacheLayers[i].get(), loader, location))) {
+								continue;
+							}
+							if (layer.opacity < 0.999f) {
+								Canvas::DrawParam param;
+								param.useAlpha = sl_true;
+								param.alpha = layer.opacity;
+								if (image.flagDrawWhole) {
+									canvas->draw(rcDst, image.source, param);
+								} else {
+									canvas->draw(rcDst, image.source, image.region, param);
+								}
+							} else {
 								if (image.flagDrawWhole) {
 									canvas->draw(rcDst, image.source);
 								} else {
 									canvas->draw(rcDst, image.source, image.region);
-								}
-								for (sl_uint32 i = 0; i < LAYER_COUNT; i++) {
-									Layer& layer = m_layers[i];
-									if (layer.reader.isNotNull() && layer.flagVisible && layer.opacity > 0.001f) {
-										if (loadImage(image, layer.reader, m_cacheLayers[i].get(), loader, level, tx, ty)) {
-											if (layer.opacity < 0.999f) {
-												Canvas::DrawParam param;
-												param.useAlpha = sl_true;
-												param.alpha = layer.opacity;
-												if (image.flagDrawWhole) {
-													canvas->draw(rcDst, image.source, param);
-												} else {
-													canvas->draw(rcDst, image.source, image.region, param);
-												}
-											} else {
-												if (image.flagDrawWhole) {
-													canvas->draw(rcDst, image.source);
-												} else {
-													canvas->draw(rcDst, image.source, image.region);
-												}
-											}
-										}
-									}
 								}
 							}
 						}
@@ -979,24 +1315,22 @@ namespace slib
 				}
 			}
 
-			sl_bool loadPicture(TileImage& _out, MapTileLoader* loader, sl_uint32 level, sl_uint32 tx, sl_uint32 ty)
+			sl_bool loadPicture(TileImage& _out, MapTileLoader* loader, const MapTileLocationI& location)
 			{
-				return loadImage(_out, m_readerPicture, m_cachePicture.get(), loader, level, tx, ty);
+				return loadImage(_out, m_readerPicture, m_cachePicture.get(), loader, location);
 			}
 
-			sl_bool loadImage(TileImage& _out, const Ref<MapTileReader>& reader, MapTileCache* cache, MapTileLoader* loader, sl_uint32 level, sl_uint32 tx, sl_uint32 ty)
+			sl_bool loadImage(TileImage& _out, const Ref<MapTileReader>& reader, MapTileCache* cache, MapTileLoader* loader, const MapTileLocationI& location)
 			{
 				if (reader.isNull()) {
 					return sl_false;
 				}
 				MapTileLoadParam param;
 				param.reader = reader;
-				param.address.level = level;
-				param.address.E = tx;
-				param.address.N = ty;
+				(MapTileLocationI&)(param.address) = location;
 				param.cache = cache;
-				param.flagLoadNow = level <= m_baseLevel;
-				param.flagEndless = level == m_baseLevel;
+				param.flagLoadNow = location.level <= m_baseLevel;
+				param.flagEndless = location.level == m_baseLevel;
 				m_toReaderLocation(param.address);
 				loader->loadImage(_out.source, param, sl_null);
 				if (_out.source.isNotNull()) {
@@ -1007,24 +1341,73 @@ namespace slib
 					_out.flagDrawWhole = sl_true;
 					return sl_true;
 				}
-				if (level <= m_baseLevel) {
+				if (location.level <= m_baseLevel) {
 					return sl_false;
 				}
-				if (!(loadImage(_out, reader, cache, loader, level - 1, tx >> 1, ty >> 1))) {
+				if (!(loadImage(_out, reader, cache, loader, MapTileLocation(location.level - 1, location.E >> 1, location.N >> 1)))) {
 					return sl_false;
 				}
-				if (tx & 1) {
+				if (location.E & 1) {
 					_out.region.left = _out.region.getCenterX();
 				} else {
 					_out.region.right = _out.region.getCenterX();
 				}
-				if (ty & 1) {
+				if (location.N & 1) {
 					_out.region.bottom = _out.region.getCenterY();
 				} else {
 					_out.region.top = _out.region.getCenterY();
 				}
 				_out.flagDrawWhole = sl_false;
 				return sl_true;
+			}
+
+			sl_bool loadDEM(TileDEM& _out, MapTileLoader* loader, const MapTileLocationI& location)
+			{
+				if (m_readerDEM.isNull()) {
+					return sl_false;
+				}
+				MapTileLoadParam param;
+				param.reader = m_readerDEM;
+				(MapTileLocationI&)(param.address) = location;
+				param.cache = m_cacheDEM;
+				param.flagLoadNow = location.level <= m_baseLevel;
+				param.flagEndless = location.level == m_baseLevel;
+				m_toReaderLocation(param.address);
+				loader->loadData(_out.source, param, sl_null);
+				if (_out.source.isNotNull()) {
+					_out.region.left = 0;
+					_out.region.top = 0;
+					_out.region.right = 1.0f;
+					_out.region.bottom = 1.0f;
+					_out.flagUseWhole = sl_true;
+					return sl_true;
+				}
+				if (location.level <= m_baseLevel) {
+					return sl_false;
+				}
+				if (!(loadDEM(_out, loader, MapTileLocation(location.level - 1, location.E >> 1, location.N >> 1)))) {
+					return sl_false;
+				}
+				if (location.E & 1) {
+					_out.region.left = _out.region.getCenterX();
+				} else {
+					_out.region.right = _out.region.getCenterX();
+				}
+				if (location.N & 1) {
+					_out.region.bottom = _out.region.getCenterY();
+				} else {
+					_out.region.top = _out.region.getCenterY();
+				}
+				_out.flagUseWhole = sl_false;
+				return sl_true;
+			}
+
+			void clearCache() override
+			{
+				m_cachePicture->clear();
+				for (sl_uint32 i = 0; i < LAYER_COUNT; i++) {
+					m_cacheLayers[i]->clear();
+				}
 			}
 		};
 	}
@@ -1091,6 +1474,17 @@ namespace slib
 		clearCache();
 	}
 
+	DEM::DataType MapSurface::getDemType()
+	{
+		return m_demType;
+	}
+
+	void MapSurface::setDemType(DEM::DataType type)
+	{
+		m_demType = type;
+		clearCache();
+	}
+
 	Ref<MapTileReader> MapSurface::getLayerReader(sl_uint32 layer)
 	{
 		if (layer < LAYER_COUNT) {
@@ -1137,27 +1531,6 @@ namespace slib
 		}
 	}
 
-	GeoLocation MapSurface::getEyeLocation()
-	{
-		return { m_center.N / METER_PER_DEGREE, m_center.E / METER_PER_DEGREE, m_scale * ALTITUDE_PER_METER };
-	}
-
-	void MapSurface::setEyeLocation(const GeoLocation& location)
-	{
-		setScale(location.altitude / ALTITUDE_PER_METER);
-		setCenterLocation(location.longitude * METER_PER_DEGREE, location.latitude * METER_PER_DEGREE);
-	}
-
-	LatLon MapSurface::getLatLonFromMapLocation(const MapLocation& location)
-	{
-		return { location.N / METER_PER_DEGREE, location.E / METER_PER_DEGREE };
-	}
-
-	MapLocation MapSurface::getMapLocationFromLatLon(const LatLon& location)
-	{
-		return { location.longitude * METER_PER_DEGREE, location.latitude * METER_PER_DEGREE };
-	}
-
 	LatLon MapSurface::getLatLonFromTileLocation(const MapTileLocationI& location)
 	{
 		if (location.level < m_baseLevel) {
@@ -1187,40 +1560,69 @@ namespace slib
 		return ret;
 	}
 
-	MapLocation MapSurface::getMapLocationFromTileLocation(const MapTileLocationI& location)
-	{
-		if (location.level < m_baseLevel) {
-			return { 0, 0 };
-		}
-		sl_uint64 n = (sl_uint64)1 << (location.level - m_baseLevel);
-		sl_uint64 nE = n * m_baseTileCountE;
-		sl_uint64 nN = n * m_baseTileCountN;
-		MapLocation ret;
-		ret.N = ((double)(location.N) / (double)nN - 0.5) * m_degreeLengthN * METER_PER_DEGREE;
-		ret.E = ((double)(location.E) / (double)nE - 0.5) * m_degreeLengthE * METER_PER_DEGREE;
-		return ret;
-	}
-
-	MapTileLocation MapSurface::getTileLocationFromMapLocation(sl_uint32 level, const MapLocation& location)
-	{
-		if (level < m_baseLevel) {
-			return { level, 0, 0 };
-		}
-		sl_uint64 n = (sl_uint64)1 << (level - m_baseLevel);
-		sl_uint64 nE = n * m_baseTileCountE;
-		sl_uint64 nN = n * m_baseTileCountN;
-		MapTileLocation ret;
-		ret.level = level;
-		ret.N = (0.5 + location.N / METER_PER_DEGREE / m_degreeLengthN) * nN;
-		ret.E = (0.5 + location.E / METER_PER_DEGREE / m_degreeLengthE) * nE;
-		return ret;
-	}
-
 	MapTileLocationI MapSurface::getReaderLocation(const MapTileLocationI& location)
 	{
 		MapTileLocationI ret = location;
 		m_toReaderLocation(ret);
 		return ret;
+	}
+
+
+	SLIB_DEFINE_OBJECT(MapSurfacePlane, MapPlane)
+
+	MapSurfacePlane::MapSurfacePlane()
+	{
+		m_range.right = EARTH_CIRCUMFERENCE / 2.0;
+		m_range.left = -m_range.right;
+		m_range.top = EARTH_CIRCUMFERENCE / 4.0;
+		m_range.bottom = -m_range.top;
+		m_scaleMin = 50.0;
+		m_scaleMax = EARTH_CIRCUMFERENCE / 2.0;
+	}
+
+	MapSurfacePlane::~MapSurfacePlane()
+	{
+	}
+
+	Ref<MapSurfacePlane> MapSurfacePlane::create(const Ref<MapSurface>& surface)
+	{
+		Ref<MapSurfacePlane> ret = new MapSurfacePlane;
+		if (ret.isNotNull()) {
+			ret->m_surface = surface;
+			return ret;
+		}
+		return sl_null;
+	}
+
+	GeoLocation MapSurfacePlane::getEyeLocation()
+	{
+		return { m_center.N / METER_PER_DEGREE, m_center.E / METER_PER_DEGREE, m_scale * ALTITUDE_PER_METER };
+	}
+
+	void MapSurfacePlane::setEyeLocation(const GeoLocation& location)
+	{
+		setScale(location.altitude / ALTITUDE_PER_METER);
+		setCenterLocation(location.longitude * METER_PER_DEGREE, location.latitude * METER_PER_DEGREE);
+	}
+
+	LatLon MapSurfacePlane::getLatLonFromMapLocation(const MapLocation& location)
+	{
+		return { location.N / METER_PER_DEGREE, location.E / METER_PER_DEGREE };
+	}
+
+	MapLocation MapSurfacePlane::getMapLocationFromLatLon(const LatLon& location)
+	{
+		return { location.longitude * METER_PER_DEGREE, location.latitude * METER_PER_DEGREE };
+	}
+
+	void MapSurfacePlane::clearCache()
+	{
+		m_surface->clearCache();
+	}
+
+	void MapSurfacePlane::onDraw(Canvas* canvas, const Rectangle& rect, MapViewData* data)
+	{
+		m_surface->onDrawPlane(canvas, rect, this, data);
 	}
 
 
@@ -1230,6 +1632,7 @@ namespace slib
 	{
 		m_flagSupportGlobe = sl_false;
 		m_flagSupportPlane = sl_false;
+		m_flagOverlay = sl_false;
 	}
 
 	MapViewObject::~MapViewObject()
@@ -1256,8 +1659,95 @@ namespace slib
 		m_flagSupportPlane = flag;
 	}
 
+	sl_bool MapViewObject::isOverlay()
+	{
+		return m_flagOverlay;
+	}
+
+	void MapViewObject::setOverlay(sl_bool flag)
+	{
+		m_flagOverlay = flag;
+	}
+
 	void MapViewObject::draw(Canvas* canvas, const Rectangle& rect, MapViewData* data, MapPlane* plane)
 	{
+	}
+
+	void MapViewObject::render(RenderEngine* engine, MapViewData* data, MapSurface* surface)
+	{
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MapViewState)
+
+	MapViewState::MapViewState()
+	{
+		viewportWidth = 1.0;
+		viewportHeight = 1.0;
+
+		eyeLocation.altitude = 10000;
+		tilt = 0.0f;
+		rotation = 0.0f;
+	}
+	
+	sl_bool MapViewState::update()
+	{
+		if (viewportHeight < 0.00001) {
+			return sl_false;
+		}
+
+		if (defaultDepthState.isNull()) {
+			RenderDepthStencilParam dp;
+			dp.flagTestDepth = sl_true;
+			defaultDepthState = RenderDepthStencilState::create(dp);
+			if (defaultDepthState.isNull()) {
+				return sl_false;
+			}
+		}
+		if (defaultBlendState.isNull()) {
+			RenderBlendParam bp;
+			bp.flagBlending = sl_false;
+			defaultBlendState = RenderBlendState::create(bp);
+			if (defaultBlendState.isNull()) {
+				return sl_false;
+			}
+		}
+		if (overlayDepthState.isNull()) {
+			RenderDepthStencilParam dp;
+			dp.flagTestDepth = sl_false;
+			overlayDepthState = RenderDepthStencilState::create(dp);
+			if (overlayDepthState.isNull()) {
+				return sl_false;
+			}
+		}
+		if (overlayBlendState.isNull()) {
+			RenderBlendParam bp;
+			bp.flagBlending = sl_true;
+			overlayBlendState = RenderBlendState::create(bp);
+			if (overlayBlendState.isNull()) {
+				return sl_false;
+			}
+		}
+
+		eyePoint = MapEarth::getCartesianPosition(eyeLocation);
+
+		verticalViewTransform = Transform3T<double>::getLookAtMatrix(eyePoint, Double3(0, 0, 0), Double3(0, 10000, 0)) * Transform3T<double>::getRotationZMatrix(Math::getRadianFromDegrees(rotation));
+		viewTransform = verticalViewTransform * Transform3T<double>::getRotationXMatrix(Math::getRadianFromDegrees(tilt));
+		inverseViewTransform = viewTransform.inverse();
+
+		double dist = eyeLocation.altitude + 0.1;
+		double zNear, zFar;
+		if (dist < 5000) {
+			zNear = dist / 50;
+			zFar = dist * 20 + 1000;
+		} else {
+			zNear = dist / 5;
+			zFar = dist + MapEarth::getRadius() * 2;
+		}
+		projectionTransform = Transform3T<double>::getPerspectiveProjectionFovYMatrix(SLIB_PI / 3, viewportWidth / viewportHeight, zNear, zFar);
+		viewProjectionTransform = viewTransform * projectionTransform;
+		viewFrustum = ViewFrustumT<double>::fromMVP(viewProjectionTransform);
+		return sl_true;
 	}
 
 
@@ -1265,10 +1755,10 @@ namespace slib
 	{
 		m_view = sl_null;
 		m_flagGlobeMode = sl_false;
-		m_tileLoader = MapTileLoader::create(SLIB_FUNCTION_MEMBER(this, _onCompleteLazyLoading));
-		m_eyeLocation.altitude = 10000;
-		m_width = 1.0;
-		m_height = 1.0;
+		m_flagRendered = sl_false;
+
+		m_altitudeMin = 50.0;
+		m_altitudeMax = 100000000.0;
 	}
 
 	MapViewData::~MapViewData()
@@ -1289,16 +1779,15 @@ namespace slib
 		m_flagGlobeMode = flag;
 		if (flag) {
 			if (m_plane.isNotNull()) {
-				m_eyeLocation = m_plane->getEyeLocation();
+				setEyeLocation(m_plane->getEyeLocation(), mode);
 			}
 		} else {
 			if (m_plane.isNotNull()) {
-				m_plane->setEyeLocation(m_eyeLocation);
+				m_plane->setEyeLocation(m_state.eyeLocation);
+				invalidate(mode);
 			}
 		}
-		invalidate(mode);
 	}
-
 
 	Ref<MapPlane> MapViewData::getPlane() const
 	{
@@ -1312,18 +1801,17 @@ namespace slib
 		if (m_plane == plane) {
 			return;
 		}
+		GeoLocation location = m_state.eyeLocation;
 		if (m_plane.isNotNull()) {
 			if (!m_flagGlobeMode) {
-				m_eyeLocation = m_plane->getEyeLocation();
+				location = m_plane->getEyeLocation();
 			}
-			if (m_plane != m_surface) {
-				m_plane->clearCache();
-			}
+			m_plane->clearCache();
 		}
 		m_plane = plane;
 		if (plane.isNotNull()) {
-			_resizePlane(plane.get(), m_width, m_height);
-			plane->setEyeLocation(m_eyeLocation);
+			_resizePlane(plane.get(), m_state.viewportWidth, m_state.viewportHeight);
+			plane->setEyeLocation(location);
 		}
 		invalidate(mode);
 	}
@@ -1341,9 +1829,7 @@ namespace slib
 			return;
 		}
 		if (m_surface.isNotNull()) {
-			if (m_surface != m_plane) {
-				m_surface->clearCache();
-			}
+			m_surface->clearCache();
 		}
 		m_surface = surface;
 		invalidate(mode);
@@ -1372,6 +1858,16 @@ namespace slib
 		invalidate(mode);
 	}
 
+	const MapViewState& MapViewData::getState() const
+	{
+		return m_state;
+	}
+
+	MapViewState& MapViewData::getState()
+	{
+		return m_state;
+	}
+
 	GeoLocation MapViewData::getEyeLocation() const
 	{
 		MutexLocker locker(&m_lock);
@@ -1380,19 +1876,55 @@ namespace slib
 				return m_plane->getEyeLocation();
 			}
 		}
-		return m_eyeLocation;
+		return m_state.eyeLocation;
 	}
 
 	void MapViewData::setEyeLocation(const GeoLocation& location, UIUpdateMode mode)
 	{
 		MutexLocker locker(&m_lock);
-		m_eyeLocation = location;
 		if (!m_flagGlobeMode) {
 			if (m_plane.isNotNull()) {
 				m_plane->setEyeLocation(location);
+				invalidate(mode);
+				return;
 			}
 		}
+		m_state.eyeLocation = location;
+		if (m_state.eyeLocation.altitude < m_altitudeMin) {
+			m_state.eyeLocation.altitude = m_altitudeMin;
+		}
+		if (m_state.eyeLocation.altitude > m_altitudeMax) {
+			m_state.eyeLocation.altitude = m_altitudeMax;
+		}
 		invalidate(mode);
+	}
+
+	double MapViewData::getMinimumAltitude()
+	{
+		return m_altitudeMin;
+	}
+
+	void MapViewData::setMinimumAltitude(double altitude, UIUpdateMode mode)
+	{
+		m_altitudeMin = altitude;
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
+		setEyeLocation(getEyeLocation(), mode);
+	}
+
+	double MapViewData::getMaximumAltitude()
+	{
+		return m_altitudeMax;
+	}
+
+	void MapViewData::setMaximumAltitude(double altitude, UIUpdateMode mode)
+	{
+		m_altitudeMax = altitude;
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
+		setEyeLocation(getEyeLocation(), mode);
 	}
 
 	sl_bool MapViewData::getLatLonFromViewPoint(const Double2& point, LatLon& _out) const
@@ -1427,11 +1959,11 @@ namespace slib
 		if (height < 0.00001) {
 			return;
 		}
-		if (Math::isAlmostZero(m_width - width) && Math::isAlmostZero(m_height - height)) {
+		if (Math::isAlmostZero(m_state.viewportWidth - width) && Math::isAlmostZero(m_state.viewportHeight - height)) {
 			return;
 		}
-		m_width = width;
-		m_height = height;
+		m_state.viewportWidth = width;
+		m_state.viewportHeight = height;
 		MutexLocker locker(&m_lock);
 		_resizePlane(m_plane.get(), width, height);
 		invalidate(mode);
@@ -1470,13 +2002,17 @@ namespace slib
 	{
 		MutexLocker locker(&m_lock);
 		if (m_flagGlobeMode) {
+			GeoLocation location = m_state.eyeLocation;
+			location.altitude *= factor;
+			setEyeLocation(location);
+			invalidate(mode);
 		} else {
 			MapPlane* plane = m_plane.get();
 			if (plane) {
 				m_plane->setScale(plane->getScale() * factor);
+				invalidate(mode);
 			}
 		}
-		invalidate(mode);
 	}
 
 	void MapViewData::zoomAt(const Double2& pt, double factor, UIUpdateMode mode)
@@ -1507,9 +2043,15 @@ namespace slib
 	{
 	}
 
-	MapTileLoader* MapViewData::getTileLoader()
+	sl_bool MapViewData::_initState()
 	{
-		return m_tileLoader.get();
+		if (m_state.tileLoader.isNull()) {
+			m_state.tileLoader = MapTileLoader::create(SLIB_FUNCTION_MEMBER(this, _onCompleteLazyLoading));
+			if (m_state.tileLoader.isNull()) {
+				return sl_false;
+			}
+		}
+		return sl_true;
 	}
 
 	void MapViewData::drawPlane(Canvas* canvas, const Rectangle& rect)
@@ -1519,6 +2061,9 @@ namespace slib
 			return;
 		}
 		if (rect.getHeight() < 1.0f) {
+			return;
+		}
+		if (!(_initState())) {
 			return;
 		}
 		MapPlane* plane = m_plane.get();
@@ -1540,6 +2085,45 @@ namespace slib
 
 	void MapViewData::renderGlobe(RenderEngine* engine)
 	{
+		MutexLocker locker(&m_lock);
+
+		if (!m_flagGlobeMode) {
+			return;
+		}
+		MapSurface* surface = m_surface.get();
+		if (!surface) {
+			return;
+		}
+		if (!(_initState())) {
+			return;
+		}
+		if (!(m_state.update())) {
+			return;
+		}
+
+		engine->setDepthStencilState(m_state.defaultDepthState);
+		engine->setBlendState(m_state.defaultBlendState);
+		surface->render(engine, this);
+
+		{
+			auto node = m_objects.getFirstNode();
+			while (node) {
+				Ref<MapViewObject>& object = node->value;
+				if (object->isSupportingGlobeMode()) {
+					if (object->isOverlay()) {
+						engine->setDepthStencilState(m_state.overlayDepthState);
+						engine->setBlendState(m_state.overlayBlendState);
+					} else {
+						engine->setDepthStencilState(m_state.defaultDepthState);
+						engine->setBlendState(m_state.defaultBlendState);
+					}
+					object->render(engine, this, surface);
+				}
+				node = node->next;
+			}
+		}
+
+		m_flagRendered = sl_true;
 	}
 
 	void MapViewData::invalidate(UIUpdateMode mode)

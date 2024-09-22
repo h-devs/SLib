@@ -26,6 +26,9 @@
 #include "render_view.h"
 
 #include "../geo/geo_location.h"
+#include "../geo/geo_rectangle.h"
+#include "../geo/dem.h"
+#include "../math/view_frustum.h"
 
 #define SLIB_MAP_VIEW_LAYER_COUNT 5
 
@@ -163,14 +166,14 @@ namespace slib
 		~MapTileDirectory();
 
 	public:
-		static Ref<MapTileDirectory> open(const String& rootPath, const Function<String(MapTileLocationI&)>& formator);
+		static Ref<MapTileDirectory> open(const String& rootPath, const Function<String(MapTileAddress&)>& formator);
 
 	public:
 		sl_bool readData(Memory& _out, const MapTileAddress& address, sl_uint32 timeout) override;
 
 	private:
 		String m_root;
-		Function<String(MapTileLocationI&)> m_formator;
+		Function<String(MapTileAddress&)> m_formator;
 	};
 
 	class SLIB_EXPORT MapTileCache : public Object
@@ -324,6 +327,38 @@ namespace slib
 		AtomicRef<Drawable> m_background;
 	};
 
+	struct SLIB_EXPORT MapViewVertex
+	{
+		Vector3 position;
+		Vector2 texCoord;
+	};
+
+	class SLIB_EXPORT MapViewTile : public CRef
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		MapViewTile();
+
+		~MapViewTile();
+
+	public:
+		MapTileLocationI location;
+		GeoRectangle region;
+		Double3 points[4]; // Bottom Left, Bottom Right, Top Left, Top Right
+		Double3 center;
+
+		Memory dem;
+		Primitive primitive;
+		Double3 pointsWithDEM[4];
+
+	public:
+		sl_bool build(DEM::DataType demType, const Rectangle* demRegion = sl_null);
+
+		void buildVertex(MapViewVertex& vertex, double latitude, double longitude, double altitude, sl_real tx, sl_real ty);
+
+	};
+
 	class SLIB_EXPORT MapSurfaceParam
 	{
 	public:
@@ -338,6 +373,7 @@ namespace slib
 
 		Ref<MapTileReader> picture;
 		Ref<MapTileReader> dem;
+		DEM::DataType demType;
 		Ref<MapTileReader> layers[SLIB_MAP_VIEW_LAYER_COUNT];
 
 	public:
@@ -347,7 +383,9 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT MapSurface : public MapPlane
+	class MapSurfacePlane;
+
+	class SLIB_EXPORT MapSurface : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -358,6 +396,13 @@ namespace slib
 
 	public:
 		static Ref<MapSurface> create(const MapSurfaceParam& param);
+
+	public:
+		virtual void render(RenderEngine* engine, MapViewData* data) = 0;
+
+		virtual const List< Ref<MapViewTile> >& getTiles() = 0;
+
+		virtual void clearCache() = 0;
 
 	public:
 		sl_uint32 getBaseLevel();
@@ -382,6 +427,10 @@ namespace slib
 
 		void setDemReader(const Ref<MapTileReader>& reader);
 
+		DEM::DataType getDemType();
+
+		void setDemType(DEM::DataType type);
+
 		Ref<MapTileReader> getLayerReader(sl_uint32 layer);
 
 		void setLayerReader(sl_uint32 layer, const Ref<MapTileReader>& reader);
@@ -394,27 +443,16 @@ namespace slib
 
 		void setLayerOpacity(sl_uint32 layer, float opacity);
 
-		GeoLocation getEyeLocation() override;
-
-		void setEyeLocation(const GeoLocation& location) override;
-
-		LatLon getLatLonFromMapLocation(const MapLocation& location) override;
-
-		MapLocation getMapLocationFromLatLon(const LatLon& location) override;
-
 		// Normalized tile location (No reader location)
 		LatLon getLatLonFromTileLocation(const MapTileLocationI& location);
 
 		// Normalized tile location (No reader location)
 		MapTileLocation getTileLocationFromLatLon(sl_uint32 level, const LatLon& latLon);
 		
-		// Normalized tile location (No reader location)
-		MapLocation getMapLocationFromTileLocation(const MapTileLocationI& location);
-
-		// Normalized tile location (No reader location)
-		MapTileLocation getTileLocationFromMapLocation(sl_uint32 level, const MapLocation& location);
-
 		MapTileLocationI getReaderLocation(const MapTileLocationI& location);
+
+	protected:
+		virtual void onDrawPlane(Canvas* canvas, const Rectangle& rect, MapSurfacePlane* plane, MapViewData* data) = 0;
 
 	protected:
 		sl_uint32 m_maxLevel;
@@ -428,6 +466,7 @@ namespace slib
 
 		AtomicRef<MapTileReader> m_readerPicture;
 		AtomicRef<MapTileReader> m_readerDEM;
+		DEM::DataType m_demType;
 		struct Layer
 		{
 			AtomicRef<MapTileReader> reader;
@@ -435,6 +474,38 @@ namespace slib
 			float opacity;
 		};
 		Layer m_layers[SLIB_MAP_VIEW_LAYER_COUNT];
+
+		friend class MapSurfacePlane;
+	};
+
+	class SLIB_EXPORT MapSurfacePlane : public MapPlane
+	{
+		SLIB_DECLARE_OBJECT
+
+	protected:
+		MapSurfacePlane();
+
+		~MapSurfacePlane();
+
+	public:
+		static Ref<MapSurfacePlane> create(const Ref<MapSurface>& surface);
+
+	public:
+		GeoLocation getEyeLocation() override;
+
+		void setEyeLocation(const GeoLocation& location) override;
+
+		LatLon getLatLonFromMapLocation(const MapLocation& location) override;
+
+		MapLocation getMapLocationFromLatLon(const LatLon& location) override;
+
+		virtual void clearCache() override;
+
+	protected:
+		void onDraw(Canvas* canvas, const Rectangle& rect, MapViewData* data) override;
+
+	protected:
+		Ref<MapSurface> m_surface;
 	};
 
 	class SLIB_EXPORT MapViewObject : public Object
@@ -455,12 +526,55 @@ namespace slib
 
 		void setSupportingPlaneMode(sl_bool flag = sl_true);
 
+		sl_bool isOverlay();
+
+		void setOverlay(sl_bool flag = sl_true);
+
 	public:
 		virtual void draw(Canvas* canvas, const Rectangle& rect, MapViewData* data, MapPlane* plane);
 
+		virtual void render(RenderEngine* engine, MapViewData* data, MapSurface* surface);
+
 	protected:
-		sl_bool m_flagSupportGlobe;
-		sl_bool m_flagSupportPlane;
+		sl_bool m_flagSupportGlobe : 1;
+		sl_bool m_flagSupportPlane : 1;
+		sl_bool m_flagOverlay : 1;
+	};
+
+	class SLIB_EXPORT MapViewState
+	{
+	public:
+		// Input States
+		double viewportWidth;
+		double viewportHeight;
+		GeoLocation eyeLocation;
+		float tilt;
+		float rotation;
+
+		// Derived States
+		Double3 eyePoint;
+		Matrix4T<double> verticalViewTransform;
+		Matrix4T<double> viewTransform;
+		Matrix4T<double> inverseViewTransform;
+		Matrix4T<double> projectionTransform;;
+		Matrix4T<double> viewProjectionTransform;
+		ViewFrustumT<double> viewFrustum;
+
+		// Other
+		Ref<MapTileLoader> tileLoader;
+		Ref<RenderBlendState> defaultBlendState;
+		Ref<RenderDepthStencilState> defaultDepthState;
+		Ref<RenderBlendState> overlayBlendState;
+		Ref<RenderDepthStencilState> overlayDepthState;
+
+	public:
+		MapViewState();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MapViewState)
+
+	public:
+		sl_bool update();
+
 	};
 
 	class SLIB_EXPORT MapViewData
@@ -474,7 +588,7 @@ namespace slib
 		sl_bool isGlobeMode() const;
 
 		void setGlobeMode(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<MapPlane> getPlane() const;
 
 		void setPlane(const Ref<MapPlane>& plane, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -489,9 +603,21 @@ namespace slib
 
 		void putObject(const String& name, const Ref<MapViewObject>& object, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		const MapViewState& getState() const;
+
+		MapViewState& getState();
+
 		GeoLocation getEyeLocation() const;
 
 		void setEyeLocation(const GeoLocation& location, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		double getMinimumAltitude();
+
+		void setMinimumAltitude(double altitude, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		double getMaximumAltitude();
+
+		void setMaximumAltitude(double altitude, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool getLatLonFromViewPoint(const Double2& point, LatLon& _out) const;
 
@@ -510,8 +636,6 @@ namespace slib
 		void stopMoving();
 
 	public:
-		MapTileLoader* getTileLoader();
-
 		void drawPlane(Canvas* canvas, const Rectangle& rect);
 
 		void renderGlobe(RenderEngine* engine);
@@ -519,6 +643,8 @@ namespace slib
 		void invalidate(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	protected:
+		sl_bool _initState();
+
 		void _resizePlane(MapPlane* plane, double width, double height);
 
 		void _onCompleteLazyLoading();
@@ -526,16 +652,17 @@ namespace slib
 	protected:
 		Mutex m_lock;
 		View* m_view;
+
 		sl_bool m_flagGlobeMode;
 		Ref<MapPlane> m_plane;
 		Ref<MapSurface> m_surface;
 		CHashMap< String, Ref<MapViewObject> > m_objects;
 
-		GeoLocation m_eyeLocation;
-		double m_width;
-		double m_height;
+		MapViewState m_state;
+		sl_bool m_flagRendered;
 
-		Ref<MapTileLoader> m_tileLoader;
+		double m_altitudeMin;
+		double m_altitudeMax;
 
 		friend class MapPlaneRenderer;
 		friend class MapGlobeRenderer;
