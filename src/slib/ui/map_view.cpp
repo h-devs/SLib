@@ -41,7 +41,7 @@
 #define METER_PER_DEGREE ((double)EARTH_CIRCUMFERENCE / 360.0)
 #define ALTITUDE_PER_METER 0.8660254037844386 // (1 - 0.5^2)^0.5
 
-#define TILE_MIN_VERTEX_COUNT 2
+#define TILE_MIN_VERTEX_COUNT 65
 
 namespace slib
 {
@@ -711,7 +711,7 @@ namespace slib
 							mxi = L - 2;
 							mxf = 1.0f;
 						} else {
-							mxf = mx - mxi;
+							mxf = mx - (float)mxi;
 						}
 						if (myi < 0) {
 							myi = 0;
@@ -720,7 +720,7 @@ namespace slib
 							myi = L - 2;
 							myf = 1.0f;
 						} else {
-							myf = my - myi;
+							myf = my - (float)myi;
 						}
 						sl_int32 p = mxi + myi * L;
 						float altitude = (1.0f - mxf) * (1.0f - myf) * pixels[p] + (1.0f - mxf) * myf * pixels[p + L] + mxf * (1.0f - myf) * pixels[p + 1] + mxf * myf * pixels[p + 1 + L];
@@ -767,10 +767,10 @@ namespace slib
 		}
 		{
 			MapViewVertex* v = (MapViewVertex*)(memVertices.getData());
-			pointsWithDEM[0] = v[(M - 1) * M].position;
-			pointsWithDEM[1] = v[M * M - 1].position;
-			pointsWithDEM[2] = v[0].position;
-			pointsWithDEM[3] = v[M - 1].position;
+			pointsWithDEM[0] = v[(M - 1) * M].position; // Bottom Left
+			pointsWithDEM[1] = v[M * M - 1].position; // Bottom Right
+			pointsWithDEM[2] = v[0].position; // Top Left
+			pointsWithDEM[3] = v[M - 1].position; // Top Right
 			for (sl_uint32 i = 0; i < 4; i++) {
 				pointsWithDEM[i] += center;
 			}
@@ -784,12 +784,12 @@ namespace slib
 			sl_uint16* indices = (sl_uint16*)(mem.getData());
 			for (sl_uint32 y = 0; y < M - 1; y++) {
 				for (sl_uint32 x = 0; x < M - 1; x++) {
-					*(indices++) = (sl_uint16)(y * M + x);
-					*(indices++) = (sl_uint16)(y * M + x + 1);
-					*(indices++) = (sl_uint16)(y * M + x + M);
-					*(indices++) = (sl_uint16)(y * M + x + 1);
-					*(indices++) = (sl_uint16)(y * M + x + M);
-					*(indices++) = (sl_uint16)(y * M + x + 1 + M);
+					*(indices++) = (sl_uint16)(y * M + x); // Top Left
+					*(indices++) = (sl_uint16)(y * M + (x + 1)); // Top Right
+					*(indices++) = (sl_uint16)((y + 1) * M + x); // Bottom Left
+					*(indices++) = *(indices - 1);
+					*(indices++) = *(indices - 3);
+					*(indices++) = (sl_uint16)((y + 1) * M + (x + 1)); // Bottom Right
 				}
 			}
 			primitive.indexBuffer = IndexBuffer::create(mem);
@@ -850,14 +850,16 @@ namespace slib
 	namespace
 	{
 		SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState_SurfaceTile, MapViewVertex)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform, RenderShaderType::Vertex, 0)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture0, u_LayerTexture0, RenderShaderType::Pixel, 1)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture1, u_LayerTexture1, RenderShaderType::Pixel, 2)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture2, u_LayerTexture2, RenderShaderType::Pixel, 3)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture3, u_LayerTexture3, RenderShaderType::Pixel, 4)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture4, u_LayerTexture4, RenderShaderType::Pixel, 5)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT_ARRAY(LayerAlpha, u_LayerAlpha)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(TextureRect, u_TextureRect, RenderShaderType::Pixel, 0)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(LayerTextureRect, u_LayerTextureRect, RenderShaderType::Pixel, 1)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT_ARRAY(LayerAlpha, u_LayerAlpha, RenderShaderType::Pixel, 6)
 
 			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
 			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord)
@@ -893,15 +895,17 @@ namespace slib
 					uniform sampler2D u_LayerTexture2;
 					uniform sampler2D u_LayerTexture3;
 					uniform sampler2D u_LayerTexture4;
+					uniform vec4 u_TextureRect;
+					uniform vec4 u_LayerTextureRect[5];
 					uniform float u_LayerAlpha[5];
 					varying vec2 v_TexCoord;
 					void main() {
-						vec4 colorTexture = texture2D(u_Texture, v_TexCoord);
-						vec4 colorLayer0 = texture2D(u_LayerTexture0, v_TexCoord);
-						vec4 colorLayer1 = texture2D(u_LayerTexture1, v_TexCoord);
-						vec4 colorLayer2 = texture2D(u_LayerTexture2, v_TexCoord);
-						vec4 colorLayer3 = texture2D(u_LayerTexture3, v_TexCoord);
-						vec4 colorLayer4 = texture2D(u_LayerTexture4, v_TexCoord);
+						vec4 colorTexture = texture2D(u_Texture, v_TexCoord * u_TextureRect.zw + u_TextureRect.xy);
+						vec4 colorLayer0 = texture2D(u_LayerTexture0, v_TexCoord * u_LayerTextureRect[0].zw + u_LayerTextureRect[0].xy);
+						vec4 colorLayer1 = texture2D(u_LayerTexture1, v_TexCoord * u_LayerTextureRect[1].zw + u_LayerTextureRect[1].xy);
+						vec4 colorLayer2 = texture2D(u_LayerTexture2, v_TexCoord * u_LayerTextureRect[2].zw + u_LayerTextureRect[2].xy);
+						vec4 colorLayer3 = texture2D(u_LayerTexture3, v_TexCoord * u_LayerTextureRect[3].zw + u_LayerTextureRect[3].xy);
+						vec4 colorLayer4 = texture2D(u_LayerTexture4, v_TexCoord * u_LayerTextureRect[4].zw + u_LayerTextureRect[4].xy);
 
 						float a = colorLayer0.a * u_LayerAlpha[0];
 						colorLayer0.a = 1.0;
@@ -937,11 +941,26 @@ namespace slib
 			Ref<MapTileCache> m_cacheDEM;
 			Ref<MapTileCache> m_cacheLayers[LAYER_COUNT];
 
-			struct TileImage
+			class TileImage
 			{
+			public:
 				Ref<Image> source;
 				sl_bool flagDrawWhole = sl_true;
 				Rectangle region;
+
+			public:
+				void convertToSourceCoordinate()
+				{
+					if (flagDrawWhole) {
+						return;
+					}
+					sl_real w = (sl_real)(source->getWidth());
+					region.left *= w;
+					region.right *= w;
+					sl_real h = (sl_real)(source->getHeight());
+					region.top *= h;
+					region.bottom *= h;
+				}
 			};
 
 			struct TileDEM
@@ -1035,9 +1054,13 @@ namespace slib
 				if (tile.isNull()) {
 					return;
 				}
-				sl_bool flagExpand, flagRender;
-				getTileState(state, tile.get(), flagExpand, flagRender);
-				if (flagExpand) {
+				// Check Frustum
+				{
+					if (!(state.viewFrustum.containsFacets(tile->points, 4) || state.viewFrustum.containsFacets(tile->pointsWithDEM, 4))) {
+						return;
+					}
+				}
+				if (isTileExpandable(state, tile.get())) {
 					sl_uint32 E = location.E << 1;
 					sl_uint32 N = location.N << 1;
 					for (sl_uint32 y = 0; y < 2; y++) {
@@ -1047,7 +1070,7 @@ namespace slib
 					}
 					return;
 				}
-				if (!flagRender) {
+				if (!(isTileFrontFace(state, tile.get()))) {
 					return;
 				}
 				MapTileLoader* loader = state.tileLoader.get();
@@ -1065,11 +1088,15 @@ namespace slib
 				}
 				RenderProgramScope<RenderProgramState_SurfaceTile> scope;
 				if (scope.begin(engine, m_programSurfaceTile)) {
+					scope->setTransform(Transform3T<double>::getTranslationMatrix(tile->center) * state.viewProjectionTransform);
 					scope->setTexture(Texture::getBitmapRenderingCache(image.source));
+					scope->setTextureRect(Vector4(image.region.left, image.region.top, image.region.getWidth(), image.region.getHeight()));
 					float layerAlphas[LAYER_COUNT];
 					Ref<Texture> layerTextures[LAYER_COUNT];
+					Vector4 layerTextureRects[LAYER_COUNT];
 					for (sl_uint32 iLayer = 0; iLayer < LAYER_COUNT; iLayer++) {
 						layerAlphas[iLayer] = 0;
+						layerTextureRects[iLayer] = Vector4::zero();
 						Layer& layer = m_layers[iLayer];
  						if (layer.reader.isNull()) {
 							continue;
@@ -1085,14 +1112,15 @@ namespace slib
 						}
 						layerAlphas[iLayer] = layer.opacity;
 						layerTextures[iLayer] = Texture::getBitmapRenderingCache(image.source);
+						layerTextureRects[iLayer] = Vector4(image.region.left, image.region.top, image.region.getWidth(), image.region.getHeight());
 					}
-					scope->setLayerAlpha(layerAlphas, LAYER_COUNT);
 					scope->setLayerTexture0(layerTextures[0]);
 					scope->setLayerTexture1(layerTextures[1]);
 					scope->setLayerTexture2(layerTextures[2]);
 					scope->setLayerTexture3(layerTextures[3]);
 					scope->setLayerTexture4(layerTextures[4]);
-					scope->setTransform(Transform3T<double>::getTranslationMatrix(tile->center) * state.viewProjectionTransform);
+					scope->setLayerTextureRect(layerTextureRects, LAYER_COUNT);
+					scope->setLayerAlpha(layerAlphas, LAYER_COUNT);
 					engine->drawPrimitive(&(tile->primitive));
 				}
 				m_renderingTiles.add_NoLock(tile);
@@ -1137,102 +1165,101 @@ namespace slib
 				return tile;
 			}
 
-			void getTileState(const MapViewState& state, MapViewTile* tile, sl_bool& flagExpand, sl_bool& flagRender)
+			sl_bool isTileFrontFace(const MapViewState& state, MapViewTile* tile)
 			{
-				flagExpand = sl_false;
-				flagRender = sl_false;
+				Vector3 ptBL, ptBR, ptTL, ptTR;
+				if (tile->region.topRight.longitude - tile->region.bottomLeft.longitude > 1.0) {
+					ptBL = state.viewTransform.transformPosition(tile->points[0]);
+					ptBR = state.viewTransform.transformPosition(tile->points[1]);
+					ptTL = state.viewTransform.transformPosition(tile->points[2]);
+					ptTR = state.viewTransform.transformPosition(tile->points[3]);
+				} else {
+					ptBL = Transform3T<double>::projectToViewport(state.viewProjectionTransform, tile->points[0]);
+					ptBR = Transform3T<double>::projectToViewport(state.viewProjectionTransform, tile->points[1]);
+					ptTL = Transform3T<double>::projectToViewport(state.viewProjectionTransform, tile->points[2]);
+					ptTR = Transform3T<double>::projectToViewport(state.viewProjectionTransform, tile->points[3]);
+				}
+				Triangle triangle;
+				triangle.point1.x = ptTL.x;
+				triangle.point1.y = -ptTL.y;
+				triangle.point2.x = ptTR.x;
+				triangle.point2.y = -ptTR.y;
+				triangle.point3.x = ptBL.x;
+				triangle.point3.y = -ptBL.y;
+				if (triangle.isClockwise()) {
+					return sl_true;
+				}
+				triangle.point1.x = ptBR.x;
+				triangle.point1.y = -ptBR.y;
+				return !(triangle.isClockwise());
+			}
+
+			sl_bool isTileExpandable(const MapViewState& state, MapViewTile* tile)
+			{
+				// Check Expand
+				if (tile->location.level >= m_maxLevel) {
+					return sl_false;
+				}
+				// Check Normal
+				{
+					sl_bool f = sl_false;
+					for (sl_uint32 i = 0; i < 4; i++) {
+						Double3 normal = state.viewTransform.transformDirection(tile->points[i]);
+						if (normal.z <= 0.0) {
+							f = sl_true;
+							break;
+						}
+					}
+					if (!f) {
+						return sl_false;
+					}
+				}
 
 				Vector3 ptBL = state.viewTransform.transformPosition(tile->points[0]);
 				Vector3 ptBR = state.viewTransform.transformPosition(tile->points[1]);
 				Vector3 ptTL = state.viewTransform.transformPosition(tile->points[2]);
 				Vector3 ptTR = state.viewTransform.transformPosition(tile->points[3]);
 
-				// Check Expand
-				do {
-					if (tile->location.level >= m_maxLevel) {
-						break;
-					}
-					// Check Normal
-					{
-						sl_bool f = sl_false;
-						for (sl_uint32 i = 0; i < 4; i++) {
-							Double3 normal = state.viewTransform.transformDirection(tile->points[i]);
-							if (normal.z <= 0.0) {
-								f = sl_true;
-								break;
-							}
-						}
-						if (!f) {
-							break;
-						}
-					}
-
-					// Check Frustum
-					{
-						if (!(state.viewFrustum.containsFacets(tile->points, 4) || state.viewFrustum.containsFacets(tile->pointsWithDEM, 4))) {
-							break;
-						}
-					}
-					// Check Behind
-					{
-						sl_uint32 nBehind = 0;
-						if (Math::isLessThanEpsilon(ptBL.z)) {
-							nBehind++;
-						}
-						if (Math::isLessThanEpsilon(ptBR.z)) {
-							nBehind++;
-						}
-						if (Math::isLessThanEpsilon(ptTL.z)) {
-							nBehind++;
-						}
-						if (Math::isLessThanEpsilon(ptTR.z)) {
-							nBehind++;
-						}
-						if (nBehind == 4) {
-							break;
-						}
-						if (nBehind) {
-							flagExpand = sl_true;
-							break;
-						}
-					}
-					// Check Size
-					{
-						Triangle t;
-						t.point1.x = ptBL.x / ptBL.z;
-						t.point1.y = ptBL.y / ptBL.z;
-						t.point2.x = ptBR.x / ptBR.z;
-						t.point2.y = ptBR.y / ptBR.z;
-						t.point3.x = ptTL.x / ptTL.z;
-						t.point3.y = ptTL.y / ptTL.z;
-						sl_real size = Math::abs(t.getSize());
-						t.point1.x = ptTR.x / ptTR.z;
-						t.point1.y = ptTR.y / ptTR.z;
-						size += Math::abs(t.getSize());
-						if (size > (sl_real)(65536.0 * 25.0 / state.viewportWidth / state.viewportWidth)) {
-							flagExpand = sl_true;
-						}
-					}
-				} while (0);
-				// Check Render (Clockwise)
+				// Check Behind
 				{
-					Triangle triangle;
-					triangle.point1.x = ptTL.x;
-					triangle.point1.y = ptTL.y;
-					triangle.point2.x = ptBL.x;
-					triangle.point2.y = ptBL.y;
-					triangle.point3.x = ptTR.x;
-					triangle.point3.y = ptTR.y;
-					if (triangle.isClockwise()) {
-						flagRender = sl_true;
-						return;
+					sl_uint32 nBehind = 0;
+					if (Math::isLessThanEpsilon(ptBL.z)) {
+						nBehind++;
 					}
-					triangle.point1.x = ptBR.x;
-					triangle.point1.y = ptBR.y;
-					if (!(triangle.isClockwise())) {
-						flagRender = sl_true;
+					if (Math::isLessThanEpsilon(ptBR.z)) {
+						nBehind++;
+					}
+					if (Math::isLessThanEpsilon(ptTL.z)) {
+						nBehind++;
+					}
+					if (Math::isLessThanEpsilon(ptTR.z)) {
+						nBehind++;
+					}
+					if (nBehind == 4) {
+						return sl_false;
+					}
+					if (nBehind) {
+						return sl_true;
 					}
 				}
+				// Check Size
+				{
+					Triangle t;
+					t.point1.x = ptBL.x / ptBL.z;
+					t.point1.y = ptBL.y / ptBL.z;
+					t.point2.x = ptBR.x / ptBR.z;
+					t.point2.y = ptBR.y / ptBR.z;
+					t.point3.x = ptTL.x / ptTL.z;
+					t.point3.y = ptTL.y / ptTL.z;
+					sl_real size = Math::abs(t.getSize());
+					t.point1.x = ptTR.x / ptTR.z;
+					t.point1.y = ptTR.y / ptTR.z;
+					size += Math::abs(t.getSize());
+					if (size > (sl_real)(65536.0 * 25.0 / state.viewportWidth / state.viewportWidth)) {
+						return sl_true;
+					}
+				}
+				return sl_false;
 			}
 
 			const List< Ref<MapViewTile> >& getTiles() override
@@ -1305,6 +1332,7 @@ namespace slib
 						if (!(loadPicture(image, loader, location))) {
 							continue;
 						}
+						image.convertToSourceCoordinate();
 						Rectangle rcDst;
 						rcDst.left = rcView.left + (sl_real)(((double)(tx * m_tileLength) - sx) * scale);
 						rcDst.top = rcView.bottom - (sl_real)(((double)((ty + 1) * m_tileLength) - sy) * scale);
@@ -1329,6 +1357,7 @@ namespace slib
 							if (!(loadImage(image, layer.reader, m_cacheLayers[i].get(), loader, location))) {
 								continue;
 							}
+							image.convertToSourceCoordinate();
 							if (layer.opacity < 0.999f) {
 								Canvas::DrawParam param;
 								param.useAlpha = sl_true;
@@ -1371,8 +1400,8 @@ namespace slib
 				if (_out.source.isNotNull()) {
 					_out.region.left = 0;
 					_out.region.top = 0;
-					_out.region.right = 256.0f;
-					_out.region.bottom = 256.0f;
+					_out.region.right = 1.0f;
+					_out.region.bottom = 1.0f;
 					_out.flagDrawWhole = sl_true;
 					return sl_true;
 				}
