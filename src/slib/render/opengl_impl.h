@@ -1837,9 +1837,15 @@ namespace slib
 
 			};
 
-			Ref<TextureInstance> _createTextureInstance(Texture* texture) override
+			Ref<TextureInstance> _createTextureInstance(Texture* texture, sl_int32 sampler) override
 			{
-				return GLTextureInstance::create(this, texture);
+				GL_BASE::setActiveSampler(sampler);
+				Ref<GLTextureInstance> ret = GLTextureInstance::create(this, texture);
+				if (ret.isNotNull()) {
+					_applySamplerState(sampler);
+					return Ref<TextureInstance>::cast(ret);
+				}
+				return sl_null;
 			}
 
 			sl_bool _beginScene() override
@@ -1967,9 +1973,9 @@ namespace slib
 				}
 			}
 
-			void _applyTexture(Texture* texture, TextureInstance* _instance, sl_int32 samplerNo) override
+			void _applyTexture(Texture* texture, TextureInstance* _instance, sl_int32 sampler) override
 			{
-				GL_BASE::setActiveSampler(samplerNo);
+				GL_BASE::setActiveSampler(sampler);
 				if (!texture) {
 					GL_BASE::unbindTexture2D();
 					return;
@@ -1984,9 +1990,14 @@ namespace slib
 					GLNamedTexture* named = static_cast<GLNamedTexture*>(texture);
 					GL_BASE::bindTexture(named->m_target, named->m_name);
 				}
+				_applySamplerState(sampler);
+			}
+
+			void _applySamplerState(sl_int32 sampler)
+			{
 				const RenderSamplerParam* param = sl_null;
-				if ((sl_uint32)samplerNo < CountOfArray(m_currentSamplerStates)) {
-					RenderSamplerState* state = m_currentSamplerStates[samplerNo].get();
+				if ((sl_uint32)sampler < CountOfArray(m_currentSamplerStates)) {
+					RenderSamplerState* state = m_currentSamplerStates[sampler].get();
 					if (state) {
 						param = &(state->getParam());
 					}

@@ -60,6 +60,7 @@ namespace slib
 #if D3D_VERSION_MAJOR >= 10
 			IDXGISwapChain* m_pSwapChain = sl_null;
 			ID3DRenderTargetView* m_pRenderTarget = sl_null;
+			ID3DDepthStencilView* m_pDepthStencil = sl_null;
 #endif
 
 			HWND m_hWnd = sl_null;
@@ -286,7 +287,40 @@ namespace slib
 						return sl_false;
 					}
 				}
-				m_context->OMSetRenderTargets(1, &m_pRenderTarget, NULL);
+				{
+					const DXGI_FORMAT format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+					RECT rc;
+					GetClientRect(m_hWnd, &rc);
+
+					ID3DTexture2D* pTexture = sl_null;
+					{
+						D3D_(TEXTURE2D_DESC) desc = {};
+						desc.Width = rc.right;
+						desc.Height = rc.bottom;
+						desc.MipLevels = 1;
+						desc.ArraySize = 1;
+						desc.Format = format;
+						desc.SampleDesc.Count = 1;
+						desc.SampleDesc.Quality = 0;
+						desc.Usage = D3D_(USAGE_DEFAULT);
+						desc.BindFlags = D3D_(BIND_DEPTH_STENCIL);
+						desc.CPUAccessFlags = 0;
+						desc.MiscFlags = 0;
+						m_device->CreateTexture2D(&desc, NULL, &pTexture);
+					}
+					if (pTexture) {
+						D3D_(DEPTH_STENCIL_VIEW_DESC) desc = {};
+						desc.Format = format;
+						desc.ViewDimension = D3D_(DSV_DIMENSION_TEXTURE2D);
+						desc.Texture2D.MipSlice = 0;
+						m_device->CreateDepthStencilView(pTexture, &desc, &m_pDepthStencil);
+						pTexture->Release();
+					}
+					if (!m_pDepthStencil) {
+						return sl_false;
+					}
+				}
+				m_context->OMSetRenderTargets(1, &m_pRenderTarget, m_pDepthStencil);
 #endif
 				return sl_true;
 			}
@@ -297,6 +331,10 @@ namespace slib
 				if (m_pRenderTarget) {
 					m_pRenderTarget->Release();
 					m_pRenderTarget = sl_null;
+				}
+				if (m_pDepthStencil) {
+					m_pDepthStencil->Release();
+					m_pDepthStencil = sl_null;
 				}
 				if (m_pSwapChain) {
 					m_pSwapChain->Release();
@@ -418,78 +456,78 @@ namespace slib
 				List<D3D_(INPUT_ELEMENT_DESC)> descs;
 				for (sl_size i = 0; i < inputs.count; i++) {
 					RenderInputLayoutItem& item = inputs[i];
-					D3D_(INPUT_ELEMENT_DESC) desc = { 0 };
+					D3D_(INPUT_ELEMENT_DESC) desc = {};
 					switch (item.semanticName) {
-					case RenderInputSemanticName::Position:
-						desc.SemanticName = "POSITION";
-						break;
-					case RenderInputSemanticName::BlendWeight:
-						desc.SemanticName = "BLENDWEIGHT";
-						break;
-					case RenderInputSemanticName::BlendIndices:
-						desc.SemanticName = "BLENDINDICES";
-						break;
-					case RenderInputSemanticName::Normal:
-						desc.SemanticName = "NORMAL";
-						break;
-					case RenderInputSemanticName::PSize:
-						desc.SemanticName = "PSIZE";
-						break;
-					case RenderInputSemanticName::TexCoord:
-						desc.SemanticName = "TEXCOORD";
-						break;
-					case RenderInputSemanticName::Tangent:
-						desc.SemanticName = "TANGENT";
-						break;
-					case RenderInputSemanticName::BiNormal:
-						desc.SemanticName = "BINORMAL";
-						break;
-					case RenderInputSemanticName::TessFactor:
-						desc.SemanticName = "TESSFACTOR";
-						break;
-					case RenderInputSemanticName::PositionT:
-						desc.SemanticName = "POSITIONT";
-						break;
-					case RenderInputSemanticName::Color:
-						desc.SemanticName = "COLOR";
-						break;
-					case RenderInputSemanticName::Fog:
-						desc.SemanticName = "FOG";
-						break;
-					case RenderInputSemanticName::Depth:
-						desc.SemanticName = "DEPTH";
-						break;
-					default:
-						desc.SemanticName = NULL;
-						break;
+						case RenderInputSemanticName::Position:
+							desc.SemanticName = "POSITION";
+							break;
+						case RenderInputSemanticName::BlendWeight:
+							desc.SemanticName = "BLENDWEIGHT";
+							break;
+						case RenderInputSemanticName::BlendIndices:
+							desc.SemanticName = "BLENDINDICES";
+							break;
+						case RenderInputSemanticName::Normal:
+							desc.SemanticName = "NORMAL";
+							break;
+						case RenderInputSemanticName::PSize:
+							desc.SemanticName = "PSIZE";
+							break;
+						case RenderInputSemanticName::TexCoord:
+							desc.SemanticName = "TEXCOORD";
+							break;
+						case RenderInputSemanticName::Tangent:
+							desc.SemanticName = "TANGENT";
+							break;
+						case RenderInputSemanticName::BiNormal:
+							desc.SemanticName = "BINORMAL";
+							break;
+						case RenderInputSemanticName::TessFactor:
+							desc.SemanticName = "TESSFACTOR";
+							break;
+						case RenderInputSemanticName::PositionT:
+							desc.SemanticName = "POSITIONT";
+							break;
+						case RenderInputSemanticName::Color:
+							desc.SemanticName = "COLOR";
+							break;
+						case RenderInputSemanticName::Fog:
+							desc.SemanticName = "FOG";
+							break;
+						case RenderInputSemanticName::Depth:
+							desc.SemanticName = "DEPTH";
+							break;
+						default:
+							desc.SemanticName = NULL;
+							break;
 					}
 					if (desc.SemanticName) {
 						desc.SemanticIndex = (UINT)(item.semanticIndex);
 						switch (item.type) {
-						case RenderInputType::Float:
-							desc.Format = DXGI_FORMAT_R32_FLOAT;
-							break;
-						case RenderInputType::Float2:
-							desc.Format = DXGI_FORMAT_R32G32_FLOAT;
-							break;
-						case RenderInputType::Float3:
-							desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-							break;
-						case RenderInputType::Float4:
-							desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-							break;
-						case RenderInputType::UByte4:
-							desc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
-							break;
-						case RenderInputType::Short2:
-							desc.Format = DXGI_FORMAT_R16G16_SINT;
-							break;
-						case RenderInputType::Short4:
-							desc.Format = DXGI_FORMAT_R16G16B16A16_SINT;
-							break;
-						default:
-							desc.Format = DXGI_FORMAT_UNKNOWN;
-							break;
+							case RenderInputType::Float:
+								desc.Format = DXGI_FORMAT_R32_FLOAT;
+								break;
+							case RenderInputType::Float2:
+								desc.Format = DXGI_FORMAT_R32G32_FLOAT;
+								break;
+							case RenderInputType::Float3:
+								desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+								break;
+							case RenderInputType::Float4:
+								desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+								break;
+							case RenderInputType::UByte4:
+								desc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
+								break;
+							case RenderInputType::Short2:
+								desc.Format = DXGI_FORMAT_R16G16_SINT;
+								break;
+							case RenderInputType::Short4:
+								desc.Format = DXGI_FORMAT_R16G16B16A16_SINT;
+								break;
+							default:
+								desc.Format = DXGI_FORMAT_UNKNOWN;
+								break;
 						}
 						if (desc.Format != DXGI_FORMAT_UNKNOWN) {
 							desc.InputSlot = (UINT)(item.slot);
@@ -508,79 +546,79 @@ namespace slib
 				List<D3DVERTEXELEMENT9> elements;
 				for (sl_size i = 0; i < inputs.count; i++) {
 					RenderInputLayoutItem& item = inputs[i];
-					D3DVERTEXELEMENT9 element = { 0 };
+					D3DVERTEXELEMENT9 element = {};
 					sl_bool flagValidUsage = sl_true;
 					switch (item.semanticName) {
-					case RenderInputSemanticName::Position:
-						element.Usage = D3DDECLUSAGE_POSITION;
-						break;
-					case RenderInputSemanticName::BlendWeight:
-						element.Usage = D3DDECLUSAGE_BLENDWEIGHT;
-						break;
-					case RenderInputSemanticName::BlendIndices:
-						element.Usage = D3DDECLUSAGE_BLENDINDICES;
-						break;
-					case RenderInputSemanticName::Normal:
-						element.Usage = D3DDECLUSAGE_NORMAL;
-						break;
-					case RenderInputSemanticName::PSize:
-						element.Usage = D3DDECLUSAGE_PSIZE;
-						break;
-					case RenderInputSemanticName::TexCoord:
-						element.Usage = D3DDECLUSAGE_TEXCOORD;
-						break;
-					case RenderInputSemanticName::Tangent:
-						element.Usage = D3DDECLUSAGE_TANGENT;
-						break;
-					case RenderInputSemanticName::BiNormal:
-						element.Usage = D3DDECLUSAGE_BINORMAL;
-						break;
-					case RenderInputSemanticName::TessFactor:
-						element.Usage = D3DDECLUSAGE_TESSFACTOR;
-						break;
-					case RenderInputSemanticName::PositionT:
-						element.Usage = D3DDECLUSAGE_POSITIONT;
-						break;
-					case RenderInputSemanticName::Color:
-						element.Usage = D3DDECLUSAGE_COLOR;
-						break;
-					case RenderInputSemanticName::Fog:
-						element.Usage = D3DDECLUSAGE_FOG;
-						break;
-					case RenderInputSemanticName::Depth:
-						element.Usage = D3DDECLUSAGE_DEPTH;
-						break;
-					default:
-						flagValidUsage = sl_false;
-						break;
+						case RenderInputSemanticName::Position:
+							element.Usage = D3DDECLUSAGE_POSITION;
+							break;
+						case RenderInputSemanticName::BlendWeight:
+							element.Usage = D3DDECLUSAGE_BLENDWEIGHT;
+							break;
+						case RenderInputSemanticName::BlendIndices:
+							element.Usage = D3DDECLUSAGE_BLENDINDICES;
+							break;
+						case RenderInputSemanticName::Normal:
+							element.Usage = D3DDECLUSAGE_NORMAL;
+							break;
+						case RenderInputSemanticName::PSize:
+							element.Usage = D3DDECLUSAGE_PSIZE;
+							break;
+						case RenderInputSemanticName::TexCoord:
+							element.Usage = D3DDECLUSAGE_TEXCOORD;
+							break;
+						case RenderInputSemanticName::Tangent:
+							element.Usage = D3DDECLUSAGE_TANGENT;
+							break;
+						case RenderInputSemanticName::BiNormal:
+							element.Usage = D3DDECLUSAGE_BINORMAL;
+							break;
+						case RenderInputSemanticName::TessFactor:
+							element.Usage = D3DDECLUSAGE_TESSFACTOR;
+							break;
+						case RenderInputSemanticName::PositionT:
+							element.Usage = D3DDECLUSAGE_POSITIONT;
+							break;
+						case RenderInputSemanticName::Color:
+							element.Usage = D3DDECLUSAGE_COLOR;
+							break;
+						case RenderInputSemanticName::Fog:
+							element.Usage = D3DDECLUSAGE_FOG;
+							break;
+						case RenderInputSemanticName::Depth:
+							element.Usage = D3DDECLUSAGE_DEPTH;
+							break;
+						default:
+							flagValidUsage = sl_false;
+							break;
 					}
 					if (flagValidUsage) {
 						element.UsageIndex = (BYTE)(element.UsageIndex);
 						switch (item.type) {
-						case RenderInputType::Float:
-							element.Type = D3DDECLTYPE_FLOAT1;
-							break;
-						case RenderInputType::Float2:
-							element.Type = D3DDECLTYPE_FLOAT2;
-							break;
-						case RenderInputType::Float3:
-							element.Type = D3DDECLTYPE_FLOAT3;
-							break;
-						case RenderInputType::Float4:
-							element.Type = D3DDECLTYPE_FLOAT4;
-							break;
-						case RenderInputType::UByte4:
-							element.Type = D3DDECLTYPE_UBYTE4;
-							break;
-						case RenderInputType::Short2:
-							element.Type = D3DDECLTYPE_SHORT2;
-							break;
-						case RenderInputType::Short4:
-							element.Type = D3DDECLTYPE_SHORT4;
-							break;
-						default:
-							element.Type = D3DDECLTYPE_UNUSED;
-							break;
+							case RenderInputType::Float:
+								element.Type = D3DDECLTYPE_FLOAT1;
+								break;
+							case RenderInputType::Float2:
+								element.Type = D3DDECLTYPE_FLOAT2;
+								break;
+							case RenderInputType::Float3:
+								element.Type = D3DDECLTYPE_FLOAT3;
+								break;
+							case RenderInputType::Float4:
+								element.Type = D3DDECLTYPE_FLOAT4;
+								break;
+							case RenderInputType::UByte4:
+								element.Type = D3DDECLTYPE_UBYTE4;
+								break;
+							case RenderInputType::Short2:
+								element.Type = D3DDECLTYPE_SHORT2;
+								break;
+							case RenderInputType::Short4:
+								element.Type = D3DDECLTYPE_SHORT4;
+								break;
+							default:
+								element.Type = D3DDECLTYPE_UNUSED;
+								break;
 						}
 						if (element.Type != D3DDECLTYPE_UNUSED) {
 							element.Method = D3DDECLMETHOD_DEFAULT;
@@ -661,11 +699,11 @@ namespace slib
 				data = (sl_uint8*)(mem.getData());
 				Base::zeroMemory(data, size);
 
-				D3D_(BUFFER_DESC) desc = { 0 };
+				D3D_(BUFFER_DESC) desc = {};
 				desc.BindFlags = D3D_(BIND_CONSTANT_BUFFER);
 				desc.ByteWidth = size;
 
-				D3D_(SUBRESOURCE_DATA) res = { 0 };
+				D3D_(SUBRESOURCE_DATA) res = {};
 				res.pSysMem = data;
 
 				device->CreateBuffer(&desc, &res, &handle);
@@ -921,22 +959,22 @@ namespace slib
 					return;
 				}
 				switch (location.shader) {
-				case RenderShaderType::Vertex:
-				case RenderShaderType::Pixel:
-					_setUniform(location, type, data, nItems);
-					break;
-				default:
-					break;
-				}
-				if (location.shader & RenderShaderType::Vertex) {
-					RenderUniformLocation l = location;
-					l.shader = RenderShaderType::Vertex;
-					_setUniform(l, type, data, nItems);
-				}
-				if (location.shader & RenderShaderType::Pixel) {
-					RenderUniformLocation l = location;
-					l.shader = RenderShaderType::Pixel;
-					_setUniform(l, type, data, nItems);
+					case RenderShaderType::Vertex:
+					case RenderShaderType::Pixel:
+						_setUniform(location, type, data, nItems);
+						break;
+					default:
+						if (location.shader & RenderShaderType::Vertex) {
+							RenderUniformLocation l = location;
+							l.shader = RenderShaderType::Vertex;
+							_setUniform(l, type, data, nItems);
+						}
+						if (location.shader & RenderShaderType::Pixel) {
+							RenderUniformLocation l = location;
+							l.shader = RenderShaderType::Pixel;
+							_setUniform(l, type, data, nItems);
+						}
+						break;
 				}
 			}
 
@@ -964,119 +1002,119 @@ namespace slib
 				float *t = temp;
 				Memory memTemp;
 				switch (type) {
-				case RenderUniformType::Float:
-					break;
-				case RenderUniformType::Float2:
-					type = RenderUniformType::Float;
-					nItems <<= 1;
-					break;
-				case RenderUniformType::Float3:
-				case RenderUniformType::Int3:
-					if (type == RenderUniformType::Float3) {
+					case RenderUniformType::Float:
+						break;
+					case RenderUniformType::Float2:
 						type = RenderUniformType::Float;
-					} else {
-						type = RenderUniformType::Int;
-					}
-					if (nItems == 1) {
-						float* s = (float*)_data;
-						data = t;
-						t[0] = s[0]; t[1] = s[1]; t[2] = s[2]; t[3] = 0;
-						nItems = 4;
-					} else {
-						sl_uint32 n = nItems;
-						nItems = n << 2;
-						memTemp = Memory::create(nItems << 2);
-						if (memTemp.isNull()) {
-							return;
+						nItems <<= 1;
+						break;
+					case RenderUniformType::Float3:
+					case RenderUniformType::Int3:
+						if (type == RenderUniformType::Float3) {
+							type = RenderUniformType::Float;
+						} else {
+							type = RenderUniformType::Int;
 						}
-						float* s = (float*)_data;
-						float* t = (float*)(memTemp.getData());
-						data = t;
-						for (sl_uint32 i = 0; i < n; i++) {
+						if (nItems == 1) {
+							float* s = (float*)_data;
+							data = t;
 							t[0] = s[0]; t[1] = s[1]; t[2] = s[2]; t[3] = 0;
-							t += 4;
-							s += 3;
+							nItems = 4;
+						} else {
+							sl_uint32 n = nItems;
+							nItems = n << 2;
+							memTemp = Memory::create(nItems << 2);
+							if (memTemp.isNull()) {
+								return;
+							}
+							float* s = (float*)_data;
+							float* t = (float*)(memTemp.getData());
+							data = t;
+							for (sl_uint32 i = 0; i < n; i++) {
+								t[0] = s[0]; t[1] = s[1]; t[2] = s[2]; t[3] = 0;
+								t += 4;
+								s += 3;
+							}
 						}
-					}
-					break;
-				case RenderUniformType::Float4:
-					type = RenderUniformType::Float;
-					nItems <<= 2;
-					break;
-				case RenderUniformType::Matrix3:
-					type = RenderUniformType::Float;
-					if (nItems == 1) {
-						data = t;
-						Matrix3& m = *((Matrix3*)_data);
-						t[0] = m.m00; t[1] = m.m10; t[2] = m.m20; t[3] = 0;
-						t[4] = m.m01; t[5] = m.m11; t[6] = m.m21; t[7] = 0;
-						t[8] = m.m02; t[9] = m.m12; t[10] = m.m22; t[11] = 0;
-						nItems = 12;
-					} else {
-						sl_uint32 n = nItems;
-						nItems = n * 12;
-						memTemp = Memory::create(nItems << 2);
-						if (memTemp.isNull()) {
-							return;
-						}
-						float* t = (float*)(memTemp.getData());
-						data = t;
-						Matrix3* _m = (Matrix3*)_data;
-						for (sl_uint32 i = 0; i < n; i++) {
-							Matrix3& m = *_m;
+						break;
+					case RenderUniformType::Float4:
+						type = RenderUniformType::Float;
+						nItems <<= 2;
+						break;
+					case RenderUniformType::Matrix3:
+						type = RenderUniformType::Float;
+						if (nItems == 1) {
+							data = t;
+							Matrix3& m = *((Matrix3*)_data);
 							t[0] = m.m00; t[1] = m.m10; t[2] = m.m20; t[3] = 0;
 							t[4] = m.m01; t[5] = m.m11; t[6] = m.m21; t[7] = 0;
 							t[8] = m.m02; t[9] = m.m12; t[10] = m.m22; t[11] = 0;
-							t += 12;
-							_m++;
+							nItems = 12;
+						} else {
+							sl_uint32 n = nItems;
+							nItems = n * 12;
+							memTemp = Memory::create(nItems << 2);
+							if (memTemp.isNull()) {
+								return;
+							}
+							float* t = (float*)(memTemp.getData());
+							data = t;
+							Matrix3* _m = (Matrix3*)_data;
+							for (sl_uint32 i = 0; i < n; i++) {
+								Matrix3& m = *_m;
+								t[0] = m.m00; t[1] = m.m10; t[2] = m.m20; t[3] = 0;
+								t[4] = m.m01; t[5] = m.m11; t[6] = m.m21; t[7] = 0;
+								t[8] = m.m02; t[9] = m.m12; t[10] = m.m22; t[11] = 0;
+								t += 12;
+								_m++;
+							}
 						}
-					}
-					break;
-				case RenderUniformType::Matrix4:
-					type = RenderUniformType::Float;
-					if (nItems == 1) {
-						data = t;
-						Matrix4& m = *((Matrix4*)_data);
-						t[0] = m.m00; t[1] = m.m10; t[2] = m.m20; t[3] = m.m30;
-						t[4] = m.m01; t[5] = m.m11; t[6] = m.m21; t[7] = m.m31;
-						t[8] = m.m02; t[9] = m.m12; t[10] = m.m22; t[11] = m.m32;
-						t[8] = m.m03; t[9] = m.m13; t[10] = m.m23; t[11] = m.m33;
-						nItems = 16;
-					} else {
-						sl_uint32 n = nItems;
-						nItems = n << 4;
-						memTemp = Memory::create(nItems << 2);
-						if (memTemp.isNull()) {
-							return;
-						}
-						float* t = (float*)(memTemp.getData());
-						data = t;
-						Matrix4* _m = (Matrix4*)_data;
-						for (sl_uint32 i = 0; i < n; i++) {
-							Matrix4& m = *_m;
+						break;
+					case RenderUniformType::Matrix4:
+						type = RenderUniformType::Float;
+						if (nItems == 1) {
+							data = t;
+							Matrix4& m = *((Matrix4*)_data);
 							t[0] = m.m00; t[1] = m.m10; t[2] = m.m20; t[3] = m.m30;
 							t[4] = m.m01; t[5] = m.m11; t[6] = m.m21; t[7] = m.m31;
 							t[8] = m.m02; t[9] = m.m12; t[10] = m.m22; t[11] = m.m32;
-							t[8] = m.m03; t[9] = m.m13; t[10] = m.m23; t[11] = m.m33;
-							t += 16;
-							_m++;
+							t[12] = m.m03; t[13] = m.m13; t[14] = m.m23; t[15] = m.m33;
+							nItems = 16;
+						} else {
+							sl_uint32 n = nItems;
+							nItems = n << 4;
+							memTemp = Memory::create(nItems << 2);
+							if (memTemp.isNull()) {
+								return;
+							}
+							float* t = (float*)(memTemp.getData());
+							data = t;
+							Matrix4* _m = (Matrix4*)_data;
+							for (sl_uint32 i = 0; i < n; i++) {
+								Matrix4& m = *_m;
+								t[0] = m.m00; t[1] = m.m10; t[2] = m.m20; t[3] = m.m30;
+								t[4] = m.m01; t[5] = m.m11; t[6] = m.m21; t[7] = m.m31;
+								t[8] = m.m02; t[9] = m.m12; t[10] = m.m22; t[11] = m.m32;
+								t[12] = m.m03; t[13] = m.m13; t[14] = m.m23; t[15] = m.m33;
+								t += 16;
+								_m++;
+							}
 						}
-					}
-					break;
-				case RenderUniformType::Int:
-					break;
-				case RenderUniformType::Int2:
-					type = RenderUniformType::Int;
-					nItems <<= 1;
-					break;
-				case RenderUniformType::Int4:
-					type = RenderUniformType::Int;
-					nItems <<= 2;
-					break;
-				case RenderUniformType::Sampler:
-					return;
-				default:
-					return;
+						break;
+					case RenderUniformType::Int:
+						break;
+					case RenderUniformType::Int2:
+						type = RenderUniformType::Int;
+						nItems <<= 1;
+						break;
+					case RenderUniformType::Int4:
+						type = RenderUniformType::Int;
+						nItems <<= 2;
+						break;
+					case RenderUniformType::Sampler:
+						return;
+					default:
+						return;
 				}
 #if D3D_VERSION_MAJOR >= 10
 				sl_uint32 size = nItems << 2;
@@ -1096,7 +1134,7 @@ namespace slib
 				}
 				nItems = nItems & 3;
 				if (nItems) {
-					sl_uint8 t[16] = { 0 };
+					sl_uint8 t[16] = {};
 					Base::copyMemory(t, data, nItems << 2);
 					RenderUniformLocation l = location;
 					l.registerNo += n4;
@@ -1209,29 +1247,29 @@ namespace slib
 					}
 					DWORD type = 0;
 					switch (item.type) {
-					case RenderInputType::Float:
-						type = D3DVSDT_FLOAT1;
-						break;
-					case RenderInputType::Float2:
-						type = D3DVSDT_FLOAT2;
-						break;
-					case RenderInputType::Float3:
-						type = D3DVSDT_FLOAT3;
-						break;
-					case RenderInputType::Float4:
-						type = D3DVSDT_FLOAT4;
-						break;
-					case RenderInputType::UByte4:
-						type = D3DVSDT_UBYTE4;
-						break;
-					case RenderInputType::Short2:
-						type = D3DVSDT_SHORT2;
-						break;
-					case RenderInputType::Short4:
-						type = D3DVSDT_SHORT4;
-						break;
-					default:
-						break;
+						case RenderInputType::Float:
+							type = D3DVSDT_FLOAT1;
+							break;
+						case RenderInputType::Float2:
+							type = D3DVSDT_FLOAT2;
+							break;
+						case RenderInputType::Float3:
+							type = D3DVSDT_FLOAT3;
+							break;
+						case RenderInputType::Float4:
+							type = D3DVSDT_FLOAT4;
+							break;
+						case RenderInputType::UByte4:
+							type = D3DVSDT_UBYTE4;
+							break;
+						case RenderInputType::Short2:
+							type = D3DVSDT_SHORT2;
+							break;
+						case RenderInputType::Short4:
+							type = D3DVSDT_SHORT4;
+							break;
+						default:
+							break;
 					}
 					decl.add_NoLock(D3DVSD_REG((DWORD)i, type));
 				}
@@ -1247,35 +1285,35 @@ namespace slib
 				sl_bool flagError = sl_false;
 				DWORD reg = 0;
 				switch (name) {
-				case RenderInputSemanticName::Position:
-					reg = D3DVSDE_POSITION;
-					break;
-				case RenderInputSemanticName::BlendWeight:
-					reg = D3DVSDE_BLENDWEIGHT;
-					break;
-				case RenderInputSemanticName::BlendIndices:
-					reg = D3DVSDE_BLENDINDICES;
-					break;
-				case RenderInputSemanticName::Normal:
-					reg = D3DVSDE_NORMAL;
-					break;
-				case RenderInputSemanticName::PSize:
-					reg = D3DVSDE_PSIZE;
-					break;
-				case RenderInputSemanticName::TexCoord:
-					reg = D3DVSDE_TEXCOORD0;
-					break;
-				case RenderInputSemanticName::Color:
-					reg = D3DVSDE_DIFFUSE;
-					break;
-				case RenderInputSemanticName::Tangent:
-				case RenderInputSemanticName::BiNormal:
-				case RenderInputSemanticName::TessFactor:
-				case RenderInputSemanticName::PositionT:
-				case RenderInputSemanticName::Fog:
-				case RenderInputSemanticName::Depth:
-					flagError = sl_true;
-					break;
+					case RenderInputSemanticName::Position:
+						reg = D3DVSDE_POSITION;
+						break;
+					case RenderInputSemanticName::BlendWeight:
+						reg = D3DVSDE_BLENDWEIGHT;
+						break;
+					case RenderInputSemanticName::BlendIndices:
+						reg = D3DVSDE_BLENDINDICES;
+						break;
+					case RenderInputSemanticName::Normal:
+						reg = D3DVSDE_NORMAL;
+						break;
+					case RenderInputSemanticName::PSize:
+						reg = D3DVSDE_PSIZE;
+						break;
+					case RenderInputSemanticName::TexCoord:
+						reg = D3DVSDE_TEXCOORD0;
+						break;
+					case RenderInputSemanticName::Color:
+						reg = D3DVSDE_DIFFUSE;
+						break;
+					case RenderInputSemanticName::Tangent:
+					case RenderInputSemanticName::BiNormal:
+					case RenderInputSemanticName::TessFactor:
+					case RenderInputSemanticName::PositionT:
+					case RenderInputSemanticName::Fog:
+					case RenderInputSemanticName::Depth:
+						flagError = sl_true;
+						break;
 				}
 				if (!flagError && index) {
 					if (reg == D3DVSDE_POSITION) {
@@ -1378,7 +1416,7 @@ namespace slib
 		}
 #endif
 
-		template <class BUFFER, class BUFFER_INSTANCE, class DEVICE_BUFFER>
+		template <class BUFFER, class BUFFER_INSTANCE, class DEVICE_BUFFER, sl_bool flagVertexBuffer>
 		class RenderBufferInstanceImpl : public BUFFER_INSTANCE
 		{
 		public:
@@ -1419,11 +1457,11 @@ namespace slib
 				DEVICE_BUFFER* handle = sl_null;
 #if D3D_VERSION_MAJOR >= 10
 				sl_bool flagLockable = sl_false;
-				D3D_(BUFFER_DESC) desc = { 0 };
-				desc.BindFlags = D3D_(BIND_VERTEX_BUFFER);
+				D3D_(BUFFER_DESC) desc = {};
+				desc.BindFlags = flagVertexBuffer ? D3D_(BIND_VERTEX_BUFFER) : D3D_(BIND_INDEX_BUFFER);
 				desc.ByteWidth = size;
 				PrepareObjectFlags(buffer->getFlags(), desc.Usage, desc.CPUAccessFlags, flagLockable);
-				D3D_(SUBRESOURCE_DATA) data = { 0 };
+				D3D_(SUBRESOURCE_DATA) data = {};
 				data.pSysMem = content.getData();
 				device->CreateBuffer(&desc, &data, &handle);
 #else
@@ -1479,7 +1517,7 @@ namespace slib
 					return;
 				}
 #if D3D_VERSION_MAJOR >= 11
-				D3D_(MAPPED_SUBRESOURCE) res = { 0 };
+				D3D_(MAPPED_SUBRESOURCE) res = {};
 				context->Map(handle, 0, D3D_(MAP_WRITE), 0, &res);
 				data = res.pData;
 #else
@@ -1506,9 +1544,9 @@ namespace slib
 
 		};
 
-		typedef RenderBufferInstanceImpl<VertexBuffer, VertexBufferInstance, ID3DVertexBuffer> VertexBufferInstanceImpl;
+		typedef RenderBufferInstanceImpl<VertexBuffer, VertexBufferInstance, ID3DVertexBuffer, sl_true> VertexBufferInstanceImpl;
 
-		typedef RenderBufferInstanceImpl<IndexBuffer, IndexBufferInstance, ID3DIndexBuffer> IndexBufferInstanceImpl;
+		typedef RenderBufferInstanceImpl<IndexBuffer, IndexBufferInstance, ID3DIndexBuffer, sl_false> IndexBufferInstanceImpl;
 
 
 		class TextureInstanceImpl : public TextureInstance
@@ -1568,7 +1606,7 @@ namespace slib
 					return sl_null;
 				}
 				sl_bool flagLockable = sl_false;
-				D3D_(TEXTURE2D_DESC) desc = { 0 };
+				D3D_(TEXTURE2D_DESC) desc = {};
 				desc.Width = (UINT)width;
 				desc.Height = (UINT)height;
 				desc.MipLevels = 1;
@@ -1577,7 +1615,7 @@ namespace slib
 				desc.BindFlags = D3D10_BIND_SHADER_RESOURCE;
 				desc.ArraySize = 1;
 				PrepareObjectFlags(texture->getFlags(), desc.Usage, desc.CPUAccessFlags, flagLockable);
-				D3D_(SUBRESOURCE_DATA) data = { 0 };
+				D3D_(SUBRESOURCE_DATA) data = {};
 				data.pSysMem = image->getColors();
 				data.SysMemPitch = (UINT)(image->getStride() << 2);
 				device->CreateTexture2D(&desc, &data, &handle);
@@ -1649,12 +1687,12 @@ namespace slib
 					return;
 				}
 #if D3D_VERSION_MAJOR >= 11
-				D3D_(MAPPED_SUBRESOURCE) res = { 0 };
+				D3D_(MAPPED_SUBRESOURCE) res = {};
 				context->Map(handle, 0, D3D_(MAP_WRITE), 0, &res);
 				void* data = res.pData;
 				sl_int32 pitch = (sl_int32)(res.RowPitch);
 #else
-				D3D_(MAPPED_TEXTURE2D) mt = { 0 };
+				D3D_(MAPPED_TEXTURE2D) mt = {};
 				handle->Map(0, D3D_(MAP_WRITE), 0, &mt);
 				void* data = mt.pData;
 				sl_int32 pitch = (sl_int32)(mt.RowPitch);
@@ -1694,31 +1732,31 @@ namespace slib
 		static D3D_(COMPARISON_FUNC) GetComparisonFunction(RenderFunctionOperation op)
 		{
 			switch (op) {
-			case RenderFunctionOperation::Never:
-				return D3D_(COMPARISON_NEVER);
-			case RenderFunctionOperation::Always:
-				return D3D_(COMPARISON_ALWAYS);
-			case RenderFunctionOperation::Equal:
-				return D3D_(COMPARISON_EQUAL);
-			case RenderFunctionOperation::NotEqual:
-				return D3D_(COMPARISON_NOT_EQUAL);
-			case RenderFunctionOperation::Less:
-				return D3D_(COMPARISON_LESS);
-			case RenderFunctionOperation::LessEqual:
-				return D3D_(COMPARISON_LESS_EQUAL);
-			case RenderFunctionOperation::Greater:
-				return D3D_(COMPARISON_GREATER);
-			case RenderFunctionOperation::GreaterEqual:
-				return D3D_(COMPARISON_GREATER_EQUAL);
-			default:
-				break;
+				case RenderFunctionOperation::Never:
+					return D3D_(COMPARISON_NEVER);
+				case RenderFunctionOperation::Always:
+					return D3D_(COMPARISON_ALWAYS);
+				case RenderFunctionOperation::Equal:
+					return D3D_(COMPARISON_EQUAL);
+				case RenderFunctionOperation::NotEqual:
+					return D3D_(COMPARISON_NOT_EQUAL);
+				case RenderFunctionOperation::Less:
+					return D3D_(COMPARISON_LESS);
+				case RenderFunctionOperation::LessEqual:
+					return D3D_(COMPARISON_LESS_EQUAL);
+				case RenderFunctionOperation::Greater:
+					return D3D_(COMPARISON_GREATER);
+				case RenderFunctionOperation::GreaterEqual:
+					return D3D_(COMPARISON_GREATER_EQUAL);
+				default:
+					break;
 			}
 			return D3D_(COMPARISON_NEVER);
 		}
 
 		static void CreateState(ID3DDevice* device, const RenderDepthStencilParam& param, ID3DDepthStencilState** state)
 		{
-			D3D_(DEPTH_STENCIL_DESC) desc = { 0 };
+			D3D_(DEPTH_STENCIL_DESC) desc = {};
 			desc.DepthEnable = param.flagTestDepth ? TRUE : FALSE;
 			desc.DepthWriteMask = param.flagWriteDepth ? D3D_(DEPTH_WRITE_MASK_ALL) : D3D_(DEPTH_WRITE_MASK_ZERO);
 			desc.DepthFunc = GetComparisonFunction(param.depthFunction);
@@ -1765,14 +1803,14 @@ namespace slib
 		static D3D_(BLEND_OP) GetBlendOperation( RenderBlendingOperation op)
 		{
 			switch (op) {
-			case RenderBlendingOperation::Add:
-				return D3D_(BLEND_OP_ADD);
-			case RenderBlendingOperation::Subtract:
-				return D3D_(BLEND_OP_SUBTRACT);
-			case RenderBlendingOperation::ReverseSubtract:
-				return D3D_(BLEND_OP_REV_SUBTRACT);
-			default:
-				break;
+				case RenderBlendingOperation::Add:
+					return D3D_(BLEND_OP_ADD);
+				case RenderBlendingOperation::Subtract:
+					return D3D_(BLEND_OP_SUBTRACT);
+				case RenderBlendingOperation::ReverseSubtract:
+					return D3D_(BLEND_OP_REV_SUBTRACT);
+				default:
+					break;
 			}
 			return D3D_(BLEND_OP_ADD);
 		}
@@ -1780,34 +1818,34 @@ namespace slib
 		static D3D_(BLEND) GetBlendFactor(RenderBlendingFactor f)
 		{
 			switch (f) {
-			case RenderBlendingFactor::One:
-				return D3D_(BLEND_ONE);
-			case RenderBlendingFactor::Zero:
-				return D3D_(BLEND_ZERO);
-			case RenderBlendingFactor::SrcAlpha:
-				return D3D_(BLEND_SRC_ALPHA);
-			case RenderBlendingFactor::OneMinusSrcAlpha:
-				return D3D_(BLEND_INV_SRC_ALPHA);
-			case RenderBlendingFactor::DstAlpha:
-				return D3D_(BLEND_DEST_ALPHA);
-			case RenderBlendingFactor::OneMinusDstAlpha:
-				return D3D_(BLEND_INV_DEST_ALPHA);
-			case RenderBlendingFactor::SrcColor:
-				return D3D_(BLEND_SRC_COLOR);
-			case RenderBlendingFactor::OneMinusSrcColor:
-				return D3D_(BLEND_INV_SRC_COLOR);
-			case RenderBlendingFactor::DstColor:
-				return D3D_(BLEND_DEST_COLOR);
-			case RenderBlendingFactor::OneMinusDstColor:
-				return D3D_(BLEND_INV_DEST_COLOR);
-			case RenderBlendingFactor::SrcAlphaSaturate:
-				return D3D_(BLEND_SRC_ALPHA_SAT);
-			case RenderBlendingFactor::Constant:
-				return D3D_(BLEND_BLEND_FACTOR);
-			case RenderBlendingFactor::OneMinusConstant:
-				return D3D_(BLEND_INV_BLEND_FACTOR);
-			default:
-				break;
+				case RenderBlendingFactor::One:
+					return D3D_(BLEND_ONE);
+				case RenderBlendingFactor::Zero:
+					return D3D_(BLEND_ZERO);
+				case RenderBlendingFactor::SrcAlpha:
+					return D3D_(BLEND_SRC_ALPHA);
+				case RenderBlendingFactor::OneMinusSrcAlpha:
+					return D3D_(BLEND_INV_SRC_ALPHA);
+				case RenderBlendingFactor::DstAlpha:
+					return D3D_(BLEND_DEST_ALPHA);
+				case RenderBlendingFactor::OneMinusDstAlpha:
+					return D3D_(BLEND_INV_DEST_ALPHA);
+				case RenderBlendingFactor::SrcColor:
+					return D3D_(BLEND_SRC_COLOR);
+				case RenderBlendingFactor::OneMinusSrcColor:
+					return D3D_(BLEND_INV_SRC_COLOR);
+				case RenderBlendingFactor::DstColor:
+					return D3D_(BLEND_DEST_COLOR);
+				case RenderBlendingFactor::OneMinusDstColor:
+					return D3D_(BLEND_INV_DEST_COLOR);
+				case RenderBlendingFactor::SrcAlphaSaturate:
+					return D3D_(BLEND_SRC_ALPHA_SAT);
+				case RenderBlendingFactor::Constant:
+					return D3D_(BLEND_BLEND_FACTOR);
+				case RenderBlendingFactor::OneMinusConstant:
+					return D3D_(BLEND_INV_BLEND_FACTOR);
+				default:
+					break;
 			}
 			return D3D_(BLEND_ONE);
 		}
@@ -1855,14 +1893,14 @@ namespace slib
 		static D3D_(TEXTURE_ADDRESS_MODE) GetTextureAddressMode(TextureWrapMode mode)
 		{
 			switch (mode) {
-			case TextureWrapMode::Clamp:
-				return D3D_(TEXTURE_ADDRESS_CLAMP);
-			case TextureWrapMode::Mirror:
-				return D3D_(TEXTURE_ADDRESS_MIRROR);
-			case TextureWrapMode::Repeat:
-				return D3D_(TEXTURE_ADDRESS_WRAP);
-			default:
-				break;
+				case TextureWrapMode::Clamp:
+					return D3D_(TEXTURE_ADDRESS_CLAMP);
+				case TextureWrapMode::Mirror:
+					return D3D_(TEXTURE_ADDRESS_MIRROR);
+				case TextureWrapMode::Repeat:
+					return D3D_(TEXTURE_ADDRESS_WRAP);
+				default:
+					break;
 			}
 			return D3D_(TEXTURE_ADDRESS_CLAMP);
 		}
@@ -2003,6 +2041,15 @@ namespace slib
 				}
 				return sl_null;
 			}
+
+			ID3DDepthStencilView* getDepthStencil()
+			{
+				RendererImpl* renderer = m_renderer;
+				if (renderer) {
+					return renderer->m_pDepthStencil;
+				}
+				return sl_null;
+			}
 #endif
 
 		public:
@@ -2050,7 +2097,7 @@ namespace slib
 				return Ref<IndexBufferInstance>::cast(IndexBufferInstanceImpl::create(device, context, this, buffer));
 			}
 
-			Ref<TextureInstance> _createTextureInstance(Texture* texture) override
+			Ref<TextureInstance> _createTextureInstance(Texture* texture, sl_int32 sampler) override
 			{
 				ID3DDevice* device = getDevice();
 				if (!device) {
@@ -2060,7 +2107,12 @@ namespace slib
 				if (!context) {
 					return sl_null;
 				}
-				return Ref<TextureInstance>::cast(TextureInstanceImpl::create(device, context, this, texture));
+				Ref<TextureInstanceImpl> ret = TextureInstanceImpl::create(device, context, this, texture);
+				if (ret.isNotNull()) {
+					_applyTexture(texture, ret.get(), sampler);
+					return Ref<TextureInstance>::cast(ret);
+				}
+				return sl_null;
 			}
 
 			sl_bool _beginScene() override
@@ -2135,16 +2187,28 @@ namespace slib
 
 #if D3D_VERSION_MAJOR >= 10
 				ID3DRenderTargetView* pRenderTarget = getRenderTarget();
-				if (!pRenderTarget) {
-					return;
+				if (pRenderTarget) {
+					if (param.flagColor) {
+						float c[4];
+						c[0] = param.color.getRedF();
+						c[1] = param.color.getGreenF();
+						c[2] = param.color.getBlueF();
+						c[3] = param.color.getAlphaF();
+						context->ClearRenderTargetView(pRenderTarget, c);
+					}
 				}
-				if (param.flagColor) {
-					float c[4];
-					c[0] = param.color.getRedF();
-					c[1] = param.color.getGreenF();
-					c[2] = param.color.getBlueF();
-					c[3] = param.color.getAlphaF();
-					context->ClearRenderTargetView(pRenderTarget, c);
+				ID3DDepthStencilView* pDepthStencil = getDepthStencil();
+				if (pDepthStencil) {
+					UINT flags = 0;
+					if (param.flagDepth) {
+						flags |= D3D10_CLEAR_DEPTH;
+					}
+					if (param.flagStencil) {
+						flags |= D3D10_CLEAR_STENCIL;
+					}
+					if (flags) {
+						context->ClearDepthStencilView(pDepthStencil, flags, param.depth, (UINT8)(param.stencil));
+					}
 				}
 #else
 				DWORD flags = 0;
@@ -2185,33 +2249,33 @@ namespace slib
 				context->SetRenderState(D3DRS_ZWRITEENABLE, param.flagWriteDepth ? TRUE : FALSE);
 				DWORD v;
 				switch (param.depthFunction) {
-				case RenderFunctionOperation::Never:
-					v = D3DCMP_NEVER;
-					break;
-				case RenderFunctionOperation::Always:
-					v = D3DCMP_ALWAYS;
-					break;
-				case RenderFunctionOperation::Equal:
-					v = D3DCMP_EQUAL;
-					break;
-				case RenderFunctionOperation::NotEqual:
-					v = D3DCMP_NOTEQUAL;
-					break;
-				case RenderFunctionOperation::Less:
-					v = D3DCMP_LESS;
-					break;
-				case RenderFunctionOperation::LessEqual:
-					v = D3DCMP_LESSEQUAL;
-					break;
-				case RenderFunctionOperation::Greater:
-					v = D3DCMP_GREATER;
-					break;
-				case RenderFunctionOperation::GreaterEqual:
-					v = D3DCMP_GREATEREQUAL;
-					break;
-				default:
-					v = D3DCMP_NEVER;
-					break;
+					case RenderFunctionOperation::Never:
+						v = D3DCMP_NEVER;
+						break;
+					case RenderFunctionOperation::Always:
+						v = D3DCMP_ALWAYS;
+						break;
+					case RenderFunctionOperation::Equal:
+						v = D3DCMP_EQUAL;
+						break;
+					case RenderFunctionOperation::NotEqual:
+						v = D3DCMP_NOTEQUAL;
+						break;
+					case RenderFunctionOperation::Less:
+						v = D3DCMP_LESS;
+						break;
+					case RenderFunctionOperation::LessEqual:
+						v = D3DCMP_LESSEQUAL;
+						break;
+					case RenderFunctionOperation::Greater:
+						v = D3DCMP_GREATER;
+						break;
+					case RenderFunctionOperation::GreaterEqual:
+						v = D3DCMP_GREATEREQUAL;
+						break;
+					default:
+						v = D3DCMP_NEVER;
+						break;
 				}
 				context->SetRenderState(D3DRS_ZFUNC, v);
 				context->SetRenderState(D3DRS_STENCILENABLE, param.flagStencil ? TRUE : FALSE);
@@ -2352,54 +2416,54 @@ namespace slib
 				}
 #if D3D_VERSION_MAJOR >= 10
 				switch (primitive->type) {
-				case PrimitiveType::Triangle:
-					context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_TRIANGLELIST));
-					break;
-				case PrimitiveType::TriangleStrip:
-					context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_TRIANGLESTRIP));
-					break;
-				case PrimitiveType::Line:
-					context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_LINELIST));
-					break;
-				case PrimitiveType::LineStrip:
-					context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_LINESTRIP));
-					break;
-				case PrimitiveType::Point:
-					context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_POINTLIST));
-					break;
-				default:
-					return;
+					case PrimitiveType::Triangle:
+						context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_TRIANGLELIST));
+						break;
+					case PrimitiveType::TriangleStrip:
+						context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_TRIANGLESTRIP));
+						break;
+					case PrimitiveType::Line:
+						context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_LINELIST));
+						break;
+					case PrimitiveType::LineStrip:
+						context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_LINESTRIP));
+						break;
+					case PrimitiveType::Point:
+						context->IASetPrimitiveTopology(D3D_(PRIMITIVE_TOPOLOGY_POINTLIST));
+						break;
+					default:
+						return;
 				}
 #else
 				D3DPRIMITIVETYPE type;
 				sl_int32 nPrimitives;
 				switch (primitive->type) {
-				case PrimitiveType::Triangle:
-					type = D3DPT_TRIANGLELIST;
-					nPrimitives = primitive->countElements / 3;
-					break;
-				case PrimitiveType::TriangleStrip:
-					type = D3DPT_TRIANGLESTRIP;
-					nPrimitives = primitive->countElements - 2;
-					break;
-				case PrimitiveType::TriangleFan:
-					type = D3DPT_TRIANGLEFAN;
-					nPrimitives = primitive->countElements - 2;
-					break;
-				case PrimitiveType::Line:
-					type = D3DPT_LINELIST;
-					nPrimitives = primitive->countElements / 2;
-					break;
-				case PrimitiveType::LineStrip:
-					type = D3DPT_LINESTRIP;
-					nPrimitives = primitive->countElements - 1;
-					break;
-				case PrimitiveType::Point:
-					type = D3DPT_POINTLIST;
-					nPrimitives = primitive->countElements;
-					break;
-				default:
-					return;
+					case PrimitiveType::Triangle:
+						type = D3DPT_TRIANGLELIST;
+						nPrimitives = primitive->countElements / 3;
+						break;
+					case PrimitiveType::TriangleStrip:
+						type = D3DPT_TRIANGLESTRIP;
+						nPrimitives = primitive->countElements - 2;
+						break;
+					case PrimitiveType::TriangleFan:
+						type = D3DPT_TRIANGLEFAN;
+						nPrimitives = primitive->countElements - 2;
+						break;
+					case PrimitiveType::Line:
+						type = D3DPT_LINELIST;
+						nPrimitives = primitive->countElements / 2;
+						break;
+					case PrimitiveType::LineStrip:
+						type = D3DPT_LINESTRIP;
+						nPrimitives = primitive->countElements - 1;
+						break;
+					case PrimitiveType::Point:
+						type = D3DPT_POINTLIST;
+						nPrimitives = primitive->countElements;
+						break;
+					default:
+						return;
 				}
 				if (nPrimitives <= 0) {
 					return;
@@ -2581,17 +2645,17 @@ namespace slib
 			{
 				DWORD v;
 				switch (op) {
-				case RenderBlendingOperation::Add:
-					v = D3DBLENDOP_ADD;
-					break;
-				case RenderBlendingOperation::Subtract:
-					v = D3DBLENDOP_SUBTRACT;
-					break;
-				case RenderBlendingOperation::ReverseSubtract:
-					v = D3DBLENDOP_REVSUBTRACT;
-					break;
-				default:
-					return;
+					case RenderBlendingOperation::Add:
+						v = D3DBLENDOP_ADD;
+						break;
+					case RenderBlendingOperation::Subtract:
+						v = D3DBLENDOP_SUBTRACT;
+						break;
+					case RenderBlendingOperation::ReverseSubtract:
+						v = D3DBLENDOP_REVSUBTRACT;
+						break;
+					default:
+						return;
 				}
 				context->SetRenderState(state, v);
 			}
@@ -2600,49 +2664,49 @@ namespace slib
 			{
 				DWORD v;
 				switch (f) {
-				case RenderBlendingFactor::One:
-					v = D3DBLEND_ONE;
-					break;
-				case RenderBlendingFactor::Zero:
-					v = D3DBLEND_ZERO;
-					break;
-				case RenderBlendingFactor::SrcAlpha:
-					v = D3DBLEND_SRCALPHA;
-					break;
-				case RenderBlendingFactor::OneMinusSrcAlpha:
-					v = D3DBLEND_INVSRCALPHA;
-					break;
-				case RenderBlendingFactor::DstAlpha:
-					v = D3DBLEND_DESTALPHA;
-					break;
-				case RenderBlendingFactor::OneMinusDstAlpha:
-					v = D3DBLEND_INVDESTALPHA;
-					break;
-				case RenderBlendingFactor::SrcColor:
-					v = D3DBLEND_SRCCOLOR;
-					break;
-				case RenderBlendingFactor::OneMinusSrcColor:
-					v = D3DBLEND_INVSRCCOLOR;
-					break;
-				case RenderBlendingFactor::DstColor:
-					v = D3DBLEND_DESTCOLOR;
-					break;
-				case RenderBlendingFactor::OneMinusDstColor:
-					v = D3DBLEND_INVDESTCOLOR;
-					break;
-				case RenderBlendingFactor::SrcAlphaSaturate:
-					v = D3DBLEND_SRCALPHASAT;
-					break;
+					case RenderBlendingFactor::One:
+						v = D3DBLEND_ONE;
+						break;
+					case RenderBlendingFactor::Zero:
+						v = D3DBLEND_ZERO;
+						break;
+					case RenderBlendingFactor::SrcAlpha:
+						v = D3DBLEND_SRCALPHA;
+						break;
+					case RenderBlendingFactor::OneMinusSrcAlpha:
+						v = D3DBLEND_INVSRCALPHA;
+						break;
+					case RenderBlendingFactor::DstAlpha:
+						v = D3DBLEND_DESTALPHA;
+						break;
+					case RenderBlendingFactor::OneMinusDstAlpha:
+						v = D3DBLEND_INVDESTALPHA;
+						break;
+					case RenderBlendingFactor::SrcColor:
+						v = D3DBLEND_SRCCOLOR;
+						break;
+					case RenderBlendingFactor::OneMinusSrcColor:
+						v = D3DBLEND_INVSRCCOLOR;
+						break;
+					case RenderBlendingFactor::DstColor:
+						v = D3DBLEND_DESTCOLOR;
+						break;
+					case RenderBlendingFactor::OneMinusDstColor:
+						v = D3DBLEND_INVDESTCOLOR;
+						break;
+					case RenderBlendingFactor::SrcAlphaSaturate:
+						v = D3DBLEND_SRCALPHASAT;
+						break;
 #if D3D_VERSION_MAJOR >= 9
-				case RenderBlendingFactor::Constant:
-					v = D3DBLEND_BLENDFACTOR;
-					break;
-				case RenderBlendingFactor::OneMinusConstant:
-					v = D3DBLEND_INVBLENDFACTOR;
-					break;
+					case RenderBlendingFactor::Constant:
+						v = D3DBLEND_BLENDFACTOR;
+						break;
+					case RenderBlendingFactor::OneMinusConstant:
+						v = D3DBLEND_INVBLENDFACTOR;
+						break;
 #endif
-				default:
-					return;
+					default:
+						return;
 				}
 				context->SetRenderState(state, v);
 			}
@@ -2659,14 +2723,14 @@ namespace slib
 			static D3DTEXTUREADDRESS _getTextureWrapType(TextureWrapMode mode)
 			{
 				switch (mode) {
-				case TextureWrapMode::Clamp:
-					return D3DTADDRESS_CLAMP;
-				case TextureWrapMode::Mirror:
-					return D3DTADDRESS_MIRROR;
-				case TextureWrapMode::Repeat:
-					return D3DTADDRESS_WRAP;
-				default:
-					break;
+					case TextureWrapMode::Clamp:
+						return D3DTADDRESS_CLAMP;
+					case TextureWrapMode::Mirror:
+						return D3DTADDRESS_MIRROR;
+					case TextureWrapMode::Repeat:
+						return D3DTADDRESS_WRAP;
+					default:
+						break;
 				}
 				return D3DTADDRESS_WRAP;
 			}

@@ -325,10 +325,8 @@ namespace slib
 			if (IsInstanceOf<EngineTexture>(texture)) {
 				_applyTexture(texture, sl_null, sampler);
 			} else {
-				Ref<TextureInstance> instance = linkTexture(_texture);
-				if (instance.isNotNull()) {
-					_applyTexture(texture, instance.get(), sampler);
-				} else {
+				Ref<TextureInstance> instance = linkTexture(_texture, sampler);
+				if (instance.isNull()) {
 					_applyTexture(sl_null, sl_null, sampler);
 				}
 			}
@@ -342,14 +340,15 @@ namespace slib
 		_setInputLayout(layout);
 	}
 
-	Ref<TextureInstance> RenderEngine::linkTexture(const Ref<Texture>& texture)
+	Ref<TextureInstance> RenderEngine::linkTexture(const Ref<Texture>& texture, sl_int32 sampler)
 	{
 		if (texture.isNotNull()) {
 			Ref<TextureInstance> instance = texture->getInstance(this);
 			if (instance.isNotNull()) {
+				_applyTexture(texture, instance.get(), sampler);
 				return instance;
 			}
-			instance = _createTextureInstance(texture.get());
+			instance = _createTextureInstance(texture.get(), sampler);
 			if (instance.isNotNull()) {
 				return instance;
 			}

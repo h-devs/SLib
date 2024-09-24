@@ -853,5 +853,30 @@ namespace slib
 			}
 		))
 	}
+	
+	String RenderProgram3D_Position::getHLSLVertexShader(RenderEngine* engine)
+	{
+		SLIB_RETURN_STRING(SLIB_STRINGIFY(
+			float4x4 u_Transform : register(c0);
+			struct VS_OUTPUT {
+				float4 pos : POSITION;
+			};
+			VS_OUTPUT main(float3 a_Position : POSITION) {
+				VS_OUTPUT ret;
+				ret.pos = mul(float4(a_Position, 1.0), u_Transform);
+				return ret;
+			}
+		))
+	}
+
+	String RenderProgram3D_Position::getHLSLPixelShader(RenderEngine* engine)
+	{
+		SLIB_RETURN_STRING(SLIB_STRINGIFY(
+			float4 u_Color : register(c0);
+			float4 main() : COLOR {
+				return u_Color;
+			}
+		))
+	}
 
 }

@@ -1534,7 +1534,7 @@ namespace slib
 								mat *= state->matrix;
 								mat *= m_matViewport;
 								scope->setTransform(mat);
-								Ref<TextureInstance> textureInstance = m_engine->linkTexture(texture);
+								Ref<TextureInstance> textureInstance = m_engine->linkTexture(texture, 0);
 								if (textureBefore != texture || (textureInstance.isNotNull() && textureInstance->isUpdated())) {
 									scope->setTexture(texture);
 									textureBefore = texture;

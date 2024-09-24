@@ -244,7 +244,7 @@ namespace slib
 
 		void setInputLayout(RenderInputLayout* layout);
 
-		Ref<TextureInstance> linkTexture(const Ref<Texture>& texture);
+		Ref<TextureInstance> linkTexture(const Ref<Texture>& texture, sl_int32 sampler);
 
 		Ref<VertexBufferInstance> linkVertexBuffer(const Ref<VertexBuffer>& vb);
 
@@ -353,7 +353,7 @@ namespace slib
 
 		virtual Ref<IndexBufferInstance> _createIndexBufferInstance(IndexBuffer* buffer) = 0;
 
-		virtual Ref<TextureInstance> _createTextureInstance(Texture* texture) = 0;
+		virtual Ref<TextureInstance> _createTextureInstance(Texture* texture, sl_int32 sampler) = 0;
 
 		virtual sl_bool _beginScene() = 0;
 
