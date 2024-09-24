@@ -54,7 +54,9 @@ namespace slib
 			Status,
 			Start,
 			Stop,
-			Restart
+			Restart,
+			Auto,
+			Manual
 		};
 
 		static ArgumentValue ParseArgumentValue(const StringView& cmd)
@@ -77,6 +79,10 @@ namespace slib
 				return ArgumentValue::Stop;
 			} else if (cmd == StringView::literal("restart")) {
 				return ArgumentValue::Restart;
+			} else if (cmd == StringView::literal("auto")) {
+				return ArgumentValue::Auto;
+			} else if (cmd == StringView::literal("manual")) {
+				return ArgumentValue::Manual;
 			}
 			return ArgumentValue::None;
 		}
@@ -379,6 +385,21 @@ namespace slib
 						Log(TAG, "STARTED SERVICE: %s", name);
 						return 0;
 					}
+					return -1;
+				case ArgumentValue::Auto:
+					Log(TAG, "CHANGING SERVICE START TYPE TO AUTOMATIC: %s", name);
+					if (ServiceManager::setStartType(name, ServiceStartType::Auto)) {
+						Log(TAG, "CHANGED SERVICE START TYPE TO AUTOMATIC: %s", name);
+						return 0;
+					}
+					return -1;
+				case ArgumentValue::Manual:
+					Log(TAG, "CHANGING SERVICE START TYPE TO MANUAL: %s", name);
+					if (ServiceManager::setStartType(name, ServiceStartType::Manual)) {
+						Log(TAG, "CHANGED SERVICE START TYPE TO MANUAL: %s", name);
+						return 0;
+					}
+					return -1;
 				default:
 					break;
 			}
