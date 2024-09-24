@@ -95,14 +95,48 @@ namespace slib
 			getPlanes(_out[0], _out[1], _out[2], _out[3], _out[4], _out[5]);
 		}
 
+		static sl_bool containsPoint(const PlaneT<T>* planes, sl_uint32 nPlanes, const Vector3T<T>& pt) noexcept
+		{
+			for (sl_uint32 i = 0; i < nPlanes; i++) {
+				if (planes[i].getDistanceFromPointOnNormalized(pt) < 0) {
+					return sl_false;
+				}
+			}
+			return sl_true;
+		}
+
 		sl_bool containsPoint(const Vector3T<T>& pt, sl_bool flagSkipNearFar = sl_true) const noexcept
 		{
 			PlaneT<T> planes[6];
 			getPlanes(planes);
-			for (sl_uint32 i = flagSkipNearFar ? 2 : 0; i < 6; i++) {
-				if (planes[i].getDistanceFromPointOnNormalized(pt) < 0) {
+			if (flagSkipNearFar) {
+				return containsPoint(planes + 2, 4, pt);
+			} else {
+				return containsPoint(planes, 6, pt);
+			}
+			return sl_true;
+		}
+
+		static sl_bool containsFacets(const PlaneT<T>* planes, sl_uint32 nPlanes, const Vector3T<T>* pts, sl_uint32 nPoints, sl_bool* pFlagIntersect = sl_null) noexcept
+		{
+			sl_bool flagIntersect = sl_false;
+			for (sl_uint32 i = 0; i < nPlanes; i++) {
+				const PlaneT<T>& plane = planes[i];
+				sl_uint32 nIn = 0;
+				for (sl_uint32 k = 0; k < nPoints; k++) {
+					if (plane.getDistanceFromPointOnNormalized(pts[k]) >= 0) {
+						nIn++;
+					}
+				}
+				if (!nIn) {
 					return sl_false;
 				}
+				if (nIn != nPoints) {
+					flagIntersect = sl_true;
+				}
+			}
+			if (pFlagIntersect) {
+				*pFlagIntersect = flagIntersect;
 			}
 			return sl_true;
 		}
@@ -111,25 +145,11 @@ namespace slib
 		{
 			PlaneT<T> planes[6];
 			getPlanes(planes);
-			sl_bool flagIntersect = sl_false;
-			for (sl_uint32 i = flagSkipNearFar ? 2 : 0; i < 6; i++) {
-				sl_uint32 nIn = 0;
-				for (sl_uint32 k = 0; k < n; k++) {
-					if (planes[i].getDistanceFromPointOnNormalized(pts[k]) >= 0) {
-						nIn++;
-					}
-				}
-				if (nIn == 0) {
-					return sl_false;
-				}
-				if (nIn != n) {
-					flagIntersect = sl_true;
-				}
+			if (flagSkipNearFar) {
+				return containsFacets(planes + 2, 4, pts, n, pFlagIntersect);
+			} else {
+				return containsFacets(planes, 6, pts, n, pFlagIntersect);
 			}
-			if (pFlagIntersect) {
-				*pFlagIntersect = flagIntersect;
-			}
-			return sl_true;
 		}
 
 		sl_bool containsSphere(const SphereT<T>& sphere, sl_bool* pFlagIntersect = sl_null, sl_bool flagSkipNearFar = sl_true) const noexcept

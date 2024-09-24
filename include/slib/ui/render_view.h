@@ -93,11 +93,11 @@ namespace slib
 
 		sl_bool isDebugTextVisible();
 
-		void setDebugTextVisible(sl_bool flagVisible);
+		void setDebugTextVisible(sl_bool flagVisible = sl_true);
 
 		sl_bool isDebugTextVisibleOnRelease();
 
-		void setDebugTextVisibleOnRelease(sl_bool flagVisible);
+		void setDebugTextVisibleOnRelease(sl_bool flagVisible = sl_true);
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(RenderView, CreateEngine, RenderEngine* engine)
