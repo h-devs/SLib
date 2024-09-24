@@ -30,8 +30,7 @@
 namespace slib
 {
 
-	DataConvertResult IDataConverter::pass(const void* input, sl_size sizeInputAvailable, sl_size& sizeInputPassed,
-		void* output, sl_size sizeOutputAvailable, sl_size& sizeOutputUsed)
+	DataConvertResult IDataConverter::pass(const void* input, sl_size sizeInputAvailable, sl_size& sizeInputPassed, void* output, sl_size sizeOutputAvailable, sl_size& sizeOutputUsed)
 	{
 #ifdef SLIB_ARCH_IS_64BIT
 		sizeInputPassed = 0;
@@ -87,8 +86,7 @@ namespace slib
 #endif
 	}
 
-	DataConvertResult IDataConverter::pass32(const void* input, sl_uint32 sizeInputAvailable, sl_uint32& sizeInputPassed,
-		void* output, sl_uint32 sizeOutputAvailable, sl_uint32& sizeOutputUsed)
+	DataConvertResult IDataConverter::pass32(const void* input, sl_uint32 sizeInputAvailable, sl_uint32& sizeInputPassed, void* output, sl_uint32 sizeOutputAvailable, sl_uint32& sizeOutputUsed)
 	{
 		sl_size k1, k2;
 		DataConvertResult result = pass(input, sizeInputAvailable, k1, output, sizeOutputAvailable, k2);

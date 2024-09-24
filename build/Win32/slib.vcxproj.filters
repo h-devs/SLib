@@ -1322,5 +1322,11 @@
     <ClCompile Include="..\..\src\slib\geo\dem.cpp">
       <Filter>src\geo</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\external\src\lzma\lzma_unity.c">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\lzma.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

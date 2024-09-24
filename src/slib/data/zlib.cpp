@@ -66,8 +66,7 @@ namespace slib
 		return sl_false;
 	}
 
-	DataConvertResult ZlibCompressor::pass32(const void* input, sl_uint32 sizeInputAvailable, sl_uint32& sizeInputPassed,
-		void* output, sl_uint32 sizeOutputAvailable, sl_uint32& sizeOutputUsed)
+	DataConvertResult ZlibCompressor::pass32(const void* input, sl_uint32 sizeInputAvailable, sl_uint32& sizeInputPassed, void* output, sl_uint32 sizeOutputAvailable, sl_uint32& sizeOutputUsed)
 	{
 		if (m_flagStarted) {
 			z_stream* stream = STREAM;
@@ -142,8 +141,7 @@ namespace slib
 		return sl_false;
 	}
 
-	DataConvertResult ZlibDecompressor::pass32(const void* input, sl_uint32 sizeInputAvailable, sl_uint32& sizeInputPassed,
-		void* output, sl_uint32 sizeOutputAvailable, sl_uint32& sizeOutputUsed)
+	DataConvertResult ZlibDecompressor::pass32(const void* input, sl_uint32 sizeInputAvailable, sl_uint32& sizeInputPassed, void* output, sl_uint32 sizeOutputAvailable, sl_uint32& sizeOutputUsed)
 	{
 		if (m_flagStarted) {
 			z_stream* stream = STREAM;

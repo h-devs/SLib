@@ -63,6 +63,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/wd4996 /wd4267 /wd4244 /wd4333 /wd4146 /wd4172 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="..\..\external\src\lz4\lz4_unity.c" />
+    <ClCompile Include="..\..\external\src\lzma\lzma_unity.c" />
     <ClCompile Include="..\..\external\src\snappy\snappy_unity.cc">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/wd4267 /wd4244 /wd4018 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/wd4267 /wd4244 /wd4018 %(AdditionalOptions)</AdditionalOptions>
@@ -179,6 +180,7 @@
     <ClCompile Include="..\..\src\slib\data\crc32c.cpp" />
     <ClCompile Include="..\..\src\slib\data\ini.cpp" />
     <ClCompile Include="..\..\src\slib\data\json.cpp" />
+    <ClCompile Include="..\..\src\slib\data\lzma.cpp" />
     <ClCompile Include="..\..\src\slib\data\lzw.cpp" />
     <ClCompile Include="..\..\src\slib\data\table_model.cpp" />
     <ClCompile Include="..\..\src\slib\data\xml.cpp" />
