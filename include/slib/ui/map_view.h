@@ -402,6 +402,8 @@ namespace slib
 
 		virtual const List< Ref<MapViewTile> >& getTiles() = 0;
 
+		virtual double getAltitudeAt(MapTileLoader* loader, const LatLon& location) = 0;
+
 		virtual void clearCache() = 0;
 
 	public:
@@ -611,6 +613,18 @@ namespace slib
 
 		void setEyeLocation(const GeoLocation& location, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		// Degrees
+		float getEyeRotation() const;
+
+		// Degrees
+		void setEyeRotation(float rotation, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		// Degrees
+		float getEyeTilt() const;
+
+		// Degrees
+		void setEyeTilt(float tilt, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		double getMinimumAltitude();
 
 		void setMinimumAltitude(double altitude, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -618,6 +632,10 @@ namespace slib
 		double getMaximumAltitude();
 
 		void setMaximumAltitude(double altitude, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		double getMinimumDistanceFromGround();
+
+		void setMinimumDistanceFromGround(double distance);
 
 		sl_bool getLatLonFromViewPoint(const Double2& point, LatLon& _out) const;
 
@@ -663,6 +681,7 @@ namespace slib
 
 		double m_altitudeMin;
 		double m_altitudeMax;
+		double m_minDistanceFromGround;
 
 		friend class MapPlaneRenderer;
 		friend class MapGlobeRenderer;
@@ -694,10 +713,12 @@ namespace slib
 	protected:
 		sl_uint32 m_nLastTouches;
 		Point m_ptLastEvent;
-		sl_bool m_flagMouseDown;
-		Point m_ptMouseDown;
-		Matrix4T<double> m_transformMouseDown;
-		sl_uint64 m_tickMouseDown;
+
+		sl_bool m_flagLeftDown;
+		Point m_ptLeftDown;
+		Matrix4T<double> m_transformLeftDown;
+		sl_uint64 m_tickLeftDown;
+
 		sl_bool m_flagClicking;
 		sl_bool m_flagThrowMoving;
 	};

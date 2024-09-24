@@ -31,7 +31,7 @@
 #include "slib/geo/dem.h"
 #include "slib/math/triangle.h"
 #include "slib/math/transform3d.h"
-#include "slib/ui/resource.h"
+#include "slib/ui/core.h"
 #include "slib/core/thread_pool.h"
 #include "slib/core/stringify.h"
 #include "slib/core/safe_static.h"
@@ -41,7 +41,8 @@
 #define METER_PER_DEGREE ((double)EARTH_CIRCUMFERENCE / 360.0)
 #define ALTITUDE_PER_METER 0.8660254037844386 // (1 - 0.5^2)^0.5
 
-#define TILE_MIN_VERTEX_COUNT 65
+#define MIN_TILE_VERTEX_MATRIX_DEGREE 15
+#define MAP_FOV_Y (SLIB_PI / 3.0)
 
 namespace slib
 {
@@ -682,18 +683,30 @@ namespace slib
 			float* pixels = model.pixels;
 			if (demRect) {
 				M = (sl_uint32)(L * demRect->getWidth());
-				if (M < TILE_MIN_VERTEX_COUNT) {
-					M = TILE_MIN_VERTEX_COUNT;
-				}
+			} else {
+				M = L;
+			}
+			if (M < MIN_TILE_VERTEX_MATRIX_DEGREE) {
+				M = MIN_TILE_VERTEX_MATRIX_DEGREE;
+			}
+			if (demRect || M != L) {
 				memVertices = Memory::create(sizeof(MapViewVertex) * M * M);
 				if (memVertices.isNull()) {
 					return sl_false;
 				}
+				float mx0, my0, mx1, my1;
 				MapViewVertex* v = (MapViewVertex*)(memVertices.getData());
-				float mx0 = demRect->left * (float)(L - 1);
-				float my0 = demRect->top * (float)(L - 1);
-				float mx1 = demRect->right * (float)(L - 1);
-				float my1 = demRect->bottom * (float)(L - 1);
+				if (demRect) {
+					mx0 = demRect->left * (float)(L - 1);
+					my0 = demRect->top * (float)(L - 1);
+					mx1 = demRect->right * (float)(L - 1);
+					my1 = demRect->bottom * (float)(L - 1);
+				} else {
+					mx0 = 0.0f;
+					my0 = 0.0f;
+					mx1 = (float)(L - 1);
+					my1 = (float)(L - 1);
+				}
 				float dmx = mx1 - mx0;
 				float dmy = my1 - my0;
 				for (sl_uint32 y = 0; y < M; y++) {
@@ -729,7 +742,6 @@ namespace slib
 					}
 				}
 			} else {
-				M = L;
 				memVertices = Memory::create(sizeof(MapViewVertex) * M * M);
 				if (memVertices.isNull()) {
 					return sl_false;
@@ -748,7 +760,7 @@ namespace slib
 			if (L) {
 				altitude = *(model.pixels);
 			}
-			M = TILE_MIN_VERTEX_COUNT;
+			M = MIN_TILE_VERTEX_MATRIX_DEGREE;
 			memVertices = Memory::create(sizeof(MapViewVertex) * M * M);
 			if (memVertices.isNull()) {
 				return sl_false;
@@ -767,13 +779,10 @@ namespace slib
 		}
 		{
 			MapViewVertex* v = (MapViewVertex*)(memVertices.getData());
-			pointsWithDEM[0] = v[(M - 1) * M].position; // Bottom Left
-			pointsWithDEM[1] = v[M * M - 1].position; // Bottom Right
-			pointsWithDEM[2] = v[0].position; // Top Left
-			pointsWithDEM[3] = v[M - 1].position; // Top Right
-			for (sl_uint32 i = 0; i < 4; i++) {
-				pointsWithDEM[i] += center;
-			}
+			pointsWithDEM[0] = center + v[(M - 1) * M].position; // Bottom Left
+			pointsWithDEM[1] = center + v[M * M - 1].position; // Bottom Right
+			pointsWithDEM[2] = center + v[0].position; // Top Left
+			pointsWithDEM[3] = center + v[M - 1].position; // Top Right
 		}
 		{
 			primitive.countElements = 6 * (M - 1) * (M - 1);
@@ -861,8 +870,8 @@ namespace slib
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(LayerTextureRect, u_LayerTextureRect, RenderShaderType::Pixel, 1)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT_ARRAY(LayerAlpha, u_LayerAlpha, RenderShaderType::Pixel, 6)
 
-			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
-			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord)
+			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position, RenderInputSemanticName::Position)
+			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord, RenderInputSemanticName::TexCoord)
 		SLIB_RENDER_PROGRAM_STATE_END
 
 		class RenderProgram_SurfaceTile : public RenderProgramT<RenderProgramState_SurfaceTile>
@@ -870,8 +879,7 @@ namespace slib
 		public:
 			String getGLSLVertexShader(RenderEngine* engine) override
 			{
-				String source;
-				source = SLIB_STRINGIFY(
+				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					uniform mat4 u_Transform;
 					attribute vec3 a_Position;
 					attribute vec2 a_TexCoord;
@@ -881,14 +889,13 @@ namespace slib
 						gl_Position = P;
 						v_TexCoord = a_TexCoord;
 					}
-				);
-				return source;
+				))
 			}
 
 			String getGLSLFragmentShader(RenderEngine* engine) override
 			{
 				String source;
-				source = SLIB_STRINGIFY(
+				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					uniform sampler2D u_Texture;
 					uniform sampler2D u_LayerTexture0;
 					uniform sampler2D u_LayerTexture1;
@@ -929,8 +936,69 @@ namespace slib
 
 						gl_FragColor = c;
 					}
-				);
-				return source;
+				))
+			}
+
+			String getHLSLVertexShader(RenderEngine* engine) override
+			{
+				SLIB_RETURN_STRING(SLIB_STRINGIFY(
+					float4x4 u_Transform : register(c0);
+					struct VS_OUTPUT {
+						float2 texcoord : TEXCOORD;
+						float4 pos : POSITION;
+					};
+					VS_OUTPUT main(float3 a_Position : POSITION, float2 a_TexCoord : TEXCOORD) {
+						VS_OUTPUT ret;
+						ret.pos = mul(float4(a_Position, 1.0), u_Transform);
+						ret.texcoord = a_TexCoord;
+						return ret;
+					}
+				))
+			}
+
+			String getHLSLPixelShader(RenderEngine* engine) override
+			{
+				SLIB_RETURN_STRING(SLIB_STRINGIFY(
+					sampler u_Texture;
+					sampler u_LayerTexture0;
+					sampler u_LayerTexture1;
+					sampler u_LayerTexture2;
+					sampler u_LayerTexture3;
+					sampler u_LayerTexture4;
+					float4 u_TextureRect : register(c0);
+					float4 u_LayerTextureRect[5] : register(c1);
+					float u_LayerAlpha[5] : register(c6);
+					float4 main(float2 v_TexCoord : TEXCOORD) : COLOR {
+						float4 colorTexture = tex2D(u_Texture, v_TexCoord * u_TextureRect.zw + u_TextureRect.xy);
+						float4 colorLayer0 = tex2D(u_LayerTexture0, v_TexCoord * u_LayerTextureRect[0].zw + u_LayerTextureRect[0].xy);
+						float4 colorLayer1 = tex2D(u_LayerTexture1, v_TexCoord * u_LayerTextureRect[1].zw + u_LayerTextureRect[1].xy);
+						float4 colorLayer2 = tex2D(u_LayerTexture2, v_TexCoord * u_LayerTextureRect[2].zw + u_LayerTextureRect[2].xy);
+						float4 colorLayer3 = tex2D(u_LayerTexture3, v_TexCoord * u_LayerTextureRect[3].zw + u_LayerTextureRect[3].xy);
+						float4 colorLayer4 = tex2D(u_LayerTexture4, v_TexCoord * u_LayerTextureRect[4].zw + u_LayerTextureRect[4].xy);
+
+						float a = colorLayer0.a * u_LayerAlpha[0];
+						colorLayer0.a = 1.0;
+						float4 c = colorTexture * (1.0 - a) + colorLayer0 * a;
+
+						a = colorLayer1.a * u_LayerAlpha[1];
+						colorLayer1.a = 1.0;
+						c = c * (1.0 - a) + colorLayer1 * a;
+
+						a = colorLayer2.a * u_LayerAlpha[2];
+						colorLayer2.a = 1.0;
+						c = c * (1.0 - a) + colorLayer2 * a;
+
+						a = colorLayer3.a * u_LayerAlpha[3];
+						colorLayer3.a = 1.0;
+						c = c * (1.0 - a) + colorLayer3 * a;
+
+						a = colorLayer4.a * u_LayerAlpha[4];
+						colorLayer4.a = 1.0;
+						c = c * (1.0 - a) + colorLayer4 * a;
+
+						return c;
+					}
+				))
 			}
 		};
 
@@ -1054,12 +1122,6 @@ namespace slib
 				if (tile.isNull()) {
 					return;
 				}
-				// Check Frustum
-				{
-					if (!(state.viewFrustum.containsFacets(tile->points, 4) || state.viewFrustum.containsFacets(tile->pointsWithDEM, 4))) {
-						return;
-					}
-				}
 				if (isTileExpandable(state, tile.get())) {
 					sl_uint32 E = location.E << 1;
 					sl_uint32 N = location.N << 1;
@@ -1165,32 +1227,54 @@ namespace slib
 				return tile;
 			}
 
-			sl_bool isTileFrontFace(const MapViewState& state, MapViewTile* tile)
+			static sl_bool isTileFrontFace(const MapViewState& state, MapViewTile* tile)
 			{
-				Vector3 ptBL, ptBR, ptTL, ptTR;
 				if (tile->region.topRight.longitude - tile->region.bottomLeft.longitude > 1.0) {
-					ptBL = state.viewTransform.transformPosition(tile->points[0]);
-					ptBR = state.viewTransform.transformPosition(tile->points[1]);
-					ptTL = state.viewTransform.transformPosition(tile->points[2]);
-					ptTR = state.viewTransform.transformPosition(tile->points[3]);
+					return isTileFrontFace(state, tile->points, sl_false);
 				} else {
-					ptBL = Transform3T<double>::projectToViewport(state.viewProjectionTransform, tile->points[0]);
-					ptBR = Transform3T<double>::projectToViewport(state.viewProjectionTransform, tile->points[1]);
-					ptTL = Transform3T<double>::projectToViewport(state.viewProjectionTransform, tile->points[2]);
-					ptTR = Transform3T<double>::projectToViewport(state.viewProjectionTransform, tile->points[3]);
+					return isTileFrontFace(state, tile->pointsWithDEM, sl_true);
+				}
+			}
+
+			static sl_bool isTileFrontFace(const MapViewState& state, const Double3 inputs[4], sl_bool flagUseProjection)
+			{
+				Vector2 points[4]; // Bottom Left, Bottom Right, Top Left, Top Right;
+				if (flagUseProjection) {
+					sl_uint32 nBehind = 0;
+					for (sl_size i = 0; i < 4; i++) {
+						const Double3& input = inputs[i];
+						Vector4 pt = state.viewProjectionTransform.multiplyLeft(Double4(input.x, input.y, input.z, 1.0));
+						if (pt.w < 0.00001f) {
+							nBehind++;
+						} else {
+							points[i] = Vector2(pt.x / pt.w, pt.y / pt.w);
+						}
+					}
+					if (nBehind == 4) {
+						return sl_false;
+					}
+					if (nBehind) {
+						return sl_true;
+					}
+				} else {
+					for (sl_size i = 0; i < 4; i++) {
+						const Double3& input = inputs[i];
+						Vector3 pt = state.viewTransform.transformPosition(inputs[i]);
+						points[i] = Vector2(pt.x, pt.y);
+					}
 				}
 				Triangle triangle;
-				triangle.point1.x = ptTL.x;
-				triangle.point1.y = -ptTL.y;
-				triangle.point2.x = ptTR.x;
-				triangle.point2.y = -ptTR.y;
-				triangle.point3.x = ptBL.x;
-				triangle.point3.y = -ptBL.y;
+				triangle.point1.x = points[2].x;
+				triangle.point1.y = -points[2].y;
+				triangle.point2.x = points[3].x;
+				triangle.point2.y = -points[3].y;
+				triangle.point3.x = points[0].x;
+				triangle.point3.y = -points[0].y;
 				if (triangle.isClockwise()) {
 					return sl_true;
 				}
-				triangle.point1.x = ptBR.x;
-				triangle.point1.y = -ptBR.y;
+				triangle.point1.x = points[1].x;
+				triangle.point1.y = -points[1].y;
 				return !(triangle.isClockwise());
 			}
 
@@ -1199,6 +1283,19 @@ namespace slib
 				// Check Expand
 				if (tile->location.level >= m_maxLevel) {
 					return sl_false;
+				}
+				// Check Degree
+				if (Math::abs(Math::normalizeDegreeDistance((tile->region.topRight.longitude + tile->region.bottomLeft.longitude) / 2.0 - state.eyeLocation.longitude)) > 20.0) {
+					return sl_false;
+				}
+				if (Math::abs(Math::normalizeDegreeDistance((tile->region.topRight.latitude + tile->region.bottomLeft.latitude) / 2.0 - state.eyeLocation.latitude)) > 20.0) {
+					return sl_false;
+				}
+				// Check Frustum
+				{
+					if (!(state.viewFrustum.containsFacets(tile->pointsWithDEM, 4))) {
+						return sl_false;
+					}
 				}
 				// Check Normal
 				{
@@ -1265,6 +1362,20 @@ namespace slib
 			const List< Ref<MapViewTile> >& getTiles() override
 			{
 				return m_renderingTiles;
+			}
+
+			double getAltitudeAt(MapTileLoader* loader, const LatLon& location) override
+			{
+				MapTileLocation tloc = getTileLocationFromLatLon(m_maxLevel, location);
+				MapTileLocationI tloci = tloc;
+				TileDEM dem;
+				if (loadDEM(dem, loader, tloci)) {
+					DEM model;
+					if (model.initialize(m_demType, dem.source.getData(), dem.source.getSize())) {
+						return model.getAltitudeAt(dem.region.left + (float)(tloc.E - (double)(tloci.E)) * dem.region.getWidth(), dem.region.top + (float)(1.0 - (tloc.N - (double)(tloci.N))) * dem.region.getHeight());
+					}
+				}
+				return 0.0;
 			}
 
 			void onDrawPlane(Canvas* canvas, const Rectangle& rect, MapSurfacePlane* plane, MapViewData* data) override
@@ -1779,6 +1890,7 @@ namespace slib
 		if (overlayDepthState.isNull()) {
 			RenderDepthStencilParam dp;
 			dp.flagTestDepth = sl_false;
+			dp.flagWriteDepth = sl_false;
 			overlayDepthState = RenderDepthStencilState::create(dp);
 			if (overlayDepthState.isNull()) {
 				return sl_false;
@@ -1806,9 +1918,9 @@ namespace slib
 			zFar = dist * 20 + 1000;
 		} else {
 			zNear = dist / 5;
-			zFar = dist + MapEarth::getRadius() * 2;
+			zFar = dist + MapEarth::getRadius() * 4;
 		}
-		projectionTransform = Transform3T<double>::getPerspectiveProjectionFovYMatrix(SLIB_PI / 3, viewportWidth / viewportHeight, zNear, zFar);
+		projectionTransform = Transform3T<double>::getPerspectiveProjectionFovYMatrix(MAP_FOV_Y, viewportWidth / viewportHeight, zNear, zFar);
 		viewProjectionTransform = viewTransform * projectionTransform;
 		viewFrustum = ViewFrustumT<double>::fromMVP(viewProjectionTransform);
 		return sl_true;
@@ -1823,6 +1935,7 @@ namespace slib
 
 		m_altitudeMin = 50.0;
 		m_altitudeMax = 100000000.0;
+		m_minDistanceFromGround = 100.0;
 	}
 
 	MapViewData::~MapViewData()
@@ -1960,6 +2073,42 @@ namespace slib
 		if (m_state.eyeLocation.altitude > m_altitudeMax) {
 			m_state.eyeLocation.altitude = m_altitudeMax;
 		}
+		setEyeTilt(m_state.tilt, mode);
+	}
+
+	float MapViewData::getEyeRotation() const
+	{
+		return m_state.rotation;
+	}
+
+	void MapViewData::setEyeRotation(float rotation, UIUpdateMode mode)
+	{
+		m_state.rotation = Math::normalizeDegree(rotation);
+		invalidate(mode);
+	}
+
+	float MapViewData::getEyeTilt() const
+	{
+		return m_state.tilt;
+	}
+
+	void MapViewData::setEyeTilt(float tilt, UIUpdateMode mode)
+	{
+		if (tilt < 0.0f) {
+			tilt = 0.0f;
+		}
+		float max = 60.0f;
+		float alt = (float)(m_state.eyeLocation.altitude);
+		if (alt > 1000.0f) {
+			max = max - (alt - 1000.0f) / 500.0f;
+			if (max < 0.0f) {
+				max = 0.0f;
+			}
+		}
+		if (tilt > max) {
+			tilt = max;
+		}
+		m_state.tilt = tilt;
 		invalidate(mode);
 	}
 
@@ -1989,6 +2138,16 @@ namespace slib
 			return;
 		}
 		setEyeLocation(getEyeLocation(), mode);
+	}
+
+	double MapViewData::getMinimumDistanceFromGround()
+	{
+		return m_minDistanceFromGround;
+	}
+
+	void MapViewData::setMinimumDistanceFromGround(double value)
+	{
+		m_minDistanceFromGround = value;
 	}
 
 	sl_bool MapViewData::getLatLonFromViewPoint(const Double2& point, LatLon& _out) const
@@ -2161,6 +2320,13 @@ namespace slib
 		if (!(_initState())) {
 			return;
 		}
+		if (m_minDistanceFromGround >= 0.0) {
+			double dist = surface->getAltitudeAt(m_state.tileLoader.get(), m_state.eyeLocation.getLatLon());
+			dist += m_minDistanceFromGround;
+			if (m_state.eyeLocation.altitude < dist) {
+				m_state.eyeLocation.altitude = dist;
+			}
+		}
 		if (!(m_state.update())) {
 			return;
 		}
@@ -2214,10 +2380,12 @@ namespace slib
 		m_nLastTouches = 0;
 		m_ptLastEvent.x = 0;
 		m_ptLastEvent.y = 0;
-		m_flagMouseDown = sl_false;
-		m_tickMouseDown = 0;
-		m_ptMouseDown.x = 0;
-		m_ptMouseDown.y = 0;
+
+		m_flagLeftDown = sl_false;
+		m_tickLeftDown = 0;
+		m_ptLeftDown.x = 0;
+		m_ptLeftDown.y = 0;
+
 		m_flagClicking = sl_false;
 		m_flagThrowMoving = sl_false;
 	}
@@ -2260,7 +2428,8 @@ namespace slib
 		if (width < 0.00001 || height < 0.00001) {
 			return;
 		}
-		double rem = UIResource::getScreenMinimum() / 100.0;
+		UISize screenSize = UI::getScreenSize();
+		double rem = (double)(Math::min(screenSize.x, screenSize.y)) / 100.0;
 		Point pt = ev->getPoint();
 		Point pt2 = pt;
 		sl_uint32 nTouches = 0;
@@ -2269,10 +2438,10 @@ namespace slib
 		switch (action) {
 			case UIAction::LeftButtonDown:
 			case UIAction::TouchBegin:
-				m_ptMouseDown = pt;
-				m_transformMouseDown = m_state.verticalViewTransform;
-				m_tickMouseDown = System::getTickCount64();
-				m_flagMouseDown = sl_true;
+				m_ptLeftDown = pt;
+				m_transformLeftDown = m_state.verticalViewTransform;
+				m_tickLeftDown = System::getTickCount64();
+				m_flagLeftDown = sl_true;
 				m_flagClicking = sl_true;
 				m_flagThrowMoving = sl_false;
 				stopMoving();
@@ -2284,7 +2453,7 @@ namespace slib
 				flagDrag = sl_true;
 			case UIAction::LeftButtonUp:
 			case UIAction::TouchCancel:
-				if (!m_flagMouseDown) {
+				if (!m_flagLeftDown) {
 					break;
 				}
 				nTouches = ev->getTouchPointCount();
@@ -2298,8 +2467,8 @@ namespace slib
 					m_flagClicking = sl_false;
 					m_flagThrowMoving = sl_false;
 				} else {
-					double dx = pt.x - m_ptMouseDown.x;
-					double dy = pt.y - m_ptMouseDown.y;
+					double dx = pt.x - m_ptLeftDown.x;
+					double dy = pt.y - m_ptLeftDown.y;
 					if (dx * dx + dy * dy > rem) {
 						m_flagClicking = sl_false;
 					}
@@ -2307,7 +2476,7 @@ namespace slib
 						GeoLocation eye = m_state.eyeLocation;
 						double alt = eye.altitude;
 						double f = alt / height * 1.3;
-						Vector3 pos = m_transformMouseDown.inverse().transformPosition(-dx * f, dy * f, alt);
+						Vector3 pos = m_transformLeftDown.inverse().transformPosition(-dx * f, dy * f, alt);
 						GeoLocation loc = MapEarth::getGeoLocation(pos);
 						loc.altitude = alt;
 						setEyeLocation(loc);
@@ -2317,14 +2486,29 @@ namespace slib
 				}
 				if (!flagDrag) {
 					if (m_flagClicking) {
-						double dx = pt.x - m_ptMouseDown.x;
-						double dy = pt.y - m_ptMouseDown.y;
+						double dx = pt.x - m_ptLeftDown.x;
+						double dy = pt.y - m_ptLeftDown.y;
 						if (dx * dx + dy * dy < rem) {
 							click(GetRelativePoint(this, pt));
 						}
 						m_flagClicking = sl_false;
 					}
-					m_flagMouseDown = sl_false;
+					m_flagLeftDown = sl_false;
+				}
+				break;
+			case UIAction::RightButtonDown:
+				if (isFocusable()) {
+					setFocus();
+				}
+				break;
+			case UIAction::RightButtonDrag:
+				{
+					float dx = (float)((pt.x - m_ptLastEvent.x) / width * 360.0);
+					float dy = (float)((pt.y - m_ptLastEvent.y) / height * 90.0);
+					float rotation = m_state.rotation;
+					setEyeRotation(rotation - dx);
+					float tilt = m_state.tilt;
+					setEyeTilt(tilt + dy);
 				}
 				break;
 			default:
