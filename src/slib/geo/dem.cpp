@@ -50,17 +50,17 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool DEM::initialize(DataType type, const void* data, sl_size size, sl_uint32 n)
+	sl_bool DEM::initialize(DataType type, const void* data, sl_size size, sl_uint32 n, sl_bool flagFlipY)
 	{
 		switch (type) {
 			case DataType::FloatBE:
-				return initializeFromFloatBE(data, size, n);
+				return initializeFromFloatBE(data, size, n, flagFlipY);
 			case DataType::FloatLE:
-				return initializeFromFloatLE(data, size, n);
+				return initializeFromFloatLE(data, size, n, flagFlipY);
 			case DataType::Int16BE:
-				return initializeFromInt16BE(data, size, n);
+				return initializeFromInt16BE(data, size, n, flagFlipY);
 			case DataType::Int16LE:
-				return initializeFromInt16LE(data, size, n);
+				return initializeFromInt16LE(data, size, n, flagFlipY);
 			default:
 				break;
 		}
@@ -70,7 +70,7 @@ namespace slib
 	namespace
 	{
 		template <class READER, sl_uint32 ELEMENT_SIZE>
-		static sl_bool InitializeDEM(DEM& dem, const void* _d, sl_size size, sl_uint32 n)
+		static sl_bool InitializeDEM(DEM& dem, const void* _d, sl_size size, sl_uint32 n, sl_bool flagFlipY)
 		{
 			if (!size) {
 				return sl_false;
@@ -89,11 +89,24 @@ namespace slib
 			float* p = array.getData();
 			float* f = p;
 			sl_uint8* d = (sl_uint8*)_d;
-			for (sl_uint32 y = 0; y < n; y++) {
-				for (sl_uint32 x = 0; x < n; x++) {
-					READER::readElement(*f, d);
-					d += ELEMENT_SIZE;
-					f++;
+			if (flagFlipY) {
+				float* row = p + ((n * n) - n);
+				for (sl_uint32 y = 0; y < n; y++) {
+					f = row;
+					for (sl_uint32 x = 0; x < n; x++) {
+						READER::readElement(*f, d);
+						d += ELEMENT_SIZE;
+						f++;
+					}
+					row -= n;
+				}
+			} else {
+				for (sl_uint32 y = 0; y < n; y++) {
+					for (sl_uint32 x = 0; x < n; x++) {
+						READER::readElement(*f, d);
+						d += ELEMENT_SIZE;
+						f++;
+					}
 				}
 			}
 			dem.pixels = p;
@@ -139,24 +152,24 @@ namespace slib
 		};
 	}
 
-	sl_bool DEM::initializeFromFloatLE(const void* d, sl_size size, sl_uint32 n)
+	sl_bool DEM::initializeFromFloatLE(const void* d, sl_size size, sl_uint32 n, sl_bool flagFlipY)
 	{
-		return InitializeDEM<ReadFloatLE, 4>(*this, d, size, n);
+		return InitializeDEM<ReadFloatLE, 4>(*this, d, size, n, flagFlipY);
 	}
 
-	sl_bool DEM::initializeFromFloatBE(const void* d, sl_size size, sl_uint32 n)
+	sl_bool DEM::initializeFromFloatBE(const void* d, sl_size size, sl_uint32 n, sl_bool flagFlipY)
 	{
-		return InitializeDEM<ReadFloatBE, 4>(*this, d, size, n);
+		return InitializeDEM<ReadFloatBE, 4>(*this, d, size, n, flagFlipY);
 	}
 
-	sl_bool DEM::initializeFromInt16LE(const void* d, sl_size size, sl_uint32 n)
+	sl_bool DEM::initializeFromInt16LE(const void* d, sl_size size, sl_uint32 n, sl_bool flagFlipY)
 	{
-		return InitializeDEM<ReadInt16LE, 2>(*this, d, size, n);
+		return InitializeDEM<ReadInt16LE, 2>(*this, d, size, n, flagFlipY);
 	}
 
-	sl_bool DEM::initializeFromInt16BE(const void* d, sl_size size, sl_uint32 n)
+	sl_bool DEM::initializeFromInt16BE(const void* d, sl_size size, sl_uint32 n, sl_bool flagFlipY)
 	{
-		return InitializeDEM<ReadInt16BE, 2>(*this, d, size, n);
+		return InitializeDEM<ReadInt16BE, 2>(*this, d, size, n, flagFlipY);
 	}
 
 	void DEM::scale(float* _out, sl_uint32 nOutput, const Rectangle& rcSource) const

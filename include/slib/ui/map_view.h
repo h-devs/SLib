@@ -353,7 +353,7 @@ namespace slib
 		Double3 pointsWithDEM[4];
 
 	public:
-		sl_bool build(DEM::DataType demType, const Rectangle* demRegion = sl_null);
+		sl_bool build(DEM::DataType demType, sl_bool flagFlipY, const Rectangle* demRegion = sl_null);
 
 		void buildVertex(MapViewVertex& vertex, double latitude, double longitude, double altitude, sl_real tx, sl_real ty);
 
@@ -363,9 +363,10 @@ namespace slib
 	{
 	public:
 		sl_uint32 baseLevel;
-		sl_uint32 maxLevel;
 		sl_uint32 baseTileCountE; // Easting
 		sl_uint32 baseTileCountN; // Northing
+		sl_uint32 minimumLevel;
+		sl_uint32 maximumLevel;
 		double degreeLengthE; // Easting
 		double degreeLengthN; // Northing
 		sl_uint32 tileLength; // Pixels
@@ -374,6 +375,7 @@ namespace slib
 		Ref<MapTileReader> picture;
 		Ref<MapTileReader> dem;
 		DEM::DataType demType;
+		sl_bool flagFlipDemY;
 		Ref<MapTileReader> layers[SLIB_MAP_VIEW_LAYER_COUNT];
 
 	public:
@@ -409,11 +411,13 @@ namespace slib
 	public:
 		sl_uint32 getBaseLevel();
 
-		sl_uint32 getMaximumLevel();
-
 		sl_uint32 getBaseTileCountE();
 
 		sl_uint32 getBaseTileCountN();
+
+		sl_uint32 getMinimumLevel();
+
+		sl_uint32 getMaximumLevel();
 
 		double getDegreeLengthE();
 
@@ -427,11 +431,11 @@ namespace slib
 
 		Ref<MapTileReader> getDemReader();
 
-		void setDemReader(const Ref<MapTileReader>& reader);
-
 		DEM::DataType getDemType();
 
-		void setDemType(DEM::DataType type);
+		sl_bool isDemFlipY();
+
+		void setDemReader(const Ref<MapTileReader>& reader, DEM::DataType type, sl_bool flagFlipY = sl_false);
 
 		Ref<MapTileReader> getLayerReader(sl_uint32 layer);
 
@@ -457,10 +461,11 @@ namespace slib
 		virtual void onDrawPlane(Canvas* canvas, const Rectangle& rect, MapSurfacePlane* plane, MapViewData* data) = 0;
 
 	protected:
-		sl_uint32 m_maxLevel;
 		sl_uint32 m_baseLevel;
 		sl_uint32 m_baseTileCountE;
 		sl_uint32 m_baseTileCountN;
+		sl_uint32 m_minLevel;
+		sl_uint32 m_maxLevel;
 		double m_degreeLengthE;
 		double m_degreeLengthN;
 		sl_uint32 m_tileLength; // Pixels
@@ -469,6 +474,7 @@ namespace slib
 		AtomicRef<MapTileReader> m_readerPicture;
 		AtomicRef<MapTileReader> m_readerDEM;
 		DEM::DataType m_demType;
+		sl_bool m_flagFlipDemY;
 		struct Layer
 		{
 			AtomicRef<MapTileReader> reader;

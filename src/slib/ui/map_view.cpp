@@ -663,10 +663,10 @@ namespace slib
 	{
 	}
 
-	sl_bool MapViewTile::build(DEM::DataType demType, const Rectangle* demRect)
+	sl_bool MapViewTile::build(DEM::DataType demType, sl_bool flagFlipY, const Rectangle* demRect)
 	{
 		DEM model;
-		model.initialize(demType, dem.getData(), dem.getSize());
+		model.initialize(demType, dem.getData(), dem.getSize(), 0, flagFlipY);
 		
 		double N0 = region.bottomLeft.latitude;
 		double E0 = region.bottomLeft.longitude;
@@ -823,13 +823,15 @@ namespace slib
 	MapSurfaceParam::MapSurfaceParam()
 	{
 		baseLevel = 0;
-		maxLevel = 20;
 		baseTileCountE = 1;
 		baseTileCountN = 1;
+		minimumLevel = 0;
+		maximumLevel = 20;
 		degreeLengthE = 360.0;
 		degreeLengthN = 360.0;
 		tileLength = 256;
 		demType = DEM::DataType::FloatLE;
+		flagFlipDemY = sl_false;
 	}
 
 	SLIB_DEFINE_OBJECT(MapSurface, Object)
@@ -837,13 +839,15 @@ namespace slib
 	MapSurface::MapSurface()
 	{
 		m_baseLevel = 0;
-		m_maxLevel = 20;
 		m_baseTileCountE = 1;
 		m_baseTileCountN = 1;
+		m_minLevel = 0;
+		m_maxLevel = 20;
 		m_degreeLengthE = 360.0;
 		m_degreeLengthN = 360.0;
 		m_tileLength = 256;
 		m_demType = DEM::DataType::FloatLE;
+		m_flagFlipDemY = sl_false;
 		{
 			for (sl_uint32 i = 0; i < LAYER_COUNT; i++) {
 				m_layers[i].flagVisible = sl_true;
@@ -1061,13 +1065,19 @@ namespace slib
 			sl_bool initialize(const MapSurfaceParam& param)
 			{
 				m_baseLevel = param.baseLevel;
-				m_maxLevel = param.maxLevel;
 				m_baseTileCountE = param.baseTileCountE;
 				m_baseTileCountN = param.baseTileCountN;
+				m_minLevel = param.minimumLevel;
+				if (m_minLevel < param.baseLevel) {
+					m_minLevel = param.baseLevel;
+				}
+				m_maxLevel = param.maximumLevel;
 				m_degreeLengthE = param.degreeLengthE;
 				m_degreeLengthN = param.degreeLengthN;
 				m_toReaderLocation = param.toReaderLocation;
 				m_tileLength = param.tileLength;
+				m_demType = param.demType;
+				m_flagFlipDemY = param.flagFlipDemY;
 
 				m_readerPicture = param.picture;
 				m_readerDEM = param.dem;
@@ -1101,9 +1111,12 @@ namespace slib
 			{
 				m_renderingTiles.setNull();
 				const MapViewState& state = data->getState();
-				for (sl_uint32 y = 0; y < m_baseTileCountN; y++) {
-					for (sl_uint32 x = 0; x < m_baseTileCountE; x++) {
-						renderTile(engine, state, MapTileLocationI(m_baseLevel, x, y));
+				sl_uint32 M = 1 << (m_minLevel - m_baseLevel);
+				sl_uint32 nN = m_baseTileCountN * M;
+				sl_uint32 nE = m_baseTileCountE * M;
+				for (sl_uint32 y = 0; y < nN; y++) {
+					for (sl_uint32 x = 0; x < nE; x++) {
+						renderTile(engine, state, MapTileLocationI(m_minLevel, x, y));
 					}
 				}
 				{
@@ -1144,7 +1157,7 @@ namespace slib
 				loadDEM(dem, loader, location);
 				if (tile->primitive.vertexBuffer.isNull() || tile->dem != dem.source) {
 					tile->dem = dem.source;
-					if (!(tile->build(m_demType, dem.flagUseWhole ? sl_null : &(dem.region)))) {
+					if (!(tile->build(m_demType, m_flagFlipDemY, dem.flagUseWhole ? sl_null : &(dem.region)))) {
 						return;
 					}
 				}
@@ -1383,8 +1396,8 @@ namespace slib
 				double planeScale = plane->getScale();
 				double planeMpp = planeScale / rect.getHeight();
 				planeMpp *= 2.5; // factor
-				double tileMpp = METER_PER_DEGREE * m_degreeLengthE / (double)(m_baseTileCountE) / (double)m_tileLength;
-				sl_uint32 level = m_baseLevel;
+				double tileMpp = METER_PER_DEGREE * m_degreeLengthE / (double)(m_baseTileCountE) / (double)m_tileLength / (double)(1 << (m_minLevel - m_baseLevel));
+				sl_uint32 level = m_minLevel;
 				do {
 					if (planeMpp > tileMpp) {
 						break;
@@ -1597,11 +1610,6 @@ namespace slib
 		return m_baseLevel;
 	}
 
-	sl_uint32 MapSurface::getMaximumLevel()
-	{
-		return m_maxLevel;
-	}
-
 	sl_uint32 MapSurface::getBaseTileCountE()
 	{
 		return m_baseTileCountE;
@@ -1610,6 +1618,16 @@ namespace slib
 	sl_uint32 MapSurface::getBaseTileCountN()
 	{
 		return m_baseTileCountN;
+	}
+
+	sl_uint32 MapSurface::getMinimumLevel()
+	{
+		return m_minLevel;
+	}
+
+	sl_uint32 MapSurface::getMaximumLevel()
+	{
+		return m_maxLevel;
 	}
 
 	double MapSurface::getDegreeLengthE()
@@ -1643,20 +1661,21 @@ namespace slib
 		return m_readerDEM;
 	}
 
-	void MapSurface::setDemReader(const Ref<MapTileReader>& reader)
-	{
-		m_readerDEM = reader;
-		clearCache();
-	}
-
 	DEM::DataType MapSurface::getDemType()
 	{
 		return m_demType;
 	}
 
-	void MapSurface::setDemType(DEM::DataType type)
+	sl_bool MapSurface::isDemFlipY()
 	{
+		return m_flagFlipDemY;
+	}
+
+	void MapSurface::setDemReader(const Ref<MapTileReader>& reader, DEM::DataType type, sl_bool flagFlipY)
+	{
+		m_readerDEM = reader;
 		m_demType = type;
+		m_flagFlipDemY = flagFlipY;
 		clearCache();
 	}
 

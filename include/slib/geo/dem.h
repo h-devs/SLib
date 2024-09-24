@@ -39,10 +39,10 @@ namespace slib
 	public:
 		enum class DataType
 		{
-			FloatLE,
-			FloatBE,
-			Int16LE,
-			Int16BE
+			FloatLE = 0,
+			FloatBE = 1,
+			Int16LE = 2,
+			Int16BE = 3
 		};
 
 	public:
@@ -58,15 +58,15 @@ namespace slib
 	public:
 		sl_bool initialize(sl_uint32 N);
 
-		sl_bool initialize(DataType type, const void* data, sl_size size, sl_uint32 N = 0);
+		sl_bool initialize(DataType type, const void* data, sl_size size, sl_uint32 N = 0, sl_bool flagFlipY = sl_false);
 
-		sl_bool initializeFromFloatLE(const void* data, sl_size size, sl_uint32 N = 0);
+		sl_bool initializeFromFloatLE(const void* data, sl_size size, sl_uint32 N = 0, sl_bool flagFlipY = sl_false);
 
-		sl_bool initializeFromFloatBE( const void* data, sl_size size, sl_uint32 N = 0);
+		sl_bool initializeFromFloatBE( const void* data, sl_size size, sl_uint32 N = 0, sl_bool flagFlipY = sl_false);
 
-		sl_bool initializeFromInt16LE(const void* data, sl_size size, sl_uint32 N = 0);
+		sl_bool initializeFromInt16LE(const void* data, sl_size size, sl_uint32 N = 0, sl_bool flagFlipY = sl_false);
 
-		sl_bool initializeFromInt16BE(const void* data, sl_size size, sl_uint32 N = 0);
+		sl_bool initializeFromInt16BE(const void* data, sl_size size, sl_uint32 N = 0, sl_bool flagFlipY = sl_false);
 
 		void scale(float* _out, sl_uint32 N, const Rectangle& rcSource) const;
 
