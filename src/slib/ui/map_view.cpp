@@ -41,7 +41,6 @@
 #define METER_PER_DEGREE ((double)EARTH_CIRCUMFERENCE / 360.0)
 #define ALTITUDE_PER_METER 0.8660254037844386 // (1 - 0.5^2)^0.5
 
-#define MIN_TILE_VERTEX_MATRIX_DEGREE 15
 #define MAP_FOV_Y (SLIB_PI / 3.0)
 
 namespace slib
@@ -663,10 +662,10 @@ namespace slib
 	{
 	}
 
-	sl_bool MapViewTile::build(DEM::DataType demType, sl_bool flagFlipY, const Rectangle* demRect)
+	sl_bool MapViewTile::build(const MapSurfaceConfiguration& config, const Rectangle* demRect)
 	{
 		DEM model;
-		model.initialize(demType, dem.getData(), dem.getSize(), 0, flagFlipY);
+		model.initialize(config.demType, dem.getData(), dem.getSize(), 0, config.flagFlipDemY);
 		
 		double N0 = region.bottomLeft.latitude;
 		double E0 = region.bottomLeft.longitude;
@@ -686,8 +685,10 @@ namespace slib
 			} else {
 				M = L;
 			}
-			if (M < MIN_TILE_VERTEX_MATRIX_DEGREE) {
-				M = MIN_TILE_VERTEX_MATRIX_DEGREE;
+			if (M < config.minimumTileMatrixOrder) {
+				M = config.minimumTileMatrixOrder;
+			} else if (M > config.maximumTileMatrixOrder) {
+				M = config.maximumTileMatrixOrder;
 			}
 			if (demRect || M != L) {
 				memVertices = Memory::create(sizeof(MapViewVertex) * M * M);
@@ -760,7 +761,7 @@ namespace slib
 			if (L) {
 				altitude = *(model.pixels);
 			}
-			M = MIN_TILE_VERTEX_MATRIX_DEGREE;
+			M = config.minimumTileMatrixOrder;
 			memVertices = Memory::create(sizeof(MapViewVertex) * M * M);
 			if (memVertices.isNull()) {
 				return sl_false;
@@ -818,41 +819,37 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MapSurfaceParam)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MapSurfaceConfiguration)
 
-	MapSurfaceParam::MapSurfaceParam()
+	MapSurfaceConfiguration::MapSurfaceConfiguration()
 	{
 		baseLevel = 0;
 		baseTileCountE = 1;
 		baseTileCountN = 1;
 		minimumLevel = 0;
 		maximumLevel = 20;
-		degreeLengthE = 360.0;
-		degreeLengthN = 360.0;
-		tileLength = 256;
+		eastingRangeInDegrees = 360.0;
+		northingRangeInDegrees = 360.0;
+		tileDimensionInPixels = 256;
+		minimumTileMatrixOrder = 15;
+		maximumTileMatrixOrder = 65;
 		demType = DEM::DataType::FloatLE;
 		flagFlipDemY = sl_false;
+	}
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MapSurfaceParam)
+
+	MapSurfaceParam::MapSurfaceParam()
+	{
 	}
 
 	SLIB_DEFINE_OBJECT(MapSurface, Object)
 
 	MapSurface::MapSurface()
 	{
-		m_baseLevel = 0;
-		m_baseTileCountE = 1;
-		m_baseTileCountN = 1;
-		m_minLevel = 0;
-		m_maxLevel = 20;
-		m_degreeLengthE = 360.0;
-		m_degreeLengthN = 360.0;
-		m_tileLength = 256;
-		m_demType = DEM::DataType::FloatLE;
-		m_flagFlipDemY = sl_false;
-		{
-			for (sl_uint32 i = 0; i < LAYER_COUNT; i++) {
-				m_layers[i].flagVisible = sl_true;
-				m_layers[i].opacity = 1.0f;
-			}
+		for (sl_uint32 i = 0; i < LAYER_COUNT; i++) {
+			m_layers[i].flagVisible = sl_true;
+			m_layers[i].opacity = 1.0f;
 		}
 	}
 
@@ -1064,21 +1061,11 @@ namespace slib
 		public:
 			sl_bool initialize(const MapSurfaceParam& param)
 			{
-				m_baseLevel = param.baseLevel;
-				m_baseTileCountE = param.baseTileCountE;
-				m_baseTileCountN = param.baseTileCountN;
-				m_minLevel = param.minimumLevel;
-				if (m_minLevel < param.baseLevel) {
-					m_minLevel = param.baseLevel;
+				m_config = param;
+				if (m_config.minimumLevel < param.baseLevel) {
+					m_config.minimumLevel = param.baseLevel;
 				}
-				m_maxLevel = param.maximumLevel;
-				m_degreeLengthE = param.degreeLengthE;
-				m_degreeLengthN = param.degreeLengthN;
 				m_toReaderLocation = param.toReaderLocation;
-				m_tileLength = param.tileLength;
-				m_demType = param.demType;
-				m_flagFlipDemY = param.flagFlipDemY;
-
 				m_readerPicture = param.picture;
 				m_readerDEM = param.dem;
 				{
@@ -1111,12 +1098,12 @@ namespace slib
 			{
 				m_renderingTiles.setNull();
 				const MapViewState& state = data->getState();
-				sl_uint32 M = 1 << (m_minLevel - m_baseLevel);
-				sl_uint32 nN = m_baseTileCountN * M;
-				sl_uint32 nE = m_baseTileCountE * M;
+				sl_uint32 M = 1 << (m_config.minimumLevel - m_config.baseLevel);
+				sl_uint32 nN = m_config.baseTileCountN * M;
+				sl_uint32 nE = m_config.baseTileCountE * M;
 				for (sl_uint32 y = 0; y < nN; y++) {
 					for (sl_uint32 x = 0; x < nE; x++) {
-						renderTile(engine, state, MapTileLocationI(m_minLevel, x, y));
+						renderTile(engine, state, MapTileLocationI(m_config.minimumLevel, x, y));
 					}
 				}
 				{
@@ -1157,7 +1144,7 @@ namespace slib
 				loadDEM(dem, loader, location);
 				if (tile->primitive.vertexBuffer.isNull() || tile->dem != dem.source) {
 					tile->dem = dem.source;
-					if (!(tile->build(m_demType, m_flagFlipDemY, dem.flagUseWhole ? sl_null : &(dem.region)))) {
+					if (!(tile->build(m_config, dem.flagUseWhole ? sl_null : &(dem.region)))) {
 						return;
 					}
 				}
@@ -1294,7 +1281,7 @@ namespace slib
 			sl_bool isTileExpandable(const MapViewState& state, MapViewTile* tile)
 			{
 				// Check Expand
-				if (tile->location.level >= m_maxLevel) {
+				if (tile->location.level >= m_config.maximumLevel) {
 					return sl_false;
 				}
 				// Check Degree
@@ -1379,12 +1366,12 @@ namespace slib
 
 			double getAltitudeAt(MapTileLoader* loader, const LatLon& location) override
 			{
-				MapTileLocation tloc = getTileLocationFromLatLon(m_maxLevel, location);
+				MapTileLocation tloc = getTileLocationFromLatLon(m_config.maximumLevel, location);
 				MapTileLocationI tloci = tloc;
 				TileDEM dem;
 				if (loadDEM(dem, loader, tloci)) {
 					DEM model;
-					if (model.initialize(m_demType, dem.source.getData(), dem.source.getSize())) {
+					if (model.initialize(m_config.demType, dem.source.getData(), dem.source.getSize())) {
 						return model.getAltitudeAt(dem.region.left + (float)(tloc.E - (double)(tloci.E)) * dem.region.getWidth(), dem.region.top + (float)(1.0 - (tloc.N - (double)(tloci.N))) * dem.region.getHeight());
 					}
 				}
@@ -1396,15 +1383,15 @@ namespace slib
 				double planeScale = plane->getScale();
 				double planeMpp = planeScale / rect.getHeight();
 				planeMpp *= 2.5; // factor
-				double tileMpp = METER_PER_DEGREE * m_degreeLengthE / (double)(m_baseTileCountE) / (double)m_tileLength / (double)(1 << (m_minLevel - m_baseLevel));
-				sl_uint32 level = m_minLevel;
+				double tileMpp = METER_PER_DEGREE * m_config.eastingRangeInDegrees / (double)(m_config.baseTileCountE) / (double)(m_config.tileDimensionInPixels) / (double)(1 << (m_config.minimumLevel - m_config.baseLevel));
+				sl_uint32 level = m_config.minimumLevel;
 				do {
 					if (planeMpp > tileMpp) {
 						break;
 					}
 					tileMpp /= 2.0;
 					level++;
-				} while (level < m_maxLevel);
+				} while (level < m_config.maximumLevel);
 
 				drawLevel(canvas, rect, level, plane->getCenterLocation(), planeScale, data->getState().tileLoader.get(), tileMpp);
 
@@ -1420,13 +1407,13 @@ namespace slib
 			{
 				double h = planeScale / tileMpp;
 				double w = h * rcView.getWidth() / rcView.getHeight();
-				double sx = (center.E + METER_PER_DEGREE * m_degreeLengthE / 2.0) / tileMpp - w / 2.0;
-				double sy = (center.N + METER_PER_DEGREE * m_degreeLengthN / 2.0) / tileMpp - h / 2.0;
+				double sx = (center.E + METER_PER_DEGREE * m_config.eastingRangeInDegrees / 2.0) / tileMpp - w / 2.0;
+				double sy = (center.N + METER_PER_DEGREE * m_config.northingRangeInDegrees / 2.0) / tileMpp - h / 2.0;
 				double ex = sx + w;
 				double ey = sy + h;
 				sl_uint64 m = (sl_uint64)1 << level;
-				double mw = (double)(m_tileLength * m_baseTileCountE * m);
-				double mh = (double)(m_tileLength * m_baseTileCountN * m);
+				double mw = (double)(m_config.tileDimensionInPixels * m_config.baseTileCountE * m);
+				double mh = (double)(m_config.tileDimensionInPixels * m_config.baseTileCountN * m);
 				sl_uint32 isx = (sl_uint32)(Math::clamp(sx, 0.0, mw));
 				sl_uint32 iex = (sl_uint32)(Math::clamp(ex, 0.0, mw));
 				sl_uint32 isy = (sl_uint32)(Math::clamp(sy, 0.0, mh));
@@ -1437,18 +1424,18 @@ namespace slib
 				if (iey > isy + 4096) {
 					iey = isy + 4096;
 				}
-				sl_uint32 tsx = isx / m_tileLength;
-				sl_uint32 tsy = isy / m_tileLength;
-				sl_uint32 tex = iex / m_tileLength;
-				sl_uint32 tey = iey / m_tileLength;
-				if (iex % m_tileLength) {
+				sl_uint32 tsx = isx / m_config.tileDimensionInPixels;
+				sl_uint32 tsy = isy / m_config.tileDimensionInPixels;
+				sl_uint32 tex = iex / m_config.tileDimensionInPixels;
+				sl_uint32 tey = iey / m_config.tileDimensionInPixels;
+				if (iex % m_config.tileDimensionInPixels) {
 					tex++;
 				}
-				if (iey % m_tileLength) {
+				if (iey % m_config.tileDimensionInPixels) {
 					tey++;
 				}
 				double scale = rcView.getHeight() / h;
-				sl_real ts = (sl_real)(m_tileLength * scale);
+				sl_real ts = (sl_real)(m_config.tileDimensionInPixels * scale);
 				for (sl_uint32 ty = tsy; ty < tey; ty++) {
 					for (sl_uint32 tx = tsx; tx < tex; tx++) {
 						MapTileLocationI location(level, tx, ty);
@@ -1458,8 +1445,8 @@ namespace slib
 						}
 						image.convertToSourceCoordinate();
 						Rectangle rcDst;
-						rcDst.left = rcView.left + (sl_real)(((double)(tx * m_tileLength) - sx) * scale);
-						rcDst.top = rcView.bottom - (sl_real)(((double)((ty + 1) * m_tileLength) - sy) * scale);
+						rcDst.left = rcView.left + (sl_real)(((double)(tx * m_config.tileDimensionInPixels) - sx) * scale);
+						rcDst.top = rcView.bottom - (sl_real)(((double)((ty + 1) * m_config.tileDimensionInPixels) - sy) * scale);
 						rcDst.setWidth(ts);
 						rcDst.setHeight(ts);
 						if (image.flagDrawWhole) {
@@ -1517,8 +1504,8 @@ namespace slib
 				param.reader = reader;
 				(MapTileLocationI&)(param.address) = location;
 				param.cache = cache;
-				param.flagLoadNow = location.level <= m_baseLevel;
-				param.flagEndless = location.level == m_baseLevel;
+				param.flagLoadNow = location.level <= m_config.baseLevel;
+				param.flagEndless = location.level == m_config.baseLevel;
 				m_toReaderLocation(param.address);
 				loader->loadImage(_out.source, param, sl_null);
 				if (_out.source.isNotNull()) {
@@ -1529,7 +1516,7 @@ namespace slib
 					_out.flagDrawWhole = sl_true;
 					return sl_true;
 				}
-				if (location.level <= m_baseLevel) {
+				if (location.level <= m_config.baseLevel) {
 					return sl_false;
 				}
 				if (!(loadImage(_out, reader, cache, loader, MapTileLocation(location.level - 1, location.E >> 1, location.N >> 1)))) {
@@ -1558,8 +1545,8 @@ namespace slib
 				param.reader = m_readerDEM;
 				(MapTileLocationI&)(param.address) = location;
 				param.cache = m_cacheDEM;
-				param.flagLoadNow = location.level <= m_baseLevel;
-				param.flagEndless = location.level == m_baseLevel;
+				param.flagLoadNow = location.level <= m_config.baseLevel;
+				param.flagEndless = location.level == m_config.baseLevel;
 				m_toReaderLocation(param.address);
 				loader->loadData(_out.source, param, sl_null);
 				if (_out.source.isNotNull()) {
@@ -1570,7 +1557,7 @@ namespace slib
 					_out.flagUseWhole = sl_true;
 					return sl_true;
 				}
-				if (location.level <= m_baseLevel) {
+				if (location.level <= m_config.baseLevel) {
 					return sl_false;
 				}
 				if (!(loadDEM(_out, loader, MapTileLocation(location.level - 1, location.E >> 1, location.N >> 1)))) {
@@ -1605,44 +1592,9 @@ namespace slib
 		return Ref<MapSurface>::cast(MapSurfaceImpl::create(param));
 	}
 
-	sl_uint32 MapSurface::getBaseLevel()
+	const MapSurfaceConfiguration& MapSurface::getConfiguration()
 	{
-		return m_baseLevel;
-	}
-
-	sl_uint32 MapSurface::getBaseTileCountE()
-	{
-		return m_baseTileCountE;
-	}
-
-	sl_uint32 MapSurface::getBaseTileCountN()
-	{
-		return m_baseTileCountN;
-	}
-
-	sl_uint32 MapSurface::getMinimumLevel()
-	{
-		return m_minLevel;
-	}
-
-	sl_uint32 MapSurface::getMaximumLevel()
-	{
-		return m_maxLevel;
-	}
-
-	double MapSurface::getDegreeLengthE()
-	{
-		return m_degreeLengthE;
-	}
-
-	double MapSurface::getDegreeLengthN()
-	{
-		return m_degreeLengthN;
-	}
-
-	sl_uint32 MapSurface::getTileLength()
-	{
-		return m_tileLength;
+		return m_config;
 	}
 
 	Ref<MapTileReader> MapSurface::getPictureReader()
@@ -1661,21 +1613,11 @@ namespace slib
 		return m_readerDEM;
 	}
 
-	DEM::DataType MapSurface::getDemType()
-	{
-		return m_demType;
-	}
-
-	sl_bool MapSurface::isDemFlipY()
-	{
-		return m_flagFlipDemY;
-	}
-
 	void MapSurface::setDemReader(const Ref<MapTileReader>& reader, DEM::DataType type, sl_bool flagFlipY)
 	{
 		m_readerDEM = reader;
-		m_demType = type;
-		m_flagFlipDemY = flagFlipY;
+		m_config.demType = type;
+		m_config.flagFlipDemY = flagFlipY;
 		clearCache();
 	}
 
@@ -1727,30 +1669,30 @@ namespace slib
 
 	LatLon MapSurface::getLatLonFromTileLocation(const MapTileLocationI& location)
 	{
-		if (location.level < m_baseLevel) {
+		if (location.level < m_config.baseLevel) {
 			return { 0, 0 };
 		}
-		sl_uint64 n = (sl_uint64)1 << (location.level - m_baseLevel);
-		sl_uint64 nE = n * m_baseTileCountE;
-		sl_uint64 nN = n * m_baseTileCountN;
+		sl_uint64 n = (sl_uint64)1 << (location.level - m_config.baseLevel);
+		sl_uint64 nE = n * m_config.baseTileCountE;
+		sl_uint64 nN = n * m_config.baseTileCountN;
 		LatLon ret;
-		ret.latitude = ((double)(location.N) / (double)nN - 0.5) * m_degreeLengthN;
-		ret.longitude = ((double)(location.E) / (double)nE - 0.5) * m_degreeLengthE;
+		ret.latitude = ((double)(location.N) / (double)nN - 0.5) * m_config.northingRangeInDegrees;
+		ret.longitude = ((double)(location.E) / (double)nE - 0.5) * m_config.eastingRangeInDegrees;
 		return ret;
 	}
 
 	MapTileLocation MapSurface::getTileLocationFromLatLon(sl_uint32 level, const LatLon& location)
 	{
-		if (level < m_baseLevel) {
+		if (level < m_config.baseLevel) {
 			return { level, 0, 0 };
 		}
-		sl_uint64 n = (sl_uint64)1 << (level - m_baseLevel);
-		sl_uint64 nE = n * m_baseTileCountE;
-		sl_uint64 nN = n * m_baseTileCountN;
+		sl_uint64 n = (sl_uint64)1 << (level - m_config.baseLevel);
+		sl_uint64 nE = n * m_config.baseTileCountE;
+		sl_uint64 nN = n * m_config.baseTileCountN;
 		MapTileLocation ret;
 		ret.level = level;
-		ret.N = (0.5 + location.latitude / m_degreeLengthN) * nN;
-		ret.E = (0.5 + location.longitude / m_degreeLengthE) * nE;
+		ret.N = (0.5 + location.latitude / m_config.northingRangeInDegrees) * nN;
+		ret.E = (0.5 + location.longitude / m_config.eastingRangeInDegrees) * nE;
 		return ret;
 	}
 

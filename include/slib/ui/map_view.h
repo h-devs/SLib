@@ -333,6 +333,8 @@ namespace slib
 		Vector2 texCoord;
 	};
 
+	class MapSurfaceConfiguration;
+
 	class SLIB_EXPORT MapViewTile : public CRef
 	{
 		SLIB_DECLARE_OBJECT
@@ -353,13 +355,13 @@ namespace slib
 		Double3 pointsWithDEM[4];
 
 	public:
-		sl_bool build(DEM::DataType demType, sl_bool flagFlipY, const Rectangle* demRegion = sl_null);
+		sl_bool build(const MapSurfaceConfiguration& config, const Rectangle* demRegion = sl_null);
 
 		void buildVertex(MapViewVertex& vertex, double latitude, double longitude, double altitude, sl_real tx, sl_real ty);
 
 	};
 
-	class SLIB_EXPORT MapSurfaceParam
+	class SLIB_EXPORT MapSurfaceConfiguration
 	{
 	public:
 		sl_uint32 baseLevel;
@@ -367,15 +369,28 @@ namespace slib
 		sl_uint32 baseTileCountN; // Northing
 		sl_uint32 minimumLevel;
 		sl_uint32 maximumLevel;
-		double degreeLengthE; // Easting
-		double degreeLengthN; // Northing
-		sl_uint32 tileLength; // Pixels
+		double eastingRangeInDegrees;
+		double northingRangeInDegrees;
+		sl_uint32 tileDimensionInPixels;
+		sl_uint32 minimumTileMatrixOrder;
+		sl_uint32 maximumTileMatrixOrder;
+		DEM::DataType demType;
+		sl_bool flagFlipDemY;
+
+	public:
+		MapSurfaceConfiguration();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MapSurfaceConfiguration)
+
+	};
+
+	class SLIB_EXPORT MapSurfaceParam : public MapSurfaceConfiguration
+	{
+	public:
 		Function<void(MapTileLocationI&)> toReaderLocation;
 
 		Ref<MapTileReader> picture;
 		Ref<MapTileReader> dem;
-		DEM::DataType demType;
-		sl_bool flagFlipDemY;
 		Ref<MapTileReader> layers[SLIB_MAP_VIEW_LAYER_COUNT];
 
 	public:
@@ -409,31 +424,13 @@ namespace slib
 		virtual void clearCache() = 0;
 
 	public:
-		sl_uint32 getBaseLevel();
-
-		sl_uint32 getBaseTileCountE();
-
-		sl_uint32 getBaseTileCountN();
-
-		sl_uint32 getMinimumLevel();
-
-		sl_uint32 getMaximumLevel();
-
-		double getDegreeLengthE();
-
-		double getDegreeLengthN();
-
-		sl_uint32 getTileLength();
+		const MapSurfaceConfiguration& getConfiguration();
 
 		Ref<MapTileReader> getPictureReader();
 
 		void setPictureReader(const Ref<MapTileReader>& reader);
 
 		Ref<MapTileReader> getDemReader();
-
-		DEM::DataType getDemType();
-
-		sl_bool isDemFlipY();
 
 		void setDemReader(const Ref<MapTileReader>& reader, DEM::DataType type, sl_bool flagFlipY = sl_false);
 
@@ -461,20 +458,10 @@ namespace slib
 		virtual void onDrawPlane(Canvas* canvas, const Rectangle& rect, MapSurfacePlane* plane, MapViewData* data) = 0;
 
 	protected:
-		sl_uint32 m_baseLevel;
-		sl_uint32 m_baseTileCountE;
-		sl_uint32 m_baseTileCountN;
-		sl_uint32 m_minLevel;
-		sl_uint32 m_maxLevel;
-		double m_degreeLengthE;
-		double m_degreeLengthN;
-		sl_uint32 m_tileLength; // Pixels
+		MapSurfaceConfiguration m_config;
 		Function<void(MapTileLocationI&)> m_toReaderLocation;
-
 		AtomicRef<MapTileReader> m_readerPicture;
 		AtomicRef<MapTileReader> m_readerDEM;
-		DEM::DataType m_demType;
-		sl_bool m_flagFlipDemY;
 		struct Layer
 		{
 			AtomicRef<MapTileReader> reader;
