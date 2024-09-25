@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -89,27 +89,38 @@ namespace slib
 								 "{%n\tnamespace color%n\t{%n%n"
 								 , m_conf.generate_cpp_namespace));
 
-		sbMap.add("\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_BEGIN\r\n");
+		if (m_conf.generate_cpp_color_map) {
+			sbMap.add("\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_BEGIN\r\n");
+		}
 
 		for (auto&& pair : m_colors) {
-
+			if (m_conf.generate_cpp_color_filter_include.isNotEmpty()) {
+				if (!(m_conf.generate_cpp_color_filter_include.contains_NoLock(pair.key))) {
+					continue;
+				}
+			}
+			if (m_conf.generate_cpp_color_filter_exclude.isNotEmpty()) {
+				if (m_conf.generate_cpp_color_filter_exclude.contains_NoLock(pair.key)) {
+					continue;
+				}
+			}
 			if (pair.value.isNotNull()) {
-
 				sbHeader.add(String::format("\t\tSLIB_DECLARE_COLOR_RESOURCE(%s)%n", pair.key));
-
 				Color& color = pair.value->value;
 				sbCpp.add(String::format("\t\tSLIB_DEFINE_COLOR_RESOURCE(%s, %d, %d, %d, %d)%n", pair.key, color.r, color.g, color.b, color.a));
-
-				sbMap.add(String::format("\t\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_ITEM(%s)%n", pair.key));
-
+				if (m_conf.generate_cpp_color_map) {
+					sbMap.add(String::format("\t\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_ITEM(%s)%n", pair.key));
+				}
 			}
 		}
 
-		sbMap.add("\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_END\r\n");
-
-		sbHeader.add("\r\n\t\tSLIB_DECLARE_COLOR_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
-
-		sbCpp.link(sbMap);
+		if (m_conf.generate_cpp_color_map) {
+			sbMap.add("\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_END\r\n");
+			sbHeader.add("\r\n\t\tSLIB_DECLARE_COLOR_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
+			sbCpp.link(sbMap);
+		} else {
+			sbHeader.add("\r\n\r\n\t}\r\n}\r\n");
+		}
 		sbCpp.add("\r\n\t}\r\n}\r\n");
 
 		String pathHeader = targetPath + "/colors.h";

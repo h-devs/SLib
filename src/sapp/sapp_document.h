@@ -46,6 +46,18 @@ namespace slib
 		String generate_cpp_namespace;
 		List<String> generate_cpp_layout_include_headers;
 		List<String> generate_cpp_layout_include_headers_in_cpp;
+		sl_bool generate_cpp_string_map;
+		List<String> generate_cpp_string_filter_include;
+		List<String> generate_cpp_string_filter_exclude;
+		sl_bool generate_cpp_color_map;
+		List<String> generate_cpp_color_filter_include;
+		List<String> generate_cpp_color_filter_exclude;
+		sl_bool generate_cpp_drawable_map;
+		List<String> generate_cpp_drawable_filter_include;
+		List<String> generate_cpp_drawable_filter_exclude;
+		sl_bool generate_cpp_raw_map;
+		List<String> generate_cpp_raw_filter_include;
+		List<String> generate_cpp_raw_filter_exclude;
 
 		Locale simulator_locale;
 		List<Locale> locale_excludes;
@@ -167,7 +179,7 @@ namespace slib
 		// Raw Resources
 		sl_bool _registerRawResources(const String& fileDirPath);
 		sl_bool _registerRawResources(SAppRawResource* parent, const String& resourcePath, const String& fileDirPath);
-		sl_bool _registerRawResource(const String& resourceName, const String& resourcePath, const String& filePath, String& outName, SAppRawResource* parent = sl_null);
+		sl_bool _registerRawResource(const String& resourceName, const String& resourcePath, const String& filePath, String& outName, SAppRawResource* parent, const String& drawableName);
 		sl_bool _generateRawCpp(const String& targetPath, const String& namespace1, const String& namespace2);
 		sl_bool _generateRawCppItem(SAppRawResource* item, const String& targetPath, const String& relativePath, const String& namespacePath, StringBuffer& header, StringBuffer& cpp, StringBuffer& map, StringBuffer& data, sl_uint32 tabCountStart, sl_uint32 tabCountRelative);
 		sl_bool _generateRawDataFile(const String& targetPath, const String& sourcePath, const String& resourceName);

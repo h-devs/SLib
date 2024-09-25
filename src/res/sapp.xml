@@ -3,6 +3,18 @@
 		<generate-cpp>
 			<target-path>./gen</target-path>
 			<namespace>slib</namespace>
+			<string>
+				<map>false</map>
+			</string>
+			<color>
+				<map>false</map>
+			</color>
+			<drawable>
+				<map>false</map>
+			</drawable>
+			<raw>
+				<map>false</map>
+			</raw>
 		</generate-cpp>
 	</configuration>
 </sapp>

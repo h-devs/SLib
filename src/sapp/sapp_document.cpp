@@ -37,6 +37,10 @@ namespace slib
 
 	SAppConfiguration::SAppConfiguration()
 	{
+		generate_cpp_string_map = sl_true;
+		generate_cpp_color_map = sl_true;
+		generate_cpp_drawable_map = sl_true;
+		generate_cpp_raw_map = sl_true;
 		simulator_locale = Locale::Unknown;
 	}
 
@@ -597,7 +601,7 @@ namespace slib
 		param.setCreatingOnlyElementsAndTexts();
 		Ref<XmlDocument> xml = Xml::parseTextFile(filePath, param);
 		if (param.flagError) {
-			logError(filePath, param.errorLine, param.errorColumn, param.errorMessage);
+			logErrorSource(filePath, param.errorLine, param.errorColumn, param.errorMessage);
 			return sl_false;
 		}
 
@@ -687,6 +691,118 @@ namespace slib
 					if (!(SAppUtil::checkName(conf.generate_cpp_namespace.getData(), conf.generate_cpp_namespace.getLength()))) {
 						logError(el_namespace, String::format(g_str_error_configuration_value_invalid, "namespace", conf.generate_cpp_namespace));
 						return sl_false;
+					}
+				}
+				Ref<XmlElement> el_string = el_generate_cpp->getFirstChildElement("string");
+				if (el_string.isNotNull()) {
+					Ref<XmlElement> el_map = el_string->getFirstChildElement("map");
+					if (el_map.isNotNull()) {
+						String value = el_map->getText();
+						if (value == "true") {
+							conf.generate_cpp_string_map = sl_true;
+						} else if (value == "false") {
+							conf.generate_cpp_string_map = sl_false;
+						} else {
+							logError(el_map, String::format(g_str_error_configuration_value_invalid, "map", value));
+							return sl_false;
+						}
+					}
+					Ref<XmlElement> el_filter = el_string->getFirstChildElement("filter");
+					if (el_filter.isNotNull()) {
+						ListElements< Ref<XmlElement> > children(el_filter->getChildElements());
+						for (sl_size i = 0; i < children.count; i++) {
+							Ref<XmlElement>& child = children[i];
+							String name = child->getName();
+							if (name == "include") {
+								conf.generate_cpp_string_filter_include.add_NoLock(child->getText());
+							} else if (name == "exclude") {
+								conf.generate_cpp_string_filter_exclude.add_NoLock(child->getText());
+							}
+						}
+					}
+				}
+				Ref<XmlElement> el_color = el_generate_cpp->getFirstChildElement("color");
+				if (el_color.isNotNull()) {
+					Ref<XmlElement> el_map = el_color->getFirstChildElement("map");
+					if (el_map.isNotNull()) {
+						String value = el_map->getText();
+						if (value == "true") {
+							conf.generate_cpp_color_map = sl_true;
+						} else if (value == "false") {
+							conf.generate_cpp_color_map = sl_false;
+						} else {
+							logError(el_map, String::format(g_str_error_configuration_value_invalid, "map", value));
+							return sl_false;
+						}
+					}
+					Ref<XmlElement> el_filter = el_color->getFirstChildElement("filter");
+					if (el_filter.isNotNull()) {
+						ListElements< Ref<XmlElement> > children(el_filter->getChildElements());
+						for (sl_size i = 0; i < children.count; i++) {
+							Ref<XmlElement>& child = children[i];
+							String name = child->getName();
+							if (name == "include") {
+								conf.generate_cpp_color_filter_include.add_NoLock(child->getText());
+							} else if (name == "exclude") {
+								conf.generate_cpp_color_filter_exclude.add_NoLock(child->getText());
+							}
+						}
+					}
+				}
+				Ref<XmlElement> el_drawable = el_generate_cpp->getFirstChildElement("drawable");
+				if (el_drawable.isNotNull()) {
+					Ref<XmlElement> el_map = el_drawable->getFirstChildElement("map");
+					if (el_map.isNotNull()) {
+						String value = el_map->getText();
+						if (value == "true") {
+							conf.generate_cpp_drawable_map = sl_true;
+						} else if (value == "false") {
+							conf.generate_cpp_drawable_map = sl_false;
+						} else {
+							logError(el_map, String::format(g_str_error_configuration_value_invalid, "map", value));
+							return sl_false;
+						}
+					}
+					Ref<XmlElement> el_filter = el_drawable->getFirstChildElement("filter");
+					if (el_filter.isNotNull()) {
+						ListElements< Ref<XmlElement> > children(el_filter->getChildElements());
+						for (sl_size i = 0; i < children.count; i++) {
+							Ref<XmlElement>& child = children[i];
+							String name = child->getName();
+							if (name == "include") {
+								conf.generate_cpp_drawable_filter_include.add_NoLock(child->getText());
+							} else if (name == "exclude") {
+								conf.generate_cpp_drawable_filter_exclude.add_NoLock(child->getText());
+							}
+						}
+					}
+				}
+				Ref<XmlElement> el_raw = el_generate_cpp->getFirstChildElement("raw");
+				if (el_raw.isNotNull()) {
+					Ref<XmlElement> el_map = el_raw->getFirstChildElement("map");
+					if (el_map.isNotNull()) {
+						String value = el_map->getText();
+						if (value == "true") {
+							conf.generate_cpp_raw_map = sl_true;
+						} else if (value == "false") {
+							conf.generate_cpp_raw_map = sl_false;
+						} else {
+							logError(el_map, String::format(g_str_error_configuration_value_invalid, "map", value));
+							return sl_false;
+						}
+					}
+					Ref<XmlElement> el_filter = el_raw->getFirstChildElement("filter");
+					if (el_filter.isNotNull()) {
+						ListElements< Ref<XmlElement> > children(el_filter->getChildElements());
+						for (sl_size i = 0; i < children.count; i++) {
+							Ref<XmlElement>& child = children[i];
+							String name = child->getName();
+							if (name == "include") {
+								conf.generate_cpp_raw_filter_include.add_NoLock(child->getText());
+							} else if (name == "exclude") {
+								conf.generate_cpp_raw_filter_exclude.add_NoLock(child->getText());
+							}
+						}
 					}
 				}
 				Ref<XmlElement> el_layout = el_generate_cpp->getFirstChildElement("layout");

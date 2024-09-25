@@ -740,9 +740,6 @@
     <ClCompile Include="..\..\src\slib\ui\image_view_url.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\res\gen\colors.cpp">
-      <Filter>res</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\res\gen\drawables.cpp">
       <Filter>res</Filter>
     </ClCompile>

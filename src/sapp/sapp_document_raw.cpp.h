@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ namespace slib
 				} else {
 					resourcePathChild = fileName;
 				}
-				if (!(_registerRawResource(fileName, resourcePathChild, String::concat(fileDirPath, "/", fileName), name, parent))) {
+				if (!(_registerRawResource(fileName, resourcePathChild, String::concat(fileDirPath, "/", fileName), name, parent, sl_null))) {
 					return sl_false;
 				}
 			}
@@ -52,7 +52,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_registerRawResource(const String& _resourceName, const String& resourcePath, const String& filePath, String& outName, SAppRawResource* parent)
+	sl_bool SAppDocument::_registerRawResource(const String& _resourceName, const String& resourcePath, const String& filePath, String& outName, SAppRawResource* parent, const String& drawableName)
 	{
 		String resourceName = Resources::makeResourceName(_resourceName);
 		if (parent) {
@@ -79,6 +79,7 @@ namespace slib
 			}
 		} else {
 			res->filePath = filePath;
+			res->drawableName = drawableName;
 		}
 		if (parent) {
 			if (!(parent->sub.put(resourceName, res))) {
@@ -139,37 +140,73 @@ namespace slib
 		}
 
 		String tabs('\t', tabCountStart);
-		sbMap.add(tabs);
-		sbMap.add("SLIB_DEFINE_RAW_RESOURCE_MAP_BEGIN\r\n");
+		if (m_conf.generate_cpp_raw_map) {
+			sbMap.add(tabs);
+			sbMap.add("SLIB_DEFINE_RAW_RESOURCE_MAP_BEGIN\r\n");
+		}
 
 		StringBuffer sbData;
 
 		for (auto&& pair : m_raws) {
 			if (pair.value.isNotNull()) {
 				Ref<SAppRawResource> res = pair.value;
+				if (res->drawableName.isNotEmpty()) {
+					if (m_conf.generate_cpp_drawable_filter_include.isNotEmpty()) {
+						if (!(m_conf.generate_cpp_drawable_filter_include.contains_NoLock(res->drawableName))) {
+							continue;
+						}
+					}
+					if (m_conf.generate_cpp_drawable_filter_exclude.isNotEmpty()) {
+						if (m_conf.generate_cpp_drawable_filter_exclude.contains_NoLock(res->drawableName)) {
+							continue;
+						}
+					}
+				} else {
+					if (m_conf.generate_cpp_raw_filter_include.isNotEmpty()) {
+						if (!(m_conf.generate_cpp_raw_filter_include.contains_NoLock(pair.key))) {
+							continue;
+						}
+					}
+					if (m_conf.generate_cpp_raw_filter_exclude.isNotEmpty()) {
+						if (m_conf.generate_cpp_raw_filter_exclude.contains_NoLock(pair.key)) {
+							continue;
+						}
+					}
+				}
 				if (!(_generateRawCppItem(res.get(), targetPath, sl_null, sl_null, sbHeader, sbCpp, sbMap, sbData, tabCountStart, 0))) {
 					return sl_false;
 				}
 			}
 		}
 
-		sbMap.add(tabs);
-		sbMap.add("SLIB_DEFINE_RAW_RESOURCE_MAP_END\r\n");
+		if (m_conf.generate_cpp_raw_map) {
+			sbMap.add(tabs);
+			sbMap.add("SLIB_DEFINE_RAW_RESOURCE_MAP_END\r\n");
+		}
 
 		sbHeader.add("\r\n");
-		sbHeader.add(tabs);
-
 		sbCpp.add("\r\n");
-		sbCpp.link(sbMap);
+		if (m_conf.generate_cpp_raw_map) {
+			sbHeader.add(tabs);
+			sbCpp.link(sbMap);
+		}
 
 		sbCpp.add("\r\n");
 		sbCpp.link(sbData);
 
 		if (namespace2.isNotEmpty()) {
-			sbHeader.add("SLIB_DECLARE_RAW_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
+			if (m_conf.generate_cpp_raw_map) {
+				sbHeader.add("SLIB_DECLARE_RAW_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
+			} else {
+				sbHeader.add("\r\n\t}\r\n}\r\n");
+			}
 			sbCpp.add("\r\n\t}\r\n}\r\n");
 		} else {
-			sbHeader.add("SLIB_DECLARE_RAW_RESOURCE_MAP\r\n\r\n}\r\n");
+			if (m_conf.generate_cpp_raw_map) {
+				sbHeader.add("SLIB_DECLARE_RAW_RESOURCE_MAP\r\n\r\n}\r\n");
+			} else {
+				sbHeader.add("\r\n}\r\n");
+			}
 			sbCpp.add("\r\n}\r\n");
 		}
 
@@ -217,8 +254,10 @@ namespace slib
 			}
 			sbCpp.add(String::format("%sSLIB_DEFINE_RAW_RESOURCE(%s, %d)%n", tab, res->name, size));
 			if (res->resourcePath.isNotEmpty()) {
-				sbMap.add(String('\t', tabCountStart));
-				sbMap.add(String::format("\tSLIB_DEFINE_RAW_RESOURCE_MAP_PATH(\"%s\", %s)%n", res->resourcePath, namespacePath));
+				if (m_conf.generate_cpp_raw_map) {
+					sbMap.add(String('\t', tabCountStart));
+					sbMap.add(String::format("\tSLIB_DEFINE_RAW_RESOURCE_MAP_PATH(\"%s\", %s)%n", res->resourcePath, namespacePath));
+				}
 			}
 			sbData.add(String::format("%s#include \"raw/%s.inc\"%n", tab, relativePath));
 			return _generateRawDataFile(String::format("%s/raw/%s.inc", targetPath, relativePath), res->filePath, res->name);

@@ -11,8 +11,6 @@ namespace slib
 		SLIB_DEFINE_RAW_RESOURCE(image_camera_view_control_switch_png, 19744)
 		SLIB_DEFINE_RAW_RESOURCE(image_round_shadow_back_png, 20197)
 
-		SLIB_DEFINE_RAW_RESOURCE_MAP_BEGIN
-		SLIB_DEFINE_RAW_RESOURCE_MAP_END
 
 		#include "raw/image_camera_view_control_flash_auto_png.inc"
 		#include "raw/image_camera_view_control_flash_off_png.inc"

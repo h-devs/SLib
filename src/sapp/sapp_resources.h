@@ -73,6 +73,7 @@ namespace slib
 		String name;
 		String resourcePath;
 		String filePath;
+		String drawableName;
 
 		Map< String, Ref<SAppRawResource> > sub;
 	};

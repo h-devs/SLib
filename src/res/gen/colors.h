@@ -8,7 +8,6 @@ namespace slib
 	{
 
 
-		SLIB_DECLARE_COLOR_RESOURCE_MAP
 
 	}
 }

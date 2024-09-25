@@ -72,7 +72,6 @@
     </ClCompile>
     <ClCompile Include="..\..\external\src\zlib\zlib_unity.c" />
     <ClCompile Include="..\..\external\src\zstd\zstd_unity.c" />
-    <ClCompile Include="..\..\src\res\gen\colors.cpp" />
     <ClCompile Include="..\..\src\res\gen\drawables.cpp" />
     <ClCompile Include="..\..\src\res\gen\layouts.cpp" />
     <ClCompile Include="..\..\src\res\gen\menus.cpp" />
