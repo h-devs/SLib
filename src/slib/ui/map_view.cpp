@@ -57,7 +57,8 @@ namespace slib
 			MapTileReader,
 			MapTileDirectory,
 			MapTileCache,
-			MapTileLoader
+			MapTileLoader,
+			MapViewExtension
 		};
 	}
 
@@ -666,7 +667,7 @@ namespace slib
 	{
 		DEM model;
 		model.initialize(config.demType, dem.getData(), dem.getSize(), 0, config.flagFlipDemY);
-		
+
 		double N0 = region.bottomLeft.latitude;
 		double E0 = region.bottomLeft.longitude;
 		double N1 = region.topRight.latitude;
@@ -1371,7 +1372,7 @@ namespace slib
 				TileDEM dem;
 				if (loadDEM(dem, loader, tloci)) {
 					DEM model;
-					if (model.initialize(m_config.demType, dem.source.getData(), dem.source.getSize())) {
+					if (model.initialize(m_config.demType, dem.source.getData(), dem.source.getSize(), 0, m_config.flagFlipDemY)) {
 						return model.getAltitudeAt(dem.region.left + (float)(tloc.E - (double)(tloci.E)) * dem.region.getWidth(), dem.region.top + (float)(1.0 - (tloc.N - (double)(tloci.N))) * dem.region.getHeight());
 					}
 				}
@@ -1888,9 +1889,19 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_OBJECT(MapViewExtension, Object)
+
+	MapViewExtension::MapViewExtension()
+	{
+	}
+
+	MapViewExtension::~MapViewExtension()
+	{
+	}
+
+
 	MapViewData::MapViewData()
 	{
-		m_view = sl_null;
 		m_flagGlobeMode = sl_false;
 		m_flagRendered = sl_false;
 
@@ -2017,24 +2028,37 @@ namespace slib
 		return m_state.eyeLocation;
 	}
 
-	void MapViewData::setEyeLocation(const GeoLocation& location, UIUpdateMode mode)
+	void MapViewData::setEyeLocation(const GeoLocation& location, UIEvent* ev, UIUpdateMode mode)
 	{
-		MutexLocker locker(&m_lock);
-		if (!m_flagGlobeMode) {
-			if (m_plane.isNotNull()) {
-				m_plane->setEyeLocation(location);
-				invalidate(mode);
-				return;
+		GeoLocation newLocation;
+		{
+			MutexLocker locker(&m_lock);
+			newLocation = location;
+			if (m_flagGlobeMode) {
+				if (newLocation.altitude < m_altitudeMin) {
+					newLocation.altitude = m_altitudeMin;
+				}
+				if (newLocation.altitude > m_altitudeMax) {
+					newLocation.altitude = m_altitudeMax;
+				}
+			} else {
+				if (m_plane.isNotNull()) {
+					m_plane->setEyeLocation(location);
+					newLocation = m_plane->getEyeLocation();
+				}
 			}
 		}
-		m_state.eyeLocation = location;
-		if (m_state.eyeLocation.altitude < m_altitudeMin) {
-			m_state.eyeLocation.altitude = m_altitudeMin;
+		m_state.eyeLocation = newLocation;
+		invokeChangeLocation(newLocation, ev);
+		if (m_flagGlobeMode) {
+			setEyeTilt(m_state.tilt, UIUpdateMode::None);
 		}
-		if (m_state.eyeLocation.altitude > m_altitudeMax) {
-			m_state.eyeLocation.altitude = m_altitudeMax;
-		}
-		setEyeTilt(m_state.tilt, mode);
+		invalidate(mode);
+	}
+
+	void MapViewData::setEyeLocation(const GeoLocation& location, UIUpdateMode mode)
+	{
+		setEyeLocation(location, sl_null, mode);
 	}
 
 	float MapViewData::getEyeRotation() const
@@ -2058,7 +2082,7 @@ namespace slib
 		if (tilt < 0.0f) {
 			tilt = 0.0f;
 		}
-		float max = 60.0f;
+		float max = 40.0f;
 		float alt = (float)(m_state.eyeLocation.altitude);
 		if (alt > 1000.0f) {
 			max = max - (alt - 1000.0f) / 500.0f;
@@ -2167,39 +2191,59 @@ namespace slib
 		plane->setViewport(rect);
 	}
 
-	void MapViewData::movePlane(double dx, double dy, UIUpdateMode mode)
+	void MapViewData::movePlane(double dx, double dy, UIEvent* ev, UIUpdateMode mode)
 	{
 		MutexLocker locker(&m_lock);
 		if (m_flagGlobeMode) {
 			return;
 		}
 		MapPlane* plane = m_plane.get();
-		if (plane) {
-			double scale = plane->getScale();
-			MapLocation center = plane->getCenterLocation();
-			plane->setCenterLocation(center.E - dx * scale, center.N + dy * scale);
+		if (!plane) {
+			return;
 		}
+		double scale = plane->getScale();
+		MapLocation center = plane->getCenterLocation();
+		plane->setCenterLocation(center.E - dx * scale, center.N + dy * scale);
+		GeoLocation location = plane->getEyeLocation();
+		locker.unlock();
+		m_state.eyeLocation = location;
+		invokeChangeLocation(location, ev);
 		invalidate(mode);
 	}
 
-	void MapViewData::zoom(double factor, UIUpdateMode mode)
+	void MapViewData::movePlane(double dx, double dy, UIUpdateMode mode)
+	{
+		movePlane(dx, dy, sl_null, mode);
+	}
+
+	void MapViewData::zoom(double factor, UIEvent* ev, UIUpdateMode mode)
 	{
 		MutexLocker locker(&m_lock);
 		if (m_flagGlobeMode) {
 			GeoLocation location = m_state.eyeLocation;
 			location.altitude *= factor;
-			setEyeLocation(location);
-			invalidate(mode);
-		} else {
-			MapPlane* plane = m_plane.get();
-			if (plane) {
-				m_plane->setScale(plane->getScale() * factor);
-				invalidate(mode);
-			}
+			locker.unlock();
+			setEyeLocation(location, ev, mode);
+			return;
 		}
+		MapPlane* plane = m_plane.get();
+		if (!plane) {
+			return;
+		}
+		plane->setScale(plane->getScale() * factor);
+		GeoLocation location = plane->getEyeLocation();
+		locker.unlock();
+		m_state.eyeLocation = location;
+		invokeChangeLocation(location, ev);
+		invalidate(mode);
 	}
 
-	void MapViewData::zoomAt(const Double2& pt, double factor, UIUpdateMode mode)
+	void MapViewData::zoom(double factor, UIUpdateMode mode)
+	{
+		zoom(factor, sl_null, mode);
+	}
+
+	void MapViewData::zoomAt(const Double2& pt, double factor, UIEvent* ev, UIUpdateMode mode)
 	{
 		if (m_flagGlobeMode) {
 			zoom(factor, mode);
@@ -2207,15 +2251,25 @@ namespace slib
 		}
 		MutexLocker locker(&m_lock);
 		MapPlane* plane = m_plane.get();
-		if (plane) {
-			MapLocation c = plane->getCenterLocation();
-			MapLocation l1 = plane->getMapLocationFromViewPoint(pt);
-			double scale = plane->getScale() * factor;
-			plane->setScale(scale);
-			MapLocation l2 = plane->getMapLocationFromViewPoint(pt);
-			plane->setCenterLocation(c.E - l2.E + l1.E, c.N - l2.N + l1.N);
+		if (!plane) {
+			return;
 		}
+		MapLocation c = plane->getCenterLocation();
+		MapLocation l1 = plane->getMapLocationFromViewPoint(pt);
+		double scale = plane->getScale() * factor;
+		plane->setScale(scale);
+		MapLocation l2 = plane->getMapLocationFromViewPoint(pt);
+		plane->setCenterLocation(c.E - l2.E + l1.E, c.N - l2.N + l1.N);
+		GeoLocation location = plane->getEyeLocation();
+		locker.unlock();
+		m_state.eyeLocation = location;
+		invokeChangeLocation(location, ev);
 		invalidate(mode);
+	}
+
+	void MapViewData::zoomAt(const Double2& pt, double factor, UIUpdateMode mode)
+	{
+		zoomAt(pt, factor, sl_null, mode);
 	}
 
 	void MapViewData::click(const Double2& pt, UIUpdateMode mode)
@@ -2225,6 +2279,30 @@ namespace slib
 
 	void MapViewData::stopMoving()
 	{
+	}
+
+	void MapViewData::addExtension(const Ref<MapViewExtension>& extension)
+	{
+		if (extension.isNotNull()) {
+			m_extensions.add_NoLock(extension);
+		}
+	}
+
+	void MapViewData::doInvalidate(UIUpdateMode mode)
+	{
+	}
+
+	void MapViewData::notifyChangeLocation(const GeoLocation& location, UIEvent* ev)
+	{
+	}
+
+	void MapViewData::invokeChangeLocation(const GeoLocation& location, UIEvent* ev)
+	{
+		ListElements< Ref<MapViewExtension> > extensions(m_extensions);
+		for (sl_size i = 0; i < extensions.count; i++) {
+			extensions[i]->onChangeLocation(m_state.eyeLocation);
+		}
+		notifyChangeLocation(location, ev);
 	}
 
 	sl_bool MapViewData::_initState()
@@ -2319,9 +2397,7 @@ namespace slib
 
 	void MapViewData::invalidate(UIUpdateMode mode)
 	{
-		if (m_view) {
-			m_view->invalidate(mode);
-		}
+		doInvalidate(mode);
 	}
 
 	void MapViewData::_onCompleteLazyLoading()
@@ -2334,7 +2410,6 @@ namespace slib
 
 	MapView::MapView()
 	{
-		m_view = this;
 		setRedrawMode(RedrawMode::WhenDirty);
 		setFocusable();
 
@@ -2353,6 +2428,18 @@ namespace slib
 
 	MapView::~MapView()
 	{
+	}
+
+	void MapView::doInvalidate(UIUpdateMode mode)
+	{
+		invalidate(mode);
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(MapView, ChangeLocation, (const GeoLocation& location, UIEvent* ev), location, ev)
+
+	void MapView::notifyChangeLocation(const GeoLocation& location, UIEvent* ev)
+	{
+		invokeChangeLocation(location, ev);
 	}
 
 	void MapView::onDraw(Canvas* canvas)

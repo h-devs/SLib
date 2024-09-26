@@ -572,6 +572,20 @@ namespace slib
 
 	};
 
+	class MapViewExtension : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		MapViewExtension();
+
+		~MapViewExtension();
+
+	public:
+		virtual void onChangeLocation(const GeoLocation& location) = 0;
+
+	};
+
 	class SLIB_EXPORT MapViewData
 	{
 	public:
@@ -646,12 +660,31 @@ namespace slib
 
 		void stopMoving();
 
+		// Not thread-safe
+		void addExtension(const Ref<MapViewExtension>& extension);
+
 	public:
 		void drawPlane(Canvas* canvas, const Rectangle& rect);
 
 		void renderGlobe(RenderEngine* engine);
 
 		void invalidate(UIUpdateMode mode = UIUpdateMode::Redraw);
+
+	protected:
+		void setEyeLocation(const GeoLocation& location, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void movePlane(double dx, double dy, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void zoom(double scale, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void zoomAt(const Double2& point, double scale, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+	protected:
+		// View implementations
+		virtual void doInvalidate(UIUpdateMode mode);
+
+		virtual void notifyChangeLocation(const GeoLocation& location, UIEvent* ev);
+		void invokeChangeLocation(const GeoLocation& location, UIEvent* ev);
 
 	protected:
 		sl_bool _initState();
@@ -662,12 +695,12 @@ namespace slib
 
 	protected:
 		Mutex m_lock;
-		View* m_view;
 
 		sl_bool m_flagGlobeMode;
 		Ref<MapPlane> m_plane;
 		Ref<MapSurface> m_surface;
 		CHashMap< String, Ref<MapViewObject> > m_objects;
+		List< Ref<MapViewExtension> > m_extensions; // Not thread-safe
 
 		MapViewState m_state;
 		sl_bool m_flagRendered;
@@ -692,6 +725,9 @@ namespace slib
 	public:
 		using RenderView::invalidate;
 
+	public:
+		SLIB_DECLARE_EVENT_HANDLER(MapView, ChangeLocation, const GeoLocation& location, UIEvent* ev /* nullable */)
+
 	protected:
 		void onDraw(Canvas* canvas) override;
 
@@ -702,6 +738,11 @@ namespace slib
 		void onMouseWheelEvent(UIEvent* ev) override;
 
 		void onResize(sl_ui_len width, sl_ui_len height) override;
+
+	private:
+		void doInvalidate(UIUpdateMode mode) override;
+
+		void notifyChangeLocation(const GeoLocation& location, UIEvent* ev) override;
 
 	protected:
 		sl_uint32 m_nLastTouches;

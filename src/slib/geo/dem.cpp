@@ -79,7 +79,7 @@ namespace slib
 				n = Math::sqrt((sl_uint32)size / ELEMENT_SIZE);
 			}
 			sl_uint32 m = n * n;
-			if (size != m * ELEMENT_SIZE) {
+			if (size < m * ELEMENT_SIZE) {
 				return sl_false;
 			}
 			Array<float> array = Array<float>::create(m);
@@ -87,12 +87,11 @@ namespace slib
 				return sl_false;
 			}
 			float* p = array.getData();
-			float* f = p;
 			sl_uint8* d = (sl_uint8*)_d;
 			if (flagFlipY) {
 				float* row = p + ((n * n) - n);
 				for (sl_uint32 y = 0; y < n; y++) {
-					f = row;
+					float* f = row;
 					for (sl_uint32 x = 0; x < n; x++) {
 						READER::readElement(*f, d);
 						d += ELEMENT_SIZE;
@@ -101,6 +100,7 @@ namespace slib
 					row -= n;
 				}
 			} else {
+				float* f = p;
 				for (sl_uint32 y = 0; y < n; y++) {
 					for (sl_uint32 x = 0; x < n; x++) {
 						READER::readElement(*f, d);
