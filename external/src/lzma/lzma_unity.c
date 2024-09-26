@@ -1,3 +1,4 @@
+#include <stdlib.h>
 static void *MyAlloc(size_t size);
 static void MyFree(void *address);
 
