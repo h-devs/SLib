@@ -48,8 +48,9 @@ namespace slib
 		HideWindow = 1,
 		InheritHandles = 2,
 		InheritConsole = 4, // Used in `run()`
-		NoWait = 8, // Used in `runAsAdmin()`
-		ResetEnvironment = 0x10 // Not supported in `runAsAdmin()`
+		NewConsole = 8, // Used in `run()`
+		NoWait = 0x10, // Used in `runAsAdmin()`
+		ResetEnvironment = 0x20 // Not supported in `runAsAdmin()`
 	})
 
 	class SLIB_EXPORT ProcessParam

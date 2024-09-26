@@ -210,8 +210,8 @@ namespace slib
 					SetHandleInformation(hStdinWrite, HANDLE_FLAG_INHERIT, 0);
 					if (CreatePipe(&hStdoutRead, &hStdoutWrite)) {
 						SetHandleInformation(hStdoutRead, HANDLE_FLAG_INHERIT, 0);
-						PROCESS_INFORMATION pi = {0};
-						STARTUPINFOW si = {0};
+						PROCESS_INFORMATION pi = {};
+						STARTUPINFOW si = {};
 						si.cb = sizeof(si);
 						si.hStdInput = hStdinRead;
 						si.hStdOutput = hStdoutWrite;
@@ -341,7 +341,7 @@ namespace slib
 		List<sl_uint32> ret;
 		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 		if (hSnapshot != INVALID_HANDLE_VALUE) {
-			THREADENTRY32 entry = { 0 };
+			THREADENTRY32 entry = {};
 			entry.dwSize = sizeof(entry);
 			if (Thread32First(hSnapshot, &entry)) {
 				do {
@@ -439,12 +439,16 @@ namespace slib
 
 	Ref<Process> Process::run(const ProcessParam& param)
 	{
-		PROCESS_INFORMATION pi = {0};
-		STARTUPINFOW si = {0};
+		PROCESS_INFORMATION pi = {};
+		STARTUPINFOW si = {};
 		si.cb = sizeof(si);
 		DWORD flags = NORMAL_PRIORITY_CLASS;
-		if (!(param.flags & ProcessFlags::InheritConsole)) {
-			flags |= DETACHED_PROCESS;
+		if (param.flags & ProcessFlags::NewConsole) {
+			flags |= CREATE_NEW_CONSOLE;
+		} else {
+			if (!(param.flags & ProcessFlags::InheritConsole)) {
+				flags |= DETACHED_PROCESS;
+			}
 		}
 		if (Execute(param, &pi, &si, flags, sl_false)) {
 			CloseHandle(pi.hThread);
@@ -615,7 +619,7 @@ namespace slib
 		HANDLE hProcess = NULL;
 		HANDLE hToken;
 		if (GetLogonSessionToken(hToken)) {
-			STARTUPINFO si = { 0 };
+			STARTUPINFO si = {};
 			si.cb = sizeof si;
 			StringCstr16 command(_command);
 			PROCESS_INFORMATION pi;
