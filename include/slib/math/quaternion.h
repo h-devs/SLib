@@ -56,12 +56,12 @@ namespace slib
 			return *(reinterpret_cast<QuaternionT<T> const*>(&_identity));
 		}
 
-		static const QuaternionT<T>& fromArray(const T arr[2]) noexcept
+		static const QuaternionT<T>& cast(const T arr[2]) noexcept
 		{
 			return *(reinterpret_cast<QuaternionT<T> const*>(arr));
 		}
 
-		static QuaternionT<T>& fromArray(T arr[2]) noexcept
+		static QuaternionT<T>& cast(T arr[2]) noexcept
 		{
 			return *(reinterpret_cast<QuaternionT<T>*>(arr));
 		}

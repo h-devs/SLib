@@ -65,12 +65,12 @@ namespace slib
 			return *(reinterpret_cast<VectorT*>(&_zero));
 		}
 
-		static const VectorT& fromArray(const T* arr) noexcept
+		static const VectorT& cast(const T* arr) noexcept
 		{
 			return *(reinterpret_cast<VectorT const*>(arr));
 		}
 
-		static VectorT& fromArray(T* arr) noexcept
+		static VectorT& cast(T* arr) noexcept
 		{
 			return *(reinterpret_cast<VectorT*>(arr));
 		}

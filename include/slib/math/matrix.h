@@ -78,12 +78,12 @@ namespace slib
 			return *(reinterpret_cast<MatrixT const*>(&_zero));
 		}
 
-		static const MatrixT& fromArray(const T* arr) noexcept
+		static const MatrixT& cast(const T* arr) noexcept
 		{
 			return *(reinterpret_cast<MatrixT const*>(arr));
 		}
 
-		static MatrixT& fromArray(T* arr) noexcept
+		static MatrixT& cast(T* arr) noexcept
 		{
 			return *(reinterpret_cast<MatrixT*>(arr));
 		}
