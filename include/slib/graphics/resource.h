@@ -23,8 +23,7 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_RESOURCE
 #define CHECKHEADER_SLIB_GRAPHICS_RESOURCE
 
-#include "drawable.h"
-#include "color.h"
+#include "image.h"
 
 #include "../core/locale.h"
 #include "../core/list.h"
@@ -124,7 +123,9 @@ namespace slib
 #define SLIB_DECLARE_IMAGE_RESOURCE(NAME) \
 	namespace NAME { \
 		slib::Ref<slib::Drawable> getSource(const slib::Locale& locale, sl_uint32 requiredWidth = 0, sl_uint32 requiredHeight = 0); \
+		slib::Ref<slib::Image> getImage(const slib::Locale& locale, sl_uint32 requiredWidth = 0, sl_uint32 requiredHeight = 0); \
 		slib::Ref<slib::Drawable> getSource(sl_uint32 requiredWidth = 0, sl_uint32 requiredHeight = 0); \
+		slib::Ref<slib::Image> getImage(sl_uint32 requiredWidth = 0, sl_uint32 requiredHeight = 0); \
 		slib::List< slib::Ref<slib::Drawable> > getList(const slib::Locale& locale); \
 		slib::List< slib::Ref<slib::Drawable> > getList(); \
 		slib::Ref<slib::Drawable> get(const slib::Locale& locale); \
@@ -137,8 +138,14 @@ namespace slib
 		slib::Ref<slib::Drawable> getSource(const slib::Locale& locale, sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
 			return slib::priv::graphics_resource::GetSource(_getEntries(locale), requiredWidth, requiredHeight); \
 		} \
+		slib::Ref<slib::Image> getImage(const slib::Locale& locale, sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
+			return slib::CastRef<slib::Image>(getSource(locale, requiredWidth, requiredHeight)); \
+		} \
 		slib::Ref<slib::Drawable> getSource(sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
 			return slib::priv::graphics_resource::GetSource(_getEntries(slib::Resources::getCurrentLocale()), requiredWidth, requiredHeight); \
+		} \
+		slib::Ref<slib::Image> getImage(sl_uint32 requiredWidth, sl_uint32 requiredHeight); { \
+			return slib::CastRef<slib::Image>(getSource(requiredWidth, requiredHeight)); \
 		} \
 		slib::List< slib::Ref<slib::Drawable> > getList(const slib::Locale& locale) { \
 			return slib::priv::graphics_resource::GetList(_getEntries(locale)); \
@@ -186,8 +193,14 @@ namespace slib
 		slib::Ref<slib::Drawable> getSource(const slib::Locale& locale, sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
 			return entry.get(); \
 		} \
+		slib::Ref<slib::Image> getImage(const slib::Locale& locale, sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
+			return slib::CastRef<slib::Image>(entry.get()); \
+		} \
 		slib::Ref<slib::Drawable> getSource(sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
 			return entry.get(); \
+		} \
+		slib::Ref<slib::Image> getImage(sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
+			return slib::CastRef<slib::Image>(entry.get()); \
 		} \
 		slib::List< slib::Ref<slib::Drawable> > getList(const slib::Locale& locale) { \
 			return slib::List< slib::Ref<slib::Drawable> >::createFromElement(entry.get()); \
