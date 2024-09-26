@@ -620,6 +620,8 @@ namespace slib
 
 		void setEyeLocation(const GeoLocation& location, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void travelTo(const GeoLocation& location);
+
 		// Degrees
 		float getEyeRotation() const;
 
@@ -673,6 +675,8 @@ namespace slib
 	protected:
 		void setEyeLocation(const GeoLocation& location, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void setTargetLocation(const GeoLocation& location, UIEvent* ev);
+
 		void movePlane(double dx, double dy, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void zoom(double scale, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -695,6 +699,7 @@ namespace slib
 
 	protected:
 		Mutex m_lock;
+		WeakRef<View> m_view;
 
 		sl_bool m_flagGlobeMode;
 		Ref<MapPlane> m_plane;
@@ -709,8 +714,52 @@ namespace slib
 		double m_altitudeMax;
 		double m_minDistanceFromGround;
 
+		class Motion
+		{
+		public:
+			AtomicRef<Timer> timer;
+			AtomicWeakRef<View> view;
+			MapViewData* parent;
+			AtomicRef<UIEvent> ev;
+
+			sl_bool flagRunning;
+			sl_uint64 startTick;
+			sl_uint64 lastTick;
+
+			GeoLocation location;
+			GeoLocation startLocation;
+			GeoLocation endLocation;
+			sl_bool flagTravel;
+
+			float rotation;
+			float startRotation;
+			float endRotation;
+
+			float tilt;
+			float startTilt;
+			float endTilt;
+
+		public:
+			Motion();
+
+			~Motion();
+
+		public:
+			void prepare(MapViewData* parent);
+
+			void start();
+
+			void stop();
+
+			void step();
+
+		};
+
+		Motion m_motion;
+
 		friend class MapPlaneRenderer;
 		friend class MapGlobeRenderer;
+		friend class Motion;
 	};
 
 	class SLIB_EXPORT MapView : public RenderView, public MapViewData
@@ -723,12 +772,72 @@ namespace slib
 		~MapView();
 
 	public:
+		Ref<Image> getCompass();
+
+		void setCompass(const Ref<Image>& image, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<Image> getPressedCompass();
+
+		void setPressedCompass(const Ref<Image>& image, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		// Pixels
+		sl_ui_len getCompassSize();
+
+		// Pixels
+		void setCompassSize(sl_ui_len size, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		// [0, 1]
+		const Point& getCompassCenter();
+
+		// [0, 1]
+		void setCompassCenter(const Point& pt, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		// [0, 1]
+		void setCompassCenter(sl_real cx, sl_real cy, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		const Alignment& getCompassAlignment();
+
+		void setCompassAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getCompassMarginLeft();
+
+		void setCompassMarginLeft(sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getCompassMarginTop();
+
+		void setCompassMarginTop(sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getCompassMarginRight();
+
+		void setCompassMarginRight(sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_ui_len getCompassMarginBottom();
+
+		void setCompassMarginBottom(sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setCompassMargin(sl_ui_len left, sl_ui_len top, sl_ui_len right, sl_ui_len bottom, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setCompassMargin(sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		const UIEdgeInsets& getCompassMargin();
+
+		void setCompassMargin(const UIEdgeInsets& margin, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		// Top Left
+		UIPoint getCompassLocation();
+
+	public:
 		using RenderView::invalidate;
+
+	protected:
+		void renderCompass(RenderEngine* engine);
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(MapView, ChangeLocation, const GeoLocation& location, UIEvent* ev /* nullable */)
 
 	protected:
+		void init() override;
+
 		void onDraw(Canvas* canvas) override;
 
 		void onFrame(RenderEngine* engine) override;
@@ -745,6 +854,13 @@ namespace slib
 		void notifyChangeLocation(const GeoLocation& location, UIEvent* ev) override;
 
 	protected:
+		AtomicRef<Image> m_compass;
+		AtomicRef<Image> m_compassPressed;
+		Point m_compassCenter;
+		sl_ui_len m_compassSize;
+		Alignment m_compassAlign;
+		UIEdgeInsets m_compassMargin;
+
 		sl_uint32 m_nLastTouches;
 		Point m_ptLastEvent;
 
@@ -752,9 +868,16 @@ namespace slib
 		Point m_ptLeftDown;
 		Matrix4T<double> m_transformLeftDown;
 		sl_uint64 m_tickLeftDown;
+		float m_rotationLeftDown;
+
+		Point m_ptTouchStart1;
+		Point m_ptTouchStart2;
+		float m_rotationTouchStart;
+		double m_altitudeTouchStart;
+		sl_bool m_flagTouchRotateStarted;
 
 		sl_bool m_flagClicking;
-		sl_bool m_flagThrowMoving;
+		sl_bool m_flagPressedCompass = sl_false;
 	};
 
 }

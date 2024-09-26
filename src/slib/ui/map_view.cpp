@@ -30,6 +30,7 @@
 #include "slib/geo/earth.h"
 #include "slib/geo/dem.h"
 #include "slib/math/triangle.h"
+#include "slib/math/transform2d.h"
 #include "slib/math/transform3d.h"
 #include "slib/ui/core.h"
 #include "slib/core/thread_pool.h"
@@ -531,7 +532,7 @@ namespace slib
 		m_range.right = 10000000000.0;
 		m_range.top = 10000000000.0;
 		m_scale = 1.0;
-		m_scaleMin = 0.0;
+		m_scaleMin = 0.0001;
 		m_scaleMax = 10000000000.0;
 		m_viewport.left = 0.0;
 		m_viewport.top = 0.0;
@@ -2030,6 +2031,13 @@ namespace slib
 
 	void MapViewData::setEyeLocation(const GeoLocation& location, UIEvent* ev, UIUpdateMode mode)
 	{
+		if (SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode)) {
+			m_motion.prepare(this);
+			m_motion.endLocation = location;
+			m_motion.ev = ev;
+			m_motion.start();
+			return;
+		}
 		GeoLocation newLocation;
 		{
 			MutexLocker locker(&m_lock);
@@ -2061,6 +2069,18 @@ namespace slib
 		setEyeLocation(location, sl_null, mode);
 	}
 
+	void MapViewData::travelTo(const GeoLocation& location)
+	{
+		if (m_flagGlobeMode) {
+			m_motion.prepare(this);
+			m_motion.endLocation = location;
+			m_motion.flagTravel = sl_true;
+			m_motion.start();
+		} else {
+			setEyeLocation(location);
+		}
+	}
+
 	float MapViewData::getEyeRotation() const
 	{
 		return m_state.rotation;
@@ -2068,6 +2088,12 @@ namespace slib
 
 	void MapViewData::setEyeRotation(float rotation, UIUpdateMode mode)
 	{
+		if (SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode)) {
+			m_motion.prepare(this);
+			m_motion.endRotation = rotation;
+			m_motion.start();
+			return;
+		}
 		m_state.rotation = Math::normalizeDegree(rotation);
 		invalidate(mode);
 	}
@@ -2079,6 +2105,12 @@ namespace slib
 
 	void MapViewData::setEyeTilt(float tilt, UIUpdateMode mode)
 	{
+		if (SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode)) {
+			m_motion.prepare(this);
+			m_motion.endTilt = tilt;
+			m_motion.start();
+			return;
+		}
 		if (tilt < 0.0f) {
 			tilt = 0.0f;
 		}
@@ -2279,6 +2311,7 @@ namespace slib
 
 	void MapViewData::stopMoving()
 	{
+		m_motion.stop();
 	}
 
 	void MapViewData::addExtension(const Ref<MapViewExtension>& extension)
@@ -2406,6 +2439,133 @@ namespace slib
 	}
 
 
+	MapViewData::Motion::Motion()
+	{
+		parent = sl_null;
+		flagRunning = sl_false;
+		startTick = 0;
+		lastTick = 0;
+		flagTravel = sl_false;
+		rotation = 0.0f;
+		startRotation = 0.0f;
+		endRotation = 0.0f;
+		tilt = 0.0f;
+		startTilt = 0.0f;
+		endTilt = 0.0f;
+	}
+
+	MapViewData::Motion::~Motion()
+	{
+	}
+
+	void MapViewData::Motion::prepare(MapViewData* data)
+	{
+		stop();
+		view = data->m_view;
+		parent = data;
+		MapViewState& state = data->m_state;
+		location = startLocation = endLocation = state.eyeLocation;
+		flagTravel = sl_false;
+		rotation = startRotation = endRotation = state.rotation;
+		tilt = startTilt = endTilt = state.tilt;
+	}
+
+	void MapViewData::Motion::start()
+	{
+		startTick = lastTick = System::getHighResolutionTickCount();
+		flagRunning = sl_true;
+		WeakRef<View> _view = view;
+		timer = Timer::start([_view, this](Timer*) {
+			Ref<View> view = _view;
+			if (view.isNull()) {
+				return;
+			}
+			step();
+		}, 20);
+	}
+
+	void MapViewData::Motion::stop()
+	{
+		step();
+		flagRunning = sl_false;
+		timer.setNull();
+		ev.setNull();
+	}
+
+	void MapViewData::Motion::step()
+	{
+		if (!flagRunning) {
+			return;
+		}
+		sl_uint64 tick = System::getHighResolutionTickCount();
+		sl_uint64 idt = tick - lastTick;
+		if (!idt) {
+			return;
+		}
+		if (idt > 1000) {
+			idt = 1000;
+		}
+		float dt = (float)idt / 1000.0f;
+		sl_bool flagAnimating = sl_false;
+		{
+			float w = dt * 180.0f;
+			float t = endTilt - tilt;
+			if (Math::abs(t) <= w) {
+				tilt = endTilt;
+			} else {
+				if (tilt > endTilt) {
+					tilt -= w;
+				} else {
+					tilt += w;
+				}
+				flagAnimating = sl_true;
+			}
+		}
+		{
+			float w = dt * 360.0f;
+			float t = Math::normalizeDegreeDistance(endRotation - rotation);
+			if (Math::abs(t) <= w) {
+				rotation = endRotation;
+			} else {
+				if (t < 0) {
+					rotation -= w;
+				} else {
+					rotation += w;
+				}
+				flagAnimating = sl_true;
+			}
+		}
+		if (!(Math::isAlmostZero(location.latitude - endLocation.latitude) && Math::isAlmostZero(location.longitude - endLocation.longitude) && Math::isAlmostZero(location.altitude - endLocation.altitude))) {
+			if (tick >= startTick + 1000) {
+				location = endLocation;
+			} else {
+				float f = (float)(tick - startTick) / 1000.0f;
+				location.longitude = Interpolation<double>::interpolate(startLocation.longitude, endLocation.longitude, f);
+				location.latitude = Interpolation<double>::interpolate(startLocation.latitude, endLocation.latitude, f);
+				if (flagTravel) {
+					double topAlt = Math::min(startLocation.altitude, endLocation.altitude) + (MapEarth::getCartesianPosition(startLocation) - MapEarth::getCartesianPosition(endLocation)).getLength() / 3.0;
+					if (f < 0.5f) {
+						location.altitude = Interpolation<double>::interpolate(startLocation.altitude, topAlt, f * 2.0f);
+					} else {
+						location.altitude = Interpolation<double>::interpolate(topAlt, endLocation.altitude, (f - 0.5f) * 2.0f);
+					}
+				} else {
+					location.altitude = Interpolation<double>::interpolate(startLocation.altitude, endLocation.altitude, f);
+				}
+				flagAnimating = sl_true;
+			}
+		}
+		lastTick = tick;
+		if (!flagAnimating) {
+			stop();
+		}
+		Ref<UIEvent> _ev = ev;
+		parent->setEyeLocation(location, _ev.get());
+		parent->setEyeRotation(rotation);
+		parent->setEyeTilt(tilt);
+	}
+
+
 	SLIB_DEFINE_OBJECT(MapView, RenderView)
 
 	MapView::MapView()
@@ -2413,21 +2573,241 @@ namespace slib
 		setRedrawMode(RedrawMode::WhenDirty);
 		setFocusable();
 
+		m_compassSize = 150;
+		m_compassCenter.x = 0.5f;
+		m_compassCenter.y = 0.5f;
+		m_compassAlign = Alignment::MiddleCenter;
+
 		m_nLastTouches = 0;
-		m_ptLastEvent.x = 0;
-		m_ptLastEvent.y = 0;
+		m_ptLastEvent.x = 0.0f;
+		m_ptLastEvent.y = 0.0f;
 
 		m_flagLeftDown = sl_false;
 		m_tickLeftDown = 0;
-		m_ptLeftDown.x = 0;
-		m_ptLeftDown.y = 0;
+		m_ptLeftDown.x = 0.0f;
+		m_ptLeftDown.y = 0.0f;
+		m_rotationLeftDown = 0.0f;
+
+		m_rotationTouchStart = 0.0f;
+		m_altitudeTouchStart = 1.0;
+		m_flagTouchRotateStarted = sl_false;;
 
 		m_flagClicking = sl_false;
-		m_flagThrowMoving = sl_false;
+		m_flagPressedCompass = sl_false;
 	}
 
 	MapView::~MapView()
 	{
+	}
+
+	void MapView::init()
+	{
+		RenderView::init();
+
+		m_view = this;
+	}
+
+	Ref<Image> MapView::getCompass()
+	{
+		return m_compass;
+	}
+
+	void MapView::setCompass(const Ref<Image>& image, UIUpdateMode mode)
+	{
+		m_compass = image;
+		invalidate(mode);
+	}
+
+	Ref<Image> MapView::getPressedCompass()
+	{
+		return m_compassPressed;
+	}
+
+	void MapView::setPressedCompass(const Ref<Image>& image, UIUpdateMode mode)
+	{
+		m_compassPressed = image;
+		invalidate(mode);
+	}
+
+	sl_ui_len MapView::getCompassSize()
+	{
+		return m_compassSize;
+	}
+
+	void MapView::setCompassSize(sl_ui_len size, UIUpdateMode mode)
+	{
+		m_compassSize = size;
+		invalidate(mode);
+	}
+
+	const Point& MapView::getCompassCenter()
+	{
+		return m_compassCenter;
+	}
+
+	void MapView::setCompassCenter(const Point& pt, UIUpdateMode mode)
+	{
+		m_compassCenter = pt;
+		invalidate(mode);
+	}
+
+	void MapView::setCompassCenter(sl_real cx, sl_real cy, UIUpdateMode mode)
+	{
+		m_compassCenter.x = cx;
+		m_compassCenter.y = cy;
+		invalidate(mode);
+	}
+
+	const Alignment& MapView::getCompassAlignment()
+	{
+		return m_compassAlign;
+	}
+
+	void MapView::setCompassAlignment(const Alignment& align, UIUpdateMode mode)
+	{
+		m_compassAlign = align;
+		invalidate(mode);
+	}
+
+	sl_ui_len MapView::getCompassMarginLeft()
+	{
+		return m_compassMargin.left;
+	}
+
+	void MapView::setCompassMarginLeft(sl_ui_len margin, UIUpdateMode mode)
+	{
+		m_compassMargin.left = margin;
+		invalidate(mode);
+	}
+
+	sl_ui_len MapView::getCompassMarginTop()
+	{
+		return m_compassMargin.top;
+	}
+
+	void MapView::setCompassMarginTop(sl_ui_len margin, UIUpdateMode mode)
+	{
+		m_compassMargin.top = margin;
+		invalidate(mode);
+	}
+
+	sl_ui_len MapView::getCompassMarginRight()
+	{
+		return m_compassMargin.right;
+	}
+
+	void MapView::setCompassMarginRight(sl_ui_len margin, UIUpdateMode mode)
+	{
+		m_compassMargin.right = margin;
+		invalidate(mode);
+	}
+
+	sl_ui_len MapView::getCompassMarginBottom()
+	{
+		return m_compassMargin.bottom;
+	}
+
+	void MapView::setCompassMarginBottom(sl_ui_len margin, UIUpdateMode mode)
+	{
+		m_compassMargin.bottom = margin;
+		invalidate(mode);
+	}
+
+	void MapView::setCompassMargin(sl_ui_len left, sl_ui_len top, sl_ui_len right, sl_ui_len bottom, UIUpdateMode mode)
+	{
+		m_compassMargin.left = left;
+		m_compassMargin.top = top;
+		m_compassMargin.right = right;
+		m_compassMargin.bottom = bottom;
+		invalidate(mode);
+	}
+
+	void MapView::setCompassMargin(sl_ui_len margin, UIUpdateMode mode)
+	{
+		m_compassMargin.left = margin;
+		m_compassMargin.top = margin;
+		m_compassMargin.right = margin;
+		m_compassMargin.bottom = margin;
+		invalidate(mode);
+	}
+
+	const UIEdgeInsets& MapView::getCompassMargin()
+	{
+		return m_compassMargin;
+	}
+
+	void MapView::setCompassMargin(const UIEdgeInsets& margin, UIUpdateMode mode)
+	{
+		m_compassMargin = margin;
+		invalidate(mode);
+	}
+
+	UIPoint MapView::getCompassLocation()
+	{
+		Alignment align = m_compassAlign;
+		Alignment halign = align & Alignment::HorizontalMask;
+		Alignment valign = align & Alignment::VerticalMask;
+		sl_ui_len size = m_compassSize;
+		UIPoint ret;
+		if (halign == Alignment::Left) {
+			ret.x = m_compassMargin.left;
+		} else if (halign == Alignment::Right) {
+			ret.x = getWidth() - m_compassMargin.right - size;
+		} else {
+			ret.x = (getWidth() - m_compassMargin.right + m_compassMargin.left - size) / 2;
+		}
+		if (valign == Alignment::Top) {
+			ret.y = m_compassMargin.top;
+		} else if (valign == Alignment::Bottom) {
+			ret.y = getHeight() - m_compassMargin.bottom - size;
+		} else {
+			ret.y = (getHeight() - m_compassMargin.bottom + m_compassMargin.top - size) / 2;
+		}
+		return ret;
+	}
+
+	void MapView::renderCompass(RenderEngine* engine)
+	{
+		if (!m_flagGlobeMode) {
+			return;
+		}
+		if (m_compass.isNull()) {
+			return;
+		}
+		Ref<Image> compass;
+		if (m_flagPressedCompass) {
+			compass = m_compassPressed;
+			if (compass.isNull()) {
+				compass = m_compass;
+				if (compass.isNull()) {
+					return;
+				}
+			}
+		} else {
+			compass = m_compass;
+			if (compass.isNull()) {
+				return;
+			}
+		}
+		Ref<Texture> texture = Texture::getBitmapRenderingCache(compass);
+		if (texture.isNull()) {
+			return;
+		}
+		sl_real size = (sl_real)m_compassSize;
+		if (size < 1.0f) {
+			return;
+		}
+		sl_real halfSize = size / 2.0f;
+		Point pt = getCompassLocation();
+		Matrix3 transform = Transform2::getTranslationMatrix(-m_compassCenter)
+			* Transform2::getScalingMatrix(size, size)
+			* Transform2::getRotationMatrix(-Math::getRadianFromDegrees(m_state.rotation))
+			* Transform2::getTranslationMatrix(pt.x + halfSize, pt.y + halfSize)
+			* Transform2::getScalingMatrix(2.0f / (sl_real)(m_state.viewportWidth), -2.0f / (sl_real)(m_state.viewportHeight))
+			* Transform2::getTranslationMatrix(-1.0f, 1.0f);
+		engine->setDepthStencilState(m_state.overlayDepthState);
+		engine->setBlendState(m_state.overlayBlendState);
+		engine->drawTexture2D(transform, texture);
 	}
 
 	void MapView::doInvalidate(UIUpdateMode mode)
@@ -2452,6 +2832,7 @@ namespace slib
 	{
 		resize(getWidth(), getHeight());
 		renderGlobe(engine);
+		renderCompass(engine);
 		RenderView::onFrame(engine);
 	}
 
@@ -2488,11 +2869,21 @@ namespace slib
 			case UIAction::TouchBegin:
 				m_ptLeftDown = pt;
 				m_transformLeftDown = m_state.verticalViewTransform;
+				m_rotationLeftDown = m_state.rotation;
 				m_tickLeftDown = System::getTickCount64();
 				m_flagLeftDown = sl_true;
-				m_flagClicking = sl_true;
-				m_flagThrowMoving = sl_false;
 				stopMoving();
+				if (m_flagGlobeMode) {
+					sl_real compassSize = (sl_real)(m_compassSize / 2);
+					sl_real compassDistance = (pt - Point(getCompassLocation() + Point(compassSize, compassSize))).getLength2p() / compassSize / compassSize;
+					if (m_compass.isNotNull() && compassDistance >= 0.01f && compassDistance <= 1.0f) {
+						m_flagPressedCompass = sl_true;
+						invalidate();
+						break;
+					}
+				}
+				m_flagPressedCompass = sl_false;
+				m_flagClicking = sl_true;
 				invalidate();
 				break;
 			case UIAction::TouchMove:
@@ -2504,6 +2895,38 @@ namespace slib
 				if (!m_flagLeftDown) {
 					break;
 				}
+				if (m_flagPressedCompass) {
+					if (!flagDrag) {
+						m_flagPressedCompass = sl_false;
+					}
+					if (nTouches >= 2) {
+						break;
+					}
+					sl_real size = (sl_real)(m_compassSize / 2);
+					Vector2 dir = (pt - Point(getCompassLocation() + Point(size, size)));
+					sl_real dist = dir.getLength2p() / size / size;
+					if (dist < 0.01f) {
+						break;
+					}
+					sl_real rotation = -(Math::getDegreesFromRadian(Transform2::getRotationAngleFromDirToDir(Vector2(0, -1), dir)));
+					setEyeRotation(rotation, UIUpdateMode::Animate);
+					if (flagDrag) {
+						break;
+					}
+					double dt = (double)(System::getTickCount64() - m_tickLeftDown);
+					if (dt > 300) {
+						break;
+					}
+					double dx = pt.x - m_ptLeftDown.x;
+					double dy = pt.y - m_ptLeftDown.y;
+					if (dx * dx + dy * dy > rem) {
+						break;
+					}
+					if (Math::abs(Math::normalizeDegreeDistance(rotation - m_rotationLeftDown)) < 20) {
+						setEyeRotation(0.0f, UIUpdateMode::Animate);
+					}
+					break;
+				}
 				nTouches = ev->getTouchPointCount();
 				if (nTouches >= 2) {
 					pt = ev->getTouchPoint(0).point;
@@ -2513,7 +2936,40 @@ namespace slib
 				}
 				if (nTouches >= 2) {
 					m_flagClicking = sl_false;
-					m_flagThrowMoving = sl_false;
+					if (m_nLastTouches < 2) {
+						stopMoving();
+						m_ptTouchStart1 = pt;
+						m_ptTouchStart2 = pt2;
+						m_rotationTouchStart = m_state.rotation;
+						m_altitudeTouchStart = m_state.eyeLocation.altitude;
+						m_flagTouchRotateStarted = sl_false;
+					} else {
+						Vector2 v1 = m_ptTouchStart2 - m_ptTouchStart1;
+						Vector2 v2 = pt2 - pt;
+						sl_real len1 = v1.getLength();
+						sl_real len2 = v2.getLength();
+						if (len1 > rem / 2.0 && len2 > rem / 2.0) {
+							sl_real a = Math::getDegreesFromRadian(Transform2::getRotationAngleFromDirToDir(v1, v2));
+							sl_real r = m_rotationTouchStart;
+							sl_real d = Math::abs(Math::normalizeDegreeDistance(a));
+							if (nTouches > 2) {
+								m_flagTouchRotateStarted = sl_false;
+							}
+							if ((d > 10 || m_flagTouchRotateStarted) && nTouches <= 2) {
+								r -= a;
+								setEyeRotation(r, UIUpdateMode::Animate);
+								m_flagTouchRotateStarted = sl_true;
+							} else {
+								GeoLocation location = m_state.eyeLocation;
+								if (len1 > len2) {
+									location.altitude = m_altitudeTouchStart * len1 / len2 * 1.4;
+								} else if (len1 < len2) {
+									location.altitude = m_altitudeTouchStart * len1 / len2 / 1.4;
+								}
+								setEyeLocation(location, ev, UIUpdateMode::Animate);
+							}
+						}
+					}
 				} else {
 					double dx = pt.x - m_ptLeftDown.x;
 					double dy = pt.y - m_ptLeftDown.y;
@@ -2527,9 +2983,9 @@ namespace slib
 						Vector3 pos = m_transformLeftDown.inverse().transformPosition(-dx * f, dy * f, alt);
 						GeoLocation loc = MapEarth::getGeoLocation(pos);
 						loc.altitude = alt;
-						setEyeLocation(loc);
+						setEyeLocation(loc, ev);
 					} else {
-						movePlane((pt.x - m_ptLastEvent.x) / height, (pt.y - m_ptLastEvent.y) / height);
+						movePlane((pt.x - m_ptLastEvent.x) / height, (pt.y - m_ptLastEvent.y) / height, ev);
 					}
 				}
 				if (!flagDrag) {
@@ -2574,9 +3030,9 @@ namespace slib
 		}
 		sl_real delta = ev->getDelta();
 		if (delta > 0) {
-			zoomAt(GetRelativePoint(this, ev->getPoint()), 1.0/1.1);
+			zoomAt(GetRelativePoint(this, ev->getPoint()), 1.0/1.1, ev);
 		} else if (delta < 0) {
-			zoomAt(GetRelativePoint(this, ev->getPoint()), 1.1);
+			zoomAt(GetRelativePoint(this, ev->getPoint()), 1.1, ev);
 		}
 	}
 
