@@ -5059,7 +5059,11 @@ namespace slib
 	{
 		Ref<TransformAttributes>& attrs = m_transformAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->translation.x;
+			if (attrs->flagTransform) {
+				return Transform2::getXTranslationFromMatrix(attrs->transform);
+			} else {
+				return attrs->translation.x;
+			}
 		}
 		return 0;
 	}
@@ -5068,16 +5072,24 @@ namespace slib
 	{
 		Ref<TransformAttributes>& attrs = m_transformAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->translation.y;
+			if (attrs->flagTransform) {
+				return Transform2::getYTranslationFromMatrix(attrs->transform);
+			} else {
+				return attrs->translation.y;
+			}
 		}
 		return 0;
 	}
 
-	const Vector2& View::getTranslation()
+	Vector2 View::getTranslation()
 	{
 		Ref<TransformAttributes>& attrs = m_transformAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->translation;
+			if (attrs->flagTransform) {
+				return Transform2::getTranslationFromMatrix(attrs->transform);
+			} else {
+				return attrs->translation;
+			}
 		}
 		return Vector2::zero();
 	}
@@ -5122,7 +5134,11 @@ namespace slib
 	{
 		Ref<TransformAttributes>& attrs = m_transformAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->scale.x;
+			if (attrs->flagTransform) {
+				return Transform2::getXScaleFromMatrix(attrs->transform);
+			} else {
+				return attrs->scale.x;
+			}
 		}
 		return 1;
 	}
@@ -5131,19 +5147,27 @@ namespace slib
 	{
 		Ref<TransformAttributes>& attrs = m_transformAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->scale.y;
+			if (attrs->flagTransform) {
+				return Transform2::getYScaleFromMatrix(attrs->transform);
+			} else {
+				return attrs->scale.y;
+			}
 		}
 		return 1;
 	}
 
-	const Vector2& View::getScale()
+	Vector2 View::getScale()
 	{
 		Ref<TransformAttributes>& attrs = m_transformAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->scale;
+			if (attrs->flagTransform) {
+				return Transform2::getScaleFromMatrix(attrs->transform);
+			} else {
+				return attrs->scale;
+			}
 		}
 		static const sl_real t[2] = {1, 1};
-		return Vector2::fromArray(t);
+		return Vector2::cast(t);
 	}
 
 	void View::setScaleX(sl_real sx, UIUpdateMode mode)
@@ -5191,7 +5215,11 @@ namespace slib
 	{
 		Ref<TransformAttributes>& attrs = m_transformAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->rotationAngle;
+			if (attrs->flagTransform) {
+				return Transform2::getRotationAngleFromMatrix(attrs->transform);
+			} else {
+				return attrs->rotationAngle;
+			}
 		}
 		return 0;
 	}

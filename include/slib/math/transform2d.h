@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -42,9 +42,7 @@ namespace slib
 
 		static void setTranslation(Matrix3T<T>& _out, const Vector2T<T>& v) noexcept
 		{
-			_out.m00 = 1; _out.m01 = 0; _out.m02 = 0;
-			_out.m10 = 0; _out.m11 = 1; _out.m12 = 0;
-			_out.m20 = v.x; _out.m21 = v.y; _out.m22 = 1;
+			setTranslation(_out, v.x, v.y);
 		}
 
 		static Matrix3T<T> getTranslationMatrix(T x, T y) noexcept
@@ -56,9 +54,7 @@ namespace slib
 
 		static Matrix3T<T> getTranslationMatrix(const Vector2T<T>& v) noexcept
 		{
-			return { 1, 0, 0,
-				0, 1, 0,
-				v.x, v.y, 1 };
+			return getTranslationMatrix(v.x, v.y);
 		}
 
 		static void translate(Matrix3T<T>& mat, T x, T y) noexcept
@@ -69,8 +65,7 @@ namespace slib
 
 		static void translate(Matrix3T<T>& mat, const Vector2T<T>& v) noexcept
 		{
-			mat.m20 += v.x;
-			mat.m21 += v.y;
+			translate(mat, v.x, v.y);
 		}
 
 		static void preTranslate(Matrix3T<T>& mat, T x, T y) noexcept
@@ -81,8 +76,7 @@ namespace slib
 
 		static void preTranslate(Matrix3T<T>& mat, const Vector2T<T>& v) noexcept
 		{
-			mat.m20 += (v.x * mat.m00 + v.y * mat.m10);
-			mat.m21 += (v.x * mat.m01 + v.y * mat.m11);
+			preTranslate(mat, v.x, v.y);
 		}
 
 		static sl_bool isTranslation(const Matrix3T<T>& mat) noexcept
@@ -98,11 +92,21 @@ namespace slib
 			_out.m20 = 0; _out.m21 = 0; _out.m22 = 1;
 		}
 
-		static void setScaling(Matrix3T<T>& _out, const Vector2T<T>& v) noexcept
+		static void setScaling(Matrix3T<T>& _out, const Vector2T<T>& _scale) noexcept
 		{
-			_out.m00 = v.x; _out.m01 = 0; _out.m02 = 0;
-			_out.m10 = 0; _out.m11 = v.y; _out.m12 = 0;
-			_out.m20 = 0; _out.m21 = 0; _out.m22 = 1;
+			setScaling(_out, _scale.x, _scale.y);
+		}
+
+		static void setScaling(Matrix3T<T>& _out, T cx, T cy, T sx, T sy) noexcept
+		{
+			setTranslation(_out, -cx, -cy);
+			scale(_out, sx, sy);
+			translate(_out, cx, cy);
+		}
+
+		static void setScaling(Matrix3T<T>& _out, const Vector2T<T>& center, const Vector2T<T>& _scale) noexcept
+		{
+			setScaling(_out, center.x, center.y, _scale.x., _scale.y);
 		}
 
 		static Matrix3T<T> getScalingMatrix(T x, T y) noexcept
@@ -114,9 +118,19 @@ namespace slib
 
 		static Matrix3T<T> getScalingMatrix(const Vector2T<T>& v) noexcept
 		{
-			return { v.x, 0, 0,
-				0, v.y, 0,
-				0, 0, 1 };
+			return getScalingMatrix(v.x, v.y);
+		}
+
+		static Matrix3T<T> getScalingMatrix(T cx, T cy, T sx, T sy) noexcept
+		{
+			Matrix3T<T> ret;
+			setScaling(ret, cx, cy, sx, sy);
+			return ret;
+		}
+
+		static Matrix3T<T> getScalingMatrix(const Vector2T<T>& center, const Vector2T<T>& _scale) noexcept
+		{
+			return getScalingMatrix(center.x, center.y, _scale.x, _scale.y);
 		}
 
 		static void scale(Matrix3T<T>& mat, T sx, T sy) noexcept
@@ -129,9 +143,21 @@ namespace slib
 			mat.m21 *= sy;
 		}
 
-		static void scale(Matrix3T<T>& mat, const Vector2T<T>& v) noexcept
+		static void scale(Matrix3T<T>& mat, const Vector2T<T>& _scale) noexcept
 		{
+			scale(mat, _scale.x, _scale.y);
+		}
+
+		static void scale(Matrix3T<T>& mat, T cx, T cy, T sx, T sy) noexcept
+		{
+			translate(mat, -cx, -cy);
 			scale(mat, v.x, v.y);
+			translate(mat, cx, cy);
+		}
+
+		static void scale(Matrix3T<T>& mat, const Vector2T<T>& center, const Vector2T<T>& _scale) noexcept
+		{
+			scale(mat, center.x, center.y, _scale.x, _scale.y);
 		}
 
 		static void preScale(Matrix3T<T>& mat, T sx, T sy) noexcept
@@ -142,9 +168,21 @@ namespace slib
 			mat.m11 *= sy;
 		}
 
-		static void preScale(Matrix3T<T>& mat, const Vector2T<T>& v) noexcept
+		static void preScale(Matrix3T<T>& mat, const Vector2T<T>& _scale) noexcept
 		{
-			preScale(mat, v.x, v.y);
+			preScale(mat, _scale.x, _scale.y);
+		}
+
+		static void preScale(Matrix3T<T>& mat, T cx, T cy, T sx, T sy) noexcept
+		{
+			preTranslate(mat, cx, cy);
+			preScale(mat, sx, sy);
+			preTranslate(mat, -cx, -cy);
+		}
+
+		static void preScale(Matrix3T<T>& mat, const Vector2T<T>& center, const Vector2T<T>& _scale) noexcept
+		{
+			preScale(mat, center.x, center.y, _scale.x, _scale.y);
 		}
 
 
@@ -187,9 +225,7 @@ namespace slib
 
 		static Matrix3T<T> getRotationMatrix(const Vector2T<T>& pt, T radians) noexcept
 		{
-			Matrix3T<T> ret;
-			setRotation(ret, pt, radians);
-			return ret;
+			return getRotationMatrix(pt.x, pt.y, radians);
 		}
 
 		static void rotate(Matrix3T<T>& mat, T radians) noexcept
@@ -351,12 +387,19 @@ namespace slib
 			return ret;
 		}
 
+		static T getXScaleFromMatrix(const Matrix3T<T>& mat) noexcept
+		{
+			return Math::sqrt(mat.m00 * mat.m00 + mat.m01 * mat.m01);
+		}
+
+		static T getYScaleFromMatrix(const Matrix3T<T>& mat) noexcept
+		{
+			return Math::sqrt(mat.m10 * mat.m10 + mat.m11 * mat.m11);
+		}
+
 		static Vector2T<T> getScaleFromMatrix(const Matrix3T<T>& mat) noexcept
 		{
-			Vector2T<T> ret;
-			ret.x = Math::sqrt(mat.m00 * mat.m00 + mat.m01 * mat.m01);
-			ret.y = Math::sqrt(mat.m10 * mat.m10 + mat.m11 * mat.m11);
-			return ret;
+			return { getXScaleFromMatrix(mat), getYScaleFromMatrix(mat) };
 		}
 
 		static T getRotationAngleFromMatrix(const Matrix3T<T>& mat) noexcept
@@ -371,12 +414,19 @@ namespace slib
 			return a;
 		}
 
+		static T getXTranslationFromMatrix(const Matrix3T<T>& mat) noexcept
+		{
+			return mat.m20;
+		}
+
+		static T getYTranslationFromMatrix(const Matrix3T<T>& mat) noexcept
+		{
+			return mat.m20;
+		}
+
 		static Vector2T<T> getTranslationFromMatrix(const Matrix3T<T>& mat) noexcept
 		{
-			Vector2T<T> ret;
-			ret.x = mat.m20;
-			ret.y = mat.m21;
-			return ret;
+			return { mat.m20, mat.m21 };
 		}
 
 	};

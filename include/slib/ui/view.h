@@ -730,7 +730,7 @@ namespace slib
 
 		sl_real getTranslationY();
 
-		const Vector2& getTranslation();
+		Vector2 getTranslation();
 
 		void setTranslationX(sl_real x, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -744,7 +744,7 @@ namespace slib
 
 		sl_real getScaleY();
 
-		const Vector2& getScale();
+		Vector2 getScale();
 
 		void setScaleX(sl_real sx, UIUpdateMode mode = UIUpdateMode::Redraw);
 
