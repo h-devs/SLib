@@ -28,6 +28,7 @@
 #include "../graphics/canvas.h"
 #include "../core/queue.h"
 #include "../math/matrix3.h"
+#include "../math/triangle.h"
 
 namespace slib
 {
@@ -149,6 +150,8 @@ namespace slib
 		using Canvas::drawPath;
 		void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
 
+		void fillTriangles(const List<Triangle>& triangles, const Color& color);
+
 
 		void drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param, const Color4F& color);
 
@@ -201,6 +204,8 @@ namespace slib
 		void _drawBitmap(const Rectangle& rectDst, Bitmap* src, const Rectangle& rectSrc, const DrawParam& param);
 
 		void _fillRectangle(const Rectangle& rect, const Color& color);
+
+		void _drawEllipse(const Rectangle& rect, const Color& borderColor, sl_real borderWidth);
 
 		void _fillPolygon(const Point* points, sl_size nPoints, const Color& color);
 

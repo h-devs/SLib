@@ -89,6 +89,46 @@ namespace slib
 			return ret;
 		}
 
+		template <class T>
+		static List< TriangleT<T> > splitEllipseBorderToTriangles(T centerX, T centerY, T width, T height, T borderWidth)
+		{
+			List< TriangleT<T> > ret;
+			T circum = (width + height) * (T)SLIB_PI_HALF_LONG;
+			if (circum > 1000.0) {
+				circum = 1000.0;
+			}
+			sl_uint32 n = (sl_uint32)(circum);
+			T bw = borderWidth / (T)2;
+			width /= (T)2;
+			height /= (T)2;
+			T w1 = width - bw;
+			T w2 = width + bw;
+			T h1 = height - bw;
+			T h2 = height + bw;
+			PointT<T> last1, last2;
+			for (sl_uint32 i = 0; i <= n; i++) {
+				T angle = (T)(SLIB_PI_DUAL_LONG) * (T)i / (T)n;
+				T ux = Math::cos(angle);
+				T uy = Math::sin(angle);
+				PointT<T> pt1, pt2;
+				pt1.x = centerX + ux * w1;
+				pt1.y = centerY + uy * h1;
+				pt2.x = centerX + ux * w2;
+				pt2.y = centerY + uy * h2;
+				if (i) {
+					if (!(ret.add_NoLock(TriangleT<T>(last2, pt2, last1)))) {
+						return sl_null;
+					}
+					if (!(ret.add_NoLock(TriangleT<T>(last1, pt2, pt1)))) {
+						return sl_null;
+					}
+				}
+				last1 = pt1;
+				last2 = pt2;
+			}
+			return ret;
+		}
+
 	private:
 		template <class T>
 		static sl_bool _splitPolygonToTriangles(List< TriangleT<T> >& ret, const PointT<T>* points, sl_size nPoints, sl_bool flagOutputCW)

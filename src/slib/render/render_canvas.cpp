@@ -1098,9 +1098,8 @@ namespace slib
 			return;
 		}
 
-		RenderCanvasState* state = m_state.get();
-
 		if (brush.isNotNull()) {
+			RenderCanvasState* state = m_state.get();
 			if (state->flagClipRect) {
 				if (!(state->clipRect.intersect(rect, sl_null))) {
 					return;
@@ -1130,6 +1129,19 @@ namespace slib
 				m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 			}
 		}
+
+		if (pen.isNotNull()) {
+			_drawEllipse(rect, pen->getColor(), pen->getWidth());
+		}
+	}
+
+	void RenderCanvas::_drawEllipse(const Rectangle& rect, const Color& color, sl_real borderWidth)
+	{
+		if (!(color.a)) {
+			return;
+		}
+		List<Triangle> triangles = GeometryHelper::splitEllipseBorderToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth(), rect.getHeight(), borderWidth);
+		fillTriangles(triangles, color);
 	}
 
 	void RenderCanvas::drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode)
@@ -1151,7 +1163,24 @@ namespace slib
 		}
 	}
 
-	void RenderCanvas::_fillPolygon(const Point* points, sl_size nPoints, const Color& _color)
+	void RenderCanvas::_fillPolygon(const Point* points, sl_size nPoints, const Color& color)
+	{
+		if (!(color.a)) {
+			return;
+		}
+		List<Triangle> triangles = GeometryHelper::splitPolygonToTriangles(points, nPoints, sl_true);
+		fillTriangles(triangles, color);
+	}
+
+	void RenderCanvas::drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush)
+	{
+	}
+
+	void RenderCanvas::drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush)
+	{
+	}
+
+	void RenderCanvas::fillTriangles(const List<Triangle>& triangles, const Color& _color)
 	{
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
@@ -1160,12 +1189,11 @@ namespace slib
 		if (!(_color.a)) {
 			return;
 		}
-
-		List<Triangle> triangles = GeometryHelper::splitPolygonToTriangles(points, nPoints, sl_true);
-		if (triangles.isEmpty()) {
+		sl_uint32 n = (sl_uint32)(triangles.getCount());
+		if (!n) {
 			return;
 		}
-		Memory mem = Memory::createStatic(triangles.getData(), sizeof(Triangle) * triangles.getCount(), triangles.ref.ptr);
+		Memory mem = Memory::createStatic(triangles.getData(), sizeof(Triangle) * n, triangles.ref.ptr);
 		if (mem.isNull()) {
 			return;
 		}
@@ -1173,7 +1201,6 @@ namespace slib
 		if (vb.isNull()) {
 			return;
 		}
-
 		RenderCanvasState* state = m_state.get();
 		RenderCanvasProgramParam pp;
 		pp.prepare(state, sl_false);
@@ -1188,14 +1215,6 @@ namespace slib
 			scope->setColor(color);
 			m_engine->drawPrimitive((sl_uint32)(mem.getSize() / sizeof(Point)), vb, PrimitiveType::Triangle);
 		}
-	}
-
-	void RenderCanvas::drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush)
-	{
-	}
-
-	void RenderCanvas::drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush)
-	{
 	}
 
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& _rectSrc, const DrawParam& param, const Color4F& color)
