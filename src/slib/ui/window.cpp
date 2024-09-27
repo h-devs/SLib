@@ -217,7 +217,7 @@ namespace slib
 	void* Window::getParentHandle(Ref<WindowInstance>& instance)
 	{
 		if (m_parent.isNotNull() || m_parentInstance.isNotNull()) {
-			instance = getWindowInstance();
+			instance = getParentInstance();
 			if (instance.isNotNull()) {
 				return instance->getHandle();
 			}
@@ -230,7 +230,7 @@ namespace slib
 	void* Window::getParentHandle()
 	{
 		if (m_parent.isNotNull() || m_parentInstance.isNotNull()) {
-			Ref<WindowInstance> instance = getWindowInstance();
+			Ref<WindowInstance> instance = getParentInstance();
 			if (instance.isNotNull()) {
 				return instance->getHandle();
 			}
