@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -113,6 +113,19 @@ namespace slib
 			} else {
 				return pos;
 			}
+		}
+
+		sl_bool intersect(const LineT<T>& line, PointT<T>* _out = sl_null) const
+		{
+			T t = a * line.b - b * line.a;
+			if (Math::isAlmostZero(t)) {
+				return sl_false;
+			}
+			if (_out) {
+				_out->x = (line.c * b - line.b * c) / t;
+				_out->y = (line.a * c - line.c * a) / t;
+			}
+			return sl_true;
 		}
 
 		void setFromPointAndDirection(const PointT<T>& point, const Vector2T<T>& dir) noexcept
