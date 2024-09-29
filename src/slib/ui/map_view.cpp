@@ -3053,6 +3053,29 @@ namespace slib
 		}
 	}
 
+	void MapView::onKeyEvent(UIEvent* ev)
+	{
+		RenderView::onKeyEvent(ev);
+		if (ev->isAccepted()) {
+			return;
+		}
+		if (ev->getAction() == UIAction::KeyDown) {
+			Keycode keycode = ev->getKeycode();
+			switch (keycode) {
+				case Keycode::Minus:
+				case Keycode::NumpadMinus:
+					zoom(1.1, ev);
+					break;
+				case Keycode::Equal:
+				case Keycode::NumpadPlus:
+					zoom(1.0 / 1.1, ev);
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
 	void MapView::onResize(sl_ui_len width, sl_ui_len height)
 	{
 		RenderView::onResize(width, height);

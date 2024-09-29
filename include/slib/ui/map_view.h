@@ -851,6 +851,8 @@ namespace slib
 
 		void onMouseWheelEvent(UIEvent* ev) override;
 
+		void onKeyEvent(UIEvent* ev) override;
+
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 	private:
