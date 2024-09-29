@@ -207,6 +207,8 @@ namespace slib
 
 		void _drawEllipse(const Rectangle& rect, const Color& borderColor, sl_real borderWidth);
 
+		void _drawPolygon(const Point* points, sl_size nPoints, const Color& borderColor, sl_real borderWidth);
+
 		void _fillPolygon(const Point* points, sl_size nPoints, const Color& color);
 
 		void _drawLineByRect(const Point& pt1, const Point& pt2, const Color& color, sl_real width);

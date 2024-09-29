@@ -106,7 +106,7 @@ namespace slib
 
 		static void setScaling(Matrix3T<T>& _out, const Vector2T<T>& center, const Vector2T<T>& _scale) noexcept
 		{
-			setScaling(_out, center.x, center.y, _scale.x., _scale.y);
+			setScaling(_out, center.x, center.y, _scale.x, _scale.y);
 		}
 
 		static Matrix3T<T> getScalingMatrix(T x, T y) noexcept

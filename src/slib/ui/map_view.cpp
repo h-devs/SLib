@@ -27,8 +27,6 @@
 #include "slib/data/expiring_map.h"
 #include "slib/system/system.h"
 #include "slib/device/cpu.h"
-#include "slib/geo/earth.h"
-#include "slib/geo/dem.h"
 #include "slib/math/triangle.h"
 #include "slib/math/transform2d.h"
 #include "slib/math/transform3d.h"
@@ -79,7 +77,7 @@ namespace slib
 
 		SLIB_SAFE_STATIC_GETTER(SharedContext, GetSharedContext)
 
-		typedef SphericalEarth MapEarth;
+		typedef MapView::Earth MapEarth;
 	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MapTileAddress)
@@ -1286,12 +1284,13 @@ namespace slib
 				if (tile->location.level >= m_config.maximumLevel) {
 					return sl_false;
 				}
-				// Check Degree
-				if (Math::abs(Math::normalizeDegreeDistance((tile->region.topRight.longitude + tile->region.bottomLeft.longitude) / 2.0 - state.eyeLocation.longitude)) > 20.0) {
-					return sl_false;
-				}
-				if (Math::abs(Math::normalizeDegreeDistance((tile->region.topRight.latitude + tile->region.bottomLeft.latitude) / 2.0 - state.eyeLocation.latitude)) > 20.0) {
-					return sl_false;
+				// Check Distance
+				{
+					double r = MapEarth::getRadius();
+					double d = state.eyeLocation.altitude + r / 2.0;
+					if ((state.eyePoint - tile->center).getLength2p() > d * d) {
+						return sl_false;
+					}
 				}
 				// Check Frustum
 				{
@@ -1850,6 +1849,13 @@ namespace slib
 				return sl_false;
 			}
 		}
+		if (defaultRasterizerState.isNull()) {
+			RenderRasterizerParam rp;
+			defaultRasterizerState = RenderRasterizerState::create(rp);
+			if (defaultRasterizerState.isNull()) {
+				return sl_false;
+			}
+		}
 		if (overlayDepthState.isNull()) {
 			RenderDepthStencilParam dp;
 			dp.flagTestDepth = sl_false;
@@ -1864,6 +1870,14 @@ namespace slib
 			bp.flagBlending = sl_true;
 			overlayBlendState = RenderBlendState::create(bp);
 			if (overlayBlendState.isNull()) {
+				return sl_false;
+			}
+		}
+		if (overlayRasterizerState.isNull()) {
+			RenderRasterizerParam rp;
+			rp.flagCull = sl_false;
+			overlayRasterizerState = RenderRasterizerState::create(rp);
+			if (overlayRasterizerState.isNull()) {
 				return sl_false;
 			}
 		}
@@ -2405,6 +2419,7 @@ namespace slib
 
 		engine->setDepthStencilState(m_state.defaultDepthState);
 		engine->setBlendState(m_state.defaultBlendState);
+		engine->setRasterizerState(m_state.defaultRasterizerState);
 		surface->render(engine, this);
 
 		{
@@ -2415,9 +2430,11 @@ namespace slib
 					if (object->isOverlay()) {
 						engine->setDepthStencilState(m_state.overlayDepthState);
 						engine->setBlendState(m_state.overlayBlendState);
+						engine->setRasterizerState(m_state.overlayRasterizerState);
 					} else {
 						engine->setDepthStencilState(m_state.defaultDepthState);
 						engine->setBlendState(m_state.defaultBlendState);
+						engine->setRasterizerState(m_state.defaultRasterizerState);
 					}
 					object->render(engine, this, surface);
 				}

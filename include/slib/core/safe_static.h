@@ -89,6 +89,11 @@
 	static TYPE& NAME = *(reinterpret_cast<TYPE*>(g_static_safemem_##NAME)); \
 	PRIV_SLIB_SAFE_GLOBAL_DESTRUCTOR(TYPE, NAME)
 
+#define SLIB_THREAD_LOCAL_ZERO_INITIALIZED(TYPE, NAME) \
+	SLIB_ALIGN(8) static char g_static_safemem_##NAME[sizeof(TYPE)] = {0}; \
+	static thread_local TYPE& NAME = *(reinterpret_cast<TYPE*>(g_static_safemem_##NAME)); \
+	PRIV_SLIB_SAFE_GLOBAL_DESTRUCTOR(TYPE, NAME)
+
 #define SLIB_LOCAL_STATIC_ZERO_INITIALIZED(TYPE, NAME) \
 	SLIB_ALIGN(8) static char _static_safemem_##NAME[sizeof(TYPE)] = {0}; \
 	TYPE& NAME = *(reinterpret_cast<TYPE*>(_static_safemem_##NAME)); \

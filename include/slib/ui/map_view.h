@@ -25,9 +25,9 @@
 
 #include "render_view.h"
 
-#include "../geo/geo_location.h"
 #include "../geo/geo_rectangle.h"
 #include "../geo/dem.h"
+#include "../geo/earth.h"
 #include "../math/view_frustum.h"
 
 #define SLIB_MAP_VIEW_LAYER_COUNT 5
@@ -559,8 +559,10 @@ namespace slib
 		Ref<MapTileLoader> tileLoader;
 		Ref<RenderBlendState> defaultBlendState;
 		Ref<RenderDepthStencilState> defaultDepthState;
+		Ref<RenderRasterizerState> defaultRasterizerState;
 		Ref<RenderBlendState> overlayBlendState;
 		Ref<RenderDepthStencilState> overlayDepthState;
+		Ref<RenderRasterizerState> overlayRasterizerState;
 
 	public:
 		MapViewState();
@@ -592,6 +594,9 @@ namespace slib
 		MapViewData();
 
 		~MapViewData();
+
+	public:
+		typedef SphericalEarth Earth;
 
 	public:
 		sl_bool isGlobeMode() const;

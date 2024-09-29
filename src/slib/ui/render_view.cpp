@@ -75,6 +75,7 @@ namespace slib
 		}
 		{
 			RenderRasterizerParam param;
+			param.flagCull = sl_false;
 			m_stateCanvasRasterizer = RenderRasterizerState::create(param);
 		}
 		{

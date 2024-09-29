@@ -42,7 +42,6 @@ namespace slib
 
 	namespace
 	{
-
 		SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderCanvasProgramState, RenderVertex2D_Position)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
@@ -132,7 +131,6 @@ namespace slib
 
 		private:
 			RenderCanvasClip storageRectClip;
-
 		};
 
 		class RenderCanvasProgram : public RenderProgramT<RenderCanvasProgramState>
@@ -562,7 +560,6 @@ namespace slib
 					bufFragmentShader->link(bufFBHeader);
 					bufFragmentShader->link(bufFBContent);
 				}
-
 			}
 
 			static Ref<RenderCanvasProgram> create(const RenderCanvasProgramParam& param)
@@ -582,7 +579,6 @@ namespace slib
 				}
 				return sl_null;
 			}
-
 		};
 
 		class EngineContext : public CRef
@@ -630,7 +626,6 @@ namespace slib
 				}
 				return program;
 			}
-
 		};
 
 		class EngineHelper : public RenderEngine
@@ -643,24 +638,21 @@ namespace slib
 				}
 				return (EngineContext*)(m_canvasContext.get());
 			}
-
 		};
 
 		class RenderCanvasHelper : public RenderCanvas
 		{
 		public:
-			EngineContext * getContext()
+			EngineContext* getContext()
 			{
 				return ((EngineHelper*)(m_engine.get()))->getContext();
 			}
-
 		};
 
 		static EngineContext* GetEngineContext(RenderCanvas* canvas)
 		{
 			return ((RenderCanvasHelper*)canvas)->getContext();
 		}
-
 	}
 
 
@@ -1140,8 +1132,7 @@ namespace slib
 		if (!(color.a)) {
 			return;
 		}
-		List<Triangle> triangles = GeometryHelper::splitEllipseBorderToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth(), rect.getHeight(), borderWidth);
-		fillTriangles(triangles, color);
+		fillTriangles(GeometryHelper::splitEllipseBorderToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth(), rect.getHeight(), borderWidth), color);
 	}
 
 	void RenderCanvas::drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode)
@@ -1159,8 +1150,16 @@ namespace slib
 			_fillPolygon(points, nPoints, fillColor);
 		}
 		if (pen.isNotNull()) {
-			drawLines(points, nPoints, pen->getColor(), pen->getWidth(), sl_true, m_flagUseLinePrimitive);
+			_drawPolygon(points, nPoints, pen->getColor(), pen->getWidth());
 		}
+	}
+
+	void RenderCanvas::_drawPolygon(const Point* points, sl_size nPoints, const Color& borderColor, sl_real borderWidth)
+	{
+		if (!(borderColor.a)) {
+			return;
+		}
+		fillTriangles(GeometryHelper::splitPolylineToTriangles(points, nPoints, borderWidth), borderColor);
 	}
 
 	void RenderCanvas::_fillPolygon(const Point* points, sl_size nPoints, const Color& color)
@@ -1168,8 +1167,7 @@ namespace slib
 		if (!(color.a)) {
 			return;
 		}
-		List<Triangle> triangles = GeometryHelper::splitPolygonToTriangles(points, nPoints, sl_true);
-		fillTriangles(triangles, color);
+		fillTriangles(GeometryHelper::splitPolygonToTriangles(points, nPoints), color);
 	}
 
 	void RenderCanvas::drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush)
@@ -1219,7 +1217,6 @@ namespace slib
 
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& _rectSrc, const DrawParam& param, const Color4F& color)
 	{
-
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
 			return;
@@ -1263,7 +1260,6 @@ namespace slib
 			}
 			m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 		}
-
 	}
 
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param)
@@ -1295,7 +1291,6 @@ namespace slib
 
 	void RenderCanvas::drawTexture(const Rectangle& _rectDst, const Ref<Texture>& texture, const Rectangle& _rectSrc, const DrawParam& param, const Color4F& color)
 	{
-
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
 			return;
@@ -1357,7 +1352,6 @@ namespace slib
 			}
 			m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 		}
-
 	}
 
 	void RenderCanvas::drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param)
@@ -1420,7 +1414,6 @@ namespace slib
 		programState->setColor(color);
 
 		m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
-
 	}
 
 	void RenderCanvas::_drawBitmap(const Rectangle& rectDst, Bitmap* src, const Rectangle& rectSrc, const DrawParam& param)
@@ -1581,7 +1574,6 @@ namespace slib
 				drawLine(Point(x, yLine), Point(fx, yLine), pen);
 			}
 		}
-
 	}
 
 	void RenderCanvas::onDraw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc, const DrawParam& param)
