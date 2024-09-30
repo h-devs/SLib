@@ -176,6 +176,29 @@ namespace slib
 		Function<String(MapTileAddress&)> m_formator;
 	};
 
+	class SLIB_EXPORT MapUrlReader : public MapTileReader
+	{
+		SLIB_DECLARE_OBJECT
+
+	protected:
+		MapUrlReader();
+
+		~MapUrlReader();
+
+	public:
+		static Ref<MapUrlReader> create(const String& url, const Function<String(MapTileAddress&)>& formator);
+
+	public:
+		sl_bool readData(Memory& _out, const MapTileAddress& address, sl_uint32 timeout) override;
+
+	protected:
+		sl_bool readUrl(Memory& _out, const String& url);
+
+	private:
+		String m_root;
+		Function<String(MapTileAddress&)> m_formator;
+	};
+
 	class SLIB_EXPORT MapTileCache : public Object
 	{
 		SLIB_DECLARE_OBJECT

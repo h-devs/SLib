@@ -24,6 +24,7 @@
 
 #include "slib/graphics/image.h"
 #include "slib/io/file.h"
+#include "slib/network/url_request.h"
 #include "slib/data/expiring_map.h"
 #include "slib/system/system.h"
 #include "slib/device/cpu.h"
@@ -55,6 +56,7 @@ namespace slib
 			MapViewTile,
 			MapTileReader,
 			MapTileDirectory,
+			MapUrlReader,
 			MapTileCache,
 			MapTileLoader,
 			MapViewExtension
@@ -172,15 +174,79 @@ namespace slib
 	{
 		MapTileAddress address = _address;
 		String path = m_formator(address);
-		if (address.subPath.isNotNull()) {
-			_out = File::readAllBytes(File::concatPath(m_root, path, address.subPath));
+		if (m_root.isNotNull()) {
+			if (address.subPath.isNotNull()) {
+				_out = File::readAllBytes(File::concatPath(m_root, path, address.subPath));
+			} else {
+				_out = File::readAllBytes(File::concatPath(m_root, path));
+			}
 		} else {
-			_out = File::readAllBytes(File::concatPath(m_root, path));
+			if (address.subPath.isNotNull()) {
+				_out = File::readAllBytes(File::concatPath(path, address.subPath));
+			} else {
+				_out = File::readAllBytes(path);
+			}
 		}
 		if (_out.isNotNull()) {
 			return sl_true;
 		}
 		return File::isDirectory(m_root);
+	}
+
+	SLIB_DEFINE_OBJECT(MapUrlReader, MapTileReader)
+
+	MapUrlReader::MapUrlReader()
+	{
+	}
+
+	MapUrlReader::~MapUrlReader()
+	{
+	}
+
+	Ref<MapUrlReader> MapUrlReader::create(const String& url, const Function<String(MapTileAddress&)>& formator)
+	{
+		Ref<MapUrlReader> ret = new MapUrlReader;
+		if (ret.isNotNull()) {
+			ret->m_root = url;
+			ret->m_formator = formator;
+			return ret;
+		}
+		return sl_null;
+	}
+
+	sl_bool MapUrlReader::readData(Memory& _out, const MapTileAddress& _address, sl_uint32 timeout)
+	{
+		MapTileAddress address = _address;
+		String path = m_formator(address);
+		if (m_root.isNotNull()) {
+			if (address.subPath.isNotNull()) {
+				return readUrl(_out, String::concat(m_root, StringView::literal("/"), path, StringView::literal("/"), address.subPath));
+			} else {
+				return readUrl(_out, String::concat(m_root, StringView::literal("/"), path));
+			}
+		} else {
+			if (address.subPath.isNotNull()) {
+				return readUrl(_out, String::concat(StringView::literal("/"), path, StringView::literal("/"), address.subPath));
+			} else {
+				return readUrl(_out, path);
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool MapUrlReader::readUrl(Memory& _out, const String& url)
+	{
+		Ref<UrlRequest> request = UrlRequest::sendSynchronous(url);
+		if (request.isNotNull()) {
+			HttpStatus status = request->getResponseStatus();
+			if (status == HttpStatus::OK) {
+				_out = request->getResponseContent();
+				return sl_true;
+			} else if (status == HttpStatus::NotFound) {
+				return sl_true;
+			}
+		}
+		return sl_false;
 	}
 
 	SLIB_DEFINE_OBJECT(MapTileCache, Object)
@@ -1505,7 +1571,6 @@ namespace slib
 				param.reader = reader;
 				(MapTileLocationI&)(param.address) = location;
 				param.cache = cache;
-				param.flagLoadNow = location.level <= m_config.baseLevel;
 				param.flagEndless = location.level == m_config.baseLevel;
 				m_toReaderLocation(param.address);
 				loader->loadImage(_out.source, param, sl_null);
@@ -1546,7 +1611,6 @@ namespace slib
 				param.reader = m_readerDEM;
 				(MapTileLocationI&)(param.address) = location;
 				param.cache = m_cacheDEM;
-				param.flagLoadNow = location.level <= m_config.baseLevel;
 				param.flagEndless = location.level == m_config.baseLevel;
 				m_toReaderLocation(param.address);
 				loader->loadData(_out.source, param, sl_null);
