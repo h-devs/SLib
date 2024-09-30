@@ -23,6 +23,7 @@
 #include "slib/core/content_type.h"
 
 #include "slib/io/file.h"
+#include "slib/doc/file_type.h"
 #include "slib/core/hash_map.h"
 #include "slib/core/safe_static.h"
 
@@ -161,6 +162,12 @@ namespace slib
 	String ContentTypeHelper::getFromFilePath(const StringParam& path, const String& def)
 	{
 		return getFromFileExtension(File::getFileExtension(path), def);
+	}
+
+	String ContentTypeHelper::getFromContent(const MemoryView& content)
+	{
+		FileType type = FileTypeHelper::get(content);
+		return FileTypeHelper::getContentType(type);
 	}
 
 	sl_bool ContentTypeHelper::equalsContentTypeExceptParams(const StringParam& _type1, const StringParam& _type2)

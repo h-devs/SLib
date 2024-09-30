@@ -23,6 +23,7 @@
 #include "slib/doc/file_type.h"
 
 #include "slib/core/memory.h"
+#include "slib/core/content_type.h"
 #include "slib/graphics/image.h"
 
 namespace slib
@@ -59,6 +60,25 @@ namespace slib
 	FileType FileTypeHelper::get(const MemoryView& mem)
 	{
 		return get(mem.data, mem.size);
+	}
+
+	String FileTypeHelper::getContentType(FileType type)
+	{
+		switch (type) {
+			case FileType::JPEG:
+				return ContentType::ImageJpeg;
+			case FileType::PNG:
+				return ContentType::ImagePng;
+			case FileType::BMP:
+				return ContentType::ImageBmp;
+			case FileType::GIF:
+				return ContentType::ImageGif;
+			case FileType::ZIP:
+				return ContentType::Zip;
+			case FileType::PDF:
+				return ContentType::Pdf;
+		}
+		return sl_null;
 	}
 
 }

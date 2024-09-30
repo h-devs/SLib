@@ -45,6 +45,7 @@ namespace slib
 	};
 
 	class MemoryView;
+	class String;
 
 	class SLIB_EXPORT FileTypeHelper
 	{
@@ -52,6 +53,8 @@ namespace slib
 		static FileType get(const void* mem, sl_size size);
 
 		static FileType get(const MemoryView& mem);
+
+		static String getContentType(FileType type);
 
 	};
 

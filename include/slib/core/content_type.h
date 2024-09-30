@@ -126,6 +126,8 @@ namespace slib
 
 		static String getFromFilePath(const StringParam& path, const String& def);
 
+		static String getFromContent(const MemoryView& content);
+
 		static sl_bool equalsContentTypeExceptParams(const StringParam& type1, const StringParam& type2);
 
 	};
