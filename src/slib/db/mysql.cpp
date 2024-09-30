@@ -42,14 +42,17 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		class LibraryInitializer
 		{
 		public:
 			SLIB_INLINE LibraryInitializer()
 			{
-				mysql_library_init(0, sl_null, sl_null);
+				auto api = mysql_library_init;
+				if (api) {
+					mysql_library_init(0, sl_null, sl_null);
+				}
 			}
 		};
 
@@ -62,7 +65,10 @@ namespace slib
 
 			~ThreadManager()
 			{
-				mysql_thread_end();
+				auto api = mysql_thread_end;
+				if (api) {
+					mysql_thread_end();
+				}
 			}
 		};
 
@@ -1062,9 +1068,14 @@ namespace slib
 		public:
 			static Ref<DatabaseImpl> connect(MySQL_Param& param)
 			{
+				auto api = mysql_init;
+				if (!api) {
+					return sl_null;
+				}
+
 				initThread();
 
-				MYSQL* mysql = mysql_init(sl_null);
+				MYSQL* mysql = api(sl_null);
 
 				if (mysql) {
 
@@ -1257,9 +1268,7 @@ namespace slib
 			{
 				return (sl_uint64)(mysql_insert_id(m_mysql));
 			}
-
 		};
-
 	}
 
 
@@ -1290,6 +1299,10 @@ namespace slib
 		if (SLIB_SAFE_STATIC_CHECK_FREED(lib)) {
 			return;
 		}
+		auto api = mysql_thread_init;
+		if (!api) {
+			return;
+		}
 #if !defined(SLIB_PLATFORM_IS_APPLE)
 		static SLIB_THREAD int check = 0;
 		if (check) {
@@ -1302,14 +1315,14 @@ namespace slib
 			SLIB_STATIC_STRING(name, "_SLIB_MYSQL")
 			Ref<CRef> ref = thread->getAttachedObject(name);
 			if (ref.isNull()) {
-				mysql_thread_init();
+				api();
 				ref = new ThreadManager;
 				if (ref.isNotNull()) {
 					thread->attachObject(name, ref.get());
 				}
 			}
 		} else {
-			mysql_thread_init();
+			api();
 		}
 	}
 

@@ -29,6 +29,26 @@
 namespace slib
 {
 
+	namespace object_types
+	{
+		enum {
+			CDatabaseExpression = DatabaseExpression,
+			ValueExpression,
+			IdentifierExpression,
+			IdentifierExpression2,
+			RawExpression,
+			ParameterExpression,
+			CountAllExpression,
+			BinaryOpExpression,
+			CustomBinaryOpExpression,
+			UnaryOpExpression,
+			CustomUnaryOpExpression,
+			FunctionExpression,
+			SetExpression,
+			ConcatExpression,
+		};
+	}
+
 	SLIB_DEFINE_ROOT_OBJECT(CDatabaseExpression)
 
 	CDatabaseExpression::CDatabaseExpression()
@@ -39,8 +59,8 @@ namespace slib
 	{
 	}
 
-	namespace {
-
+	namespace
+	{
 		class ValueExpression : public CDatabaseExpression
 		{
 			SLIB_DECLARE_OBJECT
@@ -74,14 +94,17 @@ namespace slib
 					case VariantType::Sz8:
 					case VariantType::StringData8:
 						builder.append(Stringx::applyBackslashEscapes(value.getStringView(), sl_false));
+						break;
 					case VariantType::String16:
 					case VariantType::Sz16:
 					case VariantType::StringData16:
 						builder.append(String::create(Stringx::applyBackslashEscapes(value.getStringView16(), sl_false)));
+						break;
 					case VariantType::String32:
 					case VariantType::Sz32:
 					case VariantType::StringData32:
 						builder.append(String::create(Stringx::applyBackslashEscapes(value.getStringView32(), sl_false)));
+						break;
 					default:
 						builder.appendStatic("null");
 						break;
@@ -91,7 +114,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(ValueExpression, CDatabaseExpression)
-
 	}
 
 	DatabaseExpression::DatabaseExpression(const Variant& value): ref(new ValueExpression(value))
@@ -113,8 +135,8 @@ namespace slib
 		return new ValueExpression(value);
 	}
 
-	namespace {
-
+	namespace
+	{
 		class IdentifierExpression : public CDatabaseExpression
 		{
 			SLIB_DECLARE_OBJECT
@@ -136,7 +158,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(IdentifierExpression, CDatabaseExpression)
-
 	}
 
 	DatabaseExpression DatabaseExpression::column(const String& name)
@@ -144,8 +165,8 @@ namespace slib
 		return new IdentifierExpression(name);
 	}
 
-	namespace {
-
+	namespace
+	{
 		class IdentifierExpression2 : public CDatabaseExpression
 		{
 			SLIB_DECLARE_OBJECT
@@ -172,7 +193,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(IdentifierExpression2, CDatabaseExpression)
-
 	}
 
 	DatabaseExpression DatabaseExpression::column(const String& name1, const String& name2)
@@ -180,8 +200,8 @@ namespace slib
 		return new IdentifierExpression2(name1, name2);
 	}
 
-	namespace {
-
+	namespace
+	{
 		class RawExpression : public CDatabaseExpression
 		{
 			SLIB_DECLARE_OBJECT
@@ -210,7 +230,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(RawExpression, CDatabaseExpression)
-
 	}
 
 	DatabaseExpression DatabaseExpression::raw(const String& expr, sl_bool flagParentheses)
@@ -218,8 +237,8 @@ namespace slib
 		return new RawExpression(expr, flagParentheses);
 	}
 
-	namespace {
-
+	namespace
+	{
 		class ParameterExpression : public CDatabaseExpression
 		{
 			SLIB_DECLARE_OBJECT
@@ -245,7 +264,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(ParameterExpression, CDatabaseExpression)
-
 	}
 
 	const DatabaseExpression& DatabaseExpression::parameter()
@@ -260,8 +278,8 @@ namespace slib
 		return expr;
 	}
 
-	namespace {
-
+	namespace
+	{
 		class CountAllExpression : public CDatabaseExpression
 		{
 			SLIB_DECLARE_OBJECT
@@ -275,7 +293,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(CountAllExpression, CDatabaseExpression)
-
 	}
 
 	const DatabaseExpression& DatabaseExpression::count()
@@ -284,8 +301,8 @@ namespace slib
 		return expr;
 	}
 
-	namespace {
-
+	namespace
+	{
 		class FunctionExpression: public CDatabaseExpression
 		{
 			SLIB_DECLARE_OBJECT
@@ -317,7 +334,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(FunctionExpression, CDatabaseExpression)
-
 	}
 
 	DatabaseExpression DatabaseExpression::function(const String& name)
@@ -330,8 +346,8 @@ namespace slib
 		return new FunctionExpression(name, params.toList());
 	}
 
-	namespace {
-
+	namespace
+	{
 		class CustomBinaryOpExpression: public CDatabaseExpression
 		{
 			SLIB_DECLARE_OBJECT
@@ -365,7 +381,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(CustomBinaryOpExpression, CDatabaseExpression)
-
 	}
 
 	DatabaseExpression DatabaseExpression::binaryOp(const String& op, DatabaseExpression& e1, DatabaseExpression& e2)
@@ -373,8 +388,8 @@ namespace slib
 		return new CustomBinaryOpExpression(op, e1, e2);
 	}
 
-	namespace {
-
+	namespace
+	{
 		class CustomUnaryOpExpression: public CDatabaseExpression
 		{
 			SLIB_DECLARE_OBJECT
@@ -412,7 +427,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(CustomUnaryOpExpression, CDatabaseExpression)
-
 	}
 
 	DatabaseExpression DatabaseExpression::unaryOp(const String& op, DatabaseExpression& e)
@@ -425,8 +439,8 @@ namespace slib
 		return new CustomUnaryOpExpression(op, sl_true, e);
 	}
 
-	namespace {
-
+	namespace
+	{
 		enum class BinaryOp
 		{
 			NONE,
@@ -642,7 +656,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(BinaryOpExpression, CDatabaseExpression)
-
 	}
 
 	DatabaseExpression operator&&(const DatabaseExpression& e1, const DatabaseExpression& e2)
@@ -722,8 +735,8 @@ namespace slib
 		return new BinaryOpExpression(BinaryOp::MOD, e1, e2);
 	}
 
-	namespace {
-
+	namespace
+	{
 		enum class UnaryOp
 		{
 			MINUS,
@@ -836,7 +849,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(UnaryOpExpression, CDatabaseExpression)
-
 	}
 
 	DatabaseExpression operator-(const DatabaseExpression& e)
@@ -879,8 +891,8 @@ namespace slib
 		return new BinaryOpExpression(BinaryOp::NOT_ILIKE, e1, e2);
 	}
 
-	namespace {
-
+	namespace
+	{
 		class SetExpression: public CDatabaseExpression
 		{
 			SLIB_DECLARE_OBJECT
@@ -910,7 +922,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(SetExpression, CDatabaseExpression)
-
 	}
 
 	DatabaseExpression In(const DatabaseExpression& e, const ListParam<DatabaseExpression>& params)
@@ -923,8 +934,8 @@ namespace slib
 		return new BinaryOpExpression(BinaryOp::NOT_IN, e, new SetExpression(params.toList()));
 	}
 
-	namespace {
-
+	namespace
+	{
 		class ConcatExpression: public CDatabaseExpression
 		{
 			SLIB_DECLARE_OBJECT
@@ -976,7 +987,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(ConcatExpression, CDatabaseExpression)
-
 	}
 
 	DatabaseExpression Concat(const ListParam<DatabaseExpression>& params)
