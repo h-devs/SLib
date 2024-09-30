@@ -221,6 +221,10 @@ namespace slib
 	{
 	}
 
+	void Service::onCreatingService(CreateServiceParam& param)
+	{
+	}
+
 	sl_int32 Service::doRun()
 	{
 		if (_tryPlatformService()) {
@@ -322,6 +326,7 @@ namespace slib
 				CreateServiceParam param;
 				param.name = name;
 				param.path = getApplicationPath();
+				onCreatingService(param);
 				if (ServiceManager::create(param)) {
 					Log(TAG, "INSTALLED SERVICE: %s", name);
 					return 0;

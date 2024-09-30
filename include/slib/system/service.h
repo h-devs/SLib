@@ -31,6 +31,7 @@ namespace slib
 {
 
 	class Event;
+	class CreateServiceParam;
 
 	class SLIB_EXPORT Service : public Application
 	{
@@ -50,6 +51,8 @@ namespace slib
 		virtual sl_bool onStartService() = 0;
 
 		virtual void onStopService() = 0;
+
+		virtual void onCreatingService(CreateServiceParam& param);
 
 		sl_int32 doRun() override;
 
