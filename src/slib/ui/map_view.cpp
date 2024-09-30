@@ -41,6 +41,8 @@
 #define METER_PER_DEGREE ((double)EARTH_CIRCUMFERENCE / 360.0)
 #define ALTITUDE_PER_METER 0.8660254037844386 // (1 - 0.5^2)^0.5
 
+#define EXPAND_FACTOR 4.0
+
 #define MAP_FOV_Y (SLIB_PI / 3.0)
 
 namespace slib
@@ -1419,7 +1421,7 @@ namespace slib
 					t.point1.x = ptTR.x / ptTR.z;
 					t.point1.y = ptTR.y / ptTR.z;
 					size += Math::abs(t.getSize());
-					if (size > (sl_real)(65536.0 * 25.0 / state.viewportWidth / state.viewportWidth)) {
+					if (size > (sl_real)(65536.0 * EXPAND_FACTOR / state.viewportWidth / state.viewportWidth)) {
 						return sl_true;
 					}
 				}

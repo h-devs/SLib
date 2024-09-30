@@ -151,7 +151,7 @@ namespace slib
 		static void scale(Matrix3T<T>& mat, T cx, T cy, T sx, T sy) noexcept
 		{
 			translate(mat, -cx, -cy);
-			scale(mat, v.x, v.y);
+			scale(mat, sx, sy);
 			translate(mat, cx, cy);
 		}
 
