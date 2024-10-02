@@ -220,21 +220,37 @@ namespace slib
 
 		static sl_ui_len getSafeAreaHeight();
 
-		static sl_real pixelToInch(sl_real px);
+		static float pixelToInch(float px);
 
-		static sl_real inchToPixel(sl_real inch);
+		static double pixelToInch(double px);
 
-		static sl_real pixelToMeter(sl_real px);
+		static float inchToPixel(float inch);
 
-		static sl_real meterToPixel(sl_real meters);
+		static double inchToPixel(double inch);
 
-		static sl_real pixelToCentimeter(sl_real px);
+		static float pixelToMeter(float px);
 
-		static sl_real centimeterToPixel(sl_real cm);
+		static double pixelToMeter(double px);
 
-		static sl_real pixelToMillimeter(sl_real px);
+		static float meterToPixel(float meters);
 
-		static sl_real millimeterToPixel(sl_real mm);
+		static double meterToPixel(double meters);
+
+		static float pixelToCentimeter(float px);
+
+		static double pixelToCentimeter(double px);
+
+		static float centimeterToPixel(float cm);
+
+		static double centimeterToPixel(double cm);
+
+		static float pixelToMillimeter(float px);
+
+		static double pixelToMillimeter(double px);
+
+		static float millimeterToPixel(float mm);
+
+		static double millimeterToPixel(double mm);
 
 		static sl_real pixelToPoint(sl_real px);
 

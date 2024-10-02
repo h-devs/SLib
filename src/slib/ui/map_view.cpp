@@ -32,6 +32,7 @@
 #include "slib/math/transform2d.h"
 #include "slib/math/transform3d.h"
 #include "slib/ui/core.h"
+#include "slib/ui/resource.h"
 #include "slib/core/thread_pool.h"
 #include "slib/core/stringify.h"
 #include "slib/core/safe_static.h"
@@ -39,11 +40,10 @@
 #define LAYER_COUNT SLIB_MAP_VIEW_LAYER_COUNT
 #define EARTH_CIRCUMFERENCE SLIB_GEO_EARTH_CIRCUMFERENCE_EQUATORIAL
 #define METER_PER_DEGREE ((double)EARTH_CIRCUMFERENCE / 360.0)
-#define ALTITUDE_PER_METER 0.8660254037844386 // (1 - 0.5^2)^0.5
-
 #define EXPAND_FACTOR 4.0
 
 #define MAP_FOV_Y (SLIB_PI / 3.0)
+#define ALTITUDE_RATIO 0.8660254037844386 // (1 - 0.5^2)^0.5
 
 namespace slib
 {
@@ -61,7 +61,9 @@ namespace slib
 			MapUrlReader,
 			MapTileCache,
 			MapTileLoader,
-			MapViewExtension
+			MapViewExtension,
+			MapViewObjectList,
+			MapViewSprite
 		};
 	}
 
@@ -71,11 +73,13 @@ namespace slib
 		{
 		public:
 			Ref<DispatchLoop> dispatchLoop;
+			ExpiringMap< CRef*, Ref<Texture> > renderTextCache;
 
 		public:
 			SharedContext()
 			{
 				dispatchLoop = DispatchLoop::create();
+				renderTextCache.setupTimer(10000, dispatchLoop);
 			}
 		};
 
@@ -580,7 +584,6 @@ namespace slib
 		return load(Ref<CRef>::cast(_out), IMAGE, param, sl_null, Function<void(Ref<CRef>&)>::cast(onComplete));
 	}
 
-
 	sl_bool MapTileLoader::loadObject(Ref<CRef>& _out, const MapTileLoadParam& param, const Function<Ref<CRef>(Memory&)>& loader, const Function<void(Ref<CRef>&)>& onComplete)
 	{
 		return load(_out, OBJECT, param, loader, onComplete);
@@ -597,9 +600,9 @@ namespace slib
 		m_range.bottom = -10000000000.0;
 		m_range.right = 10000000000.0;
 		m_range.top = 10000000000.0;
-		m_scale = 1.0;
-		m_scaleMin = 0.0001;
-		m_scaleMax = 10000000000.0;
+		m_scale = 5000.0;
+		m_minScale = 5000.0;
+		m_maxScale = 50000000;
 		m_viewport.left = 0.0;
 		m_viewport.top = 0.0;
 		m_viewport.right = 1.0;
@@ -651,28 +654,28 @@ namespace slib
 
 	void MapPlane::setScale(double scale)
 	{
-		m_scale = Math::clamp(scale, m_scaleMin, m_scaleMax);
+		m_scale = Math::clamp(scale, m_minScale, m_maxScale);
 	}
 
 	double MapPlane::getMinimumScale()
 	{
-		return m_scaleMin;
+		return m_minScale;
 	}
 
 	void MapPlane::setMinimumScale(double scale)
 	{
-		m_scaleMin = scale;
+		m_minScale = scale;
 		setScale(m_scale);
 	}
 
 	double MapPlane::getMaximumScale()
 	{
-		return m_scaleMax;
+		return m_maxScale;
 	}
 
 	void MapPlane::setMaximumScale(double scale)
 	{
-		m_scaleMax = scale;
+		m_maxScale = scale;
 		setScale(m_scale);
 	}
 
@@ -708,15 +711,37 @@ namespace slib
 		return { m_center.E + (point.x - m_viewport.getCenterX()) * f, m_center.N - (point.y - m_viewport.getCenterY()) * f };
 	}
 
-	void MapPlane::draw(Canvas* canvas, const Rectangle& rect, MapViewData* data)
+	double MapPlane::getViewLengthFromMapLength(double length)
+	{
+		return length * m_viewport.getHeight() / m_scale;
+	}
+
+	double MapPlane::getMapLengthFromViewLength(double length)
+	{
+		return length * m_scale / m_viewport.getHeight();
+	}
+
+	void MapPlane::draw(Canvas* canvas, MapViewData* data)
 	{
 		if (m_background.isNotNull()) {
 			Ref<Drawable> background = m_background;
 			if (background.isNotNull()) {
-				canvas->draw(rect, background);
+				canvas->draw(m_viewport, background);
 			}
 		}
-		onDraw(canvas, rect, data);
+		onDraw(canvas, data);
+	}
+
+	GeoLocation MapPlane::getEyeLocation()
+	{
+		return GeoLocation(getLatLonFromMapLocation(m_center), MapViewData::getAltitudeFromScale(m_scale, m_viewport.getHeight()));
+	}
+
+	void MapPlane::setEyeLocation(const GeoLocation& location)
+	{
+		setScale(MapViewData::getScaleFromAltitude(location.altitude, m_viewport.getHeight()));
+		MapLocation m = getMapLocationFromLatLon(location.getLatLon());
+		setCenterLocation(m.E, m.N);
 	}
 
 
@@ -1165,7 +1190,7 @@ namespace slib
 			void render(RenderEngine* engine, MapViewData* data) override
 			{
 				m_renderingTiles.setNull();
-				const MapViewState& state = data->getState();
+				const MapViewState& state = data->getMapState();
 				sl_uint32 M = 1 << (m_config.minimumLevel - m_config.baseLevel);
 				sl_uint32 nN = m_config.baseTileCountN * M;
 				sl_uint32 nE = m_config.baseTileCountE * M;
@@ -1462,7 +1487,7 @@ namespace slib
 					level++;
 				} while (level < m_config.maximumLevel);
 
-				drawLevel(canvas, rect, level, plane->getCenterLocation(), planeScale, data->getState().tileLoader.get(), tileMpp);
+				drawLevel(canvas, rect, level, plane->getCenterLocation(), planeScale, data->getMapState().tileLoader.get(), tileMpp);
 
 				{
 					m_cachePicture->endStep();
@@ -1779,8 +1804,6 @@ namespace slib
 		m_range.left = -m_range.right;
 		m_range.top = EARTH_CIRCUMFERENCE / 4.0;
 		m_range.bottom = -m_range.top;
-		m_scaleMin = 50.0;
-		m_scaleMax = EARTH_CIRCUMFERENCE / 2.0;
 	}
 
 	MapSurfacePlane::~MapSurfacePlane()
@@ -1795,17 +1818,6 @@ namespace slib
 			return ret;
 		}
 		return sl_null;
-	}
-
-	GeoLocation MapSurfacePlane::getEyeLocation()
-	{
-		return { m_center.N / METER_PER_DEGREE, m_center.E / METER_PER_DEGREE, m_scale * ALTITUDE_PER_METER };
-	}
-
-	void MapSurfacePlane::setEyeLocation(const GeoLocation& location)
-	{
-		setScale(location.altitude / ALTITUDE_PER_METER);
-		setCenterLocation(location.longitude * METER_PER_DEGREE, location.latitude * METER_PER_DEGREE);
 	}
 
 	LatLon MapSurfacePlane::getLatLonFromMapLocation(const MapLocation& location)
@@ -1823,9 +1835,9 @@ namespace slib
 		m_surface->clearCache();
 	}
 
-	void MapSurfacePlane::onDraw(Canvas* canvas, const Rectangle& rect, MapViewData* data)
+	void MapSurfacePlane::onDraw(Canvas* canvas, MapViewData* data)
 	{
-		m_surface->onDrawPlane(canvas, rect, this, data);
+		m_surface->onDrawPlane(canvas, m_viewport, this, data);
 	}
 
 
@@ -1872,12 +1884,282 @@ namespace slib
 		m_flagOverlay = flag;
 	}
 
-	void MapViewObject::draw(Canvas* canvas, const Rectangle& rect, MapViewData* data, MapPlane* plane)
+	void MapViewObject::draw(Canvas* canvas, MapViewData* data, MapPlane* plane)
 	{
 	}
 
 	void MapViewObject::render(RenderEngine* engine, MapViewData* data, MapSurface* surface)
 	{
+	}
+
+	SLIB_DEFINE_OBJECT(MapViewObjectList, MapViewObject)
+
+	MapViewObjectList::MapViewObjectList()
+	{
+		setSupportingGlobeMode();
+		setSupportingPlaneMode();
+	}
+
+	MapViewObjectList::~MapViewObjectList()
+	{
+	}
+
+	void MapViewObjectList::draw(Canvas* canvas, MapViewData* data, MapPlane* plane)
+	{
+		ObjectLocker lock(this);
+		ListElements< Ref<MapViewObject> > children(m_children);
+		for (sl_size i = 0; i < children.count; i++) {
+			Ref<MapViewObject>& child = children[i];
+			if (child->isSupportingPlaneMode()) {
+				child->draw(canvas, data, plane);
+			}
+		}
+	}
+
+	void MapViewObjectList::render(RenderEngine* engine, MapViewData* data, MapSurface* surface)
+	{
+		MapViewState& state = data->getMapState();
+		ObjectLocker lock(this);
+		ListElements< Ref<MapViewObject> > children(m_children);
+		for (sl_size i = 0; i < children.count; i++) {
+			Ref<MapViewObject>& child = children[i];
+			if (child->isSupportingPlaneMode()) {
+				if (child->isOverlay()) {
+					engine->setDepthStencilState(state.overlayDepthState);
+					engine->setBlendState(state.overlayBlendState);
+					engine->setRasterizerState(state.overlayRasterizerState);
+				} else {
+					engine->setDepthStencilState(state.defaultDepthState);
+					engine->setBlendState(state.defaultBlendState);
+					engine->setRasterizerState(state.defaultRasterizerState);
+				}
+				child->render(engine, data, surface);
+			}
+		}
+	}
+
+	void MapViewObjectList::addChild(const Ref<MapViewObject>& child)
+	{
+		ObjectLocker lock(this);
+		m_children.add_NoLock(child);
+	}
+
+	void MapViewObjectList::removeAll()
+	{
+		ObjectLocker lock(this);
+		m_children.removeAll_NoLock();
+	}
+
+	SLIB_DEFINE_OBJECT(MapViewSprite, MapViewObject)
+
+	MapViewSprite::MapViewSprite()
+	{
+		setSupportingGlobeMode();
+		setSupportingPlaneMode();
+
+		m_size = Size::zero();
+		m_textColor = Color::White;
+		m_textShadowColor = Color::Black;
+
+		m_flagValidAltitude = sl_false;
+		m_altitude = 0.0;
+		m_viewPoint = Point::zero();
+		m_lastDrawId = 0;
+	}
+
+	MapViewSprite::MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text): MapViewSprite()
+	{
+		initialize(location, image, text);
+	}
+
+	MapViewSprite::MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<Font>& font): MapViewSprite()
+	{
+		initialize(location, image, text, font);
+	}
+
+	MapViewSprite::~MapViewSprite()
+	{
+	}
+
+	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text)
+	{
+		initialize(location, image, text, Ref<Font>::null());
+	}
+
+	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<Font>& font)
+	{
+		m_location = location;
+		m_image = image;
+		m_text = text;
+		m_font = font;
+	}
+
+	const LatLon& MapViewSprite::getLocation()
+	{
+		return m_location;
+	}
+
+	const Ref<Image>& MapViewSprite::getImage()
+	{
+		return m_image;
+	}
+
+	const String& MapViewSprite::getText()
+	{
+		return m_text;
+	}
+
+	const Size& MapViewSprite::getSize()
+	{
+		return m_size;
+	}
+
+	void MapViewSprite::setSize(const Size& size)
+	{
+		m_size = size;
+	}
+
+	const Color& MapViewSprite::getTextColor()
+	{
+		return m_textColor;
+	}
+
+	void MapViewSprite::setTextColor(const Color& color)
+	{
+		m_textColor = color;
+	}
+
+	const Color& MapViewSprite::getTextShadowColor()
+	{
+		return m_textShadowColor;
+	}
+
+	void MapViewSprite::setTextShadowColor(const Color& color)
+	{
+		m_textShadowColor = color;
+	}
+
+	void MapViewSprite::draw(Canvas* canvas, MapViewData* data, MapPlane* plane)
+	{
+		Point pt = plane->getViewPointFromMapLocation(plane->getMapLocationFromLatLon(m_location));
+		sl_real w = m_size.x / 2.0f;
+		sl_real h = m_size.y / 2.0f;
+		Rectangle rc(pt.x - w, pt.y - h, pt.x + w, pt.y + h);
+		if (!(plane->getViewport().intersect(rc))) {
+			return;
+		}
+		m_viewPoint = pt;
+		onPreDrawOrRender(data);
+		onDrawSprite(canvas, data, plane);
+	}
+
+	void MapViewSprite::render(RenderEngine* engine, MapViewData* data, MapSurface* surface)
+	{
+		Double3 pointEarth = MapEarth::getCartesianPosition(getLocation(data));
+		if (!(data->isEarthPointVisible(pointEarth))) {
+			return;
+		}
+		m_viewPoint = data->getViewPointFromEarthPoint(pointEarth);
+		onPreDrawOrRender(data);
+		onRenderSprite(engine, data, surface);
+	}
+
+	sl_bool MapViewSprite::isBeingDrawn(MapViewData* data)
+	{
+		sl_uint64 lastDrawId = m_lastDrawId;
+		if (lastDrawId) {
+			if (lastDrawId + 1 >= data->getMapState().drawId) {
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool MapViewSprite::getViewPoint(Point& _out, MapViewData* data)
+	{
+		if (isBeingDrawn(data)) {
+			_out = m_viewPoint;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	double MapViewSprite::getAltitude(MapViewData* data)
+	{
+		if (m_flagValidAltitude) {
+			return m_altitude;
+		}
+		double altitude = data->getAltitudeAt(m_location);
+		m_altitude = altitude;
+		return altitude;
+	}
+
+	GeoLocation MapViewSprite::getLocation(MapViewData* data)
+	{
+		return GeoLocation(m_location, getAltitude(data));
+	}
+
+	void MapViewSprite::onPreDrawOrRender(MapViewData* data)
+	{
+		m_lastDrawId = data->getMapState().drawId;
+	}
+
+	const Point& MapViewSprite::getViewPoint()
+	{
+		return m_viewPoint;
+	}
+
+	namespace
+	{
+		static Ref<Font> GetFinalSpriteFont(MapViewData* data, const Ref<Font>& font)
+		{
+			if (font.isNotNull()) {
+				return font;
+			}
+			Ref<Font> _font = data->getSpriteFont();
+			if (_font.isNotNull()) {
+				return _font;
+			}
+			return UI::getDefaultFont();
+		}
+	}
+
+	void MapViewSprite::onDrawSprite(Canvas* canvas, MapViewData* data, MapPlane* plane)
+	{
+		sl_real w = m_size.x / 2.0f;
+		sl_real h = m_size.y / 2.0f;
+		Rectangle rect(m_viewPoint.x - w, m_viewPoint.y - h, m_viewPoint.x + w, m_viewPoint.y + h);
+		if (m_image.isNotNull()) {
+			canvas->draw(rect, m_image);
+		}
+		if (m_text.isNotNull()) {
+			rect.top = rect.bottom;
+			rect.bottom = rect.top + 100.0f;
+			Ref<Font> font = GetFinalSpriteFont(data, m_font);
+			if (m_textShadowColor.isNotZero()) {
+				rect.translate(1.0f, 1.0f);
+				canvas->drawText(m_text, rect, font, m_textShadowColor, Alignment::TopCenter);
+				rect.translate(-1.0f, -1.0f);
+			}
+			canvas->drawText(m_text, rect, font, m_textColor, Alignment::TopCenter);
+		}
+	}
+
+	void MapViewSprite::onRenderSprite(RenderEngine* engine, MapViewData* data, MapSurface* surface)
+	{
+		data->renderImage(engine, m_viewPoint, m_size, m_image);
+		if (m_text.isNotNull()) {
+			Ref<Font> font = GetFinalSpriteFont(data, m_font);
+			Size offset(0.0f, m_size.y / 2.0f);
+			if (m_textShadowColor.isNotZero()) {
+				offset.x += 1.0f;
+				offset.y += 1.0f;
+				data->renderText(engine, m_viewPoint + offset, m_text, m_textShadowColor, font, this);
+				offset.x -= 1.0f;
+				offset.y -= 1.0f;
+			}
+			data->renderText(engine, m_viewPoint + offset, m_text, m_textColor, font, this);
+		}
 	}
 
 
@@ -1891,6 +2173,8 @@ namespace slib
 		eyeLocation.altitude = 10000;
 		tilt = 0.0f;
 		rotation = 0.0f;
+
+		drawId = 0;
 	}
 	
 	sl_bool MapViewState::update()
@@ -1986,13 +2270,18 @@ namespace slib
 		m_flagGlobeMode = sl_false;
 		m_flagRendered = sl_false;
 
-		m_altitudeMin = 50.0;
-		m_altitudeMax = 100000000.0;
+		m_minAltitude = 50.0;
+		m_maxAltitude = 100000000.0;
 		m_minDistanceFromGround = 100.0;
 	}
 
 	MapViewData::~MapViewData()
 	{
+	}
+
+	Ref<View> MapViewData::getView() const
+	{
+		return m_view;
 	}
 
 	sl_bool MapViewData::isGlobeMode() const
@@ -2010,6 +2299,8 @@ namespace slib
 		if (flag) {
 			if (m_plane.isNotNull()) {
 				setEyeLocation(m_plane->getEyeLocation(), mode);
+			} else {
+				invalidate(mode);
 			}
 		} else {
 			if (m_plane.isNotNull()) {
@@ -2088,12 +2379,12 @@ namespace slib
 		invalidate(mode);
 	}
 
-	const MapViewState& MapViewData::getState() const
+	const MapViewState& MapViewData::getMapState() const
 	{
 		return m_state;
 	}
 
-	MapViewState& MapViewData::getState()
+	MapViewState& MapViewData::getMapState()
 	{
 		return m_state;
 	}
@@ -2123,11 +2414,11 @@ namespace slib
 			MutexLocker locker(&m_lock);
 			newLocation = location;
 			if (m_flagGlobeMode) {
-				if (newLocation.altitude < m_altitudeMin) {
-					newLocation.altitude = m_altitudeMin;
+				if (newLocation.altitude < m_minAltitude) {
+					newLocation.altitude = m_minAltitude;
 				}
-				if (newLocation.altitude > m_altitudeMax) {
-					newLocation.altitude = m_altitudeMax;
+				if (newLocation.altitude > m_maxAltitude) {
+					newLocation.altitude = m_maxAltitude;
 				}
 			} else {
 				if (m_plane.isNotNull()) {
@@ -2166,8 +2457,11 @@ namespace slib
 		return m_state.rotation;
 	}
 
-	void MapViewData::setEyeRotation(float rotation, UIUpdateMode mode)
+	void MapViewData::setEyeRotation(float rotation, UIEvent* ev, UIUpdateMode mode)
 	{
+		if (!m_flagGlobeMode) {
+			return;
+		}
 		if (SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode)) {
 			m_motion.prepare(this);
 			m_motion.endRotation = rotation;
@@ -2175,7 +2469,13 @@ namespace slib
 			return;
 		}
 		m_state.rotation = Math::normalizeDegree(rotation);
+		invokeChangeRotation(rotation, ev);
 		invalidate(mode);
+	}
+
+	void MapViewData::setEyeRotation(float rotation, UIUpdateMode mode)
+	{
+		setEyeRotation(rotation, sl_null, mode);
 	}
 
 	float MapViewData::getEyeTilt() const
@@ -2183,8 +2483,11 @@ namespace slib
 		return m_state.tilt;
 	}
 
-	void MapViewData::setEyeTilt(float tilt, UIUpdateMode mode)
+	void MapViewData::setEyeTilt(float tilt, UIEvent* ev, UIUpdateMode mode)
 	{
+		if (!m_flagGlobeMode) {
+			return;
+		}
 		if (SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode)) {
 			m_motion.prepare(this);
 			m_motion.endTilt = tilt;
@@ -2206,17 +2509,50 @@ namespace slib
 			tilt = max;
 		}
 		m_state.tilt = tilt;
+		invokeChangeTilt(tilt, ev);
 		invalidate(mode);
+	}
+
+	void MapViewData::setEyeTilt(float tilt, UIUpdateMode mode)
+	{
+		setEyeTilt(tilt, sl_null, mode);
+	}
+
+	double MapViewData::getMapScale() const
+	{
+		MutexLocker lock(&m_lock);
+		const Ref<MapPlane>& plane = m_plane;
+		if (plane.isNotNull()) {
+			return plane->getScale();
+		} else {
+			return getScaleFromAltitude(m_state.eyeLocation.altitude, m_state.viewportHeight);
+		}
+	}
+
+	void MapViewData::setMapScale(double scale, UIUpdateMode mode)
+	{
+		MutexLocker lock(&m_lock);
+		if (m_flagGlobeMode) {
+			GeoLocation location = m_state.eyeLocation;
+			location.altitude = getAltitudeFromScale(scale, m_state.viewportHeight);
+			setEyeLocation(location);
+		} else {
+			const Ref<MapPlane>& plane = m_plane;
+			if (plane.isNotNull()) {
+				plane->setScale(scale);
+				invalidate(mode);
+			}
+		}
 	}
 
 	double MapViewData::getMinimumAltitude()
 	{
-		return m_altitudeMin;
+		return m_minAltitude;
 	}
 
 	void MapViewData::setMinimumAltitude(double altitude, UIUpdateMode mode)
 	{
-		m_altitudeMin = altitude;
+		m_minAltitude = altitude;
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			return;
 		}
@@ -2225,12 +2561,12 @@ namespace slib
 
 	double MapViewData::getMaximumAltitude()
 	{
-		return m_altitudeMax;
+		return m_maxAltitude;
 	}
 
 	void MapViewData::setMaximumAltitude(double altitude, UIUpdateMode mode)
 	{
-		m_altitudeMax = altitude;
+		m_maxAltitude = altitude;
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			return;
 		}
@@ -2245,33 +2581,6 @@ namespace slib
 	void MapViewData::setMinimumDistanceFromGround(double value)
 	{
 		m_minDistanceFromGround = value;
-	}
-
-	sl_bool MapViewData::getLatLonFromViewPoint(const Double2& point, LatLon& _out) const
-	{
-		MutexLocker locker(&m_lock);
-		if (m_flagGlobeMode) {
-		} else {
-			MapPlane* plane = m_plane.get();
-			if (plane) {
-				_out = plane->getLatLonFromMapLocation(plane->getMapLocationFromViewPoint(point));
-				return sl_true;
-			}
-		}
-		return sl_false;
-	}
-
-	Double2 MapViewData::getViewPointFromLatLon(const LatLon& location) const
-	{
-		MutexLocker locker(&m_lock);
-		if (m_flagGlobeMode) {
-		} else {
-			MapPlane* plane = m_plane.get();
-			if (plane) {
-				return plane->getViewPointFromMapLocation(plane->getMapLocationFromLatLon(location));
-			}
-		}
-		return { 0.0, 0.0 };
 	}
 
 	void MapViewData::resize(double width, double height, UIUpdateMode mode)
@@ -2294,12 +2603,11 @@ namespace slib
 		if (!plane) {
 			return;
 		}
-		double w = width / height / 2.0;
 		RectangleT<double> rect;
-		rect.left = -w;
-		rect.top = -0.5;
-		rect.right = w;
-		rect.bottom = 0.5;
+		rect.left = 0.0;
+		rect.top = 0.0;
+		rect.right = width;
+		rect.bottom = height;
 		plane->setViewport(rect);
 	}
 
@@ -2313,6 +2621,8 @@ namespace slib
 		if (!plane) {
 			return;
 		}
+		dx = getMetersFromPixels(dx);
+		dy = getMetersFromPixels(dy);
 		double scale = plane->getScale();
 		MapLocation center = plane->getCenterLocation();
 		plane->setCenterLocation(center.E - dx * scale, center.N + dy * scale);
@@ -2401,6 +2711,16 @@ namespace slib
 		}
 	}
 
+	Ref<Font> MapViewData::getSpriteFont()
+	{
+		return m_spriteFont;
+	}
+
+	void MapViewData::setSpriteFont(const Ref<Font>& font)
+	{
+		m_spriteFont = font;
+	}
+
 	void MapViewData::doInvalidate(UIUpdateMode mode)
 	{
 	}
@@ -2413,13 +2733,40 @@ namespace slib
 	{
 		ListElements< Ref<MapViewExtension> > extensions(m_extensions);
 		for (sl_size i = 0; i < extensions.count; i++) {
-			extensions[i]->onChangeLocation(m_state.eyeLocation);
+			extensions[i]->onChangeLocation(location);
 		}
 		notifyChangeLocation(location, ev);
 	}
 
+	void MapViewData::notifyChangeRotation(double rotation, UIEvent* ev)
+	{
+	}
+
+	void MapViewData::invokeChangeRotation(double rotation, UIEvent* ev)
+	{
+		ListElements< Ref<MapViewExtension> > extensions(m_extensions);
+		for (sl_size i = 0; i < extensions.count; i++) {
+			extensions[i]->onChangeRotation(rotation);
+		}
+		notifyChangeRotation(rotation, ev);
+	}
+
+	void MapViewData::notifyChangeTilt(double tilt, UIEvent* ev)
+	{
+	}
+
+	void MapViewData::invokeChangeTilt(double tilt, UIEvent* ev)
+	{
+		ListElements< Ref<MapViewExtension> > extensions(m_extensions);
+		for (sl_size i = 0; i < extensions.count; i++) {
+			extensions[i]->onChangeTilt(tilt);
+		}
+		notifyChangeRotation(tilt, ev);
+	}
+
 	sl_bool MapViewData::_initState()
 	{
+		m_state.drawId++;
 		if (m_state.tileLoader.isNull()) {
 			m_state.tileLoader = MapTileLoader::create(SLIB_FUNCTION_MEMBER(this, _onCompleteLazyLoading));
 			if (m_state.tileLoader.isNull()) {
@@ -2429,13 +2776,18 @@ namespace slib
 		return sl_true;
 	}
 
-	void MapViewData::drawPlane(Canvas* canvas, const Rectangle& rect)
+	void MapViewData::invalidate(UIUpdateMode mode)
+	{
+		doInvalidate(mode);
+	}
+
+	void MapViewData::drawPlane(Canvas* canvas)
 	{
 		MutexLocker locker(&m_lock);
 		if (m_flagGlobeMode) {
 			return;
 		}
-		if (rect.getHeight() < 1.0f) {
+		if (m_state.viewportWidth < 1.0 || m_state.viewportHeight < 1.0) {
 			return;
 		}
 		if (!(_initState())) {
@@ -2445,13 +2797,13 @@ namespace slib
 		if (!plane) {
 			return;
 		}
-		plane->draw(canvas, rect, this);
+		plane->draw(canvas, this);
 		{
 			auto node = m_objects.getFirstNode();
 			while (node) {
 				Ref<MapViewObject>& object = node->value;
 				if (object->isSupportingPlaneMode()) {
-					object->draw(canvas, rect, this, plane);
+					object->draw(canvas, this, plane);
 				}
 				node = node->next;
 			}
@@ -2511,9 +2863,214 @@ namespace slib
 		m_flagRendered = sl_true;
 	}
 
-	void MapViewData::invalidate(UIUpdateMode mode)
+	void MapViewData::renderTexture(RenderEngine* engine, const Point& center, const Size& size, const Ref<Texture>& texture, const Color4F& color)
 	{
-		doInvalidate(mode);
+		if (texture.isNull()) {
+			return;
+		}
+		Matrix3 transform = Transform2::getTranslationMatrix(-0.5f, -0.5f) * Transform2::getScalingMatrix(size) * Transform2::getTranslationMatrix(center) * Transform2::getScalingMatrix(2.0f / (sl_real)(m_state.viewportWidth), -2.0f / (sl_real)(m_state.viewportHeight)) * Transform2::getTranslationMatrix(-1.0f, 1.0f);
+		engine->drawTexture2D(transform, texture, color);
+	}
+
+	void MapViewData::renderImage(RenderEngine* engine, const Point& center, const Size& size, const Ref<Image>& image, const Color4F& color)
+	{
+		if (image.isNull()) {
+			return;
+		}
+		renderTexture(engine, center, size, Texture::getBitmapRenderingCache(image), color);
+	}
+
+	void MapViewData::renderText(RenderEngine* engine, const Point& center, const String& text, const Color& color, const Ref<Font>& font, CRef* ref)
+	{
+		SharedContext* context = GetSharedContext();
+		if (!context) {
+			return;
+		}
+		Ref<Texture> texture;
+		if (!(context->renderTextCache.get(ref, &texture))) {
+			String _text = text;
+			if (_text.getLength() > 50) {
+				_text = _text.substring(0, 50);
+			}
+			SizeI size = font->measureText(_text);
+			if (size.x > m_state.viewportWidth) {
+				size.x = (sl_int32)(m_state.viewportWidth);
+			}
+			if (size.y > m_state.viewportHeight) {
+				size.x = (sl_int32)(m_state.viewportHeight);
+			}
+			Ref<Bitmap> bitmap = Bitmap::create(size.x, size.y);
+			if (bitmap.isNull()) {
+				return;
+			}
+			Ref<Canvas> canvas = bitmap->getCanvas();
+			if (canvas.isNull()) {
+				return;
+			}
+			canvas->drawText(text, 0, 0, font, Color::White);
+			canvas.setNull();
+			texture = Texture::create(bitmap);
+			if (texture.isNull()) {
+				return;
+			}
+			context->renderTextCache.put(ref, texture);
+		}
+		renderTexture(engine, Point(center.x, center.y + (sl_real)(texture->getHeight() / 2)), SizeI(texture->getWidth(), texture->getHeight()), texture, color);
+	}
+
+	sl_bool MapViewData::getLatLonFromViewPoint(const Double2& point, LatLon& _out) const
+	{
+		GeoLocation location;
+		if (getLocationFromViewPoint(point, location)) {
+			_out = location.getLatLon();
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	Double2 MapViewData::getViewPointFromLatLon(const LatLon& latLon) const
+	{	
+		if (m_flagGlobeMode) {
+			return getViewPointFromLocation(getLocationFromLatLon(latLon));
+		} else {
+			return getViewPointFromLocation(GeoLocation(latLon, 0.0));
+		}
+	}
+
+	sl_bool MapViewData::getLocationFromViewPoint(const Double2& viewPoint, GeoLocation& _out) const
+	{
+		MutexLocker locker(&m_lock);
+		if (m_flagGlobeMode) {
+			Double3 earthPoint;
+			if (getEarthPointFromViewPoint(viewPoint, earthPoint)) {
+				_out = MapEarth::getGeoLocation(earthPoint);
+				return sl_true;
+			}
+		} else {
+			MapPlane* plane = m_plane.get();
+			if (plane) {
+				_out.setLatLon(plane->getLatLonFromMapLocation(plane->getMapLocationFromViewPoint(viewPoint)));
+				_out.altitude = 0.0;
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	Double2 MapViewData::getViewPointFromLocation(const GeoLocation& location) const
+	{
+		if (m_flagGlobeMode) {
+			return getViewPointFromEarthPoint(MapEarth::getCartesianPosition(location));
+		} else {
+			MutexLocker locker(&m_lock);
+			MapPlane* plane = m_plane.get();
+			if (plane) {
+				return plane->getViewPointFromMapLocation(plane->getMapLocationFromLatLon(location.getLatLon()));
+			}
+			return { 0.0, 0.0 };
+		}
+	}
+
+	sl_bool MapViewData::getEarthPointFromViewPoint(const Double2& point, Double3& _out) const
+	{
+		if (!m_flagGlobeMode) {
+			return sl_false;
+		}
+		Line3T<double> line = Transform3T<double>::unprojectScreenPoint(m_state.projectionTransform, point, m_state.viewportWidth, m_state.viewportHeight);
+		SphereT<double> globe(Double3::zero(), MapEarth::getRadius() + getAltitudeAt(m_state.eyeLocation.getLatLon()));
+		Double3 pt1, pt2;
+		line.transform(m_state.inverseViewTransform);
+		if (globe.intersectLine(line, &pt1, &pt2) > 0) {
+			_out = pt1;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	Double2 MapViewData::getViewPointFromEarthPoint(const Double3& point) const
+	{
+		if (!m_flagGlobeMode) {
+			return Double2(0.0, 0.0);
+		}
+		Vector3 pt = Transform3::projectToViewport(m_state.viewProjectionTransform, point);
+		sl_real x = (pt.x + 1.0f) * (sl_real)(m_state.viewportWidth) / 2.0f;
+		sl_real y = (1.0f - pt.y) * (sl_real)(m_state.viewportHeight) / 2.0f;
+		return Vector2(x, y);
+	}
+
+	double MapViewData::getAltitudeAt(const LatLon& location) const
+	{
+		if (m_flagGlobeMode) {
+			MapSurface* surface = m_surface.get();
+			if (surface) {
+				return surface->getAltitudeAt(m_state.tileLoader.get(), location);
+			}
+		}
+		return 0.0;
+	}
+
+	GeoLocation MapViewData::getLocationFromLatLon(const LatLon& location) const
+	{
+		return GeoLocation(location, getAltitudeAt(location));
+	}
+
+	sl_bool MapViewData::isLocationVisible(const GeoLocation& location) const
+	{
+		return isEarthPointVisible(MapEarth::getCartesianPosition(location));
+	}
+
+	sl_bool MapViewData::isEarthPointVisible(const Double3& point) const
+	{
+		// Check Distance
+		double e2 = m_state.eyePoint.getLength2p();
+		double r2 = MapEarth::getRadius();
+		r2 *= r2;
+		double p2 = (m_state.eyePoint - point).getLength2p();
+		if (p2 > e2 - r2) {
+			return sl_false;
+		}
+		// Check Frustum
+		return m_state.viewFrustum.containsPoint(point);
+	}
+
+	double MapViewData::getDegreeFromEarthLength(double length)
+	{
+		return length / METER_PER_DEGREE;
+	}
+
+	double MapViewData::getEarthLengthFromDegree(double degrees)
+	{
+		return METER_PER_DEGREE * degrees;
+	}
+
+	double MapViewData::getAltitudeFromViewportHeight(double height)
+	{
+		return ALTITUDE_RATIO * height;
+	}
+
+	double MapViewData::getViewportHeightFromAltitude(double altitude)
+	{
+		return altitude / ALTITUDE_RATIO;
+	}
+
+	double MapViewData::getMetersFromPixels(double pixels)
+	{
+		return UIResource::pixelToMeter(pixels);
+	}
+
+	double MapViewData::getPixelsFromMeters(double meters)
+	{
+		return UIResource::meterToPixel(meters);
+	}
+
+	double MapViewData::getScaleFromAltitude(double altitude, double viewportHeight)
+	{
+		return getViewportHeightFromAltitude(altitude) / MapView::getMetersFromPixels(viewportHeight);
+	}
+
+	double MapViewData::getAltitudeFromScale(double scale, double viewportHeight)
+	{
+		return MapView::getAltitudeFromViewportHeight(MapView::getMetersFromPixels(viewportHeight) * scale);
 	}
 
 	void MapViewData::_onCompleteLazyLoading()
@@ -2905,10 +3462,24 @@ namespace slib
 		invokeChangeLocation(location, ev);
 	}
 
+	SLIB_DEFINE_EVENT_HANDLER(MapView, ChangeRotation, (double rotation, UIEvent* ev), rotation, ev)
+
+	void MapView::notifyChangeRotation(double rotation, UIEvent* ev)
+	{
+		invokeChangeRotation(rotation, ev);
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(MapView, ChangeTilt, (double tilt, UIEvent* ev), tilt, ev)
+
+	void MapView::notifyChangeTilt(double tilt, UIEvent* ev)
+	{
+		invokeChangeTilt(tilt, ev);
+	}
+
 	void MapView::onDraw(Canvas* canvas)
 	{
 		resize(getWidth(), getHeight());
-		drawPlane(canvas, getBounds());
+		drawPlane(canvas);
 	}
 
 	void MapView::onFrame(RenderEngine* engine)
@@ -2917,16 +3488,6 @@ namespace slib
 		renderGlobe(engine);
 		renderCompass(engine);
 		RenderView::onFrame(engine);
-	}
-
-	namespace
-	{
-		static Double2 GetRelativePoint(View* view, const Point& pt)
-		{
-			double w = (double)(view->getWidth());
-			double h = (double)(view->getHeight());
-			return { (pt.x - w / 2.0) / h, pt.y / h - 0.5 };
-		}
 	}
 
 	void MapView::onMouseEvent(UIEvent* ev)
@@ -3068,7 +3629,7 @@ namespace slib
 						loc.altitude = alt;
 						setEyeLocation(loc, ev);
 					} else {
-						movePlane((pt.x - m_ptLastEvent.x) / height, (pt.y - m_ptLastEvent.y) / height, ev);
+						movePlane(pt.x - m_ptLastEvent.x, pt.y - m_ptLastEvent.y, ev);
 					}
 				}
 				if (!flagDrag) {
@@ -3076,7 +3637,7 @@ namespace slib
 						double dx = pt.x - m_ptLeftDown.x;
 						double dy = pt.y - m_ptLeftDown.y;
 						if (dx * dx + dy * dy < rem) {
-							click(GetRelativePoint(this, pt));
+							click(pt);
 						}
 						m_flagClicking = sl_false;
 					}
@@ -3113,33 +3674,32 @@ namespace slib
 		}
 		sl_real delta = ev->getDelta();
 		if (delta > 0) {
-			zoomAt(GetRelativePoint(this, ev->getPoint()), 1.0/1.1, ev);
+			zoomAt(ev->getPoint(), 1.0/1.1, ev);
 		} else if (delta < 0) {
-			zoomAt(GetRelativePoint(this, ev->getPoint()), 1.1, ev);
+			zoomAt(ev->getPoint(), 1.1, ev);
 		}
 	}
 
 	void MapView::onKeyEvent(UIEvent* ev)
 	{
-		RenderView::onKeyEvent(ev);
-		if (ev->isAccepted()) {
-			return;
-		}
 		if (ev->getAction() == UIAction::KeyDown) {
 			Keycode keycode = ev->getKeycode();
 			switch (keycode) {
 				case Keycode::Minus:
 				case Keycode::NumpadMinus:
 					zoom(1.1, ev);
-					break;
+					ev->accept();
+					return;
 				case Keycode::Equal:
 				case Keycode::NumpadPlus:
 					zoom(1.0 / 1.1, ev);
-					break;
+					ev->accept();
+					return;
 				default:
 					break;
 			}
 		}
+		RenderView::onKeyEvent(ev);
 	}
 
 	void MapView::onResize(sl_ui_len width, sl_ui_len height)

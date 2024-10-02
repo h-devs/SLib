@@ -252,44 +252,84 @@ namespace slib
 		return h;
 	}
 
-	sl_real UIResource::pixelToInch(sl_real px)
+	float UIResource::pixelToInch(float px)
 	{
-		return (sl_real)(px / getScreenPPI());
+		return (float)(px / getScreenPPI());
 	}
 
-	sl_real UIResource::inchToPixel(sl_real inch)
+	double UIResource::pixelToInch(double px)
 	{
-		return (sl_real)(inch * getScreenPPI());
+		return px / getScreenPPI();
 	}
 
-	sl_real UIResource::pixelToMeter(sl_real px)
+	float UIResource::inchToPixel(float inch)
 	{
-		return (sl_real)(px * 0.0254 / getScreenPPI());
+		return (float)(inch * getScreenPPI());
 	}
 
-	sl_real UIResource::meterToPixel(sl_real meters)
+	double UIResource::inchToPixel(double inch)
 	{
-		return (sl_real)(meters * getScreenPPI() * 39.3701);
+		return inch * getScreenPPI();
 	}
 
-	sl_real UIResource::pixelToCentimeter(sl_real px)
+	float UIResource::pixelToMeter(float px)
 	{
-		return (sl_real)(px * 2.54 / getScreenPPI());
+		return (float)(px * 0.0254 / getScreenPPI());
 	}
 
-	sl_real UIResource::centimeterToPixel(sl_real cm)
+	double UIResource::pixelToMeter(double px)
 	{
-		return (sl_real)(cm * getScreenPPI() * 0.393701);
+		return px * 0.0254 / getScreenPPI();
 	}
 
-	sl_real UIResource::pixelToMillimeter(sl_real px)
+	float UIResource::meterToPixel(float meters)
 	{
-		return (sl_real)(px * 25.4 / getScreenPPI());
+		return (float)(meters * getScreenPPI() * 39.3701);
 	}
 
-	sl_real UIResource::millimeterToPixel(sl_real mm)
+	double UIResource::meterToPixel(double meters)
 	{
-		return (sl_real)(mm * getScreenPPI() * 0.0393701);
+		return meters * getScreenPPI() * 39.3701;
+	}
+
+	float UIResource::pixelToCentimeter(float px)
+	{
+		return (float)(px * 2.54 / getScreenPPI());
+	}
+
+	double UIResource::pixelToCentimeter(double px)
+	{
+		return px * 2.54 / getScreenPPI();
+	}
+
+	float UIResource::centimeterToPixel(sl_real cm)
+	{
+		return (float)(cm * getScreenPPI() * 0.393701);
+	}
+
+	double UIResource::centimeterToPixel(double cm)
+	{
+		return cm * getScreenPPI() * 0.393701;
+	}
+
+	float UIResource::pixelToMillimeter(float px)
+	{
+		return (float)(px * 25.4 / getScreenPPI());
+	}
+
+	double UIResource::pixelToMillimeter(double px)
+	{
+		return px * 25.4 / getScreenPPI();
+	}
+
+	float UIResource::millimeterToPixel(float mm)
+	{
+		return (float)(mm * getScreenPPI() * 0.0393701);
+	}
+
+	double UIResource::millimeterToPixel(double mm)
+	{
+		return mm * getScreenPPI() * 0.0393701;
 	}
 
 	sl_real UIResource::pixelToPoint(sl_real px)

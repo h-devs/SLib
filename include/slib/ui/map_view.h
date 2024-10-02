@@ -297,10 +297,8 @@ namespace slib
 
 		void setMapRange(const MapRange& rect);
 
-		// Reduced Scale
 		double getScale();
 
-		// Reduced Scale
 		void setScale(double scale);
 
 		double getMinimumScale();
@@ -324,12 +322,16 @@ namespace slib
 
 		MapLocation getMapLocationFromViewPoint(const Double2& point);
 
-		void draw(Canvas* canvas, const Rectangle& rect, MapViewData* data);
+		double getViewLengthFromMapLength(double length);
+
+		double getMapLengthFromViewLength(double length);
+
+		void draw(Canvas* canvas, MapViewData* data);
 
 	public:
-		virtual GeoLocation getEyeLocation() = 0;
+		virtual GeoLocation getEyeLocation();
 
-		virtual void setEyeLocation(const GeoLocation& location) = 0;
+		virtual void setEyeLocation(const GeoLocation& location);
 
 		virtual LatLon getLatLonFromMapLocation(const MapLocation& location) = 0;
 
@@ -338,14 +340,14 @@ namespace slib
 		virtual void clearCache() = 0;
 
 	protected:
-		virtual void onDraw(Canvas* canvas, const Rectangle& rect, MapViewData* data) = 0;
+		virtual void onDraw(Canvas* canvas, MapViewData* data) = 0;
 
 	protected:
 		MapLocation m_center;
 		MapRange m_range;
 		double m_scale;
-		double m_scaleMin;
-		double m_scaleMax;
+		double m_minScale;
+		double m_maxScale;
 		RectangleT<double> m_viewport;
 		AtomicRef<Drawable> m_background;
 	};
@@ -478,7 +480,7 @@ namespace slib
 		MapTileLocationI getReaderLocation(const MapTileLocationI& location);
 
 	protected:
-		virtual void onDrawPlane(Canvas* canvas, const Rectangle& rect, MapSurfacePlane* plane, MapViewData* data) = 0;
+		virtual void onDrawPlane(Canvas* canvas, const Rectangle& viewport, MapSurfacePlane* plane, MapViewData* data) = 0;
 
 	protected:
 		MapSurfaceConfiguration m_config;
@@ -509,10 +511,6 @@ namespace slib
 		static Ref<MapSurfacePlane> create(const Ref<MapSurface>& surface);
 
 	public:
-		GeoLocation getEyeLocation() override;
-
-		void setEyeLocation(const GeoLocation& location) override;
-
 		LatLon getLatLonFromMapLocation(const MapLocation& location) override;
 
 		MapLocation getMapLocationFromLatLon(const LatLon& location) override;
@@ -520,7 +518,7 @@ namespace slib
 		virtual void clearCache() override;
 
 	protected:
-		void onDraw(Canvas* canvas, const Rectangle& rect, MapViewData* data) override;
+		void onDraw(Canvas* canvas, MapViewData* data) override;
 
 	protected:
 		Ref<MapSurface> m_surface;
@@ -549,7 +547,7 @@ namespace slib
 		void setOverlay(sl_bool flag = sl_true);
 
 	public:
-		virtual void draw(Canvas* canvas, const Rectangle& rect, MapViewData* data, MapPlane* plane);
+		virtual void draw(Canvas* canvas, MapViewData* data, MapPlane* plane);
 
 		virtual void render(RenderEngine* engine, MapViewData* data, MapSurface* surface);
 
@@ -557,6 +555,104 @@ namespace slib
 		sl_bool m_flagSupportGlobe : 1;
 		sl_bool m_flagSupportPlane : 1;
 		sl_bool m_flagOverlay : 1;
+	};
+
+	class SLIB_EXPORT MapViewObjectList : public MapViewObject
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		MapViewObjectList();
+
+		~MapViewObjectList();
+
+	public:
+		void draw(Canvas* canvas, MapViewData* data, MapPlane* plane) override;
+
+		void render(RenderEngine* engine, MapViewData* data, MapSurface* surface) override;
+
+		void addChild(const Ref<MapViewObject>& child);
+
+		void removeAll();
+
+	protected:
+		List< Ref<MapViewObject> > m_children;
+	};
+
+	class MapViewSprite : public MapViewObject
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		MapViewSprite();
+
+		MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text);
+
+		MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<Font>& font);
+
+		~MapViewSprite();
+
+	public:
+		void initialize(const LatLon& location, const Ref<Image>& image, const String& text);
+
+		void initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<Font>& font);
+
+	public:
+		const LatLon& getLocation();
+
+		const Ref<Image>& getImage();
+
+		const String& getText();
+
+		// Viewport Coordinate
+		const Size& getSize();
+
+		void setSize(const Size& size);
+
+		const Color& getTextColor();
+
+		void setTextColor(const Color& color);
+
+		const Color& getTextShadowColor();
+
+		void setTextShadowColor(const Color& color);
+
+	public:
+		void draw(Canvas* canvas, MapViewData* data, MapPlane* plane) override;
+
+		void render(RenderEngine* engine, MapViewData* data, MapSurface* surface) override;
+
+		sl_bool isBeingDrawn(MapViewData* data);
+
+		sl_bool getViewPoint(Point& _out, MapViewData* data);
+
+		double getAltitude(MapViewData* data);
+
+		GeoLocation getLocation(MapViewData* data);
+
+	protected:
+		void onPreDrawOrRender(MapViewData* data);
+
+		const Point& getViewPoint();
+
+	protected:
+		virtual void onDrawSprite(Canvas* canvas, MapViewData* data, MapPlane* plane);
+
+		virtual void onRenderSprite(RenderEngine* engine, MapViewData* data, MapSurface* surface);
+
+	protected:
+		LatLon m_location;
+		Ref<Image> m_image;
+		String m_text;
+		Ref<Font> m_font;
+		Size m_size;
+		Color m_textColor;
+		Color m_textShadowColor;
+
+		sl_bool m_flagValidAltitude;
+		double m_altitude;
+		Point m_viewPoint;
+		sl_uint64 m_lastDrawId;
 	};
 
 	class SLIB_EXPORT MapViewState
@@ -577,6 +673,7 @@ namespace slib
 		Matrix4T<double> projectionTransform;;
 		Matrix4T<double> viewProjectionTransform;
 		ViewFrustumT<double> viewFrustum;
+		sl_uint64 drawId;
 
 		// Other
 		Ref<MapTileLoader> tileLoader;
@@ -609,6 +706,10 @@ namespace slib
 	public:
 		virtual void onChangeLocation(const GeoLocation& location) = 0;
 
+		virtual void onChangeRotation(double rotation) = 0;
+
+		virtual void onChangeTilt(double tilt) = 0;
+
 	};
 
 	class SLIB_EXPORT MapViewData
@@ -622,6 +723,8 @@ namespace slib
 		typedef SphericalEarth Earth;
 
 	public:
+		Ref<View> getView() const;
+
 		sl_bool isGlobeMode() const;
 
 		void setGlobeMode(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -640,9 +743,9 @@ namespace slib
 
 		void putObject(const String& name, const Ref<MapViewObject>& object, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		const MapViewState& getState() const;
+		const MapViewState& getMapState() const;
 
-		MapViewState& getState();
+		MapViewState& getMapState();
 
 		GeoLocation getEyeLocation() const;
 
@@ -662,6 +765,10 @@ namespace slib
 		// Degrees
 		void setEyeTilt(float tilt, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		double getMapScale() const;
+
+		void setMapScale(double scale, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		double getMinimumAltitude();
 
 		void setMinimumAltitude(double altitude, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -673,10 +780,6 @@ namespace slib
 		double getMinimumDistanceFromGround();
 
 		void setMinimumDistanceFromGround(double distance);
-
-		sl_bool getLatLonFromViewPoint(const Double2& point, LatLon& _out) const;
-
-		Double2 getViewPointFromLatLon(const LatLon& location) const;
 
 		void resize(double width, double height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -693,17 +796,67 @@ namespace slib
 		// Not thread-safe
 		void addExtension(const Ref<MapViewExtension>& extension);
 
+		Ref<Font> getSpriteFont();
+
+		void setSpriteFont(const Ref<Font>& font);
+
 	public:
-		void drawPlane(Canvas* canvas, const Rectangle& rect);
+		void invalidate(UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void drawPlane(Canvas* canvas);
 
 		void renderGlobe(RenderEngine* engine);
 
-		void invalidate(UIUpdateMode mode = UIUpdateMode::Redraw);
+		void renderTexture(RenderEngine* engine, const Point& center, const Size& size, const Ref<Texture>& texture, const Color4F& color = Color4F(1.0f, 1.0f, 1.0f, 1.0f));
+
+		void renderImage(RenderEngine* engine, const Point& center, const Size& size, const Ref<Image>& image, const Color4F& color = Color4F(1.0f, 1.0f, 1.0f, 1.0f));
+
+		void renderText(RenderEngine* engine, const Point& center, const String& text, const Color& color, const Ref<Font>& font, CRef* ref);
+
+		sl_bool getLatLonFromViewPoint(const Double2& point, LatLon& _out) const;
+
+		Double2 getViewPointFromLatLon(const LatLon& location) const;
+
+		sl_bool getLocationFromViewPoint(const Double2& point, GeoLocation& _out) const;
+
+		Double2 getViewPointFromLocation(const GeoLocation& location) const;
+
+		sl_bool getEarthPointFromViewPoint(const Double2& point, Double3& _out) const;
+
+		Double2 getViewPointFromEarthPoint(const Double3& point) const;
+
+		double getAltitudeAt(const LatLon& location) const;
+
+		GeoLocation getLocationFromLatLon(const LatLon& location) const;
+
+		sl_bool isLocationVisible(const GeoLocation& location) const;
+
+		sl_bool isEarthPointVisible(const Double3& point) const;
+
+		static double getDegreeFromEarthLength(double length);
+
+		static double getEarthLengthFromDegree(double degrees);
+
+		// `height`: meters
+		static double getAltitudeFromViewportHeight(double height);
+
+		// returns height meters
+		static double getViewportHeightFromAltitude(double altitude);
+
+		static double getMetersFromPixels(double pixels);
+
+		static double getPixelsFromMeters(double meters);
+
+		static double getScaleFromAltitude(double altitude, double viewportHeight);
+
+		static double getAltitudeFromScale(double scale, double viewportHeight);
 
 	protected:
 		void setEyeLocation(const GeoLocation& location, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setTargetLocation(const GeoLocation& location, UIEvent* ev);
+		void setEyeRotation(float rotation, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setEyeTilt(float tilt, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void movePlane(double dx, double dy, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -717,6 +870,12 @@ namespace slib
 
 		virtual void notifyChangeLocation(const GeoLocation& location, UIEvent* ev);
 		void invokeChangeLocation(const GeoLocation& location, UIEvent* ev);
+
+		virtual void notifyChangeRotation(double rotation, UIEvent* ev);
+		void invokeChangeRotation(double rotation, UIEvent* ev);
+
+		virtual void notifyChangeTilt(double tilt, UIEvent* ev);
+		void invokeChangeTilt(double tilt, UIEvent* ev);
 
 	protected:
 		sl_bool _initState();
@@ -735,11 +894,13 @@ namespace slib
 		CHashMap< String, Ref<MapViewObject> > m_objects;
 		List< Ref<MapViewExtension> > m_extensions; // Not thread-safe
 
+		AtomicRef<Font> m_spriteFont; // Not thread-safe
+
 		MapViewState m_state;
 		sl_bool m_flagRendered;
 
-		double m_altitudeMin;
-		double m_altitudeMax;
+		double m_minAltitude;
+		double m_maxAltitude;
 		double m_minDistanceFromGround;
 
 		class Motion
@@ -780,7 +941,6 @@ namespace slib
 			void stop();
 
 			void step();
-
 		};
 
 		Motion m_motion;
@@ -863,6 +1023,10 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(MapView, ChangeLocation, const GeoLocation& location, UIEvent* ev /* nullable */)
 
+		SLIB_DECLARE_EVENT_HANDLER(MapView, ChangeRotation, double rotation, UIEvent* ev /* nullable */)
+
+		SLIB_DECLARE_EVENT_HANDLER(MapView, ChangeTilt, double tilt , UIEvent* ev /* nullable */)
+
 	protected:
 		void init() override;
 
@@ -882,6 +1046,10 @@ namespace slib
 		void doInvalidate(UIUpdateMode mode) override;
 
 		void notifyChangeLocation(const GeoLocation& location, UIEvent* ev) override;
+
+		void notifyChangeRotation(double rotation, UIEvent* ev) override;
+
+		void notifyChangeTilt(double tilt, UIEvent* ev) override;
 
 	protected:
 		AtomicRef<Image> m_compass;

@@ -244,10 +244,21 @@ namespace slib
 				last2 = pt2;
 			}
 			if (flagClose) {
-				if (!(ret.add_NoLock(TriangleT<T>(last2, first2, last1)))) {
+				PointT<T> pt1, pt2;
+				T ux = Math::cos(startRadian);
+				T uy = Math::sin(startRadian);
+				pt1.x = centerX + ux * width;
+				pt1.y = centerY + uy * height;
+				ux = Math::cos(startRadian + sweepRadian);
+				uy = Math::sin(startRadian + sweepRadian);
+				pt2.x = centerX + ux * width;
+				pt2.y = centerY + uy * height;
+				TriangleT<T> t[2];
+				splitLineToTriangles(t, pt1, pt2, borderWidth);
+				if (!(ret.add_NoLock(t[0]))) {
 					return sl_null;
 				}
-				if (!(ret.add_NoLock(TriangleT<T>(last1, first2, first1)))) {
+				if (!(ret.add_NoLock(t[1]))) {
 					return sl_null;
 				}
 			}
