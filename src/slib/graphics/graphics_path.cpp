@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -335,8 +335,8 @@ namespace slib
 		}
 	}
 
-	namespace {
-
+	namespace
+	{
 		SLIB_INLINE static sl_bool IsCubicControl2AndEnd(GraphicsPathPoint* ptControl2, sl_size n)
 		{
 			if (n >= 2) {
@@ -458,7 +458,6 @@ namespace slib
 			}
 			return bbox;
 		}
-
 	}
 
 	Rectangle GraphicsPath::getBounds()
@@ -466,7 +465,8 @@ namespace slib
 		return GetBounds(m_points.getData(), m_points.getCount());
 	}
 
-	namespace {
+	namespace
+	{
 		static Rectangle GetControlBounds(GraphicsPathPoint* pts, sl_size n)
 		{
 			if (!n) {
@@ -490,7 +490,8 @@ namespace slib
 		return GetControlBounds(m_points.getData(), m_points.getCount());
 	}
 
-	namespace {
+	namespace
+	{
 		class ContainsPoint
 		{
 		public:
@@ -695,7 +696,6 @@ namespace slib
 				}
 				return context.run(pts, n, mode);
 			}
-
 		};
 	}
 
@@ -707,6 +707,84 @@ namespace slib
 	sl_bool GraphicsPath::containsPoint(const Point& pt)
 	{
 		return containsPoint(pt.x, pt.y);
+	}
+
+	List<GraphicsPath::PolyShape> GraphicsPath::toPolyShapes(sl_real chopLength, sl_uint32 maxChops)
+	{
+		List<PolyShape> ret;
+		PolyShape current;
+		GraphicsPathPoint* pts = m_points.getData();
+		sl_size nPoints = m_points.getCount();
+		for (sl_size iPoint = 0; iPoint < nPoints; iPoint++) {
+			GraphicsPathPoint& pt = pts[iPoint];
+			sl_bool flagClose = pt.flagClose;
+			switch (pt.type) {
+				case GraphicsPathPoint::MoveTo:
+					if (current.points.getCount()) {
+						if (!(ret.add_NoLock(Move(current)))) {
+							return sl_null;
+						}
+					}
+					current.flagClose = sl_false;
+					if (!(current.points.add_NoLock((Point&)pt))) {
+						return sl_null;
+					}
+					break;
+				case GraphicsPathPoint::LineTo:
+					if (!(current.points.add_NoLock((Point&)pt))) {
+						return sl_null;
+					}
+					break;
+				case GraphicsPathPoint::CubicTo:
+					if (iPoint && IsCubicControl2AndEnd(pts + iPoint + 1, nPoints - iPoint - 1)) {
+						CubicBezierCurve curve((Point&)(pts[iPoint - 1]), (Point&)(pts[iPoint]), (Point&)(pts[iPoint + 1]), (Point&)(pts[iPoint + 2]));
+						sl_real l = (pts[iPoint] - pts[iPoint - 1]).getLength() + (pts[iPoint + 1] - pts[iPoint]).getLength() + (pts[iPoint + 2] - pts[iPoint]).getLength();
+						sl_int32 _n = (sl_int32)(l / chopLength);
+						if (_n > 0) {
+							sl_uint32 n = _n;
+							if (n > maxChops) {
+								n = maxChops;
+							}
+							sl_real chopLength2p = chopLength * chopLength;
+							Point lastChop;
+							sl_real _n = (sl_real)n;
+							for (sl_uint32 i = 0; i < n; i++) {
+								Point chop;
+								curve.getPoint((sl_real)i / _n, chop);
+								if (i) {
+									if ((chop - lastChop).getLength2p() < chopLength2p) {
+										continue;
+									}
+								}
+								if (!(current.points.add_NoLock(chop))) {
+									return sl_null;
+								}
+								lastChop = chop;
+							}
+						}
+						iPoint += 2;
+						flagClose = pts[iPoint].flagClose;
+					}
+					break;
+				default:
+					break;
+			}
+			if (flagClose) {
+				if (current.points.getCount()) {
+					current.flagClose = sl_true;
+					if (!(ret.add_NoLock(Move(current)))) {
+						return sl_null;
+					}
+				}
+				current.flagClose = sl_false;
+			}
+		}
+		if (current.points.getCount()) {
+			if (!(ret.add_NoLock(Move(current)))) {
+				return sl_null;
+			}
+		}
+		return ret;
 	}
 
 	void GraphicsPath::_initPlatformObject()
@@ -755,7 +833,6 @@ namespace slib
 	}
 
 #if !(defined(SLIB_GRAPHICS_IS_GDI)) && !(defined(SLIB_GRAPHICS_IS_QUARTZ)) && !(defined(SLIB_GRAPHICS_IS_ANDROID))
-
 	Ref<CRef> GraphicsPath::_createPlatformObject()
 	{
 		return sl_null;
@@ -780,7 +857,6 @@ namespace slib
 	void GraphicsPath::_setFillMode_PO(CRef* po, FillMode mode)
 	{
 	}
-
 #endif
 
 }

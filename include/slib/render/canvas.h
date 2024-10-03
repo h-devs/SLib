@@ -125,7 +125,7 @@ namespace slib
 
 		using Canvas::drawLines;
 		void drawLines(const Point* points, sl_size pointCount, const Ref<Pen>& pen) override;
-		void drawLines(const Point* points, sl_size pointCount, const Color& color, sl_real width = 1.0f, sl_bool flagClosePath = sl_false, sl_bool flagUseLinePrimitive = sl_true);
+		void drawLines(const Point* points, sl_size pointCount, const Color& color, sl_real width = 1.0f, sl_bool flagUseLinePrimitive = sl_true);
 
 		using Canvas::drawArc;
 		void drawArc(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen) override;
@@ -136,9 +136,11 @@ namespace slib
 
 		using Canvas::drawRoundRect;
 		void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
+		void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Color& fillColor) override;
 
 		using Canvas::drawEllipse;
 		void drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
+		void drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor) override;
 
 		using Canvas::drawPolygon;
 		void drawPolygon(const Point* points, sl_size pointCount, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode = FillMode::Alternate) override;
@@ -146,9 +148,11 @@ namespace slib
 
 		using Canvas::drawPie;
 		void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
+		void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Color& fillColor) override;
 
 		using Canvas::drawPath;
 		void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
+		void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Color& fillColor) override;
 
 		void fillTriangles(const List<Triangle>& triangles, const Color& color);
 
@@ -204,12 +208,6 @@ namespace slib
 		void _drawBitmap(const Rectangle& rectDst, Bitmap* src, const Rectangle& rectSrc, const DrawParam& param);
 
 		void _fillRectangle(const Rectangle& rect, const Color& color);
-
-		void _drawEllipse(const Rectangle& rect, const Color& borderColor, sl_real borderWidth);
-
-		void _drawPolygon(const Point* points, sl_size nPoints, const Color& borderColor, sl_real borderWidth);
-
-		void _fillPolygon(const Point* points, sl_size nPoints, const Color& color);
 
 		void _drawLineByRect(const Point& pt1, const Point& pt2, const Color& color, sl_real width);
 

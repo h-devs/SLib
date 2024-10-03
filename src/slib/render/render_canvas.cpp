@@ -677,7 +677,7 @@ namespace slib
 	{
 		m_width = 0;
 		m_height = 0;
-		m_flagUseLinePrimitive = sl_true;
+		m_flagUseLinePrimitive = sl_false;
 	}
 
 	RenderCanvas::~RenderCanvas()
@@ -952,20 +952,20 @@ namespace slib
 
 	void RenderCanvas::drawLine(const Point& pt1, const Point& pt2, const Color& _color, sl_real penWidth, sl_bool flagUsePrimitive)
 	{
+		if (!(_color.a)) {
+			return;
+		}
 		if (!flagUsePrimitive) {
 			_drawLineByRect(pt1, pt2, _color, penWidth);
 			return;
 		}
-
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
 			return;
 		}
-
 		RenderCanvasState* state = m_state.get();
 		RenderCanvasProgramParam pp;
 		pp.prepare(state, sl_true);
-
 		RenderProgramScope<RenderCanvasProgramState> scope;
 		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 			Matrix3 mat;
@@ -986,26 +986,61 @@ namespace slib
 
 	void RenderCanvas::drawLines(const Point* points, sl_size nPoints, const Ref<Pen>& pen)
 	{
-		if (pen.isNull()) {
-			return;
+		if (pen.isNotNull()) {
+			drawLines(points, nPoints, pen->getColor(), pen->getWidth(), m_flagUseLinePrimitive);
 		}
-		drawLines(points, nPoints, pen->getColor(), pen->getWidth(), sl_false, m_flagUseLinePrimitive);
 	}
 
-	void RenderCanvas::drawLines(const Point* points, sl_size nPoints, const Color& color, sl_real width, sl_bool flagClosePath, sl_bool flagUseLinePrimitive)
+	void RenderCanvas::drawLines(const Point* points, sl_size nPoints, const Color& _color, sl_real width, sl_bool flagUseLinePrimitive)
 	{
-		for (sl_size i = 1; i < nPoints; i++) {
-			drawLine(points[i - 1], points[i], color, width, flagUseLinePrimitive);
+		if (!(_color.a)) {
+			return;
 		}
-		if (flagClosePath && nPoints) {
-			drawLine(points[nPoints - 1], *points, color, width, flagUseLinePrimitive);
+		if (!flagUseLinePrimitive) {
+			fillTriangles(GeometryHelper::splitPolylineToTriangles(points, nPoints, width), _color);
+			return;
+		}
+		EngineContext* context = GetEngineContext(this);
+		if (!context) {
+			return;
+		}
+		sl_uint32 n = (sl_uint32)nPoints;
+		if (!n) {
+			return;
+		}
+		Memory mem = Memory::createStatic(points, sizeof(Point) * n);
+		if (mem.isNull()) {
+			return;
+		}
+		Ref<VertexBuffer> vb = VertexBuffer::create(mem);
+		if (vb.isNull()) {
+			return;
+		}
+		RenderCanvasState* state = m_state.get();
+		RenderCanvasProgramParam pp;
+		pp.prepare(state, sl_false);
+		RenderProgramScope<RenderCanvasProgramState> scope;
+		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
+			pp.applyToProgramState(scope.getState(), Matrix3::identity());
+			Matrix3 mat = state->matrix;
+			mat *= m_matViewport;
+			scope->setTransform(mat);
+			Color4F color = _color;
+			color.w *= getAlpha();
+			scope->setColor(color);
+			m_engine->drawPrimitive(n, vb, PrimitiveType::LineStrip);
 		}
 	}
 
 	void RenderCanvas::drawArc(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen)
 	{
+		if (pen.isNotNull()) {
+			Color borderColor = pen->getColor();
+			if (borderColor.a) {
+				fillTriangles(GeometryHelper::splitArcToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth() / 2.0f, rect.getHeight() / 2.0f, pen->getWidth(), Math::getRadianFromDegrees(startDegrees), Math::getRadianFromDegrees(sweepDegrees)), borderColor);
+			}
+		}
 	}
-
 
 	void RenderCanvas::drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
@@ -1022,7 +1057,7 @@ namespace slib
 		if (pen.isNotNull()) {
 			penWidthHalf = pen->getWidth() / 2.0f;
 		}
-		if (fillColor.a > 0) {
+		if (fillColor.a) {
 			if (pen.isNotNull()) {
 				_fillRectangle(Rectangle(rect.left + penWidthHalf, rect.top + penWidthHalf, rect.right - penWidthHalf, rect.bottom - penWidthHalf), fillColor);
 			} else {
@@ -1031,14 +1066,16 @@ namespace slib
 		}
 		if (pen.isNotNull()) {
 			Color color = pen->getColor();
-			// top
-			_fillRectangle(Rectangle(rect.left - penWidthHalf, rect.top - penWidthHalf, rect.right + penWidthHalf, rect.top + penWidthHalf), color);
-			// bottom
-			_fillRectangle(Rectangle(rect.left - penWidthHalf, rect.bottom - penWidthHalf, rect.right + penWidthHalf, rect.bottom + penWidthHalf), color);
-			// left
-			_fillRectangle(Rectangle(rect.left - penWidthHalf, rect.top + penWidthHalf, rect.left + penWidthHalf, rect.bottom - penWidthHalf), color);
-			// right
-			_fillRectangle(Rectangle(rect.right - penWidthHalf, rect.top + penWidthHalf, rect.right + penWidthHalf, rect.bottom - penWidthHalf), color);
+			if (color.a) {
+				// top
+				_fillRectangle(Rectangle(rect.left - penWidthHalf, rect.top - penWidthHalf, rect.right + penWidthHalf, rect.top + penWidthHalf), color);
+				// bottom
+				_fillRectangle(Rectangle(rect.left - penWidthHalf, rect.bottom - penWidthHalf, rect.right + penWidthHalf, rect.bottom + penWidthHalf), color);
+				// left
+				_fillRectangle(Rectangle(rect.left - penWidthHalf, rect.top + penWidthHalf, rect.left + penWidthHalf, rect.bottom - penWidthHalf), color);
+				// right
+				_fillRectangle(Rectangle(rect.right - penWidthHalf, rect.top + penWidthHalf, rect.right + penWidthHalf, rect.bottom - penWidthHalf), color);
+			}
 		}
 	}
 
@@ -1048,19 +1085,15 @@ namespace slib
 		if (!context) {
 			return;
 		}
-
 		RenderCanvasState* state = m_state.get();
-
 		Rectangle rect = _rect;
 		if (state->flagClipRect) {
 			if (!(state->clipRect.intersect(rect, &rect))) {
 				return;
 			}
 		}
-
 		RenderCanvasProgramParam pp;
 		pp.prepare(state, sl_true);
-
 		RenderProgramScope<RenderCanvasProgramState> scope;
 		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 			Matrix3 mat;
@@ -1080,31 +1113,54 @@ namespace slib
 
 	void RenderCanvas::drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
-		drawRectangle(rect, pen, brush);
+		if (brush.isNotNull()) {
+			drawRoundRect(rect, radius, pen, brush->getColor());
+		} else {
+			drawRoundRect(rect, radius, pen, Color::zero());
+		}
+	}
+
+	void RenderCanvas::drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Color& fillColor)
+	{
+		if (fillColor.a) {
+			fillTriangles(GeometryHelper::splitRoundRectToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth(), rect.getHeight(), radius.x, radius.y), fillColor);
+		}
+		if (pen.isNotNull()) {
+			Color borderColor = pen->getColor();
+			if (borderColor.a) {
+				fillTriangles(GeometryHelper::splitRoundRectBorderToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth(), rect.getHeight(), radius.x, radius.y, pen->getWidth()), borderColor);
+			}
+		}
 	}
 
 	void RenderCanvas::drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush)
+	{
+		if (brush.isNotNull()) {
+			drawEllipse(rect, pen, brush->getColor());
+		} else {
+			drawEllipse(rect, pen, Color::zero());
+		}
+	}
+
+	void RenderCanvas::drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor)
 	{
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
 			return;
 		}
-
-		if (brush.isNotNull()) {
+		if (fillColor.a) {
 			RenderCanvasState* state = m_state.get();
 			if (state->flagClipRect) {
 				if (!(state->clipRect.intersect(rect, sl_null))) {
 					return;
 				}
 			}
-
 			RenderCanvasProgramParam pp;
 			pp.prepare(state, state->flagClipRect && state->clipRect.containsRectangle(rect));
 			RenderCanvasClip clip;
 			clip.type = RenderCanvasClipType::Ellipse;
 			clip.region = rect;
 			pp.addFinalClip(&clip);
-
 			RenderProgramScope<RenderCanvasProgramState> scope;
 			if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 				Matrix3 mat;
@@ -1115,24 +1171,18 @@ namespace slib
 				mat *= state->matrix;
 				mat *= m_matViewport;
 				scope->setTransform(mat);
-				Color4F color = brush->getColor();
+				Color4F color = fillColor;
 				color.w *= getAlpha();
 				scope->setColor(color);
 				m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 			}
 		}
-
 		if (pen.isNotNull()) {
-			_drawEllipse(rect, pen->getColor(), pen->getWidth());
+			Color borderColor = pen->getColor();
+			if (borderColor.a) {
+				fillTriangles(GeometryHelper::splitEllipseBorderToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth() / 2.0f, rect.getHeight() / 2.0f, pen->getWidth()), borderColor);
+			}
 		}
-	}
-
-	void RenderCanvas::_drawEllipse(const Rectangle& rect, const Color& color, sl_real borderWidth)
-	{
-		if (!(color.a)) {
-			return;
-		}
-		fillTriangles(GeometryHelper::splitEllipseBorderToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth(), rect.getHeight(), borderWidth), color);
 	}
 
 	void RenderCanvas::drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode)
@@ -1146,36 +1196,62 @@ namespace slib
 
 	void RenderCanvas::drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode)
 	{
-		if (fillColor.a > 0) {
-			_fillPolygon(points, nPoints, fillColor);
+		if (fillColor.a) {
+			fillTriangles(GeometryHelper::splitPolygonToTriangles(points, nPoints), fillColor);
 		}
 		if (pen.isNotNull()) {
-			_drawPolygon(points, nPoints, pen->getColor(), pen->getWidth());
+			Color borderColor = pen->getColor();
+			if (borderColor.a) {
+				fillTriangles(GeometryHelper::splitPolygonBorderToTriangles(points, nPoints, pen->getWidth()), borderColor);
+			}
 		}
-	}
-
-	void RenderCanvas::_drawPolygon(const Point* points, sl_size nPoints, const Color& borderColor, sl_real borderWidth)
-	{
-		if (!(borderColor.a)) {
-			return;
-		}
-		fillTriangles(GeometryHelper::splitPolylineToTriangles(points, nPoints, borderWidth), borderColor);
-	}
-
-	void RenderCanvas::_fillPolygon(const Point* points, sl_size nPoints, const Color& color)
-	{
-		if (!(color.a)) {
-			return;
-		}
-		fillTriangles(GeometryHelper::splitPolygonToTriangles(points, nPoints), color);
 	}
 
 	void RenderCanvas::drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
+		if (brush.isNotNull()) {
+			drawPie(rect, startDegrees, sweepDegrees, pen, brush->getColor());
+		} else {
+			drawPie(rect, startDegrees, sweepDegrees, pen, Color::zero());
+		}
+	}
+
+	void RenderCanvas::drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Color& fillColor)
+	{
+		if (fillColor.a) {
+			fillTriangles(GeometryHelper::splitPieToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth() / 2.0f, rect.getHeight() / 2.0f, Math::getRadianFromDegrees(startDegrees), Math::getRadianFromDegrees(sweepDegrees)), fillColor);
+		}
+		if (pen.isNotNull()) {
+			Color borderColor = pen->getColor();
+			if (borderColor.a) {
+				fillTriangles(GeometryHelper::splitPieBorderToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth() / 2.0f, rect.getHeight() / 2.0f, pen->getWidth(), Math::getRadianFromDegrees(startDegrees), Math::getRadianFromDegrees(sweepDegrees)), borderColor);
+			}
+		}
 	}
 
 	void RenderCanvas::drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
+		if (brush.isNotNull()) {
+			drawPath(path, pen, brush->getColor());
+		} else {
+			drawPath(path, pen, Color::zero());
+		}
+	}
+
+	void RenderCanvas::drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Color& fillColor)
+	{
+		if (path.isNull()) {
+			return;
+		}
+		ListElements<GraphicsPath::PolyShape> shapes(path->toPolyShapes());
+		for (sl_size i = 0; i < shapes.count; i++) {
+			GraphicsPath::PolyShape& shape = shapes[i];
+			if (shape.flagClose) {
+				drawPolygon(shape.points, pen, fillColor);
+			} else {
+				drawLines(shape.points, pen);
+			}
+		}
 	}
 
 	void RenderCanvas::fillTriangles(const List<Triangle>& triangles, const Color& _color)

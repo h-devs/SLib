@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -350,7 +350,7 @@ namespace slib
 	void Canvas::drawPolygon(const List<Point>& _points, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode)
 	{
 		ListLocker<Point> points(_points);
-		drawPolygon(points.data, points.count, pen,fillColor, fillMode);
+		drawPolygon(points.data, points.count, pen, fillColor, fillMode);
 	}
 
 	void Canvas::drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen)
@@ -515,7 +515,8 @@ namespace slib
 		fillEllipse(centerX - radius, centerY - radius, radius2, radius2, Brush::createRadialGradientBrush(Point(centerX, centerY), radius, 3, colors, locations));
 	}
 
-	namespace {
+	namespace
+	{
 		SLIB_ALIGN(8) static const char g_defaultDrawParamBuf[sizeof(Drawable::DrawParam)] = {0};
 		static const Drawable::DrawParam& g_defaultDrawParam = *((const Drawable::DrawParam*)((void*)g_defaultDrawParamBuf));
 	}

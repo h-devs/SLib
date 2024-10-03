@@ -68,57 +68,7 @@ namespace slib
 		}
 
 		template <class T>
-		static List< TriangleT<T> > splitPolygonToTriangles(const PointT<T>* points, sl_size nPoints)
-		{
-			if (nPoints < 3) {
-				return sl_null;
-			}
-			List< TriangleT<T> > ret;
-			if (nPoints == 3) {
-				TriangleT<T> t(points[0], points[1], points[2]);
-				if (!ret.add_NoLock(t)) {
-					return sl_null;
-				}
-				return ret;
-			}
-			if (!(_splitPolygonToTriangles(ret, points, nPoints))) {
-				return sl_null;
-			}
-			return ret;
-		}
-
-		template <class T>
-		static List< TriangleT<T> > splitPolylineToTriangles(const PointT<T>* points, sl_size nPoints, T borderWidth, sl_bool flagClose = sl_true)
-		{
-			if (nPoints < 2) {
-				return sl_null;
-			}
-			List< TriangleT<T> > ret;
-			if (!(_splitPolylineToTriangles(ret, points, nPoints, borderWidth / (T)2, flagClose))) {
-				return sl_null;
-			}
-			return ret;
-		}
-
-		template <class T>
-		static void splitLineToTriangles(TriangleT<T> _out[2], const PointT<T>& point1, const PointT<T>& point2, T width)
-		{
-			Vector2T<T> dir = point2 - point1;
-			Vector2T<T> normal = Vector2T<T>(-dir.y, dir.x).getNormalized() * (width / (T)2);
-			PointT<T> pt1 = point1 + normal;
-			PointT<T> pt2 = point1 - normal;
-			PointT<T> pt3 = point2 - normal;
-			PointT<T> pt4 = point2 + normal;
-			_out[0].point1 = pt2;
-			_out[0].point2 = pt3;
-			_out[0].point3 = pt1;
-			_out[1].point1 = pt1;
-			_out[1].point2 = pt3;
-			_out[1].point3 = pt4;
-		}
-
-		template <class T>
-		static void splitQuadrangleToTriangles(TriangleT<double> _out[2], const PointT<T>& topLeft, const PointT<T>& topRight, const PointT<T>& bottomRight, const PointT<T>& bottomLeft)
+		static void splitQuadrangleToTriangles(TriangleT<T> _out[2], const PointT<T>& topLeft, const PointT<T>& topRight, const PointT<T>& bottomRight, const PointT<T>& bottomLeft)
 		{
 			_out[0].point1 = bottomLeft;
 			_out[0].point2 = bottomRight;
@@ -157,161 +107,42 @@ namespace slib
 		}
 
 		template <class T>
-		static List< TriangleT<T> > splitPieToTriangles(T centerX, T centerY, T width, T height, T startRadian, T sweepRadian, T chopLength = (T)1, sl_uint32 maxChops = 1024)
+		static void splitLineToTriangles(TriangleT<T> _out[2], const PointT<T>& point1, const PointT<T>& point2, T width)
 		{
-			List< TriangleT<T> > ret;
-			T _n = (width + height) * sweepRadian / ((T)4 * chopLength);
-			sl_uint32 n;
-			if (_n > (T)maxChops) {
-				n = maxChops;
-			} else {
-				n = (sl_uint32)_n;
-				if (n < 4) {
-					n = 4;
-				}
+			T hw = width / (T)2;
+			Vector2T<T> dir = point2 - point1;
+			T lenDir2p = dir.getLength2p();
+			if (Math::isAlmostZero(lenDir2p)) {
+				splitRectangleToTriangles(_out, PointT<T>(point1.x - hw, point1.y - hw), PointT<T>(point2.x + hw, point2.y + hw));
+				return;
 			}
-			width /= (T)2;
-			height /= (T)2;
-			PointT<T> center(centerX, centerY);
-			PointT<T> last;
-			for (sl_uint32 i = 0; i <= n; i++) {
-				T angle = startRadian + sweepRadian * (T)i / (T)n;
-				T ux = Math::cos(angle);
-				T uy = Math::sin(angle);
-				PointT<T> pt;
-				pt.x = centerX + ux * width;
-				pt.y = centerY + uy * height;
-				if (i) {
-					if (!(ret.add_NoLock(TriangleT<T>(last, pt, center)))) {
-						return sl_null;
-					}
-				}
-				last = pt;
-			}
-			return ret;
+			dir *= hw / Math::sqrt(lenDir2p);
+			Vector2T<T> normal(-dir.y, dir.x);
+			Vector2T<T> mp1 = point1 - dir;
+			Vector2T<T> mp2 = point2 + dir;
+			PointT<T> sp1 = mp1 + normal;
+			PointT<T> sp2 = mp1 - normal;
+			PointT<T> sp3 = mp2 - normal;
+			PointT<T> sp4 = mp2 + normal;
+			_out[0].point1 = sp2;
+			_out[0].point2 = sp3;
+			_out[0].point3 = sp1;
+			_out[1].point1 = sp1;
+			_out[1].point2 = sp3;
+			_out[1].point3 = sp4;
 		}
 
 		template <class T>
-		static List< TriangleT<T> > splitEllipseToTriangles(T centerX, T centerY, T width, T height, T chopLength = (T)1, sl_uint32 maxChops = 1024)
+		static List< TriangleT<T> > splitPolygonToTriangles(const PointT<T>* points, sl_size nPoints)
 		{
-			return splitPieToTriangles(centerX, centerY, width, height, (T)0, (T)SLIB_PI_DUAL_LONG, chopLength, maxChops);
-		}
-
-		template <class T>
-		static List< TriangleT<T> > splitArcToTriangles(T centerX, T centerY, T width, T height, T borderWidth, T startRadian, T sweepRadian, T chopLength = (T)1, sl_uint32 maxChops = 1024, sl_bool flagClose = sl_false)
-		{
-			List< TriangleT<T> > ret;
-			T _n = (width + height) * sweepRadian / ((T)4 * chopLength);
-			sl_uint32 n;
-			if (_n > (T)maxChops) {
-				n = maxChops;
-			} else {
-				n = (sl_uint32)_n;
-				if (n < 4) {
-					n = 4;
-				}
+			if (nPoints < 3) {
+				return sl_null;
 			}
-			T bw = borderWidth / (T)2;
-			width /= (T)2;
-			height /= (T)2;
-			T w1 = width - bw;
-			T w2 = width + bw;
-			T h1 = height - bw;
-			T h2 = height + bw;
-			PointT<T> first1, first2;
-			PointT<T> last1, last2;
-			for (sl_uint32 i = 0; i <= n; i++) {
-				T angle = startRadian + sweepRadian * (T)i / (T)n;
-				T ux = Math::cos(angle);
-				T uy = Math::sin(angle);
-				PointT<T> pt1, pt2;
-				pt1.x = centerX + ux * w1;
-				pt1.y = centerY + uy * h1;
-				pt2.x = centerX + ux * w2;
-				pt2.y = centerY + uy * h2;
-				if (i) {
-					if (!(ret.add_NoLock(TriangleT<T>(last2, pt2, last1)))) {
-						return sl_null;
-					}
-					if (!(ret.add_NoLock(TriangleT<T>(last1, pt2, pt1)))) {
-						return sl_null;
-					}
-				} else {
-					first1 = pt1;
-					first2 = pt2;
-				}
-				last1 = pt1;
-				last2 = pt2;
+			if (nPoints == 3) {
+				return List< TriangleT<T> >::createFromElement(TriangleT<T>(points[0], points[1], points[2]));
 			}
-			if (flagClose) {
-				PointT<T> pt1, pt2;
-				T ux = Math::cos(startRadian);
-				T uy = Math::sin(startRadian);
-				pt1.x = centerX + ux * width;
-				pt1.y = centerY + uy * height;
-				ux = Math::cos(startRadian + sweepRadian);
-				uy = Math::sin(startRadian + sweepRadian);
-				pt2.x = centerX + ux * width;
-				pt2.y = centerY + uy * height;
-				TriangleT<T> t[2];
-				splitLineToTriangles(t, pt1, pt2, borderWidth);
-				if (!(ret.add_NoLock(t[0]))) {
-					return sl_null;
-				}
-				if (!(ret.add_NoLock(t[1]))) {
-					return sl_null;
-				}
-			}
-			return ret;
-		}
-
-		template <class T>
-		static List< TriangleT<T> > splitEllipseBorderToTriangles(T centerX, T centerY, T width, T height, T borderWidth, T chopLength = (T)1, sl_uint32 maxChops = 1024)
-		{
-			return splitArcToTriangles(centerX, centerY, width, height, borderWidth, (T)0, (T)SLIB_PI_DUAL_LONG, chopLength, maxChops);
-		}
-
-		template <class T>
-		static List< TriangleT<T> > splitChordToTriangles(T centerX, T centerY, T width, T height, T startRadian, T sweepRadian, T chopLength = (T)1, sl_uint32 maxChops = 1024)
-		{
-			List< TriangleT<T> > ret;
-			T _n = (width + height) * sweepRadian / ((T)4 * chopLength);
-			sl_uint32 n;
-			if (_n > (T)maxChops) {
-				n = maxChops;
-			} else {
-				n = (sl_uint32)_n;
-				if (n < 4) {
-					n = 4;
-				}
-			}
-			width /= (T)2;
-			height /= (T)2;
-			PointT<T> first, last;
-			for (sl_uint32 i = 0; i <= n; i++) {
-				T angle = startRadian + sweepRadian * (T)i / (T)n;
-				T ux = Math::cos(angle);
-				T uy = Math::sin(angle);
-				PointT<T> pt;
-				pt.x = centerX + ux * width;
-				pt.y = centerY + uy * height;
-				if (i) {
-					if (!(ret.add_NoLock(TriangleT<T>(last, pt, first)))) {
-						return sl_null;
-					}
-				} else {
-					first = pt;
-				}
-				last = pt;
-			}
-			return ret;
-		}
-
-	private:
-		template <class T>
-		static sl_bool _splitPolygonToTriangles(List< TriangleT<T> >& ret, const PointT<T>* points, sl_size nPoints)
-		{
 			// ear cutting algorithm.
+			List< TriangleT<T> > ret;
 			List< PointT<T> > pointList;
 			sl_size iStart = 0;
 			while (nPoints > 3) {
@@ -335,21 +166,21 @@ namespace slib
 					}
 					if (bEar) {
 						if (!ret.add_NoLock(triangle)) {
-							return sl_false;
+							return sl_null;
 						}
 						if (pointList.isNotNull()) {
 							if (!(pointList.removeAt_NoLock(iPt))) {
-								return sl_false;
+								return sl_null;
 							}
 							points = pointList.getData();
 						} else {
 							if (iPt + 1 < nPoints) {
 								if (iPt) {
 									if (!(pointList.addElements_NoLock(points, iPt))) {
-										return sl_false;
+										return sl_null;
 									}
 									if (!(pointList.addElements_NoLock(points + (iPt + 1), nPoints - iPt - 1))) {
-										return sl_false;
+										return sl_null;
 									}
 									points = pointList.getData();
 								} else {
@@ -363,157 +194,365 @@ namespace slib
 					}
 				}
 			}
-			{
-				TriangleT<T> triangle(points[0], points[1], points[2]);
-				if (!(ret.add_NoLock(triangle))) {
-					return sl_false;
-				}
+			if (!(ret.add_NoLock(points[0], points[1], points[2]))) {
+				return sl_null;
 			}
-			return sl_true;
+			return ret;
 		}
 
-		template <class T>
-		static sl_bool _splitPolylineToTriangles(List< TriangleT<T> >& ret, const PointT<T>* points, sl_size nPoints, T dist, sl_bool flagClosed)
+		template <class T, sl_bool CLOSE = sl_false>
+		static List< TriangleT<T> > splitPolylineToTriangles(const PointT<T>* points, sl_size nPoints, T borderWidth)
 		{
-			List< PointT<T> > sealingPoly;
-			List<PointT<T>> procTriangle;
-
-			PointT<T> lastPoint = points[0];
-			{
-				for (sl_size i = 0; i < nPoints; i++) {
-					const PointT<T>& pt = points[i];
-					if (!lastPoint.equals(pt)) {
-						procTriangle.add(lastPoint);
-						lastPoint = pt;
+			if (!nPoints) {
+				return sl_null;
+			}
+			if (CLOSE) {
+				const PointT<T>& first = *points;
+				while (nPoints > 1) {
+					const PointT<T>& pt = points[nPoints - 1];
+					if (!(pt.isAlmostEqual(first))) {
+						break;
 					}
+					nPoints--;
 				}
 			}
-			if (!lastPoint.equals(procTriangle.getLastValue())) {
-				procTriangle.add(lastPoint);
+			T hw = borderWidth / (T)2;
+			if (nPoints == 1) {
+				TriangleT<T> t[2];
+				const PointT<T>& pt = *points;
+				splitRectangleToTriangles(t, PointT<T>(pt.x - hw, pt.y - hw), PointT<T>(pt.x + hw, pt.y + hw));
+				return List< TriangleT<T> >::create(t, 2);
 			}
-			nPoints = procTriangle.getCount();
-			if (procTriangle[0].equals(procTriangle.getLastValue())) {
-				procTriangle.removeAt(nPoints - 1);
-				nPoints--;
+			if (nPoints == 2) {
+				TriangleT<T> t[2];
+				splitLineToTriangles(t, points[0], points[1], borderWidth);
+				return List< TriangleT<T> >::create(t, 2);
 			}
-
+			List< TriangleT<T> > ret;
+			Vector2T<T> prevNormal;
+			sl_bool flagPrevNormal = sl_false;
+			PointT<T> prevPoint, prevBp1, prevBp2;
+			PointT<T> firstBp1, firstBp2; // Used for CLOSE
+			Vector2T<T> firstNormal; // Used for CLOSE
 			for (sl_size i = 0; i < nPoints; i++) {
-				sl_size iPt = i % nPoints;
-				PointT<T> point1, point2, point3;
-				PointT<T> inPt;
-				PointT<T> iTmp, oTmp;
-				point1 = procTriangle[(iPt + nPoints - 1) % nPoints];
-				point2 = procTriangle[iPt];
-				point3 = procTriangle[(iPt + 1) % nPoints];
-				Vector2T<T> v1 = point1 - point2;
-				Vector2T<T> v2 = point3 - point2;
-
-				if ((!flagClosed && i == 0) || (!flagClosed && i == nPoints - 1)) {
-					LineT<T> normL;
-					Vector2T<T> v = i == 0 ? v2 : v1;
-					normL.setFromPointAndNormal(point2, v);
-					_getLinePointAwayFromOne(normL, point2, dist, iTmp, oTmp);
-				} else {
-					// make sure point 1,2,3, can make convex part of polygon.
-					sl_bool isConvex = _isPointInPolygon(point2, &procTriangle[0], nPoints, iPt);
-					T angle = v1.getAbsAngleBetween(v2);
-					T pseudo_dist = Math::min(v1.getLength(), v2.getLength());
-
-					LineT<T> inNorL1, outNorL1;
-					if (!_getNormalLineFromLineSegment(point1, point2, pseudo_dist, isConvex, inNorL1, outNorL1)) {
-						return sl_false;
+				const PointT<T>& pt = points[i];
+				if (i) {
+					Vector2T<T> dir = pt - prevPoint;
+					T lenDir2p = dir.getLength2p();
+					if (Math::isAlmostZero(lenDir2p)) {
+						continue;
 					}
-					LineT<T> inNorL2, outNorL2;
-					if (!_getNormalLineFromLineSegment(point3, point2, pseudo_dist, isConvex, inNorL2, outNorL2)) {
-						return sl_false;
-					}
-
-					if (!inNorL1.intersect(inNorL2, &inPt)) {
-						return sl_false;
-					}
-
-					LineT<T> middleLine;
-					middleLine.setFromPointAndDirection(point2, inPt - point2);
-
-					_getLinePointAwayFromOne(middleLine, point2, dist / Math::sin(angle / 2), iTmp, oTmp);
-				}
-
-				if (sealingPoly.isEmpty()) {
-					if (!sealingPoly.add_NoLock(iTmp)) {
-						return sl_false;
-					}
-					if (!sealingPoly.add_NoLock(oTmp)) {
-						return sl_false;
-					}
-				} else {
-					LineSegmentT<T> l1(point1, point2);
-					LineSegmentT<T> critLine(iTmp, sealingPoly.getLastValue());
-					sl_bool crit = l1.intersect(critLine);
-					if (crit) {
-						if (!sealingPoly.add_NoLock(iTmp)) {
-							return sl_false;
-						}
-						if (!sealingPoly.add_NoLock(oTmp)) {
-							return sl_false;
+					dir *= hw / Math::sqrt(lenDir2p);
+					Vector2T<T> normal(-dir.y, dir.x);
+					PointT<T> bp1, bp2;
+					if (flagPrevNormal) {
+						_getPolygonBorderPoint(prevPoint, prevNormal, normal, bp1, bp2);
+						TriangleT<T> t[2];
+						splitQuadrangleToTriangles(t, prevBp1, prevBp2, bp2, bp1);
+						if (!(ret.addElements_NoLock(t, 2))) {
+							return sl_null;
 						}
 					} else {
-						if (!sealingPoly.add_NoLock(oTmp)) {
-							return sl_false;
+						if (CLOSE) {
+							Vector2T<T> fd = (prevPoint - points[nPoints - 1]).getNormalized() * hw;
+							firstNormal = Vector2T<T>(-fd.y, fd.x);
+							_getPolygonBorderPoint(prevPoint, firstNormal, normal, bp1, bp2);
+							firstBp1 = bp1;
+							firstBp2 = bp2;
+						} else {
+							bp1 = prevPoint - normal;
+							bp2 = prevPoint + normal;
 						}
-						if (!sealingPoly.add_NoLock(iTmp)) {
+						flagPrevNormal = sl_true;
+					}
+					prevBp1 = bp1;
+					prevBp2 = bp2;
+					prevNormal = normal;
+				}
+				prevPoint = pt;
+			}
+			if (!flagPrevNormal) {
+				TriangleT<T> t[2];
+				splitRectangleToTriangles(t, PointT<T>(prevPoint.x - hw, prevPoint.y - hw), PointT<T>(prevPoint.x + hw, prevPoint.y + hw));
+				return List< TriangleT<T> >::create(t, 2);
+			}
+			if (CLOSE && ret.isNotEmpty()) {
+				PointT<T> bp1, bp2;
+				_getPolygonBorderPoint(prevPoint, prevNormal, firstNormal, bp1, bp2);
+				TriangleT<T> t[4];
+				splitQuadrangleToTriangles(t, prevBp1, prevBp2, bp2, bp1);
+				splitQuadrangleToTriangles(t + 2, bp1, bp2, firstBp2, firstBp1);
+				if (!(ret.addElements_NoLock(t, 4))) {
+					return sl_null;
+				}
+			} else {
+				PointT<T> bp1 = prevPoint - prevNormal;
+				PointT<T> bp2 = prevPoint + prevNormal;
+				TriangleT<T> t[2];
+				splitQuadrangleToTriangles(t, prevBp1, prevBp2, bp2, bp1);
+				if (!(ret.addElements_NoLock(t, 2))) {
+					return sl_null;
+				}
+			}
+			return ret;
+		}
+
+		template <class T>
+		static List< TriangleT<T> > splitPolygonBorderToTriangles(const PointT<T>* points, sl_size nPoints, T borderWidth)
+		{
+			return splitPolylineToTriangles<T, sl_true>(points, nPoints, borderWidth);
+		}
+
+		template <class T, sl_bool CHORD = sl_false>
+		static sl_bool splitPieToTriangles(List< TriangleT<T> >& ret, T centerX, T centerY, T radiusX, T radiusY, T startRadian, T sweepRadian, T chopLength = (T)1, sl_uint32 maxChops = 1024)
+		{
+			T _n = (radiusX + radiusY) * sweepRadian / ((T)2 * chopLength);
+			sl_uint32 n;
+			if (_n > (T)maxChops) {
+				n = maxChops;
+			} else {
+				n = (sl_uint32)_n;
+				if (n < 4) {
+					n = 4;
+				}
+			}
+			PointT<T> center(centerX, centerY); // Used for ARC
+			PointT<T> first; // Used for CHORD
+			PointT<T> last;
+			T fn = (T)n;
+			for (sl_uint32 i = 0; i <= n; i++) {
+				T angle = startRadian + sweepRadian * (T)i / fn;
+				T ux = Math::cos(angle);
+				T uy = Math::sin(angle);
+				PointT<T> pt;
+				pt.x = centerX + ux * radiusX;
+				pt.y = centerY + uy * radiusY;
+				if (i) {
+					if (CHORD) {
+						if (i >= 2) {
+							if (!(ret.add_NoLock(last, pt, first))) {
+								return sl_false;
+							}
+						}
+					} else {
+						if (!(ret.add_NoLock(last, pt, center))) {
 							return sl_false;
 						}
 					}
+				} else {
+					if (CHORD) {
+						first = pt;
+					}
 				}
-			}
-			for (sl_size i = 0; i < sealingPoly.getCount(); i++) {
-				if (!flagClosed && i > sealingPoly.getCount() - 3) {
-					break;
-				}
-				if (!(ret.add_NoLock(Triangle(sealingPoly[i], sealingPoly[(i + 1) % sealingPoly.getCount()], sealingPoly[(i + 2) % sealingPoly.getCount()])))) {
-					return sl_false;
-				}
+				last = pt;
 			}
 			return sl_true;
 		}
 
-		template <class T>
-		static sl_bool _getNormalLineFromLineSegment(const PointT<T>& pt1, const PointT<T>& pt2, T dist, const sl_bool isConvex, LineT<T>& _inLine, LineT<T>& _outLine)
+		template <class T, sl_bool CHORD = sl_false>
+		static List< TriangleT<T> > splitPieToTriangles(T centerX, T centerY, T radiusX, T radiusY, T startRadian, T sweepRadian, T chopLength = (T)1, sl_uint32 maxChops = 1024)
 		{
-			LineT<T> l1;
-			l1.setFromPointAndDirection(pt2, pt1 - pt2);
+			List< TriangleT<T> > ret;
+			if (splitPieToTriangles<T, CHORD>(ret, centerX, centerY, radiusX, radiusY, startRadian, sweepRadian, chopLength, maxChops)) {
+				return ret;
+			}
+			return sl_null;
+		}
 
-			PointT<T> startPt1, startPt2, innerPt, outerPt;
-			_getLinePointAwayFromOne(l1, pt2, dist, startPt1, startPt2);
+		template <class T>
+		static List< TriangleT<T> > splitEllipseToTriangles(T centerX, T centerY, T radiusX, T radiusY, T chopLength = (T)1, sl_uint32 maxChops = 1024)
+		{
+			return splitPieToTriangles(centerX, centerY, radiusX, radiusY, (T)0, (T)SLIB_PI_DUAL_LONG, chopLength, maxChops);
+		}
 
-			Vector2T<T> tmp1(startPt1 - pt2);
-			tmp1.normalize();
-			Vector2T<T> tmp2(pt1 - pt2);
-			tmp2.normalize();
-			Vector2T<T> criterionVec = tmp1 - tmp2;
-			sl_bool criterion = criterionVec.getLength2p() < 0.0001;
+		template <class T>
+		static List< TriangleT<T> > splitChordToTriangles(T centerX, T centerY, T radiusX, T radiusY, T startRadian, T sweepRadian, T chopLength = (T)1, sl_uint32 maxChops = 1024)
+		{
+			return splitPieToTriangles<T, sl_true>(centerX, centerY, radiusX, radiusY, startRadian, sweepRadian, chopLength, maxChops);
+		}
 
-			if (!isConvex) {
-				innerPt = criterion ? startPt1 : startPt2;
-				outerPt = criterion ? startPt2 : startPt1;
+		template <class T, sl_bool PIE = sl_false, sl_bool CHORD = sl_false>
+		static sl_bool splitArcToTriangles(List< TriangleT<T> >& ret, T centerX, T centerY, T radiusX, T radiusY, T borderWidth, T startRadian, T sweepRadian, T chopLength = (T)1, sl_uint32 maxChops = 1024)
+		{
+			T _n = (radiusX + radiusY) * sweepRadian / ((T)2 * chopLength);
+			sl_uint32 n;
+			if (_n > (T)maxChops) {
+				n = maxChops;
 			} else {
-				innerPt = criterion ? startPt2 : startPt1;
-				outerPt = criterion ? startPt1 : startPt2;
+				n = (sl_uint32)_n;
+				if (n < 4) {
+					n = 4;
+				}
 			}
-
-			_inLine.setFromPointAndDirection(innerPt, l1.getNormal());
-			_outLine.setFromPointAndDirection(outerPt, l1.getNormal());
+			T bw = borderWidth / (T)2;
+			T w1 = radiusX - bw;
+			T w2 = radiusX + bw;
+			T h1 = radiusY - bw;
+			T h2 = radiusY + bw;
+			PointT<T> first; // Used for PIE, CHORD
+			PointT<T> last1, last2;
+			T fn = (T)n;
+			for (sl_uint32 i = 0; i <= n; i++) {
+				T angle = startRadian + sweepRadian * (T)i / fn;
+				T ux = Math::cos(angle);
+				T uy = Math::sin(angle);
+				PointT<T> pt1, pt2;
+				pt1.x = centerX + ux * w1;
+				pt1.y = centerY + uy * h1;
+				pt2.x = centerX + ux * w2;
+				pt2.y = centerY + uy * h2;
+				if (i) {
+					if (!(ret.add_NoLock(last2, pt2, last1))) {
+						return sl_false;
+					}
+					if (!(ret.add_NoLock(last1, pt2, pt1))) {
+						return sl_false;
+					}
+					if (PIE || CHORD) {
+						if (i == n) {
+							PointT<T> pt;
+							pt.x = centerX + ux * radiusX;
+							pt.y = centerY + uy * radiusY;
+							if (PIE) {
+								PointT<T> center(centerX, centerY);
+								TriangleT<T> t[2];
+								splitLineToTriangles(t, first, center, borderWidth);
+								if (!(ret.addElements_NoLock(t, 2))) {
+									return sl_false;
+								}
+								splitLineToTriangles(t, pt, center, borderWidth);
+								if (!(ret.addElements_NoLock(t, 2))) {
+									return sl_false;
+								}
+							} else {
+								TriangleT<T> t[2];
+								splitLineToTriangles(t, first, pt, borderWidth);
+								if (!(ret.addElements_NoLock(t, 2))) {
+									return sl_false;
+								}
+							}
+						}
+					}
+				} else {
+					if (PIE || CHORD) {
+						first.x = centerX + ux * radiusX;
+						first.y = centerY + uy * radiusY;
+					}
+				}
+				last1 = pt1;
+				last2 = pt2;
+			}
 			return sl_true;
 		}
 
-		template <class T>
-		static void _getLinePointAwayFromOne(const LineT<T>& line, const PointT<T>& point, T dist, PointT<T>& _out1, PointT<T>& _out2)
+		template <class T, sl_bool PIE = sl_false, sl_bool CHORD = sl_false>
+		static List< TriangleT<T> > splitArcToTriangles(T centerX, T centerY, T radiusX, T radiusY, T borderWidth, T startRadian, T sweepRadian, T chopLength = (T)1, sl_uint32 maxChops = 1024)
 		{
-			Vector2T<T> dir = line.getDirection().getNormalized() * dist;
-			_out1 = point + dir;
-			_out2 = point - dir;
+			List< TriangleT<T> > ret;
+			if (splitArcToTriangles<T, PIE, CHORD>(ret, centerX, centerY, radiusX, radiusY, borderWidth, startRadian, sweepRadian, chopLength, maxChops)) {
+				return ret;
+			}
+			return sl_null;
 		}
 
+		template <class T>
+		static List< TriangleT<T> > splitEllipseBorderToTriangles(T centerX, T centerY, T radiusX, T radiusY, T borderWidth, T chopLength = (T)1, sl_uint32 maxChops = 1024)
+		{
+			return splitArcToTriangles(centerX, centerY, radiusX, radiusY, borderWidth, (T)0, (T)SLIB_PI_DUAL_LONG, chopLength, maxChops);
+		}
+
+		template <class T>
+		static List< TriangleT<T> > splitPieBorderToTriangles(T centerX, T centerY, T radiusX, T radiusY, T borderWidth, T startRadian, T sweepRadian, T chopLength = (T)1, sl_uint32 maxChops = 1024)
+		{
+			return splitArcToTriangles<T, sl_true, sl_false>(centerX, centerY, radiusX, radiusY, borderWidth, startRadian, sweepRadian, chopLength, maxChops);
+		}
+
+		template <class T>
+		static List< TriangleT<T> > splitChordBorderToTriangles(T centerX, T centerY, T radiusX, T radiusY, T borderWidth, T startRadian, T sweepRadian, T chopLength = (T)1, sl_uint32 maxChops = 1024)
+		{
+			return splitArcToTriangles<T, sl_false, sl_true>(centerX, centerY, radiusX, radiusY, borderWidth, startRadian, sweepRadian, chopLength, maxChops);
+		}
+
+		template <class T>
+		static List< TriangleT<T> > splitRoundRectToTriangles(T centerX, T centerY, T width, T height, T radiusX, T radiusY, T chopLength = (T)1, sl_uint32 maxChops = 1024)
+		{
+			T hw = width / (T)2;
+			T hh = height / (T)2;
+			T iw = hw - radiusX;
+			T ih = hh - radiusY;
+			List< TriangleT<T> > ret;
+			TriangleT<T> t[2];
+			splitRectangleToTriangles(t, PointT<T>(centerX - iw, centerY - hh), PointT<T>(centerX + iw, centerY + hh));
+			if (!(ret.addElements_NoLock(t, 2))) {
+				return sl_null;
+			}
+			splitRectangleToTriangles(t, PointT<T>(centerX - hw, centerY - ih), PointT<T>(centerX - iw, centerY + ih));
+			if (!(ret.addElements_NoLock(t, 2))) {
+				return sl_null;
+			}
+			splitRectangleToTriangles(t, PointT<T>(centerX + iw, centerY - ih), PointT<T>(centerX + hw, centerY + ih));
+			if (!(ret.addElements_NoLock(t, 2))) {
+				return sl_null;
+			}
+			maxChops >>= 2;
+			if (!(splitPieToTriangles<T, sl_false>(ret, centerX - iw, centerY - ih, radiusX, radiusY, (T)SLIB_PI_LONG, (T)SLIB_PI_HALF_LONG, chopLength, maxChops))) {
+				return sl_null;
+			}
+			if (!(splitPieToTriangles<T, sl_false>(ret, centerX + iw, centerY - ih, radiusX, radiusY, (T)(SLIB_PI_LONG + SLIB_PI_HALF_LONG), (T)SLIB_PI_HALF_LONG, chopLength, maxChops))) {
+				return sl_null;
+			}
+			if (!(splitPieToTriangles<T, sl_false>(ret, centerX - iw, centerY + ih, radiusX, radiusY, (T)SLIB_PI_HALF_LONG, (T)SLIB_PI_HALF_LONG, chopLength, maxChops))) {
+				return sl_null;
+			}
+			if (!(splitPieToTriangles<T, sl_false>(ret, centerX + iw, centerY + ih, radiusX, radiusY, (T)0, (T)SLIB_PI_HALF_LONG, chopLength, maxChops))) {
+				return sl_null;
+			}
+			return ret;
+		}
+
+		template <class T>
+		static List< TriangleT<T> > splitRoundRectBorderToTriangles(T centerX, T centerY, T width, T height, T radiusX, T radiusY, T borderWidth, T chopLength = (T)1, sl_uint32 maxChops = 1024)
+		{
+			T hw = width / (T)2;
+			T hh = height / (T)2;
+			T iw = hw - radiusX;
+			T ih = hh - radiusY;
+			T bw = borderWidth / (T)2;
+			List< TriangleT<T> > ret;
+			TriangleT<T> t[2];
+			splitRectangleToTriangles(t, PointT<T>(centerX - iw, centerY - hh - bw), PointT<T>(centerX + iw, centerY - hh + bw));
+			if (!(ret.addElements_NoLock(t, 2))) {
+				return sl_null;
+			}
+			splitRectangleToTriangles(t, PointT<T>(centerX - iw, centerY + hh - bw), PointT<T>(centerX + iw, centerY + hh + bw));
+			if (!(ret.addElements_NoLock(t, 2))) {
+				return sl_null;
+			}
+			splitRectangleToTriangles(t, PointT<T>(centerX - hw - bw, centerY - ih), PointT<T>(centerX - hw + bw, centerY + ih));
+			if (!(ret.addElements_NoLock(t, 2))) {
+				return sl_null;
+			}
+			splitRectangleToTriangles(t, PointT<T>(centerX + hw - bw, centerY - ih), PointT<T>(centerX + hw + bw, centerY + ih));
+			if (!(ret.addElements_NoLock(t, 2))) {
+				return sl_null;
+			}
+			maxChops >>= 2;
+			if (!(splitArcToTriangles<T, sl_false, sl_false>(ret, centerX - iw, centerY - ih, radiusX, radiusY, borderWidth, (T)SLIB_PI_LONG, (T)SLIB_PI_HALF_LONG, chopLength, maxChops))) {
+				return sl_null;
+			}
+			if (!(splitArcToTriangles<T, sl_false, sl_false>(ret, centerX + iw, centerY - ih, radiusX, radiusY, borderWidth, (T)(SLIB_PI_LONG + SLIB_PI_HALF_LONG), (T)SLIB_PI_HALF_LONG, chopLength, maxChops))) {
+				return sl_null;
+			}
+			if (!(splitArcToTriangles<T, sl_false, sl_false>(ret, centerX - iw, centerY + ih, radiusX, radiusY, borderWidth, (T)SLIB_PI_HALF_LONG, (T)SLIB_PI_HALF_LONG, chopLength, maxChops))) {
+				return sl_null;
+			}
+			if (!(splitArcToTriangles<T, sl_false, sl_false>(ret, centerX + iw, centerY + ih, radiusX, radiusY, borderWidth, (T)0, (T)SLIB_PI_HALF_LONG, chopLength, maxChops))) {
+				return sl_null;
+			}
+			return ret;
+		}
+
+	private:
 		template <class T>
 		static sl_bool _intersectLineSegmentAndRayX(const PointT<T>& pt1, const PointT<T>& pt2, const PointT<T>& ptRay, PointT<T>* _out = sl_null)
 		{
@@ -580,6 +619,21 @@ namespace slib
 				}
 			}
 			return (nIntersect & 1) != 0;
+		}
+
+		template <class T>
+		static void _getPolygonBorderPoint(const PointT<T>& point, const Vector2T<T>& normal1, const Vector2T<T>& normal2, PointT<T>& outBorder1, PointT<T>& outBorder2)
+		{
+			LineT<T> line1, line2, line3, line4;
+			line1.setFromPointAndNormal(point - normal1, -normal1);
+			line2.setFromPointAndNormal(point - normal2, -normal2);
+			line3.setFromPointAndNormal(point + normal1, normal1);
+			line4.setFromPointAndNormal(point + normal2, normal2);
+			if (line1.intersect(line2, &outBorder1) && line3.intersect(line4, &outBorder2)) {
+				return;
+			}
+			outBorder1 = point - normal1;
+			outBorder2 = point + normal1;
 		}
 
 	};

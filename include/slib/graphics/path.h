@@ -136,6 +136,13 @@ namespace slib
 
 		sl_bool containsPoint(const Point& pt);
 
+		struct PolyShape
+		{
+			List<Point> points;
+			sl_bool flagClose;
+		};
+		List<PolyShape> toPolyShapes(sl_real chopLength = 1.0f, sl_uint32 maxChops = 1024);
+
 	protected:
 		sl_bool _checkBegin();
 
