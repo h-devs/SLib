@@ -887,12 +887,16 @@ namespace slib
 			sl_uint16* indices = (sl_uint16*)(mem.getData());
 			for (sl_uint32 y = 0; y < M - 1; y++) {
 				for (sl_uint32 x = 0; x < M - 1; x++) {
-					*(indices++) = (sl_uint16)(y * M + x); // Top Left
-					*(indices++) = (sl_uint16)(y * M + (x + 1)); // Top Right
-					*(indices++) = (sl_uint16)((y + 1) * M + x); // Bottom Left
-					*(indices++) = *(indices - 1);
-					*(indices++) = *(indices - 3);
-					*(indices++) = (sl_uint16)((y + 1) * M + (x + 1)); // Bottom Right
+					sl_uint16 tl = (sl_uint16)(y * M + x); // Top Left
+					sl_uint16 tr = (sl_uint16)(y * M + (x + 1)); // Top Right
+					sl_uint16 bl = (sl_uint16)((y + 1) * M + x); // Bottom Left
+					sl_uint16 br = (sl_uint16)((y + 1) * M + (x + 1)); // Bottom Right
+					*(indices++) = tl;
+					*(indices++) = tr;
+					*(indices++) = bl;
+					*(indices++) = bl;
+					*(indices++) = tr;
+					*(indices++) = br;
 				}
 			}
 			primitive.indexBuffer = IndexBuffer::create(mem);

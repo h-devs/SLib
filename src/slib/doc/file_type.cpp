@@ -77,6 +77,8 @@ namespace slib
 				return ContentType::Zip;
 			case FileType::PDF:
 				return ContentType::Pdf;
+			default:
+				break;
 		}
 		return sl_null;
 	}
