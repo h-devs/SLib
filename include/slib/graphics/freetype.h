@@ -160,6 +160,8 @@ namespace slib
 
 		void strokeStringOutside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth);
 
+		Ref<GraphicsPath> getStringPath(const StringParam& text);
+
 		Ref<FreeTypeGlyph> getCharGlyph(sl_uint32 charcode);
 
 		Ref<FreeTypeGlyph> getGlyph(sl_uint32 glyphId);

@@ -76,8 +76,8 @@ namespace slib
 		return sl_null;
 	}
 
-	namespace {
-
+	namespace
+	{
 		class Library : public CRef
 		{
 		public:
@@ -164,7 +164,6 @@ namespace slib
 			}
 			return SLIB_MAKE_DWORD2(param.namedInstanceIndex, param.faceIndex);
 		}
-
 	}
 
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(FreeType, LoadParam)
@@ -236,8 +235,8 @@ namespace slib
 		return loadFromMemory(mem, param);
 	}
 
-	namespace {
-
+	namespace
+	{
 		class SystemLoader
 		{
 		private:
@@ -410,7 +409,6 @@ namespace slib
 		};
 
 		SLIB_SAFE_STATIC_GETTER(SystemLoader, GetSystemLoader)
-
 	}
 
 	Ref<FreeType> FreeType::loadSystemFont(const String& family, sl_bool flagBold, sl_bool flagItalic)
@@ -482,7 +480,8 @@ namespace slib
 		return 0;
 	}
 
-	namespace {
+	namespace
+	{
 		static FT_CharMap SelectCharmap(FT_Face face, FreeTypeKind kind, sl_bool flagSymbolic)
 		{
 			if (kind == FreeTypeKind::Type1) {
@@ -905,6 +904,103 @@ namespace slib
 		FT_Stroker_Done(stroker);
 	}
 
+#define STRING_PATH_X(X) TO_REAL_POS(context->x + (X))
+#define STRING_PATH_Y(Y) TO_REAL_POS(context->y + context->height - (Y))
+
+	namespace
+	{
+		struct StringPathContext
+		{
+			GraphicsPath* path;
+			sl_int32 x;
+			sl_int32 y;
+			sl_int32 height;
+		};
+
+		static int StringPath_MoveTo(const FT_Vector* to, void* user)
+		{
+			StringPathContext* context = (StringPathContext*)user;
+			context->path->moveTo(STRING_PATH_X(to->x), STRING_PATH_Y(to->y));
+			return 0;
+		}
+
+		static int StringPath_LineTo(const FT_Vector* to, void* user)
+		{
+			StringPathContext* context = (StringPathContext*)user;
+			context->path->lineTo(STRING_PATH_X(to->x), STRING_PATH_Y(to->y));
+			return 0;
+		}
+
+		static int StringPath_ConicTo(const FT_Vector* control, const FT_Vector* to, void* user)
+		{
+			StringPathContext* context = (StringPathContext*)user;
+			context->path->conicTo(STRING_PATH_X(control->x), STRING_PATH_Y(control->y), STRING_PATH_X(to->x), STRING_PATH_Y(to->y));
+			return 0;
+		}
+
+		static int StringPath_CubicTo(const FT_Vector* control1, const FT_Vector* control2, const FT_Vector* to, void* user)
+		{
+			StringPathContext* context = (StringPathContext*)user;
+			context->path->cubicTo(STRING_PATH_X(control1->x), STRING_PATH_Y(control1->y), STRING_PATH_X(control2->x), STRING_PATH_Y(control2->y), STRING_PATH_X(to->x), STRING_PATH_Y(to->y));
+			return 0;
+		}
+
+		static sl_bool BuildStringPath(const Ref<GraphicsPath>& path, sl_int32 x, sl_int32 y, sl_int32 height, FT_Outline* outline)
+		{
+			if (outline->n_points) {
+				FT_Outline_Funcs funcs = {
+					StringPath_MoveTo,
+					StringPath_LineTo,
+					StringPath_ConicTo,
+					StringPath_CubicTo,
+					0, 0
+				};
+				StringPathContext context;
+				context.path = path.get();
+				context.x = x;
+				context.y = y;
+				context.height = height;
+				FT_Error err = FT_Outline_Decompose(outline, &funcs, &context);
+				if (!err) {
+					path->closeSubpath();
+					return sl_true;
+				}
+			}
+			return sl_false;
+		}
+	}
+
+	Ref<GraphicsPath> FreeType::getStringPath(const StringParam& _text)
+	{
+		Ref<GraphicsPath> path = GraphicsPath::create();
+		if (path.isNull()) {
+			return sl_null;
+		}
+		StringData32 text(_text);
+		sl_uint32 nChars = (sl_uint32)(text.getLength());
+		if (!nChars) {
+			return sl_null;
+		}
+		const sl_char32* chars = text.getData();
+
+		ObjectLocker lock(this);
+		FT_GlyphSlot slot = m_face->glyph;
+		sl_int32 x = 0;
+		sl_int32 y = 0;
+		sl_int32 height = m_face->size->metrics.height;
+		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
+			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(chars[iChar]), FT_LOAD_DEFAULT);
+			if (!err) {
+				if (!(BuildStringPath(path, x, y, height, &(slot->outline)))) {
+					return sl_null;
+				}
+				x += slot->advance.x;
+				y += slot->advance.y;
+			}
+		}
+		return path;
+	}
+
 	Ref<FreeTypeGlyph> FreeType::getCharGlyph(sl_uint32 charcode)
 	{
 		ObjectLocker lock(this);
@@ -922,8 +1018,8 @@ namespace slib
 		return _getGlyph(glyphId);
 	}
 
-	namespace {
-
+	namespace
+	{
 		static int Outline_MoveTo(const FT_Vector* to, void* user)
 		{
 			((GraphicsPath*)user)->moveTo(TO_REAL_POS(to->x), TO_REAL_POS(to->y));
@@ -960,13 +1056,15 @@ namespace slib
 						Outline_CubicTo,
 						0, 0
 					};
-					FT_Outline_Decompose(outline, &funcs, path.get());
-					return path;
+					FT_Error err = FT_Outline_Decompose(outline, &funcs, path.get());
+					if (!err) {
+						path->closeSubpath();
+						return path;
+					}
 				}
 			}
 			return sl_null;
 		}
-
 	}
 
 	Ref<FreeTypeGlyph> FreeType::_getGlyph(sl_uint32 glyphId)
