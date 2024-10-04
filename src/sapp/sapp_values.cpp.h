@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -32,18 +32,19 @@
 namespace slib
 {
 
-	namespace {
-
-		static sl_reg ParseFloat(float* _out, const sl_char8* str, sl_size start, sl_size end)
+	namespace
+	{
+		template <class T>
+		static sl_reg ParseFloat(T* _out, const sl_char8* str, sl_size start, sl_size end)
 		{
 			return Calculator::calculate(_out, sl_null, str, start, end);
 		}
 
-		static sl_bool ParseFloat(float* _out, const String& str)
+		template <class T>
+		static sl_bool ParseFloat(T* _out, const String& str)
 		{
 			return Calculator::calculate(str, _out);
 		}
-
 	}
 
 	namespace priv
@@ -717,6 +718,30 @@ namespace slib
 	}
 
 
+	String SAppDoubleValue::getAccessString() const
+	{
+		if (!flagDefined) {
+			return "0";
+		}
+		return String::format("%f", value);
+	}
+
+	sl_bool SAppDoubleValue::parse(const String& _str)
+	{
+		String str = _str.trim();
+		if (str.isEmpty()) {
+			return sl_true;
+		}
+		double f;
+		if (ParseFloat(&f, str)) {
+			value = f;
+			flagDefined = sl_true;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+
 	String SAppInt32Value::getAccessString() const
 	{
 		if (!flagDefined) {
@@ -833,46 +858,31 @@ namespace slib
 	}
 
 
-	String SAppVector2Value::getAccessString() const
+	namespace
 	{
-		if (!flagDefined) {
-			return "slib::Vector2::zero()";
-		}
-		return String::format("slib::Vector2(%ff, %ff)", value.x, value.y);
-	}
-
-	sl_bool SAppVector2Value::parse(const String& _str)
-	{
-		String str = _str.trim();
-		if (str.isEmpty()) {
-			return sl_true;
-		}
-		sl_size pos = 0;
-		sl_size len = str.getLength();
-		const sl_char8* data = str.getData();
-		float f[2];
-		for (sl_size i = 0; i < 2; i++) {
-			sl_reg iRet = ParseFloat(f + i, data, pos, len);
-			if (iRet == SLIB_PARSE_ERROR) {
-				return sl_false;
-			}
-			pos = iRet;
-			for (; pos < len; pos++) {
-				sl_char8 c = data[pos];
-				if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
-					break;
-				}
-			}
-			if (i == 1) {
-				if (pos == len) {
-					value.x = f[0];
-					value.y = f[1];
-					flagDefined = sl_true;
-					return sl_true;
-				} else {
+		template <class T>
+		static sl_bool ParseFloatComponents(T* _out, sl_size nComponents, const String& str)
+		{
+			sl_size pos = 0;
+			sl_size len = str.getLength();
+			const sl_char8* data = str.getData();
+			sl_size iComponent = 0;
+			for (;;) {
+				sl_reg iRet = ParseFloat(_out + iComponent, data, pos, len);
+				if (iRet == SLIB_PARSE_ERROR) {
 					return sl_false;
 				}
-			} else {
+				pos = iRet;
+				for (; pos < len; pos++) {
+					sl_char8 c = data[pos];
+					if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
+						break;
+					}
+				}
+				iComponent++;
+				if (iComponent >= nComponents) {
+					break;
+				}
 				if (pos >= len) {
 					return sl_false;
 				}
@@ -890,6 +900,30 @@ namespace slib
 					return sl_false;
 				}
 			}
+			return pos == len;
+		}
+	}
+
+	String SAppVector2Value::getAccessString() const
+	{
+		if (!flagDefined) {
+			return "slib::Vector2::zero()";
+		}
+		return String::format("slib::Vector2(%ff, %ff)", value.x, value.y);
+	}
+
+	sl_bool SAppVector2Value::parse(const String& _str)
+	{
+		String str = _str.trim();
+		if (str.isEmpty()) {
+			return sl_true;
+		}
+		float f[2];
+		if (ParseFloatComponents(f, 2, str)) {
+			value.x = f[0];
+			value.y = f[1];
+			flagDefined = sl_true;
+			return sl_true;
 		}
 		return sl_false;
 	}
@@ -908,50 +942,13 @@ namespace slib
 		if (str.isEmpty()) {
 			return sl_true;
 		}
-		sl_size pos = 0;
-		sl_size len = str.getLength();
-		const sl_char8* data = str.getData();
 		float f[3];
-		for (sl_size i = 0; i < 3; i++) {
-			sl_reg iRet = ParseFloat(f + i, data, pos, len);
-			if (iRet == SLIB_PARSE_ERROR) {
-				return sl_false;
-			}
-			pos = iRet;
-			for (; pos < len; pos++) {
-				sl_char8 c = data[pos];
-				if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
-					break;
-				}
-			}
-			if (i == 2) {
-				if (pos == len) {
-					value.x = f[0];
-					value.y = f[1];
-					value.z = f[2];
-					flagDefined = sl_true;
-					return sl_true;
-				} else {
-					return sl_false;
-				}
-			} else {
-				if (pos >= len) {
-					return sl_false;
-				}
-				if (data[pos] != ',') {
-					return sl_false;
-				}
-				pos++;
-				for (; pos < len; pos++) {
-					sl_char8 c = data[pos];
-					if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
-						break;
-					}
-				}
-				if (pos >= len) {
-					return sl_false;
-				}
-			}
+		if (ParseFloatComponents(f, 3, str)) {
+			value.x = f[0];
+			value.y = f[1];
+			value.z = f[2];
+			flagDefined = sl_true;
+			return sl_true;
 		}
 		return sl_false;
 	}
@@ -970,51 +967,14 @@ namespace slib
 		if (str.isEmpty()) {
 			return sl_true;
 		}
-		sl_size pos = 0;
-		sl_size len = str.getLength();
-		const sl_char8* data = str.getData();
 		float f[4];
-		for (sl_size i = 0; i < 4; i++) {
-			sl_reg iRet = ParseFloat(f + i, data, pos, len);
-			if (iRet == SLIB_PARSE_ERROR) {
-				return sl_false;
-			}
-			pos = iRet;
-			for (; pos < len; pos++) {
-				sl_char8 c = data[pos];
-				if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
-					break;
-				}
-			}
-			if (i == 3) {
-				if (pos == len) {
-					value.x = f[0];
-					value.y = f[1];
-					value.z = f[2];
-					value.w = f[3];
-					flagDefined = sl_true;
-					return sl_true;
-				} else {
-					return sl_false;
-				}
-			} else {
-				if (pos >= len) {
-					return sl_false;
-				}
-				if (data[pos] != ',') {
-					return sl_false;
-				}
-				pos++;
-				for (; pos < len; pos++) {
-					sl_char8 c = data[pos];
-					if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
-						break;
-					}
-				}
-				if (pos >= len) {
-					return sl_false;
-				}
-			}
+		if (ParseFloatComponents(f, 3, str)) {
+			value.x = f[0];
+			value.y = f[1];
+			value.z = f[2];
+			value.w = f[3];
+			flagDefined = sl_true;
+			return sl_true;
 		}
 		return sl_false;
 	}
@@ -1676,7 +1636,8 @@ namespace slib
 		}
 	}
 
-	namespace {
+	namespace
+	{
 		static void InheritBorderStateMap(SAppStateMap<SAppBorderValue>& map, const SAppBorderValue* base1, const SAppBorderValue* base2, ViewState stateDst)
 		{
 			SAppBorderValue* value = map.values.getItemPointer(stateDst);
@@ -2690,6 +2651,55 @@ namespace slib
 			return sl_true;
 		} else if (str == "record") {
 			value = GridView::SelectionMode::Record;
+			flagDefined = sl_true;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	String SAppLatLonValue::getAccessString() const
+	{
+		if (!flagDefined) {
+			return "slib::Latlon()";
+		}
+		return String::format("slib::LatLon(%f, %f)", value.latitude, value.longitude);
+	}
+
+	sl_bool SAppLatLonValue::parse(const String& _str)
+	{
+		String str = _str.trim();
+		if (str.isEmpty()) {
+			return sl_true;
+		}
+		double f[2];
+		if (ParseFloatComponents(f, 2, str)) {
+			value.latitude = f[0];
+			value.longitude = f[1];
+			flagDefined = sl_true;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	String SAppGeoLocationValue::getAccessString() const
+	{
+		if (!flagDefined) {
+			return "slib::GeoLocation()";
+		}
+		return String::format("slib::GeoLocation(%f, %f, %f)", value.latitude, value.longitude, value.altitude);
+	}
+
+	sl_bool SAppGeoLocationValue::parse(const String& _str)
+	{
+		String str = _str.trim();
+		if (str.isEmpty()) {
+			return sl_true;
+		}
+		double f[3];
+		if (ParseFloatComponents(f, 3, str)) {
+			value.latitude = f[0];
+			value.longitude = f[1];
+			value.altitude = f[2];
 			flagDefined = sl_true;
 			return sl_true;
 		}

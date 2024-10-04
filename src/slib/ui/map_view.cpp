@@ -33,6 +33,7 @@
 #include "slib/math/transform3d.h"
 #include "slib/ui/core.h"
 #include "slib/ui/resource.h"
+#include "slib/ui/priv/view_state_map.h"
 #include "slib/core/thread_pool.h"
 #include "slib/core/stringify.h"
 #include "slib/core/safe_static.h"
@@ -620,8 +621,8 @@ namespace slib
 
 	void MapPlane::setCenterLocation(double E, double N)
 	{
-		double w = m_scale * m_viewport.getWidth() / m_viewport.getHeight();
-		double h = m_scale;
+		double w = MapViewData::getMetersFromPixels(m_viewport.getWidth()) * m_scale;
+		double h = MapViewData::getMetersFromPixels(m_viewport.getHeight()) * m_scale;
 		if (w < m_range.right - m_range.left) {
 			w /= 2.0;
 			m_center.E = Math::clamp(E, m_range.left + w, m_range.right - w);
@@ -701,14 +702,12 @@ namespace slib
 
 	Double2 MapPlane::getViewPointFromMapLocation(const MapLocation& location)
 	{
-		double f = m_viewport.getHeight() / m_scale;
-		return { m_viewport.getCenterX() + (location.E - m_center.E) * f, m_viewport.getCenterY() + (m_center.N - location.N) * f };
+		return { m_viewport.getCenterX() + MapViewData::getPixelsFromMeters((location.E - m_center.E) / m_scale), m_viewport.getCenterY() + MapViewData::getPixelsFromMeters((m_center.N - location.N) / m_scale) };
 	}
 
 	MapLocation MapPlane::getMapLocationFromViewPoint(const Double2& point)
 	{
-		double f = m_scale / m_viewport.getHeight();
-		return { m_center.E + (point.x - m_viewport.getCenterX()) * f, m_center.N - (point.y - m_viewport.getCenterY()) * f };
+		return { m_center.E + MapViewData::getMetersFromPixels(point.x - m_viewport.getCenterX()) * m_scale, m_center.N - MapViewData::getMetersFromPixels(point.y - m_viewport.getCenterY()) * m_scale };
 	}
 
 	double MapPlane::getViewLengthFromMapLength(double length)
@@ -2177,6 +2176,8 @@ namespace slib
 		eyeLocation.altitude = 10000;
 		tilt = 0.0f;
 		rotation = 0.0f;
+		flagTileGrid = sl_false;
+		flagTerrainGrid = sl_false;
 
 		drawId = 0;
 	}
@@ -2272,8 +2273,6 @@ namespace slib
 	MapViewData::MapViewData()
 	{
 		m_flagGlobeMode = sl_false;
-		m_flagRendered = sl_false;
-
 		m_minAltitude = 50.0;
 		m_maxAltitude = 100000000.0;
 		m_minDistanceFromGround = 100.0;
@@ -2281,11 +2280,6 @@ namespace slib
 
 	MapViewData::~MapViewData()
 	{
-	}
-
-	Ref<View> MapViewData::getView() const
-	{
-		return m_view;
 	}
 
 	sl_bool MapViewData::isGlobeMode() const
@@ -2312,85 +2306,6 @@ namespace slib
 				invalidate(mode);
 			}
 		}
-	}
-
-	Ref<MapPlane> MapViewData::getPlane() const
-	{
-		MutexLocker locker(&m_lock);
-		return m_plane;
-	}
-
-	void MapViewData::setPlane(const Ref<MapPlane>& plane, UIUpdateMode mode)
-	{
-		MutexLocker locker(&m_lock);
-		if (m_plane == plane) {
-			return;
-		}
-		GeoLocation location = m_state.eyeLocation;
-		if (m_plane.isNotNull()) {
-			if (!m_flagGlobeMode) {
-				location = m_plane->getEyeLocation();
-			}
-			m_plane->clearCache();
-		}
-		m_plane = plane;
-		if (plane.isNotNull()) {
-			_resizePlane(plane.get(), m_state.viewportWidth, m_state.viewportHeight);
-			plane->setEyeLocation(location);
-		}
-		invalidate(mode);
-	}
-
-	Ref<MapSurface> MapViewData::getSurface() const
-	{
-		MutexLocker locker(&m_lock);
-		return m_surface;
-	}
-
-	void MapViewData::setSurface(const Ref<MapSurface>& surface, UIUpdateMode mode)
-	{
-		MutexLocker locker(&m_lock);
-		if (m_surface == surface) {
-			return;
-		}
-		if (m_surface.isNotNull()) {
-			m_surface->clearCache();
-		}
-		m_surface = surface;
-		invalidate(mode);
-	}
-
-	List< Ref<MapViewObject> > MapViewData::getObjects() const
-	{
-		MutexLocker locker(&m_lock);
-		return m_objects.getAllValues_NoLock();
-	}
-
-	Ref<MapViewObject> MapViewData::getObject(const String& key) const
-	{
-		MutexLocker locker(&m_lock);
-		return m_objects.getValue_NoLock(key);
-	}
-
-	void MapViewData::putObject(const String& name, const Ref<MapViewObject>& object, UIUpdateMode mode)
-	{
-		MutexLocker locker(&m_lock);
-		if (object.isNotNull()) {
-			m_objects.put_NoLock(name, object);
-		} else {
-			m_objects.remove_NoLock(name);
-		}
-		invalidate(mode);
-	}
-
-	const MapViewState& MapViewData::getMapState() const
-	{
-		return m_state;
-	}
-
-	MapViewState& MapViewData::getMapState()
-	{
-		return m_state;
 	}
 
 	GeoLocation MapViewData::getEyeLocation() const
@@ -2442,18 +2357,6 @@ namespace slib
 	void MapViewData::setEyeLocation(const GeoLocation& location, UIUpdateMode mode)
 	{
 		setEyeLocation(location, sl_null, mode);
-	}
-
-	void MapViewData::travelTo(const GeoLocation& location)
-	{
-		if (m_flagGlobeMode) {
-			m_motion.prepare(this);
-			m_motion.endLocation = location;
-			m_motion.flagTravel = sl_true;
-			m_motion.start();
-		} else {
-			setEyeLocation(location);
-		}
 	}
 
 	float MapViewData::getEyeRotation() const
@@ -2549,7 +2452,7 @@ namespace slib
 		}
 	}
 
-	double MapViewData::getMinimumAltitude()
+	double MapViewData::getMinimumAltitude() const
 	{
 		return m_minAltitude;
 	}
@@ -2563,7 +2466,7 @@ namespace slib
 		setEyeLocation(getEyeLocation(), mode);
 	}
 
-	double MapViewData::getMaximumAltitude()
+	double MapViewData::getMaximumAltitude() const
 	{
 		return m_maxAltitude;
 	}
@@ -2577,7 +2480,7 @@ namespace slib
 		setEyeLocation(getEyeLocation(), mode);
 	}
 
-	double MapViewData::getMinimumDistanceFromGround()
+	double MapViewData::getMinimumDistanceFromGround() const
 	{
 		return m_minDistanceFromGround;
 	}
@@ -2585,6 +2488,122 @@ namespace slib
 	void MapViewData::setMinimumDistanceFromGround(double value)
 	{
 		m_minDistanceFromGround = value;
+	}
+
+	Ref<Font> MapViewData::getSpriteFont() const
+	{
+		return m_spriteFont;
+	}
+
+	void MapViewData::setSpriteFont(const Ref<Font>& font)
+	{
+		m_spriteFont = font;
+	}
+
+	sl_bool MapViewData::isTileGridVisible() const
+	{
+		return m_state.flagTileGrid;
+	}
+
+	void MapViewData::setTileGridVisible(sl_bool flag, UIUpdateMode mode)
+	{
+		m_state.flagTileGrid = flag;
+		invalidate(mode);
+	}
+
+	sl_bool MapViewData::isTerrainGridVisible() const
+	{
+		return m_state.flagTerrainGrid;
+	}
+
+	void MapViewData::setTerrainGridVisible(sl_bool flag, UIUpdateMode mode)
+	{
+		m_state.flagTileGrid = flag;
+		invalidate(mode);
+	}
+
+	Ref<View> MapViewData::getView() const
+	{
+		return m_view;
+	}
+
+	Ref<MapPlane> MapViewData::getPlane() const
+	{
+		MutexLocker locker(&m_lock);
+		return m_plane;
+	}
+
+	void MapViewData::setPlane(const Ref<MapPlane>& plane, UIUpdateMode mode)
+	{
+		MutexLocker locker(&m_lock);
+		if (m_plane == plane) {
+			return;
+		}
+		GeoLocation location = m_state.eyeLocation;
+		if (m_plane.isNotNull()) {
+			if (!m_flagGlobeMode) {
+				location = m_plane->getEyeLocation();
+			}
+			m_plane->clearCache();
+		}
+		m_plane = plane;
+		if (plane.isNotNull()) {
+			_resizePlane(plane.get(), m_state.viewportWidth, m_state.viewportHeight);
+			plane->setEyeLocation(location);
+		}
+		invalidate(mode);
+	}
+
+	Ref<MapSurface> MapViewData::getSurface() const
+	{
+		MutexLocker locker(&m_lock);
+		return m_surface;
+	}
+
+	void MapViewData::setSurface(const Ref<MapSurface>& surface, UIUpdateMode mode)
+	{
+		MutexLocker locker(&m_lock);
+		if (m_surface == surface) {
+			return;
+		}
+		if (m_surface.isNotNull()) {
+			m_surface->clearCache();
+		}
+		m_surface = surface;
+		invalidate(mode);
+	}
+
+	List< Ref<MapViewObject> > MapViewData::getObjects() const
+	{
+		MutexLocker locker(&m_lock);
+		return m_objects.getAllValues_NoLock();
+	}
+
+	Ref<MapViewObject> MapViewData::getObject(const String& key) const
+	{
+		MutexLocker locker(&m_lock);
+		return m_objects.getValue_NoLock(key);
+	}
+
+	void MapViewData::putObject(const String& name, const Ref<MapViewObject>& object, UIUpdateMode mode)
+	{
+		MutexLocker locker(&m_lock);
+		if (object.isNotNull()) {
+			m_objects.put_NoLock(name, object);
+		} else {
+			m_objects.remove_NoLock(name);
+		}
+		invalidate(mode);
+	}
+
+	const MapViewState& MapViewData::getMapState() const
+	{
+		return m_state;
+	}
+
+	MapViewState& MapViewData::getMapState()
+	{
+		return m_state;
 	}
 
 	void MapViewData::resize(double width, double height, UIUpdateMode mode)
@@ -2640,6 +2659,18 @@ namespace slib
 	void MapViewData::movePlane(double dx, double dy, UIUpdateMode mode)
 	{
 		movePlane(dx, dy, sl_null, mode);
+	}
+
+	void MapViewData::travelTo(const GeoLocation& location)
+	{
+		if (m_flagGlobeMode) {
+			m_motion.prepare(this);
+			m_motion.endLocation = location;
+			m_motion.flagTravel = sl_true;
+			m_motion.start();
+		} else {
+			setEyeLocation(location);
+		}
 	}
 
 	void MapViewData::zoom(double factor, UIEvent* ev, UIUpdateMode mode)
@@ -2708,21 +2739,16 @@ namespace slib
 		m_motion.stop();
 	}
 
-	void MapViewData::addExtension(const Ref<MapViewExtension>& extension)
+	void MapViewData::putExtension(const String& name, const Ref<MapViewExtension>& extension)
 	{
 		if (extension.isNotNull()) {
-			m_extensions.add_NoLock(extension);
+			m_extensions.put_NoLock(name, extension);
 		}
 	}
 
-	Ref<Font> MapViewData::getSpriteFont()
+	Ref<MapViewExtension> MapViewData::getExtension(const String& name)
 	{
-		return m_spriteFont;
-	}
-
-	void MapViewData::setSpriteFont(const Ref<Font>& font)
-	{
-		m_spriteFont = font;
+		return m_extensions.getValue_NoLock(name);
 	}
 
 	void MapViewData::doInvalidate(UIUpdateMode mode)
@@ -2735,9 +2761,10 @@ namespace slib
 
 	void MapViewData::invokeChangeLocation(const GeoLocation& location, UIEvent* ev)
 	{
-		ListElements< Ref<MapViewExtension> > extensions(m_extensions);
-		for (sl_size i = 0; i < extensions.count; i++) {
-			extensions[i]->onChangeLocation(location);
+		auto node = m_extensions.getFirstNode();
+		while (node) {
+			node->value->onChangeLocation(location);
+			node = node->next;
 		}
 		notifyChangeLocation(location, ev);
 	}
@@ -2748,9 +2775,10 @@ namespace slib
 
 	void MapViewData::invokeChangeRotation(double rotation, UIEvent* ev)
 	{
-		ListElements< Ref<MapViewExtension> > extensions(m_extensions);
-		for (sl_size i = 0; i < extensions.count; i++) {
-			extensions[i]->onChangeRotation(rotation);
+		auto node = m_extensions.getFirstNode();
+		while (node) {
+			node->value->onChangeRotation(rotation);
+			node = node->next;
 		}
 		notifyChangeRotation(rotation, ev);
 	}
@@ -2761,11 +2789,12 @@ namespace slib
 
 	void MapViewData::invokeChangeTilt(double tilt, UIEvent* ev)
 	{
-		ListElements< Ref<MapViewExtension> > extensions(m_extensions);
-		for (sl_size i = 0; i < extensions.count; i++) {
-			extensions[i]->onChangeTilt(tilt);
+		auto node = m_extensions.getFirstNode();
+		while (node) {
+			node->value->onChangeTilt(tilt);
+			node = node->next;
 		}
-		notifyChangeRotation(tilt, ev);
+		notifyChangeTilt(tilt, ev);
 	}
 
 	sl_bool MapViewData::_initState()
@@ -2863,8 +2892,6 @@ namespace slib
 				node = node->next;
 			}
 		}
-
-		m_flagRendered = sl_true;
 	}
 
 	void MapViewData::renderTexture(RenderEngine* engine, const Point& center, const Size& size, const Ref<Texture>& texture, const Color4F& color)
@@ -3237,7 +3264,7 @@ namespace slib
 		m_flagTouchRotateStarted = sl_false;;
 
 		m_flagClicking = sl_false;
-		m_flagPressedCompass = sl_false;
+		m_compassState = ViewState::Normal;
 	}
 
 	MapView::~MapView()
@@ -3251,26 +3278,29 @@ namespace slib
 		m_view = this;
 	}
 
-	Ref<Image> MapView::getCompass()
+	Ref<Image> MapView::getCompass(ViewState state)
 	{
-		return m_compass;
+		return m_compass.get(state);
 	}
 
-	void MapView::setCompass(const Ref<Image>& image, UIUpdateMode mode)
+	void MapView::setCompass(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
 	{
-		m_compass = image;
+		if (drawable.isNotNull()) {
+			Ref<Image> image = drawable->toImage();
+			if (image.isNotNull()) {
+				m_compass.set(state, image);
+			} else {
+				m_compass.remove(state);
+			}
+		} else {
+			m_compass.remove(state);
+		}
 		invalidate(mode);
 	}
 
-	Ref<Image> MapView::getPressedCompass()
+	void MapView::setCompass(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		return m_compassPressed;
-	}
-
-	void MapView::setPressedCompass(const Ref<Image>& image, UIUpdateMode mode)
-	{
-		m_compassPressed = image;
-		invalidate(mode);
+		setCompass(drawable, ViewState::All, mode);
 	}
 
 	sl_ui_len MapView::getCompassSize()
@@ -3415,23 +3445,12 @@ namespace slib
 		if (!m_flagGlobeMode) {
 			return;
 		}
-		if (m_compass.isNull()) {
+		if (m_compass.isNone()) {
 			return;
 		}
-		Ref<Image> compass;
-		if (m_flagPressedCompass) {
-			compass = m_compassPressed;
-			if (compass.isNull()) {
-				compass = m_compass;
-				if (compass.isNull()) {
-					return;
-				}
-			}
-		} else {
-			compass = m_compass;
-			if (compass.isNull()) {
-				return;
-			}
+		Ref<Image> compass = m_compass.evaluate(m_compassState);
+		if (compass.isNull()) {
+			return;
 		}
 		Ref<Texture> texture = Texture::getBitmapRenderingCache(compass);
 		if (texture.isNull()) {
@@ -3494,6 +3513,16 @@ namespace slib
 		RenderView::onFrame(engine);
 	}
 
+	sl_bool MapView::_isPointInCompass(const Point& pt)
+	{
+		sl_real compassSize = (sl_real)(m_compassSize / 2);
+		sl_real compassDistance = (pt - Point(getCompassLocation() + Point(compassSize, compassSize))).getLength2p() / compassSize / compassSize;
+		if (m_compass.isNotNone() && compassDistance >= 0.01f && compassDistance <= 1.0f) {
+			return sl_true;
+		}
+		return sl_false;
+	}
+
 	void MapView::onMouseEvent(UIEvent* ev)
 	{
 		RenderView::onMouseEvent(ev);
@@ -3522,17 +3551,36 @@ namespace slib
 				m_flagLeftDown = sl_true;
 				stopMoving();
 				if (m_flagGlobeMode) {
-					sl_real compassSize = (sl_real)(m_compassSize / 2);
-					sl_real compassDistance = (pt - Point(getCompassLocation() + Point(compassSize, compassSize))).getLength2p() / compassSize / compassSize;
-					if (m_compass.isNotNull() && compassDistance >= 0.01f && compassDistance <= 1.0f) {
-						m_flagPressedCompass = sl_true;
+					if (_isPointInCompass(pt)) {
+						m_compassState = ViewState::Pressed;
 						invalidate();
 						break;
 					}
 				}
-				m_flagPressedCompass = sl_false;
+				m_compassState = ViewState::Normal;
 				m_flagClicking = sl_true;
 				invalidate();
+				break;
+			case UIAction::MouseMove:
+				if (m_flagGlobeMode) {
+					if (_isPointInCompass(pt)) {
+						if (m_compassState == ViewState::Normal) {
+							m_compassState = ViewState::Hover;
+							invalidate();
+						}
+					} else {
+						if (m_compassState == ViewState::Hover) {
+							m_compassState = ViewState::Normal;
+							invalidate();
+						}
+					}
+				}
+				break;
+			case UIAction::MouseLeave:
+				if (m_compassState == ViewState::Hover) {
+					m_compassState = ViewState::Normal;
+					invalidate();
+				}
 				break;
 			case UIAction::TouchMove:
 			case UIAction::TouchEnd:
@@ -3543,9 +3591,10 @@ namespace slib
 				if (!m_flagLeftDown) {
 					break;
 				}
-				if (m_flagPressedCompass) {
+				if (m_compassState == ViewState::Pressed) {
 					if (!flagDrag) {
-						m_flagPressedCompass = sl_false;
+						m_compassState = ViewState::Normal;
+						invalidate();
 					}
 					if (nTouches >= 2) {
 						break;

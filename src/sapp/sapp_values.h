@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@
 #include "slib/graphics/font.h"
 #include "slib/ui/constants.h"
 #include "slib/ui/cursor.h"
+#include "slib/geo/geo_location.h"
 #include "slib/data/xml.h"
 
 #define PRIV_SAPP_DECLARE_VALUE_NO_SETDATA \
@@ -206,6 +207,21 @@ namespace slib
 	public:
 		sl_bool flagDefined = sl_false;
 		float value = 0;
+
+	public:
+		String getAccessString() const;
+
+		sl_bool parse(const String& str);
+
+	};
+
+	class SAppDoubleValue
+	{
+		PRIV_SAPP_DECLARE_VALUE_SUPPORT_SETDATA_GENERIC("getDouble")
+
+	public:
+		sl_bool flagDefined = sl_false;
+		double value = 0;
 
 	public:
 		String getAccessString() const;
@@ -778,6 +794,36 @@ namespace slib
 	public:
 		sl_bool flagDefined = sl_false;
 		GridView::SelectionMode value = GridView::SelectionMode::Cell;
+
+	public:
+		String getAccessString() const;
+
+		sl_bool parse(const String& str);
+
+	};
+
+	class SAppLatLonValue
+	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+
+	public:
+		sl_bool flagDefined = sl_false;
+		LatLon value;
+
+	public:
+		String getAccessString() const;
+
+		sl_bool parse(const String& str);
+
+	};
+
+	class SAppGeoLocationValue
+	{
+		PRIV_SAPP_DECLARE_VALUE_NO_SETDATA
+	
+	public:
+		sl_bool flagDefined = sl_false;
+		GeoLocation value;
 
 	public:
 		String getAccessString() const;

@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_UI_MAP_VIEW
 
 #include "render_view.h"
+#include "view_state_map.h"
 
 #include "../geo/geo_rectangle.h"
 #include "../geo/dem.h"
@@ -664,6 +665,8 @@ namespace slib
 		GeoLocation eyeLocation;
 		float tilt;
 		float rotation;
+		sl_bool flagTileGrid;
+		sl_bool flagTerrainGrid;
 
 		// Derived States
 		Double3 eyePoint;
@@ -723,11 +726,56 @@ namespace slib
 		typedef SphericalEarth Earth;
 
 	public:
-		Ref<View> getView() const;
-
 		sl_bool isGlobeMode() const;
 
 		void setGlobeMode(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		GeoLocation getEyeLocation() const;
+
+		void setEyeLocation(const GeoLocation& location, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		// Degrees
+		float getEyeRotation() const;
+
+		// Degrees
+		void setEyeRotation(float rotation, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		// Degrees
+		float getEyeTilt() const;
+
+		// Degrees
+		void setEyeTilt(float tilt, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		double getMapScale() const;
+
+		void setMapScale(double scale, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		double getMinimumAltitude() const;
+
+		void setMinimumAltitude(double altitude, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		double getMaximumAltitude() const;
+
+		void setMaximumAltitude(double altitude, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		double getMinimumDistanceFromGround() const;
+
+		void setMinimumDistanceFromGround(double distance);
+
+		Ref<Font> getSpriteFont() const;
+
+		void setSpriteFont(const Ref<Font>& font);
+
+		sl_bool isTileGridVisible() const;
+
+		void setTileGridVisible(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isTerrainGridVisible() const;
+
+		void setTerrainGridVisible(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+	public:
+		Ref<View> getView() const;
 
 		Ref<MapPlane> getPlane() const;
 
@@ -747,43 +795,11 @@ namespace slib
 
 		MapViewState& getMapState();
 
-		GeoLocation getEyeLocation() const;
-
-		void setEyeLocation(const GeoLocation& location, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void travelTo(const GeoLocation& location);
-
-		// Degrees
-		float getEyeRotation() const;
-
-		// Degrees
-		void setEyeRotation(float rotation, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		// Degrees
-		float getEyeTilt() const;
-
-		// Degrees
-		void setEyeTilt(float tilt, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		double getMapScale() const;
-
-		void setMapScale(double scale, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		double getMinimumAltitude();
-
-		void setMinimumAltitude(double altitude, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		double getMaximumAltitude();
-
-		void setMaximumAltitude(double altitude, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		double getMinimumDistanceFromGround();
-
-		void setMinimumDistanceFromGround(double distance);
-
 		void resize(double width, double height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void movePlane(double dx, double dy, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void travelTo(const GeoLocation& location);
 
 		void zoom(double scale, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -794,11 +810,9 @@ namespace slib
 		void stopMoving();
 
 		// Not thread-safe
-		void addExtension(const Ref<MapViewExtension>& extension);
+		void putExtension(const String& name, const Ref<MapViewExtension>& extension);
 
-		Ref<Font> getSpriteFont();
-
-		void setSpriteFont(const Ref<Font>& font);
+		Ref<MapViewExtension> getExtension(const String& name);
 
 	public:
 		void invalidate(UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -892,16 +906,13 @@ namespace slib
 		Ref<MapPlane> m_plane;
 		Ref<MapSurface> m_surface;
 		CHashMap< String, Ref<MapViewObject> > m_objects;
-		List< Ref<MapViewExtension> > m_extensions; // Not thread-safe
-
-		AtomicRef<Font> m_spriteFont; // Not thread-safe
+		CHashMap< String, Ref<MapViewExtension> > m_extensions; // Not thread-safe
 
 		MapViewState m_state;
-		sl_bool m_flagRendered;
-
 		double m_minAltitude;
 		double m_maxAltitude;
 		double m_minDistanceFromGround;
+		AtomicRef<Font> m_spriteFont; // Not thread-safe
 
 		class Motion
 		{
@@ -960,13 +971,11 @@ namespace slib
 		~MapView();
 
 	public:
-		Ref<Image> getCompass();
+		Ref<Image> getCompass(ViewState state = ViewState::Default);
 
-		void setCompass(const Ref<Image>& image, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCompass(const Ref<Drawable>& image, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Image> getPressedCompass();
-
-		void setPressedCompass(const Ref<Image>& image, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCompass(const Ref<Drawable>& image, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		// Pixels
 		sl_ui_len getCompassSize();
@@ -1051,9 +1060,11 @@ namespace slib
 
 		void notifyChangeTilt(double tilt, UIEvent* ev) override;
 
+	private:
+		sl_bool _isPointInCompass(const Point& pt);
+
 	protected:
-		AtomicRef<Image> m_compass;
-		AtomicRef<Image> m_compassPressed;
+		ViewStateMap< Ref<Image> > m_compass;
 		Point m_compassCenter;
 		sl_ui_len m_compassSize;
 		Alignment m_compassAlign;
@@ -1075,7 +1086,7 @@ namespace slib
 		sl_bool m_flagTouchRotateStarted;
 
 		sl_bool m_flagClicking;
-		sl_bool m_flagPressedCompass = sl_false;
+		ViewState m_compassState;
 	};
 
 }

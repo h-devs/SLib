@@ -4843,7 +4843,38 @@ namespace slib
 		LAYOUT_CONTROL_PROCESS_SUPER(Render)
 
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, globe, setGlobeMode)
-
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, eyeLocation, setEyeLocation)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, eyeRotation, setEyeRotation)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, eyeTilt, setEyeTilt)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, mapScale, setMapScale)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, minimumAltitude, setMinimumAltitude)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, maximumAltitude, setMaximumAltitude)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, compass, setCompass)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, compassSize, setCompassSize, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, compassCenter, setCompassCenter)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, compassAlign, setCompassAlignment)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, compassMarginLeft, setCompassMarginLeft, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, compassMarginTop, setCompassMarginTop, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, compassMarginRight, setCompassMarginRight, checkPosition)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, compassMarginBottom, setCompassMarginBottom, checkPosition)
+		if (op == SAppLayoutOperation::Parse) {
+			SAppDimensionValue compassMargin;
+			LAYOUT_CONTROL_PARSE_ATTR(MARGIN, , compassMargin)
+			if (compassMargin.flagDefined) {
+				if (!(attr->compassMarginLeft.flagDefined)) {
+					attr->compassMarginLeft = compassMargin;
+				}
+				if (!(attr->compassMarginTop.flagDefined)) {
+					attr->compassMarginTop = compassMargin;
+				}
+				if (!(attr->compassMarginRight.flagDefined)) {
+					attr->compassMarginRight = compassMargin;
+				}
+				if (!(attr->compassMarginBottom.flagDefined)) {
+					attr->compassMarginBottom = compassMargin;
+				}
+			}
+		}
 		LAYOUT_CONTROL_ADD_STATEMENT
 	}
 	END_PROCESS_LAYOUT_CONTROL

@@ -975,6 +975,22 @@ namespace slib
 	{
 	public:
 		SAppBooleanValue globe;
+		SAppGeoLocationValue eyeLocation;
+		SAppFloatValue eyeRotation;
+		SAppFloatValue eyeTilt;
+		SAppDoubleValue mapScale;
+		SAppDoubleValue minimumAltitude;
+		SAppDoubleValue maximumAltitude;
+		SAppDoubleValue minimumDistanceFromGround;
+		SAppFontValue spriteFont;
+		SAppStateMap<SAppDrawableValue> compass;
+		SAppDimensionValue compassSize;
+		SAppVector2Value compassCenter;
+		SAppAlignmentValue compassAlign;
+		SAppDimensionValue compassMarginLeft;
+		SAppDimensionValue compassMarginTop;
+		SAppDimensionValue compassMarginRight;
+		SAppDimensionValue compassMarginBottom;
 	};
 
 	class SAppLayoutGroupBoxAttributes : public SAppLayoutViewAttributes
