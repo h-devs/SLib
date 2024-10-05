@@ -920,6 +920,7 @@ namespace slib
 		static int StringPath_MoveTo(const FT_Vector* to, void* user)
 		{
 			StringPathContext* context = (StringPathContext*)user;
+			context->path->closeSubpath();
 			context->path->moveTo(STRING_PATH_X(to->x), STRING_PATH_Y(to->y));
 			return 0;
 		}

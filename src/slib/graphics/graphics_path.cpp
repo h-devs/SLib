@@ -720,11 +720,12 @@ namespace slib
 			sl_bool flagClose = pt.flagClose;
 			switch (pt.type) {
 				case GraphicsPathPoint::MoveTo:
-					if (current.points.getCount()) {
+					if (current.points.getCount() >= 2) {
 						if (!(ret.add_NoLock(Move(current)))) {
 							return sl_null;
 						}
 					}
+					current.points.setNull();
 					current.flagClose = sl_false;
 					if (!(current.points.add_NoLock((Point&)pt))) {
 						return sl_null;
@@ -751,7 +752,7 @@ namespace slib
 							for (sl_uint32 i = 0; i < n; i++) {
 								Point chop;
 								curve.getPoint((sl_real)i / _n, chop);
-								if (i) {
+								if (i && i + 1 < n) {
 									if ((chop - lastChop).getLength2p() < chopLength2p) {
 										continue;
 									}
@@ -770,16 +771,17 @@ namespace slib
 					break;
 			}
 			if (flagClose) {
-				if (current.points.getCount()) {
+				if (current.points.getCount() >= 2) {
 					current.flagClose = sl_true;
 					if (!(ret.add_NoLock(Move(current)))) {
 						return sl_null;
 					}
 				}
+				current.points.setNull();
 				current.flagClose = sl_false;
 			}
 		}
-		if (current.points.getCount()) {
+		if (current.points.getCount() >= 2) {
 			if (!(ret.add_NoLock(Move(current)))) {
 				return sl_null;
 			}
