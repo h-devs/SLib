@@ -44,14 +44,14 @@ namespace slib
 				const PointT<T>& p1 = polygonPoints[i];
 				const PointT<T>& p2 = polygonPoints[(i + 1) % nPolygonPoints];
 				if (p1.x > point.x && Math::isAlmostZero(p1.y - point.y)) {
-					const PointT<T>& p0 = polygonPoints[(i + nPolygonPoints - 1) % nPolygonPoints];
-					if (!(Math::isAlmostZero(p0.y - p1.y) || Math::isAlmostZero(p2.y - p1.y))) {
-						if (p0.y < p1.y) {
-							if (p2.y > p1.y) {
+					if (!(Math::isAlmostZero(p2.y - p1.y))) {
+						const PointT<T>& p0 = polygonPoints[(i + nPolygonPoints - 1) % nPolygonPoints];
+						if (p2.y > p1.y) {
+							if (Math::isLessThanEpsilon(p0.y - p1.y)) {
 								nIntersect++;
 							}
 						} else {
-							if (p2.y < p1.y) {
+							if (Math::isLessThanEpsilon(p1.y - p0.y)) {
 								nIntersect++;
 							}
 						}
@@ -152,15 +152,21 @@ namespace slib
 					triangle.point1 = points[(iPt + nPoints - 1) % nPoints];
 					triangle.point2 = points[iPt];
 					triangle.point3 = points[(iPt + 1) % nPoints];
+					sl_bool bIgnore = sl_false;
+					if (triangle.point1.isAlmostEqual(triangle.point2) || triangle.point2.isAlmostEqual(triangle.point3) || triangle.point1.isAlmostEqual(triangle.point3)) {
+						bIgnore = sl_true;
+					}
 					sl_bool bEar = sl_false;
-					if (i == nPoints - 1) {
-						bEar = sl_true;
-					} else if (!(_isPointInPolygon(triangle.point2, points, nPoints, iPt))) {
-						bEar = sl_true;
-						for (sl_size i = 0; i < nPoints - 3; i++) {
-							if (isPointInPolygon(points[(iPt + 2 + i) % nPoints], &(triangle.point1), 3)) {
-								bEar = sl_false;
-								break;
+					if (!bIgnore) {
+						if (i == nPoints - 1) {
+							bEar = sl_true;
+						} else if (!(_isPointInPolygon(triangle.point2, points, nPoints, iPt))) {
+							bEar = sl_true;
+							for (sl_size k = 0; k < nPoints - 3; k++) {
+								if (isPointInPolygon(points[(iPt + 2 + k) % nPoints], &(triangle.point1), 3)) {
+									bEar = sl_false;
+									break;
+								}
 							}
 						}
 					}
@@ -168,6 +174,8 @@ namespace slib
 						if (!ret.add_NoLock(triangle)) {
 							return sl_null;
 						}
+					}
+					if (bEar || bIgnore) {
 						if (pointList.isNotNull()) {
 							if (!(pointList.removeAt_NoLock(iPt))) {
 								return sl_null;
@@ -594,18 +602,18 @@ namespace slib
 				}
 				const PointT<T>& p2 = polygonPoints[iNext];
 				if (p1.x > point.x && Math::isAlmostZero(p1.y - point.y)) {
-					sl_size iBefore = (i + nPolygonPoints - 1) % nPolygonPoints;
-					if (iBefore == iIgnoreIndex) {
-						iBefore = (iBefore + nPolygonPoints - 1) % nPolygonPoints;
-					}
-					const PointT<T>& p0 = polygonPoints[iBefore];
-					if (!(Math::isAlmostZero(p0.y - p1.y) || Math::isAlmostZero(p2.y - p1.y))) {
-						if (p0.y < p1.y) {
-							if (p2.y > p1.y) {
+					if (!(Math::isAlmostZero(p2.y - p1.y))) {
+						sl_size iBefore = (i + nPolygonPoints - 1) % nPolygonPoints;
+						if (iBefore == iIgnoreIndex) {
+							iBefore = (iBefore + nPolygonPoints - 1) % nPolygonPoints;
+						}
+						const PointT<T>& p0 = polygonPoints[iBefore];
+						if (p2.y > p1.y) {
+							if (Math::isLessThanEpsilon(p0.y - p1.y)) {
 								nIntersect++;
 							}
 						} else {
-							if (p2.y < p1.y) {
+							if (Math::isLessThanEpsilon(p1.y - p0.y)) {
 								nIntersect++;
 							}
 						}
