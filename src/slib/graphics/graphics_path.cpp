@@ -739,9 +739,9 @@ namespace slib
 					if (iPoint && IsCubicControl2AndEnd(pts + iPoint + 1, nPoints - iPoint - 1)) {
 						CubicBezierCurve curve((Point&)(pts[iPoint - 1]), (Point&)(pts[iPoint]), (Point&)(pts[iPoint + 1]), (Point&)(pts[iPoint + 2]));
 						sl_real l = (pts[iPoint] - pts[iPoint - 1]).getLength() + (pts[iPoint + 1] - pts[iPoint]).getLength() + (pts[iPoint + 2] - pts[iPoint]).getLength();
-						sl_int32 _n = (sl_int32)(l / chopLength);
-						if (_n > 0) {
-							sl_uint32 n = _n;
+						sl_int32 in = (sl_int32)(l / chopLength);
+						if (in > 0) {
+							sl_uint32 n = in;
 							if (n > maxChops) {
 								n = maxChops;
 							}

@@ -1249,6 +1249,7 @@ namespace slib
 			if (shape.flagClose) {
 				drawPolygon(shape.points, pen, fillColor);
 			} else {
+				drawPolygon(shape.points, sl_null, fillColor);
 				drawLines(shape.points, pen);
 			}
 		}
