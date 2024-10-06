@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 #if defined(SLIB_RENDER_SUPPORT_D3D)
 
 #include "slib/render/d3d.h"
+
 #include "slib/dl/win32/d3d.h"
 
 namespace slib
@@ -32,7 +33,6 @@ namespace slib
 
 	namespace priv
 	{
-
 		namespace d3d8
 		{
 			Ref<Renderer> CreateRenderer(void* windowHandle, const RendererParam& param);
@@ -64,7 +64,6 @@ namespace slib
 			Ref<Renderer> CreateRenderer(void* windowHandle, const RendererParam& param);
 			Ref<Renderer> CreateRenderer(ID3D11Device* device, const RendererParam& param, void* windowHandle, sl_bool flagFreeOnFailure);
 		}
-
 	}
 
 	Ref<Renderer> Direct3D::createRenderer(RenderEngineType version, void* windowHandle, const RendererParam& param)

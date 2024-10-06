@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		static void* GetLibrary(const char* prefix)
 		{
 			for (sl_uint32 i = 99; i > 0; i--) {
@@ -55,7 +55,6 @@ namespace slib
 			}
 			return sl_null;
 		}
-
 	}
 
 #define IMPLEMENT_GET_LIBRARY(...) \

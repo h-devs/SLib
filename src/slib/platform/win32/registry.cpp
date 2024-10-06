@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		static String ParseRegistryPath(const StringParam& _path, HKEY* hRootKeyOut)
 		{
 			HKEY tmp;
@@ -182,12 +182,10 @@ namespace slib
 			}
 			return flagSuccess;
 		}
-
 	}
 
 	namespace win32
 	{
-
 		SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(Registry, HKEY, handle, NULL, RegCloseKey)
 
 		Registry Registry::open(HKEY hKeyParent, const StringParam& _path, REGSAM sam, sl_bool flagCreate)
@@ -440,7 +438,6 @@ namespace slib
 			}
 			return ret;
 		}
-
 	}
 
 }
