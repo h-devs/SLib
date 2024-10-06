@@ -1325,5 +1325,11 @@
     <ClCompile Include="..\..\src\slib\data\lzma.cpp">
       <Filter>src\data</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_d2d.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\render\d2d.cpp">
+      <Filter>src\render</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

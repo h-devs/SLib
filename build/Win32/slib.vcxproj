@@ -332,6 +332,7 @@
     <ClCompile Include="..\..\src\slib\platform\win32\async_handle.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\com.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_bcrypt.cpp" />
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_d2d.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_d3d.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_dwmapi.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\dl_gdiplus.cpp" />
@@ -353,6 +354,7 @@
     <ClCompile Include="..\..\src\slib\platform\win32\registry.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\setup.cpp" />
     <ClCompile Include="..\..\src\slib\platform\win32\wmi.cpp" />
+    <ClCompile Include="..\..\src\slib\render\d2d.cpp" />
     <ClCompile Include="..\..\src\slib\render\d3d.cpp" />
     <ClCompile Include="..\..\src\slib\render\d3d10.cpp" />
     <ClCompile Include="..\..\src\slib\render\d3d10_1.cpp" />
