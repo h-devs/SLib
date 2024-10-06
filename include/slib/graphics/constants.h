@@ -62,7 +62,19 @@ namespace slib
 		Solid = 0,
 		LinearGradient = 1,
 		RadialGradient = 2,
-		Texture = 3
+		Texture = 3,
+		Hatch = 4
+	};
+
+	enum class HatchStyle
+	{
+		Horizontal = 0,
+		Vertical = 1,
+		ForwardDiagonal = 2,
+		BackwardDiagonal = 3,
+		Cross = 4,
+		DiagonalCross = 5,
+		Dots = 6
 	};
 
 	enum class FillMode

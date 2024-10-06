@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -33,8 +33,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		class BitmapImpl : public Bitmap
 		{
 			SLIB_DECLARE_OBJECT
@@ -323,7 +323,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(BitmapImpl, Bitmap)
-
 	}
 
 	Ref<Bitmap> Bitmap::create(sl_uint32 width, sl_uint32 height)

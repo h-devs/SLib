@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -27,23 +27,6 @@
 
 namespace slib
 {
-
-	GradientBrushDetail::GradientBrushDetail()
-	{
-	}
-
-	GradientBrushDetail::~GradientBrushDetail()
-	{
-	}
-
-	TextureBrushDetail::TextureBrushDetail()
-	{
-	}
-
-	TextureBrushDetail::~TextureBrushDetail()
-	{
-	}
-
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(BrushDesc)
 
@@ -118,7 +101,8 @@ namespace slib
 		return ret;
 	}
 
-	namespace {
+	namespace
+	{
 		static sl_bool PrepareGradientDetailColors(GradientBrushDetail* detail, sl_uint32 nColors, const Color* colors, const sl_real* locations)
 		{
 			if (!(Math::isAlmostZero(locations[0]))) {
@@ -235,6 +219,24 @@ namespace slib
 		return sl_null;
 	}
 
+	Ref<Brush> Brush::createHatchBrush(HatchStyle style, const Color& foreColor, const Color& backColor)
+	{
+		Ref<HatchBrushDetail> detail = new HatchBrushDetail;
+		if (detail.isNull()) {
+			return sl_null;
+		}
+		detail->style = style;
+		detail->backgroundColor = backColor;
+		Ref<Brush> ret = new Brush;
+		if (ret.isNull()) {
+			return sl_null;
+		}
+		ret->m_desc.style = BrushStyle::Hatch;
+		ret->m_desc.color = foreColor;
+		ret->m_desc.detail = Move(detail);
+		return ret;
+	}
+
 	void Brush::getDesc(BrushDesc& desc)
 	{
 		desc = m_desc;
@@ -253,6 +255,33 @@ namespace slib
 	Color Brush::getColor()
 	{
 		return m_desc.color;
+	}
+
+
+	GradientBrushDetail::GradientBrushDetail()
+	{
+	}
+
+	GradientBrushDetail::~GradientBrushDetail()
+	{
+	}
+
+
+	TextureBrushDetail::TextureBrushDetail()
+	{
+	}
+
+	TextureBrushDetail::~TextureBrushDetail()
+	{
+	}
+
+
+	HatchBrushDetail::HatchBrushDetail(): style(HatchStyle::Horizontal)
+	{
+	}
+
+	HatchBrushDetail::~HatchBrushDetail()
+	{
 	}
 
 }

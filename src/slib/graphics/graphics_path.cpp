@@ -31,7 +31,7 @@ namespace slib
 
 	GraphicsPath::GraphicsPath()
 	{
-		m_fillMode = FillMode::Winding;
+		m_fillMode = FillMode::Alternate;
 	}
 
 	GraphicsPath::~GraphicsPath()

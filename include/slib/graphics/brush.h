@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -32,35 +32,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT GradientBrushDetail : public CRef
-	{
-	public:
-		Point point1;
-		Point point2;
-		sl_real radius;
-		List<Color> colors;
-		List<sl_real> locations;
-
-	public:
-		GradientBrushDetail();
-
-		~GradientBrushDetail();
-
-	};
-
 	class Bitmap;
-
-	class SLIB_EXPORT TextureBrushDetail : public CRef
-	{
-	public:
-		Ref<Bitmap> pattern;
-
-	public:
-		TextureBrushDetail();
-
-		~TextureBrushDetail();
-
-	};
 
 	class SLIB_EXPORT BrushDesc
 	{
@@ -102,6 +74,8 @@ namespace slib
 
 		static Ref<Brush> createTextureBrush(const Ref<Bitmap>& bitmap);
 
+		static Ref<Brush> createHatchBrush(HatchStyle style, const Color& foreColor, const Color& backColor = Color::zero());
+
 	public:
 		void getDesc(BrushDesc& desc);
 
@@ -116,6 +90,47 @@ namespace slib
 
 		Ref<CRef> m_platformObject;
 		SpinLock m_lock;
+
+	};
+
+	class SLIB_EXPORT HatchBrushDetail : public CRef
+	{
+	public:
+		HatchStyle style;
+		Color backgroundColor;
+
+	public:
+		HatchBrushDetail();
+
+		~HatchBrushDetail();
+
+	};
+
+	class SLIB_EXPORT GradientBrushDetail : public CRef
+	{
+	public:
+		Point point1;
+		Point point2;
+		sl_real radius;
+		List<Color> colors;
+		List<sl_real> locations;
+
+	public:
+		GradientBrushDetail();
+
+		~GradientBrushDetail();
+
+	};
+
+	class SLIB_EXPORT TextureBrushDetail : public CRef
+	{
+	public:
+		Ref<Bitmap> pattern;
+
+	public:
+		TextureBrushDetail();
+
+		~TextureBrushDetail();
 
 	};
 

@@ -61,6 +61,7 @@ namespace slib
 
 		static COLORREF getColorRef(const Color& color);
 		static Color getColorFromColorRef(COLORREF cr);
+		static Gdiplus::Color getGdiplusColor(const Color& color);
 
 		static HBITMAP createDIB(const Ref<Drawable>& drawable);
 		static HICON createHICON(const Ref<Drawable>& drawable, sl_bool flagCursor = sl_false, sl_uint32 xHotspot = 0, sl_uint32 yHotspot = 0);

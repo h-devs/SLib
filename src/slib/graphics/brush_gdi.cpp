@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -33,11 +33,147 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		SLIB_INLINE static Gdiplus::Color GetColor(const Color& c)
 		{
 			return Gdiplus::Color(c.a, c.r, c.g, c.b);
+		}
+
+		static Gdiplus::SolidBrush* CreateSolidBrush(const BrushDesc& desc)
+		{
+			const Color& c = desc.color;
+			Gdiplus::Color color(c.a, c.r, c.g, c.b);
+			return new Gdiplus::SolidBrush(color);
+		}
+
+		static Gdiplus::Brush* CreateGradientBrush(const BrushDesc& desc)
+		{
+			GradientBrushDetail* detail = (GradientBrushDetail*)(desc.detail.get());
+			if (!detail) {
+				return sl_null;
+			}
+			ListElements<Color> colors(detail->colors);
+			ListElements<sl_real> locations(detail->locations);
+			if (colors.count != locations.count) {
+				return sl_null;
+			}
+			sl_size n = colors.count;
+			if (!n) {
+				return sl_null;
+			}
+			if (desc.style == BrushStyle::LinearGradient) {
+				Gdiplus::PointF pt1((Gdiplus::REAL)(detail->point1.x), (Gdiplus::REAL)(detail->point1.y));
+				Gdiplus::PointF pt2((Gdiplus::REAL)(detail->point2.x), (Gdiplus::REAL)(detail->point2.y));
+				Gdiplus::LinearGradientBrush* brush = new Gdiplus::LinearGradientBrush(pt1, pt2, GetColor(colors[0]), GetColor(colors[n - 1]));
+				if (brush) {
+					brush->SetWrapMode(Gdiplus::WrapModeTileFlipXY);
+					if (n > 2) {
+						SLIB_SCOPED_BUFFER(Gdiplus::Color, 128, c, n)
+						if (!c) {
+							return sl_null;
+						}
+						SLIB_SCOPED_BUFFER(Gdiplus::REAL, 128, l, n)
+						if (!l) {
+							return sl_null;
+						}
+						for (sl_size i = 0; i < n; i++) {
+							c[i] = GetColor(colors[i]);
+							l[i] = (Gdiplus::REAL)(locations[i]);
+						}
+						brush->SetInterpolationColors(c, l, (INT)n);
+					}
+					return brush;
+				}
+			} else {
+				Gdiplus::GraphicsPath path;
+				Gdiplus::REAL d = (Gdiplus::REAL)(detail->radius * 2);
+				path.AddEllipse((Gdiplus::REAL)(detail->point1.x - detail->radius), (Gdiplus::REAL)(detail->point1.y - detail->radius), d, d);
+				Gdiplus::PathGradientBrush* brush = new Gdiplus::PathGradientBrush(&path);
+				if (brush) {
+					if (n > 2) {
+						SLIB_SCOPED_BUFFER(Gdiplus::Color, 128, c, n)
+						if (!c) {
+							return sl_null;
+						}
+						SLIB_SCOPED_BUFFER(Gdiplus::REAL, 128, l, n)
+						if (!l) {
+							return sl_null;
+						}
+						for (sl_size i = 0; i < n; i++) {
+							c[i] = GetColor(colors[n - 1 - i]);
+							l[i] = (Gdiplus::REAL)(1.0f - locations[n - 1 - i]);
+						}
+						brush->SetInterpolationColors(c, l, (INT)n);
+					} else {
+						brush->SetCenterColor(GetColor(colors[0]));
+						Gdiplus::Color c = GetColor(colors[n - 1]);
+						INT k = 1;
+						brush->SetSurroundColors(&c, &k);
+					}
+					brush->SetCenterPoint(Gdiplus::PointF((Gdiplus::REAL)(detail->point1.x), (Gdiplus::REAL)(detail->point1.y)));
+					return brush;
+				}
+			}
+			return sl_null;
+		}
+
+		static Gdiplus::TextureBrush* CreateTextureBrush(const BrushDesc& desc, Ref<Drawable>& cache)
+		{
+			TextureBrushDetail* detail = (TextureBrushDetail*)(desc.detail.get());
+			if (!detail) {
+				return sl_null;
+			}
+			Bitmap* pattern = detail->pattern.get();
+			if (pattern->isImage()) {
+				Ref<Drawable> drawable = PlatformDrawable::create((Image*)pattern);
+				if (drawable.isNotNull()) {
+					Gdiplus::Image* image = GraphicsPlatform::getImageDrawableHandle(drawable.get());
+					if (image) {
+						cache = Move(drawable);
+						return new Gdiplus::TextureBrush(image);
+					}
+				}
+			} else {
+				Gdiplus::Bitmap* bitmap = GraphicsPlatform::getBitmapHandle(pattern);
+				if (bitmap) {
+					return new Gdiplus::TextureBrush(bitmap);
+				}
+			}
+			return sl_null;
+		}
+
+		static Gdiplus::HatchStyle ToHatchStyle(HatchStyle style)
+		{
+			switch (style)
+			{
+				case HatchStyle::Horizontal:
+					return Gdiplus::HatchStyle::HatchStyleHorizontal;
+				case HatchStyle::Vertical:
+					return Gdiplus::HatchStyle::HatchStyleVertical;
+				case HatchStyle::ForwardDiagonal:
+					return Gdiplus::HatchStyle::HatchStyleForwardDiagonal;
+				case HatchStyle::BackwardDiagonal:
+					return Gdiplus::HatchStyle::HatchStyleBackwardDiagonal;
+				case HatchStyle::Cross:
+					return Gdiplus::HatchStyle::HatchStyleCross;
+				case HatchStyle::DiagonalCross:
+					return Gdiplus::HatchStyle::HatchStyleDiagonalCross;
+				case HatchStyle::Dots:
+					return Gdiplus::HatchStyle::HatchStyle05Percent;
+				default:
+					break;
+			}
+			return Gdiplus::HatchStyle::HatchStyleHorizontal;
+		}
+
+		static Gdiplus::HatchBrush* CreateHatchBrush(const BrushDesc& desc)
+		{
+			HatchBrushDetail* detail = (HatchBrushDetail*)(desc.detail.get());
+			if (!detail) {
+				return sl_null;
+			}
+			return new Gdiplus::HatchBrush(ToHatchStyle(detail->style), GraphicsPlatform::getGdiplusColor(desc.color), GraphicsPlatform::getGdiplusColor(detail->backgroundColor));
 		}
 
 		class BrushPlatformObject : public CRef
@@ -51,96 +187,22 @@ namespace slib
 			{
 				GraphicsPlatform::startGdiplus();
 				m_brush = NULL;
-				if (desc.style == BrushStyle::Solid) {
-					const Color& c = desc.color;
-					Gdiplus::Color color(c.a, c.r, c.g, c.b);
-					m_brush = new Gdiplus::SolidBrush(color);
-				} else if (desc.style == BrushStyle::LinearGradient || desc.style == BrushStyle::RadialGradient) {
-					GradientBrushDetail* detail = (GradientBrushDetail*)(desc.detail.get());
-					if (detail) {
-						ListElements<Color> colors(detail->colors);
-						ListElements<sl_real> locations(detail->locations);
-						if (colors.count != locations.count) {
-							return;
-						}
-						sl_size n = colors.count;
-						if (!n) {
-							return;
-						}
-						if (desc.style == BrushStyle::LinearGradient) {
-							Gdiplus::PointF pt1((Gdiplus::REAL)(detail->point1.x), (Gdiplus::REAL)(detail->point1.y));
-							Gdiplus::PointF pt2((Gdiplus::REAL)(detail->point2.x), (Gdiplus::REAL)(detail->point2.y));
-							Gdiplus::LinearGradientBrush* brush = new Gdiplus::LinearGradientBrush(pt1, pt2, GetColor(colors[0]), GetColor(colors[n - 1]));
-							if (brush) {
-								brush->SetWrapMode(Gdiplus::WrapModeTileFlipXY);
-								if (n > 2) {
-									SLIB_SCOPED_BUFFER(Gdiplus::Color, 128, c, n)
-									if (!c) {
-										return;
-									}
-									SLIB_SCOPED_BUFFER(Gdiplus::REAL, 128, l, n)
-									if (!l) {
-										return;
-									}
-									for (sl_size i = 0; i < n; i++) {
-										c[i] = GetColor(colors[i]);
-										l[i] = (Gdiplus::REAL)(locations[i]);
-									}
-									brush->SetInterpolationColors(c, l, (INT)n);
-								}
-								m_brush = brush;
-							}
-						} else {
-							Gdiplus::GraphicsPath path;
-							Gdiplus::REAL d = (Gdiplus::REAL)(detail->radius * 2);
-							path.AddEllipse((Gdiplus::REAL)(detail->point1.x - detail->radius), (Gdiplus::REAL)(detail->point1.y - detail->radius), d, d);
-							Gdiplus::PathGradientBrush* brush = new Gdiplus::PathGradientBrush(&path);
-							if (brush) {
-								if (n > 2) {
-									SLIB_SCOPED_BUFFER(Gdiplus::Color, 128, c, n)
-									if (!c) {
-										return;
-									}
-									SLIB_SCOPED_BUFFER(Gdiplus::REAL, 128, l, n)
-									if (!l) {
-										return;
-									}
-									for (sl_size i = 0; i < n; i++) {
-										c[i] = GetColor(colors[n - 1 - i]);
-										l[i] = (Gdiplus::REAL)(1.0f - locations[n - 1 - i]);
-									}
-									brush->SetInterpolationColors(c, l, (INT)n);
-								} else {
-									brush->SetCenterColor(GetColor(colors[0]));
-									Gdiplus::Color c = GetColor(colors[n - 1]);
-									INT k = 1;
-									brush->SetSurroundColors(&c, &k);
-								}
-								brush->SetCenterPoint(Gdiplus::PointF((Gdiplus::REAL)(detail->point1.x), (Gdiplus::REAL)(detail->point1.y)));
-								m_brush = brush;
-							}
-						}
-					}
-				} else if (desc.style == BrushStyle::Texture) {
-					TextureBrushDetail* detail = (TextureBrushDetail*)(desc.detail.get());
-					if (detail) {
-						Bitmap* pattern = detail->pattern.get();
-						if (pattern->isImage()) {
-							Ref<Drawable> drawable = PlatformDrawable::create((Image*)pattern);
-							if (drawable.isNotNull()) {
-								Gdiplus::Image* image = GraphicsPlatform::getImageDrawableHandle(drawable.get());
-								if (image) {
-									m_brush = new Gdiplus::TextureBrush(image);
-									m_drawableCache = drawable;
-								}
-							}
-						} else {
-							Gdiplus::Bitmap* bitmap = GraphicsPlatform::getBitmapHandle(pattern);
-							if (bitmap) {
-								m_brush = new Gdiplus::TextureBrush(bitmap);
-							}
-						}
-					}
+				switch (desc.style) {
+					case BrushStyle::Solid:
+						m_brush = CreateSolidBrush(desc);
+						break;
+					case BrushStyle::LinearGradient:
+					case BrushStyle::RadialGradient:
+						m_brush = CreateGradientBrush(desc);
+						break;
+					case BrushStyle::Texture:
+						m_brush = CreateTextureBrush(desc, m_drawableCache);
+						break;
+					case BrushStyle::Hatch:
+						m_brush = CreateHatchBrush(desc);
+						break;
+					default:
+						break;
 				}
 			}
 
@@ -148,7 +210,6 @@ namespace slib
 			{
 				delete m_brush;
 			}
-
 		};
 
 		class BrushHelper : public Brush
@@ -174,7 +235,6 @@ namespace slib
 				return NULL;
 			}
 		};
-
 	}
 
 	Gdiplus::Brush* GraphicsPlatform::getBrushHandle(Brush* brush)
