@@ -29,7 +29,7 @@
 
 #include "../../platform/win32/windows.h"
 
-struct D2D1_FACTORY_OPTIONS;
+#include <d2d1.h>
 
 namespace slib
 {
@@ -39,7 +39,7 @@ namespace slib
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			D2D1CreateFactory,
 			HRESULT, WINAPI,
-			/*D2D1_FACTORY_TYPE*/ int factoryType,
+			D2D1_FACTORY_TYPE factoryType,
 			REFIID riid,
 			const D2D1_FACTORY_OPTIONS* pFactoryOptions,
 			void** ppIFactory

@@ -28,7 +28,6 @@
 
 #include "slib/core/safe_static.h"
 #include "slib/dl/win32/d2d.h"
-#include "d2d/d2d1.h"
 
 namespace slib
 {
