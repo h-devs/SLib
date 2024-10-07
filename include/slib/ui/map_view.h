@@ -353,11 +353,7 @@ namespace slib
 		AtomicRef<Drawable> m_background;
 	};
 
-	struct SLIB_EXPORT MapViewVertex
-	{
-		Vector3 position;
-		Vector2 texCoord;
-	};
+	typedef render3d::vertex::PositionTexture MapTileVertex;
 
 	class MapSurfaceConfiguration;
 
@@ -383,7 +379,16 @@ namespace slib
 	public:
 		sl_bool build(const MapSurfaceConfiguration& config, const Rectangle* demRegion = sl_null);
 
-		void buildVertex(MapViewVertex& vertex, double latitude, double longitude, double altitude, sl_real tx, sl_real ty);
+		void buildVertex(MapTileVertex& vertex, double latitude, double longitude, double altitude, sl_real tx, sl_real ty);
+
+	};
+
+	class SLIB_EXPORT MapShapePrimitive : public CRef
+	{
+	public:
+		MapShapePrimitive();
+
+		~MapShapePrimitive();
 
 	};
 

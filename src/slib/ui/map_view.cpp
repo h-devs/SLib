@@ -783,12 +783,12 @@ namespace slib
 				M = config.maximumTileMatrixOrder;
 			}
 			if (demRect || M != L) {
-				memVertices = Memory::create(sizeof(MapViewVertex) * M * M);
+				memVertices = Memory::create(sizeof(MapTileVertex) * M * M);
 				if (memVertices.isNull()) {
 					return sl_false;
 				}
 				float mx0, my0, mx1, my1;
-				MapViewVertex* v = (MapViewVertex*)(memVertices.getData());
+				MapTileVertex* v = (MapTileVertex*)(memVertices.getData());
 				if (demRect) {
 					mx0 = demRect->left * (float)(L - 1);
 					my0 = demRect->top * (float)(L - 1);
@@ -835,11 +835,11 @@ namespace slib
 					}
 				}
 			} else {
-				memVertices = Memory::create(sizeof(MapViewVertex) * M * M);
+				memVertices = Memory::create(sizeof(MapTileVertex) * M * M);
 				if (memVertices.isNull()) {
 					return sl_false;
 				}
-				MapViewVertex* v = (MapViewVertex*)(memVertices.getData());
+				MapTileVertex* v = (MapTileVertex*)(memVertices.getData());
 				for (sl_uint32 y = 0; y < M; y++) {
 					for (sl_uint32 x = 0; x < M; x++) {
 						buildVertex(*v, N0 + dN * (double)(M - 1 - y) / (double)(M - 1), E0 + dE * (double)x / (double)(M - 1), *pixels, (sl_real)x / (sl_real)(M - 1), (sl_real)y / (sl_real)(M - 1));
@@ -854,11 +854,11 @@ namespace slib
 				altitude = *(model.pixels);
 			}
 			M = config.minimumTileMatrixOrder;
-			memVertices = Memory::create(sizeof(MapViewVertex) * M * M);
+			memVertices = Memory::create(sizeof(MapTileVertex) * M * M);
 			if (memVertices.isNull()) {
 				return sl_false;
 			}
-			MapViewVertex* v = (MapViewVertex*)(memVertices.getData());
+			MapTileVertex* v = (MapTileVertex*)(memVertices.getData());
 			for (sl_uint32 y = 0; y < M; y++) {
 				for (sl_uint32 x = 0; x < M; x++) {
 					buildVertex(*v, N0 + dN * (double)(M - 1 - y) / (double)(M - 1), E0 + dE * (double)x / (double)(M - 1), altitude, (sl_real)x / (sl_real)(M - 1), (sl_real)y / (sl_real)(M - 1));
@@ -871,7 +871,7 @@ namespace slib
 			return sl_false;
 		}
 		{
-			MapViewVertex* v = (MapViewVertex*)(memVertices.getData());
+			MapTileVertex* v = (MapTileVertex*)(memVertices.getData());
 			pointsWithDEM[0] = center + v[(M - 1) * M].position; // Bottom Left
 			pointsWithDEM[1] = center + v[M * M - 1].position; // Bottom Right
 			pointsWithDEM[2] = center + v[0].position; // Top Left
@@ -907,7 +907,7 @@ namespace slib
 		return sl_true;
 	}
 
-	void MapViewTile::buildVertex(MapViewVertex& vertex, double latitude, double longitude, double altitude, sl_real tx, sl_real ty)
+	void MapViewTile::buildVertex(MapTileVertex& vertex, double latitude, double longitude, double altitude, sl_real tx, sl_real ty)
 	{
 		vertex.position = MapEarth::getCartesianPosition(latitude, longitude, altitude) - center;
 		vertex.texCoord.x = tx;
@@ -955,7 +955,7 @@ namespace slib
 
 	namespace
 	{
-		SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState_SurfaceTile, MapViewVertex)
+		SLIB_RENDER_PROGRAM_STATE_BEGIN(SurfaceTileState, MapTileVertex)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform, RenderShaderType::Vertex, 0)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture0, u_LayerTexture0, RenderShaderType::Pixel, 1)
@@ -971,7 +971,7 @@ namespace slib
 			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord, RenderInputSemanticName::TexCoord)
 		SLIB_RENDER_PROGRAM_STATE_END
 
-		class RenderProgram_SurfaceTile : public RenderProgramT<RenderProgramState_SurfaceTile>
+		class SurfaceTileProgram : public RenderProgramT<SurfaceTileState>
 		{
 		public:
 			String getGLSLVertexShader(RenderEngine* engine) override
@@ -1183,7 +1183,7 @@ namespace slib
 					}
 				}
 
-				m_programSurfaceTile = new RenderProgram_SurfaceTile;
+				m_programSurfaceTile = new SurfaceTileProgram;
 				if (m_programSurfaceTile.isNull()) {
 					return sl_false;
 				}
@@ -1244,7 +1244,7 @@ namespace slib
 						return;
 					}
 				}
-				RenderProgramScope<RenderProgramState_SurfaceTile> scope;
+				RenderProgramScope<SurfaceTileState> scope;
 				if (scope.begin(engine, m_programSurfaceTile)) {
 					scope->setTransform(Transform3T<double>::getTranslationMatrix(tile->center) * state.viewProjectionTransform);
 					scope->setTexture(Texture::getBitmapRenderingCache(image.source));
