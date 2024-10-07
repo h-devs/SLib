@@ -438,9 +438,9 @@ namespace slib
 	}
 
 
-	void RenderEngine::drawRectangle2D(const Ref<RenderProgram2D_Position>& program, const Matrix3& transform, const Color4F& color)
+	void RenderEngine::drawRectangle2D(const Ref<render2d::program::Position>& program, const Matrix3& transform, const Color4F& color)
 	{
-		RenderProgramScope<RenderProgramState2D_Position> scope;
+		RenderProgramScope<render2d::state::Position> scope;
 		if (scope.begin(this, program)) {
 			scope->setTransform(transform);
 			scope->setColor(color);
@@ -453,7 +453,7 @@ namespace slib
 		drawRectangle2D(getDefaultRenderProgramForDrawRectangle2D(), transform, color);
 	}
 
-	void RenderEngine::drawRectangle2D(const Ref<RenderProgram2D_Position>& program, const Rectangle& rectDst, const Color4F& color)
+	void RenderEngine::drawRectangle2D(const Ref<render2d::program::Position>& program, const Rectangle& rectDst, const Color4F& color)
 	{
 		Matrix3 transform;
 		MakeTransform2D(transform, rectDst);
@@ -472,10 +472,10 @@ namespace slib
 		drawPrimitive(4, getDefaultVertexBufferForDrawTexture2D(), PrimitiveType::TriangleStrip);
 	}
 
-	void RenderEngine::drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color)
+	void RenderEngine::drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color)
 	{
 		if (texture.isNotNull() && program.isNotNull()) {
-			RenderProgramScope<RenderProgramState2D_PositionTexture> scope;
+			RenderProgramScope<render2d::state::PositionTexture> scope;
 			if (scope.begin(this, program)) {
 				scope->setTransform(transform);
 				scope->setTexture(texture);
@@ -493,7 +493,7 @@ namespace slib
 		drawTexture2D(getDefaultRenderProgramForDrawTexture2D(), transform, texture, rectSrc, color);
 	}
 
-	void RenderEngine::drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha)
+	void RenderEngine::drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha)
 	{
 		drawTexture2D(program, transform, texture, rectSrc, Vector4(1, 1, 1, alpha));
 	}
@@ -503,7 +503,7 @@ namespace slib
 		drawTexture2D(getDefaultRenderProgramForDrawTexture2D(), transform, texture, rectSrc, Vector4(1, 1, 1, alpha));
 	}
 
-	void RenderEngine::drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Color4F& color)
+	void RenderEngine::drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Color4F& color)
 	{
 		drawTexture2D(program, transform, texture, Rectangle(0, 0, 1, 1), color);
 	}
@@ -513,7 +513,7 @@ namespace slib
 		drawTexture2D(getDefaultRenderProgramForDrawTexture2D(), transform, texture, Rectangle(0, 0, 1, 1), color);
 	}
 
-	void RenderEngine::drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, sl_real alpha)
+	void RenderEngine::drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, sl_real alpha)
 	{
 		drawTexture2D(program, transform, texture, Rectangle(0, 0, 1, 1), alpha);
 	}
@@ -523,7 +523,7 @@ namespace slib
 		drawTexture2D(getDefaultRenderProgramForDrawTexture2D(), transform, texture, Rectangle(0, 0, 1, 1), alpha);
 	}
 
-	void RenderEngine::drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color)
+	void RenderEngine::drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color)
 	{
 		if (texture.isNotNull()) {
 			Matrix3 transform;
@@ -541,7 +541,7 @@ namespace slib
 		}
 	}
 
-	void RenderEngine::drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha)
+	void RenderEngine::drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha)
 	{
 		if (texture.isNotNull()) {
 			Matrix3 transform;
@@ -559,7 +559,7 @@ namespace slib
 		}
 	}
 
-	void RenderEngine::drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Color4F& color)
+	void RenderEngine::drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Color4F& color)
 	{
 		drawTexture2D(program, rectDst, texture, Rectangle(0, 0, 1, 1), color);
 	}
@@ -569,7 +569,7 @@ namespace slib
 		drawTexture2D(rectDst, texture, Rectangle(0, 0, 1, 1), color);
 	}
 
-	void RenderEngine::drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, sl_real alpha)
+	void RenderEngine::drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, sl_real alpha)
 	{
 		drawTexture2D(program, rectDst, texture, Rectangle(0, 0, 1, 1), alpha);
 	}
@@ -581,7 +581,7 @@ namespace slib
 
 	const Ref<VertexBuffer>& RenderEngine::getDefaultVertexBufferForDrawRectangle2D()
 	{
-		static RenderVertex2D_Position v[] = {
+		static render2d::vertex::Position v[] = {
 			{ { 0, 0 } }
 			, { { 1, 0 } }
 			, { { 0, 1 } }
@@ -594,18 +594,18 @@ namespace slib
 		return ret;
 	}
 
-	const Ref<RenderProgram2D_Position>& RenderEngine::getDefaultRenderProgramForDrawRectangle2D()
+	const Ref<render2d::program::Position>& RenderEngine::getDefaultRenderProgramForDrawRectangle2D()
 	{
-		Ref<RenderProgram2D_Position>& ret = m_defaultRenderProgramForDrawRectangle2D;
+		Ref<render2d::program::Position>& ret = m_defaultRenderProgramForDrawRectangle2D;
 		if (ret.isNull()) {
-			ret = new RenderProgram2D_Position;
+			ret = new render2d::program::Position;
 		}
 		return ret;
 	}
 
 	const Ref<VertexBuffer>& RenderEngine::getDefaultVertexBufferForDrawTexture2D()
 	{
-		static RenderVertex2D_PositionTexture v[] = {
+		static render2d::vertex::PositionTexture v[] = {
 			{ { 0, 0 }, { 0, 0 } }
 			, { { 1, 0 }, { 1, 0 } }
 			, { { 0, 1 }, { 0, 1 } }
@@ -618,16 +618,16 @@ namespace slib
 		return ret;
 	}
 
-	const Ref<RenderProgram2D_PositionTexture>& RenderEngine::getDefaultRenderProgramForDrawTexture2D()
+	const Ref<render2d::program::PositionTexture>& RenderEngine::getDefaultRenderProgramForDrawTexture2D()
 	{
-		Ref<RenderProgram2D_PositionTexture>& ret = m_defaultRenderProgramForDrawTexture2D;
+		Ref<render2d::program::PositionTexture>& ret = m_defaultRenderProgramForDrawTexture2D;
 		if (ret.isNull()) {
-			ret = new RenderProgram2D_PositionTexture;
+			ret = new render2d::program::PositionTexture;
 		}
 		return ret;
 	}
 
-	void RenderEngine::drawLines(const Ref<RenderProgram2D_Position>& program, LineSegment* lines, sl_uint32 n, const Color4F& color)
+	void RenderEngine::drawLines(const Ref<render2d::program::Position>& program, LineSegment* lines, sl_uint32 n, const Color4F& color)
 	{
 		if (program.isNull()) {
 			return;
@@ -635,7 +635,7 @@ namespace slib
 		if (n) {
 			Ref<VertexBuffer> vb = VertexBuffer::create(lines, sizeof(LineSegment)*n);
 			if (vb.isNotNull()) {
-				RenderProgramScope<RenderProgramState2D_Position> scope;
+				RenderProgramScope<render2d::state::Position> scope;
 				if (scope.begin(this, program)) {
 					scope->setTransform(Matrix3::identity());
 					scope->setColor(color);
@@ -650,21 +650,21 @@ namespace slib
 		drawLines(getDefaultRenderProgramForDrawLine2D(), lines, n, color);
 	}
 
-	const Ref<RenderProgram2D_Position>& RenderEngine::getDefaultRenderProgramForDrawLine2D()
+	const Ref<render2d::program::Position>& RenderEngine::getDefaultRenderProgramForDrawLine2D()
 	{
-		Ref<RenderProgram2D_Position>& ret = m_defaultRenderProgramForDrawLine2D;
+		Ref<render2d::program::Position>& ret = m_defaultRenderProgramForDrawLine2D;
 		if (ret.isNull()) {
-			ret = new RenderProgram2D_Position;
+			ret = new render2d::program::Position;
 		}
 		return ret;
 	}
 
-	void RenderEngine::drawLines(const Ref<RenderProgram3D_Position>& program, Line3* lines, sl_uint32 n, const Color4F& color)
+	void RenderEngine::drawLines(const Ref<render3d::program::Position>& program, Line3* lines, sl_uint32 n, const Color4F& color)
 	{
 		if (n) {
 			Ref<VertexBuffer> vb = VertexBuffer::create(lines, sizeof(Line3)*n);
 			if (vb.isNotNull()) {
-				RenderProgramScope<RenderProgramState3D_Position> scope;
+				RenderProgramScope<render3d::state::Position> scope;
 				if (scope.begin(this, program)) {
 					scope->setTransform(Matrix4::identity());
 					scope->setColor(color);
@@ -679,11 +679,11 @@ namespace slib
 		drawLines(getDefaultRenderProgramForDrawLine3D(), lines, n, color);
 	}
 
-	const Ref<RenderProgram3D_Position>& RenderEngine::getDefaultRenderProgramForDrawLine3D()
+	const Ref<render3d::program::Position>& RenderEngine::getDefaultRenderProgramForDrawLine3D()
 	{
-		Ref<RenderProgram3D_Position>& ret = m_defaultRenderProgramForDrawLine3D;
+		Ref<render3d::program::Position>& ret = m_defaultRenderProgramForDrawLine3D;
 		if (ret.isNull()) {
-			ret = new RenderProgram3D_Position;
+			ret = new render3d::program::Position;
 		}
 		return ret;
 	}

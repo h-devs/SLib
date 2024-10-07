@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -32,48 +32,45 @@
 namespace slib
 {
 
-	namespace {
-
-		class Program_ScanBar : public RenderProgram2D_Position
+	namespace
+	{
+		class ScanBarProgram : public render2d::program::Position
 		{
 		public:
 			String getGLSLVertexShader(RenderEngine* engine) override
 			{
-				String source = SLIB_STRINGIFY(
-											uniform mat3 u_Transform;
-											attribute vec2 a_Position;
-											varying vec2 v_Position;
-											void main() {
-												vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
-												gl_Position = vec4(P.x, P.y, 0.0, 1.0);
-												v_Position = a_Position;
-											}
-											);
-				return source;
+				SLIB_RETURN_STRING(SLIB_STRINGIFY(
+					uniform mat3 u_Transform;
+					attribute vec2 a_Position;
+					varying vec2 v_Position;
+					void main() {
+						vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
+						gl_Position = vec4(P.x, P.y, 0.0, 1.0);
+						v_Position = a_Position;
+					}
+				))
 			}
 
 			String getGLSLFragmentShader(RenderEngine* engine) override
 			{
-				String source = SLIB_STRINGIFY(
-											uniform vec4 u_Color;
-											varying vec2 v_Position;
-											void main() {
-												float a = 1.0 - (abs(0.5 - v_Position.y) * 2.0);
-												float c = 1.0 - (abs(0.5 - v_Position.x) * 2.0);
-												float b = pow(c, 0.2);
-												gl_FragColor = u_Color*a*b;
-											}
-											);
-				return source;
+				SLIB_RETURN_STRING(SLIB_STRINGIFY(
+					uniform vec4 u_Color;
+					varying vec2 v_Position;
+					void main() {
+						float a = 1.0 - (abs(0.5 - v_Position.y) * 2.0);
+						float c = 1.0 - (abs(0.5 - v_Position.x) * 2.0);
+						float b = pow(c, 0.2);
+						gl_FragColor = u_Color*a*b;
+					}
+				))
 			}
 		};
-
 	}
 
 	ZXingScanner::ZXingScanner()
 	{
 		m_flagUpdateCameraFrame = sl_false;
-		m_programScanBar = new Program_ScanBar;
+		m_programScanBar = new ScanBarProgram;
 
 		setScaleMode(ScaleMode::Cover, UIUpdateMode::Init);
 	}

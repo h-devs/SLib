@@ -68,13 +68,14 @@ namespace slib
 
 	enum class HatchStyle
 	{
-		Horizontal = 0,
-		Vertical = 1,
-		ForwardDiagonal = 2,
-		BackwardDiagonal = 3,
-		Cross = 4,
-		DiagonalCross = 5,
-		Dots = 6
+		None = 0,
+		Horizontal = 1,
+		Vertical = 2,
+		ForwardDiagonal = 3,
+		BackwardDiagonal = 4,
+		Cross = 5,
+		DiagonalCross = 6,
+		Dots = 7
 	};
 
 	enum class FillMode

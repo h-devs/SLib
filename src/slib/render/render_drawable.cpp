@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -52,109 +52,121 @@ namespace slib
 
 	ShaderDrawable::ShaderDrawable()
 	{
-
+		SLIB_STATIC_STRING(glslVertexShader, SLIB_STRINGIFY(
+			uniform mat3 u_Transform;
+			uniform vec4 u_Color;
+			attribute vec2 a_Position;
+			varying vec2 v_Position;
+			void main() {
+				vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
+				gl_Position = vec4(P.x, P.y, 0.0, 1.0);
+				v_Position = a_Position;
+			}
+		))
+		m_glslVertexShader = glslVertexShader;
 	}
 
 	ShaderDrawable::~ShaderDrawable()
 	{
 	}
 
-	Ref<ShaderDrawable> ShaderDrawable::create(const String& vertexShader, const String& fragmentShader)
+	String ShaderDrawable::getGLSLVertexShader()
 	{
-		Ref<ShaderDrawable> ret = new ShaderDrawable;
-		if (ret.isNotNull()) {
-			ret->m_vertexShader = vertexShader;
-			ret->m_fragmentShader = fragmentShader;
-			return ret;
-		}
-		return sl_null;
+		return m_glslVertexShader;
 	}
 
-	Ref<ShaderDrawable> ShaderDrawable::createWithFragmentShader(const String& fragmentShader)
+	void ShaderDrawable::setGLSLVertexShader(const String& shader)
 	{
-		String vs =
-		SLIB_STRINGIFY(
-					   uniform mat3 u_Transform;
-					   uniform vec4 u_Color;
-					   attribute vec2 a_Position;
-					   varying vec2 v_Position;
-					   void main() {
-						   vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
-						   gl_Position = vec4(P.x, P.y, 0.0, 1.0);
-						   v_Position = a_Position;
-					   }
-					   );
-		return create(vs, fragmentShader);
-	}
-
-	String ShaderDrawable::getVertexShader()
-	{
-		return m_fragmentShader;
-	}
-
-	void ShaderDrawable::setVertexShader(const String& shader)
-	{
-		m_fragmentShader = shader;
+		m_glslVertexShader = shader;
 		m_program.setNull();
 	}
 
-	String ShaderDrawable::getFragmentShader()
+	String ShaderDrawable::getGLSLFragmentShader()
 	{
-		return m_fragmentShader;
+		return m_glslFragmentShader;
 	}
 
-	void ShaderDrawable::setFragmentShader(const String& shader)
+	void ShaderDrawable::setGLSLFragmentShader(const String& shader)
 	{
-		m_fragmentShader = shader;
+		m_glslFragmentShader = shader;
 		m_program.setNull();
 	}
 
-	namespace {
-		class ShaderDrawable_Program : public RenderProgram2D_Position
+	String ShaderDrawable::getHLSLVertexShader()
+	{
+		return m_hlslVertexShader;
+	}
+
+	void ShaderDrawable::setHLSLVertexShader(const String& shader)
+	{
+		m_hlslVertexShader = shader;
+		m_program.setNull();
+	}
+
+	String ShaderDrawable::getHLSLPixelShader()
+	{
+		return m_hlslPixelShader;
+	}
+
+	void ShaderDrawable::setHLSLPixelShader(const String& shader)
+	{
+		m_hlslPixelShader = shader;
+		m_program.setNull();
+	}
+
+	namespace
+	{
+		class ShaderDrawable_Program : public render2d::program::Position
 		{
 		public:
-			String m_vertexShader;
-			String m_fragmentShader;
+			String GLSLVertexShader;
+			String GLSLFragmentShader;
+			String HLSLVertexShader;
+			String HLSLPixelShader;
 
 		public:
-			ShaderDrawable_Program(const String& vs, const String& fs)
-			: m_vertexShader(vs), m_fragmentShader(fs)
-			{
-			}
-
 			String getGLSLVertexShader(RenderEngine* engine) override
 			{
-				return m_vertexShader;
+				return GLSLVertexShader;
 			}
 
 			String getGLSLFragmentShader(RenderEngine* engine) override
 			{
-				return m_fragmentShader;
+				return GLSLFragmentShader;
 			}
 
+			String getHLSLVertexShader(RenderEngine* engine) override
+			{
+				return HLSLVertexShader;
+			}
+
+			String getHLSLPixelShader(RenderEngine* engine) override
+			{
+				return HLSLPixelShader;
+			}
 		};
 	}
 
 	void ShaderDrawable::onRender(RenderCanvas* canvas, const Rectangle& rectDst, const DrawParam& param)
 	{
-		Ref<RenderProgram2D_Position> program = m_program;
+		Ref<render2d::program::Position> program = m_program;
 		if (program.isNull()) {
-			String vs = m_vertexShader;
-			String fs = m_fragmentShader;
-			if (vs.isEmpty() || fs.isEmpty()) {
+			Ref<ShaderDrawable_Program> shaderProgram = new ShaderDrawable_Program;
+			if (shaderProgram.isNull()) {
 				return;
 			}
-			program = new ShaderDrawable_Program(vs, fs);
-			if (program.isNull()) {
-				return;
-			}
-			m_program = program;
+			shaderProgram->GLSLVertexShader = m_glslVertexShader;
+			shaderProgram->GLSLFragmentShader = m_glslFragmentShader;
+			shaderProgram->HLSLVertexShader = m_hlslVertexShader;
+			shaderProgram->HLSLPixelShader = m_hlslPixelShader;
+			m_program = shaderProgram;
+			program = Move(shaderProgram);
 		}
 		Ref<RenderEngine> engine = canvas->getEngine();
 		if (engine.isNull()) {
 			return;
 		}
-		RenderProgramScope<RenderProgramState2D_Position> scope;
+		RenderProgramScope<render2d::state::Position> scope;
 		if (scope.begin(engine, program)) {
 			canvas->drawRectangle(rectDst, scope.getState(), param);
 		}

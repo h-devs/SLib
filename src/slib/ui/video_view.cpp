@@ -51,9 +51,9 @@ namespace slib
 		m_rotationFrame = RotationMode::Rotate0;
 		m_flipFrame = FlipMode::None;
 
-		m_programRGB = new RenderProgram2D_PositionTexture;
-		m_programYUV = new RenderProgram2D_PositionTextureYUV;
-		m_programOES = new RenderProgram2D_PositionTextureOES;
+		m_programRGB = new render2d::program::PositionTexture;
+		m_programYUV = new render2d::program::PositionTextureYUV;
+		m_programOES = new render2d::program::PositionTextureOES;
 
 		m_flipFrameApplied = FlipMode::None;
 		m_rotationFrameApplied = RotationMode::Rotate0;
@@ -363,7 +363,7 @@ namespace slib
 		}
 		Ref<Texture> texture;
 		Matrix3 textureMatrix;
-		Ref<RenderProgram2D_PositionTexture> program;
+		Ref<render2d::program::PositionTexture> program;
 		if (m_renderVideoParam.glTextureOES.isNotNull()) {
 			texture = m_renderVideoParam.glTextureOES;
 			textureMatrix = m_renderVideoParam.glTextureTransformOES;
@@ -394,7 +394,7 @@ namespace slib
 				return;
 			}
 			Matrix3 mat = canvas->getTransformMatrixForRectangle(rectDraw);
-			RenderProgramScope<RenderProgramState2D_PositionTexture> scope;
+			RenderProgramScope<render2d::state::PositionTexture> scope;
 			if (scope.begin(engine.get(), program)) {
 				scope->setTransform(mat);
 				scope->setTexture(texture);
@@ -439,7 +439,7 @@ namespace slib
 		if (m_vbFrame.isNotNull() && m_flipFrameApplied == frameFlip && m_rotationFrameApplied == frameRotation && m_flipApplied == userFlip && m_rotationApplied == userRotation) {
 			return m_vbFrame;
 		}
-		RenderVertex2D_PositionTexture v[] = {
+		render2d::vertex::PositionTexture v[] = {
 			{ { 0, 0 }, { 0, 0 } }
 			, { { 1, 0 }, { 1, 0 } }
 			, { { 0, 1 }, { 0, 1 } }

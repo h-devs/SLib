@@ -42,7 +42,7 @@ namespace slib
 
 	namespace
 	{
-		SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderCanvasProgramState, RenderVertex2D_Position)
+		SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderCanvasProgramState, render2d::vertex::Position)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
@@ -592,7 +592,7 @@ namespace slib
 			EngineContext()
 			{
 				{
-					static RenderVertex2D_Position v[] = {
+					static render2d::vertex::Position v[] = {
 						{ { 0, 0 } },
 						{ { 1, 0 } },
 						{ { 0, 1 } },
@@ -601,7 +601,7 @@ namespace slib
 					vbRectangle = VertexBuffer::create(v, sizeof(v));
 				}
 				{
-					static RenderVertex2D_Position v[] = {
+					static render2d::vertex::Position v[] = {
 						{ { 0, 0 } },
 						{ { 1, 1 } }
 					};
@@ -1470,7 +1470,7 @@ namespace slib
 		return mat;
 	}
 
-	void RenderCanvas::drawRectangle(const Rectangle& rect, RenderProgramState2D_Position* programState, const DrawParam& param)
+	void RenderCanvas::drawRectangle(const Rectangle& rect, render2d::state::Position* programState, const DrawParam& param)
 	{
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {

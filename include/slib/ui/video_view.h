@@ -133,9 +133,9 @@ namespace slib
 		sl_bool m_flagYUV;
 		sl_bool m_flagAllowYUV;
 
-		Ref<RenderProgram2D_PositionTexture> m_programRGB;
-		Ref<RenderProgram2D_PositionTextureYUV> m_programYUV;
-		Ref<RenderProgram2D_PositionTextureOES> m_programOES;
+		Ref<render2d::program::PositionTexture> m_programRGB;
+		Ref<render2d::program::PositionTextureYUV> m_programYUV;
+		Ref<render2d::program::PositionTextureOES> m_programOES;
 
 		AtomicRef<VertexBuffer> m_vbFrame;
 		FlipMode m_flipFrameApplied;

@@ -186,7 +186,7 @@ namespace slib
 
 		Matrix3 getTransformMatrixForRectangle(const Rectangle& rect);
 
-		void drawRectangle(const Rectangle& rect, RenderProgramState2D_Position* programState, const DrawParam& param);
+		void drawRectangle(const Rectangle& rect, render2d::state::Position* programState, const DrawParam& param);
 
 
 		sl_bool isUsingLinePrimitive();

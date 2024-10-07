@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -198,7 +198,6 @@ namespace slib
 
 	};
 
-
 	class SLIB_EXPORT RenderProgram : public RenderBaseObject
 	{
 		SLIB_DECLARE_OBJECT
@@ -363,10 +362,8 @@ namespace slib
 			sl_bool onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state) override;
 
 			sl_bool getInputLayoutParam(RenderProgramState* state, RenderInputLayoutParam& param) override;
-
 		};
 	}
-
 
 	template <class StateType>
 	class SLIB_EXPORT RenderProgramT : public priv::RenderProgramTemplate
@@ -376,284 +373,332 @@ namespace slib
 		{
 			return new StateType;
 		}
-
 	};
 
-
-	struct RenderVertex2D_PositionTexture
+	namespace render2d
 	{
-		Vector2 position;
-		Vector2 texCoord;
-	};
+		namespace vertex
+		{
+			struct SLIB_EXPORT PositionTexture
+			{
+				Vector2 position;
+				Vector2 texCoord;
+			};
+		}
+		namespace state
+		{
+			SLIB_RENDER_PROGRAM_STATE_BEGIN(PositionTexture, vertex::PositionTexture)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(TextureTransform, u_TextureTransform, RenderShaderType::Vertex, 3)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
 
-	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState2D_PositionTexture, RenderVertex2D_PositionTexture)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(TextureTransform, u_TextureTransform, RenderShaderType::Vertex, 3)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord, RenderInputSemanticName::TexCoord)
+			SLIB_RENDER_PROGRAM_STATE_END
+		}
+		namespace program
+		{
+			class SLIB_EXPORT PositionTexture : public RenderProgramT<state::PositionTexture>
+			{
+			public:
+				String getGLSLVertexShader(RenderEngine* engine) override;
 
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord, RenderInputSemanticName::TexCoord)
-	SLIB_RENDER_PROGRAM_STATE_END
+				String getGLSLFragmentShader(RenderEngine* engine) override;
 
-	class SLIB_EXPORT RenderProgram2D_PositionTexture : public RenderProgramT<RenderProgramState2D_PositionTexture>
+				String getHLSLVertexShader(RenderEngine* engine) override;
+
+				String getHLSLPixelShader(RenderEngine* engine) override;
+
+				String getAssemblyVertexShader(RenderEngine* engine) override;
+
+				String getAssemblyPixelShader(RenderEngine* engine) override;
+			};
+
+			class SLIB_EXPORT PositionTextureYUV : public PositionTexture
+			{
+			public:
+				String getGLSLFragmentShader(RenderEngine* engine) override;
+
+				String getHLSLPixelShader(RenderEngine* engine) override;
+			};
+
+			class SLIB_EXPORT PositionTextureOES : public PositionTexture
+			{
+			public:
+				String getGLSLFragmentShader(RenderEngine* engine) override;
+			};
+		}
+
+		namespace vertex
+		{
+			struct SLIB_EXPORT PositionColor
+			{
+				Vector2 position;
+				Color4F color;
+			};
+		}
+		namespace state
+		{
+			SLIB_RENDER_PROGRAM_STATE_BEGIN(PositionColor, vertex::PositionColor)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Vertex, 3)
+
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT4(color, a_Color, RenderInputSemanticName::Color)
+			SLIB_RENDER_PROGRAM_STATE_END
+		}
+		namespace program
+		{
+			class SLIB_EXPORT PositionColor : public RenderProgramT<state::PositionColor>
+			{
+			public:
+				String getGLSLVertexShader(RenderEngine* engine) override;
+
+				String getGLSLFragmentShader(RenderEngine* engine) override;
+
+				String getHLSLVertexShader(RenderEngine* engine) override;
+
+				String getHLSLPixelShader(RenderEngine* engine) override;
+
+				String getAssemblyVertexShader(RenderEngine* engine) override;
+
+				String getAssemblyPixelShader(RenderEngine* engine) override;
+			};
+		}
+
+		namespace vertex
+		{
+			struct SLIB_EXPORT Position
+			{
+				Vector2 position;
+			};
+		}
+		namespace state
+		{
+			SLIB_RENDER_PROGRAM_STATE_BEGIN(Position, vertex::Position)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
+
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
+			SLIB_RENDER_PROGRAM_STATE_END
+		}
+		namespace program
+		{
+			class SLIB_EXPORT Position : public RenderProgramT<state::Position>
+			{
+			public:
+				String getGLSLVertexShader(RenderEngine* engine) override;
+
+				String getGLSLFragmentShader(RenderEngine* engine) override;
+
+				String getHLSLVertexShader(RenderEngine* engine) override;
+
+				String getHLSLPixelShader(RenderEngine* engine) override;
+
+				String getAssemblyVertexShader(RenderEngine* engine) override;
+
+				String getAssemblyPixelShader(RenderEngine* engine) override;
+			};
+		}
+	}
+
+	namespace render3d
 	{
-	public:
-		String getGLSLVertexShader(RenderEngine* engine) override;
-
-		String getGLSLFragmentShader(RenderEngine* engine) override;
-
-		String getHLSLVertexShader(RenderEngine* engine) override;
-
-		String getHLSLPixelShader(RenderEngine* engine) override;
-
-		String getAssemblyVertexShader(RenderEngine* engine) override;
-
-		String getAssemblyPixelShader(RenderEngine* engine) override;
-
-	};
-
-	class SLIB_EXPORT RenderProgram2D_PositionTextureYUV : public RenderProgram2D_PositionTexture
-	{
-	public:
-		String getGLSLFragmentShader(RenderEngine* engine) override;
-
-		String getHLSLPixelShader(RenderEngine* engine) override;
-
-	};
-
-	class SLIB_EXPORT RenderProgram2D_PositionTextureOES : public RenderProgram2D_PositionTexture
-	{
-	public:
-		String getGLSLFragmentShader(RenderEngine* engine) override;
-
-	};
-
-
-	struct RenderVertex2D_PositionColor
-	{
-		Vector2 position;
-		Color4F color;
-	};
-
-	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState2D_PositionColor, RenderVertex2D_PositionColor)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Vertex, 3)
-
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT4(color, a_Color, RenderInputSemanticName::Color)
-	SLIB_RENDER_PROGRAM_STATE_END
-
-	class SLIB_EXPORT RenderProgram2D_PositionColor : public RenderProgramT<RenderProgramState2D_PositionColor>
-	{
-	public:
-		String getGLSLVertexShader(RenderEngine* engine) override;
-
-		String getGLSLFragmentShader(RenderEngine* engine) override;
-
-		String getHLSLVertexShader(RenderEngine* engine) override;
-
-		String getHLSLPixelShader(RenderEngine* engine) override;
-
-		String getAssemblyVertexShader(RenderEngine* engine) override;
-
-		String getAssemblyPixelShader(RenderEngine* engine) override;
-
-	};
-
-
-	struct RenderVertex2D_Position
-	{
-		Vector2 position;
-	};
-
-	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState2D_Position, RenderVertex2D_Position)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
-
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
-	SLIB_RENDER_PROGRAM_STATE_END
-
-	class SLIB_EXPORT RenderProgram2D_Position : public RenderProgramT<RenderProgramState2D_Position>
-	{
-	public:
-		String getGLSLVertexShader(RenderEngine* engine) override;
-
-		String getGLSLFragmentShader(RenderEngine* engine) override;
-
-		String getHLSLVertexShader(RenderEngine* engine) override;
-
-		String getHLSLPixelShader(RenderEngine* engine) override;
-
-		String getAssemblyVertexShader(RenderEngine* engine) override;
-
-		String getAssemblyPixelShader(RenderEngine* engine) override;
-
-	};
-
-
-	struct RenderVertex3D_PositionNormalColor
-	{
-		Vector3 position;
-		Vector3 normal;
-		Color4F color;
-	};
-
-	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState3D_PositionNormalColor, RenderVertex3D_PositionNormalColor)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(MatrixModelViewIT, u_MatrixModelViewIT)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DirectionalLight, u_DirectionalLight)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DiffuseColor, u_DiffuseColor)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(AmbientColor, u_AmbientColor)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(Alpha, u_Alpha)
-
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(normal, a_Normal)
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT4(color, a_Color)
-	SLIB_RENDER_PROGRAM_STATE_END
-
-	class SLIB_EXPORT RenderProgram3D_PositionNormalColor : public RenderProgramT<RenderProgramState3D_PositionNormalColor>
-	{
-	public:
-		String getGLSLVertexShader(RenderEngine* engine) override;
-
-		String getGLSLFragmentShader(RenderEngine* engine) override;
-
-	};
-
-
-	struct RenderVertex3D_PositionColor
-	{
-		Vector3 position;
-		Color4F color;
-	};
-
-	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState3D_PositionColor, RenderVertex3D_PositionColor)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color)
-
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT4(color, a_Color)
-	SLIB_RENDER_PROGRAM_STATE_END
-
-	class SLIB_EXPORT RenderProgram3D_PositionColor : public RenderProgramT<RenderProgramState3D_PositionColor>
-	{
-	public:
-		String getGLSLVertexShader(RenderEngine* engine) override;
-
-		String getGLSLFragmentShader(RenderEngine* engine) override;
-
-	};
-
-
-	struct RenderVertex3D_PositionNormalTexture
-	{
-		Vector3 position;
-		Vector3 normal;
-		Vector2 texCoord;
-	};
-
-	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState3D_PositionNormalTexture, RenderVertex3D_PositionNormalTexture)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(MatrixModelViewIT, u_MatrixModelViewIT)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DirectionalLight, u_DirectionalLight)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DiffuseColor, u_DiffuseColor)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(AmbientColor, u_AmbientColor)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(Alpha, u_Alpha)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
-
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(normal, a_Normal)
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord)
-	SLIB_RENDER_PROGRAM_STATE_END
-
-	class SLIB_EXPORT RenderProgram3D_PositionNormalTexture : public RenderProgramT<RenderProgramState3D_PositionNormalTexture>
-	{
-	public:
-		String getGLSLVertexShader(RenderEngine* engine) override;
-
-		String getGLSLFragmentShader(RenderEngine* engine) override;
-
-	};
-
-
-	struct RenderVertex3D_PositionTexture
-	{
-		Vector3 position;
-		Vector2 texCoord;
-	};
-
-	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState3D_PositionTexture, RenderVertex3D_PositionTexture)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DiffuseColor, u_Color)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
-
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord)
-	SLIB_RENDER_PROGRAM_STATE_END
-
-	class SLIB_EXPORT RenderProgram3D_PositionTexture : public RenderProgramT<RenderProgramState3D_PositionTexture>
-	{
-	public:
-		String getGLSLVertexShader(RenderEngine* engine) override;
-
-		String getGLSLFragmentShader(RenderEngine* engine) override;
-
-	};
-
-
-	struct RenderVertex3D_PositionNormal
-	{
-		Vector3 position;
-		Vector3 normal;
-	};
-
-	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState3D_PositionNormal, RenderVertex3D_PositionNormal)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(MatrixModelViewIT, u_MatrixModelViewIT)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DirectionalLight, u_DirectionalLight)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DiffuseColor, u_DiffuseColor)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(AmbientColor, u_AmbientColor)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(Alpha, u_Alpha)
-
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(normal, a_Normal)
-	SLIB_RENDER_PROGRAM_STATE_END
-
-	class SLIB_EXPORT RenderProgram3D_PositionNormal : public RenderProgramT<RenderProgramState3D_PositionNormal>
-	{
-	public:
-		String getGLSLVertexShader(RenderEngine* engine) override;
-
-		String getGLSLFragmentShader(RenderEngine* engine) override;
-
-	};
-
-
-	struct RenderVertex3D_Position
-	{
-		Vector3 position;
-	};
-
-	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState3D_Position, RenderVertex3D_Position)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform, RenderShaderType::Vertex, 0)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
-
-		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position, RenderInputSemanticName::Position)
-	SLIB_RENDER_PROGRAM_STATE_END
-
-	class SLIB_EXPORT RenderProgram3D_Position : public RenderProgramT<RenderProgramState3D_Position>
-	{
-	public:
-		String getGLSLVertexShader(RenderEngine* engine) override;
-
-		String getGLSLFragmentShader(RenderEngine* engine) override;
-
-		String getHLSLVertexShader(RenderEngine* engine) override;
-
-		String getHLSLPixelShader(RenderEngine* engine) override;
-
-	};
+		namespace vertex
+		{
+			struct SLIB_EXPORT PositionNormalColor
+			{
+				Vector3 position;
+				Vector3 normal;
+				Color4F color;
+			};
+		}
+		namespace state
+		{
+			SLIB_RENDER_PROGRAM_STATE_BEGIN(PositionNormalColor, vertex::PositionNormalColor)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(MatrixModelViewIT, u_MatrixModelViewIT)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DirectionalLight, u_DirectionalLight)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DiffuseColor, u_DiffuseColor)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(AmbientColor, u_AmbientColor)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(Alpha, u_Alpha)
+
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(normal, a_Normal)
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT4(color, a_Color)
+			SLIB_RENDER_PROGRAM_STATE_END
+		}
+		namespace program
+		{
+			class SLIB_EXPORT PositionNormalColor : public RenderProgramT<state::PositionNormalColor>
+			{
+			public:
+				String getGLSLVertexShader(RenderEngine* engine) override;
+
+				String getGLSLFragmentShader(RenderEngine* engine) override;
+			};
+		}
+
+		namespace vertex
+		{
+			struct SLIB_EXPORT PositionColor
+			{
+				Vector3 position;
+				Color4F color;
+			};
+		}
+		namespace state
+		{
+			SLIB_RENDER_PROGRAM_STATE_BEGIN(PositionColor, vertex::PositionColor)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color)
+
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT4(color, a_Color)
+			SLIB_RENDER_PROGRAM_STATE_END
+		}
+		namespace program
+		{
+			class SLIB_EXPORT PositionColor : public RenderProgramT<state::PositionColor>
+			{
+			public:
+				String getGLSLVertexShader(RenderEngine* engine) override;
+
+				String getGLSLFragmentShader(RenderEngine* engine) override;
+			};
+		}
+
+		namespace vertex
+		{
+			struct SLIB_EXPORT PositionNormalTexture
+			{
+				Vector3 position;
+				Vector3 normal;
+				Vector2 texCoord;
+			};
+		}
+		namespace state
+		{
+			SLIB_RENDER_PROGRAM_STATE_BEGIN(PositionNormalTexture, vertex::PositionNormalTexture)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(MatrixModelViewIT, u_MatrixModelViewIT)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DirectionalLight, u_DirectionalLight)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DiffuseColor, u_DiffuseColor)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(AmbientColor, u_AmbientColor)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(Alpha, u_Alpha)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
+
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(normal, a_Normal)
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord)
+			SLIB_RENDER_PROGRAM_STATE_END
+		}
+		namespace program
+		{
+			class SLIB_EXPORT PositionNormalTexture : public RenderProgramT<state::PositionNormalTexture>
+			{
+			public:
+				String getGLSLVertexShader(RenderEngine* engine) override;
+
+				String getGLSLFragmentShader(RenderEngine* engine) override;
+			};
+		}
+
+		namespace vertex
+		{
+			struct SLIB_EXPORT PositionTexture
+			{
+				Vector3 position;
+				Vector2 texCoord;
+			};
+		}
+		namespace state
+		{
+			SLIB_RENDER_PROGRAM_STATE_BEGIN(PositionTexture, vertex::PositionTexture)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DiffuseColor, u_Color)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
+
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord)
+			SLIB_RENDER_PROGRAM_STATE_END
+		}
+		namespace program
+		{
+			class SLIB_EXPORT PositionTexture : public RenderProgramT<state::PositionTexture>
+			{
+			public:
+				String getGLSLVertexShader(RenderEngine* engine) override;
+
+				String getGLSLFragmentShader(RenderEngine* engine) override;
+			};
+		}
+
+		namespace vertex
+		{
+			struct SLIB_EXPORT PositionNormal
+			{
+				Vector3 position;
+				Vector3 normal;
+			};
+		}
+		namespace state
+		{
+			SLIB_RENDER_PROGRAM_STATE_BEGIN(PositionNormal, vertex::PositionNormal)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(MatrixModelViewIT, u_MatrixModelViewIT)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DirectionalLight, u_DirectionalLight)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DiffuseColor, u_DiffuseColor)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(AmbientColor, u_AmbientColor)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(Alpha, u_Alpha)
+
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(normal, a_Normal)
+			SLIB_RENDER_PROGRAM_STATE_END
+		}
+		namespace program
+		{
+			class SLIB_EXPORT PositionNormal : public RenderProgramT<state::PositionNormal>
+			{
+			public:
+				String getGLSLVertexShader(RenderEngine* engine) override;
+
+				String getGLSLFragmentShader(RenderEngine* engine) override;
+			};
+		}
+
+		namespace vertex
+		{
+			struct SLIB_EXPORT Position
+			{
+				Vector3 position;
+			};
+		}
+		namespace state
+		{
+			SLIB_RENDER_PROGRAM_STATE_BEGIN(Position, vertex::Position)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform, RenderShaderType::Vertex, 0)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
+
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position, RenderInputSemanticName::Position)
+			SLIB_RENDER_PROGRAM_STATE_END
+		}
+		namespace program
+		{
+			class SLIB_EXPORT Position : public RenderProgramT<state::Position>
+			{
+			public:
+				String getGLSLVertexShader(RenderEngine* engine) override;
+
+				String getGLSLFragmentShader(RenderEngine* engine) override;
+
+				String getHLSLVertexShader(RenderEngine* engine) override;
+
+				String getHLSLPixelShader(RenderEngine* engine) override;
+			};
+		}
+	}
 
 }
 

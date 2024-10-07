@@ -58,26 +58,31 @@ namespace slib
 		~ShaderDrawable();
 
 	public:
-		static Ref<ShaderDrawable> create(const String& vertexShader, const String& fragmentShader);
+		String getGLSLVertexShader();
 
-		static Ref<ShaderDrawable> createWithFragmentShader(const String& fragmentShader);
+		void setGLSLVertexShader(const String& shader);
 
-	public:
-		String getVertexShader();
+		String getGLSLFragmentShader();
 
-		void setVertexShader(const String& shader);
+		void setGLSLFragmentShader(const String& shader);
 
-		String getFragmentShader();
+		String getHLSLVertexShader();
 
-		void setFragmentShader(const String& shader);
+		void setHLSLVertexShader(const String& shader);
+
+		String getHLSLPixelShader();
+
+		void setHLSLPixelShader(const String& shader);
 
 	protected:
 		void onRender(RenderCanvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
 
 	public:
-		AtomicString m_vertexShader;
-		AtomicString m_fragmentShader;
-		AtomicRef<RenderProgram2D_Position> m_program;
+		AtomicString m_glslVertexShader;
+		AtomicString m_glslFragmentShader;
+		AtomicString m_hlslVertexShader;
+		AtomicString m_hlslPixelShader;
+		AtomicRef<render2d::program::Position> m_program;
 
 	};
 
