@@ -75,6 +75,11 @@ namespace slib
 		return Gdiplus::Color(color.a, color.r, color.g, color.b);
 	}
 
+	Color GraphicsPlatform::getColorFromGdiplusColor(const Gdiplus::Color& color)
+	{
+		return Color(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());
+	}
+
 	HBITMAP GraphicsPlatform::createDIB(const Ref<Drawable>& drawable)
 	{
 		if (drawable.isNull()) {
