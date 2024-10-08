@@ -601,10 +601,26 @@ namespace slib
 		return TO_REAL_POS(m.height);
 	}
 
+	Size FreeType::getCharExtent_NoLock(sl_uint32 charcode)
+	{
+		FT_Error err = FT_Load_Char(m_face, (FT_ULong)charcode, FT_LOAD_BITMAP_METRICS_ONLY);
+		if (!err) {
+			sl_real dx = TO_REAL_POS(m_face->glyph->metrics.horiAdvance);
+			sl_real dy = TO_REAL_POS(m_face->glyph->metrics.height);
+			return Size(dx, dy);
+		}
+		return Size::zero();
+	}
+
 	Size FreeType::getCharExtent(sl_uint32 charcode)
 	{
 		ObjectLocker lock(this);
-		FT_Error err = FT_Load_Char(m_face, (FT_ULong)charcode, FT_LOAD_BITMAP_METRICS_ONLY);
+		return getCharExtent_NoLock(charcode);
+	}
+
+	Size FreeType::getGlyphExtent_NoLock(sl_uint32 glyphId)
+	{
+		FT_Error err = FT_Load_Glyph(m_face, (FT_UInt)glyphId, FT_LOAD_BITMAP_METRICS_ONLY);
 		if (!err) {
 			sl_real dx = TO_REAL_POS(m_face->glyph->metrics.horiAdvance);
 			sl_real dy = TO_REAL_POS(m_face->glyph->metrics.height);
@@ -616,13 +632,7 @@ namespace slib
 	Size FreeType::getGlyphExtent(sl_uint32 glyphId)
 	{
 		ObjectLocker lock(this);
-		FT_Error err = FT_Load_Glyph(m_face, (FT_UInt)glyphId, FT_LOAD_BITMAP_METRICS_ONLY);
-		if (!err) {
-			sl_real dx = TO_REAL_POS(m_face->glyph->metrics.horiAdvance);
-			sl_real dy = TO_REAL_POS(m_face->glyph->metrics.height);
-			return Size(dx, dy);
-		}
-		return Size::zero();
+		return getGlyphExtent_NoLock(glyphId);
 	}
 
 	Size FreeType::getStringExtent(const StringParam& _text)
@@ -652,17 +662,117 @@ namespace slib
 		return Size(TO_REAL_POS(sizeX), TO_REAL_POS(sizeY));
 	}
 
-	void FreeType::drawString(const Ref<Image>& imageOutput, sl_int32 _x, sl_int32 _y, const StringParam& _text, const Color& color)
+	namespace
 	{
-		if (imageOutput.isNull()) {
-			return;
-		}
-		sl_int32 widthImage = imageOutput->getWidth();
-		sl_int32 heightImage = imageOutput->getHeight();
-		if (widthImage <= 0 || heightImage <= 0) {
-			return;
+		static void CopyBitmap(const Ref<Image>& _out, sl_int32 dx, sl_int32 dy, FT_Bitmap bitmap, const Color& color)
+		{
+			sl_int32 widthImage = _out->getWidth();
+			sl_int32 heightImage = _out->getHeight();
+			if (widthImage <= 0 || heightImage <= 0) {
+				return;
+			}
+			sl_int32 widthChar = bitmap.width;
+			sl_int32 heightChar = bitmap.rows;
+			sl_int32 pitchChar = bitmap.pitch;
+			if (bitmap.pixel_mode != FT_PIXEL_MODE_GRAY && bitmap.pixel_mode != FT_PIXEL_MODE_MONO) {
+				return;
+			}
+			if (widthChar <= 0 || heightChar <= 0 || dx >= widthImage || dy >= heightImage || dx <= -widthChar || dy <= -heightChar) {
+				return;
+			}
+			int sx = 0;
+			int sy = 0;
+			if (dx < 0) {
+				sx -= dx;
+				widthChar += dx;
+				dx = 0;
+			}
+			if (dy < 0) {
+				sy -= dy;
+				heightChar += dy;
+				dy = 0;
+			}
+			if (dx + widthChar > widthImage) {
+				widthChar = widthImage - dx;
+			}
+			if (dy + heightChar > heightImage) {
+				heightChar = heightImage - dy;
+			}
+
+			sl_uint8* bitmapChar = (sl_uint8*)(bitmap.buffer) + (sy * pitchChar + sx);
+			Color* colorsOutput = _out->getColorsAt(dx, dy);
+			sl_reg strideImage = _out->getStride();
+
+			sl_uint32 rs = color.r;
+			sl_uint32 gs = color.g;
+			sl_uint32 bs = color.b;
+			sl_uint32 as = color.a;
+
+			if (bitmap.pixel_mode == FT_PIXEL_MODE_GRAY) {
+				for (int y = 0; y < heightChar; y++) {
+					sl_uint8* ps = bitmapChar;
+					Color* pd = colorsOutput;
+					for (int x = 0; x < widthChar; x++) {
+						sl_uint32 _as = (as * (sl_uint32)(*ps)) / 255;
+						if (_as == 255) {
+							*pd = Color(rs, gs, bs);
+						} else if (_as > 0) {
+							pd->blend_NPA_NPA(rs, gs, bs, _as);
+						}
+						pd++;
+						ps++;
+					}
+					bitmapChar += pitchChar;
+					colorsOutput += strideImage;
+				}
+			} else {
+				for (int y = 0; y < heightChar; y++) {
+					sl_uint8* ps = bitmapChar;
+					Color* pd = colorsOutput;
+					for (int x = 0; x < widthChar; x++) {
+						sl_uint8 B = (ps[x >> 3] >> (7 - (x & 7))) & 1;
+						if (B) {
+							*pd = Color(rs, gs, bs);
+						}
+						pd++;
+					}
+					bitmapChar += pitchChar;
+					colorsOutput += strideImage;
+				}
+			}
 		}
 
+		static void CopySlot(const Ref<Image>& _out, sl_int32 x, sl_int32 y, FT_GlyphSlot slot, const Color& color)
+		{
+			sl_int32 dx = x + slot->bitmap_left;
+			sl_int32 dy = y - slot->bitmap_top;
+			CopyBitmap(_out, dx, dy, slot->bitmap, color);
+		}
+	}
+
+	void FreeType::drawChar_NoLock(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 ch, const Color& color)
+	{
+		if (_out.isNull()) {
+			return;
+		}
+		FT_Error err = FT_Load_Char(m_face, (FT_ULong)ch, FT_LOAD_RENDER);
+		if (err) {
+			return;
+		}
+		CopySlot(_out, (sl_int32)x, (sl_int32)y, m_face->glyph, Color::White);
+	}
+
+	void FreeType::drawChar(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 ch, const Color& color)
+	{
+		ObjectLocker lock(this);
+		drawChar_NoLock(_out, x, y, ch, color);
+	}
+
+	void FreeType::drawString(const Ref<Image>& _out, sl_int32 _x, sl_int32 _y, const StringParam& _text, const Color& color)
+	{
+		if (_out.isNull()) {
+			return;
+		}
 		StringData32 text(_text);
 		sl_uint32 nChars = (sl_uint32)(text.getLength());
 		if (!nChars) {
@@ -671,236 +781,110 @@ namespace slib
 		const sl_char32* chars = text.getData();
 
 		ObjectLocker lock(this);
-
 		FT_GlyphSlot slot = m_face->glyph;
 		sl_real x = (sl_real)_x;
 		sl_real y = (sl_real)_y;
 		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
 			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(chars[iChar]), FT_LOAD_RENDER);
 			if (!err) {
-				sl_int32 dx = (sl_int32)x + slot->bitmap_left;
-				sl_int32 dy = (sl_int32)y - slot->bitmap_top;
-				sl_int32 widthChar = slot->bitmap.width;
-				sl_int32 heightChar = slot->bitmap.rows;
-				sl_int32 pitchChar = slot->bitmap.pitch;
-				if (slot->bitmap.pixel_mode != FT_PIXEL_MODE_GRAY && slot->bitmap.pixel_mode != FT_PIXEL_MODE_MONO) {
-					return;
-				}
-				if (widthChar > 0 && heightChar > 0 && dx < widthImage && dy < heightImage && dx > -widthChar && dy > -heightChar) {
-					int sx = 0;
-					int sy = 0;
-					if (dx < 0) {
-						sx -= dx;
-						widthChar += dx;
-						dx = 0;
-					}
-					if (dy < 0) {
-						sy -= dy;
-						heightChar += dy;
-						dy = 0;
-					}
-					if (dx + widthChar > widthImage) {
-						widthChar = widthImage - dx;
-					}
-					if (dy + heightChar > heightImage) {
-						heightChar = heightImage - dy;
-					}
-
-					sl_uint8* bitmapChar = (sl_uint8*)(slot->bitmap.buffer) + (sy * pitchChar + sx);
-					Color* colorsOutput = imageOutput->getColorsAt(dx, dy);
-					sl_reg strideImage = imageOutput->getStride();
-
-					sl_uint32 rs = color.r;
-					sl_uint32 gs = color.g;
-					sl_uint32 bs = color.b;
-					sl_uint32 as = color.a;
-
-					if (slot->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY) {
-						for (int y = 0; y < heightChar; y++) {
-							sl_uint8* ps = bitmapChar;
-							Color* pd = colorsOutput;
-							for (int x = 0; x < widthChar; x++) {
-								sl_uint32 _as = (as * (sl_uint32)(*ps)) / 255;
-								if (_as == 255) {
-									*pd = Color(rs, gs, bs);
-								} else if (_as > 0) {
-									pd->blend_NPA_NPA(rs, gs, bs, _as);
-								}
-								pd++;
-								ps++;
-							}
-							bitmapChar += pitchChar;
-							colorsOutput += strideImage;
-						}
-					} else {
-						for (int y = 0; y < heightChar; y++) {
-							sl_uint8* ps = bitmapChar;
-							Color* pd = colorsOutput;
-							for (int x = 0; x < widthChar; x++) {
-								sl_uint8 B = (ps[x >> 3] >> (7 - (x & 7))) & 1;
-								if (B) {
-									*pd = Color(rs, gs, bs);
-								}
-								pd++;
-							}
-							bitmapChar += pitchChar;
-							colorsOutput += strideImage;
-						}
-					}
-
-				}
-
+				CopySlot(_out, (sl_int32)x, (sl_int32)y, slot, Color::White);
 				x += TO_REAL_POS(slot->advance.x);
 				y += TO_REAL_POS(slot->advance.y);
 			}
 		}
 	}
 
-	void FreeType::strokeString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& _text, const Color& color, sl_uint32 lineWidth)
+	namespace
 	{
-		StringData32 text(_text);
-		_strokeString(imageOutput, x, y, text.getData(), (sl_uint32)(text.getLength()), sl_false, sl_false, lineWidth, color);
+		static sl_bool StrokeSlot(const Ref<Image>& _out, sl_int32 x, sl_int32 y, FT_Stroker stroker, FT_GlyphSlot slot, const Color& color, sl_uint32 mode)
+		{
+			FT_Glyph glyph = sl_null;
+			FT_Error err = FT_Get_Glyph(slot, &glyph);
+			if (err || !glyph) {
+				return sl_false;
+			}
+			switch (mode) {
+				case FreeType::StrokeDefault:
+					err = FT_Glyph_Stroke(&glyph, stroker, sl_true);
+					break;
+				case FreeType::StrokeInside:
+					err = FT_Glyph_StrokeBorder(&glyph, stroker, sl_true, sl_true);
+					break;
+				case FreeType::StrokeOutside:
+					err = FT_Glyph_StrokeBorder(&glyph, stroker, sl_false, sl_true);
+					break;
+				default:
+					return sl_false;
+			}
+			if (err || !glyph) {
+				return sl_false;
+			}
+			err = FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, 0, sl_true);
+			if (err || !glyph) {
+				return sl_false;
+			}
+			FT_BitmapGlyph bitmapGlyph = (FT_BitmapGlyph)glyph;
+			sl_int32 dx = (sl_int32)x + bitmapGlyph->left;
+			sl_int32 dy = (sl_int32)y - bitmapGlyph->top;
+			CopyBitmap(_out, dx, dy, bitmapGlyph->bitmap, color);
+			FT_Done_Glyph(glyph);
+		}
 	}
 
-	void FreeType::strokeStringInside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& _text, const Color& color, sl_uint32 lineWidth)
+	void FreeType::strokeChar_NoLock(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 ch, const Color& color, sl_uint32 lineWidth, sl_uint32 mode)
 	{
-		StringData32 text(_text);
-		_strokeString(imageOutput, x, y, text.getData(), (sl_uint32)(text.getLength()), sl_true, sl_false, lineWidth, color);
-	}
-
-	void FreeType::strokeStringOutside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& _text, const Color& color, sl_uint32 lineWidth)
-	{
-		StringData32 text(_text);
-		_strokeString(imageOutput, x, y, text.getData(), (sl_uint32)(text.getLength()), sl_true, sl_true, lineWidth, color);
-	}
-
-	void FreeType::_strokeString(const Ref<Image>& imageOutput, sl_int32 _x, sl_int32 _y, const sl_char32* chars, sl_uint32 nChars, sl_bool flagBorder, sl_bool flagOutside, sl_uint32 radius, const Color& color)
-	{
-		if (imageOutput.isNull()) {
+		if (_out.isNull()) {
 			return;
 		}
-		sl_int32 widthImage = imageOutput->getWidth();
-		sl_int32 heightImage = imageOutput->getHeight();
-		if (widthImage <= 0 || heightImage <= 0) {
+		FT_Error err = FT_Load_Char(m_face, (FT_ULong)ch, FT_LOAD_DEFAULT);
+		if (err) {
 			return;
 		}
-
-		if (!nChars) {
-			return;
-		}
-
-		ObjectLocker lock(this);
-
 		FT_Stroker stroker = sl_null;
 		FT_Stroker_New(LIBRARY, &stroker);
 		if (!stroker) {
 			return;
 		}
-		FT_Stroker_Set(stroker, radius * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+		FT_Stroker_Set(stroker, lineWidth * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+		StrokeSlot(_out, x, y, stroker, m_face->glyph, color, mode);
+		FT_Stroker_Done(stroker);
+	}
 
+	void FreeType::strokeChar(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 ch, const Color& color, sl_uint32 lineWidth, sl_uint32 mode)
+	{
+		ObjectLocker lock(this);
+		strokeChar_NoLock(_out, x, y, ch, color, lineWidth, mode);
+	}
+
+	void FreeType::strokeString(const Ref<Image>& _out, sl_int32 _x, sl_int32 _y, const StringParam& _text, const Color& color, sl_uint32 lineWidth, sl_uint32 mode)
+	{
+		if (_out.isNull()) {
+			return;
+		}
+		StringData32 text(_text);
+		sl_uint32 nChars = (sl_uint32)(text.getLength());
+		if (!nChars) {
+			return;
+		}
+		const sl_char32* chars = text.getData();
+
+		ObjectLocker lock(this);
+		FT_Stroker stroker = sl_null;
+		FT_Stroker_New(LIBRARY, &stroker);
+		if (!stroker) {
+			return;
+		}
+		FT_Stroker_Set(stroker, lineWidth * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
 		sl_real x = (sl_real)_x;
 		sl_real y = (sl_real)_y;
 		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
 			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(chars[iChar]), FT_LOAD_DEFAULT);
 			if (!err) {
-				FT_Glyph glyph = sl_null;
-				err = FT_Get_Glyph(m_face->glyph, &glyph);
-				if (!err && glyph) {
-					if (flagBorder) {
-						if (flagOutside) {
-							err = FT_Glyph_StrokeBorder(&glyph, stroker, sl_false, sl_true);
-						} else {
-							err = FT_Glyph_StrokeBorder(&glyph, stroker, sl_true, sl_true);
-						}
-					} else {
-						err = FT_Glyph_Stroke(&glyph, stroker, sl_true);
-					}
-					if (!err && glyph) {
-						err = FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, 0, sl_true);
-						if (!err && glyph) {
-							FT_BitmapGlyph bitmapGlyph = (FT_BitmapGlyph)glyph;
-							sl_int32 dx = (sl_int32)x + bitmapGlyph->left;
-							sl_int32 dy = (sl_int32)y - bitmapGlyph->top;
-							sl_int32 widthChar = bitmapGlyph->bitmap.width;
-							sl_int32 heightChar = bitmapGlyph->bitmap.rows;
-							sl_int32 pitchChar = bitmapGlyph->bitmap.pitch;
-							if (bitmapGlyph->bitmap.pixel_mode != FT_PIXEL_MODE_GRAY && bitmapGlyph->bitmap.pixel_mode != FT_PIXEL_MODE_MONO) {
-								break;
-							}
-							if (widthChar > 0 && heightChar > 0 && dx < widthImage && dy < heightImage && dx > -widthChar && dy > -heightChar) {
-								int sx = 0;
-								int sy = 0;
-								if (dx < 0) {
-									sx -= dx;
-									widthChar += dx;
-									dx = 0;
-								}
-								if (dy < 0) {
-									sy -= dy;
-									heightChar += dy;
-									dy = 0;
-								}
-								if (dx + widthChar > widthImage) {
-									widthChar = widthImage - dx;
-								}
-								if (dy + heightChar > heightImage) {
-									heightChar = heightImage - dy;
-								}
-
-								sl_uint8* bitmapChar = (sl_uint8*)(bitmapGlyph->bitmap.buffer) + (sy * pitchChar + sx);
-								Color* colorsOutput = imageOutput->getColorsAt(dx, dy);
-								sl_reg strideImage = imageOutput->getStride();
-
-								sl_uint32 rs = color.r;
-								sl_uint32 gs = color.g;
-								sl_uint32 bs = color.b;
-								sl_uint32 as = color.a;
-
-								if (bitmapGlyph->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY) {
-									for (int y = 0; y < heightChar; y++) {
-										sl_uint8* ps = bitmapChar;
-										Color* pd = colorsOutput;
-										for (int x = 0; x < widthChar; x++) {
-											sl_uint32 _as = (as * (sl_uint32)(*ps)) / 255;
-											if (_as == 255) {
-												*pd = Color(rs, gs, bs);
-											} else if (_as > 0) {
-												pd->blend_NPA_NPA(rs, gs, bs, _as);
-											}
-											pd++;
-											ps++;
-										}
-										bitmapChar += pitchChar;
-										colorsOutput += strideImage;
-									}
-								} else {
-									for (int y = 0; y < heightChar; y++) {
-										sl_uint8* ps = bitmapChar;
-										Color* pd = colorsOutput;
-										for (int x = 0; x < widthChar; x++) {
-											sl_uint8 B = (ps[x >> 3] >> (7 - (x & 7))) & 1;
-											if (B) {
-												*pd = Color(rs, gs, bs);
-											}
-											pd++;
-										}
-										bitmapChar += pitchChar;
-										colorsOutput += strideImage;
-									}
-								}
-
-							}
-							x += TO_REAL_POS(m_face->glyph->advance.x);
-							y += TO_REAL_POS(m_face->glyph->advance.y);
-						}
-					}
-					if (glyph) {
-						FT_Done_Glyph(glyph);
-					}
-				}
+				StrokeSlot(_out, (sl_int32)x, (sl_int32)y, stroker, m_face->glyph, color, mode);
+				x += TO_REAL_POS(m_face->glyph->advance.x);
+				y += TO_REAL_POS(m_face->glyph->advance.y);
 			}
 		}
-
 		FT_Stroker_Done(stroker);
 	}
 
@@ -971,18 +955,40 @@ namespace slib
 		}
 	}
 
-	Ref<GraphicsPath> FreeType::getStringPath(const StringParam& _text)
+	Ref<GraphicsPath> FreeType::getCharPath_NoLock(sl_char32 ch)
 	{
+		FT_Error err = FT_Load_Char(m_face, (FT_ULong)ch, FT_LOAD_DEFAULT);
+		if (err) {
+			return sl_null;
+		}
 		Ref<GraphicsPath> path = GraphicsPath::create();
 		if (path.isNull()) {
 			return sl_null;
 		}
+		if (!(BuildStringPath(path, x, y, m_face->size->metrics.height, &(m_face->glyph->outline)))) {
+			return sl_null;
+		}
+		return path;
+	}
+
+	Ref<GraphicsPath> FreeType::getCharPath(sl_char32 ch)
+	{
+		ObjectLocker lock(this);
+		return getCharPath_NoLock(ch);
+	}
+
+	Ref<GraphicsPath> FreeType::getStringPath(const StringParam& _text)
+	{
 		StringData32 text(_text);
 		sl_uint32 nChars = (sl_uint32)(text.getLength());
 		if (!nChars) {
 			return sl_null;
 		}
 		const sl_char32* chars = text.getData();
+		Ref<GraphicsPath> path = GraphicsPath::create();
+		if (path.isNull()) {
+			return sl_null;
+		}
 
 		ObjectLocker lock(this);
 		FT_GlyphSlot slot = m_face->glyph;
