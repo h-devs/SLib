@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -32,10 +32,14 @@
 namespace slib
 {
 
+	class FreeType;
+
 	class SLIB_EXPORT FontAtlasParam
 	{
 	public:
-		Ref<Font> font;
+		Ref<Font> font; // Optional when `freetype` is used
+		Ref<FreeType> freetype; // Optional when `font` is used
+		sl_uint32 strokeWidth; // Used for `freetype`. 0 means filling (no stroke)
 		sl_uint32 planeWidth;
 		sl_uint32 planeHeight;
 		sl_uint32 maxPlanes;
@@ -109,12 +113,14 @@ namespace slib
 		sl_bool _getChar(sl_char32 ch, sl_bool flagSizeOnly, FontAtlasChar& _out);
 
 	protected:
-		Ref<Font> m_fontSource;
-		Ref<Font> m_fontDraw;
+		Ref<Font> m_font;
+		Ref<FreeType> m_freetype;
+		sl_real m_sourceHeight;
+		sl_uint32 m_strokeWidth;
+
 		sl_uint32 m_planeWidth;
 		sl_uint32 m_planeHeight;
 		sl_uint32 m_maxPlanes;
-		sl_real m_fontSourceHeight;
 
 		CHashMap<sl_char32, FontAtlasChar> m_map;
 		sl_uint32 m_countPlanes;

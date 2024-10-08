@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/ui/map_view.h"
+#include "slib/ui/map_view_ext.h"
 
 #include "slib/graphics/image.h"
 #include "slib/io/file.h"
@@ -28,7 +28,6 @@
 #include "slib/data/expiring_map.h"
 #include "slib/system/system.h"
 #include "slib/device/cpu.h"
-#include "slib/math/triangle.h"
 #include "slib/math/transform2d.h"
 #include "slib/math/transform3d.h"
 #include "slib/ui/core.h"
@@ -74,13 +73,11 @@ namespace slib
 		{
 		public:
 			Ref<DispatchLoop> dispatchLoop;
-			ExpiringMap< CRef*, Ref<Texture> > renderTextCache;
 
 		public:
 			SharedContext()
 			{
 				dispatchLoop = DispatchLoop::create();
-				renderTextCache.setupTimer(10000, dispatchLoop);
 			}
 		};
 
@@ -912,6 +909,26 @@ namespace slib
 		vertex.position = MapEarth::getCartesianPosition(latitude, longitude, altitude) - center;
 		vertex.texCoord.x = tx;
 		vertex.texCoord.y = ty;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MapFlatPrimitive)
+
+	MapFlatPrimitive::MapFlatPrimitive()
+	{
+	}
+
+	const Ref<VertexBuffer>& MapFlatPrimitive::getVertexBuffer()
+	{
+		if (m_vertexBuffer.isNull()) {
+			m_vertexBuffer = VertexBuffer::create(Memory::createStatic(mesh.getData(), mesh.getCount() * 3, mesh.ref));
+		}
+		return m_vertexBuffer;
+	}
+
+	void MapFlatPrimitive::invalidateVertexBuffer()
+	{
+		m_vertexBuffer.setNull();
 	}
 
 
@@ -1970,12 +1987,12 @@ namespace slib
 		m_lastDrawId = 0;
 	}
 
-	MapViewSprite::MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text): MapViewSprite()
+	MapViewSprite::MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<Font>& font): MapViewSprite()
 	{
-		initialize(location, image, text);
+		initialize(location, image, text, font);
 	}
 
-	MapViewSprite::MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<Font>& font): MapViewSprite()
+	MapViewSprite::MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FreeType>& font): MapViewSprite()
 	{
 		initialize(location, image, text, font);
 	}
@@ -1984,17 +2001,20 @@ namespace slib
 	{
 	}
 
-	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text)
-	{
-		initialize(location, image, text, Ref<Font>::null());
-	}
-
 	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<Font>& font)
 	{
 		m_location = location;
 		m_image = image;
 		m_text = text;
 		m_font = font;
+	}
+
+	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FreeType>& font)
+	{
+		m_location = location;
+		m_image = image;
+		m_text = text;
+		m_freetype = font;
 	}
 
 	const LatLon& MapViewSprite::getLocation()
@@ -2112,21 +2132,6 @@ namespace slib
 		return m_viewPoint;
 	}
 
-	namespace
-	{
-		static Ref<Font> GetFinalSpriteFont(MapViewData* data, const Ref<Font>& font)
-		{
-			if (font.isNotNull()) {
-				return font;
-			}
-			Ref<Font> _font = data->getSpriteFont();
-			if (_font.isNotNull()) {
-				return _font;
-			}
-			return UI::getDefaultFont();
-		}
-	}
-
 	void MapViewSprite::onDrawSprite(Canvas* canvas, MapViewData* data, MapPlane* plane)
 	{
 		sl_real w = m_size.x / 2.0f;
@@ -2138,13 +2143,12 @@ namespace slib
 		if (m_text.isNotNull()) {
 			rect.top = rect.bottom;
 			rect.bottom = rect.top + 100.0f;
-			Ref<Font> font = GetFinalSpriteFont(data, m_font);
 			if (m_textShadowColor.isNotZero()) {
 				rect.translate(1.0f, 1.0f);
-				canvas->drawText(m_text, rect, font, m_textShadowColor, Alignment::TopCenter);
+				canvas->drawText(m_text, rect, m_font, m_textShadowColor, Alignment::TopCenter);
 				rect.translate(-1.0f, -1.0f);
 			}
-			canvas->drawText(m_text, rect, font, m_textColor, Alignment::TopCenter);
+			canvas->drawText(m_text, rect, m_font, m_textColor, Alignment::TopCenter);
 		}
 	}
 
@@ -2152,16 +2156,15 @@ namespace slib
 	{
 		data->renderImage(engine, m_viewPoint, m_size, m_image);
 		if (m_text.isNotNull()) {
-			Ref<Font> font = GetFinalSpriteFont(data, m_font);
 			Size offset(0.0f, m_size.y / 2.0f);
 			if (m_textShadowColor.isNotZero()) {
 				offset.x += 1.0f;
 				offset.y += 1.0f;
-				data->renderText(engine, m_viewPoint + offset, m_text, m_textShadowColor, font, this);
+				data->renderText(engine, m_viewPoint + offset, m_text, m_textShadowColor, m_font, this);
 				offset.x -= 1.0f;
 				offset.y -= 1.0f;
 			}
-			data->renderText(engine, m_viewPoint + offset, m_text, m_textColor, font, this);
+			data->renderText(engine, m_viewPoint + offset, m_text, m_textColor, m_font, this);
 		}
 	}
 
@@ -2488,16 +2491,6 @@ namespace slib
 	void MapViewData::setMinimumDistanceFromGround(double value)
 	{
 		m_minDistanceFromGround = value;
-	}
-
-	Ref<Font> MapViewData::getSpriteFont() const
-	{
-		return m_spriteFont;
-	}
-
-	void MapViewData::setSpriteFont(const Ref<Font>& font)
-	{
-		m_spriteFont = font;
 	}
 
 	sl_bool MapViewData::isTileGridVisible() const
@@ -2899,7 +2892,11 @@ namespace slib
 		if (texture.isNull()) {
 			return;
 		}
-		Matrix3 transform = Transform2::getTranslationMatrix(-0.5f, -0.5f) * Transform2::getScalingMatrix(size) * Transform2::getTranslationMatrix(center) * Transform2::getScalingMatrix(2.0f / (sl_real)(m_state.viewportWidth), -2.0f / (sl_real)(m_state.viewportHeight)) * Transform2::getTranslationMatrix(-1.0f, 1.0f);
+		Matrix3 transform = Transform2::getTranslationMatrix(-0.5f, -0.5f);
+		Transform2::scale(transform, size);
+		Transform2::translate(transform, center);
+		Transform2::scale(transform, 2.0f / (sl_real)(m_state.viewportWidth), -2.0f / (sl_real)(m_state.viewportHeight));
+		Transform2::translate(transform, -1.0f, 1.0f);
 		engine->drawTexture2D(transform, texture, color);
 	}
 
@@ -2911,7 +2908,7 @@ namespace slib
 		renderTexture(engine, center, size, Texture::getBitmapRenderingCache(image), color);
 	}
 
-	void MapViewData::renderText(RenderEngine* engine, const Point& center, const String& text, const Color& color, const Ref<Font>& font, CRef* ref)
+	void MapViewData::renderText(RenderEngine* engine, const Point& center, const String& text, const Ref<Font>& font, const Color& color)
 	{
 		SharedContext* context = GetSharedContext();
 		if (!context) {
@@ -3104,11 +3101,18 @@ namespace slib
 		return MapView::getAltitudeFromViewportHeight(MapView::getMetersFromPixels(viewportHeight) * scale);
 	}
 
+	Matrix4T<double> MapViewData::getWorldTransformAt(const GeoLocation& location)
+	{
+		Matrix4T<double> ret = Transform3T<double>::getTranslationMatrix(0.0, 0.0, location.altitude + Earth::getRadius());
+		Transform3T<double>::rotateX(ret, Math::getRadianFromDegrees(-location.latitude));
+		Transform3T<double>::rotateY(ret, Math::getRadianFromDegrees(180.0 - location.longitude));
+		return ret;
+	}
+
 	void MapViewData::_onCompleteLazyLoading()
 	{
 		invalidate();
 	}
-
 
 	MapViewData::Motion::Motion()
 	{

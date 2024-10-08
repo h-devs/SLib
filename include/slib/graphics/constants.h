@@ -68,7 +68,7 @@ namespace slib
 
 	enum class HatchStyle
 	{
-		None = 0,
+		Solid = 0,
 		Horizontal = 1,
 		Vertical = 2,
 		ForwardDiagonal = 3,

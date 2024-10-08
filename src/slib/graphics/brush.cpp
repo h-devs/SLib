@@ -276,7 +276,7 @@ namespace slib
 	}
 
 
-	HatchBrushDetail::HatchBrushDetail(): style(HatchStyle::Horizontal)
+	HatchBrushDetail::HatchBrushDetail(): style(HatchStyle::Solid)
 	{
 	}
 

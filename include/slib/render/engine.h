@@ -308,6 +308,8 @@ namespace slib
 
 		void drawLines(Line3* lines, sl_uint32 n, const Color4F& color);
 
+		void drawText(const Matrix3& transform, const StringParam& text, const Ref<Font>& font, const Color4F& color);
+
 		void drawDebugText();
 
 		Point screenToViewport(const Point& ptViewport);

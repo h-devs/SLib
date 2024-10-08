@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -133,16 +133,15 @@ namespace slib
 
 		sl_bool isUnicodeEncoding();
 
-		// set size in pixels
+		// Pixels
 		sl_bool setSize(sl_uint32 width, sl_uint32 height);
-
 		sl_bool setSize(sl_uint32 size);
 
-		// set size in pixels
+		// Pixels
 		sl_bool setRealSize(sl_real width, sl_real height);
-
 		sl_bool setRealSize(sl_real size);
 
+		// Pixels
 		sl_real getFontHeight();
 
 		Size getCharExtent(sl_uint32 charcode);

@@ -982,7 +982,8 @@ namespace slib
 		SAppDoubleValue minimumAltitude;
 		SAppDoubleValue maximumAltitude;
 		SAppDoubleValue minimumDistanceFromGround;
-		SAppFontValue spriteFont;
+		SAppBooleanValue tileGrid;
+		SAppBooleanValue terrainGrid;
 		SAppStateMap<SAppDrawableValue> compass;
 		SAppDimensionValue compassSize;
 		SAppVector2Value compassCenter;
