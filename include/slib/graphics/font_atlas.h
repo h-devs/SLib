@@ -32,17 +32,24 @@
 namespace slib
 {
 
-	class FreeType;
-
-	class SLIB_EXPORT FontAtlasParam
+	class SLIB_EXPORT FontAtlasBaseParam
 	{
 	public:
-		Ref<Font> font; // Optional when `freetype` is used
-		Ref<FreeType> freetype; // Optional when `font` is used
-		sl_uint32 strokeWidth; // Used for `freetype`. 0 means filling (no stroke)
 		sl_uint32 planeWidth;
 		sl_uint32 planeHeight;
 		sl_uint32 maxPlanes;
+
+	public:
+		FontAtlasBaseParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FontAtlasBaseParam)
+
+	};
+
+	class SLIB_EXPORT FontAtlasParam : public FontAtlasBaseParam
+	{
+	public:
+		Ref<Font> font;
 
 	public:
 		FontAtlasParam();
@@ -90,14 +97,20 @@ namespace slib
 		~FontAtlas();
 
 	public:
-		static Ref<FontAtlas> create(const FontAtlasParam& param);
-
 		static Ref<FontAtlas> getShared(const Ref<Font>& font);
 
 		static void removeAllShared();
 
+		static Ref<FontAtlas> create(const FontAtlasParam& param);
+
 	public:
+		sl_real getFontHeight();
+
+		sl_bool getChar_NoLock(sl_char32 ch, FontAtlasChar& _out);
+
 		sl_bool getChar(sl_char32 ch, FontAtlasChar& _out);
+
+		virtual sl_bool getCharImage_NoLock(sl_char32 ch, FontAtlasCharImage& _out) = 0;
 
 		sl_bool getCharImage(sl_char32 ch, FontAtlasCharImage& _out);
 
@@ -109,14 +122,22 @@ namespace slib
 
 		void removeAll();
 
-	protected:
-		sl_bool _getChar(sl_char32 ch, sl_bool flagSizeOnly, FontAtlasChar& _out);
+		virtual Ref<FontAtlas> createStroker(sl_uint32 strokeWidth);
 
 	protected:
-		Ref<Font> m_font;
-		Ref<FreeType> m_freetype;
+		void initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_uint32 planeWidth, sl_uint32 planeHeight);
+
+		sl_bool getChar_NoLock(sl_char32 ch, sl_bool flagSizeOnly, FontAtlasChar& _out);
+
+		virtual Size measureChar(sl_char32 ch) = 0;
+
+		virtual Ref<Bitmap> drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) = 0;
+
+		virtual sl_bool createPlane() = 0;
+
+	protected:
 		sl_real m_sourceHeight;
-		sl_uint32 m_strokeWidth;
+		sl_real m_fontScale;
 
 		sl_uint32 m_planeWidth;
 		sl_uint32 m_planeHeight;
@@ -124,14 +145,9 @@ namespace slib
 
 		CHashMap<sl_char32, FontAtlasChar> m_map;
 		sl_uint32 m_countPlanes;
-		Ref<Bitmap> m_currentPlane;
-		Ref<Canvas> m_currentCanvas;
 		sl_uint32 m_currentPlaneY;
 		sl_uint32 m_currentPlaneX;
 		sl_uint32 m_currentPlaneRowHeight;
-
-		CHashMap<sl_char32, FontAtlasCharImage> m_mapImage;
-
 	};
 
 }

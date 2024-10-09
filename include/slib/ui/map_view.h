@@ -185,7 +185,7 @@ namespace slib
 
 		void renderImage(RenderEngine* engine, const Point& center, const Size& size, const Ref<Image>& image, const Color4F& color = Color4F(1.0f, 1.0f, 1.0f, 1.0f));
 
-		void renderText(RenderEngine* engine, const Point& center, const String& text, const Ref<Font>& font, const Color& color);
+		void renderText(RenderEngine* engine, const Point& center, const StringParam& text, const Ref<FontAtlas>& font, const Color& color);
 
 	public:
 		sl_bool getLatLonFromViewPoint(const Double2& point, LatLon& _out) const;

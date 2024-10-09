@@ -1508,7 +1508,6 @@ namespace slib
 		if (text.isEmpty()) {
 			return;
 		}
-
 		sl_char16* data = text.getData();
 		sl_size len = text.getLength();
 		sl_real fontHeight = font->getFontHeight();
@@ -1518,12 +1517,10 @@ namespace slib
 		if (fa.isNull()) {
 			return;
 		}
-
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
 			return;
 		}
-
 		RenderCanvasState* state = m_state.get();
 		if (state->flagClipRect) {
 			if (state->clipRect.top >= y + fontHeight || state->clipRect.bottom <= y || state->clipRect.right <= x) {
@@ -1543,33 +1540,29 @@ namespace slib
 		Color4F color = param.color;
 		sl_real fx = x;
 
-		for (sl_size i = 0; i < len;) {
-
-			sl_char32 ch;
-			if (!(Charsets::getUnicode(ch, data, len, i))) {
-				i++;
-				continue;
-			}
-			
-			if (fa->getChar(ch, fac)) {
-
+		{
+			ObjectLocker lock(fa.get());
+			for (sl_size i = 0; i < len;) {
+				sl_char32 ch;
+				if (!(Charsets::getUnicode(ch, data, len, i))) {
+					i++;
+					continue;
+				}
+				if (!(fa->getChar_NoLock(ch, fac))) {
+					continue;
+				}
 				sl_real fw = fac.fontWidth;
 				sl_real fh = fac.fontHeight;
 				sl_real fxn = fx + fw;
-
 				if (fac.bitmap.isNotNull()) {
-
 					Rectangle rcDst;
 					rcDst.left = fx;
 					rcDst.right = fxn;
 					rcDst.top = y + (fontHeight - fh);
 					rcDst.bottom  = rcDst.top + fh;
-
 					Rectangle rcClip;
-
 					sl_bool flagIgnore = sl_false;
 					sl_bool flagClip = sl_false;
-
 					if (state->flagClipRect) {
 						if (state->clipRect.right <= fx) {
 							return;
@@ -1637,7 +1630,6 @@ namespace slib
 				fx = fxn;
 			}
 		}
-
 		if (font->isStrikeout() || font->isUnderline()) {
 			Ref<Pen> pen = Pen::createSolidPen(1, param.color);
 			FontMetrics fm;

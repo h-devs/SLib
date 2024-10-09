@@ -33,11 +33,11 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FreeTypeAtlasParam)
 
-	FreeTypeAtlasParam::FreeTypeAtlasParam()
+	FreeTypeAtlasParam::FreeTypeAtlasParam(): strokeWidth(0)
 	{
 	}
 
-	SLIB_DEFINE_OBJECT(FreeTypeAtlas, Object)
+	SLIB_DEFINE_OBJECT(FreeTypeAtlas, FontAtlas)
 
 	FreeTypeAtlas::FreeTypeAtlas()
 	{
@@ -65,9 +65,10 @@ namespace slib
 		} else {
 			fontHeight = sourceHeight;
 		}
+		sl_uint32 fontHeightExt = (sl_uint32)fontHeight + (param.strokeWidth << 1);
 		sl_uint32 planeWidth = param.planeWidth;
 		if (!planeWidth) {
-			planeWidth = (sl_uint32)(fontHeight * 16);
+			planeWidth = fontHeightExt << 4;
 			if (planeWidth > 1024) {
 				planeWidth = 1024;
 			}
@@ -77,7 +78,7 @@ namespace slib
 		}
 		sl_uint32 planeHeight = param.planeHeight;
 		if (!planeHeight) {
-			planeHeight = (sl_uint32)fontHeight;
+			planeHeight = fontHeightExt;
 		}
 		if (planeHeight < PLANE_SIZE_MIN) {
 			planeHeight = PLANE_SIZE_MIN;
@@ -114,6 +115,17 @@ namespace slib
 			_out.image.setNull();
 		}
 		return sl_true;
+	}
+
+	Ref<FontAtlas> FreeTypeAtlas::createStroker(sl_uint32 strokeWidth)
+	{
+		FreeTypeAtlasParam param;
+		param.font = m_font;
+		param.strokeWidth = strokeWidth;
+		param.planeWidth = m_planeWidth + (strokeWidth << 5);
+		param.planeHeight = m_planeHeight + (strokeWidth << 1);
+		param.maxPlanes = m_maxPlanes;
+		return create(param);
 	}
 
 	Size FreeTypeAtlas::measureChar(sl_char32 ch)

@@ -165,7 +165,7 @@ namespace slib
 				sl_real fontHeight = font->getFontHeight();
 				sl_uint32 planeWidth = param.planeWidth;
 				if (!planeWidth) {
-					planeWidth = (sl_uint32)(fontHeight * 16);
+					planeWidth = ((sl_uint32)fontHeight) << 4;
 					if (planeWidth > 1024) {
 						planeWidth = 1024;
 					}
@@ -282,6 +282,11 @@ namespace slib
 			maxPlanes = 1;
 		}
 		m_maxPlanes = maxPlanes;
+	}
+
+	sl_real FontAtlas::getFontHeight()
+	{
+		return m_sourceHeight;
 	}
 
 	sl_bool FontAtlas::getChar_NoLock(sl_char32 ch, FontAtlasChar& _out)
@@ -467,6 +472,11 @@ namespace slib
 		m_currentPlaneX = 0;
 		m_currentPlaneY = 0;
 		m_currentPlaneRowHeight = 0;
+	}
+
+	Ref<FontAtlas> FontAtlas::createStroker(sl_uint32 strokeWidth)
+	{
+		return sl_null;
 	}
 
 	Ref<FontAtlas> Font::getAtlas()

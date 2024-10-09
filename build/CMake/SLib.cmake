@@ -181,6 +181,7 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/graphics/font.cpp"
  "${SLIB_PATH}/src/slib/graphics/font_atlas.cpp"
  "${SLIB_PATH}/src/slib/graphics/freetype.cpp"
+ "${SLIB_PATH}/src/slib/graphics/freetype_atlas.cpp"
  "${SLIB_PATH}/src/slib/graphics/graphics_path.cpp"
  "${SLIB_PATH}/src/slib/graphics/graphics_resource.cpp"
  "${SLIB_PATH}/src/slib/graphics/graphics_text.cpp"

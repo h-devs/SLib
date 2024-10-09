@@ -24,7 +24,9 @@
 
 #include "slib/render/program.h"
 #include "slib/graphics/canvas.h"
+#include "slib/graphics/font_atlas.h"
 #include "slib/ui/core.h"
+#include "slib/math/transform2d.h"
 #include "slib/math/transform3d.h"
 
 namespace slib
@@ -677,6 +679,58 @@ namespace slib
 	void RenderEngine::drawLines(Line3* lines, sl_uint32 n, const Color4F& color)
 	{
 		drawLines(getDefaultRenderProgramForDrawLine3D(), lines, n, color);
+	}
+
+	void RenderEngine::drawText(const Matrix3& _transform, const StringParam& _text, const Ref<FontAtlas>& atlas, const Color4F& color)
+	{
+		StringData16 text(_text);
+		if (text.isEmpty()) {
+			return;
+		}
+		sl_char16* data = text.getData();
+		sl_size len = text.getLength();
+		sl_real fontHeight = atlas->getFontHeight();
+
+		ObjectLocker lock(atlas.get());
+		FontAtlasChar fac;
+		sl_real fx = 0.0f;
+		for (sl_size i = 0; i < len;) {
+			sl_char32 ch;
+			if (!(Charsets::getUnicode(ch, data, len, i))) {
+				i++;
+				continue;
+			}
+			if (!(atlas->getChar_NoLock(ch, fac))) {
+				continue;
+			}
+			sl_real fw = fac.fontWidth;
+			sl_real fh = fac.fontHeight;
+			if (fac.bitmap.isNotNull()) {
+				Ref<Texture> texture = Texture::getBitmapRenderingCache(fac.bitmap);
+				if (texture.isNotNull()) {
+					sl_real sw = (sl_real)(texture->getWidth());
+					sl_real sh = (sl_real)(texture->getHeight());
+					if (sw > SLIB_EPSILON && sh > SLIB_EPSILON) {
+						Rectangle rcSrc;
+						rcSrc.left = (sl_real)(fac.region.left) / sw;
+						rcSrc.top = (sl_real)(fac.region.top) / sh;
+						rcSrc.right = (sl_real)(fac.region.right) / sw;
+						rcSrc.bottom = (sl_real)(fac.region.bottom) / sh;
+						Matrix3 transform = _transform;
+						Transform2::preTranslate(transform, fw, 0.0f);
+						drawTexture2D(transform, texture, color);
+					}
+				}
+			}
+			fx += fw;
+		}
+	}
+
+	void RenderEngine::drawText(sl_real x, sl_real y, sl_real scaleX, sl_real scaleY, const StringParam& text, const Ref<FontAtlas>& atlas, const Color4F& color)
+	{
+		Matrix3 transform = Transform2::getScalingMatrix(scaleX, scaleY);
+		Transform2::translate(transform, x, y);
+		drawText(transform, text, atlas, color);
 	}
 
 	const Ref<render3d::program::Position>& RenderEngine::getDefaultRenderProgramForDrawLine3D()

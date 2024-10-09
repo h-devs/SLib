@@ -47,9 +47,11 @@ namespace slib
 
 		static Matrix3T<T> getTranslationMatrix(T x, T y) noexcept
 		{
-			return { 1, 0, 0,
+			return {
+				1, 0, 0,
 				0, 1, 0,
-				x, y, 1 };
+				x, y, 1
+			};
 		}
 
 		static Matrix3T<T> getTranslationMatrix(const Vector2T<T>& v) noexcept
@@ -111,9 +113,11 @@ namespace slib
 
 		static Matrix3T<T> getScalingMatrix(T x, T y) noexcept
 		{
-			return { x, 0, 0,
+			return {
+				x, 0, 0,
 				0, y, 0,
-				0, 0, 1 };
+				0, 0, 1
+			};
 		}
 
 		static Matrix3T<T> getScalingMatrix(const Vector2T<T>& v) noexcept
@@ -211,9 +215,11 @@ namespace slib
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			return { c, s, 0,
+			return {
+				c, s, 0,
 				-s, c, 0,
-				0, 0, 1 };
+				0, 0, 1
+			};
 		}
 
 		static Matrix3T<T> getRotationMatrix(T cx, T cy, T radians) noexcept
@@ -301,16 +307,20 @@ namespace slib
 
 		static Matrix3T<T> getSkewXMatrix(T x) noexcept
 		{
-			return { 1, 0, 0,
+			return {
+				1, 0, 0,
 				x, 1, 0,
-				0, 0, 1 };
+				0, 0, 1
+			};
 		}
 
 		static Matrix3T<T> getSkewYMatrix(T y) noexcept
 		{
-			return { 1, y, 0,
+			return {
+				1, y, 0,
 				0, 1, 0,
-				0, 0, 1 };
+				0, 0, 1
+			};
 		}
 
 		static void skewX(Matrix3T<T>& mat, T sx) noexcept

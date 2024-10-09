@@ -1331,5 +1331,8 @@
     <ClCompile Include="..\..\src\slib\render\d2d.cpp">
       <Filter>src\render</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\graphics\freetype_atlas.cpp">
+      <Filter>src\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

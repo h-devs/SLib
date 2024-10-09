@@ -59,6 +59,7 @@ namespace slib
 			Font,
 			FontAtlas,
 			FreeType,
+			FreeTypeAtlas,
 			Canvas,
 			CanvasExt,
 			CanvasImpl,

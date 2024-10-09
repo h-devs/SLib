@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -618,23 +618,6 @@ namespace slib
 		return getCharExtent_NoLock(charcode);
 	}
 
-	Size FreeType::getGlyphExtent_NoLock(sl_uint32 glyphId)
-	{
-		FT_Error err = FT_Load_Glyph(m_face, (FT_UInt)glyphId, FT_LOAD_BITMAP_METRICS_ONLY);
-		if (!err) {
-			sl_real dx = TO_REAL_POS(m_face->glyph->metrics.horiAdvance);
-			sl_real dy = TO_REAL_POS(m_face->glyph->metrics.height);
-			return Size(dx, dy);
-		}
-		return Size::zero();
-	}
-
-	Size FreeType::getGlyphExtent(sl_uint32 glyphId)
-	{
-		ObjectLocker lock(this);
-		return getGlyphExtent_NoLock(glyphId);
-	}
-
 	Size FreeType::getStringExtent(const StringParam& _text)
 	{
 		StringData32 text(_text);
@@ -660,6 +643,23 @@ namespace slib
 			}
 		}
 		return Size(TO_REAL_POS(sizeX), TO_REAL_POS(sizeY));
+	}
+
+	Size FreeType::getGlyphExtent_NoLock(sl_uint32 glyphId)
+	{
+		FT_Error err = FT_Load_Glyph(m_face, (FT_UInt)glyphId, FT_LOAD_BITMAP_METRICS_ONLY);
+		if (!err) {
+			sl_real dx = TO_REAL_POS(m_face->glyph->metrics.horiAdvance);
+			sl_real dy = TO_REAL_POS(m_face->glyph->metrics.height);
+			return Size(dx, dy);
+		}
+		return Size::zero();
+	}
+
+	Size FreeType::getGlyphExtent(sl_uint32 glyphId)
+	{
+		ObjectLocker lock(this);
+		return getGlyphExtent_NoLock(glyphId);
 	}
 
 	namespace
@@ -796,12 +796,12 @@ namespace slib
 
 	namespace
 	{
-		static sl_bool StrokeSlot(const Ref<Image>& _out, sl_int32 x, sl_int32 y, FT_Stroker stroker, FT_GlyphSlot slot, const Color& color, sl_uint32 mode)
+		static void StrokeSlot(const Ref<Image>& _out, sl_int32 x, sl_int32 y, FT_Stroker stroker, FT_GlyphSlot slot, const Color& color, sl_uint32 mode)
 		{
 			FT_Glyph glyph = sl_null;
 			FT_Error err = FT_Get_Glyph(slot, &glyph);
 			if (err || !glyph) {
-				return sl_false;
+				return;
 			}
 			switch (mode) {
 				case FreeType::StrokeDefault:
@@ -814,14 +814,14 @@ namespace slib
 					err = FT_Glyph_StrokeBorder(&glyph, stroker, sl_false, sl_true);
 					break;
 				default:
-					return sl_false;
+					return;
 			}
 			if (err || !glyph) {
-				return sl_false;
+				return;
 			}
 			err = FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, 0, sl_true);
 			if (err || !glyph) {
-				return sl_false;
+				return;
 			}
 			FT_BitmapGlyph bitmapGlyph = (FT_BitmapGlyph)glyph;
 			sl_int32 dx = (sl_int32)x + bitmapGlyph->left;
@@ -965,7 +965,7 @@ namespace slib
 		if (path.isNull()) {
 			return sl_null;
 		}
-		if (!(BuildStringPath(path, x, y, m_face->size->metrics.height, &(m_face->glyph->outline)))) {
+		if (!(BuildStringPath(path, 0, 0, m_face->size->metrics.height, &(m_face->glyph->outline)))) {
 			return sl_null;
 		}
 		return path;

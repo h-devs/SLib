@@ -243,6 +243,7 @@
     <ClCompile Include="..\..\src\slib\graphics\font_atlas.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\freetype.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\font_gdi.cpp" />
+    <ClCompile Include="..\..\src\slib\graphics\freetype_atlas.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\graphics_path.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\graphics_path_gdi.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\gdi_platform.cpp" />

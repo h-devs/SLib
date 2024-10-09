@@ -208,21 +208,24 @@ namespace slib
 				Color color = param.color;
 				sl_real fx = x;
 
-				for (sl_size i = 0; i < len;) {
-					sl_char32 ch;
-					if (Charsets::getUnicode(ch, data, len, i)) {
-						if (fa->getCharImage(ch, fac)) {
-							if (fac.image.isNotNull()) {
-								image->drawImage(
-									(sl_int32)fx, (sl_int32)(y + (fontHeight - fac.fontHeight)),
-									(sl_int32)(fac.fontWidth), (sl_int32)(fac.fontHeight),
-									fac.image, color, Color4F::zero(),
-									0, 0, fac.image->getWidth(), fac.image->getHeight());
+				{
+					ObjectLocker lock(fa.get());
+					for (sl_size i = 0; i < len;) {
+						sl_char32 ch;
+						if (Charsets::getUnicode(ch, data, len, i)) {
+							if (fa->getCharImage_NoLock(ch, fac)) {
+								if (fac.image.isNotNull()) {
+									image->drawImage(
+										(sl_int32)fx, (sl_int32)(y + (fontHeight - fac.fontHeight)),
+										(sl_int32)(fac.fontWidth), (sl_int32)(fac.fontHeight),
+										fac.image, color, Color4F::zero(),
+										0, 0, fac.image->getWidth(), fac.image->getHeight());
+								}
+								fx += fac.fontWidth;
 							}
-							fx += fac.fontWidth;
+						} else {
+							i++;
 						}
-					} else {
-						i++;
 					}
 				}
 

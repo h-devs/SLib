@@ -144,21 +144,29 @@ namespace slib
 		// Pixels
 		sl_real getFontHeight();
 
+		Size getCharExtent_NoLock(sl_uint32 charcode);
 		Size getCharExtent(sl_uint32 charcode);
-
-		Size getGlyphExtent(sl_uint32 glyphId);
-
 		Size getStringExtent(const StringParam& text);
 
+		Size getGlyphExtent_NoLock(sl_uint32 glyphId);
+		Size getGlyphExtent(sl_uint32 glyphId);
+
 		// draw starting at left-bottom corner
-		void drawString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color);
+		void drawChar_NoLock(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 charcode, const Color& color);
+		void drawChar(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 charcode, const Color& color);
+		void drawString(const Ref<Image>& _out, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color);
 
-		void strokeString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth);
+		enum {
+			StrokeDefault = 0,
+			StrokeOutside = 1,
+			StrokeInside = 2
+		};
+		void strokeChar_NoLock(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 charcode, const Color& color, sl_uint32 lineWidth, sl_uint32 mode = StrokeDefault);
+		void strokeChar(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 charcode, const Color& color, sl_uint32 lineWidth, sl_uint32 mode = StrokeDefault);
+		void strokeString(const Ref<Image>& _out, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth, sl_uint32 mode = StrokeDefault);
 
-		void strokeStringInside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth);
-
-		void strokeStringOutside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth);
-
+		Ref<GraphicsPath> getCharPath_NoLock(sl_char32 charcode);
+		Ref<GraphicsPath> getCharPath(sl_char32 charcode);
 		Ref<GraphicsPath> getStringPath(const StringParam& text);
 
 		Ref<FreeTypeGlyph> getCharGlyph(sl_uint32 charcode);

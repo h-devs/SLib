@@ -595,8 +595,6 @@ namespace slib
 		List< Ref<MapViewObject> > m_children;
 	};
 
-	class FreeType;
-
 	class MapViewSprite : public MapViewObject
 	{
 		SLIB_DECLARE_OBJECT
@@ -604,14 +602,12 @@ namespace slib
 	public:
 		MapViewSprite();
 
-		MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& font);
+		MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& font, sl_uint32 strokeWidth = 0);
 
 		~MapViewSprite();
 
 	public:
-		void initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<Object>& font, const Ref<FreeType>& freetype);
-
-		void initializeWithFreeType(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FreeType>& font);
+		void initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& atlas, sl_uint32 strokeWidth = 0);
 
 	public:
 		const LatLon& getLocation();
@@ -629,9 +625,9 @@ namespace slib
 
 		void setTextColor(const Color& color);
 
-		const Color& getTextShadowColor();
+		const Color& getStrokeColor();
 
-		void setTextShadowColor(const Color& color);
+		void setStrokeColor(const Color& color);
 
 	public:
 		void draw(Canvas* canvas, MapViewData* data, MapPlane* plane) override;
@@ -660,11 +656,12 @@ namespace slib
 		LatLon m_location;
 		Ref<Image> m_image;
 		String m_text;
-		Ref<Font> m_font;
-		Ref<FreeType> m_freetype;
+		Ref<FontAtlas> m_font;
+		Ref<FontAtlas> m_stroker;
+
 		Size m_size;
 		Color m_textColor;
-		Color m_textShadowColor;
+		Color m_strokeColor;
 
 		sl_bool m_flagValidAltitude;
 		double m_altitude;

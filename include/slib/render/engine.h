@@ -308,7 +308,9 @@ namespace slib
 
 		void drawLines(Line3* lines, sl_uint32 n, const Color4F& color);
 
-		void drawText(const Matrix3& transform, const StringParam& text, const Ref<Font>& font, const Color4F& color);
+		void drawText(const Matrix3& transform, const StringParam& text, const Ref<FontAtlas>& atlas, const Color4F& color);
+
+		void drawText(sl_real x, sl_real y, sl_real scaleX, sl_real scaleY, const StringParam& text, const Ref<FontAtlas>& atlas, const Color4F& color);
 
 		void drawDebugText();
 

@@ -4849,7 +4849,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, mapScale, setMapScale)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, minimumAltitude, setMinimumAltitude)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, maximumAltitude, setMaximumAltitude)
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, minimumDistanceFromGround, setMinimumDistanceFromGround)
+		LAYOUT_CONTROL_ATTR(GENERIC, minimumDistanceFromGround, setMinimumDistanceFromGround)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, tileGrid, setTileGridVisible)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, terrainGrid, setTerrainGridVisible)
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, compass, setCompass)

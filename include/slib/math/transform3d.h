@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -44,10 +44,7 @@ namespace slib
 
 		static void setTranslation(Matrix4T<T>& _out, const Vector3T<T>& v) noexcept
 		{
-			_out.m00 = 1; _out.m01 = 0; _out.m02 = 0; _out.m03 = 0;
-			_out.m10 = 0; _out.m11 = 1; _out.m12 = 0; _out.m13 = 0;
-			_out.m20 = 0; _out.m21 = 0; _out.m22 = 1; _out.m23 = 0;
-			_out.m30 = v.x; _out.m31 = v.y; _out.m32 = v.z; _out.m33 = 1;
+			setTranslation(_out, v.x, v.y, v.z)
 		}
 
 		static Matrix4T<T> getTranslationMatrix(T x, T y, T z) noexcept
@@ -60,10 +57,7 @@ namespace slib
 
 		static Matrix4T<T> getTranslationMatrix(const Vector3T<T>& v) noexcept
 		{
-			return { 1, 0, 0, 0,
-				0, 1, 0, 0,
-				0, 0, 1, 0,
-				v.x, v.y, v.z, 1 };
+			return getTranslationMatrix(v.x, v.y, v.z);
 		}
 
 		static void translate(Matrix4T<T>& mat, T x, T y, T z) noexcept
@@ -75,9 +69,19 @@ namespace slib
 
 		static void translate(Matrix4T<T>& mat, const Vector3T<T>& v) noexcept
 		{
-			mat.m30 += v.x;
-			mat.m31 += v.y;
-			mat.m32 += v.z;
+			translate(mat, v.x, v.y, v.z);
+		}
+
+		static void preTranslate(Matrix4T<T>& mat, T x, T y, T z) noexcept
+		{
+			mat.m30 += (x * mat.m00 + y * mat.m10 + z * mat.m20);
+			mat.m31 += (x * mat.m01 + y * mat.m11 + z * mat.m21);
+			mat.m32 += (x * mat.m02 + y * mat.m12 + z * mat.m22);
+		}
+
+		static void preTranslate(Matrix4T<T>& mat, const Vector3T<T>& v) noexcept
+		{
+			preTranslate(mat, v.x, v.y, v.z);
 		}
 
 
@@ -91,26 +95,22 @@ namespace slib
 
 		static void setScaling(Matrix4T<T>& _out, const Vector3T<T>& v) noexcept
 		{
-			_out.m00 = v.x; _out.m01 = 0; _out.m02 = 0; _out.m03 = 0;
-			_out.m10 = 0; _out.m11 = v.y; _out.m12 = 0; _out.m13 = 0;
-			_out.m20 = 0; _out.m21 = 0; _out.m22 = v.z; _out.m23 = 0;
-			_out.m30 = 0; _out.m31 = 0; _out.m32 = 0; _out.m33 = 1;
+			setScaling(_out, v.x, v.y, v.z);
 		}
 
 		static Matrix4T<T> getScalingMatrix(T x, T y, T z) noexcept
 		{
-			return { x, 0, 0, 0,
+			return {
+				x, 0, 0, 0,
 				0, y, 0, 0,
 				0, 0, z, 0,
-				0, 0, 0, 1 };
+				0, 0, 0, 1
+			};
 		}
 
 		static Matrix4T<T> getScalingMatrix(const Vector3T<T>& v) noexcept
 		{
-			return { v.x, 0, 0, 0,
-				0, v.y, 0, 0,
-				0, 0, v.z, 0,
-				0, 0, 0, 1 };
+			return getScalingMatrix(v.x, v.y, v.z);
 		}
 
 		static void scale(Matrix4T<T>& mat, T sx, T sy, T sz) noexcept
@@ -134,6 +134,25 @@ namespace slib
 			scale(mat, v.x, v.y, v.z);
 		}
 
+		static void preScale(Matrix4T<T>& mat, T sx, T sy, T sz) noexcept
+		{
+			mat.m00 *= sx;
+			mat.m01 *= sx;
+			mat.m02 *= sx;
+			mat.m10 *= sy;
+			mat.m11 *= sy;
+			mat.m12 *= sy;
+			mat.m20 *= sz;
+			mat.m21 *= sz;
+			mat.m22 *= sz;
+		}
+
+		static void preScale(Matrix4T<T>& mat, const Vector3T<T>& v) noexcept
+		{
+			preScale(mat, v.x, v.y, v.z);
+		}
+
+
 		static void setRotationX(Matrix4T<T>& _out, T radians) noexcept
 		{
 			T c = Math::cos(radians);
@@ -148,29 +167,38 @@ namespace slib
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			return { 1, 0, 0, 0,
+			return {
+				1, 0, 0, 0,
 				0, c, s, 0,
 				0, -s, c, 0,
-				0, 0, 0, 1 };
+				0, 0, 0, 1
+			};
 		}
 
 		static void rotateX(Matrix4T<T>& mat, T radians) noexcept
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			T v1, v2;
-			v1 = mat.m01 * c - mat.m02 * s;
-			v2 = mat.m01 * s + mat.m02 * c;
-			mat.m01 = v1; mat.m02 = v2;
-			v1 = mat.m11 * c - mat.m12 * s;
-			v2 = mat.m11 * s + mat.m12 * c;
-			mat.m11 = v1; mat.m12 = v2;
-			v1 = mat.m21 * c - mat.m22 * s;
-			v2 = mat.m21 * s + mat.m22 * c;
-			mat.m21 = v1; mat.m22 = v2;
-			v1 = mat.m31 * c - mat.m32 * s;
-			v2 = mat.m31 * s + mat.m32 * c;
-			mat.m31 = v1; mat.m32 = v2;
+			mat.m01 = mat.m01 * c - mat.m02 * s;
+			mat.m02 = mat.m01 * s + mat.m02 * c;
+			mat.m11 = mat.m11 * c - mat.m12 * s;
+			mat.m12 = mat.m11 * s + mat.m12 * c;
+			mat.m21 = mat.m21 * c - mat.m22 * s;
+			mat.m22 = mat.m21 * s + mat.m22 * c;
+			mat.m31 = mat.m31 * c - mat.m32 * s;
+			mat.m32 = mat.m31 * s + mat.m32 * c;
+		}
+
+		static void preRotateX(Matrix4T<T>& mat, T radians) noexcept
+		{
+			T c = Math::cos(radians);
+			T s = Math::sin(radians);
+			mat.m10 = c * mat.m10 + s * mat.m20;
+			mat.m11 = c * mat.m11 + s * mat.m21;
+			mat.m12 = c * mat.m12 + s * mat.m22;
+			mat.m20 = c * mat.m20 - s * mat.m10;
+			mat.m21 = c * mat.m21 - s * mat.m11;
+			mat.m22 = c * mat.m22 - s * mat.m12;
 		}
 
 		static void setRotationY(Matrix4T<T>& _out, T radians) noexcept
@@ -187,29 +215,38 @@ namespace slib
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			return { c, 0, -s, 0,
+			return {
+				c, 0, -s, 0,
 				0, 1, 0, 0,
 				s, 0, c, 0,
-				0, 0, 0, 1 };
+				0, 0, 0, 1
+			};
 		}
 
 		static void rotateY(Matrix4T<T>& mat, T radians) noexcept
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			T v0, v2;
-			v0 = mat.m00 * c + mat.m02 * s;
-			v2 = -mat.m00 * s + mat.m02 * c;
-			mat.m00 = v0; mat.m02 = v2;
-			v0 = mat.m10 * c + mat.m12 * s;
-			v2 = -mat.m10 * s + mat.m12 * c;
-			mat.m10 = v0; mat.m12 = v2;
-			v0 = mat.m20 * c + mat.m22 * s;
-			v2 = -mat.m20 * s + mat.m22 * c;
-			mat.m20 = v0; mat.m22 = v2;
-			v0 = mat.m30 * c + mat.m32 * s;
-			v2 = -mat.m30 * s + mat.m32 * c;
-			mat.m30 = v0; mat.m32 = v2;
+			mat.m00 = mat.m00 * c + mat.m02 * s;
+			mat.m02 = mat.m02 * c - mat.m00 * s;
+			mat.m10 = mat.m10 * c + mat.m12 * s;
+			mat.m12 = mat.m12 * c - mat.m10 * s;
+			mat.m20 = mat.m20 * c + mat.m22 * s;
+			mat.m22 = mat.m22 * c - mat.m20 * s;
+			mat.m30 = mat.m30 * c + mat.m32 * s;
+			mat.m32 = mat.m32 * c - mat.m30 * s;
+		}
+
+		static void preRotateY(Matrix4T<T>& mat, T radians) noexcept
+		{
+			T c = Math::cos(radians);
+			T s = Math::sin(radians);
+			mat.m00 = c * mat.m00 - s * mat.m20;
+			mat.m01 = c * mat.m01 - s * mat.m21;
+			mat.m02 = c * mat.m02 - s * mat.m22;
+			mat.m20 = s * mat.m00 + c * mat.m20;
+			mat.m21 = s * mat.m01 + c * mat.m21;
+			mat.m22 = s * mat.m02 + c * mat.m22;
 		}
 
 		static void setRotationZ(Matrix4T<T>& _out, T radians) noexcept
@@ -226,29 +263,38 @@ namespace slib
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			return { c, s, 0, 0,
+			return {
+				c, s, 0, 0,
 				-s, c, 0, 0,
 				0, 0, 1, 0,
-				0, 0, 0, 1 };
+				0, 0, 0, 1
+			};
 		}
 
 		static void rotateZ(Matrix4T<T>& mat, T radians) noexcept
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			T v0, v1;
-			v0 = mat.m00 * c - mat.m01 * s;
-			v1 = mat.m00 * s + mat.m01 * c;
-			mat.m00 = v0; mat.m01 = v1;
-			v0 = mat.m10 * c - mat.m11 * s;
-			v1 = mat.m10 * s + mat.m11 * c;
-			mat.m10 = v0; mat.m11 = v1;
-			v0 = mat.m20 * c - mat.m21 * s;
-			v1 = mat.m20 * s + mat.m21 * c;
-			mat.m20 = v0; mat.m21 = v1;
-			v0 = mat.m30 * c - mat.m31 * s;
-			v1 = mat.m30 * s + mat.m31 * c;
-			mat.m30 = v0; mat.m31 = v1;
+			mat.m00 = mat.m00 * c - mat.m01 * s;
+			mat.m01 = mat.m00 * s + mat.m01 * c;
+			mat.m10 = mat.m10 * c - mat.m11 * s;
+			mat.m11 = mat.m10 * s + mat.m11 * c;
+			mat.m20 = mat.m20 * c - mat.m21 * s;
+			mat.m21 = mat.m20 * s + mat.m21 * c;
+			mat.m30 = mat.m30 * c - mat.m31 * s;
+			mat.m31 = mat.m30 * s + mat.m31 * c;
+		}
+
+		static void preRotateZ(Matrix4T<T>& mat, T radians) noexcept
+		{
+			T c = Math::cos(radians);
+			T s = Math::sin(radians);
+			mat.m00 = c * mat.m00 + s * mat.m10;
+			mat.m01 = c * mat.m01 + s * mat.m11;
+			mat.m02 = c * mat.m02 + s * mat.m12;
+			mat.m10 = c * mat.m10 - s * mat.m00;
+			mat.m11 = c * mat.m11 - s * mat.m01;
+			mat.m12 = c * mat.m12 - s * mat.m02;
 		}
 
 		static void setRotation(Matrix4T<T>& _out, const QuaternionT<T>& q) noexcept
@@ -286,11 +332,12 @@ namespace slib
 			T wx = q.w * x, wy = q.w * y, wz = q.w * z;
 			T xx = q.x * x, xy = q.x * y, xz = q.x * z;
 			T yy = q.y * y, yz = q.y * z, zz = q.z * z;
-
-			return { 1 - (yy + zz), xy - wz, xz + wy, 0,
+			return {
+				1 - (yy + zz), xy - wz, xz + wy, 0,
 				xy + wz, 1 - (xx + zz), yz - wx, 0,
 				xz - wy, yz + wx, 1 - (xx + yy), 0,
-				0, 0, 0, 1 };
+				0, 0, 0, 1
+			};
 		}
 
 		static void rotate(Matrix4T<T>& mat, const QuaternionT<T>& q) noexcept
@@ -352,7 +399,7 @@ namespace slib
 			rotate(mat, q);
 		}
 
-		// Slib uses Left-Handed coordinate system
+		// Uses Left-Handed coordinate system
 		static void setPerspectiveProjection(Matrix4T<T>& _out, T sx, T sy, T zNear, T zFar) noexcept
 		{
 			_out.m00 = sx; _out.m01 = 0; _out.m02 = 0; _out.m03 = 0;
@@ -363,10 +410,12 @@ namespace slib
 
 		static Matrix4T<T> getPerspectiveProjectionMatrix(T sx, T sy, T zNear, T zFar) noexcept
 		{
-			return { sx, 0, 0, 0,
+			return {
+				sx, 0, 0, 0,
 				0, sy, 0, 0,
 				0, 0, zFar / (zFar - zNear), 1,
-				0, 0, -zNear * zFar / (zFar - zNear), 0 };
+				0, 0, -zNear * zFar / (zFar - zNear), 0
+			};
 		}
 
 		static void setPerspectiveProjectionFovY(Matrix4T<T>& _out, T fovY, T fAspectWH, T zNear, T zFar) noexcept
@@ -393,10 +442,12 @@ namespace slib
 
 		static Matrix4T<T> getOrthogonalProjectionMatrix(T sx, T sy, T zNear, T zFar) noexcept
 		{
-			return { sx, 0, 0, 0,
+			return {
+				sx, 0, 0, 0,
 				0, sy, 0, 0,
 				0, 0, 1 / (zFar - zNear), 0,
-				0, 0, zNear / (zFar - zNear), 1 };
+				0, 0, zNear / (zFar - zNear), 1
+			};
 		}
 
 		static void lookAt(Matrix4T<T>& _out, const Vector3T<T>& eye, const Vector3T<T>& at, const Vector3T<T>& up) noexcept
@@ -544,28 +595,32 @@ namespace slib
 		{
 			return {
 				((viewport.left + viewport.right) + ptViewport.x * (viewport.right - viewport.left)) / 2,
-				((viewport.top + viewport.bottom) - ptViewport.y * (viewport.bottom - viewport.top)) / 2 };
+				((viewport.top + viewport.bottom) - ptViewport.y * (viewport.bottom - viewport.top)) / 2
+			};
 		}
 
 		static Vector2T<T> convertViewportToScreen(const Vector2T<T>& ptViewport, T viewportWidth, T viewportHeight) noexcept
 		{
 			return {
 				(1 + ptViewport.x) * viewportWidth / 2,
-				(1 - ptViewport.y) * viewportHeight / 2 };
+				(1 - ptViewport.y) * viewportHeight / 2
+			};
 		}
 
 		static Vector2T<T> convertScreenToViewport(const Vector2T<T>& ptScreen, const RectangleT<T>& viewport) noexcept
 		{
 			return {
 				(ptScreen.x - viewport.left) * 2 / (viewport.right - viewport.left) - 1,
-				1 - (ptScreen.y - viewport.top) * 2 / (viewport.bottom - viewport.top) };
+				1 - (ptScreen.y - viewport.top) * 2 / (viewport.bottom - viewport.top)
+			};
 		}
 
 		static Vector2T<T> convertScreenToViewport(const Vector2T<T>& ptScreen, T viewportWidth, T viewportHeight) noexcept
 		{
 			return {
 				ptScreen.x * 2 / viewportWidth - 1,
-				1 - ptScreen.y * 2 / viewportHeight };
+				1 - ptScreen.y * 2 / viewportHeight
+			};
 		}
 
 		static RectangleT<T> convertViewportToScreen(const RectangleT<T>& rcInViewport, const RectangleT<T>& viewport) noexcept
@@ -574,7 +629,8 @@ namespace slib
 				((viewport.left + viewport.right) + rcInViewport.left * (viewport.right - viewport.left)) / 2,
 				((viewport.top + viewport.bottom) - rcInViewport.bottom * (viewport.bottom - viewport.top)) / 2,
 				((viewport.left + viewport.right) + rcInViewport.right * (viewport.right - viewport.left)) / 2,
-				((viewport.top + viewport.bottom) - rcInViewport.top * (viewport.bottom - viewport.top)) / 2 };
+				((viewport.top + viewport.bottom) - rcInViewport.top * (viewport.bottom - viewport.top)) / 2
+			};
 		}
 
 		static RectangleT<T> convertViewportToScreen(const RectangleT<T>& rcInViewport, T viewportWidth, T viewportHeight) noexcept
@@ -583,7 +639,8 @@ namespace slib
 				(1 + rcInViewport.left) * viewportWidth / 2,
 				(1 - rcInViewport.bottom) * viewportHeight / 2,
 				(1 + rcInViewport.right) * viewportWidth / 2,
-				(1 - rcInViewport.top) * viewportHeight / 2 };
+				(1 - rcInViewport.top) * viewportHeight / 2
+			};
 		}
 
 		static RectangleT<T> convertScreenToViewport(const RectangleT<T>& rcInScreen, const RectangleT<T>& viewport) noexcept
@@ -592,7 +649,8 @@ namespace slib
 				(rcInScreen.left - viewport.left) * 2 / (viewport.right - viewport.left) - 1,
 				1 - (rcInScreen.bottom - viewport.top) * 2 / (viewport.bottom - viewport.top),
 				(rcInScreen.right - viewport.left) * 2 / (viewport.right - viewport.left) - 1,
-				1 - (rcInScreen.top - viewport.top) * 2 / (viewport.bottom - viewport.top) };
+				1 - (rcInScreen.top - viewport.top) * 2 / (viewport.bottom - viewport.top)
+			};
 		}
 
 		static RectangleT<T> convertScreenToViewport(const RectangleT<T>& rcInScreen, T viewportWidth, T viewportHeight) noexcept
@@ -601,7 +659,8 @@ namespace slib
 				rcInScreen.left * 2 / viewportWidth - 1,
 				1 - rcInScreen.bottom * 2 / viewportHeight,
 				rcInScreen.right * 2 / viewportWidth - 1,
-				1 - rcInScreen.top * 2 / viewportHeight };
+				1 - rcInScreen.top * 2 / viewportHeight
+			};
 		}
 
 	};

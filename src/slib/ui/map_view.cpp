@@ -23,6 +23,7 @@
 #include "slib/ui/map_view_ext.h"
 
 #include "slib/graphics/image.h"
+#include "slib/graphics/font_atlas.h"
 #include "slib/io/file.h"
 #include "slib/network/url_request.h"
 #include "slib/data/expiring_map.h"
@@ -1979,7 +1980,7 @@ namespace slib
 
 		m_size = Size::zero();
 		m_textColor = Color::White;
-		m_textShadowColor = Color::Black;
+		m_strokeColor = Color::Black;
 
 		m_flagValidAltitude = sl_false;
 		m_altitude = 0.0;
@@ -1987,34 +1988,24 @@ namespace slib
 		m_lastDrawId = 0;
 	}
 
-	MapViewSprite::MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<Font>& font): MapViewSprite()
+	MapViewSprite::MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& font, sl_uint32 strokeWidth): MapViewSprite()
 	{
-		initialize(location, image, text, font);
-	}
-
-	MapViewSprite::MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FreeType>& font): MapViewSprite()
-	{
-		initialize(location, image, text, font);
+		initialize(location, image, text, font, strokeWidth);
 	}
 
 	MapViewSprite::~MapViewSprite()
 	{
 	}
 
-	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<Font>& font)
+	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& font, sl_uint32 strokeWidth)
 	{
 		m_location = location;
 		m_image = image;
 		m_text = text;
 		m_font = font;
-	}
-
-	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FreeType>& font)
-	{
-		m_location = location;
-		m_image = image;
-		m_text = text;
-		m_freetype = font;
+		if (font.isNotNull() && strokeWidth) {
+			m_stroker = font->createStroker(strokeWidth);
+		}
 	}
 
 	const LatLon& MapViewSprite::getLocation()
@@ -2052,14 +2043,14 @@ namespace slib
 		m_textColor = color;
 	}
 
-	const Color& MapViewSprite::getTextShadowColor()
+	const Color& MapViewSprite::getStrokeColor()
 	{
-		return m_textShadowColor;
+		return m_strokeColor;
 	}
 
-	void MapViewSprite::setTextShadowColor(const Color& color)
+	void MapViewSprite::setStrokeColor(const Color& color)
 	{
-		m_textShadowColor = color;
+		m_strokeColor = color;
 	}
 
 	void MapViewSprite::draw(Canvas* canvas, MapViewData* data, MapPlane* plane)
@@ -2143,28 +2134,21 @@ namespace slib
 		if (m_text.isNotNull()) {
 			rect.top = rect.bottom;
 			rect.bottom = rect.top + 100.0f;
-			if (m_textShadowColor.isNotZero()) {
-				rect.translate(1.0f, 1.0f);
-				canvas->drawText(m_text, rect, m_font, m_textShadowColor, Alignment::TopCenter);
-				rect.translate(-1.0f, -1.0f);
-			}
-			canvas->drawText(m_text, rect, m_font, m_textColor, Alignment::TopCenter);
+			//canvas->drawText(m_text, rect, m_font, m_textColor, Alignment::TopCenter);
 		}
 	}
 
 	void MapViewSprite::onRenderSprite(RenderEngine* engine, MapViewData* data, MapSurface* surface)
 	{
 		data->renderImage(engine, m_viewPoint, m_size, m_image);
-		if (m_text.isNotNull()) {
-			Size offset(0.0f, m_size.y / 2.0f);
-			if (m_textShadowColor.isNotZero()) {
-				offset.x += 1.0f;
-				offset.y += 1.0f;
-				data->renderText(engine, m_viewPoint + offset, m_text, m_textShadowColor, m_font, this);
-				offset.x -= 1.0f;
-				offset.y -= 1.0f;
+		if (m_text.isNotNull() && m_font.isNotNull()) {
+			Size offset(0.0f, (m_size.y + m_font->getFontHeight()) / 2.0f);
+			if (m_stroker.isNotNull() && m_strokeColor.a) {
+				data->renderText(engine, m_viewPoint + offset, m_text, m_stroker, m_strokeColor);
 			}
-			data->renderText(engine, m_viewPoint + offset, m_text, m_textColor, m_font, this);
+			if (m_textColor.a) {
+				data->renderText(engine, m_viewPoint + offset, m_text, m_font, m_textColor);
+			}
 		}
 	}
 
@@ -2908,42 +2892,9 @@ namespace slib
 		renderTexture(engine, center, size, Texture::getBitmapRenderingCache(image), color);
 	}
 
-	void MapViewData::renderText(RenderEngine* engine, const Point& center, const String& text, const Ref<Font>& font, const Color& color)
+	void MapViewData::renderText(RenderEngine* engine, const Point& center, const StringParam& text, const Ref<FontAtlas>& font, const Color& color)
 	{
-		SharedContext* context = GetSharedContext();
-		if (!context) {
-			return;
-		}
-		Ref<Texture> texture;
-		if (!(context->renderTextCache.get(ref, &texture))) {
-			String _text = text;
-			if (_text.getLength() > 50) {
-				_text = _text.substring(0, 50);
-			}
-			SizeI size = font->measureText(_text);
-			if (size.x > m_state.viewportWidth) {
-				size.x = (sl_int32)(m_state.viewportWidth);
-			}
-			if (size.y > m_state.viewportHeight) {
-				size.x = (sl_int32)(m_state.viewportHeight);
-			}
-			Ref<Bitmap> bitmap = Bitmap::create(size.x, size.y);
-			if (bitmap.isNull()) {
-				return;
-			}
-			Ref<Canvas> canvas = bitmap->getCanvas();
-			if (canvas.isNull()) {
-				return;
-			}
-			canvas->drawText(text, 0, 0, font, Color::White);
-			canvas.setNull();
-			texture = Texture::create(bitmap);
-			if (texture.isNull()) {
-				return;
-			}
-			context->renderTextCache.put(ref, texture);
-		}
-		renderTexture(engine, Point(center.x, center.y + (sl_real)(texture->getHeight() / 2)), SizeI(texture->getWidth(), texture->getHeight()), texture, color);
+		
 	}
 
 	sl_bool MapViewData::getLatLonFromViewPoint(const Double2& point, LatLon& _out) const
