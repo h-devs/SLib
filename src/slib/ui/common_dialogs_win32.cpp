@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,8 @@ namespace slib
 		return _runOnUiThread();
 	}
 
-	namespace {
+	namespace
+	{
 		static LRESULT CALLBACK ProcessCustomMsgBox(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			HWND hWndMsg = FindWindowW(NULL, CUSTOM_MSGBOX_INITIAL_CAPTION);
@@ -185,7 +186,8 @@ namespace slib
 		return sl_false;
 	}
 
-	namespace {
+	namespace
+	{
 		struct Filter
 		{
 			String16 title;
@@ -301,8 +303,8 @@ namespace slib
 
 			WCHAR szFile[4096];
 			ofn.lpstrFile = szFile;
-			ofn.nMaxFile = sizeof(szFile) / sizeof(WCHAR);
-			szFile[0] = 0;
+			ofn.nMaxFile = (DWORD)(CountOfArray(szFile));
+			*szFile = 0;
 
 			StringCstr16 initialDir;
 			String16 fileName;
@@ -347,6 +349,15 @@ namespace slib
 				}
 			} else if (type == FileDialogType::OpenFiles) {
 				ofn.Flags |= OFN_FILEMUSTEXIST | OFN_ALLOWMULTISELECT;
+				const sl_uint32 nMaxFile = 1048576;
+				String16 memFile = String16::allocate(nMaxFile);
+				if (memFile.isNull()) {
+					return DialogResult::Error;
+				}
+				sl_char16* strFile = memFile.getData();
+				ofn.lpstrFile = (WCHAR*)strFile;
+				ofn.nMaxFile = nMaxFile;
+				*strFile = 0;
 				if (GetOpenFileNameW(&ofn)) {
 					WCHAR* sz = ofn.lpstrFile;
 					DWORD attr = GetFileAttributesW(sz);
