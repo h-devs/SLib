@@ -35,20 +35,39 @@
 namespace slib
 {
 
+	namespace
+	{
+		static void ZeroMetrics(FontAtlasMetrics& metrics)
+		{
+			metrics.left = 0.0f;
+			metrics.top = 0.0f;
+			metrics.width = 0.0f;
+			metrics.height = 0.0f;
+			metrics.advanceX = 0.0f;
+		}
+
+		static void SetBlankMetrics(FontAtlasMetrics& metrics, sl_real advanceX)
+		{
+			metrics.left = 0.0f;
+			metrics.top = 0.0f;
+			metrics.width = 0.0f;
+			metrics.height = 0.0f;
+			metrics.advanceX = advanceX;
+		}
+	}
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasChar)
 
 	FontAtlasChar::FontAtlasChar()
 	{
-		fontWidth = 0;
-		fontHeight = 0;
+		ZeroMetrics(metrics);
 	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasCharImage)
 
 	FontAtlasCharImage::FontAtlasCharImage()
 	{
-		fontWidth = 0;
-		fontHeight = 0;
+		ZeroMetrics(metrics);
 	}
 
 
@@ -208,8 +227,7 @@ namespace slib
 				if (!(getChar_NoLock(ch, sl_false, fac))) {
 					return sl_false;
 				}
-				_out.fontWidth = fac.fontWidth;
-				_out.fontHeight = fac.fontHeight;
+				_out.metrics = fac.metrics;
 				if (fac.bitmap.isNotNull()) {
 					_out.image = Image::createCopyBitmap(fac.bitmap, fac.region.left, fac.region.top, fac.region.getWidth(), fac.region.getHeight());
 					if (_out.image.isNull()) {
@@ -235,9 +253,15 @@ namespace slib
 				return sl_true;
 			}
 
-			Size measureChar(sl_char32 ch) override
+			sl_bool measureChar(sl_char32 ch, FontAtlasMetrics& _out) override
 			{
-				return m_font->measureText(String::create(&ch, 1));
+				Size size = m_font->measureText(String::create(&ch, 1));
+				_out.left = 0;
+				_out.top = 0;
+				_out.width = size.x;
+				_out.height = size.y;
+				_out.advanceX = size.x;
+				return size.x > 0.0f;
 			}
 
 			Ref<Bitmap> drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) override
@@ -306,19 +330,20 @@ namespace slib
 		return getCharImage_NoLock(ch, _out);
 	}
 
-	Size FontAtlas::getFontSize_NoLock(sl_char32 ch)
+	sl_bool FontAtlas::getCharMetrics_NoLock(sl_char32 ch, FontAtlasMetrics& _out)
 	{
 		FontAtlasChar fac;
 		if (getChar_NoLock(ch, sl_true, fac)) {
-			return Size(fac.fontWidth, fac.fontHeight);
+			_out = fac.metrics;
+			return sl_true;
 		}
-		return Size::zero();
+		return sl_false;
 	}
 
-	Size FontAtlas::getFontSize(sl_char32 ch)
+	sl_bool FontAtlas::getCharMetrics(sl_char32 ch, FontAtlasMetrics& _out)
 	{
 		ObjectLocker lock(this);
-		return getFontSize_NoLock(ch);
+		return getCharMetrics_NoLock(ch, _out);
 	}
 
 	Size FontAtlas::measureText(const StringParam& _str, sl_bool flagMultiLine)
@@ -328,29 +353,24 @@ namespace slib
 			return Size::zero();
 		}
 		ObjectLocker lock(this);
-		sl_char16* data = str.getData();
-		sl_size len = str.getLength();
 		sl_real lineWidth = 0;
-		sl_real lineHeight = 0;
 		sl_real maxWidth = 0;
 		sl_real totalHeight = 0;
 		FontAtlasChar fac;
+		sl_char16* data = str.getData();
+		sl_size len = str.getLength();
 		for (sl_size i = 0; i < len;) {
 			sl_char32 ch;
 			if (Charsets::getUnicode(ch, data, len, i)) {
 				if (ch == '\r' || ch == '\n') {
 					if (!flagMultiLine) {
-						return Size(lineWidth, lineHeight);
-					}
-					if (lineHeight < m_sourceHeight) {
-						lineHeight = m_sourceHeight;
+						return Size(lineWidth, m_sourceHeight);
 					}
 					if (lineWidth > maxWidth) {
 						maxWidth = lineWidth;
 					}
-					totalHeight += lineHeight;
+					totalHeight += m_sourceHeight;
 					lineWidth = 0;
-					lineHeight = 0;
 					if (ch == '\r' && i < len) {
 						if (data[i] == '\n') {
 							i++;
@@ -358,10 +378,7 @@ namespace slib
 					}
 				} else {
 					if (getChar_NoLock((sl_char32)ch, sl_true, fac)) {
-						lineWidth += fac.fontWidth;
-						if (lineHeight < fac.fontHeight) {
-							lineHeight = fac.fontHeight;
-						}
+						lineWidth += fac.metrics.advanceX;
 					}
 				}
 			} else {
@@ -371,31 +388,29 @@ namespace slib
 		if (lineWidth > maxWidth) {
 			maxWidth = lineWidth;
 		}
-		totalHeight += lineHeight;
+		totalHeight += m_sourceHeight;
 		return Size(maxWidth, totalHeight);
 	}
 
 	sl_bool FontAtlas::getChar_NoLock(sl_char32 ch, sl_bool flagSizeOnly, FontAtlasChar& _out)
 	{
 		if (ch == ' ' || ch == '\r' || ch == '\n') {
-			_out.fontWidth = m_sourceHeight * 0.3f;
-			_out.fontHeight = m_sourceHeight;
+			SetBlankMetrics(_out.metrics, m_sourceHeight * 0.3f);
 			if (!flagSizeOnly) {
 				_out.bitmap.setNull();
 			}
 			return sl_true;
 		}
 		if (ch == '\t') {
-			_out.fontWidth = m_sourceHeight * 2.0f;
-			_out.fontHeight = m_sourceHeight;
+			SetBlankMetrics(_out.metrics, m_sourceHeight * 2.0f);
 			if (!flagSizeOnly) {
 				_out.bitmap.setNull();
 			}
 			return sl_true;
 		}
-		Size sizeFont;
+		sl_uint32 widthChar, heightChar;
 		if (m_map.get_NoLock(ch, &_out)) {
-			if (_out.fontWidth <= 0 || _out.fontHeight <= 0) {
+			if (_out.metrics.advanceX == 0.0f) {
 				return sl_false;
 			}
 			if (flagSizeOnly) {
@@ -404,31 +419,27 @@ namespace slib
 			if (_out.bitmap.isNotNull()) {
 				return sl_true;
 			}
-			sizeFont = measureChar(ch);
-			if (sizeFont.x <= 0 || sizeFont.y <= 0) {
-				_out.fontWidth = 0;
-				_out.fontHeight = 0;
+			widthChar = (sl_uint32)(_out.metrics.width / m_fontScale);
+			heightChar = (sl_uint32)(_out.metrics.height / m_fontScale);
+		} else {
+			FontAtlasMetrics metrics;
+			if (!(measureChar(ch, metrics))) {
+				ZeroMetrics(_out.metrics);
 				m_map.put_NoLock(ch, _out);
 				return sl_false;
 			}
-		} else {
-			sizeFont = measureChar(ch);
-			if (sizeFont.x <= 0 || sizeFont.y <= 0) {
-				FontAtlasChar fac;
-				fac.fontWidth = 0;
-				fac.fontHeight = 0;
-				m_map.put_NoLock(ch, fac);
-				return sl_false;
-			}
-			_out.fontWidth = sizeFont.x * m_fontScale;
-			_out.fontHeight = sizeFont.y * m_fontScale;
+			_out.metrics.left = metrics.left * m_fontScale;
+			_out.metrics.top = metrics.top * m_fontScale;
+			_out.metrics.width = metrics.width * m_fontScale;
+			_out.metrics.height = metrics.height * m_fontScale;
+			_out.metrics.advanceX = metrics.advanceX * m_fontScale;
 			_out.bitmap.setNull();
 			if (flagSizeOnly) {
 				return m_map.put_NoLock(ch, _out);
 			}
+			widthChar = (sl_uint32)(metrics.width);
+			heightChar = (sl_uint32)(metrics.height);
 		}
-		sl_uint32 widthChar = (sl_uint32)(sizeFont.x);
-		sl_uint32 heightChar = (sl_uint32)(sizeFont.y);
 		if (m_currentPlaneX > 0 && m_currentPlaneX + widthChar > m_planeWidth) {
 			m_currentPlaneX = 0;
 			m_currentPlaneY += m_currentPlaneRowHeight;

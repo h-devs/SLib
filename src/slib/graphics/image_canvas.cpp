@@ -190,24 +190,20 @@ namespace slib
 
 			void onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param) override
 			{
-				StringData16 text(_text);
-				if (text.isEmpty()) {
-					return;
-				}
-
-				sl_char16* data = text.getData();
-				sl_size len = text.getLength();
-				sl_real fontHeight = font->getFontHeight();
-
 				Ref<FontAtlas> fa = font->getSharedAtlas();
 				if (fa.isNull()) {
 					return;
 				}
+				StringData16 text(_text);
+				if (text.isEmpty()) {
+					return;
+				}
+				sl_char16* data = text.getData();
+				sl_size len = text.getLength();
 
 				FontAtlasCharImage fac;
 				Color color = param.color;
 				sl_real fx = x;
-
 				{
 					ObjectLocker lock(fa.get());
 					for (sl_size i = 0; i < len;) {
@@ -216,19 +212,18 @@ namespace slib
 							if (fa->getCharImage_NoLock(ch, fac)) {
 								if (fac.image.isNotNull()) {
 									image->drawImage(
-										(sl_int32)fx, (sl_int32)(y + (fontHeight - fac.fontHeight)),
+										(sl_int32)(fx + fac.fontLeft, (sl_int32)(y + fac.fontTop)),
 										(sl_int32)(fac.fontWidth), (sl_int32)(fac.fontHeight),
 										fac.image, color, Color4F::zero(),
 										0, 0, fac.image->getWidth(), fac.image->getHeight());
 								}
-								fx += fac.fontWidth;
+								fx += fac.advanceX;
 							}
 						} else {
 							i++;
 						}
 					}
 				}
-
 				if (font->isStrikeout() || font->isUnderline()) {
 					FontMetrics fm;
 					font->getFontMetrics(fm);
@@ -241,7 +236,6 @@ namespace slib
 						_drawLine(Point(x, yLine), Point(fx, yLine), param.color);
 					}
 				}
-
 			}
 
 			Size measureText(const Ref<Font>& _font, const StringParam& text, sl_bool flagMultiLine) override

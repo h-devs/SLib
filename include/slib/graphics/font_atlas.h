@@ -58,13 +58,21 @@ namespace slib
 
 	};
 
+	struct FontAtlasMetrics
+	{
+		sl_real left;
+		sl_real top;
+		sl_real width;
+		sl_real height;
+		sl_real advanceX;
+	};
+
 	class SLIB_EXPORT FontAtlasChar
 	{
 	public:
+		FontAtlasMetrics metrics;
 		Ref<Bitmap> bitmap;
 		RectangleI region;
-		sl_real fontWidth;
-		sl_real fontHeight;
 
 	public:
 		FontAtlasChar();
@@ -76,9 +84,8 @@ namespace slib
 	class SLIB_EXPORT FontAtlasCharImage
 	{
 	public:
+		FontAtlasMetrics metrics;
 		Ref<Image> image;
-		sl_real fontWidth;
-		sl_real fontHeight;
 
 	public:
 		FontAtlasCharImage();
@@ -114,9 +121,9 @@ namespace slib
 
 		sl_bool getCharImage(sl_char32 ch, FontAtlasCharImage& _out);
 
-		Size getFontSize(sl_char32 ch);
+		sl_bool getCharMetrics(sl_char32 ch, FontAtlasMetrics& _out);
 
-		Size getFontSize_NoLock(sl_char32 ch);
+		sl_bool getCharMetrics_NoLock(sl_char32 ch, FontAtlasMetrics& _out);
 
 		Size measureText(const StringParam& text, sl_bool flagMultiLine = sl_false);
 
@@ -129,7 +136,7 @@ namespace slib
 
 		sl_bool getChar_NoLock(sl_char32 ch, sl_bool flagSizeOnly, FontAtlasChar& _out);
 
-		virtual Size measureChar(sl_char32 ch) = 0;
+		virtual sl_bool measureChar(sl_char32 ch, FontAtlasMetrics& metrics) = 0;
 
 		virtual Ref<Bitmap> drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) = 0;
 

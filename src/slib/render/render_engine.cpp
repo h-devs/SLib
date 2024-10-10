@@ -413,8 +413,8 @@ namespace slib
 		drawPrimitive(4, getDefaultVertexBufferForDrawRectangle2D(), PrimitiveType::TriangleStrip);
 	}
 
-	namespace {
-
+	namespace
+	{
 		static void MakeTransform2D(Matrix3& mat, const Rectangle& rectDst)
 		{
 			sl_real x = rectDst.left;
@@ -436,7 +436,6 @@ namespace slib
 			mat.m10 = 0; mat.m11 = h; mat.m12 = 0;
 			mat.m20 = x; mat.m21 = y; mat.m22 = 1;
 		}
-
 	}
 
 
@@ -703,8 +702,6 @@ namespace slib
 			if (!(atlas->getChar_NoLock(ch, fac))) {
 				continue;
 			}
-			sl_real fw = fac.fontWidth;
-			sl_real fh = fac.fontHeight;
 			if (fac.bitmap.isNotNull()) {
 				Ref<Texture> texture = Texture::getBitmapRenderingCache(fac.bitmap);
 				if (texture.isNotNull()) {
@@ -717,12 +714,13 @@ namespace slib
 						rcSrc.right = (sl_real)(fac.region.right) / sw;
 						rcSrc.bottom = (sl_real)(fac.region.bottom) / sh;
 						Matrix3 transform = _transform;
-						Transform2::preTranslate(transform, fw, 0.0f);
+						Transform2::preTranslate(transform, fx + fac.fontLeft, fac.fontTop);
+						Transform2::preScale(transform, fac.fontWidth, fac.fontHeight);
 						drawTexture2D(transform, texture, color);
 					}
 				}
 			}
-			fx += fw;
+			fx += fac.advanceX;
 		}
 	}
 

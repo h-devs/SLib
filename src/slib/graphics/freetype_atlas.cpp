@@ -104,8 +104,11 @@ namespace slib
 		if (!(getChar_NoLock(ch, sl_false, fac))) {
 			return sl_false;
 		}
+		_out.fontLeft = fac.fontLeft;
+		_out.fontTop = fac.fontTop;
 		_out.fontWidth = fac.fontWidth;
 		_out.fontHeight = fac.fontHeight;
+		_out.advanceX = fac.advanceX;
 		if (fac.bitmap.isNotNull()) {
 			_out.image = Ref<Image>::cast(fac.bitmap)->sub(fac.region.left, fac.region.top, fac.region.getWidth(), fac.region.getHeight());
 			if (_out.image.isNull()) {
@@ -128,7 +131,7 @@ namespace slib
 		return create(param);
 	}
 
-	Size FreeTypeAtlas::measureChar(sl_char32 ch)
+	sl_bool FreeTypeAtlas::measureChar(sl_char32 ch, RectangleI& region, sl_real& advanceX)
 	{
 		Size ret = m_font->getCharExtent(ch);
 		if (m_strokeWidth) {

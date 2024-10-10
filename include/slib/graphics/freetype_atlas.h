@@ -60,7 +60,7 @@ namespace slib
 		Ref<FontAtlas> createStroker(sl_uint32 strokeWidth) override;
 
 	protected:
-		Size measureChar(sl_char32 ch) override;
+		sl_bool measureChar(sl_char32 ch, RectangleI& region, sl_real& advanceX) override;
 
 		Ref<Bitmap> drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) override;
 

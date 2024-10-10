@@ -1504,6 +1504,15 @@ namespace slib
 
 	void RenderCanvas::onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const Canvas::DrawTextParam& param)
 	{
+		Ref<FontAtlas> fa = font->getSharedAtlas();
+		if (fa.isNull()) {
+			return;
+		}
+		EngineContext* context = GetEngineContext(this);
+		if (!context) {
+			return;
+		}
+
 		StringData16 text(_text);
 		if (text.isEmpty()) {
 			return;
@@ -1513,14 +1522,6 @@ namespace slib
 		sl_real fontHeight = font->getFontHeight();
 		sl_bool fontItalic = font->isItalic();
 
-		Ref<FontAtlas> fa = font->getSharedAtlas();
-		if (fa.isNull()) {
-			return;
-		}
-		EngineContext* context = GetEngineContext(this);
-		if (!context) {
-			return;
-		}
 		RenderCanvasState* state = m_state.get();
 		if (state->flagClipRect) {
 			if (state->clipRect.top >= y + fontHeight || state->clipRect.bottom <= y || state->clipRect.right <= x) {
@@ -1539,7 +1540,6 @@ namespace slib
 		FontAtlasChar fac;
 		Color4F color = param.color;
 		sl_real fx = x;
-
 		{
 			ObjectLocker lock(fa.get());
 			for (sl_size i = 0; i < len;) {
@@ -1553,12 +1553,11 @@ namespace slib
 				}
 				sl_real fw = fac.fontWidth;
 				sl_real fh = fac.fontHeight;
-				sl_real fxn = fx + fw;
 				if (fac.bitmap.isNotNull()) {
 					Rectangle rcDst;
-					rcDst.left = fx;
-					rcDst.right = fxn;
-					rcDst.top = y + (fontHeight - fh);
+					rcDst.left = fx + fac.fontLeft;
+					rcDst.top = fy + fac.fontTop;
+					rcDst.right = rcDst.left + fw;
 					rcDst.bottom  = rcDst.top + fh;
 					Rectangle rcClip;
 					sl_bool flagIgnore = sl_false;
@@ -1627,7 +1626,7 @@ namespace slib
 						}
 					}
 				}
-				fx = fxn;
+				fx += fac.advanceX;
 			}
 		}
 		if (font->isStrikeout() || font->isUnderline()) {
