@@ -60,11 +60,11 @@ namespace slib
 		Ref<FontAtlas> createStroker(sl_uint32 strokeWidth) override;
 
 	protected:
-		sl_bool measureChar(sl_char32 ch, RectangleI& region, sl_real& advanceX) override;
+		sl_bool _measureChar(sl_char32 ch, TextMetrics& _out) override;
 
-		Ref<Bitmap> drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) override;
+		Ref<Bitmap> _drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) override;
 
-		sl_bool createPlane() override;
+		sl_bool _createPlane() override;
 
 	protected:
 		Ref<FreeType> m_font;

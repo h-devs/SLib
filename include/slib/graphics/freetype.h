@@ -23,13 +23,11 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_FREETYPE
 #define CHECKHEADER_SLIB_GRAPHICS_FREETYPE
 
+#include "font.h"
 #include "color.h"
 
-#include "../core/object.h"
 #include "../core/memory.h"
-#include "../core/string.h"
 #include "../core/ptr.h"
-#include "../math/size.h"
 
 struct FT_FaceRec_;
 
@@ -135,39 +133,51 @@ namespace slib
 
 		// Pixels
 		sl_bool setSize(sl_uint32 width, sl_uint32 height);
+
 		sl_bool setSize(sl_uint32 size);
 
 		// Pixels
 		sl_bool setRealSize(sl_real width, sl_real height);
+
 		sl_bool setRealSize(sl_real size);
 
 		// Pixels
 		sl_real getFontHeight();
 
-		Size getCharExtent_NoLock(sl_uint32 charcode);
-		Size getCharExtent(sl_uint32 charcode);
-		Size getStringExtent(const StringParam& text);
+		sl_bool measureChar_NoLock(sl_uint32 charcode, TextMetrics& _out);
 
-		Size getGlyphExtent_NoLock(sl_uint32 glyphId);
-		Size getGlyphExtent(sl_uint32 glyphId);
+		sl_bool measureChar(sl_uint32 charcode, TextMetrics& _out);
+
+		sl_bool measureText(const StringParam& text, TextMetrics& _out);
+
+		sl_bool measureGlyph_NoLock(sl_uint32 glyphId, TextMetrics& _out);
+
+		sl_bool measureGlyph(sl_uint32 glyphId, TextMetrics& _out);
 
 		// draw starting at left-bottom corner
 		void drawChar_NoLock(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 charcode, const Color& color);
+
 		void drawChar(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 charcode, const Color& color);
-		void drawString(const Ref<Image>& _out, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color);
+
+		void drawText(const Ref<Image>& _out, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color);
 
 		enum {
 			StrokeDefault = 0,
 			StrokeOutside = 1,
 			StrokeInside = 2
 		};
+
 		void strokeChar_NoLock(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 charcode, const Color& color, sl_uint32 lineWidth, sl_uint32 mode = StrokeDefault);
+
 		void strokeChar(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 charcode, const Color& color, sl_uint32 lineWidth, sl_uint32 mode = StrokeDefault);
-		void strokeString(const Ref<Image>& _out, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth, sl_uint32 mode = StrokeDefault);
+
+		void strokeText(const Ref<Image>& _out, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth, sl_uint32 mode = StrokeDefault);
 
 		Ref<GraphicsPath> getCharPath_NoLock(sl_char32 charcode);
+
 		Ref<GraphicsPath> getCharPath(sl_char32 charcode);
-		Ref<GraphicsPath> getStringPath(const StringParam& text);
+
+		Ref<GraphicsPath> getTextPath(const StringParam& text);
 
 		Ref<FreeTypeGlyph> getCharGlyph(sl_uint32 charcode);
 
@@ -176,7 +186,7 @@ namespace slib
 	protected:
 		static Ref<FreeType> _create(CRef* lib, FT_FaceRec_* face, CRef* source);
 
-		void _strokeString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const sl_char32* str, sl_uint32 len, sl_bool flagBorder, sl_bool flagOutside, sl_uint32 radius, const Color& color);
+		void _strokeText(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const sl_char32* str, sl_uint32 len, sl_bool flagBorder, sl_bool flagOutside, sl_uint32 radius, const Color& color);
 
 		Ref<FreeTypeGlyph> _getGlyph(sl_uint32 glyphId);
 

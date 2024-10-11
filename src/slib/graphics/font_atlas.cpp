@@ -35,39 +35,18 @@
 namespace slib
 {
 
-	namespace
-	{
-		static void ZeroMetrics(FontAtlasMetrics& metrics)
-		{
-			metrics.left = 0.0f;
-			metrics.top = 0.0f;
-			metrics.width = 0.0f;
-			metrics.height = 0.0f;
-			metrics.advanceX = 0.0f;
-		}
-
-		static void SetBlankMetrics(FontAtlasMetrics& metrics, sl_real advanceX)
-		{
-			metrics.left = 0.0f;
-			metrics.top = 0.0f;
-			metrics.width = 0.0f;
-			metrics.height = 0.0f;
-			metrics.advanceX = advanceX;
-		}
-	}
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasChar)
 
 	FontAtlasChar::FontAtlasChar()
 	{
-		ZeroMetrics(metrics);
+		metrics.setZero();
 	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasCharImage)
 
 	FontAtlasCharImage::FontAtlasCharImage()
 	{
-		ZeroMetrics(metrics);
+		metrics.setZero();
 	}
 
 
@@ -211,7 +190,7 @@ namespace slib
 				if (ret.isNull()) {
 					return sl_null;
 				}
-				ret->initialize(param, sourceHeight, fontHeight, planeWidth, planeHeight);
+				ret->_initialize(param, sourceHeight, fontHeight, planeWidth, planeHeight);
 				ret->m_font = Move(font);
 				ret->m_currentPlane = Move(plane);
 				ret->m_currentCanvas = Move(canvas);
@@ -224,7 +203,7 @@ namespace slib
 					return sl_true;
 				}
 				FontAtlasChar fac;
-				if (!(getChar_NoLock(ch, sl_false, fac))) {
+				if (!(_getChar(ch, sl_false, fac))) {
 					return sl_false;
 				}
 				_out.metrics = fac.metrics;
@@ -253,18 +232,12 @@ namespace slib
 				return sl_true;
 			}
 
-			sl_bool measureChar(sl_char32 ch, FontAtlasMetrics& _out) override
+			sl_bool _measureChar(sl_char32 ch, TextMetrics& _out) override
 			{
-				Size size = m_font->measureText(String::create(&ch, 1));
-				_out.left = 0;
-				_out.top = 0;
-				_out.width = size.x;
-				_out.height = size.y;
-				_out.advanceX = size.x;
-				return size.x > 0.0f;
+				return m_font->measureChar(ch, _out);
 			}
 
-			Ref<Bitmap> drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) override
+			Ref<Bitmap> _drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) override
 			{
 				m_currentPlane->resetPixels(x, y, width, height, Color::Zero);
 				m_currentCanvas->drawText(String::create(&ch, 1), (sl_real)x, (sl_real)y, m_font, Color::White);
@@ -272,7 +245,7 @@ namespace slib
 				return m_currentPlane;
 			}
 
-			sl_bool createPlane() override
+			sl_bool _createPlane() override
 			{
 				Ref<Bitmap> plane = Bitmap::create(m_planeWidth, m_planeHeight);
 				if (plane.isNull()) {
@@ -294,7 +267,7 @@ namespace slib
 		return Ref<FontAtlas>::cast(FontAtlasImpl::create(param));
 	}
 
-	void FontAtlas::initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_uint32 planeWidth, sl_uint32 planeHeight)
+	void FontAtlas::_initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_uint32 planeWidth, sl_uint32 planeHeight)
 	{
 		m_sourceHeight = sourceHeight;
 		m_fontScale = sourceHeight / fontHeight;
@@ -313,96 +286,17 @@ namespace slib
 		return m_sourceHeight;
 	}
 
-	sl_bool FontAtlas::getChar_NoLock(sl_char32 ch, FontAtlasChar& _out)
-	{
-		return getChar_NoLock(ch, sl_false, _out);
-	}
-
-	sl_bool FontAtlas::getChar(sl_char32 ch, FontAtlasChar& _out)
-	{
-		ObjectLocker lock(this);
-		return getChar_NoLock(ch, sl_false, _out);
-	}
-
-	sl_bool FontAtlas::getCharImage(sl_char32 ch, FontAtlasCharImage& _out)
-	{
-		ObjectLocker lock(this);
-		return getCharImage_NoLock(ch, _out);
-	}
-
-	sl_bool FontAtlas::getCharMetrics_NoLock(sl_char32 ch, FontAtlasMetrics& _out)
-	{
-		FontAtlasChar fac;
-		if (getChar_NoLock(ch, sl_true, fac)) {
-			_out = fac.metrics;
-			return sl_true;
-		}
-		return sl_false;
-	}
-
-	sl_bool FontAtlas::getCharMetrics(sl_char32 ch, FontAtlasMetrics& _out)
-	{
-		ObjectLocker lock(this);
-		return getCharMetrics_NoLock(ch, _out);
-	}
-
-	Size FontAtlas::measureText(const StringParam& _str, sl_bool flagMultiLine)
-	{
-		StringData16 str(_str);
-		if (str.isEmpty()) {
-			return Size::zero();
-		}
-		ObjectLocker lock(this);
-		sl_real lineWidth = 0;
-		sl_real maxWidth = 0;
-		sl_real totalHeight = 0;
-		FontAtlasChar fac;
-		sl_char16* data = str.getData();
-		sl_size len = str.getLength();
-		for (sl_size i = 0; i < len;) {
-			sl_char32 ch;
-			if (Charsets::getUnicode(ch, data, len, i)) {
-				if (ch == '\r' || ch == '\n') {
-					if (!flagMultiLine) {
-						return Size(lineWidth, m_sourceHeight);
-					}
-					if (lineWidth > maxWidth) {
-						maxWidth = lineWidth;
-					}
-					totalHeight += m_sourceHeight;
-					lineWidth = 0;
-					if (ch == '\r' && i < len) {
-						if (data[i] == '\n') {
-							i++;
-						}
-					}
-				} else {
-					if (getChar_NoLock((sl_char32)ch, sl_true, fac)) {
-						lineWidth += fac.metrics.advanceX;
-					}
-				}
-			} else {
-				i++;
-			}
-		}
-		if (lineWidth > maxWidth) {
-			maxWidth = lineWidth;
-		}
-		totalHeight += m_sourceHeight;
-		return Size(maxWidth, totalHeight);
-	}
-
-	sl_bool FontAtlas::getChar_NoLock(sl_char32 ch, sl_bool flagSizeOnly, FontAtlasChar& _out)
+	sl_bool FontAtlas::_getChar(sl_char32 ch, sl_bool flagSizeOnly, FontAtlasChar& _out)
 	{
 		if (ch == ' ' || ch == '\r' || ch == '\n') {
-			SetBlankMetrics(_out.metrics, m_sourceHeight * 0.3f);
+			_out.metrics.setBlank(m_sourceHeight * 0.3f, m_sourceHeight);
 			if (!flagSizeOnly) {
 				_out.bitmap.setNull();
 			}
 			return sl_true;
 		}
 		if (ch == '\t') {
-			SetBlankMetrics(_out.metrics, m_sourceHeight * 2.0f);
+			_out.metrics.setBlank(m_sourceHeight * 2.0f, m_sourceHeight);
 			if (!flagSizeOnly) {
 				_out.bitmap.setNull();
 			}
@@ -419,26 +313,27 @@ namespace slib
 			if (_out.bitmap.isNotNull()) {
 				return sl_true;
 			}
-			widthChar = (sl_uint32)(_out.metrics.width / m_fontScale);
-			heightChar = (sl_uint32)(_out.metrics.height / m_fontScale);
+			widthChar = (sl_uint32)(_out.metrics.getWidth() / m_fontScale);
+			heightChar = (sl_uint32)(_out.metrics.getHeight() / m_fontScale);
 		} else {
-			FontAtlasMetrics metrics;
-			if (!(measureChar(ch, metrics))) {
-				ZeroMetrics(_out.metrics);
+			TextMetrics tm;
+			if (!(_measureChar(ch, tm))) {
+				_out.metrics.setZero();
 				m_map.put_NoLock(ch, _out);
 				return sl_false;
 			}
-			_out.metrics.left = metrics.left * m_fontScale;
-			_out.metrics.top = metrics.top * m_fontScale;
-			_out.metrics.width = metrics.width * m_fontScale;
-			_out.metrics.height = metrics.height * m_fontScale;
-			_out.metrics.advanceX = metrics.advanceX * m_fontScale;
+			_out.metrics.left = tm.left * m_fontScale;
+			_out.metrics.top = tm.top * m_fontScale;
+			_out.metrics.right = tm.right * m_fontScale;
+			_out.metrics.bottom = tm.bottom * m_fontScale;
+			_out.metrics.advanceX = tm.advanceX * m_fontScale;
+			_out.metrics.advanceY = tm.advanceY * m_fontScale;
 			_out.bitmap.setNull();
 			if (flagSizeOnly) {
 				return m_map.put_NoLock(ch, _out);
 			}
-			widthChar = (sl_uint32)(metrics.width);
-			heightChar = (sl_uint32)(metrics.height);
+			widthChar = (sl_uint32)(tm.getWidth());
+			heightChar = (sl_uint32)(tm.getHeight());
 		}
 		if (m_currentPlaneX > 0 && m_currentPlaneX + widthChar > m_planeWidth) {
 			m_currentPlaneX = 0;
@@ -450,7 +345,7 @@ namespace slib
 				m_map.removeAll_NoLock();
 				m_countPlanes = 1;
 			} else {
-				if (!(createPlane())) {
+				if (!(_createPlane())) {
 					return sl_false;
 				}
 				m_countPlanes++;
@@ -466,13 +361,113 @@ namespace slib
 		_out.region.top = y;
 		_out.region.right = x + widthChar;
 		_out.region.bottom = y + heightChar;
-		_out.bitmap = drawChar(x, y, widthChar, heightChar, ch);
+		_out.bitmap = _drawChar(x, y, widthChar, heightChar, ch);
 
 		m_currentPlaneX += widthChar;
 		if (heightChar > m_currentPlaneRowHeight) {
 			m_currentPlaneRowHeight = heightChar;
 		}
 		return m_map.put_NoLock(ch, _out);
+	}
+
+	sl_bool FontAtlas::getChar_NoLock(sl_char32 ch, FontAtlasChar& _out)
+	{
+		return _getChar(ch, sl_false, _out);
+	}
+
+	sl_bool FontAtlas::getChar(sl_char32 ch, FontAtlasChar& _out)
+	{
+		ObjectLocker lock(this);
+		return _getChar(ch, sl_false, _out);
+	}
+
+	sl_bool FontAtlas::getCharImage(sl_char32 ch, FontAtlasCharImage& _out)
+	{
+		ObjectLocker lock(this);
+		return getCharImage_NoLock(ch, _out);
+	}
+
+	sl_bool FontAtlas::measureChar_NoLock(sl_char32 ch, TextMetrics& _out)
+	{
+		FontAtlasChar fac;
+		if (_getChar(ch, sl_true, fac)) {
+			_out = fac.metrics;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool FontAtlas::measureChar(sl_char32 ch, TextMetrics& _out)
+	{
+		ObjectLocker lock(this);
+		return measureChar_NoLock(ch, _out);
+	}
+
+	sl_bool FontAtlas::measureText(const StringParam& _str, sl_bool flagMultiLine, TextMetrics& _out)
+	{
+		StringData16 str(_str);
+		sl_size len = str.getLength();
+		if (!len) {
+			return sl_false;
+		}
+		sl_char16* data = str.getData();
+
+		FontAtlasChar fac;
+		sl_real lineHeight = 0.0f;
+		_out.setZero();
+
+		ObjectLocker lock(this);
+		for (sl_size i = 0; i < len;) {
+			sl_char32 ch;
+			if (Charsets::getUnicode(ch, data, len, i)) {
+				if (ch == '\r' || ch == '\n') {
+					_out.advanceY += lineHeight;
+					if (!flagMultiLine) {
+						return sl_true;
+					}
+					_out.advanceX = 0.0f;
+					lineHeight = 0.0f;
+					if (ch == '\r' && i < len) {
+						if (data[i] == '\n') {
+							i++;
+						}
+					}
+				} else {
+					if (_getChar((sl_char32)ch, sl_true, fac)) {
+						fac.metrics.left += _out.advanceX;
+						fac.metrics.right += _out.advanceX;
+						fac.metrics.top += _out.advanceY;
+						fac.metrics.bottom += _out.advanceY;
+						_out.mergeRectangle(fac.metrics);
+						_out.advanceX += fac.metrics.advanceX;
+						if (fac.metrics.advanceY > lineHeight) {
+							lineHeight = fac.metrics.advanceY;
+						}
+					}
+				}
+			} else {
+				i++;
+			}
+		}
+		_out.advanceY += lineHeight;
+		return sl_true;
+	}
+
+	sl_bool FontAtlas::measureText(const StringParam& text, TextMetrics& _out)
+	{
+		if (measureText(text, sl_false, _out)) {
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	Size FontAtlas::measureText(const StringParam& text, sl_bool flagMultiLine)
+	{
+		TextMetrics tm;
+		if (measureText(text, flagMultiLine, tm)) {
+			return Size(tm.getWidth(), tm.getHeight());
+		}
+		return Size::zero();
 	}
 
 	void FontAtlas::removeAll()
@@ -489,6 +484,7 @@ namespace slib
 	{
 		return sl_null;
 	}
+
 
 	Ref<FontAtlas> Font::getAtlas()
 	{

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@
 
 #include "../core/object.h"
 #include "../core/string.h"
-#include "../math/size.h"
+#include "../math/rectangle.h"
 
 #define SLIB_FONT_SIZE_PRECISION_MULTIPLIER 10
 #define SLIB_FONT_SIZE_PRECISION_APPLY(f) ((sl_real)((sl_int32)((f) * SLIB_FONT_SIZE_PRECISION_MULTIPLIER + 0.5f)) / SLIB_FONT_SIZE_PRECISION_MULTIPLIER)
@@ -66,6 +66,18 @@ namespace slib
 		sl_real ascent;
 		sl_real descent;
 		sl_real leading;
+	};
+
+	class SLIB_EXPORT TextMetrics : public Rectangle
+	{
+	public:
+		sl_real advanceX;
+		sl_real advanceY;
+
+	public:
+		void setZero();
+
+		void setBlank(sl_real advanceX, sl_real advanceY);
 	};
 
 	class Locale;
@@ -148,9 +160,13 @@ namespace slib
 
 		sl_real getFontDescent();
 
-		Size measureText(const StringParam& text);
+		sl_bool measureChar(sl_char32 ch, TextMetrics& _out);
 
-		Size measureText(const StringParam& text, sl_bool flagMultiLine);
+		sl_bool measureText(const StringParam& text, TextMetrics& _out);
+
+		sl_bool measureText(const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out);
+
+		Size measureText(const StringParam& text, sl_bool flagMultiLine = sl_false);
 
 		Ref<FontAtlas> getAtlas();
 
@@ -161,7 +177,7 @@ namespace slib
 	private:
 		sl_bool _getFontMetrics_PO(FontMetrics& _out);
 
-		Size _measureText_PO(const StringParam& text);
+		sl_bool _measureText_PO(const StringParam& text, TextMetrics& _out);
 
 	protected:
 		FontDesc m_desc;

@@ -714,13 +714,13 @@ namespace slib
 						rcSrc.right = (sl_real)(fac.region.right) / sw;
 						rcSrc.bottom = (sl_real)(fac.region.bottom) / sh;
 						Matrix3 transform = _transform;
-						Transform2::preTranslate(transform, fx + fac.fontLeft, fac.fontTop);
-						Transform2::preScale(transform, fac.fontWidth, fac.fontHeight);
+						Transform2::preTranslate(transform, fx + fac.metrics.left, fac.metrics.top);
+						Transform2::preScale(transform, fac.metrics.width, fac.metrics.height);
 						drawTexture2D(transform, texture, color);
 					}
 				}
 			}
-			fx += fac.advanceX;
+			fx += fac.metrics.advanceX;
 		}
 	}
 

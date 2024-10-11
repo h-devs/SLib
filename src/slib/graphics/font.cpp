@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		SLIB_GLOBAL_ZERO_INITIALIZED(SpinLock, g_lockDefaultFont)
 		SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Font>, g_defaultFont)
 
@@ -57,7 +57,6 @@ namespace slib
 			return s;
 #endif
 		}
-
 	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontDesc)
@@ -79,6 +78,26 @@ namespace slib
 	FontDesc::FontDesc(const String& _familyName, sl_real _size, sl_int32 _flags): familyName(_familyName), size(_size)
 	{
 		flags = _flags;
+	}
+
+	void TextMetrics::setZero() noexcept
+	{
+		left = 0.0f;
+		top = 0.0f;
+		right = 0.0f;
+		bottom = 0.0f;
+		advanceX = 0.0f;
+		advanceY = 0.0f;
+	}
+
+	void TextMetrics::setBlank(sl_real _advanceX, sl_real _advanceY)
+	{
+		left = 0.0f;
+		top = 0.0f;
+		right = 0.0f;
+		bottom = 0.0f;
+		advanceX = _advanceX;
+		advanceY = _advanceY;
 	}
 
 
@@ -449,7 +468,7 @@ namespace slib
 			_out = m_metricsCache;
 			return sl_true;
 		}
-		return 0;
+		return sl_false;
 	}
 
 	sl_real Font::getFontHeight()
@@ -458,7 +477,7 @@ namespace slib
 		if (getFontMetrics(fm)) {
 			return fm.leading + fm.ascent + fm.descent;
 		}
-		return 0;
+		return 0.0f;
 	}
 
 	sl_real Font::getFontAscent()
@@ -467,7 +486,7 @@ namespace slib
 		if (getFontMetrics(fm)) {
 			return fm.ascent;
 		}
-		return 0;
+		return 0.0f;
 	}
 
 	sl_real Font::getFontDescent()
@@ -476,26 +495,55 @@ namespace slib
 		if (getFontMetrics(fm)) {
 			return fm.descent;
 		}
-		return 0;
+		return 0.0f;
 	}
 
-	Size Font::measureText(const StringParam& text)
+	sl_bool Font::measureChar(sl_char32 ch, TextMetrics& _out)
 	{
-		return _measureText_PO(text);
+		String str = String::create(&ch, 1);
+		if (str.isNull()) {
+			return sl_false;
+		}
+		return measureText(str, _out);
 	}
 
-	Size Font::measureText(const StringParam& _text, sl_bool flagMultiLine)
+	sl_bool Font::measureText(const StringParam& text, TextMetrics& _out)
+	{
+		_out.advanceX = 0.0f;
+		_out.advanceY = 0.0f;
+		if (_measureText_PO(text, _out)) {
+			if (_out.advanceX == 0.0f) {
+				_out.advanceX = _out.getWidth();
+			}
+			if (_out.advanceY == 0.0f) {
+				_out.advanceY = getFontHeight();
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool Font::measureText(const StringParam& _text, sl_bool flagMultiLine, TextMetrics& _out)
 	{
 		if (!flagMultiLine) {
-			return _measureText_PO(_text);
+			return measureText(_text, _out);
 		}
+
 		StringData16 text(_text);
-		sl_char16* sz = text.getData();
 		sl_size len = text.getLength();
+		if (!len) {
+			return sl_false;
+		}
+		sl_char16* sz = text.getData();
+
+		sl_real fontHeight = getFontHeight();
+		sl_real lineHeight = 0.0f;
+
+		_out.setZero();
+		sl_bool flagInitOut = sl_true;
+
 		sl_size startLine = 0;
 		sl_size pos = 0;
-		sl_real width = 0;
-		sl_real height = 0;
 		while (pos <= len) {
 			sl_char16 ch;
 			if (pos < len) {
@@ -505,22 +553,49 @@ namespace slib
 			}
 			if (ch == '\r' || ch == '\n') {
 				if (pos > startLine) {
-					Size size = _measureText_PO(String16(sz + startLine, pos - startLine));
-					if (size.x > width) {
-						width = size.x;
+					TextMetrics lm;
+					if (measureText(StringView16(sz + startLine, pos - startLine), lm)) {
+						if (pos == len) {
+							_out.advanceX = lm.advanceX;
+						}
+						if (lm.advanceY > lineHeight) {
+							lineHeight = lm.advanceY;
+						}
+						lm.top += _out.advanceY;
+						lm.bottom += _out.advanceY;
+						if (flagInitOut) {
+							(Rectangle&)_out = lm;
+							flagInitOut = sl_false;
+						} else {
+							_out.mergeRectangle(lm);
+						}
 					}
-					height += size.y;
 				}
 				if (ch == '\r' && pos + 1 < len) {
 					if (sz[pos + 1] == '\n') {
 						pos++;
 					}
 				}
+				if (lineHeight == 0.0f) {
+					_out.advanceY += fontHeight;
+				} else {
+					_out.advanceY += lineHeight;
+					lineHeight = 0.0f;
+				}
 				startLine = pos + 1;
 			}
 			pos++;
 		}
-		return Size(width, height);
+		return sl_true;
+	}
+
+	Size Font::measureText(const StringParam& text, sl_bool flagMultiLine)
+	{
+		TextMetrics tm;
+		if (measureText(text, flagMultiLine, tm)) {
+			return Size(tm.getWidth(), tm.getHeight());
+		}
+		return Size::zero();
 	}
 
 	Ref<CRef> Font::getPlatformObject()
@@ -534,7 +609,6 @@ namespace slib
 		return sl_null;
 	}
 #endif
-
 
 #if !defined(SLIB_GRAPHICS_IS_GDI)
 	sl_bool Font::addResource(const StringParam& filePath)

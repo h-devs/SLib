@@ -26,7 +26,6 @@
 #include "font.h"
 #include "bitmap.h"
 
-#include "../math/rectangle.h"
 #include "../core/hash_map.h"
 
 namespace slib
@@ -58,19 +57,10 @@ namespace slib
 
 	};
 
-	struct FontAtlasMetrics
-	{
-		sl_real left;
-		sl_real top;
-		sl_real width;
-		sl_real height;
-		sl_real advanceX;
-	};
-
 	class SLIB_EXPORT FontAtlasChar
 	{
 	public:
-		FontAtlasMetrics metrics;
+		TextMetrics metrics;
 		Ref<Bitmap> bitmap;
 		RectangleI region;
 
@@ -84,7 +74,7 @@ namespace slib
 	class SLIB_EXPORT FontAtlasCharImage
 	{
 	public:
-		FontAtlasMetrics metrics;
+		TextMetrics metrics;
 		Ref<Image> image;
 
 	public:
@@ -121,9 +111,13 @@ namespace slib
 
 		sl_bool getCharImage(sl_char32 ch, FontAtlasCharImage& _out);
 
-		sl_bool getCharMetrics(sl_char32 ch, FontAtlasMetrics& _out);
+		sl_bool measureChar(sl_char32 ch, TextMetrics& _out);
 
-		sl_bool getCharMetrics_NoLock(sl_char32 ch, FontAtlasMetrics& _out);
+		sl_bool measureChar_NoLock(sl_char32 ch, TextMetrics& _out);
+
+		sl_bool measureText(const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out);
+
+		sl_bool measureText(const StringParam& text, TextMetrics& _out);
 
 		Size measureText(const StringParam& text, sl_bool flagMultiLine = sl_false);
 
@@ -132,15 +126,15 @@ namespace slib
 		virtual Ref<FontAtlas> createStroker(sl_uint32 strokeWidth);
 
 	protected:
-		void initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_uint32 planeWidth, sl_uint32 planeHeight);
+		void _initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_uint32 planeWidth, sl_uint32 planeHeight);
 
-		sl_bool getChar_NoLock(sl_char32 ch, sl_bool flagSizeOnly, FontAtlasChar& _out);
+		sl_bool _getChar(sl_char32 ch, sl_bool flagSizeOnly, FontAtlasChar& _out);
 
-		virtual sl_bool measureChar(sl_char32 ch, FontAtlasMetrics& metrics) = 0;
+		virtual sl_bool _measureChar(sl_char32 ch, TextMetrics& metrics) = 0;
 
-		virtual Ref<Bitmap> drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) = 0;
+		virtual Ref<Bitmap> _drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) = 0;
 
-		virtual sl_bool createPlane() = 0;
+		virtual sl_bool _createPlane() = 0;
 
 	protected:
 		sl_real m_sourceHeight;

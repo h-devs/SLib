@@ -157,29 +157,30 @@ namespace slib
 		return sl_true;
 	}
 
-	Size Font::_measureText_PO(const StringParam& _text)
+	sl_bool Font::_measureText_PO(const StringParam& _text, TextMetrics& _out)
 	{
 		UIFont* hFont = GraphicsPlatform::getNativeFont(this);
 		if (hFont == nil) {
-			return Size::zero();
+			return sl_false;
 		}
 		NSString* text = Apple::getNSStringFromString(_text);
 		if (text == nil) {
-			return Size::zero();
+			return sl_false;
 		}
 		NSAttributedString* attrText = [[NSAttributedString alloc] initWithString:text attributes:@{NSFontAttributeName: hFont}];
 		if (text == nil) {
-			return Size::zero();
+			return sl_false;
 		}
-		Size ret(0, 0);
 #if defined(SLIB_PLATFORM_IS_MACOS)
 		NSRect bounds = [attrText boundingRectWithSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX) options:0 context:nil];
 #else
 		CGRect bounds = [attrText boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) options:0 context:nil];
 #endif
-		ret.x = (sl_real)(bounds.size.width);
-		ret.y = (sl_real)(bounds.size.height);
-		return ret;
+		_out.left = (sl_real)(bounds.origin.x);
+		_out.top = (sl_real)(getFontHeight() - (bounds.origin.y + bounds.size.height));
+		_out.right = _out.left + (sl_real)(bounds.size.width);
+		_out.bottom = _out.top + (sl_real)(bounds.size.height);
+		return sl_true;
 	}
 
 	List<String> Font::getAllFamilyNames()

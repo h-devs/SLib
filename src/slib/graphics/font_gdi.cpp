@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -35,8 +35,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		class FontStaticContext
 		{
 		public:
@@ -124,21 +124,17 @@ namespace slib
 		public:
 			void _createGdiplus(const FontDesc& desc)
 			{
-				if (m_flagCreatedGdiplus) {
-					return;
-				}
-
 				FontStaticContext* context = GetFontStaticContext();
 				if (!context) {
 					return;
 				}
-
-				SpinLocker lock(&m_lock);
-
 				if (m_flagCreatedGdiplus) {
 					return;
 				}
-
+				SpinLocker lock(&m_lock);
+				if (m_flagCreatedGdiplus) {
+					return;
+				}
 				m_flagCreatedGdiplus = sl_true;
 
 				int style = 0;
@@ -156,7 +152,6 @@ namespace slib
 				}
 
 				StringCstr16 fontName(desc.familyName);
-
 				SharedPtr<Gdiplus::PrivateFontCollection> collection = context->fontCollections.getValue(desc.familyName);
 
 				m_fontGdiplus = new Gdiplus::Font(
@@ -166,7 +161,6 @@ namespace slib
 					Gdiplus::UnitPixel,
 					collection.get()
 				);
-
 			}
 
 			void _createGDI(const FontDesc& desc)
@@ -174,13 +168,10 @@ namespace slib
 				if (m_flagCreatedGDI) {
 					return;
 				}
-
 				SpinLocker lock(&m_lock);
-
 				if (m_flagCreatedGDI) {
 					return;
 				}
-
 				m_flagCreatedGDI = sl_true;
 
 				int height = -(int)(desc.size);
@@ -214,11 +205,8 @@ namespace slib
 					ANTIALIASED_QUALITY,
 					DEFAULT_PITCH,
 					(LPCWSTR)(fontName.getData()));
-
 				m_fontGDI = hFont;
-
 			}
-
 		};
 
 		class FontHelper : public Font
@@ -254,9 +242,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-
 		};
-
 	}
 
 	sl_bool Font::_getFontMetrics_PO(FontMetrics& _out)
@@ -277,31 +263,31 @@ namespace slib
 		return sl_false;
 	}
 
-	Size Font::_measureText_PO(const StringParam& _text)
+	sl_bool Font::_measureText_PO(const StringParam& _text, TextMetrics& _out)
 	{
-		Gdiplus::Font* handle = GraphicsPlatform::getGdiplusFont(this);
-		if (!handle) {
-			return Size::zero();
-		}
-
 		FontStaticContext* fs = GetFontStaticContext();
 		if (!fs) {
-			return Size::zero();
+			return sl_false;
 		}
-
-		Size ret(0, 0);
-		if (fs->graphics) {
-			StringData16 text(_text);
-			Gdiplus::RectF bound;
-			Gdiplus::PointF origin(0, 0);
-			Gdiplus::Status result = fs->graphics->MeasureString((WCHAR*)(text.getData()), (INT)(text.getLength()), handle, origin, Gdiplus::StringFormat::GenericTypographic(), &bound);
-			if (result == Gdiplus::Ok) {
-				ret.x = bound.Width;
-				ret.y = bound.Height;
-			}
+		Gdiplus::Font* handle = GraphicsPlatform::getGdiplusFont(this);
+		if (!handle) {
+			return sl_false;
 		}
-		return ret;
-
+		if (!(fs->graphics)) {
+			return sl_false;
+		}
+		StringData16 text(_text);
+		Gdiplus::RectF bound;
+		Gdiplus::PointF origin(0.0f, 0.0f);
+		Gdiplus::Status result = fs->graphics->MeasureString((WCHAR*)(text.getData()), (INT)(text.getLength()), handle, origin, Gdiplus::StringFormat::GenericTypographic(), &bound);
+		if (result != Gdiplus::Ok) {
+			return sl_false;
+		}
+		_out.left = (sl_real)(bound.X);
+		_out.top = (sl_real)(bound.Y);
+		_out.right = (sl_real)(bound.X + bound.Width);
+		_out.bottom = (sl_real)(bound.Y + bound.Height);
+		return sl_true;
 	}
 
 	Gdiplus::Font* GraphicsPlatform::getGdiplusFont(Font* _font)
@@ -322,7 +308,8 @@ namespace slib
 		return NULL;
 	}
 
-	namespace {
+	namespace
+	{
 		int CALLBACK EnumFontFamilyNamesProc(
 			const LOGFONT* plf,
 			const TEXTMETRIC *lpntme,

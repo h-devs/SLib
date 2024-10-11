@@ -601,65 +601,81 @@ namespace slib
 		return TO_REAL_POS(m.height);
 	}
 
-	Size FreeType::getCharExtent_NoLock(sl_uint32 charcode)
+	namespace
+	{
+		static void MeasureGlyph(FT_GlyphSlot glyph, TextMetrics& _out)
+		{
+			_out.left = TO_REAL_POS(glyph->bitmap_left);
+			_out.top = TO_REAL_POS(glyph->bitmap_top);
+			_out.right = _out.left + TO_REAL_POS(glyph->metrics.width);
+			_out.bottom = _out.top + TO_REAL_POS(glyph->metrics.height);
+			_out.advanceX = TO_REAL_POS(glyph->metrics.horiAdvance);
+			_out.advanceY = TO_REAL_POS(glyph->metrics.vertAdvance);
+		}
+	}
+
+	sl_bool FreeType::measureChar_NoLock(sl_uint32 charcode, TextMetrics& _out)
 	{
 		FT_Error err = FT_Load_Char(m_face, (FT_ULong)charcode, FT_LOAD_BITMAP_METRICS_ONLY);
 		if (!err) {
-			sl_real dx = TO_REAL_POS(m_face->glyph->metrics.horiAdvance);
-			sl_real dy = TO_REAL_POS(m_face->glyph->metrics.height);
-			return Size(dx, dy);
+			MeasureGlyph(m_face->glyph, _out);
+			return sl_true;
 		}
-		return Size::zero();
+		return sl_false;
 	}
 
-	Size FreeType::getCharExtent(sl_uint32 charcode)
+	sl_bool FreeType::measureChar(sl_uint32 charcode, TextMetrics& _out)
 	{
 		ObjectLocker lock(this);
-		return getCharExtent_NoLock(charcode);
+		return measureChar_NoLock(charcode, _out);
 	}
 
-	Size FreeType::getStringExtent(const StringParam& _text)
+	sl_bool FreeType::measureText(const StringParam& _text, TextMetrics& _out)
 	{
 		StringData32 text(_text);
-		sl_uint32 nChars = (sl_uint32)text.getLength();
+		sl_uint32 nChars = (sl_uint32)(text.getLength());
 		if (!nChars) {
-			return Size(0, 0);
+			return sl_false;
 		}
 		const sl_char32* chars = text.getData();
-
+		_out.setZero();
+		sl_bool flagInitOut = sl_true;
 		ObjectLocker lock(this);
-
-		sl_int32 sizeX = 0;
-		sl_int32 sizeY = 0;
 		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
 			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(chars[iChar]), FT_LOAD_BITMAP_METRICS_ONLY);
 			if (!err) {
-				sl_int32 dx = (sl_int32)(m_face->glyph->metrics.horiAdvance);
-				sl_int32 dy = (sl_int32)(m_face->glyph->metrics.height);
-				sizeX += dx;
-				if (!iChar || sizeY < dy) {
-					sizeY = dy;
+				TextMetrics tm;
+				MeasureGlyph(m_face->glyph, tm);
+				tm.left += _out.advanceX;
+				tm.right += _out.advanceX;
+				if (flagInitOut) {
+					(Rectangle&)_out = tm;
+				} else {
+					_out.mergeRectangle(tm);
 				}
+				if (tm.advanceY > _out.advanceY) {
+					_out.advanceY = tm.advanceY;
+				}
+				_out.advanceX += tm.advanceX;
 			}
 		}
-		return Size(TO_REAL_POS(sizeX), TO_REAL_POS(sizeY));
+		return sl_true;
 	}
 
-	Size FreeType::getGlyphExtent_NoLock(sl_uint32 glyphId)
+	sl_bool FreeType::measureGlyph_NoLock(sl_uint32 glyphId, TextMetrics& _out)
 	{
 		FT_Error err = FT_Load_Glyph(m_face, (FT_UInt)glyphId, FT_LOAD_BITMAP_METRICS_ONLY);
 		if (!err) {
-			sl_real dx = TO_REAL_POS(m_face->glyph->metrics.horiAdvance);
-			sl_real dy = TO_REAL_POS(m_face->glyph->metrics.height);
-			return Size(dx, dy);
+			MeasureGlyph(m_face->glyph, _out);
+			return sl_true;
 		}
-		return Size::zero();
+		return sl_false;
 	}
 
-	Size FreeType::getGlyphExtent(sl_uint32 glyphId)
+	sl_bool FreeType::measureGlyph(sl_uint32 glyphId, TextMetrics& _out)
 	{
 		ObjectLocker lock(this);
-		return getGlyphExtent_NoLock(glyphId);
+		return measureGlyph_NoLock(glyphId, _out);
 	}
 
 	namespace
@@ -768,7 +784,7 @@ namespace slib
 		drawChar_NoLock(_out, x, y, ch, color);
 	}
 
-	void FreeType::drawString(const Ref<Image>& _out, sl_int32 _x, sl_int32 _y, const StringParam& _text, const Color& color)
+	void FreeType::drawText(const Ref<Image>& _out, sl_int32 _x, sl_int32 _y, const StringParam& _text, const Color& color)
 	{
 		if (_out.isNull()) {
 			return;
@@ -783,13 +799,11 @@ namespace slib
 		ObjectLocker lock(this);
 		FT_GlyphSlot slot = m_face->glyph;
 		sl_real x = (sl_real)_x;
-		sl_real y = (sl_real)_y;
 		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
 			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(chars[iChar]), FT_LOAD_RENDER);
 			if (!err) {
-				CopySlot(_out, (sl_int32)x, (sl_int32)y, slot, Color::White);
-				x += TO_REAL_POS(slot->advance.x);
-				y += TO_REAL_POS(slot->advance.y);
+				CopySlot(_out, (sl_int32)x, _y, slot, Color::White);
+				x += TO_REAL_POS(slot->metrics.horiAdvance);
 			}
 		}
 	}
@@ -856,7 +870,7 @@ namespace slib
 		strokeChar_NoLock(_out, x, y, ch, color, lineWidth, mode);
 	}
 
-	void FreeType::strokeString(const Ref<Image>& _out, sl_int32 _x, sl_int32 _y, const StringParam& _text, const Color& color, sl_uint32 lineWidth, sl_uint32 mode)
+	void FreeType::strokeText(const Ref<Image>& _out, sl_int32 _x, sl_int32 _y, const StringParam& _text, const Color& color, sl_uint32 lineWidth, sl_uint32 mode)
 	{
 		if (_out.isNull()) {
 			return;
@@ -875,14 +889,13 @@ namespace slib
 			return;
 		}
 		FT_Stroker_Set(stroker, lineWidth * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+		FT_GlyphSlot slot = m_face->glyph;
 		sl_real x = (sl_real)_x;
-		sl_real y = (sl_real)_y;
 		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
 			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(chars[iChar]), FT_LOAD_DEFAULT);
 			if (!err) {
-				StrokeSlot(_out, (sl_int32)x, (sl_int32)y, stroker, m_face->glyph, color, mode);
-				x += TO_REAL_POS(m_face->glyph->advance.x);
-				y += TO_REAL_POS(m_face->glyph->advance.y);
+				StrokeSlot(_out, (sl_int32)x, _y, stroker, slot, color, mode);
+				x += TO_REAL_POS(slot->metrics.horiAdvance);
 			}
 		}
 		FT_Stroker_Done(stroker);
@@ -977,7 +990,7 @@ namespace slib
 		return getCharPath_NoLock(ch);
 	}
 
-	Ref<GraphicsPath> FreeType::getStringPath(const StringParam& _text)
+	Ref<GraphicsPath> FreeType::getTextPath(const StringParam& _text)
 	{
 		StringData32 text(_text);
 		sl_uint32 nChars = (sl_uint32)(text.getLength());
@@ -993,16 +1006,14 @@ namespace slib
 		ObjectLocker lock(this);
 		FT_GlyphSlot slot = m_face->glyph;
 		sl_int32 x = 0;
-		sl_int32 y = 0;
 		sl_int32 height = m_face->size->metrics.height;
 		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
 			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(chars[iChar]), FT_LOAD_DEFAULT);
 			if (!err) {
-				if (!(BuildStringPath(path, x, y, height, &(slot->outline)))) {
+				if (!(BuildStringPath(path, x, 0, height, &(slot->outline)))) {
 					return sl_null;
 				}
-				x += slot->advance.x;
-				y += slot->advance.y;
+				x += slot->metrics.horiAdvance;
 			}
 		}
 		return path;

@@ -137,7 +137,7 @@ namespace slib
 		return sl_false;
 	}
 
-	Size Font::_measureText_PO(const StringParam& _text)
+	sl_bool Font::_measureText_PO(const StringParam& text, TextMetrics& _out)
 	{
 		StringData text(_text);
 		sl_size len = text.getLength();
@@ -153,12 +153,16 @@ namespace slib
 						int w = 0;
 						int h = 0;
 						pango_layout_get_pixel_size(layout, &w, &h);
-						return Size((sl_real)w, (sl_real)h);
+						_out.right = (sl_real)w;
+						_out.bottom = (sl_real)h;
+						_out.left = 0.0f;
+						_out.top = (getFontHeight() - _out.bottom) / 2.0f;
+						return sl_true;
 					}
 				}
 			}
 		}
-		return Size::zero();
+		return sl_false;
 	}
 
 	PangoFontDescription* GraphicsPlatform::getPangoFont(Font* font)

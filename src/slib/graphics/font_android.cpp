@@ -122,18 +122,19 @@ namespace slib
 		return sl_false;
 	}
 
-	Size Font::_measureText_PO(const StringParam& text)
+	sl_bool Font::_measureText_PO(const StringParam& text, TextMetrics& _out)
 	{
 		jobject font = GraphicsPlatform::getNativeFont(this);
 		if (font) {
 			JniLocal<jstring> jtext = Jni::getJniString(text);
 			JniLocal<jobject> size = JFont::measureText.callObject(font, jtext.get());
-			Size ret;
-			ret.x = JPointF::x.get(size.get());
-			ret.y = JPointF::y.get(size.get());
-			return ret;
+			_out.right = JPointF::x.get(size.get());
+			_out.bottom = JPointF::y.get(size.get());
+			_out.left = 0.0f;
+			_out.top = (getFontHeight() - _out.bottom) / 2.0f;
+			return sl_true;
 		}
-		return Size::zero();
+		return sl_false;
 	}
 
 	jobject GraphicsPlatform::getNativeFont(Font* font)
