@@ -75,12 +75,13 @@ namespace slib
 		sl_real advanceY;
 
 	public:
-		void setZero();
+		void setZero() noexcept;
 
-		void setBlank(sl_real advanceX, sl_real advanceY);
+		void setBlank(sl_real advanceX, sl_real advanceY) noexcept;
 	};
 
 	class Locale;
+	class GraphicsPath;
 	class FontAtlas;
 
 	class SLIB_EXPORT Font : public CRef
@@ -168,6 +169,10 @@ namespace slib
 
 		Size measureText(const StringParam& text, sl_bool flagMultiLine = sl_false);
 
+		Ref<GraphicsPath> getCharOutline(sl_char32 ch);
+
+		Ref<GraphicsPath> getTextOutline(const StringParam& text);
+
 		Ref<FontAtlas> getAtlas();
 
 		Ref<FontAtlas> getSharedAtlas();
@@ -177,7 +182,11 @@ namespace slib
 	private:
 		sl_bool _getFontMetrics_PO(FontMetrics& _out);
 
+		sl_bool _measureChar_PO(sl_char32 ch, TextMetrics& _out);
+
 		sl_bool _measureText_PO(const StringParam& text, TextMetrics& _out);
+
+		sl_bool _buildOutline_PO(Ref<GraphicsPath>& path, sl_real x, sl_real y, sl_char32 ch, sl_real& advanceX);
 
 	protected:
 		FontDesc m_desc;

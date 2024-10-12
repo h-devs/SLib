@@ -879,24 +879,16 @@ namespace slib
 		}
 	}
 
-	Size RenderCanvas::measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine)
+	sl_bool RenderCanvas::measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out)
 	{
-		return measureRenderingText(font, text, flagMultiLine);
-	}
-
-	Size RenderCanvas::measureRenderingText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine)
-	{
-		if (text.isEmpty()) {
-			return Size::zero();
-		}
 		if (font.isNull()) {
-			return Size::zero();
+			return sl_false;
 		}
 		Ref<FontAtlas> fa = font->getSharedAtlas();
 		if (fa.isNull()) {
-			return Size::zero();
+			return sl_false;
 		}
-		return fa->measureText(text, flagMultiLine);
+		return fa->measureText(text, flagMultiLine, _out);
 	}
 
 	void RenderCanvas::_drawLineByRect(const Point& pt1, const Point& pt2, const Color& color, sl_real penWidth)
@@ -1513,12 +1505,12 @@ namespace slib
 			return;
 		}
 
-		StringData16 text(_text);
-		if (text.isEmpty()) {
+		StringData32 text(_text);
+		sl_size len = text.getLength();
+		if (!len) {
 			return;
 		}
-		sl_char16* data = text.getData();
-		sl_size len = text.getLength();
+		sl_char32* data = text.getData();
 		sl_real fontHeight = font->getFontHeight();
 		sl_bool fontItalic = font->isItalic();
 
@@ -1542,23 +1534,17 @@ namespace slib
 		sl_real fx = x;
 		{
 			ObjectLocker lock(fa.get());
-			for (sl_size i = 0; i < len;) {
-				sl_char32 ch;
-				if (!(Charsets::getUnicode(ch, data, len, i))) {
-					i++;
-					continue;
-				}
+			for (sl_size i = 0; i < len; i++) {
+				sl_char32 ch = data[i];
 				if (!(fa->getChar_NoLock(ch, fac))) {
 					continue;
 				}
-				sl_real fw = fac.fontWidth;
-				sl_real fh = fac.fontHeight;
 				if (fac.bitmap.isNotNull()) {
 					Rectangle rcDst;
-					rcDst.left = fx + fac.fontLeft;
-					rcDst.top = fy + fac.fontTop;
-					rcDst.right = rcDst.left + fw;
-					rcDst.bottom  = rcDst.top + fh;
+					rcDst.left = fx + fac.metrics.left;
+					rcDst.top = y + fac.metrics.top;
+					rcDst.right = fx + fac.metrics.right;
+					rcDst.bottom  = y + fac.metrics.bottom;
 					Rectangle rcClip;
 					sl_bool flagIgnore = sl_false;
 					sl_bool flagClip = sl_false;
@@ -1602,7 +1588,9 @@ namespace slib
 								}
 								Matrix3 mat;
 								if (fontItalic) {
-									float ratio = 0.2f;
+									sl_real fw = fac.metrics.getWidth();
+									sl_real fh = fac.metrics.getHeight();
+									sl_real ratio = 0.2f;
 									mat.m00 = fw; mat.m10 = -ratio * fh; mat.m20 = ratio * fh + rcDst.left;
 									mat.m01 = 0; mat.m11 = fh; mat.m21 = rcDst.top;
 									mat.m02 = 0; mat.m12 = 0; mat.m22 = 1;
@@ -1626,7 +1614,7 @@ namespace slib
 						}
 					}
 				}
-				fx += fac.advanceX;
+				fx += fac.metrics.advanceX;
 			}
 		}
 		if (font->isStrikeout() || font->isUnderline()) {

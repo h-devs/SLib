@@ -633,16 +633,16 @@ namespace slib
 	sl_bool FreeType::measureText(const StringParam& _text, TextMetrics& _out)
 	{
 		StringData32 text(_text);
-		sl_uint32 nChars = (sl_uint32)(text.getLength());
-		if (!nChars) {
+		sl_uint32 len = (sl_uint32)(text.getLength());
+		if (!len) {
 			return sl_false;
 		}
-		const sl_char32* chars = text.getData();
+		const sl_char32* data = text.getData();
 		_out.setZero();
 		sl_bool flagInitOut = sl_true;
 		ObjectLocker lock(this);
-		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
-			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(chars[iChar]), FT_LOAD_BITMAP_METRICS_ONLY);
+		for (sl_uint32 i = 0; i < len; i++) {
+			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(data[i]), FT_LOAD_BITMAP_METRICS_ONLY);
 			if (!err) {
 				TextMetrics tm;
 				MeasureGlyph(m_face->glyph, tm);
@@ -790,17 +790,17 @@ namespace slib
 			return;
 		}
 		StringData32 text(_text);
-		sl_uint32 nChars = (sl_uint32)(text.getLength());
-		if (!nChars) {
+		sl_size len = text.getLength();
+		if (!len) {
 			return;
 		}
-		const sl_char32* chars = text.getData();
+		const sl_char32* data = text.getData();
 
 		ObjectLocker lock(this);
 		FT_GlyphSlot slot = m_face->glyph;
 		sl_real x = (sl_real)_x;
-		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
-			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(chars[iChar]), FT_LOAD_RENDER);
+		for (sl_size i = 0; i < len; i++) {
+			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(data[i]), FT_LOAD_RENDER);
 			if (!err) {
 				CopySlot(_out, (sl_int32)x, _y, slot, Color::White);
 				x += TO_REAL_POS(slot->metrics.horiAdvance);
@@ -876,11 +876,11 @@ namespace slib
 			return;
 		}
 		StringData32 text(_text);
-		sl_uint32 nChars = (sl_uint32)(text.getLength());
-		if (!nChars) {
+		sl_size len = text.getLength();
+		if (!len) {
 			return;
 		}
-		const sl_char32* chars = text.getData();
+		const sl_char32* data = text.getData();
 
 		ObjectLocker lock(this);
 		FT_Stroker stroker = sl_null;
@@ -891,8 +891,8 @@ namespace slib
 		FT_Stroker_Set(stroker, lineWidth * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
 		FT_GlyphSlot slot = m_face->glyph;
 		sl_real x = (sl_real)_x;
-		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
-			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(chars[iChar]), FT_LOAD_DEFAULT);
+		for (sl_size i = 0; i < len; i++) {
+			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(data[i]), FT_LOAD_DEFAULT);
 			if (!err) {
 				StrokeSlot(_out, (sl_int32)x, _y, stroker, slot, color, mode);
 				x += TO_REAL_POS(slot->metrics.horiAdvance);
@@ -968,7 +968,7 @@ namespace slib
 		}
 	}
 
-	Ref<GraphicsPath> FreeType::getCharPath_NoLock(sl_char32 ch)
+	Ref<GraphicsPath> FreeType::getCharOutline_NoLock(sl_char32 ch)
 	{
 		FT_Error err = FT_Load_Char(m_face, (FT_ULong)ch, FT_LOAD_DEFAULT);
 		if (err) {
@@ -984,20 +984,20 @@ namespace slib
 		return path;
 	}
 
-	Ref<GraphicsPath> FreeType::getCharPath(sl_char32 ch)
+	Ref<GraphicsPath> FreeType::getCharOutline(sl_char32 ch)
 	{
 		ObjectLocker lock(this);
-		return getCharPath_NoLock(ch);
+		return getCharOutline_NoLock(ch);
 	}
 
-	Ref<GraphicsPath> FreeType::getTextPath(const StringParam& _text)
+	Ref<GraphicsPath> FreeType::getTextOutline(const StringParam& _text)
 	{
 		StringData32 text(_text);
-		sl_uint32 nChars = (sl_uint32)(text.getLength());
-		if (!nChars) {
+		sl_size len = text.getLength();
+		if (!len) {
 			return sl_null;
 		}
-		const sl_char32* chars = text.getData();
+		const sl_char32* data = text.getData();
 		Ref<GraphicsPath> path = GraphicsPath::create();
 		if (path.isNull()) {
 			return sl_null;
@@ -1007,8 +1007,8 @@ namespace slib
 		FT_GlyphSlot slot = m_face->glyph;
 		sl_int32 x = 0;
 		sl_int32 height = m_face->size->metrics.height;
-		for (sl_uint32 iChar = 0; iChar < nChars; iChar++) {
-			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(chars[iChar]), FT_LOAD_DEFAULT);
+		for (sl_size i = 0; i < len; i++) {
+			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(data[i]), FT_LOAD_DEFAULT);
 			if (!err) {
 				if (!(BuildStringPath(path, x, 0, height, &(slot->outline)))) {
 					return sl_null;

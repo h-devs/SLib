@@ -156,6 +156,19 @@ namespace slib
 		concatMatrix(mat);
 	}
 
+	sl_bool Canvas::measureText(const Ref<Font>& font, const StringParam& text, TextMetrics& _out)
+	{
+		return measureText(font, text, sl_false, _out);
+	}
+
+	Size Canvas::measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine)
+	{
+		TextMetrics tm;
+		if (measureText(font, text, flagMultiLine, tm)) {
+			return tm.getSize();
+		}
+		return Size::zero();
+	}
 
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Canvas, DrawTextParam)
 

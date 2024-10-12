@@ -173,11 +173,11 @@ namespace slib
 
 		void strokeText(const Ref<Image>& _out, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth, sl_uint32 mode = StrokeDefault);
 
-		Ref<GraphicsPath> getCharPath_NoLock(sl_char32 charcode);
+		Ref<GraphicsPath> getCharOutline_NoLock(sl_char32 charcode);
 
-		Ref<GraphicsPath> getCharPath(sl_char32 charcode);
+		Ref<GraphicsPath> getCharOutline(sl_char32 charcode);
 
-		Ref<GraphicsPath> getTextPath(const StringParam& text);
+		Ref<GraphicsPath> getTextOutline(const StringParam& text);
 
 		Ref<FreeTypeGlyph> getCharGlyph(sl_uint32 charcode);
 

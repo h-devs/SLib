@@ -682,23 +682,19 @@ namespace slib
 
 	void RenderEngine::drawText(const Matrix3& _transform, const StringParam& _text, const Ref<FontAtlas>& atlas, const Color4F& color)
 	{
-		StringData16 text(_text);
-		if (text.isEmpty()) {
+		StringData32 text(_text);
+		sl_size len = text.getLength();
+		if (!len) {
 			return;
 		}
-		sl_char16* data = text.getData();
-		sl_size len = text.getLength();
+		sl_char32* data = text.getData();
 		sl_real fontHeight = atlas->getFontHeight();
 
 		ObjectLocker lock(atlas.get());
 		FontAtlasChar fac;
 		sl_real fx = 0.0f;
-		for (sl_size i = 0; i < len;) {
-			sl_char32 ch;
-			if (!(Charsets::getUnicode(ch, data, len, i))) {
-				i++;
-				continue;
-			}
+		for (sl_size i = 0; i < len; i++) {
+			sl_char32 ch = data[i];
 			if (!(atlas->getChar_NoLock(ch, fac))) {
 				continue;
 			}
@@ -715,7 +711,7 @@ namespace slib
 						rcSrc.bottom = (sl_real)(fac.region.bottom) / sh;
 						Matrix3 transform = _transform;
 						Transform2::preTranslate(transform, fx + fac.metrics.left, fac.metrics.top);
-						Transform2::preScale(transform, fac.metrics.width, fac.metrics.height);
+						Transform2::preScale(transform, fac.metrics.getWidth(), fac.metrics.getHeight());
 						drawTexture2D(transform, texture, color);
 					}
 				}

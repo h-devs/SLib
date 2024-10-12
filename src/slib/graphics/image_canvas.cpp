@@ -27,8 +27,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		class ImageCanvasImpl : public CanvasExt
 		{
 			SLIB_DECLARE_OBJECT
@@ -194,33 +194,29 @@ namespace slib
 				if (fa.isNull()) {
 					return;
 				}
-				StringData16 text(_text);
-				if (text.isEmpty()) {
+				StringData32 text(_text);
+				sl_size len = text.getLength();
+				if (!len) {
 					return;
 				}
-				sl_char16* data = text.getData();
-				sl_size len = text.getLength();
+				sl_char32* data = text.getData();
 
 				FontAtlasCharImage fac;
 				Color color = param.color;
 				sl_real fx = x;
 				{
 					ObjectLocker lock(fa.get());
-					for (sl_size i = 0; i < len;) {
-						sl_char32 ch;
-						if (Charsets::getUnicode(ch, data, len, i)) {
-							if (fa->getCharImage_NoLock(ch, fac)) {
-								if (fac.image.isNotNull()) {
-									image->drawImage(
-										(sl_int32)(fx + fac.fontLeft, (sl_int32)(y + fac.fontTop)),
-										(sl_int32)(fac.fontWidth), (sl_int32)(fac.fontHeight),
-										fac.image, color, Color4F::zero(),
-										0, 0, fac.image->getWidth(), fac.image->getHeight());
-								}
-								fx += fac.advanceX;
+					for (sl_size i = 0; i < len; i++) {
+						sl_char32 ch = data[i];
+						if (fa->getCharImage_NoLock(ch, fac)) {
+							if (fac.image.isNotNull()) {
+								image->drawImage(
+									(sl_int32)(fx + fac.metrics.left), (sl_int32)(y + fac.metrics.top),
+									(sl_int32)(fac.metrics.getWidth()), (sl_int32)(fac.metrics.getHeight()),
+									fac.image, color, Color4F::zero(),
+									0, 0, fac.image->getWidth(), fac.image->getHeight());
 							}
-						} else {
-							i++;
+							fx += fac.metrics.advanceX;
 						}
 					}
 				}
@@ -238,26 +234,21 @@ namespace slib
 				}
 			}
 
-			Size measureText(const Ref<Font>& _font, const StringParam& text, sl_bool flagMultiLine) override
+			sl_bool measureText(const Ref<Font>& _font, const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out) override
 			{
-				if (text.isEmpty()) {
-					return Size::zero();
-				}
 				Ref<Font> font = _font;
 				if (font.isNull()) {
-					return Size::zero();
+					return sl_false;
 				}
 				Ref<FontAtlas> fa = font->getSharedAtlas();
 				if (fa.isNull()) {
-					return Size::zero();
+					return sl_false;
 				}
-				return fa->measureText(text, flagMultiLine);
+				return fa->measureText(text, flagMultiLine, _out);
 			}
-
 		};
 
 		SLIB_DEFINE_OBJECT(ImageCanvasImpl, CanvasExt)
-
 	}
 
 	Ref<Canvas> Image::getCanvas()

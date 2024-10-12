@@ -90,7 +90,7 @@ namespace slib
 		advanceY = 0.0f;
 	}
 
-	void TextMetrics::setBlank(sl_real _advanceX, sl_real _advanceY)
+	void TextMetrics::setBlank(sl_real _advanceX, sl_real _advanceY) noexcept
 	{
 		left = 0.0f;
 		top = 0.0f;
@@ -500,11 +500,7 @@ namespace slib
 
 	sl_bool Font::measureChar(sl_char32 ch, TextMetrics& _out)
 	{
-		String str = String::create(&ch, 1);
-		if (str.isNull()) {
-			return sl_false;
-		}
-		return measureText(str, _out);
+		return _measureChar_PO(ch, _out);
 	}
 
 	sl_bool Font::measureText(const StringParam& text, TextMetrics& _out)
@@ -529,12 +525,12 @@ namespace slib
 			return measureText(_text, _out);
 		}
 
-		StringData16 text(_text);
+		StringData32 text(_text);
 		sl_size len = text.getLength();
 		if (!len) {
 			return sl_false;
 		}
-		sl_char16* sz = text.getData();
+		sl_char32* data = text.getData();
 
 		sl_real fontHeight = getFontHeight();
 		sl_real lineHeight = 0.0f;
@@ -545,16 +541,16 @@ namespace slib
 		sl_size startLine = 0;
 		sl_size pos = 0;
 		while (pos <= len) {
-			sl_char16 ch;
+			sl_char32 ch;
 			if (pos < len) {
-				ch = sz[pos];
+				ch = data[pos];
 			} else {
 				ch = '\n';
 			}
 			if (ch == '\r' || ch == '\n') {
 				if (pos > startLine) {
 					TextMetrics lm;
-					if (measureText(StringView16(sz + startLine, pos - startLine), lm)) {
+					if (measureText(StringView32(data + startLine, pos - startLine), lm)) {
 						if (pos == len) {
 							_out.advanceX = lm.advanceX;
 						}
@@ -572,7 +568,7 @@ namespace slib
 					}
 				}
 				if (ch == '\r' && pos + 1 < len) {
-					if (sz[pos + 1] == '\n') {
+					if (data[pos + 1] == '\n') {
 						pos++;
 					}
 				}
@@ -593,9 +589,44 @@ namespace slib
 	{
 		TextMetrics tm;
 		if (measureText(text, flagMultiLine, tm)) {
-			return Size(tm.getWidth(), tm.getHeight());
+			return tm.getSize();
 		}
 		return Size::zero();
+	}
+
+	Ref<GraphicsPath> Font::getCharOutline(sl_char32 ch)
+	{
+		Ref<GraphicsPath> path = GraphicsPath::create();
+		if (path.isNull()) {
+			return sl_null;
+		}
+		sl_real advanceX;
+		if (_buildOutline_PO(path, 0.0f, 0.0f, ch, advanceX)) {
+			return path;
+		}
+		return sl_null;
+	}
+
+	Ref<GraphicsPath> Font::getTextOutline(const StringParam& _text)
+	{
+		StringData32 text(_text);
+		sl_size len = text.getLength();
+		if (!len) {
+			return sl_null;
+		}
+		const sl_char32* data = text.getData();
+		Ref<GraphicsPath> path = GraphicsPath::create();
+		if (path.isNull()) {
+			return sl_null;
+		}
+		sl_real x = 0;
+		for (sl_size i = 0; i < len; i++) {
+			sl_real advanceX;
+			if (_buildOutline_PO(path, x, 0.0f, data[i], advanceX)) {
+				x += advanceX;
+			}
+		}
+		return path;
 	}
 
 	Ref<CRef> Font::getPlatformObject()
@@ -626,5 +657,21 @@ namespace slib
 	{
 		return addResource(content.data, content.size);
 	}
+
+#if !defined(SLIB_PLATFORM_IS_WIN32)
+	sl_bool Font::_measureChar_PO(sl_char32 ch, TextMetrics& _out)
+	{
+		String str = String::create(&ch, 1);
+		if (str.isNull()) {
+			return sl_false;
+		}
+		return measureText(str, _out);
+	}
+
+	sl_bool Font::_buildOutline_PO(Ref<GraphicsPath>& path, sl_real x, sl_real y, sl_char32 ch, sl_real& advanceX)
+	{
+		return sl_false;
+	}
+#endif
 
 }

@@ -9267,24 +9267,6 @@ namespace slib
 		}
 	}
 
-	Size View::measureText(const String& text, const Ref<Font>& _font, sl_bool flagMultiLine)
-	{
-		if (!(isInstance())) {
-			Ref<View> parent = m_parent;
-			if (parent.isNotNull()) {
-				return parent->measureText(text, _font, flagMultiLine);
-			}
-		}
-		Ref<Font> font = _font;
-		if (font.isNull()) {
-			font = getFont();
-			if (font.isNull()) {
-				return Size::zero();
-			}
-		}
-		return font->measureText(text, flagMultiLine);
-	}
-
 	void View::runAfterDraw(const Function<void()>& callback, sl_bool flagInvalidate)
 	{
 		if (isNativeWidget()) {

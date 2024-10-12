@@ -129,16 +129,20 @@ namespace slib
 
 	sl_bool FreeTypeAtlas::_measureChar(sl_char32 ch, TextMetrics& _out)
 	{
-		Size ret = m_font->getCharExtent(ch);
-		if (m_strokeWidth) {
-			sl_uint32 m = m_strokeWidth << 1;
-			ret.x += m;
-			ret.y += m;
+		if (m_font->measureChar(ch, _out)) {
+			sl_uint32 m = m_strokeWidth;
+			if (m) {
+				_out.left -= m;
+				_out.right += m;
+				_out.top -= m;
+				_out.bottom += m;
+			}
+			return sl_true;
 		}
-		return ret;
+		return sl_false;
 	}
 
-	Ref<Bitmap> FreeTypeAtlas::drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch)
+	Ref<Bitmap> FreeTypeAtlas::_drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch)
 	{
 		m_currentPlane->resetPixels(x, y, width, height, Color::Zero);
 		if (m_strokeWidth) {
@@ -150,7 +154,7 @@ namespace slib
 		return m_currentPlane;
 	}
 
-	sl_bool FreeTypeAtlas::createPlane()
+	sl_bool FreeTypeAtlas::_createPlane()
 	{
 		Ref<Image> plane = Image::create(m_planeWidth, m_planeHeight);
 		if (plane.isNull()) {

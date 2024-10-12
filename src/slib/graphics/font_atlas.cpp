@@ -465,7 +465,7 @@ namespace slib
 	{
 		TextMetrics tm;
 		if (measureText(text, flagMultiLine, tm)) {
-			return Size(tm.getWidth(), tm.getHeight());
+			return tm.getSize();
 		}
 		return Size::zero();
 	}

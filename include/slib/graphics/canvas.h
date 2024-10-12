@@ -115,7 +115,11 @@ namespace slib
 		virtual void scale(sl_real sx, sl_real sy);
 
 
-		virtual Size measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine = sl_false) = 0;
+		virtual sl_bool measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out) = 0;
+
+		sl_bool measureText(const Ref<Font>& font, const StringParam& text, TextMetrics& _out);
+
+		Size measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine = sl_false);
 
 		class DrawTextParam
 		{
@@ -362,7 +366,7 @@ namespace slib
 		void clipToEllipse(const Rectangle& rect) override;
 
 		using Canvas::measureText;
-		Size measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine = sl_false) override;
+		sl_bool measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out) override;
 
 		using Canvas::drawText;
 		void drawText(const DrawTextParam& param) override;

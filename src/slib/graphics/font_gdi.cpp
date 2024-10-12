@@ -26,10 +26,11 @@
 
 #include "slib/graphics/font.h"
 
+#include "slib/io/memory_reader.h"
 #include "slib/core/hash_map.h"
+#include "slib/core/scoped_buffer.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/shared.h"
-#include "slib/io/memory_reader.h"
 #include "slib/graphics/platform.h"
 
 namespace slib
@@ -263,6 +264,66 @@ namespace slib
 		return sl_false;
 	}
 
+	namespace
+	{
+		static void MakeIdentity(MAT2& mat)
+		{
+			mat.eM11.value = 1;
+			mat.eM11.fract = 1;
+			mat.eM12.value = 0;
+			mat.eM12.fract = 1;
+			mat.eM21.value = 0;
+			mat.eM21.fract = 1;
+			mat.eM22.value = 1;
+			mat.eM22.fract = 1;
+		}
+	}
+
+	sl_bool Font::_measureChar_PO(sl_char32 ch, TextMetrics& _out)
+	{
+		return measureText(String::create(&ch, 1), _out);
+		sl_bool bRet = sl_false;
+		HFONT hFont = GraphicsPlatform::getGdiFont(this);
+		if (hFont) {
+			HDC hdc = CreateCompatibleDC(NULL);
+			if (hdc) {
+				HFONT hFontOld = (HFONT)(SelectObject(hdc, hFont));
+				UINT16 index = 0xffff;
+				if (!(ch >> 16)) {
+					GetGlyphIndicesW(hdc, (WCHAR*)&ch, 1, &index, GGI_MARK_NONEXISTING_GLYPHS);
+				}
+				if (index != 0xffff) {
+					GLYPHMETRICS gm;
+					MAT2 mat;
+					MakeIdentity(mat);
+					DWORD dwRet = GetGlyphOutlineW(hdc, (UINT)ch, GGO_METRICS, &gm, 0, sl_null, &mat);
+					if (dwRet != GDI_ERROR) {
+						TEXTMETRICW tm;
+						if (GetTextMetricsW(hdc, &tm)) {
+							_out.left = (sl_real)(gm.gmptGlyphOrigin.x);
+							_out.top = (sl_real)((sl_int32)(tm.tmAscent - gm.gmptGlyphOrigin.y));
+							_out.right = _out.left + (sl_real)(gm.gmBlackBoxX);
+							_out.bottom = _out.top + (sl_real)(gm.gmBlackBoxY);
+							_out.advanceX = (sl_real)(gm.gmCellIncX);
+							_out.advanceY = (sl_real)(tm.tmAscent + tm.tmDescent + tm.tmInternalLeading + tm.tmExternalLeading);
+							bRet = sl_true;
+						}
+					}
+				} else {
+					String s = String::create(&ch, 1);
+					if (s.isNotNull()) {
+						if (measureText(s, _out)) {
+							bRet = sl_true;
+						}
+					}
+				}
+				SelectObject(hdc, hFontOld);
+				DeleteDC(hdc);
+			}
+		}
+		return bRet;
+	}
+
 	sl_bool Font::_measureText_PO(const StringParam& _text, TextMetrics& _out)
 	{
 		FontStaticContext* fs = GetFontStaticContext();
@@ -288,6 +349,69 @@ namespace slib
 		_out.right = (sl_real)(bound.X + bound.Width);
 		_out.bottom = (sl_real)(bound.Y + bound.Height);
 		return sl_true;
+	}
+
+	namespace
+	{
+		static sl_real ToRealPos(const FIXED& f)
+		{
+			return (sl_real)(f.value) / (sl_real)(f.fract << 6);
+		}
+
+		static Point ToPoint(const POINTFX& pt)
+		{
+			return { ToRealPos(pt.x), ToRealPos(pt.y) };
+		}
+	}
+
+	sl_bool Font::_buildOutline_PO(Ref<GraphicsPath>& path, sl_real x, sl_real y, sl_char32 ch, sl_real& advanceX)
+	{
+		sl_bool bRet = sl_false;
+		HFONT hFont = GraphicsPlatform::getGdiFont(this);
+		if (hFont) {
+			HDC hdc = CreateCompatibleDC(NULL);
+			if (hdc) {
+				HFONT hFontOld = (HFONT)(SelectObject(hdc, hFont));
+				GLYPHMETRICS gm;
+				DWORD dwRet = GetGlyphOutlineW(hdc, (UINT)ch, GGO_BEZIER, &gm, 0, sl_null, sl_null);
+				if (dwRet != GDI_ERROR && dwRet) {
+					SLIB_SCOPED_BUFFER(sl_uint8, 1024, data, dwRet)
+					if (data) {
+						if (GetGlyphOutlineW(hdc, (UINT)ch, GGO_BEZIER, &gm, dwRet, data, sl_null) != GDI_ERROR) {
+							sl_uint8* end = data + dwRet;
+							while (data < end) {
+								TTPOLYGONHEADER* header = (TTPOLYGONHEADER*)data;
+								path->moveTo(ToPoint(header->pfxStart));
+								sl_uint8* last = data + header->cb;
+								data += sizeof(TTPOLYGONHEADER);
+								while (data < last) {
+									TTPOLYCURVE* curve = (TTPOLYCURVE*)data;
+									switch (curve->wType) {
+										case TT_PRIM_LINE:
+											path->lineTo(ToPoint(curve->apfx[0]));
+											break;
+										case TT_PRIM_QSPLINE:
+											path->conicTo(ToPoint(curve->apfx[0]), ToPoint(curve->apfx[1]));
+											break;
+										case TT_PRIM_CSPLINE:
+											path->cubicTo(ToPoint(curve->apfx[0]), ToPoint(curve->apfx[1]), ToPoint(curve->apfx[2]));
+											break;
+										default:
+											break;
+									}
+									data += sizeof(TTPOLYCURVE) + sizeof(POINTFX) * (curve->cpfx - 1);
+								}
+							}
+							advanceX = (sl_real)(gm.gmCellIncX);
+							bRet = sl_true;
+						}
+					}
+				}
+				SelectObject(hdc, hFontOld);
+				DeleteDC(hdc);
+			}
+		}
+		return bRet;
 	}
 
 	Gdiplus::Font* GraphicsPlatform::getGdiplusFont(Font* _font)

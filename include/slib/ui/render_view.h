@@ -72,15 +72,10 @@ namespace slib
 
 		void invalidate(const UIRect& rect, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 
-
 		void renderViewContent(RenderEngine* engine);
 
 
-		Size measureText(const String& text, const Ref<Font>& font, sl_bool flagMultiLine = sl_false) override;
-
-
 		Ref<AnimationLoop> getAnimationLoop() override;
-
 
 		sl_bool isDrawingThread() override;
 

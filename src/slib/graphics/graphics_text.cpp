@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -277,14 +277,17 @@ namespace slib
 		if (m_fontCached == font) {
 			return Size(m_widthCached, m_heightCached);
 		}
-		if (font.isNotNull()) {
-			Ref<FontAtlas> atlas = font->getSharedAtlas();
-			if (atlas.isNotNull()) {
-				Size size = atlas->getFontSize(m_char);
-				m_fontCached = font;
-				m_widthCached = size.x;
-				m_heightCached = size.y;
-				return size;
+		if (font.isNull()) {
+			return Size::zero();
+		}
+		m_fontCached = font;
+		Ref<FontAtlas> atlas = font->getSharedAtlas();
+		if (atlas.isNotNull()) {
+			TextMetrics tm;
+			if (atlas->measureChar(m_char, tm)) {
+				m_widthCached = tm.advanceX;
+				m_heightCached = tm.advanceY;
+				return Size(m_widthCached, m_heightCached);
 			}
 		}
 		m_widthCached = 0;
@@ -618,8 +621,8 @@ namespace slib
 	{
 	}
 
-	namespace {
-
+	namespace
+	{
 		template <class CHAR>
 		SLIB_INLINE static sl_bool CheckHTTP(const CHAR* s, sl_size len)
 		{
@@ -789,7 +792,6 @@ namespace slib
 				}
 			}
 		}
-
 	}
 
 	template <class CHAR>
@@ -938,7 +940,8 @@ namespace slib
 		}
 	}
 
-	namespace {
+	namespace
+	{
 		static sl_bool ParseSize(const String& _str, const Ref<Font>& _font, float* _out)
 		{
 			sl_real sizeBase;
@@ -1455,16 +1458,12 @@ namespace slib
 
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(TextParagraph, LayoutParam)
 
-	TextParagraph::LayoutParam::LayoutParam() noexcept:
-		width(1),
-		tabWidth(1), tabMargin(1),
-		multiLineMode(MultiLineMode::Single),
-		lineCount(0)
+	TextParagraph::LayoutParam::LayoutParam() noexcept: width(1), tabWidth(1), tabMargin(1), multiLineMode(MultiLineMode::Single), lineCount(0)
 	{
 	}
 
-	namespace {
-
+	namespace
+	{
 		class TextWordItemHelper : public TextWordItem
 		{
 		public:
@@ -1789,64 +1788,65 @@ namespace slib
 				if (style.isNull()) {
 					return;
 				}
-
 				Ref<Font> font = style->font;
 				if (font.isNull()) {
 					return;
 				}
-
-				String16 text = breakItem->getText();
-				if (text.isEmpty()) {
-					return;
-				}
-
 				Ref<FontAtlas> atlas = font->getSharedAtlas();
 				if (atlas.isNull()) {
 					return;
 				}
-
-				ObjectLocker lockAtlas(atlas.get());
-
-				sl_char16* chars = text.getData();
+				String16 text = breakItem->getText();
 				sl_size len = text.getLength();
-
-				sl_real widthRemaining = m_layoutWidth - m_x;
-
-				Size size = atlas->getFontSize_NoLock(chars[0]);
-				sl_real x = size.x;
-				sl_real height = size.y;
-				sl_size startLine = 0;
-				sl_size pos = 1;
-
-				if (size.x > widthRemaining && m_x > 0) {
-					endLine();
-					widthRemaining = m_layoutWidth;
-					if (m_flagEnd) {
-						return;
-					}
+				if (!len) {
+					return;
 				}
+				sl_char16* chars = text.getData();
 
-				while (pos < len) {
-					size = atlas->getFontSize_NoLock(chars[pos]);
-					if (pos > startLine && x + size.x > widthRemaining) {
-						Ref<TextItem> newItem = CreateWordOrCharItem(chars + startLine, pos - startLine, style);
-						if (newItem.isNotNull()) {
-							addLineItem(newItem.get(), Size(x, height));
-						}
-						startLine = pos;
+				sl_size startLine = 0;
+				sl_real x, height;
+				{
+					ObjectLocker lockAtlas(atlas.get());
+					TextMetrics tm;
+					if (atlas->measureChar_NoLock(*chars, tm)) {
+						x = tm.advanceX;
+						height = tm.advanceY;
+					} else {
+						x = 0.0f;
+						height = 0.0f;
+					}
+					sl_size pos = 1;
+					sl_real widthRemaining = m_layoutWidth - m_x;
+					if (x > widthRemaining && m_x > 0) {
 						endLine();
-						x = 0;
-						height = 0;
 						widthRemaining = m_layoutWidth;
 						if (m_flagEnd) {
 							return;
 						}
 					}
-					x += size.x;
-					if (size.y > height) {
-						height = size.y;
+					while (pos < len) {
+						if (atlas->measureChar_NoLock(chars[pos], tm)) {
+							if (pos > startLine && x + tm.advanceX > widthRemaining) {
+								Ref<TextItem> newItem = CreateWordOrCharItem(chars + startLine, pos - startLine, style);
+								if (newItem.isNotNull()) {
+									addLineItem(newItem.get(), Size(x, height));
+								}
+								startLine = pos;
+								endLine();
+								x = 0;
+								height = 0;
+								widthRemaining = m_layoutWidth;
+								if (m_flagEnd) {
+									return;
+								}
+							}
+							x += tm.advanceX;
+							if (tm.advanceY > height) {
+								height = tm.advanceY;
+							}
+						}
+						pos++;
 					}
-					pos++;
 				}
 				if (len > startLine) {
 					Ref<TextItem> newItem = CreateWordOrCharItem(chars + startLine, len - startLine, style);
@@ -1997,57 +1997,42 @@ namespace slib
 			{
 				sl_size n = list->getCount();
 				Ref<TextItem>* items = list->getData();
-
 				for (sl_size i = 0; i < n; i++) {
-
 					TextItem* item = items[i].get();
-
 					TextItemType type = item->getType();
-
 					switch (type) {
 						case TextItemType::Word:
 							processWord(static_cast<TextWordItem*>(item));
 							break;
-
 						case TextItemType::Char:
 							processChar(static_cast<TextCharItem*>(item));
 							break;
-
 						case TextItemType::JoinedChar:
 							processJoinedChar(static_cast<TextJoinedCharItem*>(item));
 							break;
-
 						case TextItemType::Space:
 							processSpace(static_cast<TextSpaceItem*>(item));
 							break;
-
 						case TextItemType::Tab:
 							processTab(static_cast<TextTabItem*>(item));
 							break;
-
 						case TextItemType::LineBreak:
 							processLineBreak(static_cast<TextLineBreakItem*>(item));
 							break;
-
 						case TextItemType::HorizontalLine:
 							processHorizontalLine(static_cast<TextHorizontalLineItem*>(item));
 							break;
-
 						case TextItemType::Attach:
 							processAttach(static_cast<TextAttachItem*>(item));
 							break;
 					}
-
 					if (m_flagEnd) {
 						break;
 					}
 				}
-
 				m_lineWidth = m_x;
 				endLine();
-
 			}
-
 		};
 	}
 
@@ -2242,7 +2227,8 @@ namespace slib
 		return m_align;
 	}
 
-	namespace {
+	namespace
+	{
 		static Color g_defaultLinkColor = Color::Blue;
 		static sl_bool g_defaultLinkUnderline = sl_true;
 	}

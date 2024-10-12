@@ -115,9 +115,7 @@ namespace slib
 		void translate(sl_real dx, sl_real dy) override;
 
 		using Canvas::measureText;
-		Size measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine = sl_false) override;
-
-		static Size measureRenderingText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine = sl_false);
+		sl_bool measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out) override;
 
 		using Canvas::drawLine;
 		void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen) override;

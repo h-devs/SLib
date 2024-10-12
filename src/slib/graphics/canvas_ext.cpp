@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -56,15 +56,12 @@ namespace slib
 		}
 	}
 
-	Size CanvasExt::measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine)
+	sl_bool CanvasExt::measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out)
 	{
-		if (text.isEmpty()) {
-			return Size::zero();
-		}
 		if (font.isNotNull()) {
-			return font->measureText(text, flagMultiLine);
+			return font->measureText(text, flagMultiLine, _out);
 		}
-		return Size::zero();
+		return sl_false;
 	}
 
 	void CanvasExt::drawText(const Canvas::DrawTextParam& param)
@@ -100,20 +97,22 @@ namespace slib
 			return;
 		}
 
-		Size size = measureText(font, param.text, sl_true);
-		Point pt = GraphicsUtil::calculateAlignPosition(Rectangle(param.x, param.y, param.x + param.width, param.y + param.height), size.x, size.y, param.alignment);
-		Alignment hAlign = param.alignment & Alignment::HorizontalMask;
-		StringData16 text(param.text);
-		sl_char16* data = text.getData();
+		StringData32 text(param.text);
 		sl_size len = text.getLength();
 		if (!len) {
 			return;
 		}
+		sl_char32* data = text.getData();
+
+		Size size = measureText(font, text, sl_true);
+		Point pt = GraphicsUtil::calculateAlignPosition(Rectangle(param.x, param.y, param.x + param.width, param.y + param.height), size.x, size.y, param.alignment);
+		Alignment hAlign = param.alignment & Alignment::HorizontalMask;
+
 		sl_size startLine = 0;
 		sl_size pos = 0;
 		sl_real y = pt.y;
 		while (pos <= len) {
-			sl_char16 ch;
+			sl_char32 ch;
 			if (pos < len) {
 				ch = data[pos];
 			} else {
@@ -121,18 +120,20 @@ namespace slib
 			}
 			if (ch == '\r' || ch == '\n') {
 				if (pos > startLine) {
-					StringView16 line(data + startLine, pos - startLine);
-					Size s = measureText(font, line);
-					sl_real x;
-					if (hAlign == Alignment::Left) {
-						x = pt.x;
-					} else if (hAlign == Alignment::Right) {
-						x = pt.x + size.x - s.x;
-					} else {
-						x = pt.x + (size.x - s.x) / 2;
+					StringView32 line(data + startLine, pos - startLine);
+					TextMetrics tm;
+					if (measureText(font, line, tm)) {
+						sl_real x;
+						if (hAlign == Alignment::Left) {
+							x = pt.x;
+						} else if (hAlign == Alignment::Right) {
+							x = pt.x + size.x - tm.advanceX;
+						} else {
+							x = pt.x + (size.x - tm.advanceX) / 2;
+						}
+						onDrawText(line, x, y, font, param);
+						y += tm.advanceY;
 					}
-					onDrawText(line, x, y, font, param);
-					y += s.y;
 				}
 				if (ch == '\r' && pos + 1 < len) {
 					if (data[pos + 1] == '\n') {
