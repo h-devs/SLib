@@ -63,21 +63,14 @@ namespace slib
 		class RenderCanvasProgramParam
 		{
 		public:
-			RenderShaderLanguage language;
-			sl_bool flagUseTexture;
-			sl_bool flagUseColorFilter;
+			RenderShaderLanguage language = RenderShaderLanguage::GLSL;
+			sl_bool flagUseTexture = sl_false;
+			sl_bool flagUseHatchStyle = sl_false;
+			sl_bool flagUseColorFilter = sl_false;
 			RenderCanvasClip* clips[MAX_SHADER_CLIP + 1];
-			sl_uint32 countClips;
+			sl_uint32 countClips = 0;
 
 		public:
-			RenderCanvasProgramParam()
-			{
-				language = RenderShaderLanguage::GLSL;
-				flagUseTexture = sl_false;
-				flagUseColorFilter = sl_false;
-				countClips = 0;
-			}
-
 			void prepare(RenderCanvasState* state, sl_bool flagIgnoreRectClip)
 			{
 				if (SLIB_RENDER_CHECK_ENGINE_TYPE(state->engineType, D3D)) {

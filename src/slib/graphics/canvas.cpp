@@ -175,8 +175,9 @@ namespace slib
 
 	Canvas::DrawTextParam::DrawTextParam():
 		color(Color::Black), alignment(Alignment::TopLeft), flagMultiLine(sl_false),
-		x(0), y(0), width(0), height(0),
-		shadowOpacity(0), shadowRadius(3), shadowColor(Color::Black), shadowOffset(0, 0)
+		x(0.0f), y(0.0f), width(0.0f), height(0.0f),
+		strokeWidth(0.0f),
+		shadowOpacity(0.0f), shadowRadius(3.0f), shadowColor(Color::Black), shadowOffset(0.0f, 0.0f)
 	{
 	}
 
@@ -217,6 +218,15 @@ namespace slib
 		param.alignment = alignment;
 		param.flagMultiLine = flagMultiLine;
 		drawText(param);
+	}
+
+	Size Canvas::getTextAdvance(const DrawTextParam& param)
+	{
+		TextMetrics tm;
+		if (measureText(param, tm)) {
+			return tm.getSize();
+		}
+		return Size::zero();
 	}
 
 	void Canvas::drawLine(sl_real x1, sl_real y1, sl_real x2, sl_real y2, const Ref<Pen>& pen)

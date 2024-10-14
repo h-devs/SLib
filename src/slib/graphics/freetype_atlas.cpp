@@ -134,11 +134,11 @@ namespace slib
 		return m_font->measureChar(ch, _out);
 	}
 
-	Ref<Bitmap> FreeTypeAtlas::_drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_int32 charX, sl_int32 charY, sl_char32 ch)
+	Ref<Bitmap> FreeTypeAtlas::_drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_real charX, sl_real charY, sl_char32 ch)
 	{
 		m_currentPlane->resetPixels(dstX, dstY, width, height, Color::Zero);
 		if (m_strokeWidth) {
-			m_font->strokeChar(m_currentPlane, charX, charY, ch, Color::White, m_strokeWidth);
+			m_font->strokeChar(m_currentPlane, charX, charY, ch, Color::White, (sl_real)m_strokeWidth);
 		} else {
 			m_font->drawChar(m_currentPlane, charX, charY, ch, Color::White);
 		}

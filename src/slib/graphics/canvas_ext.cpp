@@ -73,11 +73,25 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool CanvasExt::measureText(const DrawTextParam& param, TextMetrics& _out)
+	{
+		return measureText(param, param.text, _out);
+	}
+
+	sl_bool CanvasExt::measureText(const DrawTextParam& param, const StringParam& text, TextMetrics& _out)
+	{
+		if (param.font.isNotNull()) {
+			return measureText(param.font, text, param.flagMultiLine, _out);
+		} else if (param.atlas.isNotNull()) {
+			return param.atlas->measureText(text, param.flagMultiLine, _out);
+		} else {
+			return sl_false;
+		}
+	}
+
 	void CanvasExt::drawText(const Canvas::DrawTextParam& param)
 	{
-		const Ref<Font>& font = param.font;
-		if (font.isNull()) {
-			drawTextByAtlas(param);
+		if (param.font.isNull() && param.atlas.isNull()) {
 			return;
 		}
 		if (!(param.flagMultiLine)) {
@@ -85,9 +99,9 @@ namespace slib
 				return;
 			}
 			if (param.alignment == Alignment::TopLeft) {
-				onDrawText(param.text, param.x, param.y, font, param);
+				onDrawText(param.text, param.x, param.y, param);
 			} else {
-				Size size = getTextAdvance(font, param.text, sl_false);
+				Size size = getTextAdvance(param);
 				Alignment hAlign = param.alignment & Alignment::HorizontalMask;
 				Alignment vAlign = param.alignment & Alignment::VerticalMask;
 				sl_real x = param.x;
@@ -102,7 +116,7 @@ namespace slib
 				} else if (vAlign != Alignment::Top){
 					y += (param.height - size.y) / 2;
 				}
-				onDrawText(param.text, x, y, font, param);
+				onDrawText(param.text, x, y, param);
 			}
 			return;
 		}
@@ -122,7 +136,7 @@ namespace slib
 			pt.x = param.x;
 			pt.y = param.y;
 		} else {
-			size = getTextAdvance(font, text, sl_true);
+			size = getTextAdvance(param);
 			pt = GraphicsUtil::calculateAlignPosition(Rectangle(param.x, param.y, param.x + param.width, param.y + param.height), size.x, size.y, param.alignment);
 		}
 		Alignment hAlign = param.alignment & Alignment::HorizontalMask;
@@ -140,11 +154,11 @@ namespace slib
 				if (i > startLine) {
 					StringView32 line(data + startLine, i - startLine);
 					if (hAlign == Alignment::Left && i + 1 >= len) {
-						onDrawText(line, pt.x, y, font, param);
+						onDrawText(line, pt.x, y, param);
 						break;
 					}
 					TextMetrics tm;
-					if (measureText(font, line, tm)) {
+					if (measureText(param, line, tm)) {
 						sl_real x;
 						if (hAlign == Alignment::Left) {
 							x = pt.x;
@@ -153,7 +167,7 @@ namespace slib
 						} else {
 							x = pt.x + (size.x - tm.advanceX) / 2;
 						}
-						onDrawText(line, x, y, font, param);
+						onDrawText(line, x, y, param);
 						y += tm.advanceY;
 					}
 				}
@@ -167,96 +181,39 @@ namespace slib
 		}
 	}
 
-	void CanvasExt::drawTextByAtlas(const Canvas::DrawTextParam& param)
+	void CanvasExt::onDrawText(const StringParam& text, sl_real x, sl_real y, const DrawTextParam& param)
 	{
-		const Ref<FontAtlas>& atlas = param.atlas;
-		if (atlas.isNull()) {
-			return;
-		}
-		if (!(param.flagMultiLine)) {
-			if (param.text.isEmpty()) {
-				return;
-			}
-			if (param.alignment == Alignment::TopLeft) {
-				onDrawTextByAtlas(param.text, param.x, param.y, atlas, param);
+		if (param.font.isNotNull()) {
+			if (Math::isLessThanEpsilon(param.strokeWidth)) {
+				onDrawText(text, x, y, param.font, param);
 			} else {
-				Size size = atlas->getTextAdvance(param.text, sl_false);
-				Alignment hAlign = param.alignment & Alignment::HorizontalMask;
-				Alignment vAlign = param.alignment & Alignment::VerticalMask;
-				sl_real x = param.x;
-				sl_real y = param.y;
-				if (hAlign == Alignment::Right) {
-					x += param.width - size.x;
-				} else if (hAlign != Alignment::Left) {
-					x += (param.width - size.x) / 2;
-				}
-				if (vAlign == Alignment::Bottom) {
-					y += param.height - size.y;
-				} else if (vAlign != Alignment::Top) {
-					y += (param.height - size.y) / 2;
-				}
-				onDrawTextByAtlas(param.text, x, y, atlas, param);
+				onStrokeText(text, x, y, param.font, param.strokeWidth, param);
 			}
-			return;
+		} else if (param.atlas.isNotNull()) {
+			onDrawTextByAtlas(text, x, y, param.atlas, param);
 		}
+	}
 
-		StringData32 text(param.text);
+	void CanvasExt::onStrokeText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, sl_real strokeWidth, const DrawTextParam& param)
+	{
+		StringData32 text(_text);
 		sl_size len = text.getLength();
 		if (!len) {
 			return;
 		}
 		sl_char32* data = text.getData();
 
-		Size size;
-		Point pt;
-		if (param.alignment == Alignment::TopLeft) {
-			size.x = 0.0f;
-			size.y = 0.0f;
-			pt.x = param.x;
-			pt.y = param.y;
-		} else {
-			size = atlas->getTextAdvance(text, sl_true);
-			pt = GraphicsUtil::calculateAlignPosition(Rectangle(param.x, param.y, param.x + param.width, param.y + param.height), size.x, size.y, param.alignment);
+		Ref<Pen> pen = Pen::createSolidPen(strokeWidth, param.color);
+		if (pen.isNull()) {
+			return;
 		}
-		Alignment hAlign = param.alignment & Alignment::HorizontalMask;
-
-		sl_size startLine = 0;
-		sl_real y = pt.y;
-		for (sl_size i = 0; i <= len; i++) {
-			sl_char32 ch;
-			if (i < len) {
-				ch = data[i];
-			} else {
-				ch = '\n';
+		for (sl_size i = 0; i < len; i++) {
+			sl_real advance;
+			auto path = font->getCharOutline(data[i], x, y, &advance);
+			if (path) {
+				drawPath(path, pen);
 			}
-			if (ch == '\r' || ch == '\n') {
-				if (i > startLine) {
-					StringView32 line(data + startLine, i - startLine);
-					if (hAlign == Alignment::Left && i + 1 >= len) {
-						onDrawTextByAtlas(line, pt.x, y, atlas, param);
-						break;
-					}
-					TextMetrics tm;
-					if (atlas->measureText(line, tm)) {
-						sl_real x;
-						if (hAlign == Alignment::Left) {
-							x = pt.x;
-						} else if (hAlign == Alignment::Right) {
-							x = pt.x + size.x - tm.advanceX;
-						} else {
-							x = pt.x + (size.x - tm.advanceX) / 2;
-						}
-						onDrawTextByAtlas(line, x, y, atlas, param);
-						y += tm.advanceY;
-					}
-				}
-				if (ch == '\r' && i + 1 < len) {
-					if (data[i + 1] == '\n') {
-						i++;
-					}
-				}
-				startLine = i + 1;
-			}
+			x += advance;
 		}
 	}
 

@@ -690,6 +690,10 @@ namespace slib
 		sl_char32* data = text.getData();
 		sl_real fontHeight = atlas->getFontHeight();
 
+		Matrix3 transformInitial = _transform;
+		Transform2::preTranslate(transformInitial, 0.0f, fontHeight);
+		Transform2::preScale(transformInitial, 1.0f, -1.0f);
+
 		ObjectLocker lock(atlas.get());
 		FontAtlasChar fac;
 		sl_real fx = 0.0f;
@@ -709,10 +713,10 @@ namespace slib
 						rcSrc.top = (sl_real)(fac.region.top) / sh;
 						rcSrc.right = (sl_real)(fac.region.right) / sw;
 						rcSrc.bottom = (sl_real)(fac.region.bottom) / sh;
-						Matrix3 transform = _transform;
+						Matrix3 transform = transformInitial;
 						Transform2::preTranslate(transform, fx + fac.metrics.left, fac.metrics.top);
 						Transform2::preScale(transform, fac.metrics.getWidth(), fac.metrics.getHeight());
-						drawTexture2D(transform, texture, color);
+						drawTexture2D(transform, texture, rcSrc, color);
 					}
 				}
 			}

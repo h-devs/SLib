@@ -146,7 +146,7 @@ namespace slib
 
 		virtual sl_bool _measureChar(sl_char32 ch, TextMetrics& metrics) = 0;
 
-		virtual Ref<Bitmap> _drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_int32 charX, sl_int32 charY, sl_char32 ch) = 0;
+		virtual Ref<Bitmap> _drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_real charX, sl_real charY, sl_char32 ch) = 0;
 
 		virtual sl_bool _createPlane() = 0;
 

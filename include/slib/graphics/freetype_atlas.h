@@ -65,7 +65,7 @@ namespace slib
 
 		sl_bool _measureChar(sl_char32 ch, TextMetrics& _out) override;
 
-		Ref<Bitmap> _drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_int32 charX, sl_int32 charY, sl_char32 ch) override;
+		Ref<Bitmap> _drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_real charX, sl_real charY, sl_char32 ch) override;
 
 		sl_bool _createPlane() override;
 

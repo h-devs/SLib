@@ -138,6 +138,7 @@ namespace slib
 			sl_real width;
 			sl_real height;
 
+			sl_real strokeWidth;
 			sl_real shadowOpacity;
 			sl_real shadowRadius;
 			Color shadowColor;
@@ -155,6 +156,10 @@ namespace slib
 		void drawText(const StringParam& text, sl_real x, sl_real y, const Ref<Font>& font, const Color& color, const Alignment& alignment, sl_bool flagMultiLine = sl_false);
 
 		void drawText(const StringParam& text, const Rectangle& rcDst, const Ref<Font>& font, const Color& color, const Alignment& alignment, sl_bool flagMultiLine = sl_false);
+
+		virtual sl_bool measureText(const DrawTextParam& param, TextMetrics& _out) = 0;
+
+		Size getTextAdvance(const DrawTextParam& param);
 
 
 		virtual void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen) = 0;
@@ -373,6 +378,7 @@ namespace slib
 
 		using Canvas::measureText;
 		sl_bool measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out) override;
+		sl_bool measureText(const DrawTextParam& param, TextMetrics& _out) override;
 
 		using Canvas::drawText;
 		void drawText(const DrawTextParam& param) override;
@@ -415,9 +421,14 @@ namespace slib
 
 		void onDrawAll(const Rectangle& rectDst, const Ref<Drawable>& src, const DrawParam& param) override;
 
-		void drawTextByAtlas(const DrawTextParam& param);
+		using Canvas::onDrawText;
+		void onDrawText(const StringParam& text, sl_real x, sl_real y, const DrawTextParam& param);
+
+		virtual void onStrokeText(const StringParam& text, sl_real x, sl_real y, const Ref<Font>& font, sl_real strokeWidth, const DrawTextParam& param);
 
 		virtual void onDrawTextByAtlas(const StringParam& text, sl_real x, sl_real y, const Ref<FontAtlas>& atlas, const DrawTextParam& param);
+
+		sl_bool measureText(const DrawTextParam& param, const StringParam& text, TextMetrics& _out);
 
 	};
 

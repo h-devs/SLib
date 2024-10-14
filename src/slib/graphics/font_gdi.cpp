@@ -302,7 +302,7 @@ namespace slib
 					FontMetrics fm;
 					if (getFontMetrics(fm)) {
 						_out.left = (sl_real)(gm.gmptGlyphOrigin.x);
-						_out.top = fm.ascent - (sl_real)(gm.gmptGlyphOrigin.y);
+						_out.top = fm.ascent + 1.0f - (sl_real)(gm.gmptGlyphOrigin.y);
 						_out.right = _out.left + (sl_real)(gm.gmBlackBoxX);
 						_out.bottom = _out.top + (sl_real)(gm.gmBlackBoxY);
 						_out.advanceX = (sl_real)(gm.gmCellIncX);
@@ -376,7 +376,7 @@ namespace slib
 			return sl_false;
 		}
 		sl_bool bRet = sl_false;
-		sl_real ascent = y + fm.ascent - 1.0f;
+		sl_real ascent = y + fm.ascent + 1.0f;
 		HDC hdc = CreateCompatibleDC(NULL);
 		if (hdc) {
 			HFONT hFontOld = (HFONT)(SelectObject(hdc, hFont));

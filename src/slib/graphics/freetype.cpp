@@ -767,15 +767,15 @@ namespace slib
 			}
 		}
 
-		static void CopySlot(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_int32 ascender, FT_GlyphSlot slot, const Color& color)
+		static void CopySlot(const Ref<Image>& _out, sl_real x, sl_real y, sl_int32 ascender, FT_GlyphSlot slot, const Color& color)
 		{
-			sl_int32 dx = x + slot->bitmap_left;
-			sl_int32 dy = y + TO_PIXEL_POS(ascender) - slot->bitmap_top;
+			sl_int32 dx = (sl_int32)x + slot->bitmap_left;
+			sl_int32 dy = TO_PIXEL_POS((sl_int32)(y * 64.0f + ascender)) - slot->bitmap_top;
 			CopyBitmap(_out, dx, dy, slot->bitmap, color);
 		}
 	}
 
-	void FreeType::drawChar_NoLock(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 ch, const Color& color)
+	void FreeType::drawChar_NoLock(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 ch, const Color& color)
 	{
 		if (_out.isNull()) {
 			return;
@@ -784,16 +784,16 @@ namespace slib
 		if (err) {
 			return;
 		}
-		CopySlot(_out, (sl_int32)x, (sl_int32)y, m_face->size->metrics.ascender, m_face->glyph, Color::White);
+		CopySlot(_out, x, y, m_face->size->metrics.ascender, m_face->glyph, Color::White);
 	}
 
-	void FreeType::drawChar(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 ch, const Color& color)
+	void FreeType::drawChar(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 ch, const Color& color)
 	{
 		ObjectLocker lock(this);
 		drawChar_NoLock(_out, x, y, ch, color);
 	}
 
-	void FreeType::drawText(const Ref<Image>& _out, sl_int32 _x, sl_int32 _y, const StringParam& _text, const Color& color)
+	void FreeType::drawText(const Ref<Image>& _out, sl_real x, sl_real y, const StringParam& _text, const Color& color)
 	{
 		if (_out.isNull()) {
 			return;
@@ -807,11 +807,10 @@ namespace slib
 
 		ObjectLocker lock(this);
 		FT_GlyphSlot slot = m_face->glyph;
-		sl_real x = (sl_real)_x;
 		for (sl_size i = 0; i < len; i++) {
 			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(data[i]), FT_LOAD_RENDER);
 			if (!err) {
-				CopySlot(_out, (sl_int32)x, _y, m_face->size->metrics.ascender, slot, color);
+				CopySlot(_out, x, y, m_face->size->metrics.ascender, slot, color);
 				x += TO_REAL_POS(slot->metrics.horiAdvance);
 			}
 		}
@@ -819,7 +818,7 @@ namespace slib
 
 	namespace
 	{
-		static void StrokeSlot(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_int32 ascender, FT_Stroker stroker, FT_GlyphSlot slot, const Color& color, sl_uint32 mode)
+		static void StrokeSlot(const Ref<Image>& _out, sl_real x, sl_real y, sl_int32 ascender, FT_Stroker stroker, FT_GlyphSlot slot, const Color& color, sl_uint32 mode)
 		{
 			FT_Glyph glyph = sl_null;
 			FT_Error err = FT_Get_Glyph(slot, &glyph);
@@ -848,13 +847,13 @@ namespace slib
 			}
 			FT_BitmapGlyph bitmapGlyph = (FT_BitmapGlyph)glyph;
 			sl_int32 dx = (sl_int32)x + bitmapGlyph->left;
-			sl_int32 dy = (sl_int32)y + TO_PIXEL_POS(ascender) - bitmapGlyph->top;
+			sl_int32 dy = TO_PIXEL_POS((sl_int32)(y * 64.0f + ascender)) - bitmapGlyph->top;
 			CopyBitmap(_out, dx, dy, bitmapGlyph->bitmap, color);
 			FT_Done_Glyph(glyph);
 		}
 	}
 
-	void FreeType::strokeChar_NoLock(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 ch, const Color& color, sl_uint32 lineWidth, sl_uint32 mode)
+	void FreeType::strokeChar_NoLock(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 ch, const Color& color, sl_real lineWidth, sl_uint32 mode)
 	{
 		if (_out.isNull()) {
 			return;
@@ -868,18 +867,18 @@ namespace slib
 		if (!stroker) {
 			return;
 		}
-		FT_Stroker_Set(stroker, lineWidth * 32, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+		FT_Stroker_Set(stroker, (FT_Fixed)(lineWidth * 32.0f), FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
 		StrokeSlot(_out, x, y, m_face->size->metrics.ascender, stroker, m_face->glyph, color, mode);
 		FT_Stroker_Done(stroker);
 	}
 
-	void FreeType::strokeChar(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 ch, const Color& color, sl_uint32 lineWidth, sl_uint32 mode)
+	void FreeType::strokeChar(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 ch, const Color& color, sl_real lineWidth, sl_uint32 mode)
 	{
 		ObjectLocker lock(this);
 		strokeChar_NoLock(_out, x, y, ch, color, lineWidth, mode);
 	}
 
-	void FreeType::strokeText(const Ref<Image>& _out, sl_int32 _x, sl_int32 _y, const StringParam& _text, const Color& color, sl_uint32 lineWidth, sl_uint32 mode)
+	void FreeType::strokeText(const Ref<Image>& _out, sl_real x, sl_real y, const StringParam& _text, const Color& color, sl_real lineWidth, sl_uint32 mode)
 	{
 		if (_out.isNull()) {
 			return;
@@ -897,13 +896,12 @@ namespace slib
 		if (!stroker) {
 			return;
 		}
-		FT_Stroker_Set(stroker, lineWidth * 32, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+		FT_Stroker_Set(stroker, (FT_Fixed)(lineWidth * 32.0f), FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
 		FT_GlyphSlot slot = m_face->glyph;
-		sl_real x = (sl_real)_x;
 		for (sl_size i = 0; i < len; i++) {
 			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(data[i]), FT_LOAD_DEFAULT);
 			if (!err) {
-				StrokeSlot(_out, (sl_int32)x, _y, m_face->size->metrics.ascender, stroker, slot, color, mode);
+				StrokeSlot(_out, x, y, m_face->size->metrics.ascender, stroker, slot, color, mode);
 				x += TO_REAL_POS(slot->metrics.horiAdvance);
 			}
 		}

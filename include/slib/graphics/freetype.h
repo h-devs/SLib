@@ -156,11 +156,11 @@ namespace slib
 		sl_bool measureGlyph(sl_uint32 glyphId, TextMetrics& _out);
 
 		// draw starting at left-bottom corner
-		void drawChar_NoLock(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 charcode, const Color& color);
+		void drawChar_NoLock(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 charcode, const Color& color);
 
-		void drawChar(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 charcode, const Color& color);
+		void drawChar(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 charcode, const Color& color);
 
-		void drawText(const Ref<Image>& _out, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color);
+		void drawText(const Ref<Image>& _out, sl_real x, sl_real y, const StringParam& text, const Color& color);
 
 		enum {
 			StrokeDefault = 0,
@@ -168,11 +168,11 @@ namespace slib
 			StrokeInside = 2
 		};
 
-		void strokeChar_NoLock(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 charcode, const Color& color, sl_uint32 lineWidth, sl_uint32 mode = StrokeDefault);
+		void strokeChar_NoLock(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 charcode, const Color& color, sl_real lineWidth, sl_uint32 mode = StrokeDefault);
 
-		void strokeChar(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 charcode, const Color& color, sl_uint32 lineWidth, sl_uint32 mode = StrokeDefault);
+		void strokeChar(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 charcode, const Color& color, sl_real lineWidth, sl_uint32 mode = StrokeDefault);
 
-		void strokeText(const Ref<Image>& _out, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth, sl_uint32 mode = StrokeDefault);
+		void strokeText(const Ref<Image>& _out, sl_real x, sl_real y, const StringParam& text, const Color& color, sl_real lineWidth, sl_uint32 mode = StrokeDefault);
 
 		Ref<GraphicsPath> getCharOutline_NoLock(sl_char32 charcode, sl_real left = 0.0f, sl_real top = 0.0f, sl_real* pOutAdvanceX = sl_null);
 

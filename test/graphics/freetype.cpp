@@ -33,7 +33,7 @@ int main(int argc, const char * argv[])
 				canvas->fillRectangle(rc, Color::Green);
 				auto image = Image::create((sl_uint32)(tm.getWidth()), (sl_uint32)(tm.getHeight()));
 				image->resetPixels(Color::zero());
-				font->drawText(image, -(sl_int32)(tm.left), -(sl_int32)(tm.top), str, Color::Red);
+				font->drawText(image, -tm.left, -tm.top, str, Color::Red);
 				canvas->draw(rc, image);
 				canvas->drawRectangle(x, y, tm.advanceX, tm.advanceY, penRed);
 			}
@@ -44,12 +44,12 @@ int main(int argc, const char * argv[])
 			String str = "font example";
 			TextMetrics tm;
 			if (font->measureText(str, tm)) {
-				sl_int32 w = 2;
+				sl_real w = 2;
 				Rectangle rc(x + tm.left - w, y + tm.top - w, x + tm.right + w, y + tm.bottom + w);
 				canvas->fillRectangle(rc, Color::Green);
 				auto image = Image::create((sl_uint32)(tm.getWidth() + w * 2), (sl_uint32)(tm.getHeight() + w * 2));
 				image->resetPixels(Color::zero());
-				font->strokeText(image, w - (sl_int32)(tm.left), w - (sl_int32)(tm.top), str, Color::Red, w * 2);
+				font->strokeText(image, w - tm.left, w - tm.top, str, Color::Red, w * 2);
 				canvas->draw(rc, image);
 				canvas->drawRectangle(x, y, tm.advanceX, tm.advanceY, penRed);
 			}

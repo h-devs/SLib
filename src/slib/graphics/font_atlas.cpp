@@ -271,16 +271,16 @@ namespace slib
 				return m_font->measureChar(ch, _out);
 			}
 
-			Ref<Bitmap> _drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_int32 charX, sl_int32 charY, sl_char32 ch) override
+			Ref<Bitmap> _drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_real charX, sl_real charY, sl_char32 ch) override
 			{
-				m_currentPlane->resetPixels(dstX, dstY, width, height, Color::Zero);
+				m_currentPlane->resetPixels(dstX, dstY, width, height, Color::zero());
 				if (m_penStroke.isNotNull()) {
-					Ref<GraphicsPath> path = m_font->getCharOutline(ch, (sl_real)charX, (sl_real)charY);
+					Ref<GraphicsPath> path = m_font->getCharOutline(ch, charX, charY);
 					if (path.isNotNull()) {
 						m_currentCanvas->drawPath(path, m_penStroke);
 					}
 				} else {
-					m_currentCanvas->drawText(String::create(&ch, 1), (sl_real)charX, (sl_real)charY, m_font, Color::White);
+					m_currentCanvas->drawText(String::create(&ch, 1), charX, charY, m_font, Color::White);
 				}
 				m_currentPlane->update(dstX, dstY, width, height);
 				return m_currentPlane;
@@ -345,7 +345,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		sl_int32 charX, charY;
+		sl_real charX, charY;
 		sl_uint32 widthChar, heightChar;
 		if (m_map.get_NoLock(ch, &_out)) {
 			if (_out.metrics.advanceX == 0.0f) {
@@ -357,10 +357,10 @@ namespace slib
 			if (_out.bitmap.isNotNull()) {
 				return sl_true;
 			}
-			charX = (sl_int32)(_out.metrics.left / m_drawScale);
-			charY = (sl_int32)(_out.metrics.top / m_drawScale);
-			widthChar = (sl_uint32)(_out.metrics.getWidth() / m_drawScale);
-			heightChar = (sl_uint32)(_out.metrics.getHeight() / m_drawScale);
+			charX = _out.metrics.left / m_drawScale;
+			charY = _out.metrics.top / m_drawScale;
+			widthChar = (sl_int32)(Math::ceil(_out.metrics.getWidth() / m_drawScale));
+			heightChar = (sl_int32)(Math::ceil(_out.metrics.getHeight() / m_drawScale));
 		} else {
 			TextMetrics tm;
 			if (!(_measureChar(ch, tm))) {
@@ -369,12 +369,10 @@ namespace slib
 				return sl_false;
 			}
 			sl_real m = (sl_real)((m_strokeWidth >> 1) + 1);
-			if (m) {
-				tm.left -= m;
-				tm.top -= m;
-				tm.right += m;
-				tm.bottom += m;
-			}
+			tm.left -= m;
+			tm.top -= m;
+			tm.right += m;
+			tm.bottom += m;
 			_out.metrics.left = tm.left * m_drawScale;
 			_out.metrics.top = tm.top * m_drawScale;
 			_out.metrics.right = tm.right * m_drawScale;
@@ -385,10 +383,10 @@ namespace slib
 			if (flagSizeOnly) {
 				return m_map.put_NoLock(ch, _out);
 			}
-			charX = (sl_int32)(tm.left);
-			charY = (sl_int32)(tm.top);
-			widthChar = (sl_uint32)(tm.getWidth());
-			heightChar = (sl_uint32)(tm.getHeight());
+			charX = tm.left;
+			charY = tm.top;
+			widthChar = (sl_int32)(Math::ceil(tm.getWidth()));
+			heightChar = (sl_int32)(Math::ceil(tm.getHeight()));
 		}
 		if (m_currentPlaneX > 0 && m_currentPlaneX + widthChar > m_planeWidth) {
 			m_currentPlaneX = 0;
@@ -416,7 +414,7 @@ namespace slib
 		_out.region.top = y;
 		_out.region.right = x + widthChar;
 		_out.region.bottom = y + heightChar;
-		_out.bitmap = _drawChar(x, y, widthChar, heightChar, (sl_int32)x - charX, (sl_int32)y - charY, ch);
+		_out.bitmap = _drawChar(x, y, widthChar, heightChar, (sl_real)x - charX, (sl_real)y - charY, ch);
 
 		m_currentPlaneX += widthChar;
 		if (heightChar > m_currentPlaneRowHeight) {
