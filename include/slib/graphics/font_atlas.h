@@ -38,6 +38,9 @@ namespace slib
 		sl_uint32 planeHeight;
 		sl_uint32 maxPlanes;
 
+		sl_real scale;
+		sl_uint32 strokeWidth;
+
 	public:
 		FontAtlasBaseParam();
 
@@ -49,6 +52,7 @@ namespace slib
 	{
 	public:
 		Ref<Font> font;
+		sl_real maximumFontSize;
 
 	public:
 		FontAtlasParam();
@@ -100,8 +104,12 @@ namespace slib
 
 		static Ref<FontAtlas> create(const FontAtlasParam& param);
 
+		static Ref<FontAtlas> create(const Ref<Font>& font, sl_uint32 strokeWidth = 0);
+
 	public:
 		sl_real getFontHeight();
+
+		sl_bool getFontMetrics(FontMetrics& _out);
 
 		sl_bool getChar_NoLock(sl_char32 ch, FontAtlasChar& _out);
 
@@ -111,38 +119,45 @@ namespace slib
 
 		sl_bool getCharImage(sl_char32 ch, FontAtlasCharImage& _out);
 
+		sl_bool measureChar_NoLock(sl_char32 ch, TextMetrics& _out);
+
 		sl_bool measureChar(sl_char32 ch, TextMetrics& _out);
 
-		sl_bool measureChar_NoLock(sl_char32 ch, TextMetrics& _out);
+		Size getCharAdvance_NoLock(sl_char32 ch);
+
+		Size getCharAdvance(sl_char32 ch);
 
 		sl_bool measureText(const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out);
 
 		sl_bool measureText(const StringParam& text, TextMetrics& _out);
 
-		Size measureText(const StringParam& text, sl_bool flagMultiLine = sl_false);
+		Size getTextAdvance(const StringParam& text, sl_bool flagMultiLine = sl_false);
 
 		void removeAll();
 
-		virtual Ref<FontAtlas> createStroker(sl_uint32 strokeWidth);
+		virtual Ref<FontAtlas> createStroker(sl_uint32 strokeWidth) = 0;
 
 	protected:
-		void _initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_uint32 planeWidth, sl_uint32 planeHeight);
+		void _initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_uint32 strokeWidth, sl_uint32 planeWidth, sl_uint32 planeHeight);
+
+		virtual sl_bool _getFontMetrics(FontMetrics& _out) = 0;
 
 		sl_bool _getChar(sl_char32 ch, sl_bool flagSizeOnly, FontAtlasChar& _out);
 
 		virtual sl_bool _measureChar(sl_char32 ch, TextMetrics& metrics) = 0;
 
-		virtual Ref<Bitmap> _drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) = 0;
+		virtual Ref<Bitmap> _drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_int32 charX, sl_int32 charY, sl_char32 ch) = 0;
 
 		virtual sl_bool _createPlane() = 0;
 
 	protected:
-		sl_real m_sourceHeight;
-		sl_real m_fontScale;
+		sl_real m_drawHeight;
+		sl_real m_drawScale;
 
 		sl_uint32 m_planeWidth;
 		sl_uint32 m_planeHeight;
 		sl_uint32 m_maxPlanes;
+		sl_uint32 m_strokeWidth;
 
 		CHashMap<sl_char32, FontAtlasChar> m_map;
 		sl_uint32 m_countPlanes;

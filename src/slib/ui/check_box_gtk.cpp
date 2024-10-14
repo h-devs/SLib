@@ -93,7 +93,7 @@ namespace slib
 			if(handle){
 				Ref<Font> font = view->getFont();
 				if (font.isNotNull()) {
-					_out = font->measureText(" " + view->getText());
+					_out = font->getTextAdvance(" " + view->getText());
 					return true;
 				}
 			}

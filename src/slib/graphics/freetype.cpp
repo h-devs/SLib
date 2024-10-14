@@ -37,13 +37,14 @@
 #include "freetype/ttnameid.h"
 
 #define TO_REAL_POS(x) (((sl_real)(x)) / 64.0f)
+#define TO_PIXEL_POS(x) (x >> 6)
 
 #define LIBRARY (((Library*)(m_lib.get()))->handle)
 
 namespace slib
 {
 
-	FreeTypeGlyph::FreeTypeGlyph(): bitmapLeft(0), bitmapTop(0), flagGrayBitmap(sl_true), advance(0), height(0)
+	FreeTypeGlyph::FreeTypeGlyph(): bitmapLeft(0), bitmapTop(0), flagGrayBitmap(sl_true), advanceX(0.0f), advanceY(0.0f)
 	{
 	}
 
@@ -595,22 +596,29 @@ namespace slib
 		return setRealSize(size, size);
 	}
 
-	sl_real FreeType::getFontHeight()
+	void FreeType::getFontMetrics(FontMetrics& _out)
 	{
 		FT_Size_Metrics& m = m_face->size->metrics;
-		return TO_REAL_POS(m.height);
+		_out.ascent = TO_REAL_POS(m.ascender);
+		_out.descent = -TO_REAL_POS(m.descender);
+		_out.leading = TO_REAL_POS(m.height - m.ascender + m.descender);
+	}
+
+	sl_real FreeType::getFontHeight()
+	{
+		return TO_REAL_POS(m_face->size->metrics.height);
 	}
 
 	namespace
 	{
-		static void MeasureGlyph(FT_GlyphSlot glyph, TextMetrics& _out)
+		static void MeasureGlyph(FT_GlyphSlot glyph, FT_Size_Metrics& metrics, TextMetrics& _out)
 		{
-			_out.left = TO_REAL_POS(glyph->bitmap_left);
-			_out.top = TO_REAL_POS(glyph->bitmap_top);
+			_out.left = (sl_real)(glyph->bitmap_left);
+			_out.top = (sl_real)(TO_PIXEL_POS(metrics.ascender) - glyph->bitmap_top);
 			_out.right = _out.left + TO_REAL_POS(glyph->metrics.width);
 			_out.bottom = _out.top + TO_REAL_POS(glyph->metrics.height);
 			_out.advanceX = TO_REAL_POS(glyph->metrics.horiAdvance);
-			_out.advanceY = TO_REAL_POS(glyph->metrics.vertAdvance);
+			_out.advanceY = TO_REAL_POS(metrics.height);
 		}
 	}
 
@@ -618,7 +626,7 @@ namespace slib
 	{
 		FT_Error err = FT_Load_Char(m_face, (FT_ULong)charcode, FT_LOAD_BITMAP_METRICS_ONLY);
 		if (!err) {
-			MeasureGlyph(m_face->glyph, _out);
+			MeasureGlyph(m_face->glyph, m_face->size->metrics, _out);
 			return sl_true;
 		}
 		return sl_false;
@@ -645,11 +653,12 @@ namespace slib
 			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(data[i]), FT_LOAD_BITMAP_METRICS_ONLY);
 			if (!err) {
 				TextMetrics tm;
-				MeasureGlyph(m_face->glyph, tm);
+				MeasureGlyph(m_face->glyph, m_face->size->metrics, tm);
 				tm.left += _out.advanceX;
 				tm.right += _out.advanceX;
 				if (flagInitOut) {
 					(Rectangle&)_out = tm;
+					flagInitOut = sl_false;
 				} else {
 					_out.mergeRectangle(tm);
 				}
@@ -666,7 +675,7 @@ namespace slib
 	{
 		FT_Error err = FT_Load_Glyph(m_face, (FT_UInt)glyphId, FT_LOAD_BITMAP_METRICS_ONLY);
 		if (!err) {
-			MeasureGlyph(m_face->glyph, _out);
+			MeasureGlyph(m_face->glyph, m_face->size->metrics, _out);
 			return sl_true;
 		}
 		return sl_false;
@@ -758,10 +767,10 @@ namespace slib
 			}
 		}
 
-		static void CopySlot(const Ref<Image>& _out, sl_int32 x, sl_int32 y, FT_GlyphSlot slot, const Color& color)
+		static void CopySlot(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_int32 ascender, FT_GlyphSlot slot, const Color& color)
 		{
 			sl_int32 dx = x + slot->bitmap_left;
-			sl_int32 dy = y - slot->bitmap_top;
+			sl_int32 dy = y + TO_PIXEL_POS(ascender) - slot->bitmap_top;
 			CopyBitmap(_out, dx, dy, slot->bitmap, color);
 		}
 	}
@@ -775,7 +784,7 @@ namespace slib
 		if (err) {
 			return;
 		}
-		CopySlot(_out, (sl_int32)x, (sl_int32)y, m_face->glyph, Color::White);
+		CopySlot(_out, (sl_int32)x, (sl_int32)y, m_face->size->metrics.ascender, m_face->glyph, Color::White);
 	}
 
 	void FreeType::drawChar(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_char32 ch, const Color& color)
@@ -802,7 +811,7 @@ namespace slib
 		for (sl_size i = 0; i < len; i++) {
 			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(data[i]), FT_LOAD_RENDER);
 			if (!err) {
-				CopySlot(_out, (sl_int32)x, _y, slot, Color::White);
+				CopySlot(_out, (sl_int32)x, _y, m_face->size->metrics.ascender, slot, color);
 				x += TO_REAL_POS(slot->metrics.horiAdvance);
 			}
 		}
@@ -810,7 +819,7 @@ namespace slib
 
 	namespace
 	{
-		static void StrokeSlot(const Ref<Image>& _out, sl_int32 x, sl_int32 y, FT_Stroker stroker, FT_GlyphSlot slot, const Color& color, sl_uint32 mode)
+		static void StrokeSlot(const Ref<Image>& _out, sl_int32 x, sl_int32 y, sl_int32 ascender, FT_Stroker stroker, FT_GlyphSlot slot, const Color& color, sl_uint32 mode)
 		{
 			FT_Glyph glyph = sl_null;
 			FT_Error err = FT_Get_Glyph(slot, &glyph);
@@ -839,7 +848,7 @@ namespace slib
 			}
 			FT_BitmapGlyph bitmapGlyph = (FT_BitmapGlyph)glyph;
 			sl_int32 dx = (sl_int32)x + bitmapGlyph->left;
-			sl_int32 dy = (sl_int32)y - bitmapGlyph->top;
+			sl_int32 dy = (sl_int32)y + TO_PIXEL_POS(ascender) - bitmapGlyph->top;
 			CopyBitmap(_out, dx, dy, bitmapGlyph->bitmap, color);
 			FT_Done_Glyph(glyph);
 		}
@@ -859,8 +868,8 @@ namespace slib
 		if (!stroker) {
 			return;
 		}
-		FT_Stroker_Set(stroker, lineWidth * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
-		StrokeSlot(_out, x, y, stroker, m_face->glyph, color, mode);
+		FT_Stroker_Set(stroker, lineWidth * 32, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+		StrokeSlot(_out, x, y, m_face->size->metrics.ascender, stroker, m_face->glyph, color, mode);
 		FT_Stroker_Done(stroker);
 	}
 
@@ -888,13 +897,13 @@ namespace slib
 		if (!stroker) {
 			return;
 		}
-		FT_Stroker_Set(stroker, lineWidth * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+		FT_Stroker_Set(stroker, lineWidth * 32, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
 		FT_GlyphSlot slot = m_face->glyph;
 		sl_real x = (sl_real)_x;
 		for (sl_size i = 0; i < len; i++) {
 			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(data[i]), FT_LOAD_DEFAULT);
 			if (!err) {
-				StrokeSlot(_out, (sl_int32)x, _y, stroker, slot, color, mode);
+				StrokeSlot(_out, (sl_int32)x, _y, m_face->size->metrics.ascender, stroker, slot, color, mode);
 				x += TO_REAL_POS(slot->metrics.horiAdvance);
 			}
 		}
@@ -902,7 +911,7 @@ namespace slib
 	}
 
 #define STRING_PATH_X(X) TO_REAL_POS(context->x + (X))
-#define STRING_PATH_Y(Y) TO_REAL_POS(context->y + context->height - (Y))
+#define STRING_PATH_Y(Y) TO_REAL_POS(context->y + context->ascender - (Y))
 
 	namespace
 	{
@@ -911,7 +920,7 @@ namespace slib
 			GraphicsPath* path;
 			sl_int32 x;
 			sl_int32 y;
-			sl_int32 height;
+			sl_int32 ascender;
 		};
 
 		static int StringPath_MoveTo(const FT_Vector* to, void* user)
@@ -943,7 +952,7 @@ namespace slib
 			return 0;
 		}
 
-		static sl_bool BuildStringPath(const Ref<GraphicsPath>& path, sl_int32 x, sl_int32 y, sl_int32 height, FT_Outline* outline)
+		static sl_bool BuildStringPath(const Ref<GraphicsPath>& path, sl_int32 x, sl_int32 y, sl_int32 ascender, FT_Outline* outline)
 		{
 			if (outline->n_points) {
 				FT_Outline_Funcs funcs = {
@@ -957,7 +966,7 @@ namespace slib
 				context.path = path.get();
 				context.x = x;
 				context.y = y;
-				context.height = height;
+				context.ascender = ascender;
 				FT_Error err = FT_Outline_Decompose(outline, &funcs, &context);
 				if (!err) {
 					path->closeSubpath();
@@ -968,55 +977,32 @@ namespace slib
 		}
 	}
 
-	Ref<GraphicsPath> FreeType::getCharOutline_NoLock(sl_char32 ch)
+	Ref<GraphicsPath> FreeType::getCharOutline_NoLock(sl_char32 ch, sl_real left, sl_real top, sl_real* pOutAdvanceX)
 	{
 		FT_Error err = FT_Load_Char(m_face, (FT_ULong)ch, FT_LOAD_DEFAULT);
 		if (err) {
-			return sl_null;
-		}
-		Ref<GraphicsPath> path = GraphicsPath::create();
-		if (path.isNull()) {
-			return sl_null;
-		}
-		if (!(BuildStringPath(path, 0, 0, m_face->size->metrics.height, &(m_face->glyph->outline)))) {
-			return sl_null;
-		}
-		return path;
-	}
-
-	Ref<GraphicsPath> FreeType::getCharOutline(sl_char32 ch)
-	{
-		ObjectLocker lock(this);
-		return getCharOutline_NoLock(ch);
-	}
-
-	Ref<GraphicsPath> FreeType::getTextOutline(const StringParam& _text)
-	{
-		StringData32 text(_text);
-		sl_size len = text.getLength();
-		if (!len) {
-			return sl_null;
-		}
-		const sl_char32* data = text.getData();
-		Ref<GraphicsPath> path = GraphicsPath::create();
-		if (path.isNull()) {
-			return sl_null;
-		}
-
-		ObjectLocker lock(this);
-		FT_GlyphSlot slot = m_face->glyph;
-		sl_int32 x = 0;
-		sl_int32 height = m_face->size->metrics.height;
-		for (sl_size i = 0; i < len; i++) {
-			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(data[i]), FT_LOAD_DEFAULT);
-			if (!err) {
-				if (!(BuildStringPath(path, x, 0, height, &(slot->outline)))) {
-					return sl_null;
-				}
-				x += slot->metrics.horiAdvance;
+			if (pOutAdvanceX) {
+				*pOutAdvanceX = 0.0f;
 			}
+			return sl_null;
+		}
+		if (pOutAdvanceX) {
+			*pOutAdvanceX = TO_REAL_POS(m_face->glyph->metrics.horiAdvance);
+		}
+		Ref<GraphicsPath> path = GraphicsPath::create();
+		if (path.isNull()) {
+			return sl_null;
+		}
+		if (!(BuildStringPath(path, (sl_int32)(left * 64.0f), (sl_int32)(top * 64.0f), m_face->size->metrics.ascender, &(m_face->glyph->outline)))) {
+			return sl_null;
 		}
 		return path;
+	}
+
+	Ref<GraphicsPath> FreeType::getCharOutline(sl_char32 ch, sl_real left, sl_real top, sl_real* pOutAdvanceX)
+	{
+		ObjectLocker lock(this);
+		return getCharOutline_NoLock(ch, left, top, pOutAdvanceX);
 	}
 
 	Ref<FreeTypeGlyph> FreeType::getCharGlyph(sl_uint32 charcode)
@@ -1117,8 +1103,8 @@ namespace slib
 					}
 				}
 			}
-			ret->advance = TO_REAL_POS(slot->advance.x);
-			ret->height = TO_REAL_POS(slot->metrics.height);
+			ret->advanceX = TO_REAL_POS(slot->metrics.horiAdvance);
+			ret->advanceY = TO_REAL_POS(m_face->size->metrics.height);
 			return ret;
 		}
 		return sl_null;

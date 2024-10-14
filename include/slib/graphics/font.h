@@ -163,15 +163,15 @@ namespace slib
 
 		sl_bool measureChar(sl_char32 ch, TextMetrics& _out);
 
+		Size getCharAdvance(sl_char32 ch);
+
 		sl_bool measureText(const StringParam& text, TextMetrics& _out);
 
 		sl_bool measureText(const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out);
 
-		Size measureText(const StringParam& text, sl_bool flagMultiLine = sl_false);
+		Size getTextAdvance(const StringParam& text, sl_bool flagMultiLine = sl_false);
 
-		Ref<GraphicsPath> getCharOutline(sl_char32 ch);
-
-		Ref<GraphicsPath> getTextOutline(const StringParam& text);
+		Ref<GraphicsPath> getCharOutline(sl_char32 ch, sl_real left = 0.0f, sl_real top = 0.0f, sl_real* pOutAdvanceX = sl_null);
 
 		Ref<FontAtlas> getAtlas();
 

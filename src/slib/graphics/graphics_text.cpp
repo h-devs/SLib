@@ -185,7 +185,7 @@ namespace slib
 		if (font.isNotNull()) {
 			Ref<FontAtlas> atlas = font->getSharedAtlas();
 			if (atlas.isNotNull()) {
-				Size size = atlas->measureText(text, sl_false);
+				Size size = atlas->getTextAdvance(text, sl_false);
 				m_textCached = text;
 				m_fontCached = font;
 				m_widthCached = size.x;
@@ -397,7 +397,7 @@ namespace slib
 			return Size(m_widthCached, m_heightCached);
 		}
 		if (font.isNotNull()) {
-			Size size = font->measureText(m_text, sl_false);
+			Size size = font->getTextAdvance(m_text, sl_false);
 			m_fontCached = font;
 			m_widthCached = size.x;
 			m_heightCached = size.y;
@@ -1015,7 +1015,7 @@ namespace slib
 					}
 				} else if (unit == ("ex")) {
 					if (font.isNotNull()) {
-						f = font->measureText("0").x * f;
+						f = font->getCharAdvance('0').x * f;
 					}
 				} else if (unit == ("vw")) {
 					f = (sl_real)(Device::getScreenWidth() * f / 100);

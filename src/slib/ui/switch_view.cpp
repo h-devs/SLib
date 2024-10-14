@@ -391,7 +391,7 @@ namespace slib
 			if (texts[0].isNotEmpty() || texts[1].isNotEmpty()) {
 				Ref<Font> font = getFont();
 				if (font.isNotNull()) {
-					widthText = (sl_ui_len)(Math::max(font->measureText(texts[0]).x, font->measureText(texts[1]).x));
+					widthText = (sl_ui_len)(Math::max(font->getTextAdvance(texts[0]).x, font->getTextAdvance(texts[1]).x));
 				}
 			}
 			if (m_flagTextInButton) {

@@ -36,6 +36,7 @@
 
 #define MAX_PROGRAM_COUNT 256
 #define MAX_SHADER_CLIP 8
+#define ITALIC_RATIO 0.2f
 
 namespace slib
 {
@@ -879,6 +880,24 @@ namespace slib
 		}
 	}
 
+	sl_bool RenderCanvas::measureChar(const Ref<Font>& font, sl_char32 ch, TextMetrics& _out)
+	{
+		if (font.isNull()) {
+			return sl_false;
+		}
+		Ref<FontAtlas> fa = font->getSharedAtlas();
+		if (fa.isNull()) {
+			return sl_false;
+		}
+		if (fa->measureChar(ch, _out)) {
+			if (font->isItalic()) {
+				_out.right += ITALIC_RATIO * _out.getHeight();
+			}
+			return sl_true;
+		}
+		return sl_false;
+	}
+
 	sl_bool RenderCanvas::measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out)
 	{
 		if (font.isNull()) {
@@ -886,6 +905,9 @@ namespace slib
 		}
 		Ref<FontAtlas> fa = font->getSharedAtlas();
 		if (fa.isNull()) {
+			if (font->isItalic()) {
+				_out.right += ITALIC_RATIO * _out.getHeight();
+			}
 			return sl_false;
 		}
 		return fa->measureText(text, flagMultiLine, _out);
@@ -1494,25 +1516,32 @@ namespace slib
 		drawTexture(rectDst, texture, rectSrc, param, Color4F(1, 1, 1, 1));
 	}
 
-	void RenderCanvas::onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const Canvas::DrawTextParam& param)
+	void RenderCanvas::onDrawText(const StringParam& text, sl_real x, sl_real y, const Ref<Font>& font, const Canvas::DrawTextParam& param)
 	{
-		Ref<FontAtlas> fa = font->getSharedAtlas();
-		if (fa.isNull()) {
-			return;
+		Ref<FontAtlas> atlas = font->getSharedAtlas();
+		if (atlas.isNotNull()) {
+			onDrawTextByAtlas(text, x, y, atlas, font->isItalic(), font->isUnderline(), font->isStrikeout(), param);
 		}
+	}
+
+	void RenderCanvas::onDrawTextByAtlas(const StringParam& text, sl_real x, sl_real y, const Ref<FontAtlas>& atlas, const Canvas::DrawTextParam& param)
+	{
+		onDrawTextByAtlas(text, x, y, atlas, sl_false, sl_false, sl_false, param);
+	}
+
+	void RenderCanvas::onDrawTextByAtlas(const StringParam& _text, sl_real x, sl_real y, const Ref<FontAtlas>& atlas, sl_bool flagItalic, sl_bool flagUnderline, sl_bool flagStrikeout, const Canvas::DrawTextParam& param)
+	{
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
 			return;
 		}
-
 		StringData32 text(_text);
 		sl_size len = text.getLength();
 		if (!len) {
 			return;
 		}
 		sl_char32* data = text.getData();
-		sl_real fontHeight = font->getFontHeight();
-		sl_bool fontItalic = font->isItalic();
+		sl_real fontHeight = atlas->getFontHeight();
 
 		RenderCanvasState* state = m_state.get();
 		if (state->flagClipRect) {
@@ -1522,7 +1551,7 @@ namespace slib
 		}
 
 		RenderCanvasProgramParam pp;
-		pp.prepare(state, !fontItalic);
+		pp.prepare(state, !flagItalic);
 		pp.flagUseTexture = sl_true;
 
 		RenderProgramScope<RenderCanvasProgramState> scope;
@@ -1533,10 +1562,10 @@ namespace slib
 		Color4F color = param.color;
 		sl_real fx = x;
 		{
-			ObjectLocker lock(fa.get());
+			ObjectLocker lock(atlas.get());
 			for (sl_size i = 0; i < len; i++) {
 				sl_char32 ch = data[i];
-				if (!(fa->getChar_NoLock(ch, fac))) {
+				if (!(atlas->getChar_NoLock(ch, fac))) {
 					continue;
 				}
 				if (fac.bitmap.isNotNull()) {
@@ -1553,7 +1582,7 @@ namespace slib
 							return;
 						}
 						if (state->clipRect.intersect(rcDst, &rcClip)) {
-							if (!fontItalic) {
+							if (!flagItalic) {
 								if (!(state->clipRect.containsRectangle(rcDst))) {
 									flagClip = sl_true;
 								}
@@ -1587,11 +1616,10 @@ namespace slib
 									rcDst = rcClip;
 								}
 								Matrix3 mat;
-								if (fontItalic) {
+								if (flagItalic) {
 									sl_real fw = fac.metrics.getWidth();
 									sl_real fh = fac.metrics.getHeight();
-									sl_real ratio = 0.2f;
-									mat.m00 = fw; mat.m10 = -ratio * fh; mat.m20 = ratio * fh + rcDst.left;
+									mat.m00 = fw; mat.m10 = -ITALIC_RATIO * fh; mat.m20 = ITALIC_RATIO * fh + rcDst.left;
 									mat.m01 = 0; mat.m11 = fh; mat.m21 = rcDst.top;
 									mat.m02 = 0; mat.m12 = 0; mat.m22 = 1;
 								} else {
@@ -1617,17 +1645,18 @@ namespace slib
 				fx += fac.metrics.advanceX;
 			}
 		}
-		if (font->isStrikeout() || font->isUnderline()) {
+		if (flagStrikeout || flagUnderline) {
 			Ref<Pen> pen = Pen::createSolidPen(1, param.color);
 			FontMetrics fm;
-			font->getFontMetrics(fm);
-			if (font->isUnderline()) {
-				sl_real yLine = y + fm.leading + fm.ascent;
-				drawLine(Point(x, yLine), Point(fx, yLine), pen);
-			}
-			if (font->isStrikeout()) {
-				sl_real yLine = y + fm.leading + fm.ascent / 2;
-				drawLine(Point(x, yLine), Point(fx, yLine), pen);
+			if (atlas->getFontMetrics(fm)) {
+				if (flagUnderline) {
+					sl_real yLine = y + fm.leading + fm.ascent;
+					drawLine(Point(x, yLine), Point(fx, yLine), pen);
+				}
+				if (flagStrikeout) {
+					sl_real yLine = y + fm.leading + fm.ascent / 2;
+					drawLine(Point(x, yLine), Point(fx, yLine), pen);
+				}
 			}
 		}
 	}

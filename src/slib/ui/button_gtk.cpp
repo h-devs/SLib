@@ -83,7 +83,7 @@ namespace slib
 			if(handle){
 				Ref<Font> font = view->getFont();
 				if (font.isNotNull()) {
-					_out = font->measureText(view->getText());
+					_out = font->getTextAdvance(view->getText());
 					_out.x += view->getPaddingLeft() + view->getPaddingRight();
 					_out.x += 32;
 					_out.y += view->getPaddingTop() + view->getPaddingBottom();

@@ -206,7 +206,7 @@ namespace slib
 			totalIconWidth = 0;
 		}
 		if (font.isNotNull()) {
-			widthLabel = font->measureText(label).x;
+			widthLabel = font->getTextAdvance(label).x;
 			Rectangle rcText;
 			rcText.left = bounds.left + p + t + totalIconWidth;
 			rcText.top = bounds.top;

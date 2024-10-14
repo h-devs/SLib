@@ -269,57 +269,58 @@ namespace slib
 		static void MakeIdentity(MAT2& mat)
 		{
 			mat.eM11.value = 1;
-			mat.eM11.fract = 1;
+			mat.eM11.fract = 0;
 			mat.eM12.value = 0;
-			mat.eM12.fract = 1;
+			mat.eM12.fract = 0;
 			mat.eM21.value = 0;
-			mat.eM21.fract = 1;
+			mat.eM21.fract = 0;
 			mat.eM22.value = 1;
-			mat.eM22.fract = 1;
+			mat.eM22.fract = 0;
 		}
 	}
 
 	sl_bool Font::_measureChar_PO(sl_char32 ch, TextMetrics& _out)
 	{
-		return measureText(String::create(&ch, 1), _out);
-		sl_bool bRet = sl_false;
 		HFONT hFont = GraphicsPlatform::getGdiFont(this);
-		if (hFont) {
-			HDC hdc = CreateCompatibleDC(NULL);
-			if (hdc) {
-				HFONT hFontOld = (HFONT)(SelectObject(hdc, hFont));
-				UINT16 index = 0xffff;
-				if (!(ch >> 16)) {
-					GetGlyphIndicesW(hdc, (WCHAR*)&ch, 1, &index, GGI_MARK_NONEXISTING_GLYPHS);
-				}
-				if (index != 0xffff) {
-					GLYPHMETRICS gm;
-					MAT2 mat;
-					MakeIdentity(mat);
-					DWORD dwRet = GetGlyphOutlineW(hdc, (UINT)ch, GGO_METRICS, &gm, 0, sl_null, &mat);
-					if (dwRet != GDI_ERROR) {
-						TEXTMETRICW tm;
-						if (GetTextMetricsW(hdc, &tm)) {
-							_out.left = (sl_real)(gm.gmptGlyphOrigin.x);
-							_out.top = (sl_real)((sl_int32)(tm.tmAscent - gm.gmptGlyphOrigin.y));
-							_out.right = _out.left + (sl_real)(gm.gmBlackBoxX);
-							_out.bottom = _out.top + (sl_real)(gm.gmBlackBoxY);
-							_out.advanceX = (sl_real)(gm.gmCellIncX);
-							_out.advanceY = (sl_real)(tm.tmAscent + tm.tmDescent + tm.tmInternalLeading + tm.tmExternalLeading);
-							bRet = sl_true;
-						}
-					}
-				} else {
-					String s = String::create(&ch, 1);
-					if (s.isNotNull()) {
-						if (measureText(s, _out)) {
-							bRet = sl_true;
-						}
-					}
-				}
-				SelectObject(hdc, hFontOld);
-				DeleteDC(hdc);
+		if (!hFont) {
+			return sl_false;
+		}
+		sl_bool bRet = sl_false;
+		HDC hdc = CreateCompatibleDC(NULL);
+		if (hdc) {
+			HFONT hFontOld = (HFONT)(SelectObject(hdc, hFont));
+			UINT16 index = 0xffff;
+			if (!(ch >> 16)) {
+				GetGlyphIndicesW(hdc, (WCHAR*)&ch, 1, &index, GGI_MARK_NONEXISTING_GLYPHS);
 			}
+			if (index != 0xffff) {
+				MAT2 mat;
+				MakeIdentity(mat);
+				GLYPHMETRICS gm;
+				DWORD dwRet = GetGlyphOutlineW(hdc, (UINT)ch, GGO_METRICS, &gm, 0, sl_null, &mat);
+				if (dwRet != GDI_ERROR) {
+					FontMetrics fm;
+					if (getFontMetrics(fm)) {
+						_out.left = (sl_real)(gm.gmptGlyphOrigin.x);
+						_out.top = fm.ascent - (sl_real)(gm.gmptGlyphOrigin.y);
+						_out.right = _out.left + (sl_real)(gm.gmBlackBoxX);
+						_out.bottom = _out.top + (sl_real)(gm.gmBlackBoxY);
+						_out.advanceX = (sl_real)(gm.gmCellIncX);
+						_out.advanceY = fm.ascent + fm.descent + fm.leading;
+						bRet = sl_true;
+					}
+				}
+			}
+			if (!bRet) {
+				String s = String::create(&ch, 1);
+				if (s.isNotNull()) {
+					if (measureText(s, _out)) {
+						bRet = sl_true;
+					}
+				}
+			}
+			SelectObject(hdc, hFontOld);
+			DeleteDC(hdc);
 		}
 		return bRet;
 	}
@@ -353,63 +354,84 @@ namespace slib
 
 	namespace
 	{
-		static sl_real ToRealPos(const FIXED& f)
+		static sl_real ToRealValue(const FIXED& f)
 		{
-			return (sl_real)(f.value) / (sl_real)(f.fract << 6);
+			return (sl_real)(f.value) + (sl_real)(f.fract) / 65536.0f;
 		}
 
-		static Point ToPoint(const POINTFX& pt)
+		static Point ToPoint(const POINTFX& pt, sl_real x, sl_real ascent)
 		{
-			return { ToRealPos(pt.x), ToRealPos(pt.y) };
+			return { x + ToRealValue(pt.x), ascent - ToRealValue(pt.y) };
 		}
 	}
 
 	sl_bool Font::_buildOutline_PO(Ref<GraphicsPath>& path, sl_real x, sl_real y, sl_char32 ch, sl_real& advanceX)
 	{
-		sl_bool bRet = sl_false;
+		FontMetrics fm;
+		if (!getFontMetrics(fm)) {
+			return sl_false;
+		}
 		HFONT hFont = GraphicsPlatform::getGdiFont(this);
-		if (hFont) {
-			HDC hdc = CreateCompatibleDC(NULL);
-			if (hdc) {
-				HFONT hFontOld = (HFONT)(SelectObject(hdc, hFont));
-				GLYPHMETRICS gm;
-				DWORD dwRet = GetGlyphOutlineW(hdc, (UINT)ch, GGO_BEZIER, &gm, 0, sl_null, sl_null);
-				if (dwRet != GDI_ERROR && dwRet) {
-					SLIB_SCOPED_BUFFER(sl_uint8, 1024, data, dwRet)
-					if (data) {
-						if (GetGlyphOutlineW(hdc, (UINT)ch, GGO_BEZIER, &gm, dwRet, data, sl_null) != GDI_ERROR) {
-							sl_uint8* end = data + dwRet;
-							while (data < end) {
-								TTPOLYGONHEADER* header = (TTPOLYGONHEADER*)data;
-								path->moveTo(ToPoint(header->pfxStart));
-								sl_uint8* last = data + header->cb;
-								data += sizeof(TTPOLYGONHEADER);
-								while (data < last) {
-									TTPOLYCURVE* curve = (TTPOLYCURVE*)data;
-									switch (curve->wType) {
-										case TT_PRIM_LINE:
-											path->lineTo(ToPoint(curve->apfx[0]));
-											break;
-										case TT_PRIM_QSPLINE:
-											path->conicTo(ToPoint(curve->apfx[0]), ToPoint(curve->apfx[1]));
-											break;
-										case TT_PRIM_CSPLINE:
-											path->cubicTo(ToPoint(curve->apfx[0]), ToPoint(curve->apfx[1]), ToPoint(curve->apfx[2]));
-											break;
-										default:
-											break;
-									}
-									data += sizeof(TTPOLYCURVE) + sizeof(POINTFX) * (curve->cpfx - 1);
+		if (!hFont) {
+			return sl_false;
+		}
+		sl_bool bRet = sl_false;
+		sl_real ascent = y + fm.ascent - 1.0f;
+		HDC hdc = CreateCompatibleDC(NULL);
+		if (hdc) {
+			HFONT hFontOld = (HFONT)(SelectObject(hdc, hFont));
+			MAT2 mat;
+			MakeIdentity(mat);
+			GLYPHMETRICS gm;
+			DWORD dwRet = GetGlyphOutlineW(hdc, (UINT)ch, GGO_BEZIER, &gm, 0, sl_null, &mat);
+			if (dwRet != GDI_ERROR && dwRet) {
+				SLIB_SCOPED_BUFFER(sl_uint8, 4096, data, dwRet)
+				if (data) {
+					if (GetGlyphOutlineW(hdc, (UINT)ch, GGO_BEZIER, &gm, dwRet, data, &mat) != GDI_ERROR) {
+						sl_uint8* endOutline = data + dwRet;
+						while (data < endOutline) {
+							TTPOLYGONHEADER* header = (TTPOLYGONHEADER*)data;
+							path->moveTo(ToPoint(header->pfxStart, x, ascent));
+							sl_uint8* endContour = data + header->cb;
+							data += sizeof(TTPOLYGONHEADER);
+							while (data < endContour) {
+								TTPOLYCURVE* curve = (TTPOLYCURVE*)data;
+								WORD i = 0;
+								switch (curve->wType) {
+									case TT_PRIM_LINE:
+										for (i = 0; i < curve->cpfx; i++) {
+											path->lineTo(ToPoint(curve->apfx[i], x, ascent));
+										}
+										break;
+									case TT_PRIM_QSPLINE:
+										for (i = 0; i < curve->cpfx; i += 2) {
+											path->conicTo(ToPoint(curve->apfx[i], x, ascent), ToPoint(curve->apfx[i + 1], x, ascent));
+										}
+										break;
+									case TT_PRIM_CSPLINE:
+										for (i = 0; i < curve->cpfx; i += 3) {
+											path->cubicTo(ToPoint(curve->apfx[i], x, ascent), ToPoint(curve->apfx[i + 1], x, ascent), ToPoint(curve->apfx[i + 2], x, ascent));
+										}
+										break;
+									default:
+										break;
 								}
+								data = (sl_uint8*)(curve->apfx + curve->cpfx);
 							}
-							advanceX = (sl_real)(gm.gmCellIncX);
-							bRet = sl_true;
+							path->closeSubpath();
 						}
+						advanceX = (sl_real)(gm.gmCellIncX);
+						bRet = sl_true;
 					}
 				}
-				SelectObject(hdc, hFontOld);
-				DeleteDC(hdc);
+			} else {
+				dwRet = GetGlyphOutlineW(hdc, (UINT)ch, GGO_METRICS, &gm, 0, sl_null, &mat);
+				if (dwRet != GDI_ERROR) {
+					advanceX = (sl_real)(gm.gmCellIncX);
+				}
 			}
+			SelectObject(hdc, hFontOld);
+			DeleteDC(hdc);
 		}
 		return bRet;
 	}

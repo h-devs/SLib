@@ -55,8 +55,8 @@ namespace slib
 		sl_int32 bitmapTop;
 		sl_bool flagGrayBitmap;
 
-		sl_real advance;
-		sl_real height;
+		sl_real advanceX;
+		sl_real advanceY;
 
 	public:
 		FreeTypeGlyph();
@@ -141,7 +141,8 @@ namespace slib
 
 		sl_bool setRealSize(sl_real size);
 
-		// Pixels
+		void getFontMetrics(FontMetrics& _out);
+
 		sl_real getFontHeight();
 
 		sl_bool measureChar_NoLock(sl_uint32 charcode, TextMetrics& _out);
@@ -173,11 +174,9 @@ namespace slib
 
 		void strokeText(const Ref<Image>& _out, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth, sl_uint32 mode = StrokeDefault);
 
-		Ref<GraphicsPath> getCharOutline_NoLock(sl_char32 charcode);
+		Ref<GraphicsPath> getCharOutline_NoLock(sl_char32 charcode, sl_real left = 0.0f, sl_real top = 0.0f, sl_real* pOutAdvanceX = sl_null);
 
-		Ref<GraphicsPath> getCharOutline(sl_char32 charcode);
-
-		Ref<GraphicsPath> getTextOutline(const StringParam& text);
+		Ref<GraphicsPath> getCharOutline(sl_char32 charcode, sl_real left = 0.0f, sl_real top = 0.0f, sl_real* pOutAdvanceX = sl_null);
 
 		Ref<FreeTypeGlyph> getCharGlyph(sl_uint32 charcode);
 
@@ -185,8 +184,6 @@ namespace slib
 
 	protected:
 		static Ref<FreeType> _create(CRef* lib, FT_FaceRec_* face, CRef* source);
-
-		void _strokeText(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const sl_char32* str, sl_uint32 len, sl_bool flagBorder, sl_bool flagOutside, sl_uint32 radius, const Color& color);
 
 		Ref<FreeTypeGlyph> _getGlyph(sl_uint32 glyphId);
 

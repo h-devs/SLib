@@ -115,17 +115,20 @@ namespace slib
 		virtual void scale(sl_real sx, sl_real sy);
 
 
+		virtual sl_bool measureChar(const Ref<Font>& font, sl_char32 ch, TextMetrics& _out) = 0;
+
 		virtual sl_bool measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out) = 0;
 
 		sl_bool measureText(const Ref<Font>& font, const StringParam& text, TextMetrics& _out);
 
-		Size measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine = sl_false);
+		Size getTextAdvance(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine = sl_false);
 
 		class DrawTextParam
 		{
 		public:
 			StringParam text;
 			Ref<Font> font;
+			Ref<FontAtlas> atlas;
 			Color color;
 			Alignment alignment;
 			sl_bool flagMultiLine;
@@ -365,6 +368,9 @@ namespace slib
 		using Canvas::clipToEllipse;
 		void clipToEllipse(const Rectangle& rect) override;
 
+		using Canvas::measureChar;
+		sl_bool measureChar(const Ref<Font>& font, sl_char32 ch, TextMetrics& _out) override;
+
 		using Canvas::measureText;
 		sl_bool measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out) override;
 
@@ -408,6 +414,10 @@ namespace slib
 		void onDraw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc, const DrawParam& param) override;
 
 		void onDrawAll(const Rectangle& rectDst, const Ref<Drawable>& src, const DrawParam& param) override;
+
+		void drawTextByAtlas(const DrawTextParam& param);
+
+		virtual void onDrawTextByAtlas(const StringParam& text, sl_real x, sl_real y, const Ref<FontAtlas>& atlas, const DrawTextParam& param);
 
 	};
 

@@ -840,7 +840,7 @@ namespace slib
 		if (label.isNotEmpty()) {
 			font = getLabelFont();
 			if (font.isNotNull()) {
-				UISize size = canvas->measureText(font, label);
+				UISize size = canvas->getTextAdvance(font, label);
 				widthLabel = size.x;
 				heightLabel = size.y;
 			}

@@ -22,6 +22,7 @@
 
 #include "slib/graphics/canvas.h"
 
+#include "slib/graphics/font_atlas.h"
 #include "slib/math/transform2d.h"
 
 namespace slib
@@ -161,7 +162,7 @@ namespace slib
 		return measureText(font, text, sl_false, _out);
 	}
 
-	Size Canvas::measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine)
+	Size Canvas::getTextAdvance(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine)
 	{
 		TextMetrics tm;
 		if (measureText(font, text, flagMultiLine, tm)) {
@@ -427,6 +428,11 @@ namespace slib
 	void Canvas::fillPie(const Rectangle& rc, sl_real startDegrees, sl_real sweepDegrees, const Color& color)
 	{
 		drawPie(rc, startDegrees, sweepDegrees, Ref<Pen>::null(), color);
+	}
+
+	void Canvas::fillPie(sl_real x, sl_real y, sl_real width, sl_real height, sl_real startDegrees, sl_real sweepDegrees, const Ref<Brush>& brush)
+	{
+		drawPie(Rectangle(x, y, x + width, y + height), startDegrees, sweepDegrees, Ref<Pen>::null(), brush);
 	}
 
 	void Canvas::fillPie(sl_real x, sl_real y, sl_real width, sl_real height, sl_real startDegrees, sl_real sweepDegrees, const Color& color)

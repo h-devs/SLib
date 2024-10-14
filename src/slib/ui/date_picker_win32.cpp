@@ -90,7 +90,7 @@ namespace slib
 						return sl_true;
 					} else {
 						if (m_font.isNotNull()) {
-							Size size = m_font->measureText("0000-00-00");
+							Size size = m_font->getTextAdvance("0000-00-00");
 							_out.x = (sl_ui_len)(size.x + size.y * 2);
 							_out.y = (sl_ui_len)(size.y * 1.5f);
 							return sl_true;

@@ -137,8 +137,8 @@ namespace slib
 		m_backgroundColor = color;
 	}
 
-	namespace {
-
+	namespace
+	{
 		static sl_int32 GetRandom(sl_int32 vmin, sl_int32 vmax)
 		{
 			if (vmin >= vmax) {
@@ -156,8 +156,11 @@ namespace slib
 
 		static Ref<Image> GenerateCharImage(sl_char16 ch, const Ref<Font>& font)
 		{
-			StringParam str(&ch, 1);
-			SizeI size = font->measureText(str);
+			TextMetrics tm;
+			if (!(font->measureChar(ch, tm))) {
+				return sl_null;
+			}
+			SizeI size = tm.getSize();
 			if (size.x < 1 || size.y < 1) {
 				return sl_null;
 			}
@@ -172,7 +175,7 @@ namespace slib
 				if (canvas.isNull()) {
 					return sl_null;
 				}
-				canvas->drawText(str, 0, 0, font, Color::Black);
+				canvas->drawText(String::create(&ch, 1), 0, 0, font, Color::Black);
 			}
 			Ref<Image> image = bitmap->toImage();
 			if (image.isNotNull()) {
@@ -183,7 +186,6 @@ namespace slib
 			}
 			return sl_null;
 		}
-
 	}
 
 	sl_bool Captcha::prepare()

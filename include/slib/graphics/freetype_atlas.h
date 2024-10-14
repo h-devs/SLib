@@ -33,7 +33,6 @@ namespace slib
 	{
 	public:
 		Ref<FreeType> font;
-		sl_uint32 strokeWidth;
 
 	public:
 		FreeTypeAtlasParam();
@@ -54,21 +53,24 @@ namespace slib
 	public:
 		static Ref<FreeTypeAtlas> create(const FreeTypeAtlasParam& param);
 
+		static Ref<FreeTypeAtlas> create(const Ref<FreeType>& font, sl_uint32 strokeWidth = 0);
+
 	public:
 		sl_bool getCharImage_NoLock(sl_char32 ch, FontAtlasCharImage& _out) override;
 
 		Ref<FontAtlas> createStroker(sl_uint32 strokeWidth) override;
 
 	protected:
+		sl_bool _getFontMetrics(FontMetrics& _out) override;
+
 		sl_bool _measureChar(sl_char32 ch, TextMetrics& _out) override;
 
-		Ref<Bitmap> _drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) override;
+		Ref<Bitmap> _drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_int32 charX, sl_int32 charY, sl_char32 ch) override;
 
 		sl_bool _createPlane() override;
 
 	protected:
 		Ref<FreeType> m_font;
-		sl_uint32 m_strokeWidth;
 		Ref<Image> m_currentPlane;
 	};
 

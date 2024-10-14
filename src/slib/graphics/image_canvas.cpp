@@ -188,12 +188,21 @@ namespace slib
 				}
 			}
 
-			void onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param) override
+			void onDrawText(const StringParam& text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param) override
 			{
-				Ref<FontAtlas> fa = font->getSharedAtlas();
-				if (fa.isNull()) {
-					return;
+				Ref<FontAtlas> atlas = font->getSharedAtlas();
+				if (atlas.isNotNull()) {
+					onDrawTextByAtlas(text, x, y, atlas, font->isItalic(), font->isUnderline(), font->isStrikeout(), param);
 				}
+			}
+
+			void onDrawTextByAtlas(const StringParam& text, sl_real x, sl_real y, const Ref<FontAtlas>& atlas, const DrawTextParam& param) override
+			{
+				onDrawTextByAtlas(text, x, y, atlas, sl_false, sl_false, sl_false, param);
+			}
+
+			void onDrawTextByAtlas(const StringParam& _text, sl_real x, sl_real y, const Ref<FontAtlas>& atlas, sl_bool flagItalic, sl_bool flagUnderline, sl_bool flagStrikeout, const DrawTextParam& param)
+			{
 				StringData32 text(_text);
 				sl_size len = text.getLength();
 				if (!len) {
@@ -205,10 +214,10 @@ namespace slib
 				Color color = param.color;
 				sl_real fx = x;
 				{
-					ObjectLocker lock(fa.get());
+					ObjectLocker lock(atlas.get());
 					for (sl_size i = 0; i < len; i++) {
 						sl_char32 ch = data[i];
-						if (fa->getCharImage_NoLock(ch, fac)) {
+						if (atlas->getCharImage_NoLock(ch, fac)) {
 							if (fac.image.isNotNull()) {
 								image->drawImage(
 									(sl_int32)(fx + fac.metrics.left), (sl_int32)(y + fac.metrics.top),
@@ -220,16 +229,17 @@ namespace slib
 						}
 					}
 				}
-				if (font->isStrikeout() || font->isUnderline()) {
+				if (flagStrikeout || flagUnderline) {
 					FontMetrics fm;
-					font->getFontMetrics(fm);
-					if (font->isUnderline()) {
-						sl_real yLine = y + fm.leading + fm.ascent;
-						_drawLine(Point(x, yLine), Point(fx, yLine), param.color);
-					}
-					if (font->isStrikeout()) {
-						sl_real yLine = y + fm.leading + fm.ascent / 2;
-						_drawLine(Point(x, yLine), Point(fx, yLine), param.color);
+					if (atlas->getFontMetrics(fm)) {
+						if (flagUnderline) {
+							sl_real yLine = y + fm.leading + fm.ascent;
+							_drawLine(Point(x, yLine), Point(fx, yLine), param.color);
+						}
+						if (flagStrikeout) {
+							sl_real yLine = y + fm.leading + fm.ascent / 2;
+							_drawLine(Point(x, yLine), Point(fx, yLine), param.color);
+						}
 					}
 				}
 			}

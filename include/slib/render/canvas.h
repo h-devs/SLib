@@ -114,6 +114,9 @@ namespace slib
 		using Canvas::translate;
 		void translate(sl_real dx, sl_real dy) override;
 
+		using Canvas::measureChar;
+		sl_bool measureChar(const Ref<Font>& font, sl_char32 ch, TextMetrics& _out) override;
+
 		using Canvas::measureText;
 		sl_bool measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out) override;
 
@@ -193,6 +196,10 @@ namespace slib
 
 	protected:
 		void onDrawText(const StringParam& text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param) override;
+
+		void onDrawTextByAtlas(const StringParam& text, sl_real x, sl_real y, const Ref<FontAtlas>& atlas, const DrawTextParam& param) override;
+
+		void onDrawTextByAtlas(const StringParam& text, sl_real x, sl_real y, const Ref<FontAtlas>& atlas, sl_bool flagItalic, sl_bool flagUnderline, sl_bool flagStrikeout, const DrawTextParam& param);
 
 		void onDraw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc, const DrawParam& param) override;
 

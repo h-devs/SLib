@@ -25,15 +25,13 @@
 #include "slib/graphics/image.h"
 
 #define PLANE_SIZE_MIN 32
-#define FONT_SIZE_MIN 4
-#define FONT_SIZE_MAX 48
 
 namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FreeTypeAtlasParam)
 
-	FreeTypeAtlasParam::FreeTypeAtlasParam(): strokeWidth(0)
+	FreeTypeAtlasParam::FreeTypeAtlasParam()
 	{
 	}
 
@@ -41,7 +39,6 @@ namespace slib
 
 	FreeTypeAtlas::FreeTypeAtlas()
 	{
-		m_strokeWidth = 0;
 	}
 
 	FreeTypeAtlas::~FreeTypeAtlas()
@@ -53,19 +50,10 @@ namespace slib
 		if (param.font.isNull()) {
 			return sl_null;
 		}
-		Ref<FreeType> font = param.font;
-		sl_real sourceHeight = font->getFontHeight();
-		sl_real fontHeight;
-		if (sourceHeight > FONT_SIZE_MAX) {
-			font->setRealSize(FONT_SIZE_MAX);
-			fontHeight = font->getFontHeight();
-		} else if (sourceHeight < FONT_SIZE_MIN) {
-			font->setRealSize(FONT_SIZE_MIN);
-			fontHeight = font->getFontHeight();
-		} else {
-			fontHeight = sourceHeight;
-		}
-		sl_uint32 fontHeightExt = (sl_uint32)fontHeight + (param.strokeWidth << 1);
+		const Ref<FreeType>& font = param.font;
+		sl_real fontHeight = font->getFontHeight();
+		sl_uint32 strokeWidth = (sl_uint32)((sl_real)(param.strokeWidth) / param.scale);
+		sl_uint32 fontHeightExt = (sl_uint32)fontHeight + (strokeWidth + 1);
 		sl_uint32 planeWidth = param.planeWidth;
 		if (!planeWidth) {
 			planeWidth = fontHeightExt << 4;
@@ -91,11 +79,18 @@ namespace slib
 		if (ret.isNull()) {
 			return sl_null;
 		}
-		ret->_initialize(param, sourceHeight, fontHeight, planeWidth, planeHeight);
-		ret->m_font = Move(font);
-		ret->m_strokeWidth = param.strokeWidth;
+		ret->_initialize(param, fontHeight, fontHeight, strokeWidth, planeWidth, planeHeight);
+		ret->m_font = font;
 		ret->m_currentPlane = Move(plane);
 		return ret;
+	}
+
+	Ref<FreeTypeAtlas> FreeTypeAtlas::create(const Ref<FreeType>& font, sl_uint32 strokeWidth)
+	{
+		FreeTypeAtlasParam param;
+		param.font = font;
+		param.strokeWidth = strokeWidth;
+		return create(param);
 	}
 
 	sl_bool FreeTypeAtlas::getCharImage_NoLock(sl_char32 ch, FontAtlasCharImage& _out)
@@ -120,6 +115,7 @@ namespace slib
 	{
 		FreeTypeAtlasParam param;
 		param.font = m_font;
+		param.scale = m_drawScale;
 		param.strokeWidth = strokeWidth;
 		param.planeWidth = m_planeWidth + (strokeWidth << 5);
 		param.planeHeight = m_planeHeight + (strokeWidth << 1);
@@ -127,30 +123,26 @@ namespace slib
 		return create(param);
 	}
 
-	sl_bool FreeTypeAtlas::_measureChar(sl_char32 ch, TextMetrics& _out)
+	sl_bool FreeTypeAtlas::_getFontMetrics(FontMetrics& _out)
 	{
-		if (m_font->measureChar(ch, _out)) {
-			sl_uint32 m = m_strokeWidth;
-			if (m) {
-				_out.left -= m;
-				_out.right += m;
-				_out.top -= m;
-				_out.bottom += m;
-			}
-			return sl_true;
-		}
-		return sl_false;
+		m_font->getFontMetrics(_out);
+		return sl_true;
 	}
 
-	Ref<Bitmap> FreeTypeAtlas::_drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch)
+	sl_bool FreeTypeAtlas::_measureChar(sl_char32 ch, TextMetrics& _out)
 	{
-		m_currentPlane->resetPixels(x, y, width, height, Color::Zero);
+		return m_font->measureChar(ch, _out);
+	}
+
+	Ref<Bitmap> FreeTypeAtlas::_drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_int32 charX, sl_int32 charY, sl_char32 ch)
+	{
+		m_currentPlane->resetPixels(dstX, dstY, width, height, Color::Zero);
 		if (m_strokeWidth) {
-			m_font->strokeChar(m_currentPlane, x + m_strokeWidth, y + m_strokeWidth, ch, Color::White, m_strokeWidth);
+			m_font->strokeChar(m_currentPlane, charX, charY, ch, Color::White, m_strokeWidth);
 		} else {
-			m_font->drawChar(m_currentPlane, x, y, ch, Color::White);
+			m_font->drawChar(m_currentPlane, charX, charY, ch, Color::White);
 		}
-		m_currentPlane->update(x, y, width, height);
+		m_currentPlane->update(dstX, dstY, width, height);
 		return m_currentPlane;
 	}
 

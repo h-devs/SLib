@@ -807,16 +807,13 @@ namespace slib
 		{
 			Ref<Canvas> canvas = bitmap->getCanvas();
 			if (canvas.isNotNull()) {
-				size = canvas->measureText(font, text);
+				size = canvas->getTextAdvance(font, text);
 				size.x += 5;
 				canvas->drawText(text, 0, 3, font, Color::Red);
 			}
 		}
 		texture->update(0, 0, (sl_uint32)(size.x) + 1, DEBUG_HEIGHT);
-		drawTexture2D(
-					  screenToViewport(0, 0, size.x, DEBUG_HEIGHT)
-					  , texture
-					  , Rectangle(0, 0, size.x / DEBUG_WIDTH, 1));
+		drawTexture2D(screenToViewport(0, 0, size.x, DEBUG_HEIGHT), texture, Rectangle(0, 0, size.x / DEBUG_WIDTH, 1));
 	}
 
 	Point RenderEngine::screenToViewport(const Point& ptViewport)

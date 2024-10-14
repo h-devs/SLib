@@ -84,7 +84,7 @@ namespace slib
 				if (text.isNotEmpty()) {
 					text = SLIB_UNICODE("  ") + text;
 				}
-				UISize size = m_font->measureText(text);
+				UISize size = m_font->getTextAdvance(text);
 				size.x += cx;
 				size.y = SLIB_MAX(size.y, cy);
 				_out = size;

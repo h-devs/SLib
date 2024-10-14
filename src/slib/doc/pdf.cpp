@@ -6365,7 +6365,7 @@ namespace slib
 		if (face.isNotNull()) {
 			Ref<FreeTypeGlyph> glyph = getGlyph(charcode, unicode);
 			if (glyph.isNotNull()) {
-				return glyph->advance * scale;
+				return glyph->advanceX * scale;
 			}
 		}
 		return 0;

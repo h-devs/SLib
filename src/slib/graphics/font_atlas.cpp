@@ -30,7 +30,6 @@
 #define PLANE_HEIGHT_DEFAULT 0
 #define MAX_PLANES_DEFAULT 16
 #define FONT_SIZE_MIN 4
-#define FONT_SIZE_MAX 48
 
 namespace slib
 {
@@ -52,13 +51,13 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasBaseParam)
 
-	FontAtlasBaseParam::FontAtlasBaseParam(): planeWidth(PLANE_WIDTH_DEFAULT), planeHeight(PLANE_HEIGHT_DEFAULT), maxPlanes(MAX_PLANES_DEFAULT)
+	FontAtlasBaseParam::FontAtlasBaseParam(): planeWidth(PLANE_WIDTH_DEFAULT), planeHeight(PLANE_HEIGHT_DEFAULT), maxPlanes(MAX_PLANES_DEFAULT), scale(1.0f), strokeWidth(0)
 	{
 	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasParam)
 
-	FontAtlasParam::FontAtlasParam()
+	FontAtlasParam::FontAtlasParam(): maximumFontSize(48.0f)
 	{
 	}
 
@@ -67,11 +66,12 @@ namespace slib
 
 	FontAtlas::FontAtlas()
 	{
-		m_sourceHeight = 0.0f;
-		m_fontScale = 1.0f;
+		m_drawHeight = 0.0f;
+		m_drawScale = 1.0f;
 		m_planeWidth = PLANE_WIDTH_DEFAULT;
 		m_planeHeight = PLANE_HEIGHT_DEFAULT;
 		m_maxPlanes = MAX_PLANES_DEFAULT;
+		m_strokeWidth = 0;
 
 		m_countPlanes = 0;
 		m_currentPlaneY = 0;
@@ -142,6 +142,7 @@ namespace slib
 			Ref<Bitmap> m_currentPlane;
 			Ref<Canvas> m_currentCanvas;
 			CHashMap<sl_char32, FontAtlasCharImage> m_mapImage;
+			Ref<Pen> m_penStroke;
 
 		public:
 			static Ref<FontAtlasImpl> create(const FontAtlasParam& param)
@@ -150,9 +151,10 @@ namespace slib
 					return sl_null;
 				}
 				sl_real fontSize = param.font->getSize();
-				if (fontSize > FONT_SIZE_MAX) {
-					fontSize = FONT_SIZE_MAX;
-				} else if (fontSize < FONT_SIZE_MIN) {
+				if (fontSize > param.maximumFontSize) {
+					fontSize = param.maximumFontSize;
+				}
+				if (fontSize < FONT_SIZE_MIN) {
 					fontSize = FONT_SIZE_MIN;
 				}
 				Ref<Font> font = Font::create(param.font->getFamilyName(), fontSize, param.font->isBold());
@@ -161,9 +163,11 @@ namespace slib
 				}
 				sl_real sourceHeight = param.font->getFontHeight();
 				sl_real fontHeight = font->getFontHeight();
+				sl_uint32 strokeWidth = (sl_uint32)((sl_real)(param.strokeWidth) * fontHeight / sourceHeight / param.scale);
+				sl_uint32 fontHeightExt = (sl_uint32)fontHeight + (strokeWidth + 1);
 				sl_uint32 planeWidth = param.planeWidth;
 				if (!planeWidth) {
-					planeWidth = ((sl_uint32)fontHeight) << 4;
+					planeWidth = ((sl_uint32)fontHeightExt) << 4;
 					if (planeWidth > 1024) {
 						planeWidth = 1024;
 					}
@@ -173,7 +177,7 @@ namespace slib
 				}
 				sl_uint32 planeHeight = param.planeHeight;
 				if (!planeHeight) {
-					planeHeight = (sl_uint32)fontHeight;
+					planeHeight = (sl_uint32)fontHeightExt;
 				}
 				if (planeHeight < PLANE_SIZE_MIN) {
 					planeHeight = PLANE_SIZE_MIN;
@@ -190,11 +194,29 @@ namespace slib
 				if (ret.isNull()) {
 					return sl_null;
 				}
-				ret->_initialize(param, sourceHeight, fontHeight, planeWidth, planeHeight);
+				ret->_initialize(param, sourceHeight, fontHeight, strokeWidth, planeWidth, planeHeight);
 				ret->m_font = Move(font);
 				ret->m_currentPlane = Move(plane);
 				ret->m_currentCanvas = Move(canvas);
+				if (strokeWidth) {
+					PenDesc desc;
+					desc.style = PenStyle::Solid;
+					desc.width = (sl_real)strokeWidth;
+					desc.color = Color::White;
+					desc.cap = LineCap::Round;
+					desc.join = LineJoin::Round;
+					Ref<Pen> pen = Pen::create(desc);
+					if (pen.isNull()) {
+						return sl_null;
+					}
+					ret->m_penStroke = Move(pen);
+				}
 				return ret;
+			}
+
+			sl_bool _getFontMetrics(FontMetrics& _out) override
+			{
+				return m_font->getFontMetrics(_out);
 			}
 
 			sl_bool getCharImage_NoLock(sl_char32 ch, FontAtlasCharImage& _out) override
@@ -232,16 +254,35 @@ namespace slib
 				return sl_true;
 			}
 
+			Ref<FontAtlas> createStroker(sl_uint32 strokeWidth) override
+			{
+				FontAtlasParam param;
+				param.font = m_font;
+				param.scale = m_drawScale;
+				param.strokeWidth = strokeWidth;
+				param.planeWidth = m_planeWidth + (strokeWidth << 5);
+				param.planeHeight = m_planeHeight + (strokeWidth << 1);
+				param.maxPlanes = m_maxPlanes;
+				return create(param);
+			}
+
 			sl_bool _measureChar(sl_char32 ch, TextMetrics& _out) override
 			{
 				return m_font->measureChar(ch, _out);
 			}
 
-			Ref<Bitmap> _drawChar(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, sl_char32 ch) override
+			Ref<Bitmap> _drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_int32 charX, sl_int32 charY, sl_char32 ch) override
 			{
-				m_currentPlane->resetPixels(x, y, width, height, Color::Zero);
-				m_currentCanvas->drawText(String::create(&ch, 1), (sl_real)x, (sl_real)y, m_font, Color::White);
-				m_currentPlane->update(x, y, width, height);
+				m_currentPlane->resetPixels(dstX, dstY, width, height, Color::Zero);
+				if (m_penStroke.isNotNull()) {
+					Ref<GraphicsPath> path = m_font->getCharOutline(ch, (sl_real)charX, (sl_real)charY);
+					if (path.isNotNull()) {
+						m_currentCanvas->drawPath(path, m_penStroke);
+					}
+				} else {
+					m_currentCanvas->drawText(String::create(&ch, 1), (sl_real)charX, (sl_real)charY, m_font, Color::White);
+				}
+				m_currentPlane->update(dstX, dstY, width, height);
 				return m_currentPlane;
 			}
 
@@ -267,10 +308,19 @@ namespace slib
 		return Ref<FontAtlas>::cast(FontAtlasImpl::create(param));
 	}
 
-	void FontAtlas::_initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_uint32 planeWidth, sl_uint32 planeHeight)
+	Ref<FontAtlas> FontAtlas::create(const Ref<Font>& font, sl_uint32 strokeWidth)
 	{
-		m_sourceHeight = sourceHeight;
-		m_fontScale = sourceHeight / fontHeight;
+		FontAtlasParam param;
+		param.font = font;
+		param.strokeWidth = strokeWidth;
+		return create(param);
+	}
+
+	void FontAtlas::_initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_uint32 strokeWidth, sl_uint32 planeWidth, sl_uint32 planeHeight)
+	{
+		m_drawHeight = param.scale * sourceHeight;
+		m_drawScale = m_drawHeight / fontHeight;
+		m_strokeWidth = strokeWidth;
 		m_planeWidth = planeWidth;
 		m_planeHeight = planeHeight;
 		m_countPlanes = 1;
@@ -283,25 +333,19 @@ namespace slib
 
 	sl_real FontAtlas::getFontHeight()
 	{
-		return m_sourceHeight;
+		return m_drawHeight;
 	}
 
 	sl_bool FontAtlas::_getChar(sl_char32 ch, sl_bool flagSizeOnly, FontAtlasChar& _out)
 	{
-		if (ch == ' ' || ch == '\r' || ch == '\n') {
-			_out.metrics.setBlank(m_sourceHeight * 0.3f, m_sourceHeight);
+		if (ch == '\r' || ch == '\n') {
+			_out.metrics.setBlank(m_drawHeight * 0.3f, m_drawHeight);
 			if (!flagSizeOnly) {
 				_out.bitmap.setNull();
 			}
 			return sl_true;
 		}
-		if (ch == '\t') {
-			_out.metrics.setBlank(m_sourceHeight * 2.0f, m_sourceHeight);
-			if (!flagSizeOnly) {
-				_out.bitmap.setNull();
-			}
-			return sl_true;
-		}
+		sl_int32 charX, charY;
 		sl_uint32 widthChar, heightChar;
 		if (m_map.get_NoLock(ch, &_out)) {
 			if (_out.metrics.advanceX == 0.0f) {
@@ -313,8 +357,10 @@ namespace slib
 			if (_out.bitmap.isNotNull()) {
 				return sl_true;
 			}
-			widthChar = (sl_uint32)(_out.metrics.getWidth() / m_fontScale);
-			heightChar = (sl_uint32)(_out.metrics.getHeight() / m_fontScale);
+			charX = (sl_int32)(_out.metrics.left / m_drawScale);
+			charY = (sl_int32)(_out.metrics.top / m_drawScale);
+			widthChar = (sl_uint32)(_out.metrics.getWidth() / m_drawScale);
+			heightChar = (sl_uint32)(_out.metrics.getHeight() / m_drawScale);
 		} else {
 			TextMetrics tm;
 			if (!(_measureChar(ch, tm))) {
@@ -322,16 +368,25 @@ namespace slib
 				m_map.put_NoLock(ch, _out);
 				return sl_false;
 			}
-			_out.metrics.left = tm.left * m_fontScale;
-			_out.metrics.top = tm.top * m_fontScale;
-			_out.metrics.right = tm.right * m_fontScale;
-			_out.metrics.bottom = tm.bottom * m_fontScale;
-			_out.metrics.advanceX = tm.advanceX * m_fontScale;
-			_out.metrics.advanceY = tm.advanceY * m_fontScale;
+			sl_real m = (sl_real)((m_strokeWidth >> 1) + 1);
+			if (m) {
+				tm.left -= m;
+				tm.top -= m;
+				tm.right += m;
+				tm.bottom += m;
+			}
+			_out.metrics.left = tm.left * m_drawScale;
+			_out.metrics.top = tm.top * m_drawScale;
+			_out.metrics.right = tm.right * m_drawScale;
+			_out.metrics.bottom = tm.bottom * m_drawScale;
+			_out.metrics.advanceX = tm.advanceX * m_drawScale;
+			_out.metrics.advanceY = tm.advanceY * m_drawScale;
 			_out.bitmap.setNull();
 			if (flagSizeOnly) {
 				return m_map.put_NoLock(ch, _out);
 			}
+			charX = (sl_int32)(tm.left);
+			charY = (sl_int32)(tm.top);
 			widthChar = (sl_uint32)(tm.getWidth());
 			heightChar = (sl_uint32)(tm.getHeight());
 		}
@@ -361,13 +416,24 @@ namespace slib
 		_out.region.top = y;
 		_out.region.right = x + widthChar;
 		_out.region.bottom = y + heightChar;
-		_out.bitmap = _drawChar(x, y, widthChar, heightChar, ch);
+		_out.bitmap = _drawChar(x, y, widthChar, heightChar, (sl_int32)x - charX, (sl_int32)y - charY, ch);
 
 		m_currentPlaneX += widthChar;
 		if (heightChar > m_currentPlaneRowHeight) {
 			m_currentPlaneRowHeight = heightChar;
 		}
 		return m_map.put_NoLock(ch, _out);
+	}
+
+	sl_bool FontAtlas::getFontMetrics(FontMetrics& _out)
+	{
+		if (_getFontMetrics(_out)) {
+			_out.ascent *= m_drawScale;
+			_out.descent *= m_drawScale;
+			_out.leading *= m_drawScale;
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 	sl_bool FontAtlas::getChar_NoLock(sl_char32 ch, FontAtlasChar& _out)
@@ -403,53 +469,83 @@ namespace slib
 		return measureChar_NoLock(ch, _out);
 	}
 
+	Size FontAtlas::getCharAdvance_NoLock(sl_char32 ch)
+	{
+		FontAtlasChar fac;
+		if (_getChar(ch, sl_true, fac)) {
+			return Size(fac.metrics.advanceX, fac.metrics.advanceY);
+		}
+		return Size::zero();
+	}
+
+	Size FontAtlas::getCharAdvance(sl_char32 ch)
+	{
+		ObjectLocker lock(this);
+		return getCharAdvance_NoLock(ch);
+	}
+
 	sl_bool FontAtlas::measureText(const StringParam& _str, sl_bool flagMultiLine, TextMetrics& _out)
 	{
-		StringData16 str(_str);
+		StringData32 str(_str);
 		sl_size len = str.getLength();
 		if (!len) {
 			return sl_false;
 		}
-		sl_char16* data = str.getData();
+		sl_char32* data = str.getData();
 
 		FontAtlasChar fac;
+		sl_real lineWidth = 0.0f;
 		sl_real lineHeight = 0.0f;
+
 		_out.setZero();
+		sl_bool flagInitOut = sl_true;
 
 		ObjectLocker lock(this);
-		for (sl_size i = 0; i < len;) {
+		for (sl_size i = 0; i <= len; i++) {
 			sl_char32 ch;
-			if (Charsets::getUnicode(ch, data, len, i)) {
-				if (ch == '\r' || ch == '\n') {
-					_out.advanceY += lineHeight;
-					if (!flagMultiLine) {
-						return sl_true;
-					}
-					_out.advanceX = 0.0f;
-					lineHeight = 0.0f;
-					if (ch == '\r' && i < len) {
-						if (data[i] == '\n') {
-							i++;
-						}
-					}
+			if (i < len) {
+				ch = data[i];
+			} else {
+				ch = '\n';
+			}
+			if (ch == '\r' || ch == '\n') {
+				if (lineWidth > _out.advanceX) {
+					_out.advanceX = lineWidth;
+				}
+				if (lineHeight == 0.0f) {
+					_out.advanceY += m_drawHeight;
 				} else {
-					if (_getChar((sl_char32)ch, sl_true, fac)) {
-						fac.metrics.left += _out.advanceX;
-						fac.metrics.right += _out.advanceX;
-						fac.metrics.top += _out.advanceY;
-						fac.metrics.bottom += _out.advanceY;
-						_out.mergeRectangle(fac.metrics);
-						_out.advanceX += fac.metrics.advanceX;
-						if (fac.metrics.advanceY > lineHeight) {
-							lineHeight = fac.metrics.advanceY;
-						}
+					_out.advanceY += lineHeight;
+				}
+				if (!flagMultiLine) {
+					return sl_true;
+				}
+				lineWidth = 0.0f;
+				lineHeight = 0.0f;
+				if (ch == '\r' && i + 1 < len) {
+					if (data[i + 1] == '\n') {
+						i++;
 					}
 				}
 			} else {
-				i++;
+				if (_getChar((sl_char32)ch, sl_true, fac)) {
+					fac.metrics.left += lineWidth;
+					fac.metrics.right += lineWidth;
+					fac.metrics.top += _out.advanceY;
+					fac.metrics.bottom += _out.advanceY;
+					if (flagInitOut) {
+						(Rectangle&)_out = fac.metrics;
+						flagInitOut = sl_false;
+					} else {
+						_out.mergeRectangle(fac.metrics);
+					}
+					lineWidth += fac.metrics.advanceX;
+					if (fac.metrics.advanceY > lineHeight) {
+						lineHeight = fac.metrics.advanceY;
+					}
+				}
 			}
 		}
-		_out.advanceY += lineHeight;
 		return sl_true;
 	}
 
@@ -461,11 +557,11 @@ namespace slib
 		return sl_false;
 	}
 
-	Size FontAtlas::measureText(const StringParam& text, sl_bool flagMultiLine)
+	Size FontAtlas::getTextAdvance(const StringParam& text, sl_bool flagMultiLine)
 	{
 		TextMetrics tm;
 		if (measureText(text, flagMultiLine, tm)) {
-			return tm.getSize();
+			return Size(tm.advanceX, tm.advanceY);
 		}
 		return Size::zero();
 	}
@@ -478,11 +574,6 @@ namespace slib
 		m_currentPlaneX = 0;
 		m_currentPlaneY = 0;
 		m_currentPlaneRowHeight = 0;
-	}
-
-	Ref<FontAtlas> FontAtlas::createStroker(sl_uint32 strokeWidth)
-	{
-		return sl_null;
 	}
 
 

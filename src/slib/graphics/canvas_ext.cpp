@@ -22,6 +22,7 @@
 
 #include "slib/graphics/canvas.h"
 
+#include "slib/graphics/font_atlas.h"
 #include "slib/graphics/util.h"
 #include "slib/graphics/image.h"
 
@@ -56,6 +57,14 @@ namespace slib
 		}
 	}
 
+	sl_bool CanvasExt::measureChar(const Ref<Font>& font, sl_char32 ch, TextMetrics& _out)
+	{
+		if (font.isNotNull()) {
+			return font->measureChar(ch, _out);
+		}
+		return sl_false;
+	}
+
 	sl_bool CanvasExt::measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine, TextMetrics& _out)
 	{
 		if (font.isNotNull()) {
@@ -66,18 +75,19 @@ namespace slib
 
 	void CanvasExt::drawText(const Canvas::DrawTextParam& param)
 	{
-		if (param.text.isEmpty()) {
-			return;
-		}
-		Ref<Font> font = param.font;
+		const Ref<Font>& font = param.font;
 		if (font.isNull()) {
+			drawTextByAtlas(param);
 			return;
 		}
 		if (!(param.flagMultiLine)) {
+			if (param.text.isEmpty()) {
+				return;
+			}
 			if (param.alignment == Alignment::TopLeft) {
 				onDrawText(param.text, param.x, param.y, font, param);
 			} else {
-				Size size = measureText(font, param.text, sl_false);
+				Size size = getTextAdvance(font, param.text, sl_false);
 				Alignment hAlign = param.alignment & Alignment::HorizontalMask;
 				Alignment vAlign = param.alignment & Alignment::VerticalMask;
 				sl_real x = param.x;
@@ -104,23 +114,35 @@ namespace slib
 		}
 		sl_char32* data = text.getData();
 
-		Size size = measureText(font, text, sl_true);
-		Point pt = GraphicsUtil::calculateAlignPosition(Rectangle(param.x, param.y, param.x + param.width, param.y + param.height), size.x, size.y, param.alignment);
+		Size size;
+		Point pt;
+		if (param.alignment == Alignment::TopLeft) {
+			size.x = 0.0f;
+			size.y = 0.0f;
+			pt.x = param.x;
+			pt.y = param.y;
+		} else {
+			size = getTextAdvance(font, text, sl_true);
+			pt = GraphicsUtil::calculateAlignPosition(Rectangle(param.x, param.y, param.x + param.width, param.y + param.height), size.x, size.y, param.alignment);
+		}
 		Alignment hAlign = param.alignment & Alignment::HorizontalMask;
 
 		sl_size startLine = 0;
-		sl_size pos = 0;
 		sl_real y = pt.y;
-		while (pos <= len) {
+		for (sl_size i = 0; i <= len; i++) {
 			sl_char32 ch;
-			if (pos < len) {
-				ch = data[pos];
+			if (i < len) {
+				ch = data[i];
 			} else {
 				ch = '\n';
 			}
 			if (ch == '\r' || ch == '\n') {
-				if (pos > startLine) {
-					StringView32 line(data + startLine, pos - startLine);
+				if (i > startLine) {
+					StringView32 line(data + startLine, i - startLine);
+					if (hAlign == Alignment::Left && i + 1 >= len) {
+						onDrawText(line, pt.x, y, font, param);
+						break;
+					}
 					TextMetrics tm;
 					if (measureText(font, line, tm)) {
 						sl_real x;
@@ -135,14 +157,139 @@ namespace slib
 						y += tm.advanceY;
 					}
 				}
-				if (ch == '\r' && pos + 1 < len) {
-					if (data[pos + 1] == '\n') {
-						pos++;
+				if (ch == '\r' && i + 1 < len) {
+					if (data[i + 1] == '\n') {
+						i++;
 					}
 				}
-				startLine = pos + 1;
+				startLine = i + 1;
 			}
-			pos++;
+		}
+	}
+
+	void CanvasExt::drawTextByAtlas(const Canvas::DrawTextParam& param)
+	{
+		const Ref<FontAtlas>& atlas = param.atlas;
+		if (atlas.isNull()) {
+			return;
+		}
+		if (!(param.flagMultiLine)) {
+			if (param.text.isEmpty()) {
+				return;
+			}
+			if (param.alignment == Alignment::TopLeft) {
+				onDrawTextByAtlas(param.text, param.x, param.y, atlas, param);
+			} else {
+				Size size = atlas->getTextAdvance(param.text, sl_false);
+				Alignment hAlign = param.alignment & Alignment::HorizontalMask;
+				Alignment vAlign = param.alignment & Alignment::VerticalMask;
+				sl_real x = param.x;
+				sl_real y = param.y;
+				if (hAlign == Alignment::Right) {
+					x += param.width - size.x;
+				} else if (hAlign != Alignment::Left) {
+					x += (param.width - size.x) / 2;
+				}
+				if (vAlign == Alignment::Bottom) {
+					y += param.height - size.y;
+				} else if (vAlign != Alignment::Top) {
+					y += (param.height - size.y) / 2;
+				}
+				onDrawTextByAtlas(param.text, x, y, atlas, param);
+			}
+			return;
+		}
+
+		StringData32 text(param.text);
+		sl_size len = text.getLength();
+		if (!len) {
+			return;
+		}
+		sl_char32* data = text.getData();
+
+		Size size;
+		Point pt;
+		if (param.alignment == Alignment::TopLeft) {
+			size.x = 0.0f;
+			size.y = 0.0f;
+			pt.x = param.x;
+			pt.y = param.y;
+		} else {
+			size = atlas->getTextAdvance(text, sl_true);
+			pt = GraphicsUtil::calculateAlignPosition(Rectangle(param.x, param.y, param.x + param.width, param.y + param.height), size.x, size.y, param.alignment);
+		}
+		Alignment hAlign = param.alignment & Alignment::HorizontalMask;
+
+		sl_size startLine = 0;
+		sl_real y = pt.y;
+		for (sl_size i = 0; i <= len; i++) {
+			sl_char32 ch;
+			if (i < len) {
+				ch = data[i];
+			} else {
+				ch = '\n';
+			}
+			if (ch == '\r' || ch == '\n') {
+				if (i > startLine) {
+					StringView32 line(data + startLine, i - startLine);
+					if (hAlign == Alignment::Left && i + 1 >= len) {
+						onDrawTextByAtlas(line, pt.x, y, atlas, param);
+						break;
+					}
+					TextMetrics tm;
+					if (atlas->measureText(line, tm)) {
+						sl_real x;
+						if (hAlign == Alignment::Left) {
+							x = pt.x;
+						} else if (hAlign == Alignment::Right) {
+							x = pt.x + size.x - tm.advanceX;
+						} else {
+							x = pt.x + (size.x - tm.advanceX) / 2;
+						}
+						onDrawTextByAtlas(line, x, y, atlas, param);
+						y += tm.advanceY;
+					}
+				}
+				if (ch == '\r' && i + 1 < len) {
+					if (data[i + 1] == '\n') {
+						i++;
+					}
+				}
+				startLine = i + 1;
+			}
+		}
+	}
+
+	void CanvasExt::onDrawTextByAtlas(const StringParam& _text, sl_real x, sl_real y, const Ref<FontAtlas>& atlas, const DrawTextParam& param)
+	{
+		StringData32 text(_text);
+		sl_size len = text.getLength();
+		if (!len) {
+			return;
+		}
+		sl_char32* data = text.getData();
+
+		DrawParam dp;
+		dp.colorMatrix.setOverlay(param.color);
+		dp.useColorMatrix = sl_true;
+
+		FontAtlasChar fac;
+		sl_real fx = x;
+		{
+			ObjectLocker lock(atlas.get());
+			for (sl_size i = 0; i < len; i++) {
+				sl_char32 ch = data[i];
+				if (atlas->getChar_NoLock(ch, fac)) {
+					if (fac.bitmap.isNotNull()) {
+						fac.metrics.left += fx;
+						fac.metrics.top += y;
+						fac.metrics.right += fx;
+						fac.metrics.bottom += y;
+						draw(fac.metrics, fac.bitmap, fac.region, dp);
+					}
+					fx += fac.metrics.advanceX;
+				}
+			}
 		}
 	}
 
