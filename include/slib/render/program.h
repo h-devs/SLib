@@ -501,6 +501,34 @@ namespace slib
 				String getAssemblyPixelShader(RenderEngine* engine) override;
 			};
 		}
+
+		namespace state
+		{
+			SLIB_RENDER_PROGRAM_STATE_BEGIN(HatchFill, vertex::Position)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(HatchTransform, u_HatchTransform, RenderShaderType::Vertex, 3)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ForeColor, u_ForeColor, RenderShaderType::Pixel, 0)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(BackColor, u_BackColor, RenderShaderType::Pixel, 1)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(LineWidth, u_LineWidth, RenderShaderType::Pixel, 2)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(SmoothWidth, u_SmoothWidth, RenderShaderType::Pixel, 3)
+
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
+			SLIB_RENDER_PROGRAM_STATE_END
+		}
+		namespace program
+		{
+			class SLIB_EXPORT HatchFill : public RenderProgramT<state::HatchFill>
+			{
+			public:
+				String getGLSLVertexShader(RenderEngine* engine) override;
+
+				String getGLSLFragmentShader(RenderEngine* engine) override;
+
+				String getHLSLVertexShader(RenderEngine* engine) override;
+
+				String getHLSLPixelShader(RenderEngine* engine) override;
+			};
+		}
 	}
 
 	namespace render3d

@@ -390,16 +390,16 @@ namespace slib
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					uniform mat3 u_Transform;
-				uniform mat3 u_TextureTransform;
-				attribute vec2 a_Position;
-				attribute vec2 a_TexCoord;
-				varying vec2 v_TexCoord;
-				void main() {
-					vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
-					gl_Position = vec4(P.x, P.y, 0.0, 1.0);
-					vec3 t = vec3(a_TexCoord, 1.0) * u_TextureTransform;
-					v_TexCoord = t.xy;
-				}
+					uniform mat3 u_TextureTransform;
+					attribute vec2 a_Position;
+					attribute vec2 a_TexCoord;
+					varying vec2 v_TexCoord;
+					void main() {
+						vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
+						gl_Position = vec4(P.x, P.y, 0.0, 1.0);
+						vec3 t = vec3(a_TexCoord, 1.0) * u_TextureTransform;
+						v_TexCoord = t.xy;
+					}
 				))
 			}
 
@@ -407,12 +407,12 @@ namespace slib
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					uniform vec4 u_Color;
-				uniform sampler2D u_Texture;
-				varying vec2 v_TexCoord;
-				void main() {
-					vec4 colorTexture = texture2D(u_Texture, v_TexCoord);
-					gl_FragColor = colorTexture * u_Color;
-				}
+					uniform sampler2D u_Texture;
+					varying vec2 v_TexCoord;
+					void main() {
+						vec4 colorTexture = texture2D(u_Texture, v_TexCoord);
+						gl_FragColor = colorTexture * u_Color;
+					}
 				))
 			}
 
@@ -420,19 +420,19 @@ namespace slib
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					float3x3 u_Transform : register(c0);
-				float3x3 u_TextureTransform : register(c3);
-				struct VS_OUTPUT {
-					float2 texcoord : TEXCOORD;
-					float4 pos : POSITION;
-				};
-				VS_OUTPUT main(float2 a_Position : POSITION, float2 a_TexCoord : TEXCOORD) {
-					VS_OUTPUT ret;
-					float3 P = mul(float3(a_Position.x, a_Position.y, 1.0), u_Transform);
-					ret.pos = float4(P.x, P.y, 0.0, 1.0);
-					float3 t = mul(float3(a_TexCoord, 1.0), u_TextureTransform);
-					ret.texcoord = t.xy;
-					return ret;
-				}
+					float3x3 u_TextureTransform : register(c3);
+					struct VS_OUTPUT {
+						float2 texcoord : TEXCOORD;
+						float4 pos : POSITION;
+					};
+					VS_OUTPUT main(float2 a_Position : POSITION, float2 a_TexCoord : TEXCOORD) {
+						VS_OUTPUT ret;
+						float3 P = mul(float3(a_Position.x, a_Position.y, 1.0), u_Transform);
+						ret.pos = float4(P.x, P.y, 0.0, 1.0);
+						float3 t = mul(float3(a_TexCoord, 1.0), u_TextureTransform);
+						ret.texcoord = t.xy;
+						return ret;
+					}
 				))
 			}
 
@@ -440,12 +440,12 @@ namespace slib
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					float4 u_Color;
-				sampler u_Texture;
-				float4 main(float2 v_TexCoord : TEXCOORD) : COLOR{
-					float4 colorTexture = tex2D(u_Texture, v_TexCoord);
-					return colorTexture * u_Color;
-				}
-					))
+					sampler u_Texture;
+					float4 main(float2 v_TexCoord : TEXCOORD) : COLOR{
+						float4 colorTexture = tex2D(u_Texture, v_TexCoord);
+						return colorTexture * u_Color;
+					}
+				))
 			}
 
 			String PositionTexture::getAssemblyVertexShader(RenderEngine* engine)
@@ -479,15 +479,15 @@ namespace slib
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					uniform vec4 u_Color;
-				uniform sampler2D u_Texture;
-				varying vec2 v_TexCoord;
-				void main() {
-					vec4 YUV = texture2D(u_Texture, v_TexCoord);
-					float R = YUV.r + 1.370705*(YUV.b - 0.5);
-					float G = YUV.r - 0.698001*(YUV.g - 0.5) - 0.337633*(YUV.b - 0.5);
-					float B = YUV.r + 1.732446*(YUV.g - 0.5);
-					gl_FragColor = vec4(R, G, B, YUV.a) * u_Color;
-				}
+					uniform sampler2D u_Texture;
+					varying vec2 v_TexCoord;
+					void main() {
+						vec4 YUV = texture2D(u_Texture, v_TexCoord);
+						float R = YUV.r + 1.370705*(YUV.b - 0.5);
+						float G = YUV.r - 0.698001*(YUV.g - 0.5) - 0.337633*(YUV.b - 0.5);
+						float B = YUV.r + 1.732446*(YUV.g - 0.5);
+						gl_FragColor = vec4(R, G, B, YUV.a) * u_Color;
+					}
 				))
 			}
 
@@ -495,15 +495,15 @@ namespace slib
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					float4 u_Color;
-				sampler u_Texture;
-				float4 main(float2 v_TexCoord : TEXCOORD) : COLOR{
-					float4 YUV = tex2D(u_Texture, v_TexCoord);
-					float R = YUV.r + 1.370705*(YUV.b - 0.5);
-					float G = YUV.r - 0.698001*(YUV.g - 0.5) - 0.337633*(YUV.b - 0.5);
-					float B = YUV.r + 1.732446*(YUV.g - 0.5);
-					return float4(R, G, B, YUV.a) * u_Color;
-				}
-					))
+					sampler u_Texture;
+					float4 main(float2 v_TexCoord : TEXCOORD) : COLOR{
+						float4 YUV = tex2D(u_Texture, v_TexCoord);
+						float R = YUV.r + 1.370705*(YUV.b - 0.5);
+						float G = YUV.r - 0.698001*(YUV.g - 0.5) - 0.337633*(YUV.b - 0.5);
+						float B = YUV.r + 1.732446*(YUV.g - 0.5);
+						return float4(R, G, B, YUV.a) * u_Color;
+					}
+				))
 			}
 
 
@@ -513,14 +513,14 @@ namespace slib
 					"#extension GL_OES_EGL_image_external : require\n"
 					SLIB_STRINGIFY(
 						precision mediump float;
-				uniform vec4 u_Color;
-				uniform samplerExternalOES u_Texture;
-				varying vec2 v_TexCoord;
-				void main() {
-					vec4 colorTexture = texture2D(u_Texture, v_TexCoord);
-					gl_FragColor = colorTexture * u_Color;
-				}
-				)
+						uniform vec4 u_Color;
+						uniform samplerExternalOES u_Texture;
+						varying vec2 v_TexCoord;
+						void main() {
+							vec4 colorTexture = texture2D(u_Texture, v_TexCoord);
+							gl_FragColor = colorTexture * u_Color;
+						}
+					)
 				)
 			}
 
@@ -529,15 +529,15 @@ namespace slib
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					uniform mat3 u_Transform;
-				uniform vec4 u_Color;
-				attribute vec2 a_Position;
-				attribute vec4 a_Color;
-				varying vec4 v_Color;
-				void main() {
-					vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
-					gl_Position = vec4(P.x, P.y, 0.0, 1.0);
-					v_Color = a_Color * u_Color;
-				}
+					uniform vec4 u_Color;
+					attribute vec2 a_Position;
+					attribute vec4 a_Color;
+					varying vec4 v_Color;
+					void main() {
+						vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
+						gl_Position = vec4(P.x, P.y, 0.0, 1.0);
+						v_Color = a_Color * u_Color;
+					}
 				))
 			}
 
@@ -545,9 +545,9 @@ namespace slib
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					varying vec4 v_Color;
-				void main() {
-					gl_FragColor = v_Color;
-				}
+					void main() {
+						gl_FragColor = v_Color;
+					}
 				))
 			}
 
@@ -555,18 +555,18 @@ namespace slib
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					float3x3 u_Transform : register(c0);
-				float4 u_Color : register(c3);
-				struct VS_OUTPUT {
-					float4 color : COLOR;
-					float4 pos : POSITION;
-				};
-				VS_OUTPUT main(in float2 a_Position : POSITION, in float4 a_Color : COLOR) {
-					VS_OUTPUT output;
-					float3 P = mul(float3(a_Position.x, a_Position.y, 1.0), u_Transform);
-					output.pos = float4(P.x, P.y, 0.0, 1.0);
-					output.color = u_Color * a_Color;
-					return output;
-				}
+					float4 u_Color : register(c3);
+					struct VS_OUTPUT {
+						float4 color : COLOR;
+						float4 pos : POSITION;
+					};
+					VS_OUTPUT main(in float2 a_Position : POSITION, in float4 a_Color : COLOR) {
+						VS_OUTPUT output;
+						float3 P = mul(float3(a_Position.x, a_Position.y, 1.0), u_Transform);
+						output.pos = float4(P.x, P.y, 0.0, 1.0);
+						output.color = u_Color * a_Color;
+						return output;
+					}
 				))
 			}
 
@@ -606,11 +606,11 @@ namespace slib
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					uniform mat3 u_Transform;
-				attribute vec2 a_Position;
-				void main() {
-					vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
-					gl_Position = vec4(P.x, P.y, 0.0, 1.0);
-				}
+					attribute vec2 a_Position;
+					void main() {
+						vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
+						gl_Position = vec4(P.x, P.y, 0.0, 1.0);
+					}
 				))
 			}
 
@@ -618,9 +618,9 @@ namespace slib
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					uniform vec4 u_Color;
-				void main() {
-					gl_FragColor = u_Color;
-				}
+					void main() {
+						gl_FragColor = u_Color;
+					}
 				))
 			}
 
@@ -628,21 +628,21 @@ namespace slib
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					float3x3 u_Transform;
-				float4 main(in float2 a_Position : POSITION) : POSITION{
-					float3 P = mul(float3(a_Position.x, a_Position.y, 1.0), u_Transform);
-					return float4(P.x, P.y, 0.0, 1.0);
-				}
-					))
+					float4 main(in float2 a_Position : POSITION) : POSITION {
+						float3 P = mul(float3(a_Position.x, a_Position.y, 1.0), u_Transform);
+						return float4(P.x, P.y, 0.0, 1.0);
+					}
+				))
 			}
 
 			String Position::getHLSLPixelShader(RenderEngine* engine)
 			{
 				SLIB_RETURN_STRING(SLIB_STRINGIFY(
 					float4 u_Color;
-				float4 main() : COLOR{
-					return u_Color;
-				}
-					))
+					float4 main() : COLOR{
+						return u_Color;
+					}
+				))
 			}
 
 			String Position::getAssemblyVertexShader(RenderEngine* engine)
@@ -664,6 +664,52 @@ namespace slib
 					"ps.1.0\n"
 					"mov r0, c0\n"
 				)
+			}
+
+
+			String HatchFill::getGLSLVertexShader(RenderEngine* engine)
+			{
+				return sl_null;
+			}
+
+			String HatchFill::getGLSLFragmentShader(RenderEngine* engine)
+			{
+				return sl_null;
+			}
+
+			String HatchFill::getHLSLVertexShader(RenderEngine* engine)
+			{
+				SLIB_RETURN_STRING(SLIB_STRINGIFY(
+					float3x3 u_Transform : register(c0);
+					float3x3 u_HatchTransform : register(c3);
+					struct VS_OUTPUT {
+						float4 hatch : TEXCOORD;
+						float4 pos : POSITION;
+					};
+					VS_OUTPUT main(in float2 a_Position : POSITION) {
+						VS_OUTPUT ret;
+						float3 P = mul(float3(a_Position.x, a_Position.y, 1.0), u_Transform);
+						ret.pos = float4(P.x, P.y, 0.0, 1.0);
+						float3 H = mul(float3(a_Position.x, a_Position.y, 1.0), u_HatchTransform);
+						ret.hatch = float4(H.x, H.y, 0.0, 1.0);
+						return ret;
+					}
+				))
+			}
+
+			String HatchFill::getHLSLPixelShader(RenderEngine* engine)
+			{
+				SLIB_RETURN_STRING(SLIB_STRINGIFY(
+					float4 u_ForeColor : register(c0);
+					float4 u_BackColor : register(c1);
+					float u_LineWidth : register(c2);
+					float u_SmoothWidth : register(c3);
+					float4 main(float4 hatch : TEXCOORD) : COLOR {
+						float x = hatch.x - floor(hatch.x);
+						float fx = smoothstep((u_LineWidth + u_SmoothWidth)*-0.5, u_LineWidth*-0.5, -abs(x - 0.5));
+						return lerp(u_BackColor, u_ForeColor, fx);
+					}
+				))
 			}
 		}
 	}
