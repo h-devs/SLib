@@ -85,6 +85,10 @@ namespace slib
 
 		Color getColor();
 
+		HatchStyle getHatchStyle();
+
+		Color getHatchBackgroundColor();
+
 	protected:
 		BrushDesc m_desc;
 

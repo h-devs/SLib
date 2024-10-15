@@ -604,7 +604,7 @@ namespace slib
 				return sl_null;
 			}
 
-			HatchFill::HatchFill(HatchStyle style)
+			HatchFill::HatchFill(HatchStyle style): m_style(style)
 			{
 			}
 
@@ -615,12 +615,43 @@ namespace slib
 			String HatchFill::getShader(RenderEngine* engine, RenderShaderType type)
 			{
 				switch (type) {
+					case RenderShaderType::GLSL_Vertex:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							uniform mat3 u_Transform;
+							uniform mat3 u_HatchTransform;
+							attribute vec2 a_Position;
+							varying vec2 hatch;
+							void main() {
+								vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
+								gl_Position = vec4(P.x, P.y, 0.0, 1.0);
+								vec3 H = vec3(a_Position.x, a_Position.y, 1.0) * u_HatchTransform;
+								hatch = vec2(H.x, H.y);
+							}
+						))
+					case RenderShaderType::GLSL_Fragment:
+						{
+							String snippet = getShaderSnippet(RenderShaderLanguage::GLSL, m_style);
+							if (snippet.isNull()) {
+								return sl_null;
+							}
+							return String::concat(SLIB_STRINGIFY(
+								uniform vec4 u_ForeColor;
+								uniform vec4 u_BackColor;
+								uniform float hatchLineWidth;
+								uniform float hatchSmoothWidth;
+								varying vec2 hatch;
+								void main() {
+							), snippet, SLIB_STRINGIFY(
+									gl_FragColor = u_BackColor * (1.0 - hatchFactor) + u_ForeColor * hatchFactor;
+								}
+							));
+						}
 					case RenderShaderType::HLSL_Vertex:
 						SLIB_RETURN_STRING(SLIB_STRINGIFY(
 							float3x3 u_Transform : register(c0);
 							float3x3 u_HatchTransform : register(c3);
 							struct VS_OUTPUT {
-								float4 hatch : TEXCOORD;
+								float2 hatch : TEXCOORD;
 								float4 pos : POSITION;
 							};
 							VS_OUTPUT main(in float2 a_Position : POSITION) {
@@ -628,21 +659,81 @@ namespace slib
 								float3 P = mul(float3(a_Position.x, a_Position.y, 1.0), u_Transform);
 								ret.pos = float4(P.x, P.y, 0.0, 1.0);
 								float3 H = mul(float3(a_Position.x, a_Position.y, 1.0), u_HatchTransform);
-								ret.hatch = float4(H.x, H.y, 0.0, 1.0);
+								ret.hatch = float2(H.x, H.y);
 								return ret;
 							}
 						))
 					case RenderShaderType::HLSL_Pixel:
-						SLIB_RETURN_STRING(SLIB_STRINGIFY(
-							float4 u_ForeColor : register(c0);
-							float4 u_BackColor : register(c1);
-							float u_LineWidth : register(c2);
-							float u_SmoothWidth : register(c3);
-							float4 main(float4 hatch : TEXCOORD) : COLOR{
-								float x = hatch.x - floor(hatch.x);
-								float fx = smoothstep((u_LineWidth + u_SmoothWidth)*-0.5, u_LineWidth*-0.5, -abs(x - 0.5));
-								return lerp(u_BackColor, u_ForeColor, fx);
+						{
+							String snippet = getShaderSnippet(RenderShaderLanguage::HLSL, m_style);
+							if (snippet.isNull()) {
+								return sl_null;
 							}
+							return String::concat(SLIB_STRINGIFY(
+								float4 u_ForeColor : register(c0);
+								float4 u_BackColor : register(c1);
+								float hatchLineWidth : register(c2);
+								float hatchSmoothWidth : register(c3);
+								float4 main(float2 hatch : TEXCOORD) : COLOR{
+							), snippet, SLIB_STRINGIFY(
+									return lerp(u_BackColor, u_ForeColor, hatchFactor);
+								}
+							));
+						}
+					default:
+						break;
+				}
+				return sl_null;
+			}
+
+			String HatchFill::getShaderSnippet(RenderShaderLanguage lang, HatchStyle style)
+			{
+				switch (style) {
+					case HatchStyle::Solid:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							float hatchFactor = 1.0;
+						))
+					case HatchStyle::Vertical:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							float hatchX = hatch.x - floor(hatch.x);
+							float hatchFactor = smoothstep((hatchLineWidth + hatchSmoothWidth)*-0.5, hatchLineWidth*-0.5, -abs(hatchX - 0.5));
+						))
+					case HatchStyle::Horizontal:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							float hatchY = hatch.y - floor(hatch.y);
+							float hatchFactor = smoothstep((hatchLineWidth + hatchSmoothWidth)*-0.5, hatchLineWidth*-0.5, -abs(hatchY - 0.5));
+						))
+					case HatchStyle::ForwardDiagonal:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							float hatchX = 0.7071 * (hatch.x + hatch.y);
+							hatchX = hatchX - floor(hatchX);
+							float hatchFactor = smoothstep((hatchLineWidth + hatchSmoothWidth)*-0.5, hatchLineWidth*-0.5, -abs(hatchX - 0.5));
+						))
+					case HatchStyle::BackwardDiagonal:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							float hatchX = 0.7071 * (hatch.x - hatch.y);
+						hatchX = hatchX - floor(hatchX);
+						float hatchFactor = smoothstep((hatchLineWidth + hatchSmoothWidth)*-0.5, hatchLineWidth*-0.5, -abs(hatchX - 0.5));
+						))
+					case HatchStyle::Cross:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							float hatchX = hatch.x - floor(hatch.x);
+							float hatchY = hatch.y - floor(hatch.y);
+							float hatchFactor = clamp(smoothstep((hatchLineWidth + hatchSmoothWidth)*-0.5, hatchLineWidth*-0.5, -abs(hatchX - 0.5)) + smoothstep((hatchLineWidth + hatchSmoothWidth)*-0.5, hatchLineWidth*-0.5, -abs(hatchY - 0.5)), 0.0, 1.0);
+						))
+					case HatchStyle::DiagonalCross:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							float hatchX = 0.7071 * (hatch.x + hatch.y);
+							float hatchY = 0.7071 * (hatch.x - hatch.y);
+							hatchX = hatchX - floor(hatchX);
+							hatchY = hatchY - floor(hatchY);
+							float hatchFactor = clamp(smoothstep((hatchLineWidth + hatchSmoothWidth)*-0.5, hatchLineWidth*-0.5, -abs(hatchX - 0.5)) + smoothstep((hatchLineWidth + hatchSmoothWidth)*-0.5, hatchLineWidth*-0.5, -abs(hatchY - 0.5)), 0.0, 1.0);
+						))
+					case HatchStyle::Dots:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							float hatchX = hatch.x - floor(hatch.x);
+							float hatchY = hatch.y - floor(hatch.y);
+							float hatchFactor = smoothstep((hatchLineWidth + hatchSmoothWidth)*-0.5, hatchLineWidth*-0.5, -abs(hatchX - 0.5)) * smoothstep((hatchLineWidth + hatchSmoothWidth)*-0.5, hatchLineWidth*-0.5, -abs(hatchY - 0.5));
 						))
 					default:
 						break;

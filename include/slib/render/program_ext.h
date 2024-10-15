@@ -130,8 +130,8 @@ namespace slib
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(HatchTransform, u_HatchTransform, RenderShaderStage::Vertex, 3)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ForeColor, u_ForeColor, RenderShaderStage::Pixel, 0)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(BackColor, u_BackColor, RenderShaderStage::Pixel, 1)
-				SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(LineWidth, u_LineWidth, RenderShaderStage::Pixel, 2)
-				SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(SmoothWidth, u_SmoothWidth, RenderShaderStage::Pixel, 3)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(LineWidth, hatchLineWidth, RenderShaderStage::Pixel, 2)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(SmoothWidth, hatchSmoothWidth, RenderShaderStage::Pixel, 3)
 
 				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
 			SLIB_RENDER_PROGRAM_STATE_END
@@ -149,7 +149,12 @@ namespace slib
 				String getShader(RenderEngine* engine, RenderShaderType type) override;
 
 			public:
+				// Input Variable: `hatch`, `hatchLineWidth`, `hatchSmoothWidth`
+				// Output variables: `hatchFactor`
 				static String getShaderSnippet(RenderShaderLanguage lang, HatchStyle style);
+
+			protected:
+				HatchStyle m_style;
 			};
 		}
 	}

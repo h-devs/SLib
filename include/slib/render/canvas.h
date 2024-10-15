@@ -142,28 +142,34 @@ namespace slib
 		using Canvas::drawRectangle;
 		void drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
 		void drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor) override;
+		void drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor, HatchStyle hatch, const Color& hatchBackColor = Color::zero());
 
 		using Canvas::drawRoundRect;
 		void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
 		void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Color& fillColor) override;
+		void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Color& fillColor, HatchStyle hatch, const Color& hatchBackColor = Color::zero());
 
 		using Canvas::drawEllipse;
 		void drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
 		void drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor) override;
+		void drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor, HatchStyle hatch, const Color& hatchBackColor = Color::zero());
 
 		using Canvas::drawPolygon;
 		void drawPolygon(const Point* points, sl_size pointCount, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode = FillMode::Alternate) override;
 		void drawPolygon(const Point* points, sl_size pointCount, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode = FillMode::Alternate) override;
+		void drawPolygon(const Point* points, sl_size pointCount, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode, HatchStyle hatch, const Color& hatchBackColor = Color::zero());
 
 		using Canvas::drawPie;
 		void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
 		void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Color& fillColor) override;
+		void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Color& fillColor, HatchStyle hatch, const Color& hatchBackColor = Color::zero());
 
 		using Canvas::drawPath;
 		void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush) override;
 		void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Color& fillColor) override;
+		void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Color& fillColor, HatchStyle hatch, const Color& hatchBackColor = Color::zero());
 
-		void fillTriangles(const List<Triangle>& triangles, const Color& color);
+		void fillTriangles(const List<Triangle>& triangles, const Color& color, HatchStyle hatch = HatchStyle::Solid, const Color& hatchBackColor = Color::zero());
 
 
 		void drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param, const Color4F& color);
@@ -221,7 +227,7 @@ namespace slib
 
 		void _drawBitmap(const Rectangle& rectDst, Bitmap* src, const Rectangle& rectSrc, const DrawParam& param);
 
-		void _fillRectangle(const Rectangle& rect, const Color& color);
+		void _fillRectangle(const Rectangle& rect, const Color& color, HatchStyle hatch = HatchStyle::Solid, const Color& hatchBackColor = Color::zero());
 
 		void _drawLineByRect(const Point& pt1, const Point& pt2, const Color& color, sl_real width);
 

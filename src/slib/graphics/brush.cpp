@@ -257,6 +257,21 @@ namespace slib
 		return m_desc.color;
 	}
 
+	HatchStyle Brush::getHatchStyle()
+	{
+		if (m_desc.style == BrushStyle::Hatch) {
+			return ((HatchBrushDetail*)(m_desc.detail.get()))->style;
+		}
+		return HatchStyle::Solid;
+	}
+
+	Color Brush::getHatchBackgroundColor()
+	{
+		if (m_desc.style == BrushStyle::Hatch) {
+			return ((HatchBrushDetail*)(m_desc.detail.get()))->backgroundColor;
+		}
+		return Color::zero();
+	}
 
 	GradientBrushDetail::GradientBrushDetail()
 	{

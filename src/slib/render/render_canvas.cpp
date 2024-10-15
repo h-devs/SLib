@@ -46,6 +46,8 @@ namespace slib
 	{
 		SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderCanvasProgramState, render2d::vertex::Position)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderStage::Vertex, 0)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(RectSrc, u_RectSrc, RenderShaderStage::Vertex, 3)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(HatchTransform, u_HatchTransform, RenderShaderStage::Vertex, 4)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderStage::Pixel, 0)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderStage::Pixel, 0)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterR, u_ColorFilterR, RenderShaderStage::Pixel, 1)
@@ -54,7 +56,7 @@ namespace slib
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterA, u_ColorFilterA, RenderShaderStage::Pixel, 4)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterC, u_ColorFilterC, RenderShaderStage::Pixel, 5)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterM, u_ColorFilterM, RenderShaderStage::Pixel, 6)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(RectSrc, u_RectSrc, RenderShaderStage::Vertex, 3)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(HatchBackColor, u_HatchBackColor, RenderShaderStage::Pixel, 7)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3_ARRAY(ClipTransform, u_ClipTransform, RenderShaderStage::Vertex, 32)
 			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(ClipRect, u_ClipRect, RenderShaderStage::Vertex | RenderShaderStage::Pixel, 16)
 
@@ -65,8 +67,8 @@ namespace slib
 		{
 		public:
 			RenderShaderLanguage language = RenderShaderLanguage::GLSL;
+			HatchStyle hatch = HatchStyle::Solid;
 			sl_bool flagUseTexture = sl_false;
-			sl_bool flagUseHatchStyle = sl_false;
 			sl_bool flagUseColorFilter = sl_false;
 			RenderCanvasClip* clips[MAX_SHADER_CLIP + 1];
 			sl_uint32 countClips = 0;
@@ -122,6 +124,14 @@ namespace slib
 				}
 				state->setClipRect(clipRects, countClips);
 				state->setClipTransform(clipTransforms, countClips);
+			}
+
+			void applyHatch(RenderCanvasProgramState* state,  const Color& hatchBackColor, sl_real viewportWidth, sl_real viewportHeight)
+			{
+				if (hatch != HatchStyle::Solid) {
+					state->setHatchBackColor(hatchBackColor);
+					state->setHatchTransform(Transform2::getScalingMatrix(viewportWidth / 40.0f, viewportHeight / 40.0f));
+				}
 			}
 
 		private:
@@ -204,6 +214,7 @@ namespace slib
 						bufFBContent.addStatic(SLIB_STRINGIFY(
 							float4 main(PS_INPUT input) : COLOR {
 								float4 l_Color = u_Color;
+								float l_Opacity = 1.0;
 						));
 						break;
 					case RenderShaderLanguage::GLSL:
@@ -213,7 +224,8 @@ namespace slib
 						));
 						bufVBContent.addStatic(SLIB_STRINGIFY(
 							void main() {
-								gl_Position = vec4((vec3(a_Position, 1.0) * u_Transform).xy, 0.0, 1.0);
+								vec4 pos = vec4((vec3(a_Position, 1.0) * u_Transform).xy, 0.0, 1.0);
+								gl_Position = pos;
 						));
 						bufFBHeader.addStatic(SLIB_STRINGIFY(
 							uniform vec4 u_Color;
@@ -221,6 +233,7 @@ namespace slib
 						bufFBContent.addStatic(SLIB_STRINGIFY(
 							void main() {
 								vec4 l_Color = u_Color;
+								float l_Opacity = 1.0;
 						));
 						break;
 					case RenderShaderLanguage::Assembly:
@@ -237,18 +250,6 @@ namespace slib
 						break;
 					default:
 						break;
-					}
-				}
-				if (param.flagUseTexture) {
-					if (bufVertexShader) {
-						if (lang == RenderShaderLanguage::HLSL) {
-							bufVSOutput.addStatic(SLIB_STRINGIFY(
-								float2 texCoord : TEXCOORD0;
-							));
-							bufPSInput.addStatic(SLIB_STRINGIFY(
-								float2 texCoord : TEXCOORD0;
-							));
-						}
 					}
 				}
 				if (param.countClips > 0 && (lang != RenderShaderLanguage::Assembly)) {
@@ -332,7 +333,8 @@ namespace slib
 									bufFBContent.add(String::format(SLIB_STRINGIFY(
 										else {
 											lenClip%d = sqrt(lenClip%d);
-											l_Color.w *= smoothstep(0.0, 1.5 / sqrt(wClip%d * hClip%d), 1.0 - lenClip%d);
+											l_Opacity = smoothstep(0.0, 1.5 / sqrt(wClip%d * hClip%d), 1.0 - lenClip%d);
+											l_Color.w *= l_Opacity;
 										}
 									), i));
 								}
@@ -382,6 +384,12 @@ namespace slib
 					if (bufVertexShader) {
 						switch (lang) {
 						case RenderShaderLanguage::HLSL:
+							bufVSOutput.addStatic(SLIB_STRINGIFY(
+								float2 texCoord : TEXCOORD0;
+							));
+							bufPSInput.addStatic(SLIB_STRINGIFY(
+								float2 texCoord : TEXCOORD0;
+							));
 							bufVBHeader.addStatic(SLIB_STRINGIFY(
 								float4 u_RectSrc : register(c3);
 							));
@@ -485,17 +493,72 @@ namespace slib
 						}
 					}
 				} else {
+					if (param.hatch != HatchStyle::Solid) {
+						if (signatures) {
+							*(signatures++) = 'H';
+							*(signatures++) = (char)('0' + (int)(param.hatch));
+						}
+					}
 					if (bufVertexShader) {
 						switch (lang) {
 						case RenderShaderLanguage::HLSL:
-							bufFBContent.addStatic(SLIB_STRINGIFY(
-								float4 color = l_Color;
-							));
+							if (param.hatch != HatchStyle::Solid) {
+								bufVSOutput.addStatic(SLIB_STRINGIFY(
+									float2 hatch : TEXCOORD0;
+								));
+								bufPSInput.addStatic(SLIB_STRINGIFY(
+									float2 hatch : TEXCOORD0;
+								));
+								bufVBHeader.addStatic(SLIB_STRINGIFY(
+									float3x3 u_HatchTransform : register(c4);
+								));
+								bufVBContent.addStatic(SLIB_STRINGIFY(
+									ret.hatch = mul(ret.pos.xyz, u_HatchTransform).xy;
+								));
+								bufFBHeader.addStatic(SLIB_STRINGIFY(
+									float4 u_HatchBackColor : register(c7);
+								));
+								bufFBContent.addStatic(SLIB_STRINGIFY(
+									float2 hatch = input.hatch;
+									float hatchLineWidth = 0.15;
+									float hatchSmoothWidth = 0.1;
+								));
+								bufFBContent.add(render2d::program::HatchFill::getShaderSnippet(RenderShaderLanguage::HLSL, param.hatch));
+								bufFBContent.addStatic(SLIB_STRINGIFY(
+									float4 color = lerp(float4(u_HatchBackColor.xyz, u_HatchBackColor.w * l_Opacity), l_Color, hatchFactor);
+								));
+							} else {
+								bufFBContent.addStatic(SLIB_STRINGIFY(
+									float4 color = l_Color;
+								));
+							}
 							break;
 						case RenderShaderLanguage::GLSL:
-							bufFBContent.addStatic(SLIB_STRINGIFY(
-								vec4 color = l_Color;
-							));
+							if (param.hatch != HatchStyle::Solid) {
+								bufVBHeader.addStatic(SLIB_STRINGIFY(
+									uniform mat3 u_HatchTransform;
+									varying vec2 hatch;
+								));
+								bufVBContent.addStatic(SLIB_STRINGIFY(
+									hatch = (pos.xyz * u_HatchTransform).xy;
+								));
+								bufFBHeader.addStatic(SLIB_STRINGIFY(
+									uniform vec4 u_HatchBackColor;
+									varying vec2 hatch;
+								));
+								bufFBContent.addStatic(SLIB_STRINGIFY(
+									float hatchLineWidth = 0.15;
+									float hatchSmoothWidth = 0.1;
+								));
+								bufFBContent.add(render2d::program::HatchFill::getShaderSnippet(RenderShaderLanguage::GLSL, param.hatch));
+								bufFBContent.addStatic(SLIB_STRINGIFY(
+									vec4 color = vec4(u_HatchBackColor.xyz, u_HatchBackColor.w * l_Opacity) * (1.0 - hatchFactor) + l_Color * hatchFactor;
+								));
+							} else {
+								bufFBContent.addStatic(SLIB_STRINGIFY(
+									vec4 color = l_Color;
+								));
+							}
 							break;
 						case RenderShaderLanguage::Assembly:
 							bufFBContent.addStatic("mov r0, c0\n");
@@ -1038,7 +1101,7 @@ namespace slib
 	void RenderCanvas::drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
 		if (brush.isNotNull()) {
-			drawRectangle(rect, pen, brush->getColor());
+			drawRectangle(rect, pen, brush->getColor(), brush->getHatchStyle(), brush->getHatchBackgroundColor());
 		} else {
 			drawRectangle(rect, pen, Color::zero());
 		}
@@ -1046,15 +1109,20 @@ namespace slib
 
 	void RenderCanvas::drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor)
 	{
+		drawRectangle(rect, pen, fillColor, HatchStyle::Solid);
+	}
+
+	void RenderCanvas::drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor, HatchStyle hatch, const Color& hatchBackColor)
+	{
 		sl_real penWidthHalf = 0;
 		if (pen.isNotNull()) {
 			penWidthHalf = pen->getWidth() / 2.0f;
 		}
 		if (fillColor.a) {
 			if (pen.isNotNull()) {
-				_fillRectangle(Rectangle(rect.left + penWidthHalf, rect.top + penWidthHalf, rect.right - penWidthHalf, rect.bottom - penWidthHalf), fillColor);
+				_fillRectangle(Rectangle(rect.left + penWidthHalf, rect.top + penWidthHalf, rect.right - penWidthHalf, rect.bottom - penWidthHalf), fillColor, hatch, hatchBackColor);
 			} else {
-				_fillRectangle(rect, fillColor);
+				_fillRectangle(rect, fillColor, hatch, hatchBackColor);
 			}
 		}
 		if (pen.isNotNull()) {
@@ -1072,7 +1140,7 @@ namespace slib
 		}
 	}
 
-	void RenderCanvas::_fillRectangle(const Rectangle& _rect, const Color& _color)
+	void RenderCanvas::_fillRectangle(const Rectangle& _rect, const Color& _color, HatchStyle hatch, const Color& hatchBackColor)
 	{
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
@@ -1087,6 +1155,7 @@ namespace slib
 		}
 		RenderCanvasProgramParam pp;
 		pp.prepare(state, sl_true);
+		pp.hatch = hatch;
 		RenderProgramScope<RenderCanvasProgramState> scope;
 		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 			Matrix3 mat;
@@ -1094,6 +1163,7 @@ namespace slib
 			mat.m01 = 0; mat.m11 = rect.getHeight(); mat.m21 = rect.top;
 			mat.m02 = 0; mat.m12 = 0; mat.m22 = 1;
 			pp.applyToProgramState(scope.getState(), mat);
+			pp.applyHatch(scope.getState(), hatchBackColor, m_width, m_height);
 			mat *= state->matrix;
 			mat *= m_matViewport;
 			scope->setTransform(mat);
@@ -1107,7 +1177,7 @@ namespace slib
 	void RenderCanvas::drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
 		if (brush.isNotNull()) {
-			drawRoundRect(rect, radius, pen, brush->getColor());
+			drawRoundRect(rect, radius, pen, brush->getColor(), brush->getHatchStyle(), brush->getHatchBackgroundColor());
 		} else {
 			drawRoundRect(rect, radius, pen, Color::zero());
 		}
@@ -1115,8 +1185,13 @@ namespace slib
 
 	void RenderCanvas::drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Color& fillColor)
 	{
+		drawRoundRect(rect, radius, pen, fillColor, HatchStyle::Solid);
+	}
+
+	void RenderCanvas::drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Color& fillColor, HatchStyle hatch, const Color& hatchBackColor)
+	{
 		if (fillColor.a) {
-			fillTriangles(GeometryHelper::splitRoundRectToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth(), rect.getHeight(), radius.x, radius.y), fillColor);
+			fillTriangles(GeometryHelper::splitRoundRectToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth(), rect.getHeight(), radius.x, radius.y), fillColor, hatch, hatchBackColor);
 		}
 		if (pen.isNotNull()) {
 			Color borderColor = pen->getColor();
@@ -1129,13 +1204,18 @@ namespace slib
 	void RenderCanvas::drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
 		if (brush.isNotNull()) {
-			drawEllipse(rect, pen, brush->getColor());
+			drawEllipse(rect, pen, brush->getColor(), brush->getHatchStyle(), brush->getHatchBackgroundColor());
 		} else {
 			drawEllipse(rect, pen, Color::zero());
 		}
 	}
 
 	void RenderCanvas::drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor)
+	{
+		drawEllipse(rect, pen, fillColor, HatchStyle::Solid);
+	}
+
+	void RenderCanvas::drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor, HatchStyle hatch, const Color& hatchBackColor)
 	{
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
@@ -1150,6 +1230,7 @@ namespace slib
 			}
 			RenderCanvasProgramParam pp;
 			pp.prepare(state, state->flagClipRect && state->clipRect.containsRectangle(rect));
+			pp.hatch = hatch;
 			RenderCanvasClip clip;
 			clip.type = RenderCanvasClipType::Ellipse;
 			clip.region = rect;
@@ -1161,6 +1242,7 @@ namespace slib
 				mat.m01 = 0; mat.m11 = rect.getHeight(); mat.m21 = rect.top;
 				mat.m02 = 0; mat.m12 = 0; mat.m22 = 1;
 				pp.applyToProgramState(scope.getState(), mat);
+				pp.applyHatch(scope.getState(), hatchBackColor, m_width, m_height);
 				mat *= state->matrix;
 				mat *= m_matViewport;
 				scope->setTransform(mat);
@@ -1181,7 +1263,7 @@ namespace slib
 	void RenderCanvas::drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode)
 	{
 		if (brush.isNotNull()) {
-			drawPolygon(points, nPoints, pen, brush->getColor(), fillMode);
+			drawPolygon(points, nPoints, pen, brush->getColor(), fillMode, brush->getHatchStyle(), brush->getHatchBackgroundColor());
 		} else {
 			drawPolygon(points, nPoints, pen, Color::zero(), fillMode);
 		}
@@ -1189,8 +1271,13 @@ namespace slib
 
 	void RenderCanvas::drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode)
 	{
+		drawPolygon(points, nPoints, pen, fillColor, fillMode, HatchStyle::Solid);
+	}
+
+	void RenderCanvas::drawPolygon(const Point* points, sl_size nPoints, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode, HatchStyle hatch, const Color& hatchBackColor)
+	{
 		if (fillColor.a) {
-			fillTriangles(GeometryHelper::splitPolygonToTriangles(points, nPoints), fillColor);
+			fillTriangles(GeometryHelper::splitPolygonToTriangles(points, nPoints), fillColor, hatch, hatchBackColor);
 		}
 		if (pen.isNotNull()) {
 			Color borderColor = pen->getColor();
@@ -1203,7 +1290,7 @@ namespace slib
 	void RenderCanvas::drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
 		if (brush.isNotNull()) {
-			drawPie(rect, startDegrees, sweepDegrees, pen, brush->getColor());
+			drawPie(rect, startDegrees, sweepDegrees, pen, brush->getColor(), brush->getHatchStyle(), brush->getHatchBackgroundColor());
 		} else {
 			drawPie(rect, startDegrees, sweepDegrees, pen, Color::zero());
 		}
@@ -1211,8 +1298,13 @@ namespace slib
 
 	void RenderCanvas::drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Color& fillColor)
 	{
+		drawPie(rect, startDegrees, sweepDegrees, pen, fillColor, HatchStyle::Solid);
+	}
+
+	void RenderCanvas::drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Color& fillColor, HatchStyle hatch, const Color& hatchBackColor)
+	{
 		if (fillColor.a) {
-			fillTriangles(GeometryHelper::splitPieToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth() / 2.0f, rect.getHeight() / 2.0f, Math::getRadianFromDegrees(startDegrees), Math::getRadianFromDegrees(sweepDegrees)), fillColor);
+			fillTriangles(GeometryHelper::splitPieToTriangles(rect.getCenterX(), rect.getCenterY(), rect.getWidth() / 2.0f, rect.getHeight() / 2.0f, Math::getRadianFromDegrees(startDegrees), Math::getRadianFromDegrees(sweepDegrees)), fillColor, hatch, hatchBackColor);
 		}
 		if (pen.isNotNull()) {
 			Color borderColor = pen->getColor();
@@ -1225,13 +1317,18 @@ namespace slib
 	void RenderCanvas::drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
 		if (brush.isNotNull()) {
-			drawPath(path, pen, brush->getColor());
+			drawPath(path, pen, brush->getColor(), brush->getHatchStyle(), brush->getHatchBackgroundColor());
 		} else {
 			drawPath(path, pen, Color::zero());
 		}
 	}
 
 	void RenderCanvas::drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Color& fillColor)
+	{
+		drawPath(path, pen, fillColor, HatchStyle::Solid);
+	}
+
+	void RenderCanvas::drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Color& fillColor, HatchStyle hatch, const Color& hatchBackColor)
 	{
 		if (path.isNull()) {
 			return;
@@ -1240,15 +1337,15 @@ namespace slib
 		for (sl_size i = 0; i < shapes.count; i++) {
 			GraphicsPath::PolyShape& shape = shapes[i];
 			if (shape.flagClose) {
-				drawPolygon(shape.points, pen, fillColor);
+				drawPolygon(shape.points.getData(), shape.points.getCount(), pen, fillColor, path->getFillMode(), hatch, hatchBackColor);
 			} else {
-				drawPolygon(shape.points, sl_null, fillColor);
+				drawPolygon(shape.points.getData(), shape.points.getCount(), sl_null, fillColor, path->getFillMode(), hatch, hatchBackColor);
 				drawLines(shape.points, pen);
 			}
 		}
 	}
 
-	void RenderCanvas::fillTriangles(const List<Triangle>& triangles, const Color& _color)
+	void RenderCanvas::fillTriangles(const List<Triangle>& triangles, const Color& _color, HatchStyle hatch, const Color& hatchBackColor)
 	{
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
@@ -1272,9 +1369,11 @@ namespace slib
 		RenderCanvasState* state = m_state.get();
 		RenderCanvasProgramParam pp;
 		pp.prepare(state, sl_false);
+		pp.hatch = hatch;
 		RenderProgramScope<RenderCanvasProgramState> scope;
 		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 			pp.applyToProgramState(scope.getState(), Matrix3::identity());
+			pp.applyHatch(scope.getState(), hatchBackColor, m_width, m_height);
 			Matrix3 mat = state->matrix;
 			mat *= m_matViewport;
 			scope->setTransform(mat);
