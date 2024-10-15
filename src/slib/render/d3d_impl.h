@@ -789,16 +789,16 @@ namespace slib
 			static Ref<RenderProgramInstanceImpl> create(ID3DDevice* device, ID3DDeviceContext* context, RenderEngine* engine, RenderProgram* program)
 			{
 #if D3D_VERSION_MAJOR >= 9
-				Memory codeVertex = program->getHLSLCompiledVertexShader(engine);
+				Memory codeVertex = program->getCompiledShader(engine, RenderShaderType::HLSL_Vertex);
 				if (codeVertex.isNull()) {
-					codeVertex = Direct3D::compileShader(program->getHLSLVertexShader(engine), VERTEX_SHADER_TARGET);
+					codeVertex = Direct3D::compileShader(program->getShader(engine, RenderShaderType::HLSL_Vertex), VERTEX_SHADER_TARGET);
 					if (codeVertex.isNull()) {
 						return sl_null;
 					}
 				}
-				Memory codePixel = program->getHLSLCompiledPixelShader(engine);
+				Memory codePixel = program->getCompiledShader(engine, RenderShaderType::HLSL_Pixel);
 				if (codePixel.isNull()) {
-					codePixel = Direct3D::compileShader(program->getHLSLPixelShader(engine), PIXEL_SHADER_TARGET);
+					codePixel = Direct3D::compileShader(program->getShader(engine, RenderShaderType::HLSL_Pixel), PIXEL_SHADER_TARGET);
 					if (codePixel.isNull()) {
 						return sl_null;
 					}
@@ -813,17 +813,17 @@ namespace slib
 #endif
 				if (vs) {
 #else
-				Memory codeVertex = program->getAssembledVertexShader(engine);
+				Memory codeVertex = program->getCompiledShader(engine, RenderShaderType::Assembly_Vertex);
 				Memory constantsVertex;
 				if (codeVertex.isNull()) {
-					codeVertex = assembleShader(program->getAssemblyVertexShader(engine), &constantsVertex);
+					codeVertex = assembleShader(program->getShader(engine, RenderShaderType::Assembly_Vertex), &constantsVertex);
 					if (codeVertex.isNull()) {
 						return sl_null;
 					}
 				}
-				Memory codePixel = program->getAssembledPixelShader(engine);
+				Memory codePixel = program->getCompiledShader(engine, RenderShaderType::Assembly_Pixel);
 				if (codePixel.isNull()) {
-					codePixel = assembleShader(program->getAssemblyPixelShader(engine), sl_null);
+					codePixel = assembleShader(program->getShader(engine, RenderShaderType::Assembly_Pixel), sl_null);
 					if (codePixel.isNull()) {
 						return sl_null;
 					}
@@ -959,19 +959,19 @@ namespace slib
 					return;
 				}
 				switch (location.shader) {
-					case RenderShaderType::Vertex:
-					case RenderShaderType::Pixel:
+					case RenderShaderStage::Vertex:
+					case RenderShaderStage::Pixel:
 						_setUniform(location, type, data, nItems);
 						break;
 					default:
-						if (location.shader & RenderShaderType::Vertex) {
+						if (location.shader & RenderShaderStage::Vertex) {
 							RenderUniformLocation l = location;
-							l.shader = RenderShaderType::Vertex;
+							l.shader = RenderShaderStage::Vertex;
 							_setUniform(l, type, data, nItems);
 						}
-						if (location.shader & RenderShaderType::Pixel) {
+						if (location.shader & RenderShaderStage::Pixel) {
 							RenderUniformLocation l = location;
-							l.shader = RenderShaderType::Pixel;
+							l.shader = RenderShaderStage::Pixel;
 							_setUniform(l, type, data, nItems);
 						}
 						break;
@@ -982,9 +982,9 @@ namespace slib
 			{
 #if D3D_VERSION_MAJOR >= 10
 				ConstantBuffer* buffer;
-				if (location.shader == RenderShaderType::Vertex) {
+				if (location.shader == RenderShaderStage::Vertex) {
 					buffer = constantBuffersVS.getPointerAt(location.bufferNo);
-				} else if (location.shader == RenderShaderType::Pixel) {
+				} else if (location.shader == RenderShaderStage::Pixel) {
 					buffer = constantBuffersPS.getPointerAt(location.bufferNo);
 				} else {
 					return;
@@ -1209,7 +1209,7 @@ namespace slib
 #else
 			static void _setUniform(ID3DDevice* dev, const RenderUniformLocation& location, RenderUniformType type, const void* data, sl_uint32 countVector4)
 			{
-				if (location.shader == RenderShaderType::Vertex) {
+				if (location.shader == RenderShaderStage::Vertex) {
 #if D3D_VERSION_MAJOR >= 9
 					if (type == RenderUniformType::Float) {
 						dev->SetVertexShaderConstantF((UINT)(location.registerNo), (float*)data, (UINT)countVector4);
@@ -1219,7 +1219,7 @@ namespace slib
 #else
 					dev->SetVertexShaderConstant((DWORD)(location.registerNo), data, (DWORD)countVector4);
 #endif
-				} else if (location.shader == RenderShaderType::Pixel) {
+				} else if (location.shader == RenderShaderStage::Pixel) {
 #if D3D_VERSION_MAJOR >= 9
 					if (type == RenderUniformType::Float) {
 						dev->SetPixelShaderConstantF((UINT)(location.registerNo), (float*)data, (UINT)countVector4);

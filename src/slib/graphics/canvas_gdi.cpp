@@ -24,7 +24,7 @@
 
 #if defined(SLIB_GRAPHICS_IS_GDI)
 
-#include "slib/graphics/canvas.h"
+#include "slib/graphics/canvas_ext.h"
 
 #include "slib/core/queue.h"
 #include "slib/graphics/platform.h"

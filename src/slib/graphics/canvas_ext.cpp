@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/graphics/canvas.h"
+#include "slib/graphics/canvas_ext.h"
 
 #include "slib/graphics/font_atlas.h"
 #include "slib/graphics/util.h"

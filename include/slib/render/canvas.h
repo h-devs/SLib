@@ -25,7 +25,7 @@
 
 #include "engine.h"
 
-#include "../graphics/canvas.h"
+#include "../graphics/canvas_ext.h"
 #include "../core/queue.h"
 #include "../math/matrix3.h"
 #include "../math/triangle.h"
@@ -72,6 +72,14 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RenderCanvasState)
 
 	};
+
+	namespace render2d
+	{
+		namespace state
+		{
+			class Position;
+		}
+	}
 
 	class SLIB_EXPORT RenderCanvas : public CanvasExt
 	{
@@ -187,6 +195,7 @@ namespace slib
 
 		Matrix3 getTransformMatrixForRectangle(const Rectangle& rect);
 
+		// `state`: inherited render2d::state::Position
 		void drawRectangle(const Rectangle& rect, render2d::state::Position* programState, const DrawParam& param);
 
 

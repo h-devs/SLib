@@ -28,6 +28,7 @@
 #include "../geo/geo_rectangle.h"
 #include "../geo/dem.h"
 #include "../math/triangle.h"
+#include "../render/program_ext.h"
 
 #define SLIB_MAP_VIEW_LAYER_COUNT 5
 

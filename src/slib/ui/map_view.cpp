@@ -974,16 +974,16 @@ namespace slib
 	namespace
 	{
 		SLIB_RENDER_PROGRAM_STATE_BEGIN(SurfaceTileState, MapTileVertex)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform, RenderShaderType::Vertex, 0)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture0, u_LayerTexture0, RenderShaderType::Pixel, 1)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture1, u_LayerTexture1, RenderShaderType::Pixel, 2)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture2, u_LayerTexture2, RenderShaderType::Pixel, 3)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture3, u_LayerTexture3, RenderShaderType::Pixel, 4)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture4, u_LayerTexture4, RenderShaderType::Pixel, 5)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(TextureRect, u_TextureRect, RenderShaderType::Pixel, 0)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(LayerTextureRect, u_LayerTextureRect, RenderShaderType::Pixel, 1)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT_ARRAY(LayerAlpha, u_LayerAlpha, RenderShaderType::Pixel, 6)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform, RenderShaderStage::Vertex, 0)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderStage::Pixel, 0)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture0, u_LayerTexture0, RenderShaderStage::Pixel, 1)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture1, u_LayerTexture1, RenderShaderStage::Pixel, 2)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture2, u_LayerTexture2, RenderShaderStage::Pixel, 3)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture3, u_LayerTexture3, RenderShaderStage::Pixel, 4)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(LayerTexture4, u_LayerTexture4, RenderShaderStage::Pixel, 5)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(TextureRect, u_TextureRect, RenderShaderStage::Pixel, 0)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(LayerTextureRect, u_LayerTextureRect, RenderShaderStage::Pixel, 1)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT_ARRAY(LayerAlpha, u_LayerAlpha, RenderShaderStage::Pixel, 6)
 
 			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position, RenderInputSemanticName::Position)
 			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord, RenderInputSemanticName::TexCoord)
@@ -992,128 +992,124 @@ namespace slib
 		class SurfaceTileProgram : public RenderProgramT<SurfaceTileState>
 		{
 		public:
-			String getGLSLVertexShader(RenderEngine* engine) override
+			String getShader(RenderEngine* engine, RenderShaderType type) override
 			{
-				SLIB_RETURN_STRING(SLIB_STRINGIFY(
-					uniform mat4 u_Transform;
-					attribute vec3 a_Position;
-					attribute vec2 a_TexCoord;
-					varying vec2 v_TexCoord;
-					void main() {
-						vec4 P = vec4(a_Position, 1.0) * u_Transform;
-						gl_Position = P;
-						v_TexCoord = a_TexCoord;
-					}
-				))
-			}
+				switch (type) {
+					case RenderShaderType::GLSL_Vertex:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							uniform mat4 u_Transform;
+							attribute vec3 a_Position;
+							attribute vec2 a_TexCoord;
+							varying vec2 v_TexCoord;
+							void main() {
+								vec4 P = vec4(a_Position, 1.0) * u_Transform;
+								gl_Position = P;
+								v_TexCoord = a_TexCoord;
+							}
+						))
+					case RenderShaderType::GLSL_Fragment:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							uniform sampler2D u_Texture;
+							uniform sampler2D u_LayerTexture0;
+							uniform sampler2D u_LayerTexture1;
+							uniform sampler2D u_LayerTexture2;
+							uniform sampler2D u_LayerTexture3;
+							uniform sampler2D u_LayerTexture4;
+							uniform vec4 u_TextureRect;
+							uniform vec4 u_LayerTextureRect[5];
+							uniform float u_LayerAlpha[5];
+							varying vec2 v_TexCoord;
+							void main() {
+								vec4 colorTexture = texture2D(u_Texture, v_TexCoord * u_TextureRect.zw + u_TextureRect.xy);
+								vec4 colorLayer0 = texture2D(u_LayerTexture0, v_TexCoord * u_LayerTextureRect[0].zw + u_LayerTextureRect[0].xy);
+								vec4 colorLayer1 = texture2D(u_LayerTexture1, v_TexCoord * u_LayerTextureRect[1].zw + u_LayerTextureRect[1].xy);
+								vec4 colorLayer2 = texture2D(u_LayerTexture2, v_TexCoord * u_LayerTextureRect[2].zw + u_LayerTextureRect[2].xy);
+								vec4 colorLayer3 = texture2D(u_LayerTexture3, v_TexCoord * u_LayerTextureRect[3].zw + u_LayerTextureRect[3].xy);
+								vec4 colorLayer4 = texture2D(u_LayerTexture4, v_TexCoord * u_LayerTextureRect[4].zw + u_LayerTextureRect[4].xy);
 
-			String getGLSLFragmentShader(RenderEngine* engine) override
-			{
-				String source;
-				SLIB_RETURN_STRING(SLIB_STRINGIFY(
-					uniform sampler2D u_Texture;
-					uniform sampler2D u_LayerTexture0;
-					uniform sampler2D u_LayerTexture1;
-					uniform sampler2D u_LayerTexture2;
-					uniform sampler2D u_LayerTexture3;
-					uniform sampler2D u_LayerTexture4;
-					uniform vec4 u_TextureRect;
-					uniform vec4 u_LayerTextureRect[5];
-					uniform float u_LayerAlpha[5];
-					varying vec2 v_TexCoord;
-					void main() {
-						vec4 colorTexture = texture2D(u_Texture, v_TexCoord * u_TextureRect.zw + u_TextureRect.xy);
-						vec4 colorLayer0 = texture2D(u_LayerTexture0, v_TexCoord * u_LayerTextureRect[0].zw + u_LayerTextureRect[0].xy);
-						vec4 colorLayer1 = texture2D(u_LayerTexture1, v_TexCoord * u_LayerTextureRect[1].zw + u_LayerTextureRect[1].xy);
-						vec4 colorLayer2 = texture2D(u_LayerTexture2, v_TexCoord * u_LayerTextureRect[2].zw + u_LayerTextureRect[2].xy);
-						vec4 colorLayer3 = texture2D(u_LayerTexture3, v_TexCoord * u_LayerTextureRect[3].zw + u_LayerTextureRect[3].xy);
-						vec4 colorLayer4 = texture2D(u_LayerTexture4, v_TexCoord * u_LayerTextureRect[4].zw + u_LayerTextureRect[4].xy);
+								float a = colorLayer0.a * u_LayerAlpha[0];
+								colorLayer0.a = 1.0;
+								vec4 c = colorTexture * (1.0 - a) + colorLayer0 * a;
 
-						float a = colorLayer0.a * u_LayerAlpha[0];
-						colorLayer0.a = 1.0;
-						vec4 c = colorTexture * (1.0 - a) + colorLayer0 * a;
+								a = colorLayer1.a * u_LayerAlpha[1];
+								colorLayer1.a = 1.0;
+								c = c * (1.0 - a) + colorLayer1 * a;
 
-						a = colorLayer1.a * u_LayerAlpha[1];
-						colorLayer1.a = 1.0;
-						c = c * (1.0 - a) + colorLayer1 * a;
+								a = colorLayer2.a * u_LayerAlpha[2];
+								colorLayer2.a = 1.0;
+								c = c * (1.0 - a) + colorLayer2 * a;
 
-						a = colorLayer2.a * u_LayerAlpha[2];
-						colorLayer2.a = 1.0;
-						c = c * (1.0 - a) + colorLayer2 * a;
+								a = colorLayer3.a * u_LayerAlpha[3];
+								colorLayer3.a = 1.0;
+								c = c * (1.0 - a) + colorLayer3 * a;
 
-						a = colorLayer3.a * u_LayerAlpha[3];
-						colorLayer3.a = 1.0;
-						c = c * (1.0 - a) + colorLayer3 * a;
+								a = colorLayer4.a * u_LayerAlpha[4];
+								colorLayer4.a = 1.0;
+								c = c * (1.0 - a) + colorLayer4 * a;
 
-						a = colorLayer4.a * u_LayerAlpha[4];
-						colorLayer4.a = 1.0;
-						c = c * (1.0 - a) + colorLayer4 * a;
+								gl_FragColor = c;
+							}
+						))
+					case RenderShaderType::HLSL_Vertex:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							float4x4 u_Transform : register(c0);
+							struct VS_OUTPUT {
+								float2 texcoord : TEXCOORD;
+								float4 pos : POSITION;
+							};
+							VS_OUTPUT main(float3 a_Position : POSITION, float2 a_TexCoord : TEXCOORD) {
+								VS_OUTPUT ret;
+								ret.pos = mul(float4(a_Position, 1.0), u_Transform);
+								ret.texcoord = a_TexCoord;
+								return ret;
+							}
+						))
+					case RenderShaderType::HLSL_Pixel:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							sampler u_Texture;
+							sampler u_LayerTexture0;
+							sampler u_LayerTexture1;
+							sampler u_LayerTexture2;
+							sampler u_LayerTexture3;
+							sampler u_LayerTexture4;
+							float4 u_TextureRect : register(c0);
+							float4 u_LayerTextureRect[5] : register(c1);
+							float u_LayerAlpha[5] : register(c6);
+							float4 main(float2 v_TexCoord : TEXCOORD) : COLOR{
+								float4 colorTexture = tex2D(u_Texture, v_TexCoord * u_TextureRect.zw + u_TextureRect.xy);
+								float4 colorLayer0 = tex2D(u_LayerTexture0, v_TexCoord * u_LayerTextureRect[0].zw + u_LayerTextureRect[0].xy);
+								float4 colorLayer1 = tex2D(u_LayerTexture1, v_TexCoord * u_LayerTextureRect[1].zw + u_LayerTextureRect[1].xy);
+								float4 colorLayer2 = tex2D(u_LayerTexture2, v_TexCoord * u_LayerTextureRect[2].zw + u_LayerTextureRect[2].xy);
+								float4 colorLayer3 = tex2D(u_LayerTexture3, v_TexCoord * u_LayerTextureRect[3].zw + u_LayerTextureRect[3].xy);
+								float4 colorLayer4 = tex2D(u_LayerTexture4, v_TexCoord * u_LayerTextureRect[4].zw + u_LayerTextureRect[4].xy);
 
-						gl_FragColor = c;
-					}
-				))
-			}
+								float a = colorLayer0.a * u_LayerAlpha[0];
+								colorLayer0.a = 1.0;
+								float4 c = colorTexture * (1.0 - a) + colorLayer0 * a;
 
-			String getHLSLVertexShader(RenderEngine* engine) override
-			{
-				SLIB_RETURN_STRING(SLIB_STRINGIFY(
-					float4x4 u_Transform : register(c0);
-					struct VS_OUTPUT {
-						float2 texcoord : TEXCOORD;
-						float4 pos : POSITION;
-					};
-					VS_OUTPUT main(float3 a_Position : POSITION, float2 a_TexCoord : TEXCOORD) {
-						VS_OUTPUT ret;
-						ret.pos = mul(float4(a_Position, 1.0), u_Transform);
-						ret.texcoord = a_TexCoord;
-						return ret;
-					}
-				))
-			}
+								a = colorLayer1.a * u_LayerAlpha[1];
+								colorLayer1.a = 1.0;
+								c = c * (1.0 - a) + colorLayer1 * a;
 
-			String getHLSLPixelShader(RenderEngine* engine) override
-			{
-				SLIB_RETURN_STRING(SLIB_STRINGIFY(
-					sampler u_Texture;
-					sampler u_LayerTexture0;
-					sampler u_LayerTexture1;
-					sampler u_LayerTexture2;
-					sampler u_LayerTexture3;
-					sampler u_LayerTexture4;
-					float4 u_TextureRect : register(c0);
-					float4 u_LayerTextureRect[5] : register(c1);
-					float u_LayerAlpha[5] : register(c6);
-					float4 main(float2 v_TexCoord : TEXCOORD) : COLOR {
-						float4 colorTexture = tex2D(u_Texture, v_TexCoord * u_TextureRect.zw + u_TextureRect.xy);
-						float4 colorLayer0 = tex2D(u_LayerTexture0, v_TexCoord * u_LayerTextureRect[0].zw + u_LayerTextureRect[0].xy);
-						float4 colorLayer1 = tex2D(u_LayerTexture1, v_TexCoord * u_LayerTextureRect[1].zw + u_LayerTextureRect[1].xy);
-						float4 colorLayer2 = tex2D(u_LayerTexture2, v_TexCoord * u_LayerTextureRect[2].zw + u_LayerTextureRect[2].xy);
-						float4 colorLayer3 = tex2D(u_LayerTexture3, v_TexCoord * u_LayerTextureRect[3].zw + u_LayerTextureRect[3].xy);
-						float4 colorLayer4 = tex2D(u_LayerTexture4, v_TexCoord * u_LayerTextureRect[4].zw + u_LayerTextureRect[4].xy);
+								a = colorLayer2.a * u_LayerAlpha[2];
+								colorLayer2.a = 1.0;
+								c = c * (1.0 - a) + colorLayer2 * a;
 
-						float a = colorLayer0.a * u_LayerAlpha[0];
-						colorLayer0.a = 1.0;
-						float4 c = colorTexture * (1.0 - a) + colorLayer0 * a;
+								a = colorLayer3.a * u_LayerAlpha[3];
+								colorLayer3.a = 1.0;
+								c = c * (1.0 - a) + colorLayer3 * a;
 
-						a = colorLayer1.a * u_LayerAlpha[1];
-						colorLayer1.a = 1.0;
-						c = c * (1.0 - a) + colorLayer1 * a;
+								a = colorLayer4.a * u_LayerAlpha[4];
+								colorLayer4.a = 1.0;
+								c = c * (1.0 - a) + colorLayer4 * a;
 
-						a = colorLayer2.a * u_LayerAlpha[2];
-						colorLayer2.a = 1.0;
-						c = c * (1.0 - a) + colorLayer2 * a;
-
-						a = colorLayer3.a * u_LayerAlpha[3];
-						colorLayer3.a = 1.0;
-						c = c * (1.0 - a) + colorLayer3 * a;
-
-						a = colorLayer4.a * u_LayerAlpha[4];
-						colorLayer4.a = 1.0;
-						c = c * (1.0 - a) + colorLayer4 * a;
-
-						return c;
-					}
-				))
+								return c;
+							}
+						))
+					default:
+						break;
+				}
+				return sl_null;
 			}
 		};
 

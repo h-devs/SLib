@@ -24,6 +24,7 @@
 
 #include "slib/render/engine.h"
 #include "slib/render/opengl.h"
+#include "slib/render/program_ext.h"
 #include "slib/math/transform2d.h"
 #include "slib/math/triangle.h"
 #include "slib/math/geometry_helper.h"
@@ -44,18 +45,18 @@ namespace slib
 	namespace
 	{
 		SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderCanvasProgramState, render2d::vertex::Position)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterR, u_ColorFilterR, RenderShaderType::Pixel, 1)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterG, u_ColorFilterG, RenderShaderType::Pixel, 2)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterB, u_ColorFilterB, RenderShaderType::Pixel, 3)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterA, u_ColorFilterA, RenderShaderType::Pixel, 4)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterC, u_ColorFilterC, RenderShaderType::Pixel, 5)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterM, u_ColorFilterM, RenderShaderType::Pixel, 6)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(RectSrc, u_RectSrc, RenderShaderType::Vertex, 3)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3_ARRAY(ClipTransform, u_ClipTransform, RenderShaderType::Vertex, 32)
-			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(ClipRect, u_ClipRect, RenderShaderType::Vertex | RenderShaderType::Pixel, 16)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderStage::Vertex, 0)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderStage::Pixel, 0)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderStage::Pixel, 0)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterR, u_ColorFilterR, RenderShaderStage::Pixel, 1)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterG, u_ColorFilterG, RenderShaderStage::Pixel, 2)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterB, u_ColorFilterB, RenderShaderStage::Pixel, 3)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterA, u_ColorFilterA, RenderShaderStage::Pixel, 4)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterC, u_ColorFilterC, RenderShaderStage::Pixel, 5)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ColorFilterM, u_ColorFilterM, RenderShaderStage::Pixel, 6)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(RectSrc, u_RectSrc, RenderShaderStage::Vertex, 3)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3_ARRAY(ClipTransform, u_ClipTransform, RenderShaderStage::Vertex, 32)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(ClipRect, u_ClipRect, RenderShaderStage::Vertex | RenderShaderStage::Pixel, 16)
 
 			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position, 0)
 		SLIB_RENDER_PROGRAM_STATE_END
@@ -134,24 +135,19 @@ namespace slib
 			String m_fragmentShader;
 
 		public:
-			String getGLSLVertexShader(RenderEngine* engine) override
+			String getShader(RenderEngine* engine, RenderShaderType type) override
 			{
-				return m_vertexShader;
-			}
-
-			String getGLSLFragmentShader(RenderEngine* engine) override
-			{
-				return m_fragmentShader;
-			}
-
-			String getHLSLVertexShader(RenderEngine* engine) override
-			{
-				return m_vertexShader;
-			}
-
-			String getHLSLPixelShader(RenderEngine* engine) override
-			{
-				return m_fragmentShader;
+				switch (type) {
+					case RenderShaderType::GLSL_Vertex:
+					case RenderShaderType::HLSL_Vertex:
+					case RenderShaderType::Assembly_Vertex:
+						return m_vertexShader;
+					case RenderShaderType::GLSL_Fragment:
+					case RenderShaderType::HLSL_Pixel:
+					case RenderShaderType::Assembly_Pixel:
+						return m_fragmentShader;
+				}
+				return sl_null;
 			}
 
 			sl_uint32 getVertexShaderConstantBufferSize(sl_uint32 slot) override
@@ -162,16 +158,6 @@ namespace slib
 			sl_uint32 getPixelShaderConstantBufferSize(sl_uint32 slot) override
 			{
 				return 1024;
-			}
-
-			String getAssemblyVertexShader(RenderEngine* engine) override
-			{
-				return m_vertexShader;
-			}
-
-			String getAssemblyPixelShader(RenderEngine* engine) override
-			{
-				return m_fragmentShader;
 			}
 
 			static void generateShaderSources(const RenderCanvasProgramParam& param, char* signatures, StringBuffer* bufVertexShader, StringBuffer* bufFragmentShader)

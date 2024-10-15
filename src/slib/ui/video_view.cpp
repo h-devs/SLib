@@ -23,6 +23,7 @@
 #include "slib/ui/video_view.h"
 
 #include "slib/render/canvas.h"
+#include "slib/render/program_ext.h"
 #include "slib/render/opengl.h"
 #include "slib/graphics/image.h"
 #include "slib/graphics/util.h"
@@ -363,7 +364,7 @@ namespace slib
 		}
 		Ref<Texture> texture;
 		Matrix3 textureMatrix;
-		Ref<render2d::program::PositionTexture> program;
+		Ref<RenderProgram> program;
 		if (m_renderVideoParam.glTextureOES.isNotNull()) {
 			texture = m_renderVideoParam.glTextureOES;
 			textureMatrix = m_renderVideoParam.glTextureTransformOES;

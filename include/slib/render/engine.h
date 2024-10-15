@@ -257,54 +257,66 @@ namespace slib
 		// Position(0, 0, 1, 1)
 		void drawRectangle2D();
 
-		void drawRectangle2D(const Ref<render2d::program::Position>& program, const Matrix3& transform, const Color4F& color);
+		// `program`: inherited render2d::program::Position
+		void drawRectangle2D(const Ref<RenderProgram>& program, const Matrix3& transform, const Color4F& color);
 
 		void drawRectangle2D(const Matrix3& transform, const Color4F& color);
 
-		void drawRectangle2D(const Ref<render2d::program::Position>& program, const Rectangle& rectDst, const Color4F& color);
+		// `program`: inherited render2d::program::Position
+		void drawRectangle2D(const Ref<RenderProgram>& program, const Rectangle& rectDst, const Color4F& color);
 
 		void drawRectangle2D(const Rectangle& rectDst, const Color4F& color);
 
 		// Position(0, 0, 1, 1) TexCoord(0, 0, 1, 1)
 		void drawTexture2D();
 
-		void drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color);
+		// `program`: inherited render2d::program::PositionTexture
+		void drawTexture2D(const Ref<RenderProgram>& program, const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color);
 
 		void drawTexture2D(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color);
 
-		void drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha = 1);
+		// `program`: inherited render2d::program::PositionTexture
+		void drawTexture2D(const Ref<RenderProgram>& program, const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha = 1);
 
 		void drawTexture2D(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha = 1);
 
-		void drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Color4F& color);
+		// `program`: inherited render2d::program::PositionTexture
+		void drawTexture2D(const Ref<RenderProgram>& program, const Matrix3& transform, const Ref<Texture>& texture, const Color4F& color);
 
 		void drawTexture2D(const Matrix3& transform, const Ref<Texture>& texture, const Color4F& color);
 
-		void drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, sl_real alpha = 1);
+		// `program`: inherited render2d::program::PositionTexture
+		void drawTexture2D(const Ref<RenderProgram>& program, const Matrix3& transform, const Ref<Texture>& texture, sl_real alpha = 1);
 
 		void drawTexture2D(const Matrix3& transform, const Ref<Texture>& texture, sl_real alpha = 1);
 
-		void drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color);
+		// `program`: inherited render2d::program::PositionTexture
+		void drawTexture2D(const Ref<RenderProgram>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color);
 
 		void drawTexture2D(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color);
 
-		void drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha = 1);
+		// `program`: inherited render2d::program::PositionTexture
+		void drawTexture2D(const Ref<RenderProgram>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha = 1);
 
 		void drawTexture2D(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha = 1);
 
-		void drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Color4F& color);
+		// `program`: inherited render2d::program::PositionTexture
+		void drawTexture2D(const Ref<RenderProgram>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Color4F& color);
 
 		void drawTexture2D(const Rectangle& rectDst, const Ref<Texture>& texture, const Color4F& color);
 
-		void drawTexture2D(const Ref<render2d::program::PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, sl_real alpha = 1);
+		// `program`: inherited render2d::program::PositionTexture
+		void drawTexture2D(const Ref<RenderProgram>& program, const Rectangle& rectDst, const Ref<Texture>& texture, sl_real alpha = 1);
 
 		void drawTexture2D(const Rectangle& rectDst, const Ref<Texture>& texture, sl_real alpha = 1);
 
-		void drawLines(const Ref<render2d::program::Position>& program, LineSegment* lines, sl_uint32 n, const Color4F& color);
+		// `program`: inherited render2d::program::Position
+		void drawLines(const Ref<RenderProgram>& program, LineSegment* lines, sl_uint32 n, const Color4F& color);
 
 		void drawLines(LineSegment* lines, sl_uint32 n, const Color4F& color);
 
-		void drawLines(const Ref<render3d::program::Position>& program, Line3* lines, sl_uint32 n, const Color4F& color);
+		// `program`: inherited render3d::program::Position
+		void drawLines(const Ref<RenderProgram>& program, Line3* lines, sl_uint32 n, const Color4F& color);
 
 		void drawLines(Line3* lines, sl_uint32 n, const Color4F& color);
 
@@ -340,15 +352,15 @@ namespace slib
 
 		const Ref<VertexBuffer>& getDefaultVertexBufferForDrawRectangle2D();
 
-		const Ref<render2d::program::Position>& getDefaultRenderProgramForDrawRectangle2D();
+		const Ref<RenderProgram>& getDefaultRenderProgramForDrawRectangle2D();
 
 		const Ref<VertexBuffer>& getDefaultVertexBufferForDrawTexture2D();
 
-		const Ref<render2d::program::PositionTexture>& getDefaultRenderProgramForDrawTexture2D();
+		const Ref<RenderProgram>& getDefaultRenderProgramForDrawTexture2D();
 
-		const Ref<render2d::program::Position>& getDefaultRenderProgramForDrawLine2D();
+		const Ref<RenderProgram>& getDefaultRenderProgramForDrawLine2D();
 
-		const Ref<render3d::program::Position>& getDefaultRenderProgramForDrawLine3D();
+		const Ref<RenderProgram>& getDefaultRenderProgramForDrawLine3D();
 
 	protected:
 		virtual Ref<RenderProgramInstance> _createProgramInstance(RenderProgram* program) = 0;
@@ -409,13 +421,13 @@ namespace slib
 		Ref<Font> m_fontDebug;
 
 		Ref<VertexBuffer> m_defaultVertexBufferForDrawRectangle2D;
-		Ref<render2d::program::Position> m_defaultRenderProgramForDrawRectangle2D;
+		Ref<RenderProgram> m_defaultRenderProgramForDrawRectangle2D;
 
 		Ref<VertexBuffer> m_defaultVertexBufferForDrawTexture2D;
-		Ref<render2d::program::PositionTexture> m_defaultRenderProgramForDrawTexture2D;
+		Ref<RenderProgram> m_defaultRenderProgramForDrawTexture2D;
 
-		Ref<render2d::program::Position> m_defaultRenderProgramForDrawLine2D;
-		Ref<render3d::program::Position> m_defaultRenderProgramForDrawLine3D;
+		Ref<RenderProgram> m_defaultRenderProgramForDrawLine2D;
+		Ref<RenderProgram> m_defaultRenderProgramForDrawLine3D;
 
 		Ref<RenderDepthStencilState> m_stateDepthStencilForDrawDebug;
 		Ref<RenderSamplerState> m_stateSamplerForDrawDebug;

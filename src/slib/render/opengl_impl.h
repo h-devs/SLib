@@ -1487,8 +1487,8 @@ namespace slib
 			public:
 				static Ref<GLRenderProgramInstance> create(EngineImpl* engine, RenderProgram* program)
 				{
-					String vsSource = convertShader(program->getGLSLVertexShader(engine));
-					String fsSource = convertShader(program->getGLSLFragmentShader(engine));
+					String vsSource = convertShader(program->getShader(engine, RenderShaderType::GLSL_Vertex));
+					String fsSource = convertShader(program->getShader(engine, RenderShaderType::GLSL_Fragment));
 					if (vsSource.isNotEmpty() && fsSource.isNotEmpty()) {
 						sl_uint32 vs = GL_BASE::createVertexShader(vsSource);
 						if (vs) {

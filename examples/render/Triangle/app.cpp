@@ -1,5 +1,7 @@
 #include "app.h"
 
+#include <slib/render/program_ext.h>
+
 TriangleApp::TriangleApp()
 {
 }

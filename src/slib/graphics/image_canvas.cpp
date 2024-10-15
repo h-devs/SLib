@@ -23,6 +23,7 @@
 #include "slib/graphics/image.h"
 
 #include "slib/graphics/font_atlas.h"
+#include "slib/graphics/canvas_ext.h"
 
 namespace slib
 {

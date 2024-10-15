@@ -118,19 +118,19 @@ namespace slib
 		Depth = 12
 	};
 
-	enum class RenderShaderType
+	enum class RenderShaderStage
 	{
 		Undefined = 0,
 		Vertex = 1,
 		Pixel = 2
 	};
 
-	constexpr RenderShaderType operator|(RenderShaderType v1, RenderShaderType v2)
+	constexpr RenderShaderStage operator|(RenderShaderStage v1, RenderShaderStage v2)
 	{
-		return (RenderShaderType)(((int)v1) | ((int)v2));
+		return (RenderShaderStage)(((int)v1) | ((int)v2));
 	}
 
-	constexpr int operator&(RenderShaderType v1, RenderShaderType v2)
+	constexpr int operator&(RenderShaderStage v1, RenderShaderStage v2)
 	{
 		return ((int)v1) & ((int)v2);
 	}
@@ -140,6 +140,19 @@ namespace slib
 		Assembly = 0,
 		GLSL = 1,
 		HLSL = 2
+	};
+
+#define SLIB_RENDER_SHADER_TYPE(LANG, STAGE) ((((int)(RenderShaderLanguage::LANG)) << 3) | ((int)(RenderShaderStage::STAGE)))
+#define SLIB_RENDER_SHADER_TYPE_MAX 24
+
+	enum class RenderShaderType
+	{
+		Assembly_Vertex = SLIB_RENDER_SHADER_TYPE(Assembly, Vertex),
+		Assembly_Pixel = SLIB_RENDER_SHADER_TYPE(Assembly, Pixel),
+		GLSL_Vertex = SLIB_RENDER_SHADER_TYPE(GLSL, Vertex),
+		GLSL_Fragment = SLIB_RENDER_SHADER_TYPE(GLSL, Pixel),
+		HLSL_Vertex = SLIB_RENDER_SHADER_TYPE(HLSL, Vertex),
+		HLSL_Pixel = SLIB_RENDER_SHADER_TYPE(HLSL, Pixel)
 	};
 
 }

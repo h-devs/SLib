@@ -22,6 +22,7 @@
 
 #include "slib/render/drawable.h"
 
+#include "slib/render/program_ext.h"
 #include "slib/core/stringify.h"
 
 namespace slib
@@ -63,54 +64,21 @@ namespace slib
 				v_Position = a_Position;
 			}
 		))
-		m_glslVertexShader = glslVertexShader;
+		m_shaders[(int)(RenderShaderType::GLSL_Vertex)] = glslVertexShader;
 	}
 
 	ShaderDrawable::~ShaderDrawable()
 	{
 	}
 
-	String ShaderDrawable::getGLSLVertexShader()
+	String ShaderDrawable::getShader(RenderShaderType type)
 	{
-		return m_glslVertexShader;
+		return m_shaders[(int)type];
 	}
 
-	void ShaderDrawable::setGLSLVertexShader(const String& shader)
+	void ShaderDrawable::setShader(RenderShaderType type, const String& shader)
 	{
-		m_glslVertexShader = shader;
-		m_program.setNull();
-	}
-
-	String ShaderDrawable::getGLSLFragmentShader()
-	{
-		return m_glslFragmentShader;
-	}
-
-	void ShaderDrawable::setGLSLFragmentShader(const String& shader)
-	{
-		m_glslFragmentShader = shader;
-		m_program.setNull();
-	}
-
-	String ShaderDrawable::getHLSLVertexShader()
-	{
-		return m_hlslVertexShader;
-	}
-
-	void ShaderDrawable::setHLSLVertexShader(const String& shader)
-	{
-		m_hlslVertexShader = shader;
-		m_program.setNull();
-	}
-
-	String ShaderDrawable::getHLSLPixelShader()
-	{
-		return m_hlslPixelShader;
-	}
-
-	void ShaderDrawable::setHLSLPixelShader(const String& shader)
-	{
-		m_hlslPixelShader = shader;
+		m_shaders[(int)type] = shader;
 		m_program.setNull();
 	}
 
@@ -119,46 +87,27 @@ namespace slib
 		class ShaderDrawable_Program : public render2d::program::Position
 		{
 		public:
-			String GLSLVertexShader;
-			String GLSLFragmentShader;
-			String HLSLVertexShader;
-			String HLSLPixelShader;
+			String shaders[SLIB_RENDER_SHADER_TYPE_MAX];
 
 		public:
-			String getGLSLVertexShader(RenderEngine* engine) override
+			String getShader(RenderEngine* engine, RenderShaderType type) override
 			{
-				return GLSLVertexShader;
-			}
-
-			String getGLSLFragmentShader(RenderEngine* engine) override
-			{
-				return GLSLFragmentShader;
-			}
-
-			String getHLSLVertexShader(RenderEngine* engine) override
-			{
-				return HLSLVertexShader;
-			}
-
-			String getHLSLPixelShader(RenderEngine* engine) override
-			{
-				return HLSLPixelShader;
+				return shaders[(int)type];
 			}
 		};
 	}
 
 	void ShaderDrawable::onRender(RenderCanvas* canvas, const Rectangle& rectDst, const DrawParam& param)
 	{
-		Ref<render2d::program::Position> program = m_program;
+		Ref<RenderProgram> program = m_program;
 		if (program.isNull()) {
 			Ref<ShaderDrawable_Program> shaderProgram = new ShaderDrawable_Program;
 			if (shaderProgram.isNull()) {
 				return;
 			}
-			shaderProgram->GLSLVertexShader = m_glslVertexShader;
-			shaderProgram->GLSLFragmentShader = m_glslFragmentShader;
-			shaderProgram->HLSLVertexShader = m_hlslVertexShader;
-			shaderProgram->HLSLPixelShader = m_hlslPixelShader;
+			for (sl_size i = 0; i < SLIB_RENDER_SHADER_TYPE_MAX; i++) {
+				shaderProgram->shaders[i] = m_shaders[i];
+			}
 			m_program = shaderProgram;
 			program = Move(shaderProgram);
 		}

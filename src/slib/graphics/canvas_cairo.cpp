@@ -24,7 +24,7 @@
 
 #if defined(SLIB_GRAPHICS_IS_CAIRO)
 
-#include "slib/graphics/canvas.h"
+#include "slib/graphics/canvas_ext.h"
 
 #include "slib/graphics/image.h"
 #include "slib/graphics/platform.h"

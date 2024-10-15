@@ -44,7 +44,7 @@ namespace slib
 
 		static void setTranslation(Matrix4T<T>& _out, const Vector3T<T>& v) noexcept
 		{
-			setTranslation(_out, v.x, v.y, v.z)
+			setTranslation(_out, v.x, v.y, v.z);
 		}
 
 		static Matrix4T<T> getTranslationMatrix(T x, T y, T z) noexcept

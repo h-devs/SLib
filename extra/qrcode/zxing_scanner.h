@@ -53,7 +53,7 @@ namespace slib
 		void onRunScanner(Timer* timer);
 
 	protected:
-		Ref<render2d::program::Position> m_programScanBar;
+		Ref<RenderProgram> m_programScanBar;
 		Ref<Timer> m_timerScanner;
 		sl_bool m_flagUpdateCameraFrame;
 
