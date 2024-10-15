@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		static void ApplyAlphaToColor(Gdiplus::Color& color, sl_real alpha)
 		{
 			BYTE a = color.GetA();
@@ -50,7 +50,6 @@ namespace slib
 			}
 			color.SetValue(Gdiplus::Color::MakeARGB((BYTE)t, r, g, b));
 		}
-
 
 #define DRAW_PEN_BEGIN \
 		Gdiplus::Graphics* graphics = m_graphics; \
@@ -375,41 +374,44 @@ namespace slib
 								a = 255;
 							}
 						}
-						if (param.shadowOpacity > 0.0001f) {
+						Gdiplus::SolidBrush brushText(Gdiplus::Color((BYTE)a, param.color.r, param.color.g, param.color.b));
+						sl_bool flagShadow = param.shadowColor.a && param.shadowOpacity > 0.001f;
+						if (flagShadow || param.strokeColor.a) {
 							Gdiplus::GraphicsPath path;
 							Gdiplus::FontFamily family;
 							pf->GetFamily(&family);
-							path.AddString((const WCHAR*)(text.getData()), (INT)(lenText),
-								&family, pf->GetStyle(), pf->GetSize(),
-								Gdiplus::PointF((Gdiplus::REAL)(x), (Gdiplus::REAL)(y + 1)),
-								Gdiplus::StringFormat::GenericTypographic());
-							Gdiplus::GraphicsPath* pathShadow = path.Clone();
-							if (pathShadow) {
-								Gdiplus::GraphicsState state = graphics->Save();
-								Gdiplus::REAL tx = (Gdiplus::REAL)(param.shadowOffset.x);
-								Gdiplus::REAL ty = (Gdiplus::REAL)(param.shadowOffset.y);
-								graphics->TranslateTransform(tx, ty);
-								Color _shadowColor = param.shadowColor;
-								_shadowColor.multiplyAlpha((float)(param.shadowOpacity * alpha));
-								Gdiplus::Color shadowColor(_shadowColor.a, _shadowColor.r, _shadowColor.g, _shadowColor.b);
-								Gdiplus::SolidBrush brush(shadowColor);
-								Gdiplus::Pen pen(shadowColor, (Gdiplus::REAL)(param.shadowRadius * 2));
+							path.AddString((const WCHAR*)(text.getData()), (INT)(lenText), &family, pf->GetStyle(), pf->GetSize(), Gdiplus::PointF((Gdiplus::REAL)(x), (Gdiplus::REAL)(y + 1.0f)), Gdiplus::StringFormat::GenericTypographic());
+							if (flagShadow) {
+								Gdiplus::GraphicsPath* pathShadow = path.Clone();
+								if (pathShadow) {
+									Gdiplus::GraphicsState state = graphics->Save();
+									Gdiplus::REAL tx = (Gdiplus::REAL)(param.shadowOffset.x);
+									Gdiplus::REAL ty = (Gdiplus::REAL)(param.shadowOffset.y);
+									graphics->TranslateTransform(tx, ty);
+									Color _shadowColor = param.shadowColor;
+									_shadowColor.multiplyAlpha((float)(param.shadowOpacity * alpha));
+									Gdiplus::Color shadowColor = GraphicsPlatform::getGdiplusColor(_shadowColor);
+									Gdiplus::SolidBrush brush(shadowColor);
+									Gdiplus::Pen pen(shadowColor, (Gdiplus::REAL)(param.shadowRadius * 2));
+									pen.SetLineCap(Gdiplus::LineCapRound, Gdiplus::LineCapRound, Gdiplus::DashCapRound);
+									pen.SetLineJoin(Gdiplus::LineJoinRound);
+									pathShadow->Widen(&pen);
+									graphics->FillPath(&brush, pathShadow);
+									graphics->Restore(state);
+									delete pathShadow;
+								}
+							}
+							if (param.strokeColor.a) {
+								Color strokeColor = param.strokeColor;
+								strokeColor.multiplyAlpha((float)alpha);
+								Gdiplus::Pen pen(GraphicsPlatform::getGdiplusColor(strokeColor), (Gdiplus::REAL)(param.strokeWidth));
 								pen.SetLineCap(Gdiplus::LineCapRound, Gdiplus::LineCapRound, Gdiplus::DashCapRound);
 								pen.SetLineJoin(Gdiplus::LineJoinRound);
-								pathShadow->Widen(&pen);
-								graphics->FillPath(&brush, pathShadow);
-								graphics->Restore(state);
-								delete pathShadow;
+								graphics->DrawPath(&pen, &path);
 							}
-							Gdiplus::SolidBrush brushText(Gdiplus::Color((BYTE)a, param.color.r, param.color.g, param.color.b));
 							graphics->FillPath(&brushText, &path);
 						} else {
-							Gdiplus::SolidBrush brush(Gdiplus::Color((BYTE)a, param.color.r, param.color.g, param.color.b));
-							graphics->DrawString((const WCHAR*)(text.getData()), (INT)(lenText),
-								pf,
-								Gdiplus::PointF((Gdiplus::REAL)(x), (Gdiplus::REAL)(y + 1)),
-								Gdiplus::StringFormat::GenericTypographic(),
-								&brush);
+							graphics->DrawString((const WCHAR*)(text.getData()), (INT)(lenText), pf, Gdiplus::PointF((Gdiplus::REAL)(x), (Gdiplus::REAL)(y + 1.0f)), Gdiplus::StringFormat::GenericTypographic(), &brushText);
 						}
 					}
 				}
@@ -431,7 +433,6 @@ namespace slib
 		};
 
 		SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
-
 	}
 
 	Ref<Canvas> GraphicsPlatform::createCanvas(CanvasType type, Gdiplus::Graphics* graphics, sl_uint32 width, sl_uint32 height, const Function<void()>& onFreeCanvas)

@@ -53,12 +53,10 @@ namespace slib
 	public:
 		static Ref<FreeTypeAtlas> create(const FreeTypeAtlasParam& param);
 
-		static Ref<FreeTypeAtlas> create(const Ref<FreeType>& font, sl_uint32 strokeWidth = 0);
+		static Ref<FreeTypeAtlas> create(const Ref<FreeType>& font, const Color& color = Color::White);
 
 	public:
 		sl_bool getCharImage_NoLock(sl_char32 ch, FontAtlasCharImage& _out) override;
-
-		Ref<FontAtlas> createStroker(sl_uint32 strokeWidth) override;
 
 	protected:
 		sl_bool _getFontMetrics(FontMetrics& _out) override;

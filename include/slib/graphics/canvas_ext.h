@@ -95,11 +95,11 @@ namespace slib
 		using Canvas::onDrawText;
 		void onDrawText(const StringParam& text, sl_real x, sl_real y, const DrawTextParam& param);
 
-		virtual void onStrokeText(const StringParam& text, sl_real x, sl_real y, const Ref<Font>& font, sl_real strokeWidth, const DrawTextParam& param);
-
 		virtual void onDrawTextByAtlas(const StringParam& text, sl_real x, sl_real y, const Ref<FontAtlas>& atlas, const DrawTextParam& param);
 
 		sl_bool measureText(const DrawTextParam& param, const StringParam& text, TextMetrics& _out);
+
+		void strokeTextByPath(const StringParam& text, sl_real x, sl_real y, const Ref<Font>& font, sl_real strokeWidth, const Color& color);
 
 	};
 

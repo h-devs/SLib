@@ -603,12 +603,12 @@ namespace slib
 	public:
 		MapViewSprite();
 
-		MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& font, sl_uint32 strokeWidth = 0);
+		MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& atlas);
 
 		~MapViewSprite();
 
 	public:
-		void initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& atlas, sl_uint32 strokeWidth = 0);
+		void initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& atlas);
 
 	public:
 		const LatLon& getLocation();
@@ -621,14 +621,6 @@ namespace slib
 		const Size& getSize();
 
 		void setSize(const Size& size);
-
-		const Color& getTextColor();
-
-		void setTextColor(const Color& color);
-
-		const Color& getStrokeColor();
-
-		void setStrokeColor(const Color& color);
 
 	public:
 		void draw(Canvas* canvas, MapViewData* data, MapPlane* plane) override;
@@ -658,11 +650,8 @@ namespace slib
 		Ref<Image> m_image;
 		String m_text;
 		Ref<FontAtlas> m_font;
-		Ref<FontAtlas> m_stroker;
 
 		Size m_size;
-		Color m_textColor;
-		Color m_strokeColor;
 
 		sl_bool m_flagValidAltitude;
 		double m_altitude;

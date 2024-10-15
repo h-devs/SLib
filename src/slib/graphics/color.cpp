@@ -634,6 +634,24 @@ namespace slib
 		setOverlay(Color4F(c.x, c.y, c.z, 1));
 	}
 
+	void ColorMatrix::setMultiply(const Color4F& c) noexcept
+	{
+		red = Color4F(c.x, 0.0f, 0.0f, 0.0f);
+		green = Color4F(0.0f, c.y, 0.0f, 0.0f);
+		blue = Color4F(0.0f, 0.0f, c.z, 0.0f);
+		alpha = Color4F(0.0f, 0.0f, 0.0f, c.w);
+		bias = Color4F::zero();
+	}
+
+	void ColorMatrix::setMultiply(const Color& c) noexcept
+	{
+		setMultiply((Color4F)c);
+	}
+
+	void ColorMatrix::setMultiply(const Color3F& c) noexcept
+	{
+		setMultiply(Color4F(c.x, c.y, c.z, 1));
+	}
 
 #define YUV_YG 18997 /* round(1.164 * 64 * 256 * 256 / 257) */
 #define YUV_YGB 1160 /* 1.164 * 64 * 16 - adjusted for even error distribution */

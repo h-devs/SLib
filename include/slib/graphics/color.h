@@ -441,6 +441,10 @@ namespace slib
 		void setOverlay(const Color& c) noexcept;
 		void setOverlay(const Color3F& c) noexcept;
 
+		void setMultiply(const Color4F& c) noexcept;
+		void setMultiply(const Color& c) noexcept;
+		void setMultiply(const Color3F& c) noexcept;
+
 	};
 
 }

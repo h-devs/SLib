@@ -51,7 +51,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasBaseParam)
 
-	FontAtlasBaseParam::FontAtlasBaseParam(): planeWidth(PLANE_WIDTH_DEFAULT), planeHeight(PLANE_HEIGHT_DEFAULT), maxPlanes(MAX_PLANES_DEFAULT), scale(1.0f), strokeWidth(0)
+	FontAtlasBaseParam::FontAtlasBaseParam(): color(Color::White), scale(1.0f), strokeWidth(0.0f), planeWidth(PLANE_WIDTH_DEFAULT), planeHeight(PLANE_HEIGHT_DEFAULT), maxPlanes(MAX_PLANES_DEFAULT)
 	{
 	}
 
@@ -68,10 +68,11 @@ namespace slib
 	{
 		m_drawHeight = 0.0f;
 		m_drawScale = 1.0f;
+		m_strokeWidth = 0.0f;
+
 		m_planeWidth = PLANE_WIDTH_DEFAULT;
 		m_planeHeight = PLANE_HEIGHT_DEFAULT;
 		m_maxPlanes = MAX_PLANES_DEFAULT;
-		m_strokeWidth = 0;
 
 		m_countPlanes = 0;
 		m_currentPlaneY = 0;
@@ -142,7 +143,6 @@ namespace slib
 			Ref<Bitmap> m_currentPlane;
 			Ref<Canvas> m_currentCanvas;
 			CHashMap<sl_char32, FontAtlasCharImage> m_mapImage;
-			Ref<Pen> m_penStroke;
 
 		public:
 			static Ref<FontAtlasImpl> create(const FontAtlasParam& param)
@@ -163,11 +163,11 @@ namespace slib
 				}
 				sl_real sourceHeight = param.font->getFontHeight();
 				sl_real fontHeight = font->getFontHeight();
-				sl_uint32 strokeWidth = (sl_uint32)((sl_real)(param.strokeWidth) * fontHeight / sourceHeight / param.scale);
-				sl_uint32 fontHeightExt = (sl_uint32)fontHeight + (strokeWidth + 1);
+				sl_real strokeWidth = param.strokeColor.a ? param.strokeWidth * fontHeight / sourceHeight / param.scale : 0.0f;
+				sl_uint32 fontHeightExt = (sl_uint32)(fontHeight + strokeWidth) + 1;
 				sl_uint32 planeWidth = param.planeWidth;
 				if (!planeWidth) {
-					planeWidth = ((sl_uint32)fontHeightExt) << 4;
+					planeWidth = fontHeightExt << 4;
 					if (planeWidth > 1024) {
 						planeWidth = 1024;
 					}
@@ -198,19 +198,6 @@ namespace slib
 				ret->m_font = Move(font);
 				ret->m_currentPlane = Move(plane);
 				ret->m_currentCanvas = Move(canvas);
-				if (strokeWidth) {
-					PenDesc desc;
-					desc.style = PenStyle::Solid;
-					desc.width = (sl_real)strokeWidth;
-					desc.color = Color::White;
-					desc.cap = LineCap::Round;
-					desc.join = LineJoin::Round;
-					Ref<Pen> pen = Pen::create(desc);
-					if (pen.isNull()) {
-						return sl_null;
-					}
-					ret->m_penStroke = Move(pen);
-				}
 				return ret;
 			}
 
@@ -254,18 +241,6 @@ namespace slib
 				return sl_true;
 			}
 
-			Ref<FontAtlas> createStroker(sl_uint32 strokeWidth) override
-			{
-				FontAtlasParam param;
-				param.font = m_font;
-				param.scale = m_drawScale;
-				param.strokeWidth = strokeWidth;
-				param.planeWidth = m_planeWidth + (strokeWidth << 5);
-				param.planeHeight = m_planeHeight + (strokeWidth << 1);
-				param.maxPlanes = m_maxPlanes;
-				return create(param);
-			}
-
 			sl_bool _measureChar(sl_char32 ch, TextMetrics& _out) override
 			{
 				return m_font->measureChar(ch, _out);
@@ -274,14 +249,15 @@ namespace slib
 			Ref<Bitmap> _drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_real charX, sl_real charY, sl_char32 ch) override
 			{
 				m_currentPlane->resetPixels(dstX, dstY, width, height, Color::zero());
-				if (m_penStroke.isNotNull()) {
-					Ref<GraphicsPath> path = m_font->getCharOutline(ch, charX, charY);
-					if (path.isNotNull()) {
-						m_currentCanvas->drawPath(path, m_penStroke);
-					}
-				} else {
-					m_currentCanvas->drawText(String::create(&ch, 1), charX, charY, m_font, Color::White);
-				}
+				Canvas::DrawTextParam param;
+				param.text = String::create(&ch, 1);
+				param.x = charX;
+				param.y = charY;
+				param.font = m_font;
+				param.color = m_textColor;
+				param.strokeColor = m_strokeColor;
+				param.strokeWidth = m_strokeWidth;
+				m_currentCanvas->drawText(param);
 				m_currentPlane->update(dstX, dstY, width, height);
 				return m_currentPlane;
 			}
@@ -308,18 +284,20 @@ namespace slib
 		return Ref<FontAtlas>::cast(FontAtlasImpl::create(param));
 	}
 
-	Ref<FontAtlas> FontAtlas::create(const Ref<Font>& font, sl_uint32 strokeWidth)
+	Ref<FontAtlas> FontAtlas::create(const Ref<Font>& font, const Color& color)
 	{
 		FontAtlasParam param;
 		param.font = font;
-		param.strokeWidth = strokeWidth;
+		param.color = color;
 		return create(param);
 	}
 
-	void FontAtlas::_initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_uint32 strokeWidth, sl_uint32 planeWidth, sl_uint32 planeHeight)
+	void FontAtlas::_initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_real strokeWidth, sl_uint32 planeWidth, sl_uint32 planeHeight)
 	{
 		m_drawHeight = param.scale * sourceHeight;
 		m_drawScale = m_drawHeight / fontHeight;
+		m_textColor = param.color;
+		m_strokeColor = param.strokeColor;
 		m_strokeWidth = strokeWidth;
 		m_planeWidth = planeWidth;
 		m_planeHeight = planeHeight;
@@ -368,11 +346,13 @@ namespace slib
 				m_map.put_NoLock(ch, _out);
 				return sl_false;
 			}
-			sl_real m = (sl_real)((m_strokeWidth >> 1) + 1);
-			tm.left -= m;
-			tm.top -= m;
-			tm.right += m;
-			tm.bottom += m;
+			if (m_strokeColor.isNotZero()) {
+				sl_real m = m_strokeWidth / 2.0f + 1.0f;
+				tm.left -= m;
+				tm.top -= m;
+				tm.right += m;
+				tm.bottom += m;
+			}
 			_out.metrics.left = tm.left * m_drawScale;
 			_out.metrics.top = tm.top * m_drawScale;
 			_out.metrics.right = tm.right * m_drawScale;

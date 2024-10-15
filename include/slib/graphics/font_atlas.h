@@ -34,12 +34,14 @@ namespace slib
 	class SLIB_EXPORT FontAtlasBaseParam
 	{
 	public:
+		Color color;
+		sl_real scale;
+		Color strokeColor;
+		sl_real strokeWidth;
+
 		sl_uint32 planeWidth;
 		sl_uint32 planeHeight;
 		sl_uint32 maxPlanes;
-
-		sl_real scale;
-		sl_uint32 strokeWidth;
 
 	public:
 		FontAtlasBaseParam();
@@ -104,7 +106,7 @@ namespace slib
 
 		static Ref<FontAtlas> create(const FontAtlasParam& param);
 
-		static Ref<FontAtlas> create(const Ref<Font>& font, sl_uint32 strokeWidth = 0);
+		static Ref<FontAtlas> create(const Ref<Font>& font, const Color& color = Color::White);
 
 	public:
 		sl_real getFontHeight();
@@ -135,10 +137,8 @@ namespace slib
 
 		void removeAll();
 
-		virtual Ref<FontAtlas> createStroker(sl_uint32 strokeWidth) = 0;
-
 	protected:
-		void _initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_uint32 strokeWidth, sl_uint32 planeWidth, sl_uint32 planeHeight);
+		void _initialize(const FontAtlasBaseParam& param, sl_real sourceHeight, sl_real fontHeight, sl_real strokeWidth, sl_uint32 planeWidth, sl_uint32 planeHeight);
 
 		virtual sl_bool _getFontMetrics(FontMetrics& _out) = 0;
 
@@ -153,11 +153,13 @@ namespace slib
 	protected:
 		sl_real m_drawHeight;
 		sl_real m_drawScale;
+		Color m_textColor;
+		Color m_strokeColor;
+		sl_real m_strokeWidth; // Plane Unit
 
 		sl_uint32 m_planeWidth;
 		sl_uint32 m_planeHeight;
 		sl_uint32 m_maxPlanes;
-		sl_uint32 m_strokeWidth;
 
 		CHashMap<sl_char32, FontAtlasChar> m_map;
 		sl_uint32 m_countPlanes;

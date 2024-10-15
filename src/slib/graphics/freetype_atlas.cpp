@@ -52,8 +52,8 @@ namespace slib
 		}
 		const Ref<FreeType>& font = param.font;
 		sl_real fontHeight = font->getFontHeight();
-		sl_uint32 strokeWidth = (sl_uint32)((sl_real)(param.strokeWidth) / param.scale);
-		sl_uint32 fontHeightExt = (sl_uint32)fontHeight + (strokeWidth + 1);
+		sl_real strokeWidth = param.strokeColor.a ? param.strokeWidth / param.scale : 0.0f;
+		sl_uint32 fontHeightExt = (sl_uint32)(fontHeight + strokeWidth) + 1;
 		sl_uint32 planeWidth = param.planeWidth;
 		if (!planeWidth) {
 			planeWidth = fontHeightExt << 4;
@@ -85,11 +85,11 @@ namespace slib
 		return ret;
 	}
 
-	Ref<FreeTypeAtlas> FreeTypeAtlas::create(const Ref<FreeType>& font, sl_uint32 strokeWidth)
+	Ref<FreeTypeAtlas> FreeTypeAtlas::create(const Ref<FreeType>& font, const Color& color)
 	{
 		FreeTypeAtlasParam param;
 		param.font = font;
-		param.strokeWidth = strokeWidth;
+		param.color = color;
 		return create(param);
 	}
 
@@ -111,18 +111,6 @@ namespace slib
 		return sl_true;
 	}
 
-	Ref<FontAtlas> FreeTypeAtlas::createStroker(sl_uint32 strokeWidth)
-	{
-		FreeTypeAtlasParam param;
-		param.font = m_font;
-		param.scale = m_drawScale;
-		param.strokeWidth = strokeWidth;
-		param.planeWidth = m_planeWidth + (strokeWidth << 5);
-		param.planeHeight = m_planeHeight + (strokeWidth << 1);
-		param.maxPlanes = m_maxPlanes;
-		return create(param);
-	}
-
 	sl_bool FreeTypeAtlas::_getFontMetrics(FontMetrics& _out)
 	{
 		m_font->getFontMetrics(_out);
@@ -137,10 +125,11 @@ namespace slib
 	Ref<Bitmap> FreeTypeAtlas::_drawChar(sl_uint32 dstX, sl_uint32 dstY, sl_uint32 width, sl_uint32 height, sl_real charX, sl_real charY, sl_char32 ch)
 	{
 		m_currentPlane->resetPixels(dstX, dstY, width, height, Color::Zero);
-		if (m_strokeWidth) {
-			m_font->strokeChar(m_currentPlane, charX, charY, ch, Color::White, (sl_real)m_strokeWidth);
-		} else {
-			m_font->drawChar(m_currentPlane, charX, charY, ch, Color::White);
+		if (m_strokeColor.a) {
+			m_font->strokeChar(m_currentPlane, charX, charY, ch, m_strokeColor, m_strokeWidth);
+		}
+		if (m_textColor.a) {
+			m_font->drawChar(m_currentPlane, charX, charY, ch, m_textColor);
 		}
 		m_currentPlane->update(dstX, dstY, width, height);
 		return m_currentPlane;

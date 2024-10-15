@@ -184,36 +184,9 @@ namespace slib
 	void CanvasExt::onDrawText(const StringParam& text, sl_real x, sl_real y, const DrawTextParam& param)
 	{
 		if (param.font.isNotNull()) {
-			if (Math::isLessThanEpsilon(param.strokeWidth)) {
-				onDrawText(text, x, y, param.font, param);
-			} else {
-				onStrokeText(text, x, y, param.font, param.strokeWidth, param);
-			}
+			onDrawText(text, x, y, param.font, param);
 		} else if (param.atlas.isNotNull()) {
 			onDrawTextByAtlas(text, x, y, param.atlas, param);
-		}
-	}
-
-	void CanvasExt::onStrokeText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, sl_real strokeWidth, const DrawTextParam& param)
-	{
-		StringData32 text(_text);
-		sl_size len = text.getLength();
-		if (!len) {
-			return;
-		}
-		sl_char32* data = text.getData();
-
-		Ref<Pen> pen = Pen::createSolidPen(strokeWidth, param.color);
-		if (pen.isNull()) {
-			return;
-		}
-		for (sl_size i = 0; i < len; i++) {
-			sl_real advance;
-			auto path = font->getCharOutline(data[i], x, y, &advance);
-			if (path) {
-				drawPath(path, pen);
-			}
-			x += advance;
 		}
 	}
 
@@ -227,8 +200,14 @@ namespace slib
 		sl_char32* data = text.getData();
 
 		DrawParam dp;
-		dp.colorMatrix.setOverlay(param.color);
-		dp.useColorMatrix = sl_true;
+		if (param.color != Color::White) {
+			dp.colorMatrix.setMultiply(param.color);
+			dp.useColorMatrix = sl_true;
+		}
+		dp.alpha = getAlpha();
+		if (dp.alpha > 0.999) {
+			dp.useAlpha = sl_true;
+		}
 
 		FontAtlasChar fac;
 		sl_real fx = x;
@@ -247,6 +226,29 @@ namespace slib
 					fx += fac.metrics.advanceX;
 				}
 			}
+		}
+	}
+
+	void CanvasExt::strokeTextByPath(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, sl_real strokeWidth, const Color& color)
+	{
+		StringData32 text(_text);
+		sl_size len = text.getLength();
+		if (!len) {
+			return;
+		}
+		sl_char32* data = text.getData();
+
+		Ref<Pen> pen = Pen::createSolidPen(strokeWidth, color);
+		if (pen.isNull()) {
+			return;
+		}
+		for (sl_size i = 0; i < len; i++) {
+			sl_real advance;
+			auto path = font->getCharOutline(data[i], x, y, &advance);
+			if (path) {
+				drawPath(path, pen);
+			}
+			x += advance;
 		}
 	}
 

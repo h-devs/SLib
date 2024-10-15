@@ -1975,8 +1975,6 @@ namespace slib
 		setSupportingPlaneMode();
 
 		m_size = Size::zero();
-		m_textColor = Color::White;
-		m_strokeColor = Color::Black;
 
 		m_flagValidAltitude = sl_false;
 		m_altitude = 0.0;
@@ -1984,24 +1982,21 @@ namespace slib
 		m_lastDrawId = 0;
 	}
 
-	MapViewSprite::MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& font, sl_uint32 strokeWidth): MapViewSprite()
+	MapViewSprite::MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& font): MapViewSprite()
 	{
-		initialize(location, image, text, font, strokeWidth);
+		initialize(location, image, text, font);
 	}
 
 	MapViewSprite::~MapViewSprite()
 	{
 	}
 
-	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& font, sl_uint32 strokeWidth)
+	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& font)
 	{
 		m_location = location;
 		m_image = image;
 		m_text = text;
 		m_font = font;
-		if (font.isNotNull() && strokeWidth) {
-			m_stroker = font->createStroker(strokeWidth);
-		}
 	}
 
 	const LatLon& MapViewSprite::getLocation()
@@ -2027,26 +2022,6 @@ namespace slib
 	void MapViewSprite::setSize(const Size& size)
 	{
 		m_size = size;
-	}
-
-	const Color& MapViewSprite::getTextColor()
-	{
-		return m_textColor;
-	}
-
-	void MapViewSprite::setTextColor(const Color& color)
-	{
-		m_textColor = color;
-	}
-
-	const Color& MapViewSprite::getStrokeColor()
-	{
-		return m_strokeColor;
-	}
-
-	void MapViewSprite::setStrokeColor(const Color& color)
-	{
-		m_strokeColor = color;
 	}
 
 	void MapViewSprite::draw(Canvas* canvas, MapViewData* data, MapPlane* plane)
@@ -2139,12 +2114,7 @@ namespace slib
 		data->renderImage(engine, m_viewPoint, m_size, m_image);
 		if (m_text.isNotNull() && m_font.isNotNull()) {
 			Size offset(0.0f, (m_size.y + m_font->getFontHeight()) / 2.0f);
-			if (m_stroker.isNotNull() && m_strokeColor.a) {
-				data->renderText(engine, m_viewPoint + offset, m_text, m_stroker, m_strokeColor);
-			}
-			if (m_textColor.a) {
-				data->renderText(engine, m_viewPoint + offset, m_text, m_font, m_textColor);
-			}
+			data->renderText(engine, m_viewPoint + offset, m_text, m_font);
 		}
 	}
 
@@ -2888,7 +2858,7 @@ namespace slib
 		renderTexture(engine, center, size, Texture::getBitmapRenderingCache(image), color);
 	}
 
-	void MapViewData::renderText(RenderEngine* engine, const Point& center, const StringParam& text, const Ref<FontAtlas>& font, const Color& color)
+	void MapViewData::renderText(RenderEngine* engine, const Point& center, const StringParam& text, const Ref<FontAtlas>& atlas)
 	{
 		
 	}

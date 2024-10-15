@@ -139,6 +139,8 @@ namespace slib
 			sl_real height;
 
 			sl_real strokeWidth;
+			Color strokeColor;
+
 			sl_real shadowOpacity;
 			sl_real shadowRadius;
 			Color shadowColor;
