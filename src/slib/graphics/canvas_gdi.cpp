@@ -375,13 +375,13 @@ namespace slib
 							}
 						}
 						Gdiplus::SolidBrush brushText(Gdiplus::Color((BYTE)a, param.color.r, param.color.g, param.color.b));
-						sl_bool flagShadow = param.shadowColor.a && param.shadowOpacity > 0.001f;
-						if (flagShadow || param.strokeColor.a) {
+						sl_bool flagShadow = param.shadowColor.isNotZero() && param.shadowOpacity > 0.001f;
+						if (flagShadow || param.strokeColor.isNotZero()) {
 							Gdiplus::GraphicsPath path;
 							Gdiplus::FontFamily family;
 							pf->GetFamily(&family);
 							path.AddString((const WCHAR*)(text.getData()), (INT)(lenText), &family, pf->GetStyle(), pf->GetSize(), Gdiplus::PointF((Gdiplus::REAL)(x), (Gdiplus::REAL)(y + 1.0f)), Gdiplus::StringFormat::GenericTypographic());
-							if (flagShadow) {
+							if (flagShadow && param.shadowColor.a) {
 								Gdiplus::GraphicsPath* pathShadow = path.Clone();
 								if (pathShadow) {
 									Gdiplus::GraphicsState state = graphics->Save();

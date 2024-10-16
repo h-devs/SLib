@@ -818,26 +818,14 @@ namespace slib
 
 	namespace
 	{
-		static void StrokeSlot(const Ref<Image>& _out, sl_real x, sl_real y, sl_int32 ascender, FT_Stroker stroker, FT_GlyphSlot slot, const Color& color, sl_uint32 mode)
+		static void StrokeSlot(const Ref<Image>& _out, sl_real x, sl_real y, sl_int32 ascender, FT_Stroker stroker, FT_GlyphSlot slot, const Color& color)
 		{
 			FT_Glyph glyph = sl_null;
 			FT_Error err = FT_Get_Glyph(slot, &glyph);
 			if (err || !glyph) {
 				return;
 			}
-			switch (mode) {
-				case FreeType::StrokeDefault:
-					err = FT_Glyph_Stroke(&glyph, stroker, sl_true);
-					break;
-				case FreeType::StrokeInside:
-					err = FT_Glyph_StrokeBorder(&glyph, stroker, sl_true, sl_true);
-					break;
-				case FreeType::StrokeOutside:
-					err = FT_Glyph_StrokeBorder(&glyph, stroker, sl_false, sl_true);
-					break;
-				default:
-					return;
-			}
+			err = FT_Glyph_Stroke(&glyph, stroker, sl_true);
 			if (err || !glyph) {
 				return;
 			}
@@ -853,7 +841,7 @@ namespace slib
 		}
 	}
 
-	void FreeType::strokeChar_NoLock(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 ch, const Color& color, sl_real lineWidth, sl_uint32 mode)
+	void FreeType::strokeChar_NoLock(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 ch, const Color& color, sl_real lineWidth)
 	{
 		if (_out.isNull()) {
 			return;
@@ -868,17 +856,17 @@ namespace slib
 			return;
 		}
 		FT_Stroker_Set(stroker, (FT_Fixed)(lineWidth * 32.0f), FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
-		StrokeSlot(_out, x, y, m_face->size->metrics.ascender, stroker, m_face->glyph, color, mode);
+		StrokeSlot(_out, x, y, m_face->size->metrics.ascender, stroker, m_face->glyph, color);
 		FT_Stroker_Done(stroker);
 	}
 
-	void FreeType::strokeChar(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 ch, const Color& color, sl_real lineWidth, sl_uint32 mode)
+	void FreeType::strokeChar(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 ch, const Color& color, sl_real lineWidth)
 	{
 		ObjectLocker lock(this);
-		strokeChar_NoLock(_out, x, y, ch, color, lineWidth, mode);
+		strokeChar_NoLock(_out, x, y, ch, color, lineWidth);
 	}
 
-	void FreeType::strokeText(const Ref<Image>& _out, sl_real x, sl_real y, const StringParam& _text, const Color& color, sl_real lineWidth, sl_uint32 mode)
+	void FreeType::strokeText(const Ref<Image>& _out, sl_real x, sl_real y, const StringParam& _text, const Color& color, sl_real lineWidth)
 	{
 		if (_out.isNull()) {
 			return;
@@ -901,7 +889,7 @@ namespace slib
 		for (sl_size i = 0; i < len; i++) {
 			FT_Error err = FT_Load_Char(m_face, (FT_ULong)(data[i]), FT_LOAD_DEFAULT);
 			if (!err) {
-				StrokeSlot(_out, x, y, m_face->size->metrics.ascender, stroker, slot, color, mode);
+				StrokeSlot(_out, x, y, m_face->size->metrics.ascender, stroker, slot, color);
 				x += TO_REAL_POS(slot->metrics.horiAdvance);
 			}
 		}

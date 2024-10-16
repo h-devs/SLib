@@ -162,17 +162,11 @@ namespace slib
 
 		void drawText(const Ref<Image>& _out, sl_real x, sl_real y, const StringParam& text, const Color& color);
 
-		enum {
-			StrokeDefault = 0,
-			StrokeOutside = 1,
-			StrokeInside = 2
-		};
+		void strokeChar_NoLock(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 charcode, const Color& color, sl_real lineWidth);
 
-		void strokeChar_NoLock(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 charcode, const Color& color, sl_real lineWidth, sl_uint32 mode = StrokeDefault);
+		void strokeChar(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 charcode, const Color& color, sl_real lineWidth);
 
-		void strokeChar(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 charcode, const Color& color, sl_real lineWidth, sl_uint32 mode = StrokeDefault);
-
-		void strokeText(const Ref<Image>& _out, sl_real x, sl_real y, const StringParam& text, const Color& color, sl_real lineWidth, sl_uint32 mode = StrokeDefault);
+		void strokeText(const Ref<Image>& _out, sl_real x, sl_real y, const StringParam& text, const Color& color, sl_real lineWidth);
 
 		Ref<GraphicsPath> getCharOutline_NoLock(sl_char32 charcode, sl_real left = 0.0f, sl_real top = 0.0f, sl_real* pOutAdvanceX = sl_null);
 
