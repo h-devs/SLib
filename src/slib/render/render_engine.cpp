@@ -682,6 +682,9 @@ namespace slib
 
 	void RenderEngine::drawText(const Matrix3& _transform, const StringParam& _text, const Ref<FontAtlas>& atlas, const Color4F& color)
 	{
+		if (atlas.isNull()) {
+			return;
+		}
 		StringData32 text(_text);
 		sl_size len = text.getLength();
 		if (!len) {
@@ -724,9 +727,35 @@ namespace slib
 		}
 	}
 
-	void RenderEngine::drawText(sl_real x, sl_real y, sl_real scaleX, sl_real scaleY, const StringParam& text, const Ref<FontAtlas>& atlas, const Color4F& color)
+	void RenderEngine::drawText(sl_real x, sl_real y, sl_real scaleX, sl_real scaleY, const StringParam& text, const Ref<FontAtlas>& atlas, const Color4F& color, const Alignment& align)
 	{
-		Matrix3 transform = Transform2::getScalingMatrix(scaleX, scaleY);
+		if (atlas.isNull()) {
+			return;
+		}
+		Matrix3 transform;
+		if (align == Alignment::BottomLeft) {
+			transform = Transform2::getScalingMatrix(scaleX, scaleY);
+		} else {
+			Size size = atlas->getTextAdvance(text);
+			transform = Matrix3::identity();
+			Alignment halign = align & Alignment::HorizontalMask;
+			if (halign != Alignment::Left) {
+				if (halign == Alignment::Right) {
+					Transform2::translate(transform, -size.x, 0.0f);
+				} else {
+					Transform2::translate(transform, -size.x / 2.0f, 0.0f);
+				}
+			}
+			Alignment valign = align & Alignment::VerticalMask;
+			if (valign != Alignment::Bottom) {
+				if (valign == Alignment::Top) {
+					Transform2::translate(transform, 0.0f, -size.y);
+				} else {
+					Transform2::translate(transform, 0.0f, -size.y / 2.0f);
+				}
+			}
+			Transform2::scale(transform, scaleX, scaleY);
+		}
 		Transform2::translate(transform, x, y);
 		drawText(transform, text, atlas, color);
 	}

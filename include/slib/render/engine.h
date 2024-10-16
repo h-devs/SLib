@@ -322,7 +322,7 @@ namespace slib
 
 		void drawText(const Matrix3& transform, const StringParam& text, const Ref<FontAtlas>& atlas, const Color4F& color);
 
-		void drawText(sl_real x, sl_real y, sl_real scaleX, sl_real scaleY, const StringParam& text, const Ref<FontAtlas>& atlas, const Color4F& color);
+		void drawText(sl_real x, sl_real y, sl_real scaleX, sl_real scaleY, const StringParam& text, const Ref<FontAtlas>& atlas, const Color4F& color = Color4F(1.0f, 1.0f, 1.0f, 1.0f), const Alignment& align = Alignment::BottomLeft);
 
 		void drawDebugText();
 

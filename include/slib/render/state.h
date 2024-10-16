@@ -61,6 +61,8 @@ namespace slib
 	public:
 		static Ref<RenderDepthStencilState> create(const RenderDepthStencilParam& param);
 
+		static Ref<RenderDepthStencilState> create(sl_bool flagUseDepth = sl_true);
+
 	public:
 		const RenderDepthStencilParam& getParam();
 
@@ -98,6 +100,8 @@ namespace slib
 
 	public:
 		static Ref<RenderRasterizerState> create(const RenderRasterizerParam& param);
+
+		static Ref<RenderRasterizerState> create(sl_bool flagCull = sl_true);
 
 	public:
 		const RenderRasterizerParam& getParam();
@@ -140,6 +144,8 @@ namespace slib
 	public:
 		static Ref<RenderBlendState> create(const RenderBlendParam& param);
 
+		static Ref<RenderBlendState> create(sl_bool flagBlending = sl_false);
+
 	public:
 		const RenderBlendParam& getParam();
 
@@ -177,6 +183,8 @@ namespace slib
 
 	public:
 		static Ref<RenderSamplerState> create(const RenderSamplerParam& param);
+
+		static Ref<RenderSamplerState> create(TextureWrapMode wrapX = TextureWrapMode::Clamp, TextureWrapMode wrapY = TextureWrapMode::Clamp);
 
 	public:
 		const RenderSamplerParam& getParam();

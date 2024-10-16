@@ -139,6 +139,14 @@ namespace slib
 		return sl_null;
 	}
 
+	Ref<RenderDepthStencilState> RenderDepthStencilState::create(sl_bool flagUseDepth)
+	{
+		RenderDepthStencilParam param;
+		param.flagTestDepth = flagUseDepth;
+		param.flagWriteDepth = flagUseDepth;
+		return create(param);
+	}
+
 	const RenderDepthStencilParam& RenderDepthStencilState::getParam()
 	{
 		return m_param;
@@ -178,6 +186,13 @@ namespace slib
 			return state;
 		}
 		return sl_null;
+	}
+
+	Ref<RenderRasterizerState> RenderRasterizerState::create(sl_bool flagCull)
+	{
+		RenderRasterizerParam param;
+		param.flagCull = flagCull;
+		return create(param);
 	}
 
 	const RenderRasterizerParam& RenderRasterizerState::getParam()
@@ -220,6 +235,13 @@ namespace slib
 		return sl_null;
 	}
 
+	Ref<RenderBlendState> RenderBlendState::create(sl_bool flagBlending)
+	{
+		RenderBlendParam param;
+		param.flagBlending = flagBlending;
+		return create(param);
+	}
+
 	const RenderBlendParam& RenderBlendState::getParam()
 	{
 		return m_param;
@@ -259,6 +281,14 @@ namespace slib
 			return state;
 		}
 		return sl_null;
+	}
+
+	Ref<RenderSamplerState> RenderSamplerState::create(TextureWrapMode wrapX, TextureWrapMode wrapY)
+	{
+		RenderSamplerParam param;
+		param.wrapX = wrapX;
+		param.wrapY = wrapY;
+		return create(param);
 	}
 
 	const RenderSamplerParam& RenderSamplerState::getParam()
