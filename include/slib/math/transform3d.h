@@ -179,26 +179,40 @@ namespace slib
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			mat.m01 = mat.m01 * c - mat.m02 * s;
-			mat.m02 = mat.m01 * s + mat.m02 * c;
-			mat.m11 = mat.m11 * c - mat.m12 * s;
-			mat.m12 = mat.m11 * s + mat.m12 * c;
-			mat.m21 = mat.m21 * c - mat.m22 * s;
-			mat.m22 = mat.m21 * s + mat.m22 * c;
-			mat.m31 = mat.m31 * c - mat.m32 * s;
-			mat.m32 = mat.m31 * s + mat.m32 * c;
+			T _m01 = mat.m01 * c - mat.m02 * s;
+			T _m02 = mat.m01 * s + mat.m02 * c;
+			T _m11 = mat.m11 * c - mat.m12 * s;
+			T _m12 = mat.m11 * s + mat.m12 * c;
+			T _m21 = mat.m21 * c - mat.m22 * s;
+			T _m22 = mat.m21 * s + mat.m22 * c;
+			T _m31 = mat.m31 * c - mat.m32 * s;
+			T _m32 = mat.m31 * s + mat.m32 * c;
+			mat.m01 = _m01;
+			mat.m02 = _m02;
+			mat.m11 = _m11;
+			mat.m12 = _m12;
+			mat.m21 = _m21;
+			mat.m22 = _m22;
+			mat.m31 = _m31;
+			mat.m32 = _m32;
 		}
 
 		static void preRotateX(Matrix4T<T>& mat, T radians) noexcept
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			mat.m10 = c * mat.m10 + s * mat.m20;
-			mat.m11 = c * mat.m11 + s * mat.m21;
-			mat.m12 = c * mat.m12 + s * mat.m22;
-			mat.m20 = c * mat.m20 - s * mat.m10;
-			mat.m21 = c * mat.m21 - s * mat.m11;
-			mat.m22 = c * mat.m22 - s * mat.m12;
+			T _m10 = c * mat.m10 + s * mat.m20;
+			T _m11 = c * mat.m11 + s * mat.m21;
+			T _m12 = c * mat.m12 + s * mat.m22;
+			T _m20 = c * mat.m20 - s * mat.m10;
+			T _m21 = c * mat.m21 - s * mat.m11;
+			T _m22 = c * mat.m22 - s * mat.m12;
+			mat.m10 = _m10;
+			mat.m11 = _m11;
+			mat.m12 = _m12;
+			mat.m20 = _m20;
+			mat.m21 = _m21;
+			mat.m22 = _m22;
 		}
 
 		static void setRotationY(Matrix4T<T>& _out, T radians) noexcept
@@ -227,26 +241,40 @@ namespace slib
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			mat.m00 = mat.m00 * c + mat.m02 * s;
-			mat.m02 = mat.m02 * c - mat.m00 * s;
-			mat.m10 = mat.m10 * c + mat.m12 * s;
-			mat.m12 = mat.m12 * c - mat.m10 * s;
-			mat.m20 = mat.m20 * c + mat.m22 * s;
-			mat.m22 = mat.m22 * c - mat.m20 * s;
-			mat.m30 = mat.m30 * c + mat.m32 * s;
-			mat.m32 = mat.m32 * c - mat.m30 * s;
+			T _m00 = mat.m00 * c + mat.m02 * s;
+			T _m02 = mat.m02 * c - mat.m00 * s;
+			T _m10 = mat.m10 * c + mat.m12 * s;
+			T _m12 = mat.m12 * c - mat.m10 * s;
+			T _m20 = mat.m20 * c + mat.m22 * s;
+			T _m22 = mat.m22 * c - mat.m20 * s;
+			T _m30 = mat.m30 * c + mat.m32 * s;
+			T _m32 = mat.m32 * c - mat.m30 * s;
+			mat.m00 = _m00;
+			mat.m02 = _m02;
+			mat.m10 = _m10;
+			mat.m12 = _m12;
+			mat.m20 = _m20;
+			mat.m22 = _m22;
+			mat.m30 = _m30;
+			mat.m32 = _m32;
 		}
 
 		static void preRotateY(Matrix4T<T>& mat, T radians) noexcept
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			mat.m00 = c * mat.m00 - s * mat.m20;
-			mat.m01 = c * mat.m01 - s * mat.m21;
-			mat.m02 = c * mat.m02 - s * mat.m22;
-			mat.m20 = s * mat.m00 + c * mat.m20;
-			mat.m21 = s * mat.m01 + c * mat.m21;
-			mat.m22 = s * mat.m02 + c * mat.m22;
+			T _m00 = c * mat.m00 - s * mat.m20;
+			T _m01 = c * mat.m01 - s * mat.m21;
+			T _m02 = c * mat.m02 - s * mat.m22;
+			T _m20 = s * mat.m00 + c * mat.m20;
+			T _m21 = s * mat.m01 + c * mat.m21;
+			T _m22 = s * mat.m02 + c * mat.m22;
+			mat.m00 = _m00;
+			mat.m01 = _m01;
+			mat.m02 = _m02;
+			mat.m20 = _m20;
+			mat.m21 = _m21;
+			mat.m22 = _m22;
 		}
 
 		static void setRotationZ(Matrix4T<T>& _out, T radians) noexcept
@@ -275,26 +303,40 @@ namespace slib
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			mat.m00 = mat.m00 * c - mat.m01 * s;
-			mat.m01 = mat.m00 * s + mat.m01 * c;
-			mat.m10 = mat.m10 * c - mat.m11 * s;
-			mat.m11 = mat.m10 * s + mat.m11 * c;
-			mat.m20 = mat.m20 * c - mat.m21 * s;
-			mat.m21 = mat.m20 * s + mat.m21 * c;
-			mat.m30 = mat.m30 * c - mat.m31 * s;
-			mat.m31 = mat.m30 * s + mat.m31 * c;
+			T _m00 = mat.m00 * c - mat.m01 * s;
+			T _m01 = mat.m00 * s + mat.m01 * c;
+			T _m10 = mat.m10 * c - mat.m11 * s;
+			T _m11 = mat.m10 * s + mat.m11 * c;
+			T _m20 = mat.m20 * c - mat.m21 * s;
+			T _m21 = mat.m20 * s + mat.m21 * c;
+			T _m30 = mat.m30 * c - mat.m31 * s;
+			T _m31 = mat.m30 * s + mat.m31 * c;
+			mat.m00 = _m00;
+			mat.m01 = _m01;
+			mat.m10 = _m10;
+			mat.m11 = _m11;
+			mat.m20 = _m20;
+			mat.m21 = _m21;
+			mat.m30 = _m30;
+			mat.m31 = _m31;
 		}
 
 		static void preRotateZ(Matrix4T<T>& mat, T radians) noexcept
 		{
 			T c = Math::cos(radians);
 			T s = Math::sin(radians);
-			mat.m00 = c * mat.m00 + s * mat.m10;
-			mat.m01 = c * mat.m01 + s * mat.m11;
-			mat.m02 = c * mat.m02 + s * mat.m12;
-			mat.m10 = c * mat.m10 - s * mat.m00;
-			mat.m11 = c * mat.m11 - s * mat.m01;
-			mat.m12 = c * mat.m12 - s * mat.m02;
+			T _m00 = c * mat.m00 + s * mat.m10;
+			T _m01 = c * mat.m01 + s * mat.m11;
+			T _m02 = c * mat.m02 + s * mat.m12;
+			T _m10 = c * mat.m10 - s * mat.m00;
+			T _m11 = c * mat.m11 - s * mat.m01;
+			T _m12 = c * mat.m12 - s * mat.m02;
+			mat.m00 = _m00;
+			mat.m01 = _m01;
+			mat.m02 = _m02;
+			mat.m10 = _m10;
+			mat.m11 = _m11;
+			mat.m12 = _m12;
 		}
 
 		static void setRotation(Matrix4T<T>& _out, const QuaternionT<T>& q) noexcept
