@@ -617,10 +617,15 @@ namespace slib
 
 		const String& getText();
 
-		// Viewport Coordinate
+		const Ref<FontAtlas>& getFontAtlas();
+
 		const Size& getSize();
 
 		void setSize(const Size& size);
+
+		const Color& getTextColor();
+
+		void setTextColor(const Color& color);
 
 	public:
 		void draw(Canvas* canvas, MapViewData* data, MapPlane* plane) override;
@@ -649,9 +654,10 @@ namespace slib
 		LatLon m_location;
 		Ref<Image> m_image;
 		String m_text;
-		Ref<FontAtlas> m_font;
+		Ref<FontAtlas> m_fontAtlas;
 
 		Size m_size;
+		Color m_textColor;
 
 		sl_bool m_flagValidAltitude;
 		double m_altitude;

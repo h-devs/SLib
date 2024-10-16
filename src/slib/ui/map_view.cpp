@@ -1975,6 +1975,7 @@ namespace slib
 		setSupportingPlaneMode();
 
 		m_size = Size::zero();
+		m_textColor = Color::White;
 
 		m_flagValidAltitude = sl_false;
 		m_altitude = 0.0;
@@ -1991,12 +1992,12 @@ namespace slib
 	{
 	}
 
-	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& font)
+	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& atlas)
 	{
 		m_location = location;
 		m_image = image;
 		m_text = text;
-		m_font = font;
+		m_fontAtlas = atlas;
 	}
 
 	const LatLon& MapViewSprite::getLocation()
@@ -2014,6 +2015,11 @@ namespace slib
 		return m_text;
 	}
 
+	const Ref<FontAtlas>& MapViewSprite::getFontAtlas()
+	{
+		return m_fontAtlas;
+	}
+
 	const Size& MapViewSprite::getSize()
 	{
 		return m_size;
@@ -2022,6 +2028,16 @@ namespace slib
 	void MapViewSprite::setSize(const Size& size)
 	{
 		m_size = size;
+	}
+
+	const Color& MapViewSprite::getTextColor()
+	{
+		return m_textColor;
+	}
+
+	void MapViewSprite::setTextColor(const Color& color)
+	{
+		m_textColor = color;
 	}
 
 	void MapViewSprite::draw(Canvas* canvas, MapViewData* data, MapPlane* plane)
@@ -2102,19 +2118,24 @@ namespace slib
 		if (m_image.isNotNull()) {
 			canvas->draw(rect, m_image);
 		}
-		if (m_text.isNotNull()) {
-			rect.top = rect.bottom;
-			rect.bottom = rect.top + 100.0f;
-			//canvas->drawText(m_text, rect, m_font, m_textColor, Alignment::TopCenter);
+		if (m_text.isNotNull() && m_fontAtlas.isNotNull()) {
+			Canvas::DrawTextParam dtp;
+			dtp.atlas = m_fontAtlas;
+			dtp.text = m_text;
+			dtp.x = m_viewPoint.x;
+			dtp.y = rect.bottom;
+			dtp.alignment = Alignment::TopCenter;
+			canvas->drawText(dtp);
 		}
 	}
 
 	void MapViewSprite::onRenderSprite(RenderEngine* engine, MapViewData* data, MapSurface* surface)
 	{
 		data->renderImage(engine, m_viewPoint, m_size, m_image);
-		if (m_text.isNotNull() && m_font.isNotNull()) {
-			Size offset(0.0f, (m_size.y + m_font->getFontHeight()) / 2.0f);
-			data->renderText(engine, m_viewPoint + offset, m_text, m_font);
+		if (m_text.isNotNull() && m_fontAtlas.isNotNull()) {
+			Point pt = m_viewPoint;
+			pt.y += m_size.y / 2.0f;
+			data->renderText(engine, pt, m_text, m_fontAtlas, Alignment::TopCenter);
 		}
 	}
 
@@ -2142,49 +2163,37 @@ namespace slib
 		}
 
 		if (defaultDepthState.isNull()) {
-			RenderDepthStencilParam dp;
-			dp.flagTestDepth = sl_true;
-			defaultDepthState = RenderDepthStencilState::create(dp);
+			defaultDepthState = RenderDepthStencilState::create(sl_true);
 			if (defaultDepthState.isNull()) {
 				return sl_false;
 			}
 		}
 		if (defaultBlendState.isNull()) {
-			RenderBlendParam bp;
-			bp.flagBlending = sl_false;
-			defaultBlendState = RenderBlendState::create(bp);
+			defaultBlendState = RenderBlendState::create(sl_false);
 			if (defaultBlendState.isNull()) {
 				return sl_false;
 			}
 		}
 		if (defaultRasterizerState.isNull()) {
-			RenderRasterizerParam rp;
-			defaultRasterizerState = RenderRasterizerState::create(rp);
+			defaultRasterizerState = RenderRasterizerState::create(sl_true);
 			if (defaultRasterizerState.isNull()) {
 				return sl_false;
 			}
 		}
 		if (overlayDepthState.isNull()) {
-			RenderDepthStencilParam dp;
-			dp.flagTestDepth = sl_false;
-			dp.flagWriteDepth = sl_false;
-			overlayDepthState = RenderDepthStencilState::create(dp);
+			overlayDepthState = RenderDepthStencilState::create(sl_false);
 			if (overlayDepthState.isNull()) {
 				return sl_false;
 			}
 		}
 		if (overlayBlendState.isNull()) {
-			RenderBlendParam bp;
-			bp.flagBlending = sl_true;
-			overlayBlendState = RenderBlendState::create(bp);
+			overlayBlendState = RenderBlendState::create(sl_true);
 			if (overlayBlendState.isNull()) {
 				return sl_false;
 			}
 		}
 		if (overlayRasterizerState.isNull()) {
-			RenderRasterizerParam rp;
-			rp.flagCull = sl_false;
-			overlayRasterizerState = RenderRasterizerState::create(rp);
+			overlayRasterizerState = RenderRasterizerState::create(sl_false);
 			if (overlayRasterizerState.isNull()) {
 				return sl_false;
 			}
@@ -2858,9 +2867,12 @@ namespace slib
 		renderTexture(engine, center, size, Texture::getBitmapRenderingCache(image), color);
 	}
 
-	void MapViewData::renderText(RenderEngine* engine, const Point& center, const StringParam& text, const Ref<FontAtlas>& atlas)
+	void MapViewData::renderText(RenderEngine* engine, const Point& pt, const StringParam& text, const Ref<FontAtlas>& atlas, const Color& color, const Alignment& align)
 	{
-		
+		if (atlas.isNull()) {
+			return;
+		}
+		engine->drawText(pt.x, pt.y, (sl_real)(2.0 / m_state.viewportWidth), (sl_real)(2.0 / m_state.viewportHeight), text, atlas, color, align);
 	}
 
 	sl_bool MapViewData::getLatLonFromViewPoint(const Double2& point, LatLon& _out) const
@@ -3020,9 +3032,9 @@ namespace slib
 
 	Matrix4T<double> MapViewData::getWorldTransformAt(const GeoLocation& location)
 	{
-		Matrix4T<double> ret = Transform3T<double>::getTranslationMatrix(0.0, 0.0, location.altitude + Earth::getRadius());
-		Transform3T<double>::rotateX(ret, Math::getRadianFromDegrees(-location.latitude));
-		Transform3T<double>::rotateY(ret, Math::getRadianFromDegrees(180.0 - location.longitude));
+		Matrix4T<double> ret = Transform3T<double>::getTranslationMatrix(0.0, 0.0, - location.altitude - Earth::getRadius());
+		Transform3T<double>::rotateX(ret, Math::getRadianFromDegrees(location.latitude));
+		Transform3T<double>::rotateY(ret, Math::getRadianFromDegrees(-location.longitude));
 		return ret;
 	}
 
