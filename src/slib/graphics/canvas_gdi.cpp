@@ -404,7 +404,7 @@ namespace slib
 							if (param.strokeColor.a) {
 								Color strokeColor = param.strokeColor;
 								strokeColor.multiplyAlpha((float)alpha);
-								Gdiplus::Pen pen(GraphicsPlatform::getGdiplusColor(strokeColor), (Gdiplus::REAL)(param.strokeWidth));
+								Gdiplus::Pen pen(GraphicsPlatform::getGdiplusColor(strokeColor), (Gdiplus::REAL)(param.strokeWidth * 2.0f));
 								pen.SetLineCap(Gdiplus::LineCapRound, Gdiplus::LineCapRound, Gdiplus::DashCapRound);
 								pen.SetLineJoin(Gdiplus::LineJoinRound);
 								graphics->DrawPath(&pen, &path);

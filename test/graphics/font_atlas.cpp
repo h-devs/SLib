@@ -24,7 +24,7 @@ int main(int argc, const char * argv[])
 		{
 			sl_real y = 20.0f;
 			canvas->drawLine(0.0f, y, 1000.0f, y, penBlack);
-			Ref<Font> font = Font::create(u8"Segoe Script", 50);
+			Ref<Font> font = Font::create(u8"Segoe Script", 50.0f);
 			Ref<FontAtlas> atlas = font->getAtlas();
 			String str = "afgA\r\nTest\nfont example";
 			TextMetrics tm;
@@ -35,16 +35,21 @@ int main(int argc, const char * argv[])
 				param.x = x;
 				param.y = y;
 				param.atlas = atlas;
-				param.color = Color::Red;
 				param.text = str;
+				param.color = Color::Red;
 				param.flagMultiLine = sl_true;
 				canvas->drawText(param);
 				canvas->drawRectangle(x, y, tm.advanceX, tm.advanceY, penRed);
 			}
 		}
 		{
-			Ref<Font> font = Font::create(u8"Segoe Script", 150);
-			Ref<FontAtlas> atlas = font->getAtlas()->createStroker(10);
+			Ref<Font> font = Font::create(u8"Segoe Script", 150.0f);
+			FontAtlasParam fap;
+			fap.font = font;
+			fap.color = Color::Red;
+			fap.strokeColor = Color::Black;
+			fap.strokeWidth = 10.0f;
+			Ref<FontAtlas> atlas = FontAtlas::create(fap);
 			sl_real y = 300.0f;
 			canvas->drawLine(0.0f, y, 1000.0f, y, penBlack);
 			char32_t s[] = U"afgAe";
@@ -52,11 +57,8 @@ int main(int argc, const char * argv[])
 				FontAtlasChar fac;
 				if (atlas->getChar(s[i], fac)) {
 					canvas->drawRectangle(x, y, fac.metrics.advanceX, fac.metrics.advanceY, penBlack, Color(255, 255, 0, 30));
-					Canvas::DrawParam param;
-					param.colorMatrix.setOverlay(Color::Blue);
-					param.useColorMatrix = sl_true;
 					fac.metrics.translate(x, y);
-					canvas->draw(fac.metrics, fac.bitmap, fac.region, param);
+					canvas->draw(fac.metrics, fac.bitmap, fac.region);
 					canvas->drawRectangle(fac.metrics, penRed);
 					x += fac.metrics.advanceX;
 				}

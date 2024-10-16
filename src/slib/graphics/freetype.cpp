@@ -784,7 +784,7 @@ namespace slib
 		if (err) {
 			return;
 		}
-		CopySlot(_out, x, y, m_face->size->metrics.ascender, m_face->glyph, Color::White);
+		CopySlot(_out, x, y, m_face->size->metrics.ascender, m_face->glyph, color);
 	}
 
 	void FreeType::drawChar(const Ref<Image>& _out, sl_real x, sl_real y, sl_char32 ch, const Color& color)

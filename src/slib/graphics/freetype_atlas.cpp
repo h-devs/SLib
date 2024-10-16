@@ -52,8 +52,8 @@ namespace slib
 		}
 		const Ref<FreeType>& font = param.font;
 		sl_real fontHeight = font->getFontHeight();
-		sl_real strokeWidth = param.strokeColor.a ? param.strokeWidth / param.scale : 0.0f;
-		sl_uint32 fontHeightExt = (sl_uint32)(fontHeight + strokeWidth) + 1;
+		sl_real strokeWidth = param.strokeColor.a ? (param.strokeWidth / param.scale) : 0.0f;
+		sl_uint32 fontHeightExt = (sl_uint32)(fontHeight + strokeWidth * 2.0f) + 1;
 		sl_uint32 planeWidth = param.planeWidth;
 		if (!planeWidth) {
 			planeWidth = fontHeightExt << 4;
@@ -126,7 +126,7 @@ namespace slib
 	{
 		m_currentPlane->resetPixels(dstX, dstY, width, height, Color::Zero);
 		if (m_strokeColor.a) {
-			m_font->strokeChar(m_currentPlane, charX, charY, ch, m_strokeColor, m_strokeWidth);
+			m_font->strokeChar(m_currentPlane, charX, charY, ch, m_strokeColor, m_strokeWidth * 2.0f);
 		}
 		if (m_textColor.a) {
 			m_font->drawChar(m_currentPlane, charX, charY, ch, m_textColor);

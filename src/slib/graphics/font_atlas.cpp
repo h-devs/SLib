@@ -163,8 +163,8 @@ namespace slib
 				}
 				sl_real sourceHeight = param.font->getFontHeight();
 				sl_real fontHeight = font->getFontHeight();
-				sl_real strokeWidth = param.strokeColor.a ? param.strokeWidth * fontHeight / sourceHeight / param.scale : 0.0f;
-				sl_uint32 fontHeightExt = (sl_uint32)(fontHeight + strokeWidth) + 1;
+				sl_real strokeWidth = param.strokeColor.a ? (param.strokeWidth * fontHeight / sourceHeight / param.scale) : 0.0f;
+				sl_uint32 fontHeightExt = (sl_uint32)(fontHeight + strokeWidth * 2.0f) + 1;
 				sl_uint32 planeWidth = param.planeWidth;
 				if (!planeWidth) {
 					planeWidth = fontHeightExt << 4;
@@ -346,13 +346,11 @@ namespace slib
 				m_map.put_NoLock(ch, _out);
 				return sl_false;
 			}
-			if (m_strokeColor.isNotZero()) {
-				sl_real m = m_strokeWidth / 2.0f + 1.0f;
-				tm.left -= m;
-				tm.top -= m;
-				tm.right += m;
-				tm.bottom += m;
-			}
+			sl_real m = m_strokeColor.a ? (m_strokeWidth + 2.0f) : 2.0f;
+			tm.left -= m;
+			tm.top -= m;
+			tm.right += m;
+			tm.bottom += m;
 			_out.metrics.left = tm.left * m_drawScale;
 			_out.metrics.top = tm.top * m_drawScale;
 			_out.metrics.right = tm.right * m_drawScale;
