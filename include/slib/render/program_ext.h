@@ -141,12 +141,11 @@ namespace slib
 			class SLIB_EXPORT HatchFill : public RenderProgramT<state::HatchFill>
 			{
 			public:
-				HatchFill(HatchStyle style);
-
-				~HatchFill();
+				HatchFill(HatchStyle style): m_style(style) {}
 
 			public:
 				String getShader(RenderEngine* engine, RenderShaderType type) override;
+				static String getShader(RenderShaderType type, HatchStyle style);
 
 			public:
 				// Input Variable: `hatch`, `hatchLineWidth`, `hatchSmoothWidth`
@@ -336,6 +335,53 @@ namespace slib
 			{
 			public:
 				String getShader(RenderEngine* engine, RenderShaderType type) override;
+				static String getShader(RenderShaderType type);
+			};
+		}
+
+		namespace state
+		{
+			SLIB_RENDER_PROGRAM_STATE_BEGIN(Position2D, render2d::vertex::Position)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform, RenderShaderStage::Vertex, 0)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderStage::Pixel, 0)
+
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
+			SLIB_RENDER_PROGRAM_STATE_END
+		}
+		namespace program
+		{
+			class SLIB_EXPORT Position2D : public RenderProgramT<state::Position2D>
+			{
+			public:
+				String getShader(RenderEngine* engine, RenderShaderType type) override;
+			};
+		}
+
+		namespace state
+		{
+			SLIB_RENDER_PROGRAM_STATE_BEGIN(HatchFill2D, render2d::vertex::Position)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform, RenderShaderStage::Vertex, 0)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(HatchTransform, u_HatchTransform, RenderShaderStage::Vertex, 4)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(ForeColor, u_ForeColor, RenderShaderStage::Pixel, 0)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(BackColor, u_BackColor, RenderShaderStage::Pixel, 1)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(LineWidth, hatchLineWidth, RenderShaderStage::Pixel, 2)
+				SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(SmoothWidth, hatchSmoothWidth, RenderShaderStage::Pixel, 3)
+
+				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position)
+			SLIB_RENDER_PROGRAM_STATE_END
+		}
+		namespace program
+		{
+			class SLIB_EXPORT HatchFill2D : public RenderProgramT<state::HatchFill2D>
+			{
+			public:
+				HatchFill2D(HatchStyle style): m_style(style) {}
+
+			public:
+				String getShader(RenderEngine* engine, RenderShaderType type) override;
+
+			protected:
+				HatchStyle m_style;
 			};
 		}
 	}

@@ -75,7 +75,8 @@ namespace slib
 		BackwardDiagonal = 4,
 		Cross = 5,
 		DiagonalCross = 6,
-		Dots = 7
+		Dots = 7,
+		Count = 8
 	};
 
 	enum class FillMode

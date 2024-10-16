@@ -604,15 +604,12 @@ namespace slib
 				return sl_null;
 			}
 
-			HatchFill::HatchFill(HatchStyle style): m_style(style)
-			{
-			}
-
-			HatchFill::~HatchFill()
-			{
-			}
-
 			String HatchFill::getShader(RenderEngine* engine, RenderShaderType type)
+			{
+				return getShader(type, m_style);
+			}
+
+			String HatchFill::getShader(RenderShaderType type, HatchStyle style)
 			{
 				switch (type) {
 					case RenderShaderType::GLSL_Vertex:
@@ -630,7 +627,7 @@ namespace slib
 						))
 					case RenderShaderType::GLSL_Fragment:
 						{
-							String snippet = getShaderSnippet(RenderShaderLanguage::GLSL, m_style);
+							String snippet = getShaderSnippet(RenderShaderLanguage::GLSL, style);
 							if (snippet.isNull()) {
 								return sl_null;
 							}
@@ -665,7 +662,7 @@ namespace slib
 						))
 					case RenderShaderType::HLSL_Pixel:
 						{
-							String snippet = getShaderSnippet(RenderShaderLanguage::HLSL, m_style);
+							String snippet = getShaderSnippet(RenderShaderLanguage::HLSL, style);
 							if (snippet.isNull()) {
 								return sl_null;
 							}
@@ -927,6 +924,11 @@ namespace slib
 
 			String Position::getShader(RenderEngine* engine, RenderShaderType type)
 			{
+				return getShader(type);
+			}
+
+			String Position::getShader(RenderShaderType type)
+			{
 				switch (type) {
 					case RenderShaderType::GLSL_Vertex:
 						SLIB_RETURN_STRING(SLIB_STRINGIFY(
@@ -967,6 +969,71 @@ namespace slib
 						break;
 				}
 				return sl_null;
+			}
+
+			String Position2D::getShader(RenderEngine* engine, RenderShaderType type)
+			{
+				switch (type) {
+					case RenderShaderType::GLSL_Vertex:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							uniform mat4 u_Transform;
+							attribute vec2 a_Position;
+							void main() {
+								vec4 P = vec4(a_Position, 1.0, 1.0) * u_Transform;
+								gl_Position = P;
+							}
+						))
+					case RenderShaderType::HLSL_Vertex:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							float4x4 u_Transform : register(c0);
+							struct VS_OUTPUT {
+								float4 pos : POSITION;
+							};
+							VS_OUTPUT main(float2 a_Position : POSITION) {
+								VS_OUTPUT ret;
+								ret.pos = mul(float4(a_Position, 1.0, 1.0), u_Transform);
+								return ret;
+							}
+						))
+					default:
+						break;
+				}
+				return Position::getShader(type);
+			}
+
+			String HatchFill2D::getShader(RenderEngine* engine, RenderShaderType type)
+			{
+				switch (type) {
+					case RenderShaderType::GLSL_Vertex:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							uniform mat4 u_Transform;
+							uniform mat4 u_HatchTransform;
+							attribute vec3 a_Position;
+							varying vec2 hatch;
+							void main() {
+								gl_Position = vec4(a_Position, 1.0, 1.0) * u_Transform;
+								hatch = (vec4(a_Position, 1.0, 1.0) * u_HatchTransform).xy;
+							}
+						))
+					case RenderShaderType::HLSL_Vertex:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							float4x4 u_Transform : register(c0);
+							float4x4 u_HatchTransform : register(c4);
+							struct VS_OUTPUT {
+								float2 hatch : TEXCOORD;
+								float4 pos : POSITION;
+							};
+							VS_OUTPUT main(in float2 a_Position : POSITION) {
+								VS_OUTPUT ret;
+								ret.pos = mul(float4(a_Position, 1.0, 1.0), u_Transform);
+								ret.hatch = (mul(float4(a_Position, 1.0, 1.0), u_HatchTransform)).xy;
+								return ret;
+							}
+						))
+					default:
+						break;
+				}
+				return render2d::program::HatchFill::getShader(type, m_style);
 			}
 		}
 	}
