@@ -622,7 +622,7 @@ namespace slib
 		}
 	}
 
-	sl_bool FreeType::measureChar_NoLock(sl_uint32 charcode, TextMetrics& _out)
+	sl_bool FreeType::measureChar_NoLock(sl_char32 charcode, TextMetrics& _out)
 	{
 		FT_Error err = FT_Load_Char(m_face, (FT_ULong)charcode, FT_LOAD_BITMAP_METRICS_ONLY);
 		if (!err) {
@@ -632,10 +632,19 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool FreeType::measureChar(sl_uint32 charcode, TextMetrics& _out)
+	sl_bool FreeType::measureChar(sl_char32 charcode, TextMetrics& _out)
 	{
 		ObjectLocker lock(this);
 		return measureChar_NoLock(charcode, _out);
+	}
+
+	Size FreeType::getCharAdvance(sl_char32 ch)
+	{
+		TextMetrics tm;
+		if (measureChar(ch, tm)) {
+			return { tm.advanceX, tm.advanceY };
+		}
+		return Size::zero();
 	}
 
 	sl_bool FreeType::measureText(const StringParam& _text, TextMetrics& _out)
@@ -669,6 +678,15 @@ namespace slib
 			}
 		}
 		return sl_true;
+	}
+
+	Size FreeType::getTextAdvance(const StringParam& text)
+	{
+		TextMetrics tm;
+		if (measureText(text, tm)) {
+			return { tm.advanceX, tm.advanceY };
+		}
+		return Size::zero();
 	}
 
 	sl_bool FreeType::measureGlyph_NoLock(sl_uint32 glyphId, TextMetrics& _out)

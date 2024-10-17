@@ -135,6 +135,17 @@ namespace slib
 		double N; // Northing
 	};
 
+	class SLIB_EXPORT MapRegion
+	{
+	public:
+		MapLocation center;
+		double radiusE; // Easting
+		double radiusN; // Northing
+
+	public:
+		sl_bool intersect(const MapRegion& other) const;
+	};
+
 	class SLIB_EXPORT MapTileReader : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -322,6 +333,12 @@ namespace slib
 		double getViewLengthFromMapLength(double length);
 
 		double getMapLengthFromViewLength(double length);
+
+		MapRegion getViewportRegion();
+
+		sl_bool containsRegion(const MapRegion& region);
+
+		Matrix3 getRenderingTransformAt(const MapLocation& location);
 
 		void draw(Canvas* canvas, MapViewData* data);
 
@@ -551,6 +568,10 @@ namespace slib
 		~MapViewObject();
 
 	public:
+		sl_bool isVisible();
+
+		void setVisible(sl_bool flag = sl_true);
+
 		sl_bool isSupportingGlobeMode();
 
 		void setSupportingGlobeMode(sl_bool flag = sl_true);
@@ -569,6 +590,7 @@ namespace slib
 		virtual void render(RenderEngine* engine, MapViewData* data, MapSurface* surface);
 
 	protected:
+		sl_bool m_flagVisible : 1;
 		sl_bool m_flagSupportGlobe : 1;
 		sl_bool m_flagSupportPlane : 1;
 		sl_bool m_flagOverlay : 1;

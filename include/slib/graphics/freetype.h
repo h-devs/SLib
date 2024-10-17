@@ -145,11 +145,15 @@ namespace slib
 
 		sl_real getFontHeight();
 
-		sl_bool measureChar_NoLock(sl_uint32 charcode, TextMetrics& _out);
+		sl_bool measureChar_NoLock(sl_char32 ch, TextMetrics& _out);
 
-		sl_bool measureChar(sl_uint32 charcode, TextMetrics& _out);
+		sl_bool measureChar(sl_char32 ch, TextMetrics& _out);
+
+		Size getCharAdvance(sl_char32 ch);
 
 		sl_bool measureText(const StringParam& text, TextMetrics& _out);
+
+		Size getTextAdvance(const StringParam& text);
 
 		sl_bool measureGlyph_NoLock(sl_uint32 glyphId, TextMetrics& _out);
 

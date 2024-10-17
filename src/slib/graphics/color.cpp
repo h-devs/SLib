@@ -218,15 +218,19 @@ namespace slib
 		const char* hex = "0123456789abcdef";
 		char s[9];
 		s[0] = '#';
-		s[1] = hex[a >> 4];
-		s[2] = hex[a & 15];
-		s[3] = hex[r >> 4];
-		s[4] = hex[r & 15];
-		s[5] = hex[g >> 4];
-		s[6] = hex[g & 15];
-		s[7] = hex[b >> 4];
-		s[8] = hex[b & 15];
-		return String(s, 9);
+		s[1] = hex[r >> 4];
+		s[2] = hex[r & 15];
+		s[3] = hex[g >> 4];
+		s[4] = hex[g & 15];
+		s[5] = hex[b >> 4];
+		s[6] = hex[b & 15];
+		if (a == 255) {
+			return String(s, 7);
+		} else {
+			s[7] = hex[a >> 4];
+			s[8] = hex[a & 15];
+			return String(s, 9);
+		}
 	}
 
 	namespace {
@@ -459,10 +463,10 @@ namespace slib
 						} else {
 							sl_uint32 c3 = str[start + 3];
 							if (n == 4) {
-								a = SLIB_CHAR_HEX_TO_INT(c0) * 17;
-								r = SLIB_CHAR_HEX_TO_INT(c1) * 17;
-								g = SLIB_CHAR_HEX_TO_INT(c2) * 17;
-								b = SLIB_CHAR_HEX_TO_INT(c3) * 17;
+								r = SLIB_CHAR_HEX_TO_INT(c0) * 17;
+								g = SLIB_CHAR_HEX_TO_INT(c1) * 17;
+								b = SLIB_CHAR_HEX_TO_INT(c2) * 17;
+								a = SLIB_CHAR_HEX_TO_INT(c3) * 17;
 							} else {
 								sl_uint32 c4 = str[start + 4];
 								sl_uint32 c5 = str[start + 5];
@@ -474,10 +478,10 @@ namespace slib
 								} else {
 									sl_uint32 c6 = str[start + 6];
 									sl_uint32 c7 = str[start + 7];
-									a = (SLIB_CHAR_HEX_TO_INT(c0) << 4) | SLIB_CHAR_HEX_TO_INT(c1);
-									r = (SLIB_CHAR_HEX_TO_INT(c2) << 4) | SLIB_CHAR_HEX_TO_INT(c3);
-									g = (SLIB_CHAR_HEX_TO_INT(c4) << 4) | SLIB_CHAR_HEX_TO_INT(c5);
-									b = (SLIB_CHAR_HEX_TO_INT(c6) << 4) | SLIB_CHAR_HEX_TO_INT(c7);
+									r = (SLIB_CHAR_HEX_TO_INT(c0) << 4) | SLIB_CHAR_HEX_TO_INT(c1);
+									g = (SLIB_CHAR_HEX_TO_INT(c2) << 4) | SLIB_CHAR_HEX_TO_INT(c3);
+									b = (SLIB_CHAR_HEX_TO_INT(c4) << 4) | SLIB_CHAR_HEX_TO_INT(c5);
+									a = (SLIB_CHAR_HEX_TO_INT(c6) << 4) | SLIB_CHAR_HEX_TO_INT(c7);
 								}
 							}
 						}

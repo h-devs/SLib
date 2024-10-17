@@ -116,6 +116,11 @@ namespace slib
 		return h ^ subPath.getHashCode();
 	}
 
+	sl_bool MapRegion::intersect(const MapRegion& other) const
+	{
+		return center.E - radiusE <= other.center.E + other.radiusE && center.E + radiusE >= other.center.E - other.radiusE && center.N - radiusN <= other.center.N + other.radiusN && center.N + radiusN >= other.center.N - other.radiusN;
+	}
+
 	SLIB_DEFINE_OBJECT(MapTileReader, Object)
 
 	MapTileReader::MapTileReader()
@@ -716,6 +721,29 @@ namespace slib
 	double MapPlane::getMapLengthFromViewLength(double length)
 	{
 		return length * m_scale / m_viewport.getHeight();
+	}
+
+	MapRegion MapPlane::getViewportRegion()
+	{
+		MapRegion ret;
+		ret.center = m_center;
+		ret.radiusE = MapViewData::getMetersFromPixels(m_viewport.getWidth()) * m_scale / 2.0;
+		ret.radiusN = MapViewData::getMetersFromPixels(m_viewport.getHeight()) * m_scale / 2.0;
+		return ret;
+	}
+
+	sl_bool MapPlane::containsRegion(const MapRegion& region)
+	{
+		MapRegion v = getViewportRegion();
+		return v.intersect(region);
+	}
+
+	Matrix3 MapPlane::getRenderingTransformAt(const MapLocation& location)
+	{
+		Matrix3T<double> transform = Transform2T<double>::getTranslationMatrix(location.E - m_center.E, location.N - m_center.N);
+		double f = 2.0 / m_scale * MapViewData::getPixelsFromMeters(1.0);
+		Transform2T<double>::scale(transform, f / m_viewport.getWidth(), f / m_viewport.getHeight());
+		return transform;
 	}
 
 	void MapPlane::draw(Canvas* canvas, MapViewData* data)
@@ -1862,6 +1890,7 @@ namespace slib
 
 	MapViewObject::MapViewObject()
 	{
+		m_flagVisible = sl_true;
 		m_flagSupportGlobe = sl_false;
 		m_flagSupportPlane = sl_false;
 		m_flagOverlay = sl_false;
@@ -1869,6 +1898,16 @@ namespace slib
 
 	MapViewObject::~MapViewObject()
 	{
+	}
+
+	sl_bool MapViewObject::isVisible()
+	{
+		return m_flagVisible;
+	}
+
+	void MapViewObject::setVisible(sl_bool flag)
+	{
+		m_flagVisible = flag;
 	}
 
 	sl_bool MapViewObject::isSupportingGlobeMode()
@@ -1927,7 +1966,7 @@ namespace slib
 		ListElements< Ref<MapViewObject> > children(m_children);
 		for (sl_size i = 0; i < children.count; i++) {
 			Ref<MapViewObject>& child = children[i];
-			if (child->isSupportingPlaneMode()) {
+			if (child->isVisible() && child->isSupportingPlaneMode()) {
 				child->draw(canvas, data, plane);
 			}
 		}
@@ -1940,7 +1979,7 @@ namespace slib
 		ListElements< Ref<MapViewObject> > children(m_children);
 		for (sl_size i = 0; i < children.count; i++) {
 			Ref<MapViewObject>& child = children[i];
-			if (child->isSupportingPlaneMode()) {
+			if (child->isVisible() && child->isSupportingPlaneMode()) {
 				if (child->isOverlay()) {
 					engine->setDepthStencilState(state.overlayDepthState);
 					engine->setBlendState(state.overlayBlendState);
@@ -1973,6 +2012,7 @@ namespace slib
 	{
 		setSupportingGlobeMode();
 		setSupportingPlaneMode();
+		setOverlay();
 
 		m_size = Size::zero();
 		m_textColor = Color::White;
@@ -2135,7 +2175,7 @@ namespace slib
 		if (m_text.isNotNull() && m_fontAtlas.isNotNull()) {
 			Point pt = m_viewPoint;
 			pt.y += m_size.y / 2.0f;
-			data->renderText(engine, pt, m_text, m_fontAtlas, Alignment::TopCenter);
+			data->renderText(engine, pt, m_text, m_fontAtlas, m_textColor, Alignment::TopCenter);
 		}
 	}
 
@@ -2787,7 +2827,7 @@ namespace slib
 			auto node = m_objects.getFirstNode();
 			while (node) {
 				Ref<MapViewObject>& object = node->value;
-				if (object->isSupportingPlaneMode()) {
+				if (object->isVisible() && object->isSupportingPlaneMode()) {
 					object->draw(canvas, this, plane);
 				}
 				node = node->next;
@@ -2829,7 +2869,7 @@ namespace slib
 			auto node = m_objects.getFirstNode();
 			while (node) {
 				Ref<MapViewObject>& object = node->value;
-				if (object->isSupportingGlobeMode()) {
+				if (object->isVisible() && object->isSupportingGlobeMode()) {
 					if (object->isOverlay()) {
 						engine->setDepthStencilState(m_state.overlayDepthState);
 						engine->setBlendState(m_state.overlayBlendState);
@@ -2872,7 +2912,7 @@ namespace slib
 		if (atlas.isNull()) {
 			return;
 		}
-		engine->drawText(pt.x, pt.y, (sl_real)(2.0 / m_state.viewportWidth), (sl_real)(2.0 / m_state.viewportHeight), text, atlas, color, align);
+		engine->drawText((sl_real)(pt.x * 2.0 / m_state.viewportWidth - 1.0), (sl_real)(1.0 - pt.y * 2.0 / m_state.viewportHeight), (sl_real)(2.0 / m_state.viewportWidth), (sl_real)(2.0 / m_state.viewportHeight), text, atlas, color, align);
 	}
 
 	sl_bool MapViewData::getLatLonFromViewPoint(const Double2& point, LatLon& _out) const
