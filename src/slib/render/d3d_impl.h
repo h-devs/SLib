@@ -1785,9 +1785,9 @@ namespace slib
 			desc.FillMode = param.flagWireFrame ? D3D_(FILL_WIREFRAME) : D3D_(FILL_SOLID);
 			desc.CullMode = param.flagCull ? (param.flagCullCCW ? D3D_(CULL_BACK) : D3D_(CULL_FRONT)) : D3D_(CULL_NONE);
 			desc.FrontCounterClockwise = FALSE;
-			desc.DepthBias = 0;
-			desc.DepthBiasClamp = 0.0f;
-			desc.SlopeScaledDepthBias = 0.0f;
+			desc.DepthBias = param.depthBias;
+			desc.DepthBiasClamp = param.depthBiasClamp;
+			desc.SlopeScaledDepthBias = param.slopeScaledDepthBias;
 			desc.DepthClipEnable = TRUE;
 			desc.ScissorEnable = FALSE;
 			desc.MultisampleEnable = param.flagMultiSample ? TRUE : FALSE;
@@ -2302,6 +2302,11 @@ namespace slib
 				context->SetRenderState(D3DRS_CULLMODE, param.flagCull ? (param.flagCullCCW ? D3DCULL_CCW : D3DCULL_CW) : D3DCULL_NONE);
 				context->SetRenderState(D3DRS_FILLMODE, param.flagWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
 				context->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, param.flagMultiSample ? TRUE : FALSE);
+#if D3D_VERSION_MAJOR >= 9
+				context->SetRenderState(D3DRS_DEPTHBIAS, (DWORD)(param.depthBias));
+#else
+				context->SetRenderState(D3DRS_ZBIAS, (DWORD)(param.depthBias));
+#endif
 #endif
 			}
 

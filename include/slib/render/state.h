@@ -81,6 +81,9 @@ namespace slib
 		sl_bool flagCullCCW;
 		sl_bool flagWireFrame;
 		sl_bool flagMultiSample;
+		sl_int32 depthBias;
+		float depthBiasClamp;
+		float slopeScaledDepthBias;
 
 	public:
 		RenderRasterizerParam();

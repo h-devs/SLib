@@ -164,7 +164,10 @@ namespace slib
 		flagCull(sl_true),
 		flagCullCCW(sl_true),
 		flagWireFrame(sl_false),
-		flagMultiSample(sl_false)
+		flagMultiSample(sl_false),
+		depthBias(0),
+		depthBiasClamp(0.0f),
+		slopeScaledDepthBias(0.0f)
 	{
 	}
 
