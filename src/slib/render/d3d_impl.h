@@ -2440,27 +2440,27 @@ namespace slib
 				switch (primitive->type) {
 					case PrimitiveType::Triangle:
 						type = D3DPT_TRIANGLELIST;
-						nPrimitives = primitive->countElements / 3;
+						nPrimitives = primitive->elementCount / 3;
 						break;
 					case PrimitiveType::TriangleStrip:
 						type = D3DPT_TRIANGLESTRIP;
-						nPrimitives = primitive->countElements - 2;
+						nPrimitives = primitive->elementCount - 2;
 						break;
 					case PrimitiveType::TriangleFan:
 						type = D3DPT_TRIANGLEFAN;
-						nPrimitives = primitive->countElements - 2;
+						nPrimitives = primitive->elementCount - 2;
 						break;
 					case PrimitiveType::Line:
 						type = D3DPT_LINELIST;
-						nPrimitives = primitive->countElements / 2;
+						nPrimitives = primitive->elementCount / 2;
 						break;
 					case PrimitiveType::LineStrip:
 						type = D3DPT_LINESTRIP;
-						nPrimitives = primitive->countElements - 1;
+						nPrimitives = primitive->elementCount - 1;
 						break;
 					case PrimitiveType::Point:
 						type = D3DPT_POINTLIST;
-						nPrimitives = primitive->countElements;
+						nPrimitives = primitive->elementCount;
 						break;
 					default:
 						return;
@@ -2570,7 +2570,7 @@ namespace slib
 					ib->doUpdate(primitive->indexBuffer.get());
 #if D3D_VERSION_MAJOR >= 10
 					context->IASetIndexBuffer(ib->handle, DXGI_FORMAT_R16_UINT, 0);
-					context->DrawIndexed((UINT)(primitive->countElements), 0, 0);
+					context->DrawIndexed((UINT)(primitive->elementCount), 0, 0);
 #else
 #if D3D_VERSION_MAJOR >= 9
 					context->SetIndices(ib->handle);
@@ -2582,7 +2582,7 @@ namespace slib
 #endif
 				} else {
 #if D3D_VERSION_MAJOR >= 10
-					context->Draw((UINT)(primitive->countElements), 0);
+					context->Draw((UINT)(primitive->elementCount), 0);
 #else
 					context->DrawPrimitive(type, 0, (UINT)nPrimitives);
 #endif

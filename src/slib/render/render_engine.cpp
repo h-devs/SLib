@@ -34,7 +34,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Primitive)
 
-	Primitive::Primitive(): type(PrimitiveType::Triangle), countElements(0)
+	Primitive::Primitive(): type(PrimitiveType::Triangle), elementCount(0)
 	{
 	}
 
@@ -263,7 +263,7 @@ namespace slib
 
 	void RenderEngine::drawPrimitive(Primitive* primitive)
 	{
-		if (primitive->countElements > 0 && primitive->vertexBuffer.isNotNull()) {
+		if (primitive->elementCount > 0 && primitive->vertexBuffer.isNotNull()) {
 			EnginePrimitive ep(*primitive);
 			if (primitive->vertexBuffers.isNotNull()) {
 				ListElements< Ref<VertexBuffer> > list(primitive->vertexBuffers);
@@ -289,7 +289,7 @@ namespace slib
 				}
 			}
 			_drawPrimitive(&ep);
-			m_nCountDrawnElementsOnLastScene += primitive->countElements;
+			m_nCountDrawnElementsOnLastScene += primitive->elementCount;
 			m_nCountDrawnPrimitivesOnLastScene++;
 		}
 	}
@@ -301,21 +301,21 @@ namespace slib
 		}
 	}
 
-	void RenderEngine::drawPrimitive(sl_uint32 countElements, const Ref<VertexBuffer>& vb, const Ref<IndexBuffer>& ib, PrimitiveType type)
+	void RenderEngine::drawPrimitive(sl_uint32 elementCount, const Ref<VertexBuffer>& vb, const Ref<IndexBuffer>& ib, PrimitiveType type)
 	{
 		Primitive p;
 		p.type = type;
-		p.countElements = countElements;
+		p.elementCount = elementCount;
 		p.vertexBuffer = vb;
 		p.indexBuffer = ib;
 		drawPrimitive(&p);
 	}
 
-	void RenderEngine::drawPrimitive(sl_uint32 countElements, const Ref<VertexBuffer>& vb, PrimitiveType type)
+	void RenderEngine::drawPrimitive(sl_uint32 elementCount, const Ref<VertexBuffer>& vb, PrimitiveType type)
 	{
 		Primitive p;
 		p.type = type;
-		p.countElements = countElements;
+		p.elementCount = elementCount;
 		p.vertexBuffer = vb;
 		drawPrimitive(&p);
 	}

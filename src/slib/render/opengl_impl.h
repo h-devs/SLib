@@ -1967,9 +1967,9 @@ namespace slib
 				}
 
 				if (ib) {
-					GL_BASE::drawElements(primitive->type, primitive->countElements);
+					GL_BASE::drawElements(primitive->type, primitive->elementCount);
 				} else {
-					GL_BASE::drawPrimitives(primitive->type, primitive->countElements);
+					GL_BASE::drawPrimitives(primitive->type, primitive->elementCount);
 				}
 			}
 

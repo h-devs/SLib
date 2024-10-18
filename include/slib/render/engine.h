@@ -55,7 +55,7 @@ namespace slib
 	{
 	public:
 		PrimitiveType type;
-		sl_uint32 countElements;
+		sl_uint32 elementCount;
 		Ref<VertexBuffer> vertexBuffer;
 		Ref<IndexBuffer> indexBuffer;
 		ListParam< Ref<VertexBuffer> > vertexBuffers;
@@ -236,9 +236,9 @@ namespace slib
 
 		void drawPrimitives(Primitive* primitives, sl_uint32 count);
 
-		void drawPrimitive(sl_uint32 countElements, const Ref<VertexBuffer>& vb, const Ref<IndexBuffer>& ib, PrimitiveType type = PrimitiveType::Triangle);
+		void drawPrimitive(sl_uint32 elementCount, const Ref<VertexBuffer>& vb, const Ref<IndexBuffer>& ib, PrimitiveType type = PrimitiveType::Triangle);
 
-		void drawPrimitive(sl_uint32 countElements, const Ref<VertexBuffer>& vb, PrimitiveType type = PrimitiveType::Triangle);
+		void drawPrimitive(sl_uint32 elementCount, const Ref<VertexBuffer>& vb, PrimitiveType type = PrimitiveType::Triangle);
 
 		void applyTexture(const Ref<Texture>& texture, sl_int32 sampler);
 
