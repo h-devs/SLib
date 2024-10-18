@@ -772,12 +772,19 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(MapViewTile, CRef)
 
-	MapViewTile::MapViewTile()
+	MapViewTile::MapViewTile(): demN(0)
 	{
 	}
 
 	MapViewTile::~MapViewTile()
 	{
+	}
+
+	void MapViewTile::buildVertex(MapTileVertex& vertex, double latitude, double longitude, double altitude, sl_real tx, sl_real ty)
+	{
+		vertex.position = MapEarth::getCartesianPosition(latitude, longitude, altitude) - center;
+		vertex.texCoord.x = tx;
+		vertex.texCoord.y = ty;
 	}
 
 	sl_bool MapViewTile::build(const MapSurfaceConfiguration& config, const Rectangle* demRect)
@@ -904,18 +911,19 @@ namespace slib
 			pointsWithDEM[3] = center + v[M - 1].position; // Top Right
 		}
 		{
-			primitive.countElements = 6 * (M - 1) * (M - 1);
-			Memory mem = Memory::create(primitive.countElements << 1);
+			elementCount = 6 * (M - 1) * (M - 1);
+			Memory mem = Memory::create(elementCount << 1);
 			if (mem.isNull()) {
 				return sl_false;
 			}
 			sl_uint16* indices = (sl_uint16*)(mem.getData());
+			sl_uint32 yM = 0;
 			for (sl_uint32 y = 0; y < M - 1; y++) {
 				for (sl_uint32 x = 0; x < M - 1; x++) {
-					sl_uint16 tl = (sl_uint16)(y * M + x); // Top Left
-					sl_uint16 tr = (sl_uint16)(y * M + (x + 1)); // Top Right
-					sl_uint16 bl = (sl_uint16)((y + 1) * M + x); // Bottom Left
-					sl_uint16 br = (sl_uint16)((y + 1) * M + (x + 1)); // Bottom Right
+					sl_uint16 tl = (sl_uint16)(yM + x); // Top Left
+					sl_uint16 tr = (sl_uint16)(yM + x + 1); // Top Right
+					sl_uint16 bl = (sl_uint16)(yM + M + x); // Bottom Left
+					sl_uint16 br = (sl_uint16)(yM + M + x + 1); // Bottom Right
 					*(indices++) = tl;
 					*(indices++) = tr;
 					*(indices++) = bl;
@@ -923,21 +931,94 @@ namespace slib
 					*(indices++) = tr;
 					*(indices++) = br;
 				}
+				yM += M;
 			}
-			primitive.indexBuffer = IndexBuffer::create(mem);
-			if (primitive.indexBuffer.isNull()) {
+			indexBuffer = IndexBuffer::create(mem);
+			if (indexBuffer.isNull()) {
 				return sl_false;
 			}
 		}
-		primitive.vertexBuffer = Move(vb);
+		vertexBuffer = Move(vb);
+		demN = M;
+		indexBufferForTileGrid.setNull();
+		indexBufferForTerrainGrid.setNull();
 		return sl_true;
 	}
 
-	void MapViewTile::buildVertex(MapTileVertex& vertex, double latitude, double longitude, double altitude, sl_real tx, sl_real ty)
+	sl_bool MapViewTile::buildBufferForTileGrid()
 	{
-		vertex.position = MapEarth::getCartesianPosition(latitude, longitude, altitude) - center;
-		vertex.texCoord.x = tx;
-		vertex.texCoord.y = ty;
+		sl_uint32 M = demN;
+		if (M < 2) {
+			return sl_false;
+		}
+		elementCountForTileGrid = 8 * (M - 1);
+		Memory mem = Memory::create(elementCountForTileGrid << 1);
+		if (mem.isNull()) {
+			return sl_false;
+		}
+		sl_uint16* indices = (sl_uint16*)(mem.getData());
+		// Top, Bottom
+		{
+			sl_uint32 k = (M - 1) * M;
+			for (sl_uint32 x = 0; x < M - 1; x++) {
+				*(indices++) = (sl_uint16)x;
+				*(indices++) = (sl_uint16)(x + 1);
+				*(indices++) = (sl_uint16)(k + x);
+				*(indices++) = (sl_uint16)(k + x + 1);
+			}
+		}
+		// Left, Right
+		{
+			sl_uint32 yM = 0;
+			for (sl_uint32 y = 0; y < M - 1; y++) {
+				*(indices++) = (sl_uint16)yM;
+				*(indices++) = (sl_uint16)(yM + M);
+				*(indices++) = (sl_uint16)(yM + M - 1);
+				*(indices++) = (sl_uint16)(yM + M + M - 1);
+				yM += M;
+			}
+		}
+		indexBufferForTileGrid = IndexBuffer::create(mem);
+		return indexBufferForTileGrid.isNotNull();
+	}
+
+	sl_bool MapViewTile::buildBufferForTerrainGrid()
+	{
+		sl_uint32 M = demN;
+		if (M < 3) {
+			return sl_false;
+		}
+
+		elementCountForTerrainGrid = 4 * (M - 1) * (M - 2);
+		Memory mem = Memory::create(elementCountForTerrainGrid << 1);
+		if (mem.isNull()) {
+			return sl_false;
+		}
+		sl_uint16* indices = (sl_uint16*)(mem.getData());
+		// Horizontal
+		{
+			sl_uint32 yM = M;
+			for (sl_uint32 y = 1; y < M - 1; y++) {
+				for (sl_uint32 x = 0; x < M - 1; x++) {
+					*(indices++) = (sl_uint16)(yM + x);
+					*(indices++) = (sl_uint16)(yM + x + 1);
+				}
+				yM += M;
+			}
+		}
+		// Vertical
+		{
+			sl_uint32 yM = 0;
+			for (sl_uint32 y = 0; y < M - 1; y++) {
+				for (sl_uint32 x = 1; x < M - 1; x++) {
+					*(indices++) = (sl_uint16)(yM + x);
+					*(indices++) = (sl_uint16)(yM + x + M);
+				}
+				yM += M;
+			}
+		}
+		indexBufferForTerrainGrid = IndexBuffer::create(mem);
+		return indexBufferForTerrainGrid.isNotNull();
 	}
 
 
@@ -973,8 +1054,8 @@ namespace slib
 		eastingRangeInDegrees = 360.0;
 		northingRangeInDegrees = 360.0;
 		tileDimensionInPixels = 256;
-		minimumTileMatrixOrder = 15;
-		maximumTileMatrixOrder = 65;
+		minimumTileMatrixOrder = 17;
+		maximumTileMatrixOrder = 33;
 		demType = DEM::DataType::FloatLE;
 		flagFlipDemY = sl_false;
 	}
@@ -1141,6 +1222,50 @@ namespace slib
 			}
 		};
 
+		SLIB_RENDER_PROGRAM_STATE_BEGIN(SurfaceGridState, MapTileVertex)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform, RenderShaderStage::Vertex, 0)
+			SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderStage::Pixel, 0)
+
+			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position, RenderInputSemanticName::Position)
+			SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord, RenderInputSemanticName::TexCoord)
+		SLIB_RENDER_PROGRAM_STATE_END
+
+		class SurfaceGridProgram : public RenderProgramT<SurfaceGridState>
+		{
+		public:
+			String getShader(RenderEngine* engine, RenderShaderType type) override
+			{
+				switch (type) {
+					case RenderShaderType::GLSL_Vertex:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							uniform mat4 u_Transform;
+							attribute vec3 a_Position;
+							void main() {
+								vec4 P = vec4(a_Position, 1.0) * u_Transform;
+								P.z -= P.w * 0.001;
+								gl_Position = P;
+							}
+						))
+					case RenderShaderType::HLSL_Vertex:
+						SLIB_RETURN_STRING(SLIB_STRINGIFY(
+							float4x4 u_Transform : register(c0);
+							struct VS_OUTPUT {
+								float4 pos : POSITION;
+							};
+							VS_OUTPUT main(float3 a_Position : POSITION) {
+								VS_OUTPUT ret;
+								ret.pos = mul(float4(a_Position, 1.0), u_Transform);
+								ret.pos.z -= ret.pos.w * 0.001;
+								return ret;
+							}
+						))
+					default:
+						break;
+				}
+				return render3d::program::Position::getShader(type);
+			}
+		};
+
 		class MapSurfaceImpl : public MapSurface
 		{
 		public:
@@ -1182,6 +1307,7 @@ namespace slib
 			List< Ref<MapViewTile> > m_renderingTiles;
 
 			Ref<RenderProgram> m_programSurfaceTile;
+			Ref<RenderProgram> m_programGrid;
 
 		public:
 			static Ref<MapSurfaceImpl> create(const MapSurfaceParam& param)
@@ -1227,6 +1353,10 @@ namespace slib
 
 				m_programSurfaceTile = new SurfaceTileProgram;
 				if (m_programSurfaceTile.isNull()) {
+					return sl_false;
+				}
+				m_programGrid = new SurfaceGridProgram;
+				if (m_programGrid.isNull()) {
 					return sl_false;
 				}
 				return sl_true;
@@ -1280,48 +1410,81 @@ namespace slib
 				}
 				TileDEM dem;
 				loadDEM(dem, loader, location);
-				if (tile->primitive.vertexBuffer.isNull() || tile->dem != dem.source) {
+				if (tile->vertexBuffer.isNull() || tile->dem != dem.source) {
 					tile->dem = dem.source;
 					if (!(tile->build(m_config, dem.flagUseWhole ? sl_null : &(dem.region)))) {
 						return;
 					}
 				}
-				RenderProgramScope<SurfaceTileState> scope;
-				if (scope.begin(engine, m_programSurfaceTile)) {
-					scope->setTransform(Transform3T<double>::getTranslationMatrix(tile->center) * state.viewProjectionTransform);
-					scope->setTexture(Texture::getBitmapRenderingCache(image.source));
-					scope->setTextureRect(Vector4(image.region.left, image.region.top, image.region.getWidth(), image.region.getHeight()));
-					float layerAlphas[LAYER_COUNT];
-					Ref<Texture> layerTextures[LAYER_COUNT];
-					Vector4 layerTextureRects[LAYER_COUNT];
-					for (sl_uint32 iLayer = 0; iLayer < LAYER_COUNT; iLayer++) {
-						layerAlphas[iLayer] = 0;
-						layerTextureRects[iLayer] = Vector4::zero();
-						Layer& layer = m_layers[iLayer];
- 						if (layer.reader.isNull()) {
-							continue;
+				Matrix4 transform = Transform3T<double>::getTranslationMatrix(tile->center) * state.viewProjectionTransform;
+				{
+					RenderProgramScope<SurfaceTileState> scope;
+					if (scope.begin(engine, m_programSurfaceTile)) {
+						scope->setTransform(transform);
+						scope->setTexture(Texture::getBitmapRenderingCache(image.source));
+						scope->setTextureRect(Vector4(image.region.left, image.region.top, image.region.getWidth(), image.region.getHeight()));
+						float layerAlphas[LAYER_COUNT];
+						Ref<Texture> layerTextures[LAYER_COUNT];
+						Vector4 layerTextureRects[LAYER_COUNT];
+						for (sl_uint32 iLayer = 0; iLayer < LAYER_COUNT; iLayer++) {
+							layerAlphas[iLayer] = 0;
+							layerTextureRects[iLayer] = Vector4::zero();
+							Layer& layer = m_layers[iLayer];
+							if (layer.reader.isNull()) {
+								continue;
+							}
+							if (!(layer.flagVisible)) {
+								continue;
+							}
+							if (layer.opacity < 0.001f) {
+								continue;
+							}
+							if (!(loadImage(image, layer.reader, m_cacheLayers[iLayer].get(), loader, location))) {
+								continue;
+							}
+							layerAlphas[iLayer] = layer.opacity;
+							layerTextures[iLayer] = Texture::getBitmapRenderingCache(image.source);
+							layerTextureRects[iLayer] = Vector4(image.region.left, image.region.top, image.region.getWidth(), image.region.getHeight());
 						}
-						if (!(layer.flagVisible)) {
-							continue;
-						}
-						if (layer.opacity < 0.001f) {
-							continue;
-						}
-						if (!(loadImage(image, layer.reader, m_cacheLayers[iLayer].get(), loader, location))) {
-							continue;
-						}
-						layerAlphas[iLayer] = layer.opacity;
-						layerTextures[iLayer] = Texture::getBitmapRenderingCache(image.source);
-						layerTextureRects[iLayer] = Vector4(image.region.left, image.region.top, image.region.getWidth(), image.region.getHeight());
+						scope->setLayerTexture0(layerTextures[0]);
+						scope->setLayerTexture1(layerTextures[1]);
+						scope->setLayerTexture2(layerTextures[2]);
+						scope->setLayerTexture3(layerTextures[3]);
+						scope->setLayerTexture4(layerTextures[4]);
+						scope->setLayerTextureRect(layerTextureRects, LAYER_COUNT);
+						scope->setLayerAlpha(layerAlphas, LAYER_COUNT);
+						engine->drawPrimitive(tile->elementCount, tile->vertexBuffer, tile->indexBuffer);
 					}
-					scope->setLayerTexture0(layerTextures[0]);
-					scope->setLayerTexture1(layerTextures[1]);
-					scope->setLayerTexture2(layerTextures[2]);
-					scope->setLayerTexture3(layerTextures[3]);
-					scope->setLayerTexture4(layerTextures[4]);
-					scope->setLayerTextureRect(layerTextureRects, LAYER_COUNT);
-					scope->setLayerAlpha(layerAlphas, LAYER_COUNT);
-					engine->drawPrimitive(&(tile->primitive));
+				}
+				if (state.flagTerrainGrid) {
+					if (tile->indexBufferForTerrainGrid.isNull()) {
+						tile->buildBufferForTerrainGrid();
+					}
+					if (tile->indexBufferForTerrainGrid.isNotNull()) {
+						RenderProgramScope<SurfaceGridState> scope;
+						if (scope.begin(engine, m_programGrid)) {
+							scope->setTransform(transform);
+							scope->setColor(Color4F(1.0f, 1.0f, 0.0f, 0.3f));
+							engine->setBlendState(state.overlayBlendState);
+							engine->drawPrimitive(tile->elementCountForTerrainGrid, tile->vertexBuffer, tile->indexBufferForTerrainGrid, PrimitiveType::Line);
+							engine->setBlendState(state.defaultBlendState);
+						}
+					}
+				}
+				if (state.flagTerrainGrid || state.flagTileGrid) {
+					if (tile->indexBufferForTileGrid.isNull()) {
+						tile->buildBufferForTileGrid();
+					}
+					if (tile->indexBufferForTileGrid.isNotNull()) {
+						RenderProgramScope<SurfaceGridState> scope;
+						if (scope.begin(engine, m_programGrid)) {
+							scope->setTransform(transform);
+							scope->setColor(Color4F(1.0f, 1.0f, 0.0f, 1.0f));
+							engine->setBlendState(state.overlayBlendState);
+							engine->drawPrimitive(tile->elementCountForTileGrid, tile->vertexBuffer, tile->indexBufferForTileGrid, PrimitiveType::Line);
+							engine->setBlendState(state.defaultBlendState);
+						}
+					}
 				}
 				m_renderingTiles.add_NoLock(tile);
 			}
@@ -2164,6 +2327,7 @@ namespace slib
 			dtp.text = m_text;
 			dtp.x = m_viewPoint.x;
 			dtp.y = rect.bottom;
+			dtp.color = m_textColor;
 			dtp.alignment = Alignment::TopCenter;
 			canvas->drawText(dtp);
 		}
@@ -2510,7 +2674,7 @@ namespace slib
 
 	void MapViewData::setTerrainGridVisible(sl_bool flag, UIUpdateMode mode)
 	{
-		m_state.flagTileGrid = flag;
+		m_state.flagTerrainGrid = flag;
 		invalidate(mode);
 	}
 

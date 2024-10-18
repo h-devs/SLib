@@ -386,13 +386,25 @@ namespace slib
 		Double3 center;
 
 		Memory dem;
-		Primitive primitive;
+		sl_uint32 demN;
 		Double3 pointsWithDEM[4];
 
+		Ref<VertexBuffer> vertexBuffer;
+		Ref<IndexBuffer> indexBuffer;
+		sl_uint32 elementCount;
+		Ref<IndexBuffer> indexBufferForTileGrid;
+		sl_uint32 elementCountForTileGrid;
+		Ref<IndexBuffer> indexBufferForTerrainGrid;
+		sl_uint32 elementCountForTerrainGrid;
+
 	public:
+		void buildVertex(MapTileVertex& vertex, double latitude, double longitude, double altitude, sl_real tx, sl_real ty);
+
 		sl_bool build(const MapSurfaceConfiguration& config, const Rectangle* demRegion = sl_null);
 
-		void buildVertex(MapTileVertex& vertex, double latitude, double longitude, double altitude, sl_real tx, sl_real ty);
+		sl_bool buildBufferForTileGrid();
+
+		sl_bool buildBufferForTerrainGrid();
 
 	};
 
