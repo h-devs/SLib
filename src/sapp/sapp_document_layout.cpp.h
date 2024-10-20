@@ -1162,6 +1162,25 @@ namespace slib
 									}
 								}
 							}
+						} else if (name == "children") {
+							RefT<SAppLayoutXmlItem> caller;
+							Ref<XmlElement> e = parent;
+							while (e.isNotNull()) {
+								caller = RefT<SAppLayoutXmlItem>::cast(e->getProperty("caller").getRef());
+								if (caller.isNotNull()) {
+									break;
+								}
+								e = e->getParentElement();
+							}
+							if (caller.isNotNull()) {
+								ListElements< Ref<XmlElement> > callerChildren(caller->element->getChildElements());
+								for (sl_size i = 0; i < callerChildren.count; i++) {
+									if (!(list.add_NoLock(Move(callerChildren[i])))) {
+										logError(element, g_str_error_out_of_memory);
+										return sl_false;
+									}
+								}
+							}
 						} else if (tagName.isEmpty() || name == tagName) {
 							if (!(list.add_NoLock(Move(element)))) {
 								logError(element, g_str_error_out_of_memory);
