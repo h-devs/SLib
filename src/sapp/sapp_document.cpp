@@ -804,6 +804,13 @@ namespace slib
 							}
 						}
 					}
+					{
+						ListElements< Ref<XmlElement> > children(el_raw->getChildElements("compress"));
+						for (sl_size i = 0; i < children.count; i++) {
+							Ref<XmlElement>& child = children[i];
+							conf.generate_cpp_raw_compress.add_NoLock(child->getText());
+						}
+					}
 				}
 				Ref<XmlElement> el_layout = el_generate_cpp->getFirstChildElement("layout");
 				if (el_layout.isNotNull()) {

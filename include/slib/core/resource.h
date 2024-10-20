@@ -40,8 +40,14 @@ namespace slib
 		static void setCurrentLocale(const Locale& locale);
 
 		static String makeResourceName(const String& path);
-
 	};
+
+	namespace priv
+	{
+		Memory CompressRawResource(const void* data, sl_size size);
+
+		Memory DecompressRawResource(const void* data, sl_size size);
+	}
 
 }
 
@@ -137,6 +143,31 @@ namespace slib
 		const sl_size size = SIZE; \
 		slib::Memory get() { \
 			return slib::Memory::createStatic(bytes, SIZE); \
+		} \
+	}
+
+#define SLIB_DECLARE_COMPRESSED_RAW_RESOURCE(NAME) \
+	namespace NAME { \
+		slib::Memory get(); \
+	} \
+
+#define SLIB_DEFINE_COMPRESSED_RAW_RESOURCE(NAME) \
+	namespace NAME { \
+		extern const sl_uint8 compressed_bytes[]; \
+		extern const sl_size compressed_size; \
+		struct Context { \
+			slib::Memory memory; \
+			Context() { \
+				memory = slib::priv::DecompressRawResource(compressed_bytes, compressed_size); \
+			} \
+		}; \
+		SLIB_SAFE_STATIC_GETTER(Context, GetContext); \
+		slib::Memory get() { \
+			Context* context = GetContext(); \
+			if (context) { \
+				return context->memory; \
+			} \
+			return sl_null; \
 		} \
 	}
 

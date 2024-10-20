@@ -246,13 +246,22 @@ namespace slib
 		}
 		String tab('\t', tabCountStart + tabCountRelative);
 		if (res->filePath.isNotNull()) {
-			sbHeader.add(String::format("%sSLIB_DECLARE_RAW_RESOURCE(%s)%n", tab, res->name));
+			sl_bool flagCompress = m_conf.generate_cpp_raw_compress.contains_NoLock(res->resourcePath);
+			if (flagCompress) {
+				sbHeader.add(String::format("%sSLIB_DECLARE_COMPRESSED_RAW_RESOURCE(%s)%n", tab, res->name));
+			} else {
+				sbHeader.add(String::format("%sSLIB_DECLARE_RAW_RESOURCE(%s)%n", tab, res->name));
+			}
 			sl_size size = (sl_size)(File::getSize(res->filePath));
 			if (size > RAW_MAX_SIZE) {
 				logError(g_str_error_resource_raw_size_big, res->filePath);
 				return sl_false;
 			}
-			sbCpp.add(String::format("%sSLIB_DEFINE_RAW_RESOURCE(%s, %d)%n", tab, res->name, size));
+			if (flagCompress) {
+				sbCpp.add(String::format("%sSLIB_DEFINE_COMPRESSED_RAW_RESOURCE(%s)%n", tab, res->name));
+			} else {
+				sbCpp.add(String::format("%sSLIB_DEFINE_RAW_RESOURCE(%s, %d)%n", tab, res->name, size));
+			}
 			if (res->resourcePath.isNotEmpty()) {
 				if (m_conf.generate_cpp_raw_map) {
 					sbMap.add(String('\t', tabCountStart));
@@ -260,7 +269,7 @@ namespace slib
 				}
 			}
 			sbData.add(String::format("%s#include \"raw/%s.inc\"%n", tab, relativePath));
-			return _generateRawDataFile(String::format("%s/raw/%s.inc", targetPath, relativePath), res->filePath, res->name);
+			return _generateRawDataFile(String::format("%s/raw/%s.inc", targetPath, relativePath), res->filePath, res->name, flagCompress);
 		} else {
 			File::createDirectory(String::format("%s/raw/%s", targetPath, relativePath));
 			String strNamespace = String::format("%snamespace %s {%n", tab, res->name);
@@ -283,7 +292,7 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_generateRawDataFile(const String& targetPath, const String& sourcePath, const String& resourceName)
+	sl_bool SAppDocument::_generateRawDataFile(const String& targetPath, const String& sourcePath, const String& resourceName, sl_bool flagCompress)
 	{
 		if (!(File::exists(sourcePath))) {
 			return sl_false;
@@ -292,8 +301,14 @@ namespace slib
 		if (fileSrc.isNone()) {
 			return sl_false;
 		}
+		sl_uint64 srcSize = fileSrc.getSize();
 		Time timeModified = fileSrc.getModifiedTime();
-		String signature = String::format("// Source: %s Size: %d bytes, Modified Time: %04y-%02m-%02d %02H:%02M:%02S", File::getFileName(sourcePath), fileSrc.getSize(), timeModified);
+		String signature;
+		if (flagCompress) {
+			signature = String::format("// Compressed Source: %s Size: %d bytes, Modified Time: %04y-%02m-%02d %02H:%02M:%02S", File::getFileName(sourcePath), srcSize, timeModified);
+		} else {
+			signature = String::format("// Source: %s Size: %d bytes, Modified Time: %04y-%02m-%02d %02H:%02M:%02S", File::getFileName(sourcePath), srcSize, timeModified);
+		}
 		if (File::exists(targetPath)) {
 			File fileDst = File::openForRead(targetPath);
 			if (fileDst.isOpened()) {
@@ -306,11 +321,18 @@ namespace slib
 			}
 		}
 		Memory mem = fileSrc.readAllBytes();
+		if (flagCompress) {
+			mem = priv::CompressRawResource(mem.getData(), mem.getSize());
+		}
 		File fileDst = File::openForWrite(targetPath);
 		if (fileDst.isOpened()) {
 			fileDst.writeAll(signature);
-			fileDst.writeAll(String::format("\r\nnamespace %s {%nconst sl_uint8 bytes[] = {%n", resourceName));
-			fileDst.writeAll(SAppUtil::generateBytesArrayDefinition(mem.getData(), mem.getSize(), 16, 0));
+			if (flagCompress) {
+				fileDst.writeAll(String::format("\r\nnamespace %s {%nconst sl_size compressed_size = %d;%n;const sl_uint8 compressed_bytes[] = {%n", resourceName, mem.getSize()));
+			} else {
+				fileDst.writeAll(String::format("\r\nnamespace %s {%nconst sl_uint8 bytes[] = {%n", resourceName));
+			}
+			fileDst.writeAll(SAppUtil::generateBytesArrayDefinition(mem.getData(), mem.getSize()));
 			static const sl_char8 strDataEnd[] = "};\r\n}\r\n";
 			fileDst.writeAll(strDataEnd, sizeof(strDataEnd) - 1);
 			return sl_true;

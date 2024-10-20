@@ -43,6 +43,8 @@ namespace slib
 		sl_bool flagWriteEndMark;
 		sl_uint32 numThreads; // Number of thereads: 1 or 2, Default: 1
 
+		sl_bool flagWritePropsFirst;
+
 		// Output
 		sl_uint8 props[5]; // Written properties
 
@@ -80,7 +82,11 @@ namespace slib
 	public:
 		static Memory compress(LzmaParam& param, const void* data, sl_size size);
 
+		static Memory compress(const void* data, sl_size size, sl_uint32 level = 5);
+
 		static Memory decompress(const sl_uint8 props[5], const void* data, sl_size size);
+
+		static Memory decompress(const void* data, sl_size size);
 
 	};
 

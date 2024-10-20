@@ -242,5 +242,4 @@ namespace slib
 		return sl_null;
 	}
 
-
 }

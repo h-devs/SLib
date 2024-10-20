@@ -116,6 +116,8 @@ namespace slib
 		fb = 32;
 		flagWriteEndMark = sl_false;
 		numThreads = 1;
+
+		flagWritePropsFirst = sl_false;
 	}
 
 	Memory Lzma::compress(LzmaParam& param, const void* input, sl_size n)
@@ -140,6 +142,9 @@ namespace slib
 			if (LzmaEnc_WriteProperties(p, param.props, &nProps) == SZ_OK) {
 				MemoryInputStream input(input, n);
 				MemoryOutputStream output;
+				if (param.flagWritePropsFirst) {
+					output.buffer.addStatic(param.props, 5);
+				}
 				if (LzmaEnc_Encode(p, &(output.funcTable), &(input.funcTable), sl_null, &g_alloc, &g_alloc) == SZ_OK) {
 					ret = output.buffer.merge();
 				}
@@ -147,6 +152,14 @@ namespace slib
 		}
 		LzmaEnc_Destroy(p, &g_alloc, &g_alloc);
 		return ret;
+	}
+
+	Memory Lzma::compress(const void* input, sl_size n, sl_uint32 level)
+	{
+		LzmaParam param;
+		param.level = level;
+		param.flagWritePropsFirst = sl_true;
+		return compress(param, input, n);
 	}
 
 
@@ -247,6 +260,28 @@ namespace slib
 			return decoder.passAndFinish(data, size);
 		}
 		return sl_null;
+	}
+
+	Memory Lzma::decompress(const void* data, sl_size size)
+	{
+		if (size > 5) {
+			return decompress((sl_uint8*)data, (sl_uint8*)data + 5, size - 5);
+		} else {
+			return sl_null;
+		}
+	}
+
+	namespace priv
+	{
+		Memory CompressRawResource(const void* data, sl_size size)
+		{
+			return Lzma::compress(data, size);
+		}
+
+		Memory DecompressRawResource(const void* data, sl_size size)
+		{
+			return Lzma::decompress(data, size);
+		}
 	}
 
 }
