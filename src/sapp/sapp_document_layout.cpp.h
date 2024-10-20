@@ -1137,17 +1137,29 @@ namespace slib
 							return sl_false;
 						}
 					} else {
-						sl_bool flagIfDef = name == StringView::literal("ifdef");
-						if (flagIfDef || name == StringView::literal("ifndef")) {
-							sl_bool flagDef = sl_false;
+						sl_bool flagIfdef = name == StringView::literal("ifdef");
+						sl_bool flagIfndef = name == StringView::literal("ifndef");
+						sl_bool flagIfeq = name == StringView::literal("ifeq");
+						sl_bool flagIfneq = name == StringView::literal("ifneq");
+						if (flagIfdef || flagIfndef || flagIfeq || flagIfneq) {
 							String var = element->getAttribute("name");
 							if (var.startsWith(':')) {
 								SAppLayoutXmlItem item(element);
-								flagDef = item.getVariableValue(var.substring(1)).isNotEmpty();
-							}
-							if ((flagIfDef && flagDef) || (!flagIfDef && !flagDef)) {
-								if (!_addXmlChildElements(list, element, sl_null, localNamespace, tagName)) {
-									return sl_false;
+								String value = item.getVariableValue(var.substring(1));
+								sl_bool flagPass;
+								if (flagIfdef) {
+									flagPass = value.isNotEmpty();
+								} else if (flagIfndef) {
+									flagPass = value.isEmpty();
+								} else if (flagIfeq) {
+									flagPass = value == item.getXmlAttribute("value");
+								} else {
+									flagPass = value != item.getXmlAttribute("value");
+								}
+								if (flagPass) {
+									if (!_addXmlChildElements(list, element, sl_null, localNamespace, tagName)) {
+										return sl_false;
+									}
 								}
 							}
 						} else if (tagName.isEmpty() || name == tagName) {
@@ -1163,7 +1175,8 @@ namespace slib
 		return sl_true;
 	}
 
-	namespace {
+	namespace
+	{
 		static sl_bool IsNoView(SAppLayoutItemType type)
 		{
 			return type >= SAppLayoutItemType::NoView;
@@ -1453,7 +1466,8 @@ namespace slib
 
 #define LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(NAME, TAG_NAME) LAYOUT_CONTROL_DEFINE_XML_CHILDREN(NAME, *resourceItem, TAG_NAME)
 
-	namespace {
+	namespace
+	{
 		static const Ref<XmlElement>& GetXmlElement(SAppLayoutXmlItem& item)
 		{
 			return item.element;
@@ -1573,17 +1587,18 @@ namespace slib
 		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 	}
 
-#define LAYOUT_CONTROL_PARSE_BOOLEAN(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME SUFFIX, VAR)
-#define LAYOUT_CONTROL_GENERATE_BOOLEAN(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
+#define LAYOUT_CONTROL_PARSE_VOID(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME SUFFIX, VAR)
+#define LAYOUT_CONTROL_GENERATE_VOID(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined && VAR.value) { \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, GEN_UPDATE1(CATEGORY, UI, Init)) \
 	}
-#define LAYOUT_CONTROL_SIMULATE_BOOLEAN(VAR, SETFUNC, CATEGORY, ...) \
+#define LAYOUT_CONTROL_SIMULATE_VOID(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined && VAR.value && op == SAppLayoutOperation::SimulateInit) { \
 		view->SETFUNC(USE_UPDATE1(CATEGORY, UI, Init)); \
 	}
 
-	namespace {
+	namespace
+	{
 		SLIB_INLINE static sl_bool Xor(sl_bool l, sl_bool r)
 		{
 			if (l) {
@@ -1610,7 +1625,6 @@ namespace slib
 				return v.isGlobalUnit();
 			}
 		}
-
 	}
 
 #define LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, SUFFIX, VAR, CHECKFUNC) \
@@ -2009,7 +2023,8 @@ namespace slib
 		} \
 	}
 
-	namespace {
+	namespace
+	{
 		struct SAppStateDefine
 		{
 			ViewState state;
@@ -2581,9 +2596,14 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, childInstances, setCreatingChildInstances)
 
 		LAYOUT_CONTROL_ATTR(GENERIC, okCancelEnabled, setOkCancelEnabled)
-		LAYOUT_CONTROL_ATTR(BOOLEAN, ok, setOkOnClick)
-		LAYOUT_CONTROL_ATTR(BOOLEAN, cancel, setCancelOnClick)
+		LAYOUT_CONTROL_ATTR(VOID, ok, setOkOnClick)
+		LAYOUT_CONTROL_ATTR(VOID, cancel, setCancelOnClick)
+		LAYOUT_CONTROL_ATTR(VOID, close, setCloseOnClick)
+		LAYOUT_CONTROL_ATTR(VOID, minimize, setMinimizeOnClick)
+		LAYOUT_CONTROL_ATTR(VOID, maximize, setMaximizeOnClick)
 		LAYOUT_CONTROL_VIEW_TAB_STOP(sendFocus, sendFocusOnClick)
+		LAYOUT_CONTROL_ATTR(VOID, acceptMouse, setAcceptOnMouseEvent)
+		LAYOUT_CONTROL_ATTR(VOID, movingWindow, setMovingWindowOnMouseEvent)
 		LAYOUT_CONTROL_ATTR(GENERIC, mnemonicKey, setMnemonicKey)
 		LAYOUT_CONTROL_ATTR(GENERIC, keepKeyboard, setKeepKeyboard)
 		LAYOUT_CONTROL_ATTR(GENERIC, playSoundOnClick, setPlaySoundOnClick)
@@ -3095,8 +3115,8 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, returnKey, setReturnKeyType)
 		LAYOUT_CONTROL_ATTR(GENERIC, keyboard, setKeyboardType)
 		LAYOUT_CONTROL_ATTR(GENERIC, autoCap, setAutoCapitalizationType)
-		LAYOUT_CONTROL_ATTR(BOOLEAN, focusNextOnReturnKey, setFocusNextOnReturnKey)
-		LAYOUT_CONTROL_ATTR(BOOLEAN, popup, setUsingPopup)
+		LAYOUT_CONTROL_ATTR(VOID, focusNextOnReturnKey, setFocusNextOnReturnKey)
+		LAYOUT_CONTROL_ATTR(GENERIC, popup, setUsingPopup)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
@@ -4231,8 +4251,8 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconHeight, setIconHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, height, setHeight, checkScalarSize)
 		if (op == SAppLayoutOperation::Parse) {
-			LAYOUT_CONTROL_PARSE_ATTR(BOOLEAN, attr->, opened)
-			LAYOUT_CONTROL_PARSE_ATTR(BOOLEAN, attr->, selected)
+			LAYOUT_CONTROL_PARSE_ATTR(GENERIC, attr->, opened)
+			LAYOUT_CONTROL_PARSE_ATTR(GENERIC, attr->, selected)
 		} else if (op == SAppLayoutOperation::Generate) {
 			if (attr->opened.value) {
 				LAYOUT_CONTROL_GENERATE_DELAYED(open, "slib::UIUpdateMode::Init")

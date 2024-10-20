@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -136,6 +136,11 @@ namespace slib
 		Ref<Window> getWindow();
 
 		void setWindow(const Ref<Window>& window);
+
+		sl_bool isWindowContent();
+
+		void setWindowContent(sl_bool flag = sl_true);
+
 
 		Ref<View> getParent();
 
@@ -1308,7 +1313,17 @@ namespace slib
 
 		void setCancelOnClick();
 
+		void setCloseOnClick();
+
+		void setMinimizeOnClick();
+
+		void setMaximizeOnClick();
+
 		void sendFocusOnClick(const Ref<View>& view);
+
+		void setAcceptOnMouseEvent();
+
+		void setMovingWindowOnMouseEvent();
 
 
 		Ref<View> getNextFocusableView();
@@ -1564,6 +1579,16 @@ namespace slib
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Mnemonic, UIEvent* ev)
 
+	public:
+		class LayoutAttributes;
+		class PaddingAttributes;
+		class TransformAttributes;
+		class DrawAttributes;
+		class ScrollAttributes;
+		class ChildAttributes;
+		class OtherAttributes;
+		class EventAttributes;
+
 	protected:
 		sl_bool isLastWidthWrapping();
 
@@ -1620,9 +1645,13 @@ namespace slib
 
 		UIRect _updateLayoutFrameInParent_getReferFrame(const UpdateLayoutFrameParam& param, View* refer);
 
-		sl_bool _isWidthWrapping();
+		SizeMode _getWidthMode(sl_bool flagCheckLastParentState, const Ref<LayoutAttributes>& attrs);
 
-		sl_bool _isHeightWrapping();
+		SizeMode _getWidthMode(sl_bool flagCheckLastParentState);
+
+		SizeMode _getHeightMode(sl_bool flagCheckLastParentState, const Ref<LayoutAttributes>& attrs);
+
+		SizeMode _getHeightMode(sl_bool flagCheckLastParentState);
 
 		void _updateLayout();
 
@@ -1707,16 +1736,6 @@ namespace slib
 	protected:
 		virtual void _onScroll_NW(sl_scroll_pos x, sl_scroll_pos y);
 
-	public:
-		class LayoutAttributes;
-		class PaddingAttributes;
-		class TransformAttributes;
-		class DrawAttributes;
-		class ScrollAttributes;
-		class ChildAttributes;
-		class OtherAttributes;
-		class EventAttributes;
-
 	private:
 		AtomicRef<ViewInstance> m_instance;
 		AtomicWeakRef<Window> m_window;
@@ -1730,6 +1749,7 @@ namespace slib
 		sl_bool m_flagCreatingLargeContent: 1;
 		sl_bool m_flagCreatingEmptyContent: 1;
 		sl_bool m_flagDoubleBuffer: 1;
+		sl_bool m_flagWindowContent : 1;
 		sl_bool m_flagUsingChildLayouts : 1;
 		sl_bool m_flagEnabled : 1;
 		sl_bool m_flagHitTestable : 1;

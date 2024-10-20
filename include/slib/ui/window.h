@@ -455,10 +455,9 @@ namespace slib
 
 		void close(const Variant& result);
 
-		Time getCreationTime();
+		sl_uint64 getCreationTick();
 
 		void setQuitOnDestroy();
-
 
 #if defined(SLIB_UI_IS_ANDROID)
 		void* getActivity();
@@ -625,7 +624,7 @@ namespace slib
 		Variant* m_result;
 		SpinLock m_lockResult;
 
-		Time m_timeCreation;
+		sl_uint64 m_tickCreation;
 
 #if defined(SLIB_UI_IS_ANDROID)
 		// jobject

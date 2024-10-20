@@ -320,7 +320,13 @@ namespace slib
 		SAppBooleanValue okCancelEnabled;
 		SAppBooleanValue ok;
 		SAppBooleanValue cancel;
+		SAppBooleanValue close;
+		SAppBooleanValue minimize;
+		SAppBooleanValue maximize;
 		String sendFocus;
+		SAppBooleanValue acceptMouse;
+		SAppBooleanValue movingWindow;
+
 		SAppChar8Value mnemonicKey;
 		SAppBooleanValue keepKeyboard;
 		SAppBooleanValue playSoundOnClick;

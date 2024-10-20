@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 #include "slib/ui/screen.h"
 #include "slib/core/variant.h"
 #include "slib/core/timer.h"
+#include "slib/system/system.h"
 
 namespace slib
 {
@@ -93,6 +94,9 @@ namespace slib
 
 		m_parentHandle = sl_null;
 		m_viewContent = new WindowContentView;
+		if (m_viewContent.isNotNull()) {
+			m_viewContent->setWindowContent();
+		}
 
 		m_result = sl_null;
 
@@ -1405,9 +1409,9 @@ namespace slib
 		close();
 	}
 
-	Time Window::getCreationTime()
+	sl_uint64 Window::getCreationTick()
 	{
-		return m_timeCreation;
+		return m_tickCreation;
 	}
 
 	void Window::setQuitOnDestroy()
@@ -1534,7 +1538,7 @@ namespace slib
 
 		if (window.isNotNull()) {
 
-			m_timeCreation = Time::now();
+			m_tickCreation = System::getTickCount64();
 
 			if (flagKeepReference) {
 				increaseReference();
@@ -2276,7 +2280,7 @@ namespace slib
 			return;
 		}
 		if (window->getWindowInstance().isNotNull()) {
-			if (window->getGravity() != Alignment::Default && (Time::now() - window->getCreationTime()).getMillisecondCount() < 500) {
+			if (window->getGravity() != Alignment::Default && System::getTickCount64()  < window->m_tickCreation + 500) {
 				UIRect frame(window->getFrame());
 				frame.setSize(window->getWindowSizeFromClientSize(sizeNew));
 				window->_adjustFrame(frame);
