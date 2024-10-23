@@ -229,7 +229,7 @@ namespace slib
 						gtk_container_add((GtkContainer*)contentBox, contentWidget);
 						gtk_widget_set_can_focus(contentWidget, 1);
 						gtk_widget_show(contentWidget);
-						Ref<GTK_ViewInstance> content = GTK_ViewInstance::create<GTK_ViewInstance>(contentWidget);
+						Ref<PlatformViewInstance> content = PlatformViewInstance::create<PlatformViewInstance>(contentWidget);
 						if (content.isNotNull()) {
 							content->setWindowContent(sl_true);
 							content->installEventsWithDrawing();
@@ -773,7 +773,7 @@ namespace slib
 			{
 				GtkWidget* focus = gtk_window_get_focus((GtkWindow*)widget);
 				if (!focus) {
-					GTK_ViewInstance::eventCallback(widget, ev, user_data);
+					PlatformViewInstance::eventCallback(widget, ev, user_data);
 				}
 				return 0;
 			}

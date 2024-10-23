@@ -39,7 +39,7 @@ namespace slib
 			using SelectView::_onSelectItem_NW;
 		};
 
-		class SelectViewInstance : public GTK_ViewInstance, public ISelectViewInstance
+		class SelectViewInstance : public PlatformViewInstance, public ISelectViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -111,14 +111,14 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(SelectViewInstance, GTK_ViewInstance)
+		SLIB_DEFINE_OBJECT(SelectViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
 		GtkWidget* handle = gtk_combo_box_new_text();
-		return GTK_ViewInstance::create<SelectViewInstance>(this, parent, handle);
+		return PlatformViewInstance::create<SelectViewInstance>(this, parent, handle);
 	}
 
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()

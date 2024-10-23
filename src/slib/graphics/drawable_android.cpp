@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		SLIB_JNI_BEGIN_CLASS(JBitmap, "slib/android/ui/UiBitmap")
 			SLIB_JNI_STATIC_METHOD(drawPixels, "drawPixels", "(Lslib/android/ui/Graphics;FFFF[IIIIFF)V");
 			SLIB_JNI_STATIC_METHOD(drawPixelsWithColorMatrix, "drawPixels", "(Lslib/android/ui/Graphics;FFFF[IIIIFFFFFFFFFFFFFFFFFFFFFF)V");
@@ -43,19 +43,19 @@ namespace slib
 			SLIB_JNI_STATIC_METHOD(returnArrayBuffer, "returnArrayBuffer", "([I)V");
 		SLIB_JNI_END_CLASS
 
-		class ImageDrawableImpl : public Drawable
+		class PlatformImageDrawable : public Drawable
 		{
 			SLIB_DECLARE_OBJECT
 		public:
 			ImageDesc m_image;
 
 		public:
-			static Ref<ImageDrawableImpl> create(const ImageDesc& image)
+			static Ref<PlatformImageDrawable> create(const ImageDesc& image)
 			{
 				sl_uint32 width = image.width;
 				sl_uint32 height = image.height;
 				if (width > 0 && height > 0) {
-					Ref<ImageDrawableImpl> ret = new ImageDrawableImpl();
+					Ref<PlatformImageDrawable> ret = new PlatformImageDrawable();
 					if (ret.isNotNull()) {
 						ret->m_image = image;
 						return ret;
@@ -200,8 +200,7 @@ namespace slib
 			}
 		};
 
-		SLIB_DEFINE_OBJECT(ImageDrawableImpl, Drawable);
-
+		SLIB_DEFINE_OBJECT(PlatformImageDrawable, Drawable);
 	}
 
 	Ref<Drawable> PlatformDrawable::create(const ImageDesc& desc)

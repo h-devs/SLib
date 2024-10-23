@@ -34,7 +34,7 @@ namespace slib
 	namespace priv
 	{
 
-		SLIB_DEFINE_OBJECT(ButtonInstance, macOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(ButtonInstance, PlatformViewInstance)
 
 		ButtonInstance::ButtonInstance()
 		{
@@ -119,7 +119,7 @@ namespace slib
 
 	Ref<ViewInstance> Button::createNativeWidget(ViewInstance* parent)
 	{
-		return macOS_ViewInstance::create<ButtonInstance, SLIBButtonHandle>(this, parent);
+		return PlatformViewInstance::create<ButtonInstance, SLIBButtonHandle>(this, parent);
 	}
 
 	Ptr<IButtonInstance> Button::getButtonInstance()

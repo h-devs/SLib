@@ -78,10 +78,10 @@ namespace slib
 	namespace {
 
 #ifdef SLIB_UI_IS_WIN32
-		typedef Win32_ViewInstance BaseViewInstance;
+		typedef PlatformViewInstance BaseViewInstance;
 #endif
 #ifdef SLIB_UI_IS_MACOS
-		typedef macOS_ViewInstance BaseViewInstance;
+		typedef PlatformViewInstance BaseViewInstance;
 #endif
 
 		class ChromiumApp;
@@ -406,7 +406,7 @@ namespace slib
 					case WM_ERASEBKGND:
 						return TRUE;
 				}
-				return Win32_ViewInstance::processWindowMessage(handle, msg, wParam, lParam);
+				return PlatformViewInstance::processWindowMessage(handle, msg, wParam, lParam);
 			}
 #endif
 
@@ -787,9 +787,9 @@ namespace slib
 		if (!shared) {
 			return sl_null;
 		}
-		return Win32_ViewInstance::create<ChromiumViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
+		return PlatformViewInstance::create<ChromiumViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
 #elif defined(SLIB_PLATFORM_IS_MACOS)
-		return macOS_ViewInstance::create<ChromiumViewInstance, SLIBViewHandle>(this, parent);
+		return PlatformViewInstance::create<ChromiumViewInstance, SLIBViewHandle>(this, parent);
 #else
 		return sl_null;
 #endif

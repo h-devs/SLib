@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -32,9 +32,9 @@
 namespace slib
 {
 
-	namespace {
-
-		class BitmapImpl : public Bitmap
+	namespace
+	{
+		class PlatformBitmap : public Bitmap
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -44,11 +44,11 @@ namespace slib
 			Ref<CRef> m_ref;
 
 		public:
-			BitmapImpl()
+			PlatformBitmap()
 			{
 			}
 
-			~BitmapImpl()
+			~PlatformBitmap()
 			{
 				if (m_flagFreeOnRelease) {
 					cairo_surface_destroy(m_bitmap);
@@ -56,10 +56,10 @@ namespace slib
 			}
 
 		public:
-			static Ref<BitmapImpl> create(cairo_surface_t* bitmap, sl_bool flagFreeOnRelease, CRef* ref)
+			static Ref<PlatformBitmap> create(cairo_surface_t* bitmap, sl_bool flagFreeOnRelease, CRef* ref)
 			{
 				if (bitmap) {
-					Ref<BitmapImpl> ret = new BitmapImpl();
+					Ref<PlatformBitmap> ret = new PlatformBitmap();
 					if (ret.isNotNull()) {
 						ret->m_bitmap = bitmap;
 						ret->m_flagFreeOnRelease = flagFreeOnRelease;
@@ -73,7 +73,7 @@ namespace slib
 				return sl_null;
 			}
 
-			static Ref<BitmapImpl> create(sl_uint32 width, sl_uint32 height)
+			static Ref<PlatformBitmap> create(sl_uint32 width, sl_uint32 height)
 			{
 				if (width > 0 && height > 0) {
 					cairo_surface_t* bitmap = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
@@ -243,13 +243,12 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(BitmapImpl, Bitmap)
-
+		SLIB_DEFINE_OBJECT(PlatformBitmap, Bitmap)
 	}
 
 	Ref<Bitmap> Bitmap::create(sl_uint32 width, sl_uint32 height)
 	{
-		return BitmapImpl::create(width, height);
+		return PlatformBitmap::create(width, height);
 	}
 
 	Ref<Bitmap> Bitmap::loadFromMemory(const void* mem, sl_size size)
@@ -262,12 +261,12 @@ namespace slib
 		if (!bitmap) {
 			return sl_null;
 		}
-		return Ref<Bitmap>::cast(BitmapImpl::create(bitmap, flagFreeOnRelease, ref));
+		return Ref<Bitmap>::cast(PlatformBitmap::create(bitmap, flagFreeOnRelease, ref));
 	}
 
 	cairo_surface_t* GraphicsPlatform::getBitmapHandle(Bitmap* _bitmap)
 	{
-		if (BitmapImpl* bitmap = CastInstance<BitmapImpl>(_bitmap)) {
+		if (PlatformBitmap* bitmap = CastInstance<PlatformBitmap>(_bitmap)) {
 			return bitmap->m_bitmap;
 		}
 		return sl_null;

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -34,9 +34,9 @@
 namespace slib
 {
 
-	namespace {
-
-		class CanvasImpl : public CanvasExt
+	namespace
+	{
+		class PlatformCanvas : public CanvasExt
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -44,21 +44,21 @@ namespace slib
 			CGContextRef m_graphics;
 
 		public:
-			CanvasImpl()
+			PlatformCanvas()
 			{
 			}
 
-			~CanvasImpl()
+			~PlatformCanvas()
 			{
 				CGContextRelease(m_graphics);
 			}
 
 		public:
-			static Ref<CanvasImpl> _create(CanvasType type, CGContextRef graphics, sl_real width, sl_real height)
+			static Ref<PlatformCanvas> _create(CanvasType type, CGContextRef graphics, sl_real width, sl_real height)
 			{
 				if (graphics) {
 
-					Ref<CanvasImpl> ret = new CanvasImpl();
+					Ref<PlatformCanvas> ret = new PlatformCanvas();
 
 					if (ret.isNotNull()) {
 
@@ -523,8 +523,7 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
-
+		SLIB_DEFINE_OBJECT(PlatformCanvas, CanvasExt)
 	}
 
 	Ref<Canvas> GraphicsPlatform::createCanvas(CanvasType type, CGContextRef graphics, sl_uint32 width, sl_uint32 height)
@@ -532,12 +531,12 @@ namespace slib
 		if (!graphics) {
 			return sl_null;
 		}
-		return CanvasImpl::_create(type, graphics, (sl_real)width, (sl_real)height);
+		return PlatformCanvas::_create(type, graphics, (sl_real)width, (sl_real)height);
 	}
 
 	CGContextRef GraphicsPlatform::getCanvasHandle(Canvas* _canvas)
 	{
-		if (CanvasImpl* canvas = CastInstance<CanvasImpl>(_canvas)) {
+		if (PlatformCanvas* canvas = CastInstance<PlatformCanvas>(_canvas)) {
 			return canvas->m_graphics;
 		}
 		return NULL;

@@ -35,7 +35,7 @@ namespace slib
 
 	namespace
 	{
-		class BitmapImpl : public Bitmap
+		class PlatformBitmap : public Bitmap
 		{
 			SLIB_DECLARE_OBJECT
 		public:
@@ -44,11 +44,11 @@ namespace slib
 			Ref<CRef> m_ref;
 
 		public:
-			BitmapImpl()
+			PlatformBitmap()
 			{
 			}
 
-			~BitmapImpl()
+			~PlatformBitmap()
 			{
 				if (m_flagFreeOnRelease) {
 					delete m_bitmap;
@@ -56,11 +56,11 @@ namespace slib
 			}
 
 		public:
-			static Ref<BitmapImpl> create(Gdiplus::Bitmap* handle, sl_bool flagFreeOnRelease, CRef* ref)
+			static Ref<PlatformBitmap> create(Gdiplus::Bitmap* handle, sl_bool flagFreeOnRelease, CRef* ref)
 			{
 				if (handle) {
 					if (handle->GetWidth() > 0 && handle->GetHeight() > 0) {
-						Ref<BitmapImpl> ret = new BitmapImpl();
+						Ref<PlatformBitmap> ret = new PlatformBitmap();
 						if (ret.isNotNull()) {
 							ret->m_bitmap = handle;
 							ret->m_flagFreeOnRelease = flagFreeOnRelease;
@@ -75,7 +75,7 @@ namespace slib
 				return sl_null;
 			}
 
-			static Ref<BitmapImpl> create(sl_uint32 width, sl_uint32 height)
+			static Ref<PlatformBitmap> create(sl_uint32 width, sl_uint32 height)
 			{
 				if (width > 0 && height > 0) {
 					GraphicsPlatform::startGdiplus();
@@ -87,7 +87,7 @@ namespace slib
 				return sl_null;
 			}
 
-			static Ref<BitmapImpl> loadFromMemory(const void* mem, sl_size size)
+			static Ref<PlatformBitmap> loadFromMemory(const void* mem, sl_size size)
 			{
 				IStream* stream = SHCreateMemStream((BYTE*)mem, (sl_uint32)size);
 				if (stream) {
@@ -308,7 +308,7 @@ namespace slib
 				if (g) {
 					sl_uint32 w = getBitmapWidth();
 					sl_uint32 h = getBitmapHeight();
-					Ref<BitmapImpl> thiz = this;
+					Ref<PlatformBitmap> thiz = this;
 					return GraphicsPlatform::createCanvas(CanvasType::Bitmap, g, w, h, [g, thiz]() {
 						delete g;
 					});
@@ -322,17 +322,17 @@ namespace slib
 			}
 		};
 
-		SLIB_DEFINE_OBJECT(BitmapImpl, Bitmap)
+		SLIB_DEFINE_OBJECT(PlatformBitmap, Bitmap)
 	}
 
 	Ref<Bitmap> Bitmap::create(sl_uint32 width, sl_uint32 height)
 	{
-		return BitmapImpl::create(width, height);
+		return PlatformBitmap::create(width, height);
 	}
 
 	Ref<Bitmap> Bitmap::loadFromMemory(const void* mem, sl_size size)
 	{
-		return BitmapImpl::loadFromMemory(mem, size);
+		return PlatformBitmap::loadFromMemory(mem, size);
 	}
 
 	Ref<Bitmap> GraphicsPlatform::createBitmap(Gdiplus::Bitmap* bitmap, sl_bool flagFreeOnRelease, CRef* ref)
@@ -340,7 +340,7 @@ namespace slib
 		if (!bitmap) {
 			return sl_null;
 		}
-		return Ref<Bitmap>::cast(BitmapImpl::create(bitmap, flagFreeOnRelease, ref));
+		return Ref<Bitmap>::cast(PlatformBitmap::create(bitmap, flagFreeOnRelease, ref));
 	}
 
 	Ref<Bitmap> GraphicsPlatform::createBitmap(HBITMAP hbm)
@@ -351,14 +351,14 @@ namespace slib
 		startGdiplus();
 		Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(hbm, NULL);
 		if (bitmap) {
-			return Ref<Bitmap>::cast(BitmapImpl::create(bitmap, sl_true, sl_null));
+			return Ref<Bitmap>::cast(PlatformBitmap::create(bitmap, sl_true, sl_null));
 		}
 		return sl_null;
 	}
 
 	Gdiplus::Bitmap* GraphicsPlatform::getBitmapHandle(Bitmap* _bitmap)
 	{
-		if (BitmapImpl* bitmap = CastInstance<BitmapImpl>(_bitmap)) {
+		if (PlatformBitmap* bitmap = CastInstance<PlatformBitmap>(_bitmap)) {
 			return bitmap->m_bitmap;
 		}
 		return NULL;

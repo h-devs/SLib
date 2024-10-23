@@ -52,7 +52,7 @@ namespace slib
 
 		};
 
-		class ScrollViewInstance : public macOS_ViewInstance, public IScrollViewInstance
+		class ScrollViewInstance : public PlatformViewInstance, public IScrollViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -206,13 +206,13 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(ScrollViewInstance, macOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(ScrollViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> ScrollView::createNativeWidget(ViewInstance* parent)
 	{
-		return macOS_ViewInstance::create<ScrollViewInstance, SLIBScrollViewHandle>(this, parent);
+		return PlatformViewInstance::create<ScrollViewInstance, SLIBScrollViewHandle>(this, parent);
 	}
 
 	Ptr<IScrollViewInstance> ScrollView::getScrollViewInstance()

@@ -38,7 +38,7 @@ namespace slib
 	namespace priv
 	{
 
-		class ButtonInstance : public macOS_ViewInstance, public IButtonInstance, public ICheckBoxInstance
+		class ButtonInstance : public PlatformViewInstance, public IButtonInstance, public ICheckBoxInstance
 		{
 			SLIB_DECLARE_OBJECT
 

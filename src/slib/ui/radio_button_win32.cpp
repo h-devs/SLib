@@ -56,7 +56,7 @@ namespace slib
 	Ref<ViewInstance> RadioButton::createNativeWidget(ViewInstance* parent)
 	{
 		UINT style = BS_RADIOBUTTON | WS_TABSTOP;
-		return Win32_ViewInstance::create<RadioButtonInstance>(this, parent, L"BUTTON", getText(), style, 0);
+		return PlatformViewInstance::create<RadioButtonInstance>(this, parent, L"BUTTON", getText(), style, 0);
 	}
 
 }

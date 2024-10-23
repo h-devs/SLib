@@ -48,27 +48,27 @@
 namespace slib
 {
 
-	SLIB_DEFINE_OBJECT(macOS_ViewInstance, ViewInstance)
+	SLIB_DEFINE_OBJECT(PlatformViewInstance, ViewInstance)
 
-	macOS_ViewInstance::macOS_ViewInstance()
+	PlatformViewInstance::PlatformViewInstance()
 	{
 		m_handle = nil;
 		m_frame.setZero();
 		m_transform = Matrix3::identity();
 	}
 
-	macOS_ViewInstance::~macOS_ViewInstance()
+	PlatformViewInstance::~PlatformViewInstance()
 	{
 		_release();
 	}
 
-	void macOS_ViewInstance::_release()
+	void PlatformViewInstance::_release()
 	{
 		UIPlatform::removeViewInstance(m_handle);
 		m_handle = nil;
 	}
 
-	void macOS_ViewInstance::initWithHandle(NSView* handle)
+	void PlatformViewInstance::initWithHandle(NSView* handle)
 	{
 		m_handle = handle;
 		UIPlatform::registerViewInstance(handle, this);
@@ -94,7 +94,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::initWithHandle(NSView* handle, NSView* parent, View* view)
+	void PlatformViewInstance::initWithHandle(NSView* handle, NSView* parent, View* view)
 	{
 		initWithHandle(handle);
 
@@ -139,17 +139,17 @@ namespace slib
 		}
 	}
 
-	NSView* macOS_ViewInstance::getHandle()
+	NSView* PlatformViewInstance::getHandle()
 	{
 		return m_handle;
 	}
 
-	sl_bool macOS_ViewInstance::isValid(View* view)
+	sl_bool PlatformViewInstance::isValid(View* view)
 	{
 		return sl_true;
 	}
 
-	void macOS_ViewInstance::setFocus(View* view, sl_bool flagFocus)
+	void PlatformViewInstance::setFocus(View* view, sl_bool flagFocus)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -168,7 +168,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::invalidate(View* view)
+	void PlatformViewInstance::invalidate(View* view)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -186,7 +186,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::invalidate(View* view, const UIRect& rect)
+	void PlatformViewInstance::invalidate(View* view, const UIRect& rect)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -209,19 +209,19 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::setFrame(View* view, const UIRect& frame)
+	void PlatformViewInstance::setFrame(View* view, const UIRect& frame)
 	{
 		m_frame = frame;
 		updateFrameAndTransform();
 	}
 
-	void macOS_ViewInstance::setTransform(View* view, const Matrix3& transform)
+	void PlatformViewInstance::setTransform(View* view, const Matrix3& transform)
 	{
 		m_transform = transform;
 		updateFrameAndTransform();
 	}
 
-	void macOS_ViewInstance::setVisible(View* view, sl_bool flag)
+	void PlatformViewInstance::setVisible(View* view, sl_bool flag)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -229,7 +229,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::setEnabled(View* view, sl_bool flag)
+	void PlatformViewInstance::setEnabled(View* view, sl_bool flag)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -240,7 +240,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::setOpaque(View* view, sl_bool flag)
+	void PlatformViewInstance::setOpaque(View* view, sl_bool flag)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -251,7 +251,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::setAlpha(View* view, sl_real alpha)
+	void PlatformViewInstance::setAlpha(View* view, sl_real alpha)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -259,7 +259,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::setClipping(View* view, sl_bool flag)
+	void PlatformViewInstance::setClipping(View* view, sl_bool flag)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -270,7 +270,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::setDrawing(View* view, sl_bool flag)
+	void PlatformViewInstance::setDrawing(View* view, sl_bool flag)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -281,7 +281,7 @@ namespace slib
 		}
 	}
 
-	UIPointF macOS_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
+	UIPointF PlatformViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -307,7 +307,7 @@ namespace slib
 		return ptScreen;
 	}
 
-	UIPointF macOS_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
+	UIPointF PlatformViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -333,11 +333,11 @@ namespace slib
 		return ptView;
 	}
 
-	void macOS_ViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
+	void PlatformViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
-			macOS_ViewInstance* child = (macOS_ViewInstance*)(_child.get());
+			PlatformViewInstance* child = (PlatformViewInstance*)(_child.get());
 			if (child) {
 				NSView* child_handle = child->m_handle;
 				if (child_handle != nil) {
@@ -347,9 +347,9 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
+	void PlatformViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
-		macOS_ViewInstance* child = (macOS_ViewInstance*)(_child.get());
+		PlatformViewInstance* child = (PlatformViewInstance*)(_child.get());
 		if (child) {
 			NSView* child_handle = child->m_handle;
 			if (child_handle != nil) {
@@ -358,7 +358,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::bringToFront(View* view)
+	void PlatformViewInstance::bringToFront(View* view)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -370,7 +370,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::setShadowOpacity(View* view, float opacity)
+	void PlatformViewInstance::setShadowOpacity(View* view, float opacity)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -381,7 +381,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::setShadowRadius(View* view, sl_ui_posf radius)
+	void PlatformViewInstance::setShadowRadius(View* view, sl_ui_posf radius)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -392,7 +392,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::setShadowOffset(View* view, sl_ui_posf x, sl_ui_posf y)
+	void PlatformViewInstance::setShadowOffset(View* view, sl_ui_posf x, sl_ui_posf y)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -403,7 +403,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::setShadowColor(View* view, const Color& _color)
+	void PlatformViewInstance::setShadowColor(View* view, const Color& _color)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -418,7 +418,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::setDropTarget(View* view, sl_bool flag)
+	void PlatformViewInstance::setDropTarget(View* view, sl_bool flag)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -426,7 +426,7 @@ namespace slib
 		}
 	}
 
-	void macOS_ViewInstance::updateToolTip(sl_uint64 ownerId, const String& toolTip)
+	void PlatformViewInstance::updateToolTip(sl_uint64 ownerId, const String& toolTip)
 	{
 		NSView* handle = m_handle;
 		if (handle == nil) {
@@ -455,7 +455,7 @@ namespace slib
 		[handle addToolTipRect:NSMakeRect(0, 0, size.width, size.height) owner:obj userData:NULL];
 	}
 
-	NSRect macOS_ViewInstance::getViewFrameAndTransform(const UIRect& frame, const Matrix3& transform, sl_real& rotation)
+	NSRect PlatformViewInstance::getViewFrameAndTransform(const UIRect& frame, const Matrix3& transform, sl_real& rotation)
 	{
 		rotation = Transform2::getRotationAngleFromMatrix(transform);
 		Vector2 translation = Transform2::getTranslationFromMatrix(transform);
@@ -475,7 +475,7 @@ namespace slib
 		return ret;
 	}
 
-	void macOS_ViewInstance::onDraw(NSRect rcDirty)
+	void PlatformViewInstance::onDraw(NSRect rcDirty)
 	{
 		Ref<View> view = getView();
 		if (view.isNull()) {
@@ -515,7 +515,7 @@ namespace slib
 		view->dispatchDraw(canvas.get());
 	}
 
-	UIEventFlags macOS_ViewInstance::onEventKey(sl_bool flagDown, NSEvent* event)
+	UIEventFlags PlatformViewInstance::onEventKey(sl_bool flagDown, NSEvent* event)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -550,7 +550,7 @@ namespace slib
 		return 0;
 	}
 
-	void macOS_ViewInstance::onEventChar(sl_char32 code)
+	void PlatformViewInstance::onEventChar(sl_char32 code)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -561,7 +561,7 @@ namespace slib
 		}
 	}
 
-	UIEventFlags macOS_ViewInstance::onEventMouse(UIAction action, NSEvent* event)
+	UIEventFlags PlatformViewInstance::onEventMouse(UIAction action, NSEvent* event)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -627,7 +627,7 @@ namespace slib
 		return 0;
 	}
 
-	UIEventFlags macOS_ViewInstance::onEventMouse(UIAction action, const NSPoint& pt)
+	UIEventFlags PlatformViewInstance::onEventMouse(UIAction action, const NSPoint& pt)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -647,7 +647,7 @@ namespace slib
 		return 0;
 	}
 
-	UIEventFlags macOS_ViewInstance::onEventMouseWheel(NSEvent* event)
+	UIEventFlags PlatformViewInstance::onEventMouseWheel(NSEvent* event)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -672,7 +672,7 @@ namespace slib
 		return 0;
 	}
 
-	UIEventFlags macOS_ViewInstance::onEventUpdateCursor(NSEvent* event)
+	UIEventFlags PlatformViewInstance::onEventUpdateCursor(NSEvent* event)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -743,7 +743,7 @@ namespace slib
 		}
 	}
 
-	Ref<UIEvent> macOS_ViewInstance::onEventDrop(UIAction action, id<NSDraggingInfo> info)
+	Ref<UIEvent> PlatformViewInstance::onEventDrop(UIAction action, id<NSDraggingInfo> info)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -775,7 +775,7 @@ namespace slib
 		return sl_null;
 	}
 
-	void macOS_ViewInstance::updateFrameAndTransform()
+	void PlatformViewInstance::updateFrameAndTransform()
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -789,7 +789,7 @@ namespace slib
 
 	Ref<ViewInstance> View::createTypicalInstance(ViewInstance* parent)
 	{
-		return macOS_ViewInstance::create<macOS_ViewInstance, SLIBViewHandle>(this, parent);
+		return PlatformViewInstance::create<PlatformViewInstance, SLIBViewHandle>(this, parent);
 	}
 
 
@@ -799,7 +799,7 @@ namespace slib
 		if (ret.isNotNull()) {
 			return ret;
 		}
-		return macOS_ViewInstance::create<macOS_ViewInstance>(handle);
+		return PlatformViewInstance::create<PlatformViewInstance>(handle);
 	}
 
 	void UIPlatform::registerViewInstance(NSView* handle, ViewInstance* instance)
@@ -819,7 +819,7 @@ namespace slib
 
 	NSView* UIPlatform::getViewHandle(ViewInstance* _instance)
 	{
-		macOS_ViewInstance* instance = (macOS_ViewInstance*)_instance;
+		PlatformViewInstance* instance = (PlatformViewInstance*)_instance;
 		if (instance) {
 			return instance->getHandle();
 		} else {
@@ -832,7 +832,7 @@ namespace slib
 		if (view) {
 			Ref<ViewInstance> instance = view->getViewInstance();
 			if (instance.isNotNull()) {
-				macOS_ViewInstance* _instance = (macOS_ViewInstance*)(instance.get());
+				PlatformViewInstance* _instance = (PlatformViewInstance*)(instance.get());
 				return _instance->getHandle();
 			}
 		}
@@ -893,7 +893,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 - (void)drawRect:(NSRect)dirtyRect
 {
 	if (m_flagDrawing) {
-		Ref<macOS_ViewInstance> instance = m_viewInstance;
+		Ref<PlatformViewInstance> instance = m_viewInstance;
 		if (instance.isNotNull()) {
 			instance->onDraw(dirtyRect);
 		}
@@ -902,7 +902,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)keyDown:(NSEvent*)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventKey(sl_true, theEvent);
 		if (flags & UIEventFlags::NotInvokeNative) {
@@ -914,7 +914,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)keyUp:(NSEvent*)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventKey(sl_false, theEvent);
 		if (flags & UIEventFlags::NotInvokeNative) {
@@ -926,7 +926,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		DragContext& dragContext = UIEvent::getCurrentDragContext();
 		dragContext.release();
@@ -962,7 +962,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)mouseUp:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::LeftButtonUp, theEvent);
 		NSInteger clicks = [theEvent clickCount];
@@ -978,7 +978,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::LeftButtonDrag, theEvent);
 		if (flags & UIEventFlags::NotInvokeNative) {
@@ -990,7 +990,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)rightMouseDown:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::RightButtonDown, theEvent);
 		if (flags & UIEventFlags::NotInvokeNative) {
@@ -1002,7 +1002,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)rightMouseUp:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::RightButtonUp, theEvent);
 		NSInteger clicks = [theEvent clickCount];
@@ -1018,7 +1018,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)rightMouseDragged:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::RightButtonDrag, theEvent);
 		if (flags & UIEventFlags::NotInvokeNative) {
@@ -1030,7 +1030,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)otherMouseDown:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::MiddleButtonDown, theEvent);
 		if (flags & UIEventFlags::NotInvokeNative) {
@@ -1042,7 +1042,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)otherMouseUp:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::MiddleButtonUp, theEvent);
 		NSInteger clicks = [theEvent clickCount];
@@ -1058,7 +1058,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)otherMouseDragged:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::MiddleButtonDrag, theEvent);
 		if (flags & UIEventFlags::NotInvokeNative) {
@@ -1071,7 +1071,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 - (void)mouseMoved:(NSEvent *)theEvent
 {
 	[[self window] invalidateCursorRectsForView:self];
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::MouseMove, theEvent);
 		if (flags & UIEventFlags::NotInvokeNative) {
@@ -1083,7 +1083,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 -(void)onMouseEntered:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		instance->onEventMouse(UIAction::MouseEnter, theEvent);
 	}
@@ -1091,7 +1091,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)mouseEntered:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::MouseEnter, theEvent);
 		if (flags & UIEventFlags::NotInvokeNative) {
@@ -1103,7 +1103,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 -(void)onMouseExited:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		instance->onEventMouse(UIAction::MouseLeave, theEvent);
 	}
@@ -1111,7 +1111,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)mouseExited:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouse(UIAction::MouseLeave, theEvent);
 		if (flags & UIEventFlags::NotInvokeNative) {
@@ -1123,7 +1123,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)scrollWheel:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventMouseWheel(theEvent);
 		if (flags & UIEventFlags::NotInvokeNative) {
@@ -1143,7 +1143,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)cursorUpdate:(NSEvent *)theEvent
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		UIEventFlags flags = instance->onEventUpdateCursor(theEvent);
 		if (flags & UIEventFlags::NotInvokeNative) {
@@ -1157,7 +1157,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 - (NSView *)hitTest:(NSPoint)aPoint
 {
 	NSPoint pt = [self convertPoint:aPoint fromView:[self superview]];
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		Ref<View> view = instance->getView();
 		if (view.isNotNull()) {
@@ -1187,7 +1187,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		Ref<UIEvent> ev = instance->onEventDrop(UIAction::DragEnter, sender);
 		if (ev.isNotNull()) {
@@ -1199,7 +1199,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (NSDragOperation)draggingUpdated:(id<NSDraggingInfo>)sender
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		Ref<UIEvent> ev = instance->onEventDrop(UIAction::DragOver, sender);
 		if (ev.isNotNull()) {
@@ -1211,7 +1211,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)draggingExited:(id<NSDraggingInfo>)sender
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		instance->onEventDrop(UIAction::DragLeave, sender);
 	}
@@ -1219,7 +1219,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (BOOL)performDragOperation:(id <NSDraggingInfo>)sender;
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		Ref<UIEvent> ev = instance->onEventDrop(UIAction::Drop, sender);
 		if (ev.isNotNull()) {
@@ -1261,7 +1261,7 @@ MACOS_VIEW_DEFINE_ON_FOCUS
 
 - (void)insertText:(nonnull id)aText replacementRange:(NSRange)range
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNull()) {
 		return;
 	}

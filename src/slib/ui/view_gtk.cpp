@@ -33,27 +33,27 @@
 namespace slib
 {
 
-	SLIB_DEFINE_OBJECT(GTK_ViewInstance, ViewInstance)
+	SLIB_DEFINE_OBJECT(PlatformViewInstance, ViewInstance)
 
-	GTK_ViewInstance::GTK_ViewInstance()
+	PlatformViewInstance::PlatformViewInstance()
 	{
 		m_handle = sl_null;
 		m_actionDrag = UIAction::MouseMove;
 	}
 
-	GTK_ViewInstance::~GTK_ViewInstance()
+	PlatformViewInstance::~PlatformViewInstance()
 	{
 		_release();
 	}
 
-	void GTK_ViewInstance::_init(GtkWidget* handle)
+	void PlatformViewInstance::_init(GtkWidget* handle)
 	{
 		g_object_ref_sink(handle);
 		m_handle = handle;
 		UIPlatform::registerViewInstance(handle, this);
 	}
 
-	void GTK_ViewInstance::applyProperties(View* view, ViewInstance* _parent)
+	void PlatformViewInstance::applyProperties(View* view, ViewInstance* _parent)
 	{
 		GtkWidget* handle = m_handle;
 		if (!handle) {
@@ -79,7 +79,7 @@ namespace slib
 
 		GtkWidget* parent = sl_null;
 		if (_parent) {
-			parent = ((GTK_ViewInstance*)_parent)->m_handle;
+			parent = ((PlatformViewInstance*)_parent)->m_handle;
 		}
 		m_frame = view->getFrameInInstance();
 		m_translation = Transform2::getTranslationFromMatrix(view->getTransformInInstance());
@@ -100,7 +100,7 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::_release()
+	void PlatformViewInstance::_release()
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -110,17 +110,17 @@ namespace slib
 		}
 	}
 
-	GtkWidget* GTK_ViewInstance::getHandle()
+	GtkWidget* PlatformViewInstance::getHandle()
 	{
 		return m_handle;
 	}
 
-	sl_bool GTK_ViewInstance::isValid(View* view)
+	sl_bool PlatformViewInstance::isValid(View* view)
 	{
 		return sl_true;
 	}
 
-	void GTK_ViewInstance::setFocus(View* view, sl_bool flag)
+	void PlatformViewInstance::setFocus(View* view, sl_bool flag)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -139,12 +139,12 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::invalidate(View* view)
+	void PlatformViewInstance::invalidate(View* view)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
 			if (!(UI::isUiThread())) {
-				void(GTK_ViewInstance::*func)(View*) = &GTK_ViewInstance::invalidate;
+				void(PlatformViewInstance::*func)(View*) = &PlatformViewInstance::invalidate;
 				UI::dispatchToUiThread(Function<void()>::bindWeakRef(this, func, sl_null));
 				return;
 			}
@@ -152,12 +152,12 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::invalidate(View* view, const UIRect& rect)
+	void PlatformViewInstance::invalidate(View* view, const UIRect& rect)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
 			if (!(UI::isUiThread())) {
-				void(GTK_ViewInstance::*func)(View*, const UIRect&) = &GTK_ViewInstance::invalidate;
+				void(PlatformViewInstance::*func)(View*, const UIRect&) = &PlatformViewInstance::invalidate;
 				UI::dispatchToUiThread(Function<void()>::bindWeakRef(this, func, sl_null, rect));
 				return;
 			}
@@ -165,7 +165,7 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::setFrame(View* view, const UIRect& frame)
+	void PlatformViewInstance::setFrame(View* view, const UIRect& frame)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -174,7 +174,7 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::setTransform(View* view, const Matrix3& m)
+	void PlatformViewInstance::setTransform(View* view, const Matrix3& m)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -183,7 +183,7 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::_updateFrameAndTransform()
+	void PlatformViewInstance::_updateFrameAndTransform()
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -195,7 +195,7 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::setVisible(View* view, sl_bool flag)
+	void PlatformViewInstance::setVisible(View* view, sl_bool flag)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -207,7 +207,7 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::setEnabled(View* view, sl_bool flag)
+	void PlatformViewInstance::setEnabled(View* view, sl_bool flag)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -219,19 +219,19 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::setOpaque(View* view, sl_bool flag)
+	void PlatformViewInstance::setOpaque(View* view, sl_bool flag)
 	{
 	}
 
-	void GTK_ViewInstance::setAlpha(View* view, sl_real alpha)
+	void PlatformViewInstance::setAlpha(View* view, sl_real alpha)
 	{
 	}
 
-	void GTK_ViewInstance::setClipping(View* view, sl_bool flag)
+	void PlatformViewInstance::setClipping(View* view, sl_bool flag)
 	{
 	}
 
-	void GTK_ViewInstance::setDrawing(View* view, sl_bool flag)
+	void PlatformViewInstance::setDrawing(View* view, sl_bool flag)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -245,7 +245,7 @@ namespace slib
 		}
 	}
 
-	UIPointF GTK_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
+	UIPointF PlatformViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -256,7 +256,7 @@ namespace slib
 		return ptScreen;
 	}
 
-	UIPointF GTK_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
+	UIPointF PlatformViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -267,9 +267,9 @@ namespace slib
 		return ptView;
 	}
 
-	void GTK_ViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
+	void PlatformViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
-		GTK_ViewInstance* child = static_cast<GTK_ViewInstance*>(_child.get());
+		PlatformViewInstance* child = static_cast<PlatformViewInstance*>(_child.get());
 		if (child) {
 			GtkWidget* handle = m_handle;
 			if (handle) {
@@ -293,9 +293,9 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
+	void PlatformViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
-		GTK_ViewInstance* child = static_cast<GTK_ViewInstance*>(_child.get());
+		PlatformViewInstance* child = static_cast<PlatformViewInstance*>(_child.get());
 		if (child) {
 			GtkWidget* handle = m_handle;
 			if (handle) {
@@ -309,7 +309,7 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::bringToFront(View* view)
+	void PlatformViewInstance::bringToFront(View* view)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -320,7 +320,7 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::setFont(View* view, const Ref<Font>& font)
+	void PlatformViewInstance::setFont(View* view, const Ref<Font>& font)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -331,12 +331,12 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::installEvents()
+	void PlatformViewInstance::installEvents()
 	{
 		installEvents(getEventMask());
 	}
 
-	void GTK_ViewInstance::installEventsWithDrawing()
+	void PlatformViewInstance::installEventsWithDrawing()
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -350,7 +350,7 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::installEvents(gint mask)
+	void PlatformViewInstance::installEvents(gint mask)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -374,9 +374,9 @@ namespace slib
 		}
 	}
 
-	gboolean GTK_ViewInstance::eventCallback(GtkWidget*, GdkEvent* event, gpointer user_data)
+	gboolean PlatformViewInstance::eventCallback(GtkWidget*, GdkEvent* event, gpointer user_data)
 	{
-		Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::cast(UIPlatform::getViewInstance((GtkWidget*)user_data));
+		Ref<PlatformViewInstance> instance = Ref<PlatformViewInstance>::cast(UIPlatform::getViewInstance((GtkWidget*)user_data));
 		if (instance.isNotNull()) {
 			switch (event->type) {
 				case GDK_EXPOSE:
@@ -405,16 +405,16 @@ namespace slib
 		return sl_false;
 	}
 
-	gboolean GTK_ViewInstance::drawCallback(GtkWidget*, cairo_t* cairo, gpointer user_data)
+	gboolean PlatformViewInstance::drawCallback(GtkWidget*, cairo_t* cairo, gpointer user_data)
 	{
-		Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::cast(UIPlatform::getViewInstance((GtkWidget*)user_data));
+		Ref<PlatformViewInstance> instance = Ref<PlatformViewInstance>::cast(UIPlatform::getViewInstance((GtkWidget*)user_data));
 		if (instance.isNotNull()) {
 			instance->onDrawEvent(cairo);
 		}
 		return sl_false;
 	}
 
-	void GTK_ViewInstance::onExposeEvent(GdkEventExpose* event)
+	void PlatformViewInstance::onExposeEvent(GdkEventExpose* event)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -439,7 +439,7 @@ namespace slib
 		}
 	}
 
-	void GTK_ViewInstance::onDrawEvent(cairo_t* cairo)
+	void PlatformViewInstance::onDrawEvent(cairo_t* cairo)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -461,7 +461,7 @@ namespace slib
 		}
 	}
 
-	gboolean GTK_ViewInstance::onMotionNotifyEvent(GdkEventMotion* gevent)
+	gboolean PlatformViewInstance::onMotionNotifyEvent(GdkEventMotion* gevent)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -479,7 +479,7 @@ namespace slib
 		return sl_false;
 	}
 
-	gboolean GTK_ViewInstance::onButtonEvent(GdkEventButton* gevent)
+	gboolean PlatformViewInstance::onButtonEvent(GdkEventButton* gevent)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -540,7 +540,7 @@ namespace slib
 		return sl_false;
 	}
 
-	gboolean GTK_ViewInstance::onCrossingEvent(GdkEventCrossing* gevent)
+	gboolean PlatformViewInstance::onCrossingEvent(GdkEventCrossing* gevent)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -573,7 +573,7 @@ namespace slib
 		return sl_false;
 	}
 
-	gboolean GTK_ViewInstance::onKeyEvent(GdkEventKey* gevent)
+	gboolean PlatformViewInstance::onKeyEvent(GdkEventKey* gevent)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -615,7 +615,7 @@ namespace slib
 		return sl_false;
 	}
 
-	gboolean GTK_ViewInstance::onScrollEvent(GdkEventScroll* gevent)
+	gboolean PlatformViewInstance::onScrollEvent(GdkEventScroll* gevent)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -661,7 +661,7 @@ namespace slib
 		return sl_false;
 	}
 
-	gboolean GTK_ViewInstance::onFocusEvent(GdkEventFocus* gevent)
+	gboolean PlatformViewInstance::onFocusEvent(GdkEventFocus* gevent)
 	{
 		GtkWidget* handle = m_handle;
 		if (handle) {
@@ -674,14 +674,14 @@ namespace slib
 		return sl_false;
 	}
 
-	gint GTK_ViewInstance::getEventMask()
+	gint PlatformViewInstance::getEventMask()
 	{
 		return SLIB_GTK_EVENT_MASK_DEFAULT;
 	}
 
 	Ref<ViewInstance> View::createTypicalInstance(ViewInstance* _parent)
 	{
-		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
+		PlatformViewInstance* parent = static_cast<PlatformViewInstance*>(_parent);
 
 		GtkWidget* handle;
 		if (m_flagCreatingChildInstances) {
@@ -693,7 +693,7 @@ namespace slib
 		if (handle) {
 			gtk_widget_set_has_window(handle, 1);
 			gtk_widget_set_can_focus(handle, 1);
-			Ref<GTK_ViewInstance> ret = GTK_ViewInstance::create<GTK_ViewInstance>(this, parent, handle);
+			Ref<PlatformViewInstance> ret = PlatformViewInstance::create<PlatformViewInstance>(this, parent, handle);
 			if (ret.isNotNull()) {
 				return ret;
 			}
@@ -710,7 +710,7 @@ namespace slib
 		if (ret.isNotNull()) {
 			return ret;
 		}
-		return GTK_ViewInstance::create<GTK_ViewInstance>(handle);
+		return PlatformViewInstance::create<PlatformViewInstance>(handle);
 	}
 
 	void UIPlatform::registerViewInstance(GtkWidget* handle, ViewInstance* instance)
@@ -739,7 +739,7 @@ namespace slib
 
 	GtkWidget* UIPlatform::getViewHandle(ViewInstance* _instance)
 	{
-		GTK_ViewInstance* instance = static_cast<GTK_ViewInstance*>(_instance);
+		PlatformViewInstance* instance = static_cast<PlatformViewInstance*>(_instance);
 		if (instance) {
 			return instance->getHandle();
 		}
@@ -751,7 +751,7 @@ namespace slib
 		if (view) {
 			Ref<ViewInstance> _instance = view->getViewInstance();
 			if (_instance.isNotNull()) {
-				GTK_ViewInstance* instance = static_cast<GTK_ViewInstance*>(_instance.get());
+				PlatformViewInstance* instance = static_cast<PlatformViewInstance*>(_instance.get());
 				return instance->getHandle();
 			}
 		}

@@ -39,7 +39,7 @@
 
 @interface SLIBViewHandle : SLIBViewBaseHandle<NSTextInputClient>
 {
-	@public slib::WeakRef<slib::macOS_ViewInstance> m_viewInstance;
+	@public slib::WeakRef<slib::PlatformViewInstance> m_viewInstance;
 }
 
 -(void)onMouseEntered:(NSEvent *)theEvent;
@@ -50,7 +50,7 @@
 #define MACOS_VIEW_DEFINE_ON_FOCUS \
 	- (BOOL)becomeFirstResponder \
 	{ \
-		slib::Ref<slib::macOS_ViewInstance> instance = m_viewInstance; \
+		slib::Ref<slib::PlatformViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			instance->onSetFocus(); \
 		} \
@@ -60,7 +60,7 @@
 #define MACOS_VIEW_DEFINE_ON_KEY \
 	- (void)keyDown:(NSEvent*)theEvent \
 	{ \
-		slib::Ref<slib::macOS_ViewInstance> instance = m_viewInstance; \
+		slib::Ref<slib::PlatformViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			if (instance->onEventKey(sl_true, theEvent) & slib::UIEventFlags::NotInvokeNative) { \
 				return; \
@@ -70,7 +70,7 @@
 	} \
 	- (void)keyUp:(NSEvent*)theEvent \
 	{ \
-		slib::Ref<slib::macOS_ViewInstance> instance = m_viewInstance; \
+		slib::Ref<slib::PlatformViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			if (instance->onEventKey(sl_false, theEvent) & slib::UIEventFlags::NotInvokeNative) { \
 				return; \

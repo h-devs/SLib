@@ -106,7 +106,7 @@ namespace slib
 			delete hPenClone; \
 		}
 
-		class CanvasImpl : public CanvasExt
+		class PlatformCanvas : public CanvasExt
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -116,19 +116,19 @@ namespace slib
 			Function<void()> m_onFreeCanvas;
 
 		public:
-			CanvasImpl()
+			PlatformCanvas()
 			{
 			}
 
-			~CanvasImpl()
+			~PlatformCanvas()
 			{
 				m_onFreeCanvas();
 			}
 
 		public:
-			static Ref<CanvasImpl> create(CanvasType type, Gdiplus::Graphics* graphics, sl_real width, sl_real height, const Function<void()>& onFreeCanvas)
+			static Ref<PlatformCanvas> create(CanvasType type, Gdiplus::Graphics* graphics, sl_real width, sl_real height, const Function<void()>& onFreeCanvas)
 			{
-				Ref<CanvasImpl> ret = new CanvasImpl();
+				Ref<PlatformCanvas> ret = new PlatformCanvas();
 				if (ret.isNotNull()) {
 					ret->m_graphics = graphics;
 					ret->m_onFreeCanvas = onFreeCanvas;
@@ -432,7 +432,7 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
+		SLIB_DEFINE_OBJECT(PlatformCanvas, CanvasExt)
 	}
 
 	Ref<Canvas> GraphicsPlatform::createCanvas(CanvasType type, Gdiplus::Graphics* graphics, sl_uint32 width, sl_uint32 height, const Function<void()>& onFreeCanvas)
@@ -440,12 +440,12 @@ namespace slib
 		if (!graphics) {
 			return sl_null;
 		}
-		return Ref<Canvas>::cast(CanvasImpl::create(type, graphics, (sl_real)width, (sl_real)height, onFreeCanvas));
+		return Ref<Canvas>::cast(PlatformCanvas::create(type, graphics, (sl_real)width, (sl_real)height, onFreeCanvas));
 	}
 
 	Gdiplus::Graphics* GraphicsPlatform::getCanvasHandle(Canvas* _canvas)
 	{
-		if (CanvasImpl* canvas = CastInstance<CanvasImpl>(_canvas)) {
+		if (PlatformCanvas* canvas = CastInstance<PlatformCanvas>(_canvas)) {
 			return canvas->m_graphics;
 		}
 		return NULL;

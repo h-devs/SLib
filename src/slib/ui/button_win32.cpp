@@ -36,7 +36,7 @@ namespace slib
 	namespace priv
 	{
 
-		SLIB_DEFINE_OBJECT(ButtonInstance, Win32_ViewInstance)
+		SLIB_DEFINE_OBJECT(ButtonInstance, PlatformViewInstance)
 
 		ButtonInstance::ButtonInstance()
 		{
@@ -67,7 +67,7 @@ namespace slib
 
 		void ButtonInstance::setText(Button* view, const String& text)
 		{
-			Win32_ViewInstance::setText(text);
+			PlatformViewInstance::setText(text);
 		}
 
 		void ButtonInstance::setDefaultButton(Button* view, sl_bool flag)
@@ -107,7 +107,7 @@ namespace slib
 		if (m_flagDefaultButton) {
 			style |= BS_DEFPUSHBUTTON;
 		}
-		return Win32_ViewInstance::create<ButtonInstance>(this, parent, L"BUTTON", getText(), style, 0);
+		return PlatformViewInstance::create<ButtonInstance>(this, parent, L"BUTTON", getText(), style, 0);
 	}
 
 	Ptr<IButtonInstance> Button::getButtonInstance()

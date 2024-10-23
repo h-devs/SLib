@@ -63,7 +63,7 @@ namespace slib
 
 		};
 
-		class PickerViewInstance : public iOS_ViewInstance, public IPickerViewInstance
+		class PickerViewInstance : public PlatformViewInstance, public IPickerViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -128,13 +128,13 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(PickerViewInstance, iOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(PickerViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> PickerView::createNativeWidget(ViewInstance* parent)
 	{
-		return iOS_ViewInstance::create<PickerViewInstance, SLIBPickerViewHandle>(this, parent);
+		return PlatformViewInstance::create<PickerViewInstance, SLIBPickerViewHandle>(this, parent);
 	}
 
 	Ptr<IPickerViewInstance> PickerView::getPickerViewInstance()

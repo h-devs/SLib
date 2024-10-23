@@ -40,7 +40,7 @@ namespace slib
 
 		};
 
-		class ScrollViewInstance : public GTK_ViewInstance, public IScrollViewInstance
+		class ScrollViewInstance : public PlatformViewInstance, public IScrollViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -186,14 +186,14 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(ScrollViewInstance, GTK_ViewInstance)
+		SLIB_DEFINE_OBJECT(ScrollViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> ScrollView::createNativeWidget(ViewInstance* parent)
 	{
 		GtkWidget *handle = gtk_scrolled_window_new(sl_null, sl_null);
-		return GTK_ViewInstance::create<ScrollViewInstance>(this, parent, handle);
+		return PlatformViewInstance::create<ScrollViewInstance>(this, parent, handle);
 	}
 
 	Ptr<IScrollViewInstance> ScrollView::getScrollViewInstance()

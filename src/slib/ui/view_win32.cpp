@@ -64,7 +64,7 @@ namespace slib
 					{
 						HWND hWndSender = (HWND)lParam;
 						if (hWndSender) {
-							Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(hWndSender));
+							Ref<PlatformViewInstance> instance = Ref<PlatformViewInstance>::cast(UIPlatform::getViewInstance(hWndSender));
 							if (instance.isNotNull()) {
 								SHORT code = HIWORD(wParam);
 								LRESULT result = 0;
@@ -79,7 +79,7 @@ namespace slib
 					{
 						NMHDR* nh = (NMHDR*)(lParam);
 						HWND hWndSender = (HWND)(nh->hwndFrom);
-						Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(hWndSender));
+						Ref<PlatformViewInstance> instance = Ref<PlatformViewInstance>::cast(UIPlatform::getViewInstance(hWndSender));
 						if (instance.isNotNull()) {
 							LRESULT result = 0;
 							if (instance->processNotify(nh, result)) {
@@ -95,7 +95,7 @@ namespace slib
 				case WM_CTLCOLORSCROLLBAR:
 					{
 						HWND hWndSender = (HWND)lParam;
-						Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(hWndSender));
+						Ref<PlatformViewInstance> instance = Ref<PlatformViewInstance>::cast(UIPlatform::getViewInstance(hWndSender));
 						if (instance.isNotNull()) {
 							HDC hDC = (HDC)(wParam);
 							HBRUSH result = NULL;
@@ -120,7 +120,7 @@ namespace slib
 				}
 				Ref<ViewInstance> _instance = parent->getViewInstance();
 				if (_instance.isNotNull()) {
-					Win32_ViewInstance* instance = (Win32_ViewInstance*)(_instance.get());
+					PlatformViewInstance* instance = (PlatformViewInstance*)(_instance.get());
 					HWND hWnd = instance->getHandle();
 					if (hWnd) {
 						DWORD lParam = GetMessagePos();
@@ -144,7 +144,7 @@ namespace slib
 	{
 		LRESULT CALLBACK ViewInstanceProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
-			Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(hWnd));
+			Ref<PlatformViewInstance> instance = Ref<PlatformViewInstance>::cast(UIPlatform::getViewInstance(hWnd));
 			if (instance.isNotNull()) {
 				return instance->processWindowMessage(hWnd, uMsg, wParam, lParam);
 			}
@@ -185,9 +185,9 @@ namespace slib
 
 	using namespace priv;
 
-	SLIB_DEFINE_OBJECT(Win32_ViewInstance, ViewInstance)
+	SLIB_DEFINE_OBJECT(PlatformViewInstance, ViewInstance)
 
-	Win32_ViewInstance::Win32_ViewInstance()
+	PlatformViewInstance::PlatformViewInstance()
 	{
 		m_handle = NULL;
 
@@ -199,7 +199,7 @@ namespace slib
 		m_imc = NULL;
 	}
 
-	Win32_ViewInstance::~Win32_ViewInstance()
+	PlatformViewInstance::~PlatformViewInstance()
 	{
 		if (m_handle) {
 			if (m_imc) {
@@ -215,7 +215,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::_destroy(HWND hWnd)
+	void PlatformViewInstance::_destroy(HWND hWnd)
 	{
 		Win32_UI_Shared* shared = Win32_UI_Shared::get();
 		if (shared) {
@@ -229,7 +229,7 @@ namespace slib
 	{
 		static LRESULT CALLBACK ViewInstanceSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 		{
-			Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(hWnd));
+			Ref<PlatformViewInstance> instance = Ref<PlatformViewInstance>::cast(UIPlatform::getViewInstance(hWnd));
 			if (instance.isNotNull()) {
 				return instance->processSubclassMessage(hWnd, uMsg, wParam, lParam);
 			}
@@ -237,7 +237,7 @@ namespace slib
 		}
 	}
 
-	HWND Win32_ViewInstance::createHandle(
+	HWND PlatformViewInstance::createHandle(
 		View* view, ViewInstance* parent,
 		LPCWSTR wndClass, LPCWSTR text,
 		const UIRect& frame, const Matrix3& transform,
@@ -311,14 +311,14 @@ namespace slib
 		return NULL;
 	}
 
-	void Win32_ViewInstance::initWithHandle(HWND hWnd, sl_bool flagDestroyOnRelease)
+	void PlatformViewInstance::initWithHandle(HWND hWnd, sl_bool flagDestroyOnRelease)
 	{
 		m_handle = hWnd;
 		m_flagDestroyOnRelease = flagDestroyOnRelease;
 		UIPlatform::registerViewInstance(hWnd, this);
 	}
 
-	void Win32_ViewInstance::initWithHandle(HWND hWnd, View* view, const String16& text, const UIRect& frame, const Matrix3& transform)
+	void PlatformViewInstance::initWithHandle(HWND hWnd, View* view, const String16& text, const UIRect& frame, const Matrix3& transform)
 	{
 		initWithHandle(hWnd, sl_true);
 		m_text = text;
@@ -329,12 +329,12 @@ namespace slib
 		}
 	}
 
-	HWND Win32_ViewInstance::getHandle()
+	HWND PlatformViewInstance::getHandle()
 	{
 		return m_handle;
 	}
 
-	sl_bool Win32_ViewInstance::isValid(View* view)
+	sl_bool PlatformViewInstance::isValid(View* view)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -345,7 +345,7 @@ namespace slib
 		return sl_false;
 	}
 
-	void Win32_ViewInstance::setFocus(View* view, sl_bool flag)
+	void PlatformViewInstance::setFocus(View* view, sl_bool flag)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -367,10 +367,10 @@ namespace slib
 		static sl_bool g_flagDuringPaint = sl_false;
 	}
 
-	void Win32_ViewInstance::invalidate(View* view)
+	void PlatformViewInstance::invalidate(View* view)
 	{
 		if (!(UI::isUiThread()) || g_flagDuringPaint) {
-			void (Win32_ViewInstance::*func)(View*) = &ViewInstance::invalidate;
+			void (PlatformViewInstance::*func)(View*) = &ViewInstance::invalidate;
 			UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(this, func, sl_null));
 			return;
 		}
@@ -385,7 +385,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::invalidate(View* view, const UIRect& rect)
+	void PlatformViewInstance::invalidate(View* view, const UIRect& rect)
 	{
 		if (!(UI::isUiThread()) || g_flagDuringPaint) {
 			void (ViewInstance::*func)(View*, const UIRect&) = &ViewInstance::invalidate;
@@ -408,7 +408,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setFrame(View* view, const UIRect& frame)
+	void PlatformViewInstance::setFrame(View* view, const UIRect& frame)
 	{
 		if (isWindowContent()) {
 			return;
@@ -430,7 +430,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setTransform(View* view, const Matrix3 &transform)
+	void PlatformViewInstance::setTransform(View* view, const Matrix3 &transform)
 	{
 		if (isWindowContent()) {
 			return;
@@ -452,7 +452,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setVisible(View* view, sl_bool flag)
+	void PlatformViewInstance::setVisible(View* view, sl_bool flag)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -468,7 +468,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setEnabled(View* view, sl_bool flag)
+	void PlatformViewInstance::setEnabled(View* view, sl_bool flag)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -480,7 +480,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setOpaque(View* view, sl_bool flag)
+	void PlatformViewInstance::setOpaque(View* view, sl_bool flag)
 	{
 	}
 
@@ -499,7 +499,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setAlpha(View* view, sl_real alpha)
+	void PlatformViewInstance::setAlpha(View* view, sl_real alpha)
 	{
 		if (m_nativeLayer.isNotNull()) {
 			return;
@@ -510,7 +510,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setColorKey(View* view, const Color& color)
+	void PlatformViewInstance::setColorKey(View* view, const Color& color)
 	{
 		if (m_nativeLayer.isNotNull()) {
 			return;
@@ -521,15 +521,15 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setClipping(View* view, sl_bool flag)
+	void PlatformViewInstance::setClipping(View* view, sl_bool flag)
 	{
 	}
 
-	void Win32_ViewInstance::setDrawing(View* view, sl_bool flag)
+	void PlatformViewInstance::setDrawing(View* view, sl_bool flag)
 	{
 	}
 
-	UIPointF Win32_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
+	UIPointF PlatformViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -542,7 +542,7 @@ namespace slib
 		return ptScreen;
 	}
 
-	UIPointF Win32_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
+	UIPointF PlatformViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -555,11 +555,11 @@ namespace slib
 		return ptView;
 	}
 
-	void Win32_ViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
+	void PlatformViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
-			Win32_ViewInstance* child = (Win32_ViewInstance*)(_child.get());
+			PlatformViewInstance* child = (PlatformViewInstance*)(_child.get());
 			if (child) {
 				HWND hWndChild = child->getHandle();
 				if (hWndChild) {
@@ -569,16 +569,16 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
+	void PlatformViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
-		Win32_ViewInstance* child = (Win32_ViewInstance*)(_child.get());
+		PlatformViewInstance* child = (PlatformViewInstance*)(_child.get());
 		HWND hWnd = child->getHandle();
 		if (hWnd) {
 			SetParent(hWnd, HWND_MESSAGE);
 		}
 	}
 
-	void Win32_ViewInstance::bringToFront(View* view)
+	void PlatformViewInstance::bringToFront(View* view)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -590,7 +590,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setFont(View* view, const Ref<Font>& font)
+	void PlatformViewInstance::setFont(View* view, const Ref<Font>& font)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -602,7 +602,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setBorder(View* view, sl_bool flag)
+	void PlatformViewInstance::setBorder(View* view, sl_bool flag)
 	{
 		if (view->isClientEdge()) {
 			UIPlatform::setWindowExStyle(m_handle, WS_EX_CLIENTEDGE, flag);
@@ -613,7 +613,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical)
+	void PlatformViewInstance::setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -625,7 +625,7 @@ namespace slib
 		}
 	}
 
-	sl_bool Win32_ViewInstance::getScrollPosition(View* view, ScrollPosition& _out)
+	sl_bool PlatformViewInstance::getScrollPosition(View* view, ScrollPosition& _out)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -642,7 +642,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::getScrollRange(View* view, ScrollPosition& _out)
+	sl_bool PlatformViewInstance::getScrollRange(View* view, ScrollPosition& _out)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -667,7 +667,7 @@ namespace slib
 		return sl_false;
 	}
 
-	void Win32_ViewInstance::scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate)
+	void PlatformViewInstance::scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -682,7 +682,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setScrollPos(sl_scroll_pos x, sl_scroll_pos y)
+	void PlatformViewInstance::setScrollPos(sl_scroll_pos x, sl_scroll_pos y)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -699,7 +699,7 @@ namespace slib
 		}
 	}
 
-	sl_bool Win32_ViewInstance::getClientSize(View* view, UISize& _out)
+	sl_bool PlatformViewInstance::getClientSize(View* view, UISize& _out)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -754,13 +754,13 @@ namespace slib
 		{
 		private:
 			ULONG m_nRef;
-			WeakRef<Win32_ViewInstance> m_instance;
+			WeakRef<PlatformViewInstance> m_instance;
 
 			DragContext m_context;
 			POINTL m_ptLast;
 
 		public:
-			ViewDropTarget(Win32_ViewInstance* instance): m_instance(instance)
+			ViewDropTarget(PlatformViewInstance* instance): m_instance(instance)
 			{
 				m_nRef = 0;
 			}
@@ -851,7 +851,7 @@ namespace slib
 		private:
 			DWORD onEvent(UIAction action)
 			{
-				Ref<Win32_ViewInstance> instance = m_instance;
+				Ref<PlatformViewInstance> instance = m_instance;
 				if (instance.isNotNull()) {
 					POINT pt;
 					pt.x = m_ptLast.x;
@@ -1026,7 +1026,7 @@ namespace slib
 		};
 	}
 
-	void Win32_ViewInstance::setDropTarget(View* view, sl_bool flag)
+	void PlatformViewInstance::setDropTarget(View* view, sl_bool flag)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -1047,7 +1047,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setUsingTouchEvent(View* view, sl_bool flag)
+	void PlatformViewInstance::setUsingTouchEvent(View* view, sl_bool flag)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -1064,7 +1064,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::setText(const StringParam& _text)
+	void PlatformViewInstance::setText(const StringParam& _text)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -1074,14 +1074,14 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::initNativeLayer()
+	void PlatformViewInstance::initNativeLayer()
 	{
 		if (m_nativeLayer.isNull()) {
 			m_nativeLayer = new Win32_NativeLayerContext;
 		}
 	}
 
-	void Win32_ViewInstance::updateNativeLayer()
+	void PlatformViewInstance::updateNativeLayer()
 	{
 		Win32_NativeLayerContext* layer = m_nativeLayer.get();
 		if (layer) {
@@ -1092,13 +1092,13 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::releaseDragging()
+	void PlatformViewInstance::releaseDragging()
 	{
 		DragContext& dragContext = UIEvent::getCurrentDragContext();
 		dragContext.release();
 	}
 
-	sl_bool Win32_ViewInstance::doDragging(UIAction action)
+	sl_bool PlatformViewInstance::doDragging(UIAction action)
 	{
 		sl_bool bRet = sl_false;
 		DragContext& dragContext = UIEvent::getCurrentDragContext();
@@ -1141,7 +1141,7 @@ namespace slib
 		return bRet;
 	}
 
-	void Win32_ViewInstance::updateToolTip(sl_uint64 ownerId, const String& toolTip)
+	void PlatformViewInstance::updateToolTip(sl_uint64 ownerId, const String& toolTip)
 	{
 		if (m_tooltip.isNotNull()) {
 			m_tooltip->update(this, ownerId, toolTip);
@@ -1155,7 +1155,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::enableIME()
+	void PlatformViewInstance::enableIME()
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -1166,7 +1166,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::disableIME()
+	void PlatformViewInstance::disableIME()
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -1176,7 +1176,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ViewInstance::updateIME(View* view)
+	void PlatformViewInstance::updateIME(View* view)
 	{
 		if (isNativeWidget()) {
 			if (view->isUsingIME()) {
@@ -1195,7 +1195,7 @@ namespace slib
 		disableIME();
 	}
 
-	void Win32_ViewInstance::onPaint(Canvas* canvas)
+	void PlatformViewInstance::onPaint(Canvas* canvas)
 	{
 		Win32_NativeLayerContext* layer = m_nativeLayer.get();
 		if (layer) {
@@ -1301,7 +1301,7 @@ namespace slib
 		canvas->draw(rc, bitmapBuffer, Rectangle(0, 0, (sl_real)(size.x), (sl_real)(size.y)));
 	}
 
-	void Win32_ViewInstance::onPaint()
+	void PlatformViewInstance::onPaint()
 	{
 		HWND hWnd = m_handle;
 		if (!hWnd) {
@@ -1328,7 +1328,7 @@ namespace slib
 		EndPaint(hWnd, &ps);
 	}
 
-	void Win32_ViewInstance::onDrawNativeLayer()
+	void PlatformViewInstance::onDrawNativeLayer()
 	{
 		Win32_NativeLayerContext* layer = m_nativeLayer.get();
 		if (!layer) {
@@ -1407,7 +1407,7 @@ namespace slib
 
 	}
 
-	sl_bool Win32_ViewInstance::onEventKey(UIAction action, WPARAM wParam, LPARAM lParam)
+	sl_bool PlatformViewInstance::onEventKey(UIAction action, WPARAM wParam, LPARAM lParam)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -1446,7 +1446,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam, sl_bool flagSetCapture, sl_bool flagReleaseCapture)
+	sl_bool PlatformViewInstance::onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam, sl_bool flagSetCapture, sl_bool flagReleaseCapture)
 	{
 		Time t;
 		t.setMillisecondCount(GetMessageTime());
@@ -1511,7 +1511,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::onEventMouseWheel(sl_bool flagVertical, WPARAM wParam, LPARAM lParam)
+	sl_bool PlatformViewInstance::onEventMouseWheel(sl_bool flagVertical, WPARAM wParam, LPARAM lParam)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -1543,7 +1543,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::onEventTouch(HWND hWnd, WPARAM wParam, LPARAM lParam, sl_bool flagCapture)
+	sl_bool PlatformViewInstance::onEventTouch(HWND hWnd, WPARAM wParam, LPARAM lParam, sl_bool flagCapture)
 	{
 		sl_uint32 nTouch = (sl_uint32)(LOWORD(wParam));
 		if (!nTouch) {
@@ -1610,7 +1610,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::onEventSetCursor()
+	sl_bool PlatformViewInstance::onEventSetCursor()
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -1633,12 +1633,12 @@ namespace slib
 		return sl_false;
 	}
 
-	void Win32_ViewInstance::setGenericView(sl_bool flag)
+	void PlatformViewInstance::setGenericView(sl_bool flag)
 	{
 		m_flagGenericView = flag;
 	}
 
-	LRESULT Win32_ViewInstance::processWindowMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+	LRESULT PlatformViewInstance::processWindowMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		switch (msg) {
 			case WM_ERASEBKGND:
@@ -1782,7 +1782,7 @@ namespace slib
 		return DefaultViewInstanceProc(hWnd, msg, wParam, lParam);
 	}
 
-	LRESULT Win32_ViewInstance::processSubclassMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	LRESULT PlatformViewInstance::processSubclassMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		switch (uMsg) {
 			case WM_LBUTTONDOWN:
@@ -1891,22 +1891,22 @@ namespace slib
 		return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 	}
 
-	sl_bool Win32_ViewInstance::processCommand(SHORT code, LRESULT& result)
+	sl_bool PlatformViewInstance::processCommand(SHORT code, LRESULT& result)
 	{
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::processNotify(NMHDR* nmhdr, LRESULT& result)
+	sl_bool PlatformViewInstance::processNotify(NMHDR* nmhdr, LRESULT& result)
 	{
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::processControlColor(UINT msg, HDC hDC, HBRUSH& result)
+	sl_bool PlatformViewInstance::processControlColor(UINT msg, HDC hDC, HBRUSH& result)
 	{
 		return sl_false;
 	}
 
-	void Win32_ViewInstance::processPostControlColor(UINT msg, HDC hDC, HBRUSH& result)
+	void PlatformViewInstance::processPostControlColor(UINT msg, HDC hDC, HBRUSH& result)
 	{
 	}
 
@@ -1990,7 +1990,7 @@ namespace slib
 		}
 	}
 
-	void Win32_ToolTipViewContext::update(Win32_ViewInstance* instance, sl_uint64 _ownerId, const String& _toolTip)
+	void Win32_ToolTipViewContext::update(PlatformViewInstance* instance, sl_uint64 _ownerId, const String& _toolTip)
 	{
 		Ref<View> view = instance->getView();
 		if (view.isNull()) {
@@ -2043,7 +2043,7 @@ namespace slib
 			styleEx = WS_EX_CONTROLPARENT;
 			style = WS_CLIPCHILDREN;
 		}
-		Ref<Win32_ViewInstance> ret = Win32_ViewInstance::create<Win32_ViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, style, styleEx);
+		Ref<PlatformViewInstance> ret = PlatformViewInstance::create<PlatformViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, style, styleEx);
 		if (ret.isNotNull()) {
 			ret->setGenericView(sl_true);
 			if (m_flagUsingTouch) {
@@ -2058,7 +2058,7 @@ namespace slib
 	{
 		if (view) {
 			Ref<ViewInstance> _instance = view->getViewInstance();
-			Win32_ViewInstance* instance = (Win32_ViewInstance*)(_instance.get());
+			PlatformViewInstance* instance = (PlatformViewInstance*)(_instance.get());
 			if (instance) {
 				return instance->getHandle();
 			}
@@ -2072,7 +2072,7 @@ namespace slib
 		if (ret.isNotNull()) {
 			return ret;
 		}
-		return Win32_ViewInstance::create<Win32_ViewInstance>(hWnd, flagDestroyOnRelease);
+		return PlatformViewInstance::create<PlatformViewInstance>(hWnd, flagDestroyOnRelease);
 	}
 
 	void UIPlatform::registerViewInstance(HWND hWnd, ViewInstance* instance)
@@ -2092,7 +2092,7 @@ namespace slib
 
 	HWND UIPlatform::getViewHandle(ViewInstance* _instance)
 	{
-		Win32_ViewInstance* instance = (Win32_ViewInstance*)_instance;
+		PlatformViewInstance* instance = (PlatformViewInstance*)_instance;
 		if (instance) {
 			return instance->getHandle();
 		} else {

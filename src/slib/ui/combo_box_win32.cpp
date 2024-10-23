@@ -54,7 +54,7 @@ namespace slib
 		LRESULT CALLBACK EditChildSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 		{
 			if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN || uMsg == WM_CHAR) {
-				Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::cast(UIPlatform::getViewInstance(GetParent(hWnd)));
+				Ref<PlatformViewInstance> instance = Ref<PlatformViewInstance>::cast(UIPlatform::getViewInstance(GetParent(hWnd)));
 				if (instance.isNotNull()) {
 					return instance->processSubclassMessage(hWnd, uMsg, wParam, lParam);
 				}
@@ -74,7 +74,7 @@ namespace slib
 			return TRUE;
 		}
 
-		class ComboBoxInstance : public Win32_ViewInstance, public IComboBoxInstance
+		class ComboBoxInstance : public PlatformViewInstance, public IComboBoxInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -86,7 +86,7 @@ namespace slib
 				EnumChildWindows(getHandle(), SubclassEditChild, 0);
 				String text = view->getText();
 				if (text.isNotEmpty()) {
-					Win32_ViewInstance::setText(text);
+					PlatformViewInstance::setText(text);
 				}
 				refreshItems(view, sl_true);
 			}
@@ -169,7 +169,7 @@ namespace slib
 
 			void setText(ComboBox* view, const String& text) override
 			{
-				Win32_ViewInstance::setText(text);
+				PlatformViewInstance::setText(text);
 			}
 
 			sl_ui_len measureHeight(ComboBox* view) override
@@ -212,14 +212,14 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(ComboBoxInstance, Win32_ViewInstance)
+		SLIB_DEFINE_OBJECT(ComboBoxInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> ComboBox::createNativeWidget(ViewInstance* parent)
 	{
 		UINT style = CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_TABSTOP;
-		return Win32_ViewInstance::create<ComboBoxInstance>(this, parent, L"COMBOBOX", sl_null, style, 0);
+		return PlatformViewInstance::create<ComboBoxInstance>(this, parent, L"COMBOBOX", sl_null, style, 0);
 	}
 
 	Ptr<IComboBoxInstance> ComboBox::getComboBoxInstance()

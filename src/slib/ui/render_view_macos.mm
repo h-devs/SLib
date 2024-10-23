@@ -55,7 +55,7 @@ namespace slib
 
 	namespace {
 
-		class RenderViewInstance : public macOS_ViewInstance, public IRenderViewInstance
+		class RenderViewInstance : public PlatformViewInstance, public IRenderViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -97,7 +97,7 @@ namespace slib
 
 	Ref<ViewInstance> RenderView::createInstance(ViewInstance* parent)
 	{
-		return macOS_ViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
+		return PlatformViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
 	}
 
 	Ptr<IRenderViewInstance> RenderView::getRenderViewInstance()
@@ -148,7 +148,7 @@ namespace slib
 					if (handle == nil) {
 						return;
 					}
-					Ref<macOS_ViewInstance> instance = handle->m_viewInstance;
+					Ref<PlatformViewInstance> instance = handle->m_viewInstance;
 					if (instance.isNull()) {
 						return;
 					}
@@ -204,7 +204,7 @@ namespace slib
 
 								[context makeCurrentContext];
 
-								Ref<macOS_ViewInstance> instance = handle->m_viewInstance;
+								Ref<PlatformViewInstance> instance = handle->m_viewInstance;
 								if (instance.isNotNull()) {
 									Ref<RenderView> view = CastRef<RenderView>(instance->getView());
 									if (view.isNotNull()) {

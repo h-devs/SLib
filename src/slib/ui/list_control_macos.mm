@@ -142,7 +142,7 @@ namespace slib
 			using ListControl::_onDoubleClickRow_NW;
 		};
 
-		class ListControlInstance : public macOS_ViewInstance, public IListControlInstance
+		class ListControlInstance : public PlatformViewInstance, public IListControlInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -288,13 +288,13 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(ListControlInstance, macOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(ListControlInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)
 	{
-		return macOS_ViewInstance::create<ListControlInstance, SLIBListControlHandle>(this, parent);
+		return PlatformViewInstance::create<ListControlInstance, SLIBListControlHandle>(this, parent);
 	}
 
 	Ptr<IListControlInstance> ListControl::getListControlInstance()

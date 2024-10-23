@@ -40,7 +40,7 @@ namespace slib
 
 			static void JNICALL nativeOnStartLoad(JNIEnv* env, jobject _this, jlong instance, jstring jurl)
 			{
-				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
+				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(PlatformViewInstance::findView(instance));
 				if (helper.isNotNull()) {
 					String url = Jni::getString(jurl);
 					helper->invokeStartLoad(url);
@@ -49,7 +49,7 @@ namespace slib
 
 			static void JNICALL nativeOnFinishLoad(JNIEnv* env, jobject _this, jlong instance, jstring jurl)
 			{
-				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
+				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(PlatformViewInstance::findView(instance));
 				if (helper.isNotNull()) {
 					String url = Jni::getString(jurl);
 					helper->handleFinishLoad(url, sl_false);
@@ -58,7 +58,7 @@ namespace slib
 
 			static void JNICALL nativeOnErrorLoad(JNIEnv* env, jobject _this, jlong instance, jstring jurl, jstring jerror)
 			{
-				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
+				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(PlatformViewInstance::findView(instance));
 				if (helper.isNotNull()) {
 					helper->m_errorMessage = Jni::getString(jerror);
 					String url = Jni::getString(jurl);
@@ -68,7 +68,7 @@ namespace slib
 
 			static void JNICALL nativeOnMessage(JNIEnv* env, jobject _this, jlong instance, jstring jmsg, jstring jparam)
 			{
-				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
+				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(PlatformViewInstance::findView(instance));
 				if (helper.isNotNull()) {
 					String msg = Jni::getString(jmsg);
 					if (msg.isNotEmpty()) {
@@ -114,7 +114,7 @@ namespace slib
 			}
 		}
 
-		class WebViewInstance : public Android_ViewInstance, public IWebViewInstance
+		class WebViewInstance : public PlatformViewInstance, public IWebViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -203,15 +203,15 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(WebViewInstance, Android_ViewInstance)
+		SLIB_DEFINE_OBJECT(WebViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> WebView::createNativeWidget(ViewInstance* _parent)
 	{
-		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
+		PlatformViewInstance* parent = (PlatformViewInstance*)_parent;
 		JniLocal<jobject> handle = JWebView::create.callObject(sl_null, parent->getContext());
-		return Android_ViewInstance::create<WebViewInstance>(this, parent, handle.get());
+		return PlatformViewInstance::create<WebViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<IWebViewInstance> WebView::getWebViewInstance()

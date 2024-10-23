@@ -121,7 +121,7 @@ namespace slib
 			using TabView::_onSelectTab_NW;
 		};
 
-		class TabViewInstance : public GTK_ViewInstance, public ITabViewInstance
+		class TabViewInstance : public PlatformViewInstance, public ITabViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -210,14 +210,14 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(TabViewInstance, GTK_ViewInstance)
+		SLIB_DEFINE_OBJECT(TabViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> TabView::createNativeWidget(ViewInstance* parent)
 	{
 		GtkWidget* handle = gtk_notebook_new();
-		return GTK_ViewInstance::create<TabViewInstance>(this, parent, handle);
+		return PlatformViewInstance::create<TabViewInstance>(this, parent, handle);
 	}
 
 	Ptr<ITabViewInstance> TabView::getTabViewInstance()

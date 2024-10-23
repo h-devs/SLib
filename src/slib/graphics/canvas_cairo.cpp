@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -32,9 +32,9 @@
 namespace slib
 {
 
-	namespace {
-
-		class CanvasImpl : public CanvasExt
+	namespace
+	{
+		class PlatformCanvas : public CanvasExt
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -43,13 +43,13 @@ namespace slib
 			sl_bool m_flagFreeOnRelease;
 
 		public:
-			CanvasImpl()
+			PlatformCanvas()
 			{
 				m_graphics = sl_null;
 				m_flagFreeOnRelease = sl_false;
 			}
 
-			~CanvasImpl()
+			~PlatformCanvas()
 			{
 				if (m_graphics && m_flagFreeOnRelease) {
 					cairo_destroy(m_graphics);
@@ -57,11 +57,11 @@ namespace slib
 			}
 
 		public:
-			static Ref<CanvasImpl> create(CanvasType type, cairo_t* graphics, sl_real width, sl_real height, sl_bool flagFreeOnRelease)
+			static Ref<PlatformCanvas> create(CanvasType type, cairo_t* graphics, sl_real width, sl_real height, sl_bool flagFreeOnRelease)
 			{
 				if (graphics) {
 
-					Ref<CanvasImpl> ret = new CanvasImpl();
+					Ref<PlatformCanvas> ret = new PlatformCanvas();
 
 					if (ret.isNotNull()) {
 
@@ -533,21 +533,20 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
-
+		SLIB_DEFINE_OBJECT(PlatformCanvas, CanvasExt)
 	}
 
 	Ref<Canvas> GraphicsPlatform::createCanvas(CanvasType type, cairo_t* graphics, sl_uint32 width, sl_uint32 height, sl_bool flagFreeOnRelease)
 	{
 		if (graphics) {
-			return CanvasImpl::create(type, graphics, (sl_real)width, (sl_real)height, flagFreeOnRelease);
+			return PlatformCanvas::create(type, graphics, (sl_real)width, (sl_real)height, flagFreeOnRelease);
 		}
 		return sl_null;
 	}
 
 	cairo_t* GraphicsPlatform::getCanvasHandle(Canvas* _canvas)
 	{
-		if (CanvasImpl* canvas = CastInstance<CanvasImpl>(_canvas)) {
+		if (PlatformCanvas* canvas = CastInstance<PlatformCanvas>(_canvas)) {
 			return canvas->m_graphics;
 		}
 		return sl_null;
@@ -558,7 +557,7 @@ namespace slib
 		if (!image) {
 			return;
 		}
-		CanvasImpl* canvas = CastInstance<CanvasImpl>(_canvas);
+		PlatformCanvas* canvas = CastInstance<PlatformCanvas>(_canvas);
 		if (!canvas) {
 			return;
 		}
@@ -599,7 +598,7 @@ namespace slib
 		if (!image) {
 			return;
 		}
-		CanvasImpl* canvas = CastInstance<CanvasImpl>(_canvas);
+		PlatformCanvas* canvas = CastInstance<PlatformCanvas>(_canvas);
 		if (!canvas) {
 			return;
 		}

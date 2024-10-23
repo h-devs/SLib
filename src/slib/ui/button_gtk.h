@@ -38,7 +38,7 @@ namespace slib
 	namespace priv
 	{
 
-		class ButtonInstance : public GTK_ViewInstance, public IButtonInstance
+		class ButtonInstance : public PlatformViewInstance, public IButtonInstance
 		{
 			SLIB_DECLARE_OBJECT
 

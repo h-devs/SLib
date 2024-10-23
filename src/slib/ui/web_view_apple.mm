@@ -28,10 +28,10 @@
 
 #if defined(SLIB_UI_IS_IOS)
 #	include "view_ios.h"
-typedef slib::iOS_ViewInstance BaseInstance;
+typedef slib::PlatformViewInstance BaseInstance;
 #else
 #	include "view_macos.h"
-typedef slib::macOS_ViewInstance BaseInstance;
+typedef slib::PlatformViewInstance BaseInstance;
 #endif
 
 #import <WebKit/WebKit.h>

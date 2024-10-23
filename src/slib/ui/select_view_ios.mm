@@ -112,7 +112,7 @@ namespace slib
 
 		};
 
-		class SelectViewInstance : public iOS_ViewInstance, public ISelectViewInstance
+		class SelectViewInstance : public PlatformViewInstance, public ISelectViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -200,13 +200,13 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(SelectViewInstance, iOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(SelectViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
-		return iOS_ViewInstance::create<SelectViewInstance, SLIBSelectViewHandle>(this, parent);
+		return PlatformViewInstance::create<SelectViewInstance, SLIBSelectViewHandle>(this, parent);
 	}
 
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()

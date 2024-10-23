@@ -41,7 +41,7 @@ namespace slib
 			using DatePicker::_onChange_NW;
 		};
 
-		class DatePickerInstance : public Win32_ViewInstance, public IDatePickerInstance
+		class DatePickerInstance : public PlatformViewInstance, public IDatePickerInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -125,14 +125,14 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(DatePickerInstance, Win32_ViewInstance)
+		SLIB_DEFINE_OBJECT(DatePickerInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> DatePicker::createNativeWidget(ViewInstance* parent)
 	{
 		SLIB_STATIC_STRING16(text, "DateTime")
-		return Win32_ViewInstance::create<DatePickerInstance>(this, parent, L"SysDateTimePick32", text, 0, 0);
+		return PlatformViewInstance::create<DatePickerInstance>(this, parent, L"SysDateTimePick32", text, 0, 0);
 	}
 
 	Ptr<IDatePickerInstance> DatePicker::getDatePickerInstance()

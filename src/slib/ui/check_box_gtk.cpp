@@ -120,7 +120,7 @@ namespace slib
 	Ref<ViewInstance> CheckBox::createNativeWidget(ViewInstance* parent)
 	{
 		GtkWidget* handle = gtk_check_button_new_with_mnemonic("");
-		return GTK_ViewInstance::create<CheckBoxInstance>(this, parent, handle);
+		return PlatformViewInstance::create<CheckBoxInstance>(this, parent, handle);
 	}
 
 	Ptr<ICheckBoxInstance> CheckBox::getCheckBoxInstance()

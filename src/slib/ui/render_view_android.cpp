@@ -54,7 +54,7 @@ namespace slib
 		{
 		};
 
-		class RenderViewInstance : public Android_ViewInstance, public IRenderViewInstance
+		class RenderViewInstance : public PlatformViewInstance, public IRenderViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -111,11 +111,11 @@ namespace slib
 			}
 		};
 
-		SLIB_DEFINE_OBJECT(RenderViewInstance, Android_ViewInstance)
+		SLIB_DEFINE_OBJECT(RenderViewInstance, PlatformViewInstance)
 
 		void JNICALL OnCreate(JNIEnv* env, jobject _this, jlong jinstance)
 		{
-			Ref<RenderViewInstance> instance = CastRef<RenderViewInstance>(Android_ViewInstance::findInstance(jinstance));
+			Ref<RenderViewInstance> instance = CastRef<RenderViewInstance>(PlatformViewInstance::findInstance(jinstance));
 			if (instance.isNotNull()) {
 				instance->onCreate();
 			}
@@ -123,7 +123,7 @@ namespace slib
 
 		void JNICALL OnFrame(JNIEnv* env, jobject _this, jlong jinstance, jint width, jint height)
 		{
-			Ref<RenderViewInstance> instance = CastRef<RenderViewInstance>(Android_ViewInstance::findInstance(jinstance));
+			Ref<RenderViewInstance> instance = CastRef<RenderViewInstance>(PlatformViewInstance::findInstance(jinstance));
 			if (instance.isNotNull()) {
 				instance->onFrame(width, height);
 			}
@@ -133,9 +133,9 @@ namespace slib
 
 	Ref<ViewInstance> RenderView::createInstance(ViewInstance* _parent)
 	{
-		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
+		PlatformViewInstance* parent = (PlatformViewInstance*)_parent;
 		JniLocal<jobject> handle = JGLView::create.callObject(sl_null, parent->getContext());
-		return Android_ViewInstance::create<RenderViewInstance>(this, parent, handle.get());
+		return PlatformViewInstance::create<RenderViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<IRenderViewInstance> RenderView::getRenderViewInstance()

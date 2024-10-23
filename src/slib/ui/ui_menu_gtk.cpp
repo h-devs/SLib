@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -35,14 +35,14 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
+		class PlatformMenu;
 
-		class MenuImpl;
-
-		typedef CHashMap< GtkMenuShell*, WeakRef<MenuImpl> > MenuMap;
+		typedef CHashMap< GtkMenuShell*, WeakRef<PlatformMenu> > MenuMap;
 		SLIB_SAFE_STATIC_GETTER(MenuMap, GetMenuMap)
 
-		class MenuItemImpl : public MenuItem
+		class PlatformMenuItem : public MenuItem
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -55,7 +55,7 @@ namespace slib
 			sl_uint32 m_accelMods;
 
 		public:
-			MenuItemImpl()
+			PlatformMenuItem()
 			{
 				m_handle = sl_null;
 				m_flagCheckable = sl_false;
@@ -65,7 +65,7 @@ namespace slib
 				m_accelMods = 0;
 			}
 
-			~MenuItemImpl()
+			~PlatformMenuItem()
 			{
 				if (m_handle) {
 					g_object_unref(m_handle);
@@ -78,7 +78,7 @@ namespace slib
 			}
 
 		public:
-			static Ref<MenuItemImpl> create(MenuImpl* parent, sl_uint32 index, const MenuItemParam& param);
+			static Ref<PlatformMenuItem> create(PlatformMenu* parent, sl_uint32 index, const MenuItemParam& param);
 
 		public:
 			void setText(const String& text) override
@@ -155,7 +155,7 @@ namespace slib
 
 			static void _callback_activated(GtkMenuItem*, gpointer user_data)
 			{
-				MenuItemImpl* menu = (MenuItemImpl*)user_data;
+				PlatformMenuItem* menu = (PlatformMenuItem*)user_data;
 				if (menu){
 					menu->getAction()();
 				}
@@ -163,10 +163,10 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(MenuItemImpl, MenuItem)
+		SLIB_DEFINE_OBJECT(PlatformMenuItem, MenuItem)
 
 
-		class MenuImpl : public Menu
+		class PlatformMenu : public Menu
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -175,13 +175,13 @@ namespace slib
 			sl_bool m_flagPopup;
 
 		public:
-			MenuImpl()
+			PlatformMenu()
 			{
 				m_handle = sl_null;
 				m_flagPopup = sl_false;
 			}
 
-			~MenuImpl()
+			~PlatformMenu()
 			{
 				GtkMenuShell* handle = m_handle;
 				if (handle) {
@@ -195,7 +195,7 @@ namespace slib
 			}
 
 		public:
-			static Ref<MenuImpl> create(sl_bool flagPopup)
+			static Ref<PlatformMenu> create(sl_bool flagPopup)
 			{
 				GtkWidget* widget;
 				if (flagPopup) {
@@ -206,7 +206,7 @@ namespace slib
 				}
 				if (widget) {
 					g_object_ref_sink(widget);
-					Ref<MenuImpl> ret = new MenuImpl();
+					Ref<PlatformMenu> ret = new PlatformMenu();
 					if (ret.isNotNull()) {
 						ret->m_handle = (GtkMenuShell*)widget;
 						ret->m_flagPopup = flagPopup;
@@ -234,7 +234,7 @@ namespace slib
 				if (index > n) {
 					index = n;
 				}
-				Ref<MenuItem> item = MenuItemImpl::create(this, index, param);
+				Ref<MenuItem> item = PlatformMenuItem::create(this, index, param);
 				if (item.isNotNull()) {
 					m_items.insert(index, item);
 					return item;
@@ -271,7 +271,7 @@ namespace slib
 			{
 				ObjectLocker lock(this);
 				if (index < m_items.getCount()) {
-					Ref<MenuItemImpl> item = Ref<MenuItemImpl>::cast(m_items.getValueAt(index));
+					Ref<PlatformMenuItem> item = Ref<PlatformMenuItem>::cast(m_items.getValueAt(index));
 					if (item.isNotNull()) {
 						gtk_container_remove((GtkContainer*)m_handle, (GtkWidget*)(item->m_handle));
 						m_items.removeAt(index);
@@ -307,10 +307,9 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(MenuImpl, Menu)
+		SLIB_DEFINE_OBJECT(PlatformMenu, Menu)
 
-
-		Ref<MenuItemImpl> MenuItemImpl::create(MenuImpl* parent, sl_uint32 index, const MenuItemParam& param)
+		Ref<PlatformMenuItem> PlatformMenuItem::create(PlatformMenu* parent, sl_uint32 index, const MenuItemParam& param)
 		{
 			StringCstr text = param.text.replaceAll('&', '_');
 			GtkWidget* widget;
@@ -325,7 +324,7 @@ namespace slib
 
 			g_object_ref_sink(widget);
 
-			Ref<MenuItemImpl> ret = new MenuItemImpl;
+			Ref<PlatformMenuItem> ret = new PlatformMenuItem;
 			if (ret.isNotNull()) {
 
 				GtkMenuItem* item = (GtkMenuItem*)widget;
@@ -365,18 +364,17 @@ namespace slib
 			g_object_unref(widget);
 			return sl_null;
 		}
-
 	}
 
 	Ref<Menu> Menu::create(sl_bool flagPopup)
 	{
-		return MenuImpl::create(flagPopup);
+		return PlatformMenu::create(flagPopup);
 	}
 
 
 	GtkMenuShell* UIPlatform::getMenuHandle(Menu* _menu)
 	{
-		if (MenuImpl* menu = CastInstance<MenuImpl>(_menu)) {
+		if (PlatformMenu* menu = CastInstance<PlatformMenu>(_menu)) {
 			return menu->m_handle;
 		}
 		return sl_null;
@@ -386,14 +384,14 @@ namespace slib
 	{
 		MenuMap* map = GetMenuMap();
 		if (map) {
-			return map->getValue(menu, WeakRef<MenuImpl>::null());
+			return map->getValue(menu, WeakRef<PlatformMenu>::null());
 		}
 		return sl_null;
 	}
 
 	sl_bool UIPlatform::isPopupMenu(Menu* _menu)
 	{
-		if (MenuImpl* menu = CastInstance<MenuImpl>(_menu)) {
+		if (PlatformMenu* menu = CastInstance<PlatformMenu>(_menu)) {
 			return menu->m_flagPopup;
 		}
 		return sl_false;

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -53,9 +53,9 @@ namespace slib
 		return sl_null;
 	}
 
-	namespace {
-
-		class ImageDrawableImpl : public Drawable
+	namespace
+	{
+		class PlatformImageDrawable : public Drawable
 		{
 			SLIB_DECLARE_OBJECT
 		public:
@@ -64,11 +64,11 @@ namespace slib
 			Ref<CRef> m_ref;
 
 		public:
-			ImageDrawableImpl()
+			PlatformImageDrawable()
 			{
 			}
 
-			~ImageDrawableImpl()
+			~PlatformImageDrawable()
 			{
 				if (m_flagFreeOnRelease) {
 					delete m_image;
@@ -76,10 +76,10 @@ namespace slib
 			}
 
 		public:
-			static Ref<ImageDrawableImpl> create(Gdiplus::Image* image, sl_bool flagFreeOnRelease, CRef* ref)
+			static Ref<PlatformImageDrawable> create(Gdiplus::Image* image, sl_bool flagFreeOnRelease, CRef* ref)
 			{
 				if (image) {
-					Ref<ImageDrawableImpl> ret = new ImageDrawableImpl();
+					Ref<PlatformImageDrawable> ret = new PlatformImageDrawable();
 					if (ret.isNotNull()) {
 						ret->m_image = image;
 						ret->m_flagFreeOnRelease = flagFreeOnRelease;
@@ -110,18 +110,17 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(ImageDrawableImpl, Drawable)
-
+		SLIB_DEFINE_OBJECT(PlatformImageDrawable, Drawable)
 	}
 
 	Ref<Drawable> GraphicsPlatform::createImageDrawable(Gdiplus::Image* image, sl_bool flagFreeOnRelease, CRef* ref)
 	{
-		return ImageDrawableImpl::create(image, flagFreeOnRelease, ref);
+		return PlatformImageDrawable::create(image, flagFreeOnRelease, ref);
 	}
 
 	Gdiplus::Image* GraphicsPlatform::getImageDrawableHandle(Drawable* _drawable)
 	{
-		if (ImageDrawableImpl* drawable = CastInstance<ImageDrawableImpl>(_drawable)) {
+		if (PlatformImageDrawable* drawable = CastInstance<PlatformImageDrawable>(_drawable)) {
 			return drawable->m_image;
 		}
 		if (Bitmap* bitmap = CastInstance<Bitmap>(_drawable)) {

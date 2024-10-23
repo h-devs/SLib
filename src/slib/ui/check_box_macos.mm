@@ -35,7 +35,7 @@ namespace slib
 
 	Ref<ViewInstance> CheckBox::createNativeWidget(ViewInstance* parent)
 	{
-		Ref<ButtonInstance> ret = macOS_ViewInstance::create<ButtonInstance, SLIBButtonHandle>(this, parent);
+		Ref<ButtonInstance> ret = PlatformViewInstance::create<ButtonInstance, SLIBButtonHandle>(this, parent);
 		if (ret.isNotNull()) {
 			NSButton* handle = ret->getHandle();
 			[handle setButtonType:NSSwitchButton];

@@ -288,7 +288,7 @@ namespace slib
 			using EditView::_onPostChange_NW;
 		};
 
-		class EditViewInstance : public EFL_ViewInstance, public IEditViewInstance
+		class EditViewInstance : public PlatformViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -487,17 +487,17 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(EditViewInstance, EFL_ViewInstance)
+		SLIB_DEFINE_OBJECT(EditViewInstance, PlatformViewInstance)
 
 		Ref<ViewInstance> EditViewHelper::createInstance(ViewInstance* _parent, int type)
 		{
-			EFL_ViewInstance* parent = static_cast<EFL_ViewInstance*>(_parent);
+			PlatformViewInstance* parent = static_cast<PlatformViewInstance*>(_parent);
 			Evas_Object* handleParent = parent->getHandle();
 			if (handleParent) {
 				Evas_Object* handle = elm_entry_add(handleParent);
 				if (handle) {
 					applyProperties(handle, type);
-					return EFL_ViewInstance::create<EditViewInstance>(this, parent, EFL_ViewType::Generic, handle, sl_true);
+					return PlatformViewInstance::create<EditViewInstance>(this, parent, EFL_ViewType::Generic, handle, sl_true);
 				}
 			}
 			return sl_null;

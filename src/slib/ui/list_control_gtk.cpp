@@ -273,7 +273,7 @@ namespace slib
 			gtk_tree_view_set_model(view, model);
 		}
 
-		class ListControlInstance : public GTK_ViewInstance, public IListControlInstance
+		class ListControlInstance : public PlatformViewInstance, public IListControlInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -514,14 +514,14 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(ListControlInstance, GTK_ViewInstance)
+		SLIB_DEFINE_OBJECT(ListControlInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)
 	{
 		GtkWidget* handle = gtk_scrolled_window_new(sl_null, sl_null);
-		return GTK_ViewInstance::create<ListControlInstance>(this, parent, handle);
+		return PlatformViewInstance::create<ListControlInstance>(this, parent, handle);
 	}
 
 	Ptr<IListControlInstance> ListControl::getListControlInstance()

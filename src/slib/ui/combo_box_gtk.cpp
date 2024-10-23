@@ -40,7 +40,7 @@ namespace slib
 			using ComboBox::_onSelectItem_NW;
 		};
 
-		class ComboBoxInstance : public GTK_ViewInstance, public IComboBoxInstance
+		class ComboBoxInstance : public PlatformViewInstance, public IComboBoxInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -61,7 +61,7 @@ namespace slib
 
 			gint getEventMask() override
 			{
-				return GTK_ViewInstance::getEventMask() | GDK_KEY_PRESS_MASK | GDK_FOCUS_CHANGE_MASK;
+				return PlatformViewInstance::getEventMask() | GDK_KEY_PRESS_MASK | GDK_FOCUS_CHANGE_MASK;
 			}
 
 			void initialize(View* _view) override
@@ -195,14 +195,14 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(ComboBoxInstance, GTK_ViewInstance)
+		SLIB_DEFINE_OBJECT(ComboBoxInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> ComboBox::createNativeWidget(ViewInstance* parent)
 	{
 		GtkWidget* handle = gtk_combo_box_entry_new_text();
-		return GTK_ViewInstance::create<ComboBoxInstance>(this, parent, handle);
+		return PlatformViewInstance::create<ComboBoxInstance>(this, parent, handle);
 	}
 
 	Ptr<IComboBoxInstance> ComboBox::getComboBoxInstance()

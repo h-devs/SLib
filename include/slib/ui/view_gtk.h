@@ -42,14 +42,14 @@
 namespace slib
 {
 
-	class GTK_ViewInstance : public ViewInstance
+	class PlatformViewInstance : public ViewInstance
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		GTK_ViewInstance();
+		PlatformViewInstance();
 
-		~GTK_ViewInstance();
+		~PlatformViewInstance();
 
 	public:
 		template <class T>

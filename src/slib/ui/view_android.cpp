@@ -50,7 +50,7 @@ namespace slib
 
 		static void JNICALL OnDraw(JNIEnv* env, jobject _this, jlong jinstance, jobject jcanvas, jint left, jint top, jint right, jint bottom)
 		{
-			Ref<Android_ViewInstance> instance = Android_ViewInstance::findInstance(jinstance);
+			Ref<PlatformViewInstance> instance = PlatformViewInstance::findInstance(jinstance);
 			if (instance.isNotNull()) {
 				Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, jcanvas);
 				if (canvas.isNotNull()) {
@@ -62,7 +62,7 @@ namespace slib
 
 		static jboolean JNICALL OnKeyEvent(JNIEnv* env, jobject _this, jlong jinstance, jboolean flagDown, int keycode, jboolean flagControl, jboolean flagShift, jboolean flagAlt, jboolean flagWin, jlong time, jboolean flagDispatchToParent, jboolean flagNotDispatchToChildren)
 		{
-			Ref<Android_ViewInstance> instance = Android_ViewInstance::findInstance(jinstance);
+			Ref<PlatformViewInstance> instance = PlatformViewInstance::findInstance(jinstance);
 			if (instance.isNotNull()) {
 				UIAction action = flagDown ? UIAction::KeyDown : UIAction::KeyUp;
 				sl_uint32 vkey = keycode;
@@ -100,7 +100,7 @@ namespace slib
 
 		jint JNICALL OnTouchEvent(JNIEnv* env, jobject _this, jlong jinstance, int _action, jobjectArray jpoints, jlong time, jboolean flagDispatchToParent, jboolean flagNotDispatchToChildren)
 		{
-			Ref<Android_ViewInstance> instance = Android_ViewInstance::findInstance(jinstance);
+			Ref<PlatformViewInstance> instance = PlatformViewInstance::findInstance(jinstance);
 			if (instance.isNotNull()) {
 				UIAction action;
 				switch (_action) {
@@ -170,7 +170,7 @@ namespace slib
 
 		static void JNICALL OnSetFocus(JNIEnv* env, jobject _this, jlong jinstance)
 		{
-			Ref<Android_ViewInstance> instance = Android_ViewInstance::findInstance(jinstance);
+			Ref<PlatformViewInstance> instance = PlatformViewInstance::findInstance(jinstance);
 			if (instance.isNotNull()) {
 				instance->onSetFocus();
 			}
@@ -178,7 +178,7 @@ namespace slib
 
 		static void JNICALL OnClick(JNIEnv* env, jobject _this, jlong jinstance)
 		{
-			Ref<Android_ViewInstance> instance = Android_ViewInstance::findInstance(jinstance);
+			Ref<PlatformViewInstance> instance = PlatformViewInstance::findInstance(jinstance);
 			if (instance.isNotNull()) {
 				instance->onClick();
 			}
@@ -186,7 +186,7 @@ namespace slib
 
 		static jboolean JNICALL HitTestTouchEvent(JNIEnv* env, jobject _this, jlong jinstance, int x, int y)
 		{
-			Ref<Android_ViewInstance> instance = Android_ViewInstance::findInstance(jinstance);
+			Ref<PlatformViewInstance> instance = PlatformViewInstance::findInstance(jinstance);
 			if (instance.isNotNull()) {
 				Ref<View> view = instance->getView();
 				if (view.isNotNull()) {
@@ -203,7 +203,7 @@ namespace slib
 
 		static void JNICALL OnSwipe(JNIEnv* env, jobject _this, jlong jinstance, int type)
 		{
-			Ref<Android_ViewInstance> instance = Android_ViewInstance::findInstance(jinstance);
+			Ref<PlatformViewInstance> instance = PlatformViewInstance::findInstance(jinstance);
 			if (instance.isNotNull()) {
 				instance->onSwipe((GestureType)type);
 			}
@@ -252,13 +252,13 @@ namespace slib
 		SLIB_JNI_END_CLASS
 	}
 
-	SLIB_DEFINE_OBJECT(Android_ViewInstance, ViewInstance)
+	SLIB_DEFINE_OBJECT(PlatformViewInstance, ViewInstance)
 
-	Android_ViewInstance::Android_ViewInstance()
+	PlatformViewInstance::PlatformViewInstance()
 	{
 	}
 
-	Android_ViewInstance::~Android_ViewInstance()
+	PlatformViewInstance::~PlatformViewInstance()
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -267,7 +267,7 @@ namespace slib
 		}
 	}
 
-	sl_bool Android_ViewInstance::initWithHandle(jobject handle)
+	sl_bool PlatformViewInstance::initWithHandle(jobject handle)
 	{
 		if (handle) {
 			JniGlobal<jobject> context = JView::getContext.callObject(sl_null, handle);
@@ -285,7 +285,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Android_ViewInstance::applyProperties(View* view, ViewInstance* parent)
+	sl_bool PlatformViewInstance::applyProperties(View* view, ViewInstance* parent)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -324,12 +324,12 @@ namespace slib
 		return sl_false;
 	}
 
-	Ref<Android_ViewInstance> Android_ViewInstance::findInstance(jlong jinstance)
+	Ref<PlatformViewInstance> PlatformViewInstance::findInstance(jlong jinstance)
 	{
-		return Ref<Android_ViewInstance>::cast(UIPlatform::getViewInstance((jobject)jinstance));
+		return Ref<PlatformViewInstance>::cast(UIPlatform::getViewInstance((jobject)jinstance));
 	}
 
-	Ref<View> Android_ViewInstance::findView(jlong jinstance)
+	Ref<View> PlatformViewInstance::findView(jlong jinstance)
 	{
 		Ref<ViewInstance> instance = UIPlatform::getViewInstance((jobject)jinstance);
 		if (instance.isNotNull()) {
@@ -338,22 +338,22 @@ namespace slib
 		return sl_null;
 	}
 
-	jobject Android_ViewInstance::getHandle()
+	jobject PlatformViewInstance::getHandle()
 	{
 		return m_handle.get();
 	}
 
-	jobject Android_ViewInstance::getContext()
+	jobject PlatformViewInstance::getContext()
 	{
 		return m_context.get();
 	}
 
-	sl_bool Android_ViewInstance::isValid(View* view)
+	sl_bool PlatformViewInstance::isValid(View* view)
 	{
 		return sl_true;
 	}
 
-	void Android_ViewInstance::setFocus(View* view, sl_bool flag)
+	void PlatformViewInstance::setFocus(View* view, sl_bool flag)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -363,7 +363,7 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::invalidate(View* view)
+	void PlatformViewInstance::invalidate(View* view)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -371,7 +371,7 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::invalidate(View* view, const UIRect& rect)
+	void PlatformViewInstance::invalidate(View* view, const UIRect& rect)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -379,7 +379,7 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::setFrame(View* view, const UIRect& frame)
+	void PlatformViewInstance::setFrame(View* view, const UIRect& frame)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -387,7 +387,7 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::setTransform(View* view, const Matrix3& transform)
+	void PlatformViewInstance::setTransform(View* view, const Matrix3& transform)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -398,7 +398,7 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::setVisible(View* view, sl_bool flag)
+	void PlatformViewInstance::setVisible(View* view, sl_bool flag)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -406,7 +406,7 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::setEnabled(View* view, sl_bool flag)
+	void PlatformViewInstance::setEnabled(View* view, sl_bool flag)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -414,11 +414,11 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::setOpaque(View* view, sl_bool flag)
+	void PlatformViewInstance::setOpaque(View* view, sl_bool flag)
 	{
 	}
 
-	void Android_ViewInstance::setAlpha(View* view, sl_real alpha)
+	void PlatformViewInstance::setAlpha(View* view, sl_real alpha)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -426,7 +426,7 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::setClipping(View* view, sl_bool flag)
+	void PlatformViewInstance::setClipping(View* view, sl_bool flag)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -434,7 +434,7 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::setDrawing(View* view, sl_bool flag)
+	void PlatformViewInstance::setDrawing(View* view, sl_bool flag)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -442,7 +442,7 @@ namespace slib
 		}
 	}
 
-	UIPointF Android_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
+	UIPointF PlatformViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -457,7 +457,7 @@ namespace slib
 		return ptScreen;
 	}
 
-	UIPointF Android_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
+	UIPointF PlatformViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -472,7 +472,7 @@ namespace slib
 		return ptView;
 	}
 
-	void Android_ViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
+	void PlatformViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
 		jobject handle = m_handle;
 		jobject child = UIPlatform::getViewHandle(_child.get());
@@ -481,7 +481,7 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
+	void PlatformViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
 		jobject handle = m_handle;
 		jobject child = UIPlatform::getViewHandle(_child.get());
@@ -490,7 +490,7 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::bringToFront(View* view)
+	void PlatformViewInstance::bringToFront(View* view)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -498,7 +498,7 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::setShadowOpacity(View* view, float opacity)
+	void PlatformViewInstance::setShadowOpacity(View* view, float opacity)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -506,7 +506,7 @@ namespace slib
 		}
 	}
 
-	void Android_ViewInstance::setShadowRadius(View* view, sl_ui_posf radius)
+	void PlatformViewInstance::setShadowRadius(View* view, sl_ui_posf radius)
 	{
 		jobject handle = m_handle;
 		if (handle) {
@@ -517,7 +517,7 @@ namespace slib
 
 	Ref<ViewInstance> View::createTypicalInstance(ViewInstance* _parent)
 	{
-		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
+		PlatformViewInstance* parent = (PlatformViewInstance*)_parent;
 		if (parent) {
 			JniLocal<jobject> handle;
 			if (IsInstanceOf<ScrollView>(getParent()) && isCreatingLargeContent()) {
@@ -529,7 +529,7 @@ namespace slib
 					handle = JView::createGeneric.callObject(sl_null, parent->getContext());
 				}
 			}
-			return Android_ViewInstance::create<Android_ViewInstance>(this, parent, handle.get());
+			return PlatformViewInstance::create<PlatformViewInstance>(this, parent, handle.get());
 		}
 		return sl_null;
 	}
@@ -541,7 +541,7 @@ namespace slib
 		if (ret.isNotNull()) {
 			return ret;
 		}
-		return Android_ViewInstance::create<Android_ViewInstance>(handle);
+		return PlatformViewInstance::create<PlatformViewInstance>(handle);
 	}
 
 	void UIPlatform::registerViewInstance(jobject handle, ViewInstance* instance)
@@ -561,7 +561,7 @@ namespace slib
 
 	jobject UIPlatform::getViewHandle(ViewInstance* _instance)
 	{
-		Android_ViewInstance* instance = (Android_ViewInstance*)_instance;
+		PlatformViewInstance* instance = (PlatformViewInstance*)_instance;
 		if (instance) {
 			return instance->getHandle();
 		}
@@ -571,7 +571,7 @@ namespace slib
 	jobject UIPlatform::getViewHandle(View* view)
 	{
 		if (view) {
-			Ref<Android_ViewInstance> instance = Ref<Android_ViewInstance>::cast(view->getViewInstance());
+			Ref<PlatformViewInstance> instance = Ref<PlatformViewInstance>::cast(view->getViewInstance());
 			if (instance.isNotNull()) {
 				return instance->getHandle();
 			}
@@ -582,7 +582,7 @@ namespace slib
 	sl_bool GestureDetector::_enableNative(const Ref<View>& view, GestureType type)
 	{
 		Ref<ViewInstance> _instance = view->getViewInstance();
-		Android_ViewInstance* instance = static_cast<Android_ViewInstance*>(_instance.get());
+		PlatformViewInstance* instance = static_cast<PlatformViewInstance*>(_instance.get());
 		if (instance) {
 			jobject handle = instance->getHandle();
 			if (handle) {

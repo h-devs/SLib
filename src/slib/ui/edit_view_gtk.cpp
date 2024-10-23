@@ -41,7 +41,7 @@ namespace slib
 			using EditView::_onPostChange_NW;
 		};
 
-		class EditViewInstance : public GTK_ViewInstance, public IEditViewInstance
+		class EditViewInstance : public PlatformViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -241,10 +241,10 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(EditViewInstance, GTK_ViewInstance)
+		SLIB_DEFINE_OBJECT(EditViewInstance, PlatformViewInstance)
 
 
-		class TextAreaInstance: public GTK_ViewInstance, public IEditViewInstance
+		class TextAreaInstance: public PlatformViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -505,19 +505,19 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(TextAreaInstance, GTK_ViewInstance)
+		SLIB_DEFINE_OBJECT(TextAreaInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* _parent)
 	{
-		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
+		PlatformViewInstance* parent = static_cast<PlatformViewInstance*>(_parent);
 		if (getMultiLine() == MultiLineMode::Single) {
 			GtkWidget* handle = gtk_entry_new();
-			return GTK_ViewInstance::create<EditViewInstance>(this, parent, handle);
+			return PlatformViewInstance::create<EditViewInstance>(this, parent, handle);
 		} else {
 			GtkScrolledWindow* handle = (GtkScrolledWindow*)(gtk_scrolled_window_new(sl_null, sl_null));
-			return GTK_ViewInstance::create<TextAreaInstance>(this, parent, (GtkWidget*)handle);
+			return PlatformViewInstance::create<TextAreaInstance>(this, parent, (GtkWidget*)handle);
 		}
 	}
 
@@ -533,9 +533,9 @@ namespace slib
 
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* _parent)
 	{
-		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
+		PlatformViewInstance* parent = static_cast<PlatformViewInstance*>(_parent);
 		GtkScrolledWindow* handle = (GtkScrolledWindow*)(gtk_scrolled_window_new(sl_null, sl_null));
-		return GTK_ViewInstance::create<TextAreaInstance>(this, parent, (GtkWidget*)handle);
+		return PlatformViewInstance::create<TextAreaInstance>(this, parent, (GtkWidget*)handle);
 	}
 
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()

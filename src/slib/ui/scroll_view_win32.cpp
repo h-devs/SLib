@@ -42,7 +42,7 @@ namespace slib
 			friend class ScrollViewInstance;
 		};
 
-		class ScrollViewInstance : public Win32_ViewInstance, public IScrollViewInstance
+		class ScrollViewInstance : public PlatformViewInstance, public IScrollViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -106,7 +106,7 @@ namespace slib
 			{
 				HWND handle = m_handle;
 				if (handle) {
-					Win32_ViewInstance::scrollTo(view, x, y, flagAnimate);
+					PlatformViewInstance::scrollTo(view, x, y, flagAnimate);
 					if (IsInstanceOf<ScrollView>(view)) {
 						refreshContentPosition(static_cast<ScrollView*>(view), x, y, sl_false);
 					}
@@ -141,7 +141,7 @@ namespace slib
 						return 0;
 					}
 				}
-				return Win32_ViewInstance::processWindowMessage(handle, msg, wParam, lParam);
+				return PlatformViewInstance::processWindowMessage(handle, msg, wParam, lParam);
 			}
 
 			sl_bool isDrawingEnabled(View* view) override
@@ -151,7 +151,7 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(ScrollViewInstance, Win32_ViewInstance)
+		SLIB_DEFINE_OBJECT(ScrollViewInstance, PlatformViewInstance)
 
 	}
 
@@ -163,7 +163,7 @@ namespace slib
 		}
 		DWORD style = WS_CLIPCHILDREN;
 		DWORD styleEx = WS_EX_CONTROLPARENT;
-		return Win32_ViewInstance::create<ScrollViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, style, styleEx);
+		return PlatformViewInstance::create<ScrollViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, style, styleEx);
 	}
 
 	Ptr<IScrollViewInstance> ScrollView::getScrollViewInstance()

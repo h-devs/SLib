@@ -37,14 +37,14 @@ namespace slib
 	class Win32_NativeLayerContext;
 	class Win32_ToolTipViewContext;
 
-	class Win32_ViewInstance : public ViewInstance
+	class PlatformViewInstance : public ViewInstance
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		Win32_ViewInstance();
+		PlatformViewInstance();
 
-		~Win32_ViewInstance();
+		~PlatformViewInstance();
 
 	public:
 		template <class T>
@@ -263,7 +263,7 @@ namespace slib
 		~Win32_ToolTipViewContext();
 
 	public:
-		void update(Win32_ViewInstance* instance, sl_uint64 ownerId, const String& toolTip);
+		void update(PlatformViewInstance* instance, sl_uint64 ownerId, const String& toolTip);
 
 	};
 

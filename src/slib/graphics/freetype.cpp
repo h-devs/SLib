@@ -785,7 +785,7 @@ namespace slib
 			}
 		}
 
-		static void CopySlot(const Ref<Image>& _out, sl_real x, sl_real y, sl_int32 ascender, FT_GlyphSlot slot, const Color& color)
+		static void CopySlot(const Ref<Image>& _out, sl_real x, sl_real y, FT_Pos ascender, FT_GlyphSlot slot, const Color& color)
 		{
 			sl_int32 dx = (sl_int32)x + slot->bitmap_left;
 			sl_int32 dy = TO_PIXEL_POS((sl_int32)(y * 64.0f + ascender)) - slot->bitmap_top;
@@ -836,7 +836,7 @@ namespace slib
 
 	namespace
 	{
-		static void StrokeSlot(const Ref<Image>& _out, sl_real x, sl_real y, sl_int32 ascender, FT_Stroker stroker, FT_GlyphSlot slot, const Color& color)
+		static void StrokeSlot(const Ref<Image>& _out, sl_real x, sl_real y, FT_Pos ascender, FT_Stroker stroker, FT_GlyphSlot slot, const Color& color)
 		{
 			FT_Glyph glyph = sl_null;
 			FT_Error err = FT_Get_Glyph(slot, &glyph);
@@ -922,9 +922,9 @@ namespace slib
 		struct StringPathContext
 		{
 			GraphicsPath* path;
-			sl_int32 x;
-			sl_int32 y;
-			sl_int32 ascender;
+			sl_real x;
+            sl_real y;
+			FT_Pos ascender;
 		};
 
 		static int StringPath_MoveTo(const FT_Vector* to, void* user)
@@ -956,7 +956,7 @@ namespace slib
 			return 0;
 		}
 
-		static sl_bool BuildStringPath(const Ref<GraphicsPath>& path, sl_int32 x, sl_int32 y, sl_int32 ascender, FT_Outline* outline)
+		static sl_bool BuildStringPath(const Ref<GraphicsPath>& path, sl_real x, sl_real y, FT_Pos ascender, FT_Outline* outline)
 		{
 			if (outline->n_points) {
 				FT_Outline_Funcs funcs = {
@@ -997,7 +997,7 @@ namespace slib
 		if (path.isNull()) {
 			return sl_null;
 		}
-		if (!(BuildStringPath(path, (sl_int32)(left * 64.0f), (sl_int32)(top * 64.0f), m_face->size->metrics.ascender, &(m_face->glyph->outline)))) {
+		if (!(BuildStringPath(path, left * 64.0f, top * 64.0f, m_face->size->metrics.ascender, &(m_face->glyph->outline)))) {
 			return sl_null;
 		}
 		return path;

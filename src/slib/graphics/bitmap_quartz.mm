@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -32,9 +32,9 @@
 namespace slib
 {
 
-	namespace {
-
-		class BitmapImpl : public Bitmap
+	namespace
+	{
+		class PlatformBitmap : public Bitmap
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -46,17 +46,17 @@ namespace slib
 			sl_uint32 m_height;
 
 		public:
-			BitmapImpl()
+			PlatformBitmap()
 			{
 			}
 
-			~BitmapImpl()
+			~PlatformBitmap()
 			{
 				CFRelease(m_bitmap);
 			}
 
 		public:
-			static Ref<BitmapImpl> create(sl_uint32 width, sl_uint32 height)
+			static Ref<PlatformBitmap> create(sl_uint32 width, sl_uint32 height)
 			{
 
 				if (width > 0 && height > 0) {
@@ -79,7 +79,7 @@ namespace slib
 
 							if (bitmap) {
 
-								Ref<BitmapImpl> ret = new BitmapImpl();
+								Ref<PlatformBitmap> ret = new PlatformBitmap();
 
 								if (ret.isNotNull()) {
 
@@ -102,7 +102,7 @@ namespace slib
 				return sl_null;
 			}
 
-			static Ref<BitmapImpl> createFromCGImage(CGImageRef image)
+			static Ref<PlatformBitmap> createFromCGImage(CGImageRef image)
 			{
 				if (!image) {
 					return sl_null;
@@ -111,7 +111,7 @@ namespace slib
 				sl_uint32 width = (sl_uint32)(CGImageGetWidth(image));
 				sl_uint32 height = (sl_uint32)(CGImageGetHeight(image));
 
-				Ref<BitmapImpl> ret = create(width, height);
+				Ref<PlatformBitmap> ret = create(width, height);
 				if (ret.isNotNull()) {
 					CGRect rect;
 					rect.origin.x = 0;
@@ -131,11 +131,11 @@ namespace slib
 				return sl_null;
 			}
 
-			static Ref<BitmapImpl> loadFromMemory(const void* mem, sl_size size)
+			static Ref<PlatformBitmap> loadFromMemory(const void* mem, sl_size size)
 			{
 				CGImageRef image = GraphicsPlatform::loadCGImageFromMemory(mem, size);
 				if (image) {
-					Ref<BitmapImpl> ret = createFromCGImage(image);
+					Ref<PlatformBitmap> ret = createFromCGImage(image);
 					CGImageRelease(image);
 					return ret;
 				}
@@ -254,23 +254,22 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(BitmapImpl, Bitmap)
-
+		SLIB_DEFINE_OBJECT(PlatformBitmap, Bitmap)
 	}
 
 	Ref<Bitmap> Bitmap::create(sl_uint32 width, sl_uint32 height)
 	{
-		return BitmapImpl::create(width, height);
+		return PlatformBitmap::create(width, height);
 	}
 
 	Ref<Bitmap> Bitmap::loadFromMemory(const void* mem, sl_size size)
 	{
-		return BitmapImpl::loadFromMemory(mem, size);
+		return PlatformBitmap::loadFromMemory(mem, size);
 	}
 
 	CGContextRef GraphicsPlatform::getBitmapHandle(Bitmap* _bitmap)
 	{
-		if (BitmapImpl* bitmap = CastInstance<BitmapImpl>(_bitmap)) {
+		if (PlatformBitmap* bitmap = CastInstance<PlatformBitmap>(_bitmap)) {
 			return bitmap->m_bitmap;
 		}
 		return sl_null;
@@ -278,7 +277,7 @@ namespace slib
 
 	Ref<Bitmap> GraphicsPlatform::createBitmapFromCGImage(CGImageRef image)
 	{
-		return BitmapImpl::createFromCGImage(image);
+		return PlatformBitmap::createFromCGImage(image);
 	}
 
 }

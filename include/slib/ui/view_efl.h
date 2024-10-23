@@ -34,14 +34,14 @@
 namespace slib
 {
 
-	class EFL_ViewInstance : public ViewInstance
+	class PlatformViewInstance : public ViewInstance
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		EFL_ViewInstance();
+		PlatformViewInstance();
 
-		~EFL_ViewInstance();
+		~PlatformViewInstance();
 
 	public:
 		template <class T>

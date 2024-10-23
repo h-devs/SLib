@@ -33,7 +33,7 @@
 
 @interface SLIBViewHandle : UIView
 {
-	@public slib::WeakRef<slib::iOS_ViewInstance> m_viewInstance;
+	@public slib::WeakRef<slib::PlatformViewInstance> m_viewInstance;
 }
 @end
 
@@ -50,7 +50,7 @@
 #define IOS_VIEW_DEFINE_ON_FOCUS \
 	- (BOOL)becomeFirstResponder \
 	{ \
-		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
+		slib::Ref<slib::PlatformViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			instance->onSetFocus(); \
 		} \
@@ -65,7 +65,7 @@
 	} \
 	- (void)touchesBegan:(NSSet *)touches withEvent:(::UIEvent *)theEvent \
 	{ \
-		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
+		slib::Ref<slib::PlatformViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			slib::UIEventFlags flags = instance->onEventTouch(slib::UIAction::TouchBegin, touches, theEvent); \
 			if (flags & slib::UIEventFlags::NotInvokeNative) { \
@@ -76,7 +76,7 @@
 	} \
 	- (void)touchesMoved:(NSSet *)touches withEvent:(::UIEvent *)theEvent \
 	{ \
-		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
+		slib::Ref<slib::PlatformViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			slib::UIEventFlags flags = instance->onEventTouch(slib::UIAction::TouchMove, touches, theEvent); \
 			if (flags & slib::UIEventFlags::NotInvokeNative) { \
@@ -87,7 +87,7 @@
 	} \
 	- (void)touchesEnded:(NSSet *)touches withEvent:(::UIEvent *)theEvent \
 	{ \
-		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
+		slib::Ref<slib::PlatformViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			slib::UIEventFlags flags = instance->onEventTouch(slib::UIAction::TouchEnd, touches, theEvent); \
 			if (flags & slib::UIEventFlags::NotInvokeNative) { \
@@ -98,7 +98,7 @@
 	} \
 	- (void)touchesCancelled:(NSSet *)touches withEvent:(::UIEvent *)theEvent \
 	{ \
-		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
+		slib::Ref<slib::PlatformViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			slib::UIEventFlags flags = instance->onEventTouch(slib::UIAction::TouchCancel, touches, theEvent); \
 			if (flags & slib::UIEventFlags::NotInvokeNative) { \
@@ -109,28 +109,28 @@
 	} \
 	- (void)onSwipeLeft \
 	{ \
-		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
+		slib::Ref<slib::PlatformViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			instance->onSwipe(slib::GestureType::SwipeLeft); \
 		} \
 	} \
 	- (void)onSwipeRight \
 	{ \
-		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
+		slib::Ref<slib::PlatformViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			instance->onSwipe(slib::GestureType::SwipeRight); \
 		} \
 	} \
 	- (void)onSwipeUp \
 	{ \
-		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
+		slib::Ref<slib::PlatformViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			instance->onSwipe(slib::GestureType::SwipeUp); \
 		} \
 	} \
 	- (void)onSwipeDown \
 	{ \
-		slib::Ref<slib::iOS_ViewInstance> instance = m_viewInstance; \
+		slib::Ref<slib::PlatformViewInstance> instance = m_viewInstance; \
 		if (instance.isNotNull()) { \
 			instance->onSwipe(slib::GestureType::SwipeDown); \
 		} \

@@ -106,7 +106,7 @@ namespace slib
 			sl_bool m_flagMinimized;
 			sl_bool m_flagMaximized;
 
-			AtomicRef<Win32_ViewInstance> m_viewContent;
+			AtomicRef<PlatformViewInstance> m_viewContent;
 			sl_bool m_flagDestroyOnRelease;
 
 			Color m_backgroundColor;
@@ -238,7 +238,7 @@ namespace slib
 						m_backgroundColor = window->getBackgroundColor();
 					}
 				}
-				Ref<Win32_ViewInstance> content = Ref<Win32_ViewInstance>::cast(UIPlatform::createViewInstance(hWnd, sl_false));
+				Ref<PlatformViewInstance> content = Ref<PlatformViewInstance>::cast(UIPlatform::createViewInstance(hWnd, sl_false));
 				if (content.isNotNull()) {
 					content->setWindowContent(sl_true);
 					if (window->isLayered()) {
@@ -412,7 +412,7 @@ namespace slib
 					return;
 				}
 				m_backgroundColor = color;
-				Ref<Win32_ViewInstance> content = m_viewContent;
+				Ref<PlatformViewInstance> content = m_viewContent;
 				if (content.isNotNull()) {
 					Ref<View> view = content->getView();
 					if (view.isNotNull()) {
@@ -520,7 +520,7 @@ namespace slib
 
 			void setAlpha(sl_real alpha) override
 			{
-				Ref<Win32_ViewInstance> content = m_viewContent;
+				Ref<PlatformViewInstance> content = m_viewContent;
 				if (content.isNotNull()) {
 					Ref<View> view = content->getView();
 					if (view.isNotNull()) {
@@ -531,7 +531,7 @@ namespace slib
 
 			void setColorKey(const Color& color) override
 			{
-				Ref<Win32_ViewInstance> content = m_viewContent;
+				Ref<PlatformViewInstance> content = m_viewContent;
 				if (content.isNotNull()) {
 					Ref<View> view = content->getView();
 					if (view.isNotNull()) {

@@ -39,7 +39,7 @@ namespace slib
 		{
 		};
 
-		class RenderViewInstance : public GTK_ViewInstance, public IRenderViewInstance
+		class RenderViewInstance : public PlatformViewInstance, public IRenderViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -116,18 +116,18 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(RenderViewInstance, GTK_ViewInstance)
+		SLIB_DEFINE_OBJECT(RenderViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> RenderView::createInstance(ViewInstance* _parent)
 	{
-		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
+		PlatformViewInstance* parent = static_cast<PlatformViewInstance*>(_parent);
 		GtkWidget* handle = gtk_drawing_area_new();
 		if (handle) {
 			gtk_widget_set_has_window(handle, 1);
 			gtk_widget_set_can_focus(handle, 1);
-			Ref<RenderViewInstance> ret = GTK_ViewInstance::create<RenderViewInstance>(this, parent, handle);
+			Ref<RenderViewInstance> ret = PlatformViewInstance::create<RenderViewInstance>(this, parent, handle);
 			if (ret.isNotNull()) {
 				gtk_widget_realize(handle);
 				GdkWindow* gwindow = gtk_widget_get_window(handle);

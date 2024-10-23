@@ -108,7 +108,7 @@ namespace slib
 								content->setWindowContent(sl_true);
 								ret->m_viewContent = content;
 								if ([view isKindOfClass:[SLIBViewHandle class]]) {
-									((SLIBViewHandle*)view)->m_viewInstance = Ref<iOS_ViewInstance>::cast(content);
+									((SLIBViewHandle*)view)->m_viewInstance = Ref<PlatformViewInstance>::cast(content);
 								}
 							}
 						}

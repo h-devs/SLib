@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -120,9 +120,9 @@ namespace slib
 			SetCursorEvent,
 			DragEvent,
 			Menu,
-			MenuImpl,
+			PlatformMenu,
 			MenuItem,
-			MenuItemImpl,
+			PlatformMenuItem,
 			UserNotification,
 			PushNotificationClient,
 			APNs,
@@ -136,12 +136,7 @@ namespace slib
 			ViewInstance,
 			ViewCell,
 			ViewGroup,
-			Android_ViewInstance,
-			Win32_ViewInstance,
-			iOS_ViewInstance,
-			macOS_ViewInstance,
-			EFL_ViewInstance,
-			GTK_ViewInstance,
+			PlatformViewInstance,
 			ViewPager,
 			ViewPage,
 			ViewPage_End = ViewPage + 5,

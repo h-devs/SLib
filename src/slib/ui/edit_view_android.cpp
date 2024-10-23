@@ -73,7 +73,7 @@ namespace slib
 			using EditView::_onPostChange_NW;
 		};
 
-		class EditViewInstance : public Android_ViewInstance, public IEditViewInstance
+		class EditViewInstance : public PlatformViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -280,7 +280,7 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(EditViewInstance, Android_ViewInstance)
+		SLIB_DEFINE_OBJECT(EditViewInstance, PlatformViewInstance)
 
 		void EditViewHelper::apply(jobject handle, EditViewInstance* instance)
 		{
@@ -304,7 +304,7 @@ namespace slib
 
 		void JNICALL OnChange(JNIEnv* env, jobject _this, jlong _instance)
 		{
-			Ref<EditViewInstance> instance = CastRef<EditViewInstance>(Android_ViewInstance::findInstance(_instance));
+			Ref<EditViewInstance> instance = CastRef<EditViewInstance>(PlatformViewInstance::findInstance(_instance));
 			if (instance.isNotNull()) {
 				instance->onChange();
 			}
@@ -312,7 +312,7 @@ namespace slib
 
 		void JNICALL OnReturn(JNIEnv* env, jobject _this, jlong _instance)
 		{
-			Ref<EditViewInstance> instance = CastRef<EditViewInstance>(Android_ViewInstance::findInstance(_instance));
+			Ref<EditViewInstance> instance = CastRef<EditViewInstance>(PlatformViewInstance::findInstance(_instance));
 			if (instance.isNotNull()) {
 				instance->onReturn();
 			}
@@ -322,9 +322,9 @@ namespace slib
 
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* _parent)
 	{
-		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
+		PlatformViewInstance* parent = (PlatformViewInstance*)_parent;
 		JniLocal<jobject> handle = JEditView::create.callObject(sl_null, parent->getContext(), 0);
-		return Android_ViewInstance::create<EditViewInstance>(this, parent, handle.get());
+		return PlatformViewInstance::create<EditViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
@@ -334,9 +334,9 @@ namespace slib
 
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* _parent)
 	{
-		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
+		PlatformViewInstance* parent = (PlatformViewInstance*)_parent;
 		JniLocal<jobject> handle = JEditView::create.callObject(sl_null, parent->getContext(), 2);
-		return Android_ViewInstance::create<EditViewInstance>(this, parent, handle.get());
+		return PlatformViewInstance::create<EditViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()

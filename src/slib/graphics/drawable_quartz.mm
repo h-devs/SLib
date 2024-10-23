@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 		static void ReleaseDrawableDataProvider(void *info, const void *data, size_t size)
 		{
 			CRef* ref = (CRef*)info;
@@ -60,9 +61,7 @@ namespace slib
 		if (provider) {
 			CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceRGB();
 			if (colorSpaceRef) {
-				CGImageRef imageRef = CGImageCreate(width, height, 8, 32, stride << 2, colorSpaceRef
-													, kCGBitmapByteOrder32Big | kCGImageAlphaLast
-													, provider, NULL, YES, kCGRenderingIntentDefault);
+				CGImageRef imageRef = CGImageCreate(width, height, 8, 32, stride << 2, colorSpaceRef, kCGBitmapByteOrder32Big | kCGImageAlphaLast, provider, NULL, YES, kCGRenderingIntentDefault);
 				if (imageRef) {
 					ret = GraphicsPlatform::createImageDrawable(imageRef);
 					CGImageRelease(imageRef);
@@ -89,9 +88,9 @@ namespace slib
 		return sl_null;
 	}
 
-	namespace {
-
-		class ImageDrawableImpl : public Drawable
+	namespace
+	{
+		class PlatformImageDrawable : public Drawable
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -102,17 +101,17 @@ namespace slib
 			sl_bool m_flagFlipped;
 
 		public:
-			ImageDrawableImpl()
+			PlatformImageDrawable()
 			{
 			}
 
-			~ImageDrawableImpl()
+			~PlatformImageDrawable()
 			{
 				CGImageRelease(m_image);
 			}
 
 		public:
-			static Ref<ImageDrawableImpl> create(CGImageRef image, sl_bool flagFlipped)
+			static Ref<PlatformImageDrawable> create(CGImageRef image, sl_bool flagFlipped)
 			{
 				if (image) {
 					CGImageRetain(image);
@@ -120,7 +119,7 @@ namespace slib
 					if (width > 0) {
 						sl_int32 height = (sl_int32)(CGImageGetHeight(image));
 						if (height > 0) {
-							Ref<ImageDrawableImpl> ret = new ImageDrawableImpl();
+							Ref<PlatformImageDrawable> ret = new PlatformImageDrawable();
 							if (ret.isNotNull()) {
 								ret->m_image = image;
 								ret->m_width = width;
@@ -166,18 +165,17 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(ImageDrawableImpl, Drawable)
-
+		SLIB_DEFINE_OBJECT(PlatformImageDrawable, Drawable)
 	}
 
 	Ref<Drawable> GraphicsPlatform::createImageDrawable(CGImageRef image, sl_bool flagFlipped)
 	{
-		return ImageDrawableImpl::create(image, flagFlipped);
+		return PlatformImageDrawable::create(image, flagFlipped);
 	}
 
 	CGImageRef GraphicsPlatform::getImageDrawableHandle(Drawable* _drawable)
 	{
-		if (ImageDrawableImpl* drawable = CastInstance<ImageDrawableImpl>(_drawable)) {
+		if (PlatformImageDrawable* drawable = CastInstance<PlatformImageDrawable>(_drawable)) {
 			return drawable->m_image;
 		}
 		return NULL;

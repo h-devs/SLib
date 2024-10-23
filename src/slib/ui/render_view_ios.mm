@@ -83,7 +83,7 @@ namespace slib
 
 	namespace {
 
-		class RenderViewInstance : public iOS_ViewInstance, public IRenderViewInstance
+		class RenderViewInstance : public PlatformViewInstance, public IRenderViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -120,13 +120,13 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(RenderViewInstance, iOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(RenderViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> RenderView::createInstance(ViewInstance* parent)
 	{
-		return iOS_ViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
+		return PlatformViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
 	}
 
 	Ptr<IRenderViewInstance> RenderView::getRenderViewInstance()

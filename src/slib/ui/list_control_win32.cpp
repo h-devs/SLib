@@ -105,7 +105,7 @@ namespace slib
 			using ListControl::_onClickHeader_NW;
 		};
 
-		class ListControlInstance : public Win32_ViewInstance, public IListControlInstance
+		class ListControlInstance : public PlatformViewInstance, public IListControlInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -243,14 +243,14 @@ namespace slib
 			}
 		};
 
-		SLIB_DEFINE_OBJECT(ListControlInstance, Win32_ViewInstance)
+		SLIB_DEFINE_OBJECT(ListControlInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)
 	{
 		DWORD style = LVS_REPORT | LVS_SINGLESEL | LVS_OWNERDATA | WS_TABSTOP | WS_BORDER;
-		return Win32_ViewInstance::create<ListControlInstance>(this, parent, L"SysListView32", sl_null, style, 0);
+		return PlatformViewInstance::create<ListControlInstance>(this, parent, L"SysListView32", sl_null, style, 0);
 	}
 
 	Ptr<IListControlInstance> ListControl::getListControlInstance()

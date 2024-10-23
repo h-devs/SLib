@@ -47,7 +47,7 @@ namespace slib
 	Ref<ViewInstance> RadioButton::createNativeWidget(ViewInstance* parent)
 	{
 		GtkWidget* handle = gtk_radio_button_new_with_mnemonic(NULL, "");
-		Ref<CheckBoxInstance> ret = GTK_ViewInstance::create<CheckBoxInstance>(this, parent, handle);
+		Ref<CheckBoxInstance> ret = PlatformViewInstance::create<CheckBoxInstance>(this, parent, handle);
 		if (ret.isNotNull()) {
 			GtkButtonClass* clsRadio = GTK_BUTTON_GET_CLASS(handle);
 			clsRadio->clicked = OnClickRadio;

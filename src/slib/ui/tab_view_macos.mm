@@ -137,7 +137,7 @@ namespace slib
 			using TabView::_onSelectTab_NW;
 		};
 
-		class TabViewInstance : public macOS_ViewInstance, public ITabViewInstance
+		class TabViewInstance : public PlatformViewInstance, public ITabViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -231,13 +231,13 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(TabViewInstance, macOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(TabViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> TabView::createNativeWidget(ViewInstance* parent)
 	{
-		return macOS_ViewInstance::create<TabViewInstance, SLIBTabViewHandle>(this, parent);
+		return PlatformViewInstance::create<TabViewInstance, SLIBTabViewHandle>(this, parent);
 	}
 
 	Ptr<ITabViewInstance> TabView::getTabViewInstance()

@@ -34,14 +34,14 @@
 namespace slib
 {
 
-	class Android_ViewInstance : public ViewInstance
+	class PlatformViewInstance : public ViewInstance
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		Android_ViewInstance();
+		PlatformViewInstance();
 
-		~Android_ViewInstance();
+		~PlatformViewInstance();
 
 	public:
 		template <class T>
@@ -75,7 +75,7 @@ namespace slib
 		sl_bool applyProperties(View* view, ViewInstance* parent);
 
 	public:
-		static Ref<Android_ViewInstance> findInstance(jlong jinstance);
+		static Ref<PlatformViewInstance> findInstance(jlong jinstance);
 
 		static Ref<View> findView(jlong jinstance);
 

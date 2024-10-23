@@ -34,14 +34,14 @@
 namespace slib
 {
 
-	class iOS_ViewInstance : public ViewInstance
+	class PlatformViewInstance : public ViewInstance
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		iOS_ViewInstance();
+		PlatformViewInstance();
 
-		~iOS_ViewInstance();
+		~PlatformViewInstance();
 
 	public:
 		template <class T>

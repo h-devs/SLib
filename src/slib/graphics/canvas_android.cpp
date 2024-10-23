@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		SLIB_JNI_BEGIN_CLASS(JRect, "android/graphics/Rect")
 			SLIB_JNI_INT_FIELD(left);
 			SLIB_JNI_INT_FIELD(top);
@@ -64,19 +64,19 @@ namespace slib
 			SLIB_JNI_METHOD(setAntiAlias, "setAntiAlias", "(Z)V");
 		SLIB_JNI_END_CLASS
 
-		class CanvasImpl : public CanvasExt
+		class PlatformCanvas : public CanvasExt
 		{
 			SLIB_DECLARE_OBJECT
 		public:
 			JniGlobal<jobject> m_canvas;
 
 		public:
-			static Ref<CanvasImpl> create(CanvasType type, jobject jcanvas) {
+			static Ref<PlatformCanvas> create(CanvasType type, jobject jcanvas) {
 				JniGlobal<jobject> canvas = JniGlobal<jobject>::create(jcanvas);
 				if (canvas.isNotNull()) {
 					int width = JGraphics::getWidth.callInt(jcanvas);
 					int height = JGraphics::getHeight.callInt(jcanvas);
-					Ref<CanvasImpl> ret = new CanvasImpl();
+					Ref<PlatformCanvas> ret = new PlatformCanvas();
 					if (ret.isNotNull()) {
 						ret->setType(type);
 						ret->setSize(Size((sl_real)width, (sl_real)height));
@@ -272,8 +272,7 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
-
+		SLIB_DEFINE_OBJECT(PlatformCanvas, CanvasExt)
 	}
 
 	Ref<Canvas> GraphicsPlatform::createCanvas(CanvasType type, jobject jcanvas)
@@ -281,12 +280,12 @@ namespace slib
 		if (!jcanvas) {
 			return sl_null;
 		}
-		return CanvasImpl::create(type, jcanvas);
+		return PlatformCanvas::create(type, jcanvas);
 	}
 
 	jobject GraphicsPlatform::getCanvasHandle(Canvas* _canvas)
 	{
-		if (CanvasImpl* canvas = CastInstance<CanvasImpl>(_canvas)) {
+		if (PlatformCanvas* canvas = CastInstance<PlatformCanvas>(_canvas)) {
 			return canvas->m_canvas;
 		} else {
 			return 0;

@@ -42,10 +42,9 @@ namespace slib
 
 	namespace
 	{
+		class PlatformMenu;
 
-		class MenuImpl;
-
-		class MenuItemImpl : public MenuItem
+		class PlatformMenuItem : public MenuItem
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -53,7 +52,7 @@ namespace slib
 			SLIBMenuItemHandle* m_handle;
 
 		public:
-			static Ref<MenuItemImpl> create(MenuImpl* parent, const MenuItemParam& param);
+			static Ref<PlatformMenuItem> create(PlatformMenu* parent, const MenuItemParam& param);
 
 			void setText(const String& text) override;
 
@@ -75,9 +74,9 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(MenuItemImpl, MenuItem)
+		SLIB_DEFINE_OBJECT(PlatformMenuItem, MenuItem)
 
-		class MenuImpl : public Menu
+		class PlatformMenu : public Menu
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -85,12 +84,12 @@ namespace slib
 			NSMenu* m_handle;
 
 		public:
-			static Ref<MenuImpl> create()
+			static Ref<PlatformMenu> create()
 			{
 				NSMenu* handle = [[NSMenu alloc] initWithTitle:@""];
 				if (handle != nil) {
 					handle.autoenablesItems = NO;
-					Ref<MenuImpl> ret = new MenuImpl();
+					Ref<PlatformMenu> ret = new PlatformMenu();
 					if (ret.isNotNull()) {
 						ret->m_handle = handle;
 						return ret;
@@ -111,7 +110,7 @@ namespace slib
 				if (index > n) {
 					index = n;
 				}
-				Ref<MenuItemImpl> item = MenuItemImpl::create(this, param);
+				Ref<PlatformMenuItem> item = PlatformMenuItem::create(this, param);
 				if (item.isNotNull()) {
 					[m_handle insertItem:item->m_handle atIndex:index];
 					m_items.insert(index, item);
@@ -168,12 +167,12 @@ namespace slib
 				[m_handle popUpMenuPositioningItem:nil atLocation:pt inView:nil];
 			}
 
-			friend class MenuItemImpl;
+			friend class PlatformMenuItem;
 		};
 
-		SLIB_DEFINE_OBJECT(MenuImpl, Menu)
+		SLIB_DEFINE_OBJECT(PlatformMenu, Menu)
 
-		Ref<MenuItemImpl> MenuItemImpl::create(MenuImpl* parent, const MenuItemParam& param)
+		Ref<PlatformMenuItem> PlatformMenuItem::create(PlatformMenu* parent, const MenuItemParam& param)
 		{
 			SLIBMenuItemHandle* handle = [[SLIBMenuItemHandle alloc] init];
 			if (handle != nil) {
@@ -194,7 +193,7 @@ namespace slib
 				if (handle.onStateImage == nil) {
 					handle.onStateImage = handle->m_defaultCheckedImage;
 				}
-				Ref<MenuItemImpl> ret = new MenuItemImpl;
+				Ref<PlatformMenuItem> ret = new PlatformMenuItem;
 				if (ret.isNotNull()) {
 					ret->m_handle = handle;
 					handle->m_item = ret.get();
@@ -214,7 +213,7 @@ namespace slib
 			return sl_null;
 		}
 
-		void MenuItemImpl::setText(const String& text)
+		void PlatformMenuItem::setText(const String& text)
 		{
 			MenuItem::setText(text);
 			m_handle.title = Apple::getNSStringFromString(text.removeAll('&'));
@@ -223,7 +222,7 @@ namespace slib
 			}
 		}
 
-		void MenuItemImpl::setShortcutKey(const slib::KeycodeAndModifiers &km)
+		void PlatformMenuItem::setShortcutKey(const slib::KeycodeAndModifiers &km)
 		{
 			MenuItem::setShortcutKey(km);
 			NSUInteger keMask;
@@ -236,30 +235,30 @@ namespace slib
 			}
 		}
 
-		void MenuItemImpl::setSecondShortcutKey(const slib::KeycodeAndModifiers &km)
+		void PlatformMenuItem::setSecondShortcutKey(const slib::KeycodeAndModifiers &km)
 		{
 			MenuItem::setSecondShortcutKey(km);
 		}
 
-		void MenuItemImpl::setEnabled(sl_bool flag)
+		void PlatformMenuItem::setEnabled(sl_bool flag)
 		{
 			MenuItem::setEnabled(flag);
 			m_handle.enabled = flag ? YES : NO;
 		}
 
-		void MenuItemImpl::setChecked(sl_bool flag)
+		void PlatformMenuItem::setChecked(sl_bool flag)
 		{
 			MenuItem::setChecked(flag);
 			m_handle.state = flag ? NSOnState : NSOffState;
 		}
 
-		void MenuItemImpl::setIcon(const Ref<Drawable>& icon)
+		void PlatformMenuItem::setIcon(const Ref<Drawable>& icon)
 		{
 			MenuItem::setIcon(icon);
 			m_handle.offStateImage = GraphicsPlatform::getNSImage(icon);
 		}
 
-		void MenuItemImpl::setCheckedIcon(const Ref<Drawable>& icon)
+		void PlatformMenuItem::setCheckedIcon(const Ref<Drawable>& icon)
 		{
 			MenuItem::setCheckedIcon(icon);
 			m_handle.onStateImage = GraphicsPlatform::getNSImage(icon);
@@ -268,7 +267,7 @@ namespace slib
 			}
 		}
 
-		void MenuItemImpl::setSubmenu(const Ref<Menu>& menu)
+		void PlatformMenuItem::setSubmenu(const Ref<Menu>& menu)
 		{
 			MenuItem::setSubmenu(menu);
 			m_handle.submenu = UIPlatform::getMenuHandle(menu.get());
@@ -277,7 +276,7 @@ namespace slib
 			}
 		}
 
-		NSImage* MenuItemImpl::_createIcon(const Ref<Drawable>& iconSrc)
+		NSImage* PlatformMenuItem::_createIcon(const Ref<Drawable>& iconSrc)
 		{
 			if (iconSrc.isNotNull()) {
 				NSImage* icon = GraphicsPlatform::getNSImage(iconSrc);
@@ -294,18 +293,17 @@ namespace slib
 			}
 			return nil;
 		}
-
 	}
 
 	Ref<Menu> Menu::create(sl_bool flagPopup)
 	{
-		return MenuImpl::create();
+		return PlatformMenu::create();
 	}
 
 
 	NSMenu* UIPlatform::getMenuHandle(Menu* menu)
 	{
-		if (MenuImpl* _menu = CastInstance<MenuImpl>(menu)) {
+		if (PlatformMenu* _menu = CastInstance<PlatformMenu>(menu)) {
 			return _menu->m_handle;
 		}
 		return nil;
@@ -313,7 +311,7 @@ namespace slib
 
 	NSMenuItem* UIPlatform::getMenuItemHandle(MenuItem* item)
 	{
-		if (MenuItemImpl* _item = CastInstance<MenuItemImpl>(item)) {
+		if (PlatformMenuItem* _item = CastInstance<PlatformMenuItem>(item)) {
 			return _item->m_handle;
 		}
 		return nil;

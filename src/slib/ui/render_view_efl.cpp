@@ -47,7 +47,7 @@ namespace slib
 		{
 		};
 
-		class RenderViewInstance : public EFL_ViewInstance
+		class RenderViewInstance : public PlatformViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -183,7 +183,7 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(RenderViewInstance, EFL_ViewInstance)
+		SLIB_DEFINE_OBJECT(RenderViewInstance, PlatformViewInstance)
 
 	}
 
@@ -193,7 +193,7 @@ namespace slib
 		Evas_Object* handle = elm_glview_version_add(handleParent, EVAS_GL_GLES_2_X);
 		if (handle) {
 			ELEMENTARY_GLVIEW_GLOBAL_USE(handle);
-			return EFL_ViewInstance::create<RenderViewInstance>(this, parent, EFL_ViewType::OpenGL, handle, sl_true);
+			return PlatformViewInstance::create<RenderViewInstance>(this, parent, EFL_ViewType::OpenGL, handle, sl_true);
 		}
 		return sl_null;
 	}

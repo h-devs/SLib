@@ -36,7 +36,7 @@ namespace slib
 
 	namespace
 	{
-		class RenderViewInstance : public Win32_ViewInstance, public IRenderViewInstance
+		class RenderViewInstance : public PlatformViewInstance, public IRenderViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -109,7 +109,7 @@ namespace slib
 				} else if (msg == WM_ERASEBKGND) {
 					return TRUE;
 				}
-				return Win32_ViewInstance::processWindowMessage(hWnd, msg, wParam, lParam);
+				return PlatformViewInstance::processWindowMessage(hWnd, msg, wParam, lParam);
 			}
 
 			void onFrame(RenderEngine* engine)
@@ -136,7 +136,7 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(RenderViewInstance, Win32_ViewInstance)
+		SLIB_DEFINE_OBJECT(RenderViewInstance, PlatformViewInstance)
 	}
 
 	Ref<ViewInstance> RenderView::createInstance(ViewInstance* parent)
@@ -145,7 +145,7 @@ namespace slib
 		if (!shared) {
 			return sl_null;
 		}
-		Ref<RenderViewInstance> ret = Win32_ViewInstance::create<RenderViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
+		Ref<RenderViewInstance> ret = PlatformViewInstance::create<RenderViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
 		if (ret.isNotNull()) {
 			if (isUsingTouchEvent()) {
 				ret->setUsingTouchEvent(this, sl_true);

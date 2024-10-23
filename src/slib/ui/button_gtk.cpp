@@ -34,7 +34,7 @@ namespace slib
 	namespace priv
 	{
 
-		SLIB_DEFINE_OBJECT(ButtonInstance, GTK_ViewInstance)
+		SLIB_DEFINE_OBJECT(ButtonInstance, PlatformViewInstance)
 
 		ButtonInstance::ButtonInstance()
 		{
@@ -115,7 +115,7 @@ namespace slib
 		} else {
 			handle = gtk_button_new();
 		}
-		return GTK_ViewInstance::create<ButtonInstance>(this, parent, handle);
+		return PlatformViewInstance::create<ButtonInstance>(this, parent, handle);
 	}
 
 	Ptr<IButtonInstance> Button::getButtonInstance()

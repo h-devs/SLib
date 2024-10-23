@@ -51,7 +51,7 @@ namespace slib
 			using DatePicker::_onChange_NW;
 		};
 
-		class DatePickerInstance : public macOS_ViewInstance, public IDatePickerInstance
+		class DatePickerInstance : public PlatformViewInstance, public IDatePickerInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -109,13 +109,13 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(DatePickerInstance, macOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(DatePickerInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> DatePicker::createNativeWidget(ViewInstance* parent)
 	{
-		return macOS_ViewInstance::create<DatePickerInstance, SLIBDatePickerHandle>(this, parent);
+		return PlatformViewInstance::create<DatePickerInstance, SLIBDatePickerHandle>(this, parent);
 	}
 
 	Ptr<IDatePickerInstance> DatePicker::getDatePickerInstance()

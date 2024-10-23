@@ -68,7 +68,7 @@ namespace slib
 			using ComboBox::_onSelectItem_NW;
 		};
 
-		class ComboBoxInstance : public macOS_ViewInstance, public IComboBoxInstance
+		class ComboBoxInstance : public PlatformViewInstance, public IComboBoxInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -182,13 +182,13 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(ComboBoxInstance, macOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(ComboBoxInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> ComboBox::createNativeWidget(ViewInstance* parent)
 	{
-		return macOS_ViewInstance::create<ComboBoxInstance, SLIBComboBoxHandle>(this, parent);
+		return PlatformViewInstance::create<ComboBoxInstance, SLIBComboBoxHandle>(this, parent);
 	}
 
 	Ptr<IComboBoxInstance> ComboBox::getComboBoxInstance()

@@ -275,7 +275,7 @@ namespace slib
 			}
 		}
 
-		class WebViewInstance : public Win32_ViewInstance, public IWebViewInstance
+		class WebViewInstance : public PlatformViewInstance, public IWebViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -545,7 +545,7 @@ namespace slib
 					case WM_ERASEBKGND:
 						return TRUE;
 				}
-				return Win32_ViewInstance::processWindowMessage(handle, msg, wParam, lParam);
+				return PlatformViewInstance::processWindowMessage(handle, msg, wParam, lParam);
 			}
 
 		};
@@ -902,7 +902,7 @@ namespace slib
 			}
 		};
 
-		SLIB_DEFINE_OBJECT(WebViewInstance, Win32_ViewInstance)
+		SLIB_DEFINE_OBJECT(WebViewInstance, PlatformViewInstance)
 
 		WebViewInstance::WebViewInstance()
 		{
@@ -1038,7 +1038,7 @@ namespace slib
 		if (!shared) {
 			return sl_null; 
 		}
-		return Win32_ViewInstance::create<WebViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
+		return PlatformViewInstance::create<WebViewInstance>(this, parent, (LPCWSTR)((LONG_PTR)(shared->wndClassForView)), sl_null, 0, 0);
 	}
 
 	Ptr<IWebViewInstance> WebView::getWebViewInstance()

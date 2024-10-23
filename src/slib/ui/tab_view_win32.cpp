@@ -139,7 +139,7 @@ namespace slib
 			using TabView::_onSelectTab_NW;
 		};
 
-		class TabViewInstance : public Win32_ViewInstance, public ITabViewInstance
+		class TabViewInstance : public PlatformViewInstance, public ITabViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -226,7 +226,7 @@ namespace slib
 			}
 		};
 
-		SLIB_DEFINE_OBJECT(TabViewInstance, Win32_ViewInstance)
+		SLIB_DEFINE_OBJECT(TabViewInstance, PlatformViewInstance)
 
 	}
 
@@ -234,7 +234,7 @@ namespace slib
 	{
 		DWORD style = WS_CLIPCHILDREN;
 		DWORD styleEx = WS_EX_CONTROLPARENT;
-		return Win32_ViewInstance::create<TabViewInstance>(this, parent, L"SysTabControl32", sl_null, style, styleEx);
+		return PlatformViewInstance::create<TabViewInstance>(this, parent, L"SysTabControl32", sl_null, style, styleEx);
 	}
 
 	Ptr<ITabViewInstance> TabView::getTabViewInstance()

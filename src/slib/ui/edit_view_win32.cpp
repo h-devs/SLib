@@ -38,7 +38,7 @@ namespace slib
 		class EditViewHelper : public EditView
 		{
 		public:
-			void onChange(Win32_ViewInstance* instance, IEditViewInstance* instance2, HWND handle)
+			void onChange(PlatformViewInstance* instance, IEditViewInstance* instance2, HWND handle)
 			{
 				if (isChangeEventEnabled()) {
 					String textOld = m_text;
@@ -91,7 +91,7 @@ namespace slib
 			}
 		}
 
-		class EditViewInstance : public Win32_ViewInstance, public IEditViewInstance
+		class EditViewInstance : public PlatformViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -118,7 +118,7 @@ namespace slib
 		public:
 			Ref<EditView> getView()
 			{
-				return CastRef<EditView>(Win32_ViewInstance::getView());
+				return CastRef<EditView>(PlatformViewInstance::getView());
 			}
 
 			void initialize(View* _view) override
@@ -152,7 +152,7 @@ namespace slib
 
 			void setText(EditView* view, const String& text) override
 			{
-				Win32_ViewInstance::setText(text);
+				PlatformViewInstance::setText(text);
 			}
 
 			sl_bool appendText(EditView* view, const StringParam& text) override
@@ -339,7 +339,7 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(EditViewInstance, Win32_ViewInstance)
+		SLIB_DEFINE_OBJECT(EditViewInstance, PlatformViewInstance)
 	}
 
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* parent)
@@ -376,7 +376,7 @@ namespace slib
 		} else if (m_flagLowercase) {
 			style |= ES_LOWERCASE;
 		}
-		return Win32_ViewInstance::create<EditViewInstance>(this, parent, L"Edit", getText(), style, 0);
+		return PlatformViewInstance::create<EditViewInstance>(this, parent, L"Edit", getText(), style, 0);
 	}
 
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
@@ -386,7 +386,7 @@ namespace slib
 
 	namespace
 	{
-		class TextAreaInstance: public Win32_ViewInstance, public IEditViewInstance
+		class TextAreaInstance: public PlatformViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -413,7 +413,7 @@ namespace slib
 		public:
 			Ref<TextArea> getView()
 			{
-				return CastRef<TextArea>(Win32_ViewInstance::getView());
+				return CastRef<TextArea>(PlatformViewInstance::getView());
 			}
 
 			void initialize(View* _view) override
@@ -453,7 +453,7 @@ namespace slib
 
 			void setText(EditView* view, const String& text) override
 			{
-				Win32_ViewInstance::setText(text);
+				PlatformViewInstance::setText(text);
 				_refreshHintText();
 			}
 
@@ -613,7 +613,7 @@ namespace slib
 				switch (msg) {
 				case WM_PAINT:
 					if (m_flagVisibleHintText && m_hintText.isNotEmpty()) {
-						Win32_ViewInstance::processSubclassMessage(handle, msg, wParam, lParam);
+						PlatformViewInstance::processSubclassMessage(handle, msg, wParam, lParam);
 						HDC hDC = GetDC(handle);
 						if (hDC) {
 							HFONT hFont = GraphicsPlatform::getGdiFont(m_hintFont.get());
@@ -665,7 +665,7 @@ namespace slib
 						break;
 					}
 				}
-				return Win32_ViewInstance::processSubclassMessage(handle, msg, wParam, lParam);
+				return PlatformViewInstance::processSubclassMessage(handle, msg, wParam, lParam);
 			}
 
 			sl_bool processCommand(SHORT code, LRESULT& result) override
@@ -714,7 +714,7 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(TextAreaInstance, Win32_ViewInstance)
+		SLIB_DEFINE_OBJECT(TextAreaInstance, PlatformViewInstance)
 
 	}
 
@@ -741,7 +741,7 @@ namespace slib
 		if (m_flagReadOnly) {
 			style |= ES_READONLY;
 		}
-		return Win32_ViewInstance::create<TextAreaInstance>(this, parent, className, getText(), style, 0);
+		return PlatformViewInstance::create<TextAreaInstance>(this, parent, className, getText(), style, 0);
 	}
 
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()

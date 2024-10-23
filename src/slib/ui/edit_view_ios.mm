@@ -164,7 +164,7 @@ namespace slib
 			using EditView::_onPostChange_NW;
 		};
 
-		class EditViewInstance : public iOS_ViewInstance, public IEditViewInstance
+		class EditViewInstance : public PlatformViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -387,13 +387,13 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(EditViewInstance, iOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(EditViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* parent)
 	{
-		return iOS_ViewInstance::create<EditViewInstance, SLIBEditViewHandle>(this, parent);
+		return PlatformViewInstance::create<EditViewInstance, SLIBEditViewHandle>(this, parent);
 	}
 
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
@@ -403,7 +403,7 @@ namespace slib
 
 	namespace {
 
-		class TextAreaInstance : public iOS_ViewInstance, public IEditViewInstance
+		class TextAreaInstance : public PlatformViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -667,13 +667,13 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(TextAreaInstance, iOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(TextAreaInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* parent)
 	{
-		return iOS_ViewInstance::create<TextAreaInstance, SLIBTextAreaHandle>(this, parent);
+		return PlatformViewInstance::create<TextAreaInstance, SLIBTextAreaHandle>(this, parent);
 	}
 
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()

@@ -39,7 +39,7 @@ namespace slib
 			using SelectView::_onSelectItem_NW;
 		};
 
-		class SelectViewInstance : public Win32_ViewInstance, public ISelectViewInstance
+		class SelectViewInstance : public PlatformViewInstance, public ISelectViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -137,14 +137,14 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(SelectViewInstance, Win32_ViewInstance)
+		SLIB_DEFINE_OBJECT(SelectViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
 		UINT style = CBS_DROPDOWNLIST | WS_TABSTOP | WS_VSCROLL;
-		return Win32_ViewInstance::create<SelectViewInstance>(this, parent, L"COMBOBOX", sl_null, style, 0);
+		return PlatformViewInstance::create<SelectViewInstance>(this, parent, L"COMBOBOX", sl_null, style, 0);
 	}
 
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()

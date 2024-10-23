@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -36,14 +36,14 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
+		class PlatformMenu;
 
-		class MenuImpl;
-
-		typedef CHashMap< HMENU, WeakRef<MenuImpl> > MenuMap;
+		typedef CHashMap< HMENU, WeakRef<PlatformMenu> > MenuMap;
 		SLIB_SAFE_STATIC_GETTER(MenuMap, GetMenuMap)
 
-		class MenuItemImpl : public MenuItem
+		class PlatformMenuItem : public MenuItem
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -52,13 +52,13 @@ namespace slib
 			HBITMAP m_hbmUnchecked;
 
 		public:
-			MenuItemImpl()
+			PlatformMenuItem()
 			{
 				m_hbmChecked = NULL;
 				m_hbmUnchecked = NULL;
 			}
 
-			~MenuItemImpl()
+			~PlatformMenuItem()
 			{
 				if (m_hbmChecked) {
 					DeleteObject(m_hbmChecked);
@@ -69,7 +69,7 @@ namespace slib
 			}
 
 		public:
-			static Ref<MenuItemImpl> create(MenuImpl* parent, sl_uint32 index, const MenuItemParam& param);
+			static Ref<PlatformMenuItem> create(PlatformMenu* parent, sl_uint32 index, const MenuItemParam& param);
 
 			static String makeText(const String& title, const KeycodeAndModifiers& shortcutKey, const KeycodeAndModifiers& secondShortcutKey);
 
@@ -115,9 +115,9 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(MenuItemImpl, MenuItem)
+		SLIB_DEFINE_OBJECT(PlatformMenuItem, MenuItem)
 
-		class MenuImpl : public Menu
+		class PlatformMenu : public Menu
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -126,13 +126,13 @@ namespace slib
 			HMENU m_hMenuParentForPopup;
 
 		public:
-			MenuImpl()
+			PlatformMenu()
 			{
 				m_hMenu = NULL;
 				m_hMenuParentForPopup = NULL;
 			}
 
-			~MenuImpl()
+			~PlatformMenu()
 			{
 				if (m_hMenu) {
 					DestroyMenu(m_hMenu);
@@ -147,7 +147,7 @@ namespace slib
 			}
 
 		public:
-			static Ref<MenuImpl> create(sl_bool flagPopup)
+			static Ref<PlatformMenu> create(sl_bool flagPopup)
 			{
 				HMENU hMenu;
 				if (flagPopup) {
@@ -161,7 +161,7 @@ namespace slib
 					mi.fMask = MIM_STYLE;
 					mi.dwStyle = MNS_NOTIFYBYPOS;
 					if (SetMenuInfo(hMenu, &mi)) {
-						Ref<MenuImpl> ret = new MenuImpl();
+						Ref<PlatformMenu> ret = new PlatformMenu();
 						if (ret.isNotNull()) {
 							ret->m_hMenu = hMenu;
 							MenuMap* map = GetMenuMap();
@@ -188,7 +188,7 @@ namespace slib
 				if (index > n) {
 					index = n;
 				}
-				Ref<MenuItem> item = MenuItemImpl::create(this, index, param);
+				Ref<MenuItem> item = PlatformMenuItem::create(this, index, param);
 				if (item.isNotNull()) {
 					m_items.insert(index, item);
 					return item;
@@ -254,12 +254,12 @@ namespace slib
 				}
 			}
 
-			friend class MenuItemImpl;
+			friend class PlatformMenuItem;
 		};
 
-		SLIB_DEFINE_OBJECT(MenuImpl, Menu)
+		SLIB_DEFINE_OBJECT(PlatformMenu, Menu)
 
-		Ref<MenuItemImpl> MenuItemImpl::create(MenuImpl* parent, sl_uint32 index, const MenuItemParam& param)
+		Ref<PlatformMenuItem> PlatformMenuItem::create(PlatformMenu* parent, sl_uint32 index, const MenuItemParam& param)
 		{
 			MENUITEMINFOW mii;
 			Base::zeroMemory(&mii, sizeof(mii));
@@ -287,7 +287,7 @@ namespace slib
 			StringCstr16 text = makeText(param.text, param.shortcutKey, param.secondShortcutKey);
 			mii.dwTypeData = (LPWSTR)(text.getData());
 			if (InsertMenuItemW(parent->m_hMenu, index, TRUE, &mii)) {
-				Ref<MenuItemImpl> ret = new MenuItemImpl;
+				Ref<PlatformMenuItem> ret = new PlatformMenuItem;
 				if (ret.isNotNull()) {
 					ret->m_parent = parent;
 					ret->m_text = param.text;
@@ -313,7 +313,7 @@ namespace slib
 			return sl_null;
 		}
 
-		String MenuItemImpl::makeText(const String& title, const KeycodeAndModifiers& shortcutKey, const KeycodeAndModifiers& secondShortcutKey)
+		String PlatformMenuItem::makeText(const String& title, const KeycodeAndModifiers& shortcutKey, const KeycodeAndModifiers& secondShortcutKey)
 		{
 			String text = title;
 			if (shortcutKey.getKeycode() != Keycode::Unknown) {
@@ -333,7 +333,7 @@ namespace slib
 		}
 
 #define MENU_ITEM_SET_PROLOG \
-			Ref<MenuImpl> parent(WeakRef<MenuImpl>::cast(m_parent)); \
+			Ref<PlatformMenu> parent(WeakRef<PlatformMenu>::cast(m_parent)); \
 			if (parent.isNull()) { \
 				return; \
 			} \
@@ -348,7 +348,7 @@ namespace slib
 			Base::zeroMemory(&mii, sizeof(mii)); \
 			mii.cbSize = sizeof(mii);
 
-		void MenuItemImpl::_updateText()
+		void PlatformMenuItem::_updateText()
 		{
 			MENU_ITEM_SET_PROLOG;
 			mii.fMask = MIIM_STRING;
@@ -357,7 +357,7 @@ namespace slib
 			SetMenuItemInfoW(hMenu, index, TRUE, &mii);
 		}
 
-		void MenuItemImpl::_updateState()
+		void PlatformMenuItem::_updateState()
 		{
 			MENU_ITEM_SET_PROLOG;
 			mii.fMask = MIIM_STATE;
@@ -371,7 +371,7 @@ namespace slib
 			SetMenuItemInfoW(hMenu, index, TRUE, &mii);
 		}
 
-		void MenuItemImpl::setIcon(const Ref<Drawable>& icon)
+		void PlatformMenuItem::setIcon(const Ref<Drawable>& icon)
 		{
 			MenuItem::setIcon(icon);
 			MENU_ITEM_SET_PROLOG;
@@ -385,7 +385,7 @@ namespace slib
 			SetMenuItemInfoW(hMenu, index, TRUE, &mii);
 		}
 
-		void MenuItemImpl::setCheckedIcon(const Ref<Drawable>& icon)
+		void PlatformMenuItem::setCheckedIcon(const Ref<Drawable>& icon)
 		{
 			MenuItem::setIcon(icon);
 			MENU_ITEM_SET_PROLOG;
@@ -399,7 +399,7 @@ namespace slib
 			SetMenuItemInfoW(hMenu, index, TRUE, &mii);
 		}
 
-		void MenuItemImpl::setSubmenu(const Ref<Menu>& menu)
+		void PlatformMenuItem::setSubmenu(const Ref<Menu>& menu)
 		{
 			MenuItem::setSubmenu(menu);
 			MENU_ITEM_SET_PROLOG;
@@ -407,18 +407,17 @@ namespace slib
 			mii.hSubMenu = UIPlatform::getMenuHandle(menu);
 			SetMenuItemInfoW(hMenu, index, TRUE, &mii);
 		}
-
 	}
 
 	Ref<Menu> Menu::create(sl_bool flagPopup)
 	{
-		return MenuImpl::create(flagPopup);
+		return PlatformMenu::create(flagPopup);
 	}
 
 
 	HMENU UIPlatform::getMenuHandle(Menu* menu)
 	{
-		if (MenuImpl* _menu = CastInstance<MenuImpl>(menu)) {
+		if (PlatformMenu* _menu = CastInstance<PlatformMenu>(menu)) {
 			return _menu->m_hMenu;
 		}
 		return NULL;
@@ -428,7 +427,7 @@ namespace slib
 	{
 		MenuMap* map = GetMenuMap();
 		if (map) {
-			return map->getValue(hMenu, WeakRef<MenuImpl>::null());
+			return map->getValue(hMenu, WeakRef<PlatformMenu>::null());
 		}
 		return sl_null;
 	}
@@ -442,7 +441,7 @@ namespace slib
 			sl_uint32 index = (sl_uint32)(wParam);
 			MenuMap* map = GetMenuMap();
 			if (map) {
-				Ref<MenuImpl> menu(map->getValue(hMenu, WeakRef<MenuImpl>::null()));
+				Ref<PlatformMenu> menu(map->getValue(hMenu, WeakRef<PlatformMenu>::null()));
 				if (menu.isNotNull()) {
 					Ref<MenuItem> item = menu->getMenuItem(index);
 					if (item.isNotNull()) {

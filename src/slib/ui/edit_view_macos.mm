@@ -107,7 +107,7 @@ namespace slib
 			using EditView::_onPostChange_NW;
 		};
 
-		class EditViewInstance : public macOS_ViewInstance, public IEditViewInstance
+		class EditViewInstance : public PlatformViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -119,7 +119,7 @@ namespace slib
 
 			Ref<EditView> getView()
 			{
-				return CastRef<EditView>(macOS_ViewInstance::getView());
+				return CastRef<EditView>(PlatformViewInstance::getView());
 			}
 
 			void initialize(View* _view) override
@@ -285,16 +285,16 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(EditViewInstance, macOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(EditViewInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* parent)
 	{
 		if (isPassword()) {
-			return macOS_ViewInstance::create<EditViewInstance, SLIBPasswordViewHandle>(this, parent);
+			return PlatformViewInstance::create<EditViewInstance, SLIBPasswordViewHandle>(this, parent);
 		} else {
-			return macOS_ViewInstance::create<EditViewInstance, SLIBEditViewHandle>(this, parent);
+			return PlatformViewInstance::create<EditViewInstance, SLIBEditViewHandle>(this, parent);
 		}
 	}
 
@@ -306,7 +306,7 @@ namespace slib
 	namespace
 	{
 
-		class TextAreaInstance : public macOS_ViewInstance, public IEditViewInstance
+		class TextAreaInstance : public PlatformViewInstance, public IEditViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -318,7 +318,7 @@ namespace slib
 
 			Ref<TextArea> getView()
 			{
-				return CastRef<TextArea>(macOS_ViewInstance::getView());
+				return CastRef<TextArea>(PlatformViewInstance::getView());
 			}
 
 			void initialize(View* _view) override
@@ -537,13 +537,13 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(TextAreaInstance, macOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(TextAreaInstance, PlatformViewInstance)
 
 	}
 
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* parent)
 	{
-		return macOS_ViewInstance::create<TextAreaInstance, SLIBTextAreaHandle>(this, parent);
+		return PlatformViewInstance::create<TextAreaInstance, SLIBTextAreaHandle>(this, parent);
 	}
 
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()
@@ -652,7 +652,7 @@ MACOS_VIEW_DEFINE_ON_KEY
 
 - (BOOL)becomeFirstResponder
 {
-	Ref<macOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		instance->onSetFocus();
 	}

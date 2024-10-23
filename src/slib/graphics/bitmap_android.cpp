@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		SLIB_JNI_BEGIN_CLASS(JBitmap, "slib/android/ui/UiBitmap")
 			SLIB_JNI_STATIC_METHOD(create, "create", "(II)Lslib/android/ui/UiBitmap;");
 			SLIB_JNI_STATIC_METHOD(load, "load", "(Landroid/app/Activity;[B)Lslib/android/ui/UiBitmap;");
@@ -51,7 +51,7 @@ namespace slib
 			SLIB_JNI_STATIC_METHOD(returnArrayBuffer, "returnArrayBuffer", "([I)V");
 		SLIB_JNI_END_CLASS
 
-		class BitmapImpl : public Bitmap
+		class PlatformBitmap : public Bitmap
 		{
 			SLIB_DECLARE_OBJECT
 		public:
@@ -64,12 +64,12 @@ namespace slib
 			Ref<CRef> m_ref;
 
 		public:
-			BitmapImpl()
+			PlatformBitmap()
 			{
 				m_flagFreeOnRelease = sl_true;
 			}
 
-			~BitmapImpl()
+			~PlatformBitmap()
 			{
 				if (m_flagFreeOnRelease) {
 					JBitmap::recycle.call(m_bitmap);
@@ -77,16 +77,16 @@ namespace slib
 			}
 
 		public:
-			static Ref<BitmapImpl> create(jobject jbitmap, sl_bool flagFreeOnRelease, CRef* ref)
+			static Ref<PlatformBitmap> create(jobject jbitmap, sl_bool flagFreeOnRelease, CRef* ref)
 			{
-				Ref<BitmapImpl> ret;
+				Ref<PlatformBitmap> ret;
 				if (jbitmap) {
 					jint width = JBitmap::getWidth.callInt(jbitmap);
 					jint height = JBitmap::getHeight.callInt(jbitmap);
 					if (width > 0 && height > 0) {
 						JniGlobal<jobject> bitmap = JniGlobal<jobject>::create(jbitmap);
 						if (bitmap.isNotNull()) {
-							ret = new BitmapImpl();
+							ret = new PlatformBitmap();
 							if (ret.isNotNull()) {
 								ret->m_width = (sl_real)width;
 								ret->m_height = (sl_real)height;
@@ -104,13 +104,13 @@ namespace slib
 				return ret;
 			}
 
-			static Ref<BitmapImpl> create(sl_uint32 width, sl_uint32 height)
+			static Ref<PlatformBitmap> create(sl_uint32 width, sl_uint32 height)
 			{
-				Ref<BitmapImpl> ret;
+				Ref<PlatformBitmap> ret;
 				if (width > 0 && height > 0) {
 					JniGlobal<jobject> bitmap = JBitmap::create.callObject(sl_null, width, height);
 					if (bitmap.isNotNull()) {
-						ret = new BitmapImpl();
+						ret = new PlatformBitmap();
 						if (ret.isNotNull()) {
 							ret->m_width = width;
 							ret->m_height = height;
@@ -133,12 +133,12 @@ namespace slib
 				return sl_null;
 			}
 
-			static Ref<BitmapImpl> load(const void* buf, sl_size size)
+			static Ref<PlatformBitmap> load(const void* buf, sl_size size)
 			{
-				Ref<BitmapImpl> ret;
+				Ref<PlatformBitmap> ret;
 				JniGlobal<jobject> bitmap = loadJBitmap(buf, size);
 				if (bitmap.isNotNull()) {
-					ret = new BitmapImpl();
+					ret = new PlatformBitmap();
 					if (ret.isNotNull()) {
 						ret->m_width = JBitmap::getWidth.callInt(bitmap);
 						ret->m_height = JBitmap::getHeight.callInt(bitmap);
@@ -361,28 +361,27 @@ namespace slib
 			}
 		};
 
-		SLIB_DEFINE_OBJECT(BitmapImpl, Bitmap)
-
+		SLIB_DEFINE_OBJECT(PlatformBitmap, Bitmap)
 	}
 
 	Ref<Bitmap> Bitmap::create(sl_uint32 width, sl_uint32 height)
 	{
-		return BitmapImpl::create(width, height);
+		return PlatformBitmap::create(width, height);
 	}
 
 	Ref<Bitmap> Bitmap::loadFromMemory(const void* mem, sl_size size)
 	{
-		return BitmapImpl::load(mem, size);
+		return PlatformBitmap::load(mem, size);
 	}
 
 	Ref<Bitmap> GraphicsPlatform::createBitmap(jobject bitmap, sl_bool flagFreeOnRelease, CRef* ref)
 	{
-		return BitmapImpl::create(bitmap, flagFreeOnRelease, ref);
+		return PlatformBitmap::create(bitmap, flagFreeOnRelease, ref);
 	}
 
 	jobject GraphicsPlatform::getBitmapHandle(Bitmap* _bitmap)
 	{
-		if (BitmapImpl* bitmap = CastInstance<BitmapImpl>(_bitmap)) {
+		if (PlatformBitmap* bitmap = CastInstance<PlatformBitmap>(_bitmap)) {
 			return bitmap->m_bitmap;
 		}
 		return 0;

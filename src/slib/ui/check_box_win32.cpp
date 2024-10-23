@@ -100,7 +100,7 @@ namespace slib
 	Ref<ViewInstance> CheckBox::createNativeWidget(ViewInstance* parent)
 	{
 		UINT style = BS_AUTOCHECKBOX | WS_TABSTOP;
-		return Win32_ViewInstance::create<CheckBoxInstance>(this, parent, L"BUTTON", getText(), style, 0);
+		return PlatformViewInstance::create<CheckBoxInstance>(this, parent, L"BUTTON", getText(), style, 0);
 	}
 
 	Ptr<ICheckBoxInstance> CheckBox::getCheckBoxInstance()

@@ -76,7 +76,7 @@ namespace slib
 
 		};
 
-		class SelectViewInstance : public Android_ViewInstance, public ISelectViewInstance
+		class SelectViewInstance : public PlatformViewInstance, public ISelectViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -155,11 +155,11 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(SelectViewInstance, Android_ViewInstance)
+		SLIB_DEFINE_OBJECT(SelectViewInstance, PlatformViewInstance)
 
 		void JNICALL OnSelect(JNIEnv* env, jobject _this, jlong instance, jint n)
 		{
-			Ref<SelectViewHelper> helper = CastRef<SelectViewHelper>(Android_ViewInstance::findView(instance));
+			Ref<SelectViewHelper> helper = CastRef<SelectViewHelper>(PlatformViewInstance::findView(instance));
 			if (helper.isNotNull()) {
 				helper->_onSelectItem_NW(n);
 			}
@@ -169,9 +169,9 @@ namespace slib
 
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* _parent)
 	{
-		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
+		PlatformViewInstance* parent = (PlatformViewInstance*)_parent;
 		JniLocal<jobject> handle = JSelectView::create.callObject(sl_null, parent->getContext());
-		return Android_ViewInstance::create<SelectViewInstance>(this, parent, handle.get());
+		return PlatformViewInstance::create<SelectViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()

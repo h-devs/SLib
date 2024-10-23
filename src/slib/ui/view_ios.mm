@@ -32,32 +32,32 @@
 namespace slib
 {
 
-	SLIB_DEFINE_OBJECT(iOS_ViewInstance, ViewInstance)
+	SLIB_DEFINE_OBJECT(PlatformViewInstance, ViewInstance)
 
-	iOS_ViewInstance::iOS_ViewInstance()
+	PlatformViewInstance::PlatformViewInstance()
 	{
 		m_handle = nil;
 		m_flagDrawing = sl_true;
 	}
 
-	iOS_ViewInstance::~iOS_ViewInstance()
+	PlatformViewInstance::~PlatformViewInstance()
 	{
 		_release();
 	}
 
-	void iOS_ViewInstance::_release()
+	void PlatformViewInstance::_release()
 	{
 		UIPlatform::removeViewInstance(m_handle);
 		m_handle = nil;
 	}
 
-	void iOS_ViewInstance::initWithHandle(UIView* handle)
+	void PlatformViewInstance::initWithHandle(UIView* handle)
 	{
 		m_handle = handle;
 		UIPlatform::registerViewInstance(handle, this);
 	}
 
-	void iOS_ViewInstance::initWithHandle(UIView* handle, UIView* parent, View* view)
+	void PlatformViewInstance::initWithHandle(UIView* handle, UIView* parent, View* view)
 	{
 		initWithHandle(handle);
 
@@ -105,17 +105,17 @@ namespace slib
 		}
 	}
 
-	UIView* iOS_ViewInstance::getHandle()
+	UIView* PlatformViewInstance::getHandle()
 	{
 		return m_handle;
 	}
 
-	sl_bool iOS_ViewInstance::isValid(View* view)
+	sl_bool PlatformViewInstance::isValid(View* view)
 	{
 		return sl_true;
 	}
 
-	void iOS_ViewInstance::setFocus(View* view, sl_bool flag)
+	void PlatformViewInstance::setFocus(View* view, sl_bool flag)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -131,7 +131,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::invalidate(View* view)
+	void PlatformViewInstance::invalidate(View* view)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -145,7 +145,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::invalidate(View* view, const UIRect& _rect)
+	void PlatformViewInstance::invalidate(View* view, const UIRect& _rect)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -165,7 +165,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::setFrame(View* view, const UIRect& frame)
+	void PlatformViewInstance::setFrame(View* view, const UIRect& frame)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -187,7 +187,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::setTransform(View* view, const Matrix3& m)
+	void PlatformViewInstance::setTransform(View* view, const Matrix3& m)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -197,7 +197,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::setVisible(View* view, sl_bool flag)
+	void PlatformViewInstance::setVisible(View* view, sl_bool flag)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -205,7 +205,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::setEnabled(View* view, sl_bool flag)
+	void PlatformViewInstance::setEnabled(View* view, sl_bool flag)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -216,7 +216,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::setOpaque(View* view, sl_bool flag)
+	void PlatformViewInstance::setOpaque(View* view, sl_bool flag)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -224,7 +224,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::setAlpha(View* view, sl_real alpha)
+	void PlatformViewInstance::setAlpha(View* view, sl_real alpha)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -232,7 +232,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::setClipping(View* view, sl_bool flag)
+	void PlatformViewInstance::setClipping(View* view, sl_bool flag)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -241,12 +241,12 @@ namespace slib
 	}
 
 
-	void iOS_ViewInstance::setDrawing(View* view, sl_bool flag)
+	void PlatformViewInstance::setDrawing(View* view, sl_bool flag)
 	{
 		m_flagDrawing = flag;
 	}
 
-	UIPointF iOS_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
+	UIPointF PlatformViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -268,7 +268,7 @@ namespace slib
 		return ptScreen;
 	}
 
-	UIPointF iOS_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
+	UIPointF PlatformViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -290,9 +290,9 @@ namespace slib
 		return ptView;
 	}
 
-	void iOS_ViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
+	void PlatformViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
-		iOS_ViewInstance* child = (iOS_ViewInstance*)(_child.get());
+		PlatformViewInstance* child = (PlatformViewInstance*)(_child.get());
 		if (child) {
 			UIView* handle = m_handle;
 			if (handle != nil) {
@@ -304,9 +304,9 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
+	void PlatformViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
-		iOS_ViewInstance* child = (iOS_ViewInstance*)(_child.get());
+		PlatformViewInstance* child = (PlatformViewInstance*)(_child.get());
 		if (child) {
 			UIView* child_handle = child->m_handle;
 			if (child_handle != nil) {
@@ -315,7 +315,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::bringToFront(View* view)
+	void PlatformViewInstance::bringToFront(View* view)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -334,7 +334,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::setShadowOpacity(View* view, float opacity)
+	void PlatformViewInstance::setShadowOpacity(View* view, float opacity)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -345,7 +345,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::setShadowRadius(View* view, sl_ui_posf radius)
+	void PlatformViewInstance::setShadowRadius(View* view, sl_ui_posf radius)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -356,7 +356,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::setShadowOffset(View* view, sl_ui_posf x, sl_ui_posf y)
+	void PlatformViewInstance::setShadowOffset(View* view, sl_ui_posf x, sl_ui_posf y)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -367,7 +367,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::setShadowColor(View* view, const Color& _color)
+	void PlatformViewInstance::setShadowColor(View* view, const Color& _color)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -382,7 +382,7 @@ namespace slib
 		}
 	}
 
-	void iOS_ViewInstance::onDraw(CGRect rectDirty)
+	void PlatformViewInstance::onDraw(CGRect rectDirty)
 	{
 		if (!m_flagDrawing) {
 			return;
@@ -424,7 +424,7 @@ namespace slib
 		view->dispatchDraw(canvas.get());
 	}
 
-	UIEventFlags iOS_ViewInstance::onEventTouch(UIAction action, NSSet* touches, ::UIEvent* event, sl_bool flagDispatchToChildren, sl_bool flagDispatchToParent)
+	UIEventFlags PlatformViewInstance::onEventTouch(UIAction action, NSSet* touches, ::UIEvent* event, sl_bool flagDispatchToChildren, sl_bool flagDispatchToParent)
 	{
 		UIView* handle = m_handle;
 
@@ -553,12 +553,12 @@ namespace slib
 	Ref<ViewInstance> View::createTypicalInstance(ViewInstance* parent)
 	{
 		if (m_flagCreatingEmptyContent) {
-			return iOS_ViewInstance::create<iOS_ViewInstance, SLIBEmptyContentViewHandle>(this, parent);
+			return PlatformViewInstance::create<PlatformViewInstance, SLIBEmptyContentViewHandle>(this, parent);
 		}
 		if (m_flagCreatingLargeContent) {
-			return iOS_ViewInstance::create<iOS_ViewInstance, SLIBLargeContentViewHandle>(this, parent);
+			return PlatformViewInstance::create<PlatformViewInstance, SLIBLargeContentViewHandle>(this, parent);
 		}
-		return iOS_ViewInstance::create<iOS_ViewInstance, SLIBViewHandle>(this, parent);
+		return PlatformViewInstance::create<PlatformViewInstance, SLIBViewHandle>(this, parent);
 	}
 
 
@@ -568,7 +568,7 @@ namespace slib
 		if (ret.isNotNull()) {
 			return ret;
 		}
-		return iOS_ViewInstance::create<iOS_ViewInstance>(handle);
+		return PlatformViewInstance::create<PlatformViewInstance>(handle);
 	}
 
 	void UIPlatform::registerViewInstance(UIView* handle, ViewInstance* instance)
@@ -588,7 +588,7 @@ namespace slib
 
 	UIView* UIPlatform::getViewHandle(ViewInstance* _instance)
 	{
-		iOS_ViewInstance* instance = static_cast<iOS_ViewInstance*>(_instance);
+		PlatformViewInstance* instance = static_cast<PlatformViewInstance*>(_instance);
 		if (instance) {
 			return instance->getHandle();
 		} else {
@@ -601,7 +601,7 @@ namespace slib
 		if (view) {
 			Ref<ViewInstance> _instance = view->getViewInstance();
 			if (_instance.isNotNull()) {
-				iOS_ViewInstance* instance = static_cast<iOS_ViewInstance*>(_instance.get());
+				PlatformViewInstance* instance = static_cast<PlatformViewInstance*>(_instance.get());
 				return instance->getHandle();
 			}
 		}
@@ -611,7 +611,7 @@ namespace slib
 	sl_bool GestureDetector::_enableNative(const Ref<View>& view, GestureType type)
 	{
 		Ref<ViewInstance> _instance = view->getViewInstance();
-		iOS_ViewInstance* instance = static_cast<iOS_ViewInstance*>(_instance.get());
+		PlatformViewInstance* instance = static_cast<PlatformViewInstance*>(_instance.get());
 		if (instance) {
 			switch (type) {
 				case GestureType::SwipeLeft:
@@ -662,7 +662,7 @@ using ::UIEvent;
 
 - (void)drawRect:(CGRect)dirtyRect
 {
-	Ref<iOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		instance->onDraw(dirtyRect);
 	}
@@ -670,7 +670,7 @@ using ::UIEvent;
 
 - (UIView *)hitTest:(CGPoint)aPoint withEvent:(::UIEvent *)event
 {
-	Ref<iOS_ViewInstance> instance = m_viewInstance;
+	Ref<PlatformViewInstance> instance = m_viewInstance;
 	if (instance.isNotNull()) {
 		Ref<View> view = instance->getView();
 		if (view.isNotNull()) {

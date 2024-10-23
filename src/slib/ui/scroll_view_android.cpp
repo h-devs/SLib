@@ -69,7 +69,7 @@ namespace slib
 			}
 		};
 
-		class ScrollViewInstance : public Android_ViewInstance, public IScrollViewInstance
+		class ScrollViewInstance : public PlatformViewInstance, public IScrollViewInstance
 		{
 			SLIB_DECLARE_OBJECT
 
@@ -170,11 +170,11 @@ namespace slib
 
 		};
 
-		SLIB_DEFINE_OBJECT(ScrollViewInstance, Android_ViewInstance)
+		SLIB_DEFINE_OBJECT(ScrollViewInstance, PlatformViewInstance)
 
 		void JNICALL OnScroll(JNIEnv* env, jobject _this, jlong instance, int x, int y)
 		{
-			Ref<ScrollViewHelper> helper = CastRef<ScrollViewHelper>(Android_ViewInstance::findView(instance));
+			Ref<ScrollViewHelper> helper = CastRef<ScrollViewHelper>(PlatformViewInstance::findView(instance));
 			if (helper.isNotNull()) {
 				helper->onScroll(x, y);
 			}
@@ -184,9 +184,9 @@ namespace slib
 
 	Ref<ViewInstance> ScrollView::createNativeWidget(ViewInstance* _parent)
 	{
-		Android_ViewInstance* parent = (Android_ViewInstance*)_parent;
+		PlatformViewInstance* parent = (PlatformViewInstance*)_parent;
 		JniLocal<jobject> handle = JScrollView::create.callObject(sl_null, parent->getContext(), isVerticalScrolling());
-		return Android_ViewInstance::create<ScrollViewInstance>(this, parent, handle.get());
+		return PlatformViewInstance::create<ScrollViewInstance>(this, parent, handle.get());
 	}
 
 	Ptr<IScrollViewInstance> ScrollView::getScrollViewInstance()
