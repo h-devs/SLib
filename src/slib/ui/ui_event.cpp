@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,19 @@
 
 namespace slib
 {
+
+
+	namespace object_types
+	{
+		enum {
+			KeyboardEvent = UIEvent + 1,
+			MouseEvent,
+			MouseEventWithDelta,
+			TouchEvent,
+			SetCursorEvent,
+			DragEvent,
+		};
+	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TouchPoint)
 
@@ -320,7 +333,9 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 		return new UIEvent(UIAction::Unknown, time);
 	}
-	namespace {
+
+	namespace
+	{
 		class KeyboardEvent : public UIEvent
 		{
 			SLIB_DECLARE_OBJECT
@@ -359,7 +374,8 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return sl_null;
 	}
 
-	namespace {
+	namespace
+	{
 		class MouseEvent : public UIEvent
 		{
 			SLIB_DECLARE_OBJECT
@@ -418,7 +434,6 @@ sl_bool UIEvent::is##NAME##Key() const \
 		};
 
 		SLIB_DEFINE_OBJECT(MouseEventWithDelta, MouseEvent)
-
 	}
 
 	Ref<UIEvent> UIEvent::createMouseEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, const Time& time)
@@ -436,7 +451,8 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return new MouseEventWithDelta(UIAction::MouseWheel, time, mouseX, mouseY, deltaX, deltaY);
 	}
 
-	namespace {
+	namespace
+	{
 		class TouchEvent : public MouseEvent
 		{
 			SLIB_DECLARE_OBJECT
@@ -491,7 +507,8 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return new TouchEvent(action, time, Array<TouchPoint>::create(&point, 1));
 	}
 
-	namespace {
+	namespace
+	{
 		class SetCursorEvent : public MouseEvent
 		{
 			SLIB_DECLARE_OBJECT
@@ -527,7 +544,8 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return new SetCursorEvent(time, x, y);
 	}
 
-	namespace {
+	namespace
+	{
 		class DragEvent : public MouseEvent
 		{
 			SLIB_DECLARE_OBJECT
@@ -1052,8 +1070,8 @@ sl_bool UIEvent::is##NAME##Key() const \
 		m_keycodeAndModifiers = other->m_keycodeAndModifiers;
 	}
 
-	namespace {
-
+	namespace
+	{
 		class KeyNameMapper
 		{
 		private:
@@ -1489,7 +1507,8 @@ sl_bool UIEvent::is##NAME##Key() const \
 		}
 	}
 
-	namespace {
+	namespace
+	{
 		static DragContext g_currentDragContext;
 	}
 
