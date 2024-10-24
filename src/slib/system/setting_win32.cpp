@@ -26,6 +26,7 @@
 
 #include "slib/system/setting.h"
 
+#include "slib/core/app.h"
 #include "slib/io/file.h"
 #include "slib/system/system.h"
 #include "slib/platform.h"
@@ -96,7 +97,7 @@ namespace slib
 
 	void Setting::registerRunAtStartup()
 	{
-		registerRunAtStartup(getApplicationPath());
+		registerRunAtStartup(Application::getApplicationPath());
 	}
 
 	void Setting::unregisterRunAtStartup(const StringParam& path)
@@ -106,7 +107,7 @@ namespace slib
 
 	void Setting::unregisterRunAtStartup()
 	{
-		unregisterRunAtStartup(getApplicationPath());
+		unregisterRunAtStartup(Application::getApplicationPath());
 	}
 
 	void Setting::registerAtStartMenu(const StartMenuParam& param)

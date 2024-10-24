@@ -70,6 +70,7 @@ namespace slib
 
 				ret->m_name = name;
 				ret->m_onCreateWindow = param.onCreateWindow;
+				ret->m_onDestroyWindow = param.onDestroyWindow;
 				ret->m_onMessage = param.onMessage;
 
 				ret->m_styleClass = param.classStyle;
@@ -143,11 +144,6 @@ namespace slib
 			return sl_false;
 		}
 
-		void MessageLoop::setOnCreateWindow(const Function<void(HWND)>& callback)
-		{
-			m_onCreateWindow = callback;
-		}
-
 		HWND MessageLoop::getWindowHandle()
 		{
 			return m_hWnd;
@@ -212,6 +208,7 @@ namespace slib
 							}
 						}
 					}
+					m_onDestroyWindow(hWnd);
 					m_hWnd = sl_null;
 					DestroyWindow(hWnd);
 				}

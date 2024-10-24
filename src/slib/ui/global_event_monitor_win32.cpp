@@ -26,6 +26,7 @@
 
 #include "slib/ui/global_event_monitor.h"
 
+#include "slib/ui/platform.h"
 #include "slib/platform/win32/message_loop.h"
 
 #define USAGE_MOUSE 2
@@ -87,30 +88,18 @@ namespace slib
 				if (ret.isNull()) {
 					return sl_null;
 				}
-				win32::MessageLoopParam param;
-				param.name = SLIB_UNICODE("GlobalEventMonitor");
-				param.onMessage = SLIB_FUNCTION_WEAKREF(ret, processMessage);
-				param.flagAutoStart = sl_false;
-				loop = win32::MessageLoop::create(param);
+				win32::MessageLoopParam mlp;
+				mlp.name = SLIB_UNICODE("GlobalEventMonitor");
+				mlp.onCreateWindow = SLIB_FUNCTION_WEAKREF(ret, onCreateWindow);
+				mlp.onDestroyWindow = SLIB_FUNCTION_WEAKREF(ret, onDestroyWindow);
+				mlp.onMessage = SLIB_FUNCTION_WEAKREF(ret, processMessage);
+				mlp.flagAutoStart = sl_false;
+				Ref<win32::MessageLoop> loop = win32::MessageLoop::create(mlp);
 				if (loop.isNull()) {
 					return sl_null;
 				}
-				HWND hWnd = loop->getWindowHandle();
-				if (!hWnd) {
-					return sl_null;
-				}
-				if (flagKeyboard) {
-					if (!(RegisterDevice(hWnd, USAGE_KEYBOARD))) {
-						return sl_null;
-					}
-					ret->flagKeyboard = sl_true;
-				}
-				if (flagMouse) {
-					if (!(RegisterDevice(hWnd, USAGE_MOUSE))) {
-						return sl_null;
-					}
-					ret->flagMouse = sl_true;
-				}
+				ret->m_flagKeyboard = flagKeyboard;
+				ret->m_flagMouse = flagMouse;
 				ret->m_mask = param;
 				ret->_initialize(param);
 				loop->start();
@@ -123,19 +112,33 @@ namespace slib
 			{
 				ObjectLocker lock(this);
 				Ref<win32::MessageLoop> loop = Move(m_loop);
-				sl_bool flagKeyboard = m_flagKeyboard;
-				m_flagKeyboard = sl_false;
-				sl_bool flagMouse = m_flagMouse;
-				m_flagMouse = sl_false;
 				lock.unlock();
-				if (flagKeyboard) {
-					UnregisterDevice(USAGE_KEYBOARD);
-				}
-				if (flagMouse) {
-					UnregisterDevice(USAGE_MOUSE);
-				}
 				if (loop.isNotNull()) {
 					loop->stop();
+				}
+			}
+
+			void onCreateWindow(HWND hWnd)
+			{
+				if (m_flagKeyboard) {
+					if (!(RegisterDevice(hWnd, USAGE_KEYBOARD))) {
+						m_flagKeyboard = sl_false;
+					}
+				}
+				if (m_flagMouse) {
+					if (!(RegisterDevice(hWnd, USAGE_MOUSE))) {
+						m_flagMouse = sl_false;
+					}
+				}
+			}
+
+			void onDestroyWindow(HWND hWnd)
+			{
+				if (m_flagKeyboard) {
+					UnregisterDevice(USAGE_KEYBOARD);
+				}
+				if (m_flagMouse) {
+					UnregisterDevice(USAGE_MOUSE);
 				}
 			}
 
@@ -143,7 +146,7 @@ namespace slib
 			{
 				Time t;
 				t.setMillisecondCount(GetMessageTime());
-				UIPlatform::applyEventModifiers(ev.get());
+				UIPlatform::applyEventModifiers(ev);
 				if (!(raw.header.hDevice)) {
 					ev->addFlag(UIEventFlags::Injected);
 				}
@@ -211,7 +214,7 @@ namespace slib
 				}
 			}
 
-			void processMouseWheelEvent(RAWINPUT& raw)
+			void processMouseWheelEvent(RAWINPUT& raw, sl_int32 dx, sl_int32 dy)
 			{
 				sl_ui_posf x;
 				sl_ui_posf y;
@@ -228,14 +231,8 @@ namespace slib
 						y = 0.0f;
 					}
 				}
-				sl_real dx = 0.0f;
-				sl_real dy = 0.0f;
-				if (buttons & RI_MOUSE_WHEEL) {
-					dy = (sl_real)((short)((unsigned short)(raw.data.mouse.usButtonData)));
-				} else {
-					dx = (sl_real)((short)((unsigned short)(raw.data.mouse.usButtonData)));
-				}
-				Ref<UIEvent> ev = UIEvent::createMouseWheelEvent(x, y, dx, dy, Time::zero());
+				sl_int32 delta = (short)((unsigned short)(raw.data.mouse.usButtonData));
+				Ref<UIEvent> ev = UIEvent::createMouseWheelEvent(x, y, (sl_real)(dx * delta), (sl_real)(dy * delta), Time::zero());
 				if (ev.isNotNull()) {
 					prepareEvent(ev.get(), raw);
 					_onEvent(ev.get());
@@ -253,7 +250,6 @@ namespace slib
 					return;
 				}
 				if (raw.header.dwType == RIM_TYPEKEYBOARD) {
-					UIAction action;
 					switch (raw.data.keyboard.Message) {
 						case WM_KEYDOWN:
 						case WM_SYSKEYDOWN:
@@ -272,40 +268,41 @@ namespace slib
 					}
 				} else if (raw.header.dwType == RIM_TYPEMOUSE) {
 					sl_uint32 buttons = raw.data.mouse.usButtonFlags;
-					if ((buttons & RI_MOUSE_WHEEL) || (buttons & 0x0800 /*RI_MOUSE_HWHEEL*/)) {
+					if (buttons & RI_MOUSE_LEFT_BUTTON_DOWN) {
+						if (m_mask.flagLeftButtonDown) {
+							processMouseEvent(UIAction::LeftButtonDown, raw);
+						}
+					} else if (buttons & RI_MOUSE_LEFT_BUTTON_UP) {
+						if (m_mask.flagLeftButtonUp) {
+							processMouseEvent(UIAction::LeftButtonUp, raw);
+						}
+					} else if (buttons & RI_MOUSE_RIGHT_BUTTON_DOWN) {
+						if (m_mask.flagRightButtonDown) {
+							processMouseEvent(UIAction::RightButtonDown, raw);
+						}
+					} else if (buttons & RI_MOUSE_RIGHT_BUTTON_UP) {
+						if (m_mask.flagRightButtonUp) {
+							processMouseEvent(UIAction::RightButtonUp, raw);
+						}
+					} else if (buttons & RI_MOUSE_MIDDLE_BUTTON_DOWN) {
+						if (m_mask.flagMiddleButtonDown) {
+							processMouseEvent(UIAction::MiddleButtonDown, raw);
+						}
+					} else if (buttons & RI_MOUSE_MIDDLE_BUTTON_UP) {
+						if (m_mask.flagMiddleButtonUp) {
+							processMouseEvent(UIAction::MiddleButtonUp, raw);
+						}
+					} else if (buttons & RI_MOUSE_WHEEL) {
 						if (m_mask.flagMouseWheel) {
-							processMouseWheelEvent(raw);
+							processMouseWheelEvent(raw, 0, 1);
+						}
+					} else if (buttons & 0x0800 /*RI_MOUSE_HWHEEL*/) {
+						if (m_mask.flagMouseWheel) {
+							processMouseWheelEvent(raw, 1, 0);
 						}
 					} else {
-						UIAction action;
-						if (buttons & RI_MOUSE_LEFT_BUTTON_DOWN) {
-							if (m_mask.flagLeftButtonDown) {
-								processMouseEvent(UIAction::LeftButtonDown, raw);
-							}
-						} else if (buttons & RI_MOUSE_LEFT_BUTTON_UP) {
-							if (m_mask.flagLeftButtonUp) {
-								processMouseEvent(UIAction::LeftButtonUp, raw);
-							}
-						} else if (buttons & RI_MOUSE_RIGHT_BUTTON_DOWN) {
-							if (m_mask.flagRightButtonDown) {
-								processMouseEvent(UIAction::RightButtonDown, raw);
-							}
-						} else if (buttons & RI_MOUSE_RIGHT_BUTTON_UP) {
-							if (m_mask.flagRightButtonUp) {
-								processMouseEvent(UIAction::RightButtonUp, raw);
-							}
-						} else if (buttons & RI_MOUSE_MIDDLE_BUTTON_DOWN) {
-							if (m_mask.flagMiddleButtonDown) {
-								processMouseEvent(UIAction::MiddleButtonDown, raw);
-							}
-						} else if (buttons & RI_MOUSE_MIDDLE_BUTTON_UP) {
-							if (m_mask.flagMiddleButtonUp) {
-								processMouseEvent(UIAction::MiddleButtonUp, raw);
-							}
-						} else {
-							if (m_mask.flagMouseMove) {
-								processMouseEvent(UIAction::MouseMove, raw);
-							}
+						if (m_mask.flagMouseMove) {
+							processMouseEvent(UIAction::MouseMove, raw);
 						}
 					}
 				}

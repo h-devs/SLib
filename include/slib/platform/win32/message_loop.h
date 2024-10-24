@@ -46,6 +46,7 @@ namespace slib
 		public:
 			StringParam name;
 			Function<void(HWND)> onCreateWindow;
+			Function<void(HWND)> onDestroyWindow;
 			Function<sl_bool(UINT, WPARAM, LPARAM, LRESULT&)> onMessage;
 			sl_bool flagAutoStart;
 
@@ -81,8 +82,6 @@ namespace slib
 			sl_bool dispatch(const Function<void()>& task, sl_uint64 delayMillis = 0) override;
 
 		public:
-			void setOnCreateWindow(const Function<void(HWND)>& callback);
-
 			HWND getWindowHandle();
 
 		public:
@@ -95,7 +94,8 @@ namespace slib
 
 		public:
 			String16 m_name;
-			AtomicFunction<void(HWND)> m_onCreateWindow;
+			Function<void(HWND)> m_onCreateWindow;
+			Function<void(HWND)> m_onDestroyWindow;
 			Function<sl_bool(UINT, WPARAM, LPARAM, LRESULT&)> m_onMessage;
 
 			UINT m_styleClass;
