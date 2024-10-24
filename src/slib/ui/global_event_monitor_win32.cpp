@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -26,25 +26,16 @@
 
 #include "slib/ui/global_event_monitor.h"
 
-#include "slib/core/thread.h"
-#include "slib/core/safe_static.h"
-#include "slib/ui/core.h"
-#include "slib/ui/platform.h"
 #include "slib/platform/win32/message_loop.h"
+
+#define USAGE_MOUSE 2
+#define USAGE_KEYBOARD 6
 
 namespace slib
 {
 
-	namespace {
-
-		class GlobalEventMonitorHelper : public GlobalEventMonitor
-		{
-		public:
-			using GlobalEventMonitor::_onEvent;
-
-			friend class Monitor;
-		};
-
+	namespace
+	{
 		static sl_bool RegisterDevice(HWND hWnd, USHORT usage)
 		{
 			RAWINPUTDEVICE hid;
@@ -65,34 +56,101 @@ namespace slib
 			RegisterRawInputDevices(&hid, 1, sizeof(RAWINPUTDEVICE));
 		}
 
-		static void ProcessRawInput(WPARAM wParam, LPARAM lParam)
+		class RawInputMonitor : public GlobalEventMonitor
 		{
-			HRAWINPUT hRawInput = (HRAWINPUT)lParam;
-			static char bufRawInput[1024];
-			RAWINPUT& raw = *((RAWINPUT*)bufRawInput);
-			UINT uSize = sizeof(bufRawInput);
-			UINT uRet = GetRawInputData(hRawInput, RID_INPUT, &raw, &uSize, sizeof(RAWINPUTHEADER));
-			if (uRet < sizeof(RAWINPUTHEADER) || uRet > sizeof(bufRawInput)) {
-				return;
+		public:
+			GlobalEventMask m_mask;
+			sl_bool m_flagKeyboard = sl_false;
+			sl_bool m_flagMouse = sl_false;
+
+			Ref<win32::MessageLoop> m_loop;
+
+		public:
+			RawInputMonitor()
+			{
 			}
-			sl_bool flagInjected = sl_false;
-			if (!(raw.header.hDevice)) {
-				flagInjected = sl_true;
+
+			~RawInputMonitor()
+			{
+				release();
 			}
-			if (raw.header.dwType == RIM_TYPEKEYBOARD) {
-				UIAction action;
-				switch (raw.data.keyboard.Message) {
-				case WM_KEYDOWN:
-				case WM_SYSKEYDOWN:
-					action = UIAction::KeyDown;
-					break;
-				case WM_KEYUP:
-				case WM_SYSKEYUP:
-					action = UIAction::KeyUp;
-					break;
-				default:
-					return;
+
+		public:
+			static Ref<RawInputMonitor> create(const GlobalEventMonitorParam& param)
+			{
+				sl_bool flagKeyboard = param.flagKeyDown || param.flagKeyUp;
+				sl_bool flagMouse = param.flagLeftButtonDown || param.flagLeftButtonUp || param.flagRightButtonDown || param.flagRightButtonUp || param.flagMiddleButtonDown || param.flagMiddleButtonUp || param.flagMouseMove || param.flagMouseWheel;
+				if (!flagKeyboard && !flagMouse) {
+					return sl_null;
 				}
+				Ref<RawInputMonitor> ret = new RawInputMonitor;
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				win32::MessageLoopParam param;
+				param.name = SLIB_UNICODE("GlobalEventMonitor");
+				param.onMessage = SLIB_FUNCTION_WEAKREF(ret, processMessage);
+				param.flagAutoStart = sl_false;
+				loop = win32::MessageLoop::create(param);
+				if (loop.isNull()) {
+					return sl_null;
+				}
+				HWND hWnd = loop->getWindowHandle();
+				if (!hWnd) {
+					return sl_null;
+				}
+				if (flagKeyboard) {
+					if (!(RegisterDevice(hWnd, USAGE_KEYBOARD))) {
+						return sl_null;
+					}
+					ret->flagKeyboard = sl_true;
+				}
+				if (flagMouse) {
+					if (!(RegisterDevice(hWnd, USAGE_MOUSE))) {
+						return sl_null;
+					}
+					ret->flagMouse = sl_true;
+				}
+				ret->m_mask = param;
+				ret->_initialize(param);
+				loop->start();
+				ret->m_loop = Move(loop);
+				return ret;
+			}
+
+		public:
+			void release() override
+			{
+				ObjectLocker lock(this);
+				Ref<win32::MessageLoop> loop = Move(m_loop);
+				sl_bool flagKeyboard = m_flagKeyboard;
+				m_flagKeyboard = sl_false;
+				sl_bool flagMouse = m_flagMouse;
+				m_flagMouse = sl_false;
+				lock.unlock();
+				if (flagKeyboard) {
+					UnregisterDevice(USAGE_KEYBOARD);
+				}
+				if (flagMouse) {
+					UnregisterDevice(USAGE_MOUSE);
+				}
+				if (loop.isNotNull()) {
+					loop->stop();
+				}
+			}
+
+			void prepareEvent(UIEvent* ev, RAWINPUT& raw)
+			{
+				Time t;
+				t.setMillisecondCount(GetMessageTime());
+				UIPlatform::applyEventModifiers(ev.get());
+				if (!(raw.header.hDevice)) {
+					ev->addFlag(UIEventFlags::Injected);
+				}
+			}
+
+			void processKeyEvent(UIAction action, RAWINPUT& raw)
+			{
 				sl_uint32 vkey = (sl_uint32)(raw.data.keyboard.VKey);
 				if (vkey == 255) {
 					return;
@@ -111,21 +169,19 @@ namespace slib
 						break;
 				}
 				Keycode key = UIEvent::getKeycodeFromSystemKeycode(vkey);
-				Time t;
-				t.setMillisecondCount(GetMessageTime());
-				Ref<UIEvent> ev = UIEvent::createKeyEvent(action, key, vkey, t);
+				Ref<UIEvent> ev = UIEvent::createKeyEvent(action, key, vkey, Time::zero());
 				if (ev.isNotNull()) {
-					if (flagInjected) {
-						ev->addFlag(UIEventFlags::Injected);
-					}
-					UIPlatform::applyEventModifiers(ev.get());
-					GlobalEventMonitorHelper::_onEvent(ev.get());
+					prepareEvent(ev.get(), raw);
+					_onEvent(ev.get());
 				}
-			} else if (raw.header.dwType == RIM_TYPEMOUSE) {
+			}
+
+			void processMouseEvent(UIAction action, RAWINPUT& raw)
+			{
 				sl_ui_posf x;
 				sl_ui_posf y;
-				sl_real dx = 0;
-				sl_real dy = 0;
+				sl_ui_posf dx = 0.0f;
+				sl_ui_posf dy = 0.0f;
 				sl_bool flagDelta = sl_false;
 				if (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) {
 					x = (sl_ui_posf)((raw.data.mouse.lLastX * GetSystemMetrics(SM_CXSCREEN)) >> 16);
@@ -136,162 +192,139 @@ namespace slib
 						x = (sl_ui_posf)(pt.x);
 						y = (sl_ui_posf)(pt.y);
 					} else {
-						x = 0;
-						y = 0;
+						x = 0.0f;
+						y = 0.0f;
 					}
 					dx = (sl_ui_posf)(raw.data.mouse.lLastX);
 					dy = (sl_ui_posf)(raw.data.mouse.lLastY);
 					flagDelta = sl_true;
 				}
-				Time t;
-				t.setMillisecondCount(GetMessageTime());
-				sl_uint32 buttons = raw.data.mouse.usButtonFlags;
-				if ((buttons & RI_MOUSE_WHEEL) || (buttons & 0x0800 /*RI_MOUSE_HWHEEL*/)) {
-					if (buttons & RI_MOUSE_WHEEL) {
-						dy = (sl_real)(short)(unsigned short)(raw.data.mouse.usButtonData);
-					} else {
-						dx = (sl_real)(short)(unsigned short)(raw.data.mouse.usButtonData);
-					}
-					Ref<UIEvent> ev = UIEvent::createMouseWheelEvent(x, y, dx, dy, t);
-					if (ev.isNotNull()) {
-						if (flagInjected) {
-							ev->addFlag(UIEventFlags::Injected);
-						}
-						UIPlatform::applyEventModifiers(ev.get());
-						GlobalEventMonitorHelper::_onEvent(ev.get());
-					}
+				Ref<UIEvent> ev;
+				if (flagDelta) {
+					ev = UIEvent::createMouseEvent(action, x, y, dx, dy, Time::zero());
 				} else {
+					ev = UIEvent::createMouseEvent(action, x, y, Time::zero());
+				}
+				if (ev.isNotNull()) {
+					prepareEvent(ev.get(), raw);
+					_onEvent(ev.get());
+				}
+			}
+
+			void processMouseWheelEvent(RAWINPUT& raw)
+			{
+				sl_ui_posf x;
+				sl_ui_posf y;
+				if (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) {
+					x = (sl_ui_posf)((raw.data.mouse.lLastX * GetSystemMetrics(SM_CXSCREEN)) >> 16);
+					y = (sl_ui_posf)((raw.data.mouse.lLastY * GetSystemMetrics(SM_CYSCREEN)) >> 16);
+				} else {
+					POINT pt;
+					if (GetCursorPos(&pt)) {
+						x = (sl_ui_posf)(pt.x);
+						y = (sl_ui_posf)(pt.y);
+					} else {
+						x = 0.0f;
+						y = 0.0f;
+					}
+				}
+				sl_real dx = 0.0f;
+				sl_real dy = 0.0f;
+				if (buttons & RI_MOUSE_WHEEL) {
+					dy = (sl_real)((short)((unsigned short)(raw.data.mouse.usButtonData)));
+				} else {
+					dx = (sl_real)((short)((unsigned short)(raw.data.mouse.usButtonData)));
+				}
+				Ref<UIEvent> ev = UIEvent::createMouseWheelEvent(x, y, dx, dy, Time::zero());
+				if (ev.isNotNull()) {
+					prepareEvent(ev.get(), raw);
+					_onEvent(ev.get());
+				}
+			}
+
+			void processRawInput(WPARAM wParam, LPARAM lParam)
+			{
+				HRAWINPUT hRawInput = (HRAWINPUT)lParam;
+				static char bufRawInput[1024];
+				RAWINPUT& raw = *((RAWINPUT*)bufRawInput);
+				UINT uSize = sizeof(bufRawInput);
+				UINT uRet = GetRawInputData(hRawInput, RID_INPUT, &raw, &uSize, sizeof(RAWINPUTHEADER));
+				if (uRet < sizeof(RAWINPUTHEADER) || uRet > sizeof(bufRawInput)) {
+					return;
+				}
+				if (raw.header.dwType == RIM_TYPEKEYBOARD) {
 					UIAction action;
-					if (buttons & RI_MOUSE_LEFT_BUTTON_DOWN) {
-						action = UIAction::LeftButtonDown;
-					} else if (buttons & RI_MOUSE_LEFT_BUTTON_UP) {
-						action = UIAction::LeftButtonUp;
-					} else if (buttons & RI_MOUSE_RIGHT_BUTTON_DOWN) {
-						action = UIAction::RightButtonDown;
-					} else if (buttons & RI_MOUSE_RIGHT_BUTTON_UP) {
-						action = UIAction::RightButtonUp;
-					} else if (buttons & RI_MOUSE_MIDDLE_BUTTON_DOWN) {
-						action = UIAction::MiddleButtonDown;
-					} else if (buttons & RI_MOUSE_MIDDLE_BUTTON_UP) {
-						action = UIAction::MiddleButtonUp;
-					} else {
-						action = UIAction::MouseMove;
+					switch (raw.data.keyboard.Message) {
+						case WM_KEYDOWN:
+						case WM_SYSKEYDOWN:
+							if (m_mask.flagKeyDown) {
+								processKeyEvent(UIAction::KeyDown, raw);
+							}
+							break;
+						case WM_KEYUP:
+						case WM_SYSKEYUP:
+							if (m_mask.flagKeyUp) {
+								processKeyEvent(UIAction::KeyUp, raw);
+							}
+							break;
+						default:
+							break;
 					}
-					Ref<UIEvent> ev;
-					if (flagDelta) {
-						ev = UIEvent::createMouseEvent(action, x, y, dx, dy, t);
-					} else {
-						ev = UIEvent::createMouseEvent(action, x, y, t);
-					}
-					if (ev.isNotNull()) {
-						if (flagInjected) {
-							ev->addFlag(UIEventFlags::Injected);
+				} else if (raw.header.dwType == RIM_TYPEMOUSE) {
+					sl_uint32 buttons = raw.data.mouse.usButtonFlags;
+					if ((buttons & RI_MOUSE_WHEEL) || (buttons & 0x0800 /*RI_MOUSE_HWHEEL*/)) {
+						if (m_mask.flagMouseWheel) {
+							processMouseWheelEvent(raw);
 						}
-						UIPlatform::applyEventModifiers(ev.get());
-						GlobalEventMonitorHelper::_onEvent(ev.get());
+					} else {
+						UIAction action;
+						if (buttons & RI_MOUSE_LEFT_BUTTON_DOWN) {
+							if (m_mask.flagLeftButtonDown) {
+								processMouseEvent(UIAction::LeftButtonDown, raw);
+							}
+						} else if (buttons & RI_MOUSE_LEFT_BUTTON_UP) {
+							if (m_mask.flagLeftButtonUp) {
+								processMouseEvent(UIAction::LeftButtonUp, raw);
+							}
+						} else if (buttons & RI_MOUSE_RIGHT_BUTTON_DOWN) {
+							if (m_mask.flagRightButtonDown) {
+								processMouseEvent(UIAction::RightButtonDown, raw);
+							}
+						} else if (buttons & RI_MOUSE_RIGHT_BUTTON_UP) {
+							if (m_mask.flagRightButtonUp) {
+								processMouseEvent(UIAction::RightButtonUp, raw);
+							}
+						} else if (buttons & RI_MOUSE_MIDDLE_BUTTON_DOWN) {
+							if (m_mask.flagMiddleButtonDown) {
+								processMouseEvent(UIAction::MiddleButtonDown, raw);
+							}
+						} else if (buttons & RI_MOUSE_MIDDLE_BUTTON_UP) {
+							if (m_mask.flagMiddleButtonUp) {
+								processMouseEvent(UIAction::MiddleButtonUp, raw);
+							}
+						} else {
+							if (m_mask.flagMouseMove) {
+								processMouseEvent(UIAction::MouseMove, raw);
+							}
+						}
 					}
 				}
 			}
-		}
 
-		static sl_bool CALLBACK ProcessMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT& result)
-		{
-			if (uMsg == WM_INPUT) {
-				ProcessRawInput(wParam, lParam);
-				return sl_true;
-			}
-			return sl_false;
-		}
-
-#define USAGE_MOUSE 2
-#define USAGE_KEYBOARD 6
-
-		class Monitor
-		{
-		public:
-			sl_bool flagInstalledKeyboard;
-			sl_bool flagInstalledMouse;
-			Ref<win32::MessageLoop> loop;
-
-		public:
-			Monitor()
+			sl_bool processMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT& result)
 			{
-				flagInstalledKeyboard = sl_false;
-				flagInstalledMouse = sl_false;
-			}
-
-			~Monitor()
-			{
-			}
-
-		public:
-			sl_bool update(sl_uint32 mask)
-			{
-				if (loop.isNull()) {
-					win32::MessageLoopParam param;
-					param.name = SLIB_UNICODE("GlobalEventMonitor");
-					param.onMessage = &ProcessMessage;
-					param.flagAutoStart = sl_false;
-					loop = win32::MessageLoop::create(param);
-					if (loop.isNull()) {
-						return sl_false;
-					}
-				}
-				if (!mask) {
-					if (flagInstalledKeyboard) {
-						UnregisterDevice(USAGE_KEYBOARD);
-						flagInstalledKeyboard = sl_false;
-					}
-					if (flagInstalledMouse) {
-						UnregisterDevice(USAGE_MOUSE);
-						flagInstalledMouse = sl_false;
-					}
-					loop->stop();
+				if (uMsg == WM_INPUT) {
+					processRawInput(wParam, lParam);
 					return sl_true;
 				}
-				loop->dispatch([mask, this]() {
-					HWND hWnd = loop->getWindowHandle();
-					if (!hWnd) {
-						return;
-					}
-					if (mask & GlobalEventMonitorHelper::MASK_KEYBOARD) {
-						if (!flagInstalledKeyboard) {
-							flagInstalledKeyboard = RegisterDevice(hWnd, USAGE_KEYBOARD);
-						}
-					} else {
-						if (flagInstalledKeyboard) {
-							UnregisterDevice(USAGE_KEYBOARD);
-							flagInstalledKeyboard = sl_false;
-						}
-					}
-					if (mask & GlobalEventMonitorHelper::MASK_MOUSE) {
-						if (!flagInstalledMouse) {
-							flagInstalledMouse = RegisterDevice(hWnd, USAGE_MOUSE);
-						}
-					} else {
-						if (flagInstalledMouse) {
-							UnregisterDevice(USAGE_MOUSE);
-							flagInstalledMouse = sl_false;
-						}
-					}
-				});
-				loop->start();
-				return sl_true;
+				return sl_false;
 			}
-
 		};
-
-		SLIB_SAFE_STATIC_GETTER(Monitor, GetMonitor)
-
 	}
 
-	sl_bool GlobalEventMonitor::_updateMonitor(sl_uint32 mask)
+	Ref<GlobalEventMonitor> GlobalEventMonitor::create(const GlobalEventMonitorParam& param)
 	{
-		Monitor* context = GetMonitor();
-		if (!context) {
-			return sl_false;
-		}
-		return context->update(mask);
+		return Ref<GlobalEventMonitor>::cast(RawInputMonitor::create(param));
 	}
 
 }

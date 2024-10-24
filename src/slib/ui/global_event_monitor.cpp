@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,328 +22,106 @@
 
 #include "slib/ui/global_event_monitor.h"
 
-#include "slib/ui/core.h"
-#include "slib/core/safe_static.h"
-
-#if !(defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_MACOS) || defined(SLIB_PLATFORM_IS_LINUX_DESKTOP))
-#define RUN_ON_UI_THREAD
-#endif
-
 namespace slib
 {
 
-#if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_MACOS) || defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(GlobalEventMask)
 
-	namespace {
-
-		class GlobalEventMonitorHelper : public GlobalEventMonitor
-		{
-			friend class StaticContext;
-		};
-
-		class StaticContext
-		{
-		public:
-			Function<void(UIEvent*)> m_callbackMouse;
-			Function<void(UIEvent*)> m_callbackKeyboard;
-			sl_uint32 m_maskCurrent;
-#ifndef RUN_ON_UI_THREAD
-			Mutex m_lock;
-#endif
-
-		public:
-			StaticContext()
-			{
-				m_maskCurrent = 0;
-			}
-
-		public:
-			void addMonitor(const Function<void(UIEvent*)>& callback)
-			{
-#ifndef RUN_ON_UI_THREAD
-				MutexLocker lock(&m_lock);
-#endif
-				m_callbackMouse.add(callback);
-				m_callbackKeyboard.add(callback);
-				updateMonitor();
-			}
-
-			void removeMonitor(const Function<void(UIEvent*)>& callback)
-			{
-#ifndef RUN_ON_UI_THREAD
-				MutexLocker lock(&m_lock);
-#endif
-				m_callbackMouse.remove(callback);
-				m_callbackKeyboard.remove(callback);
-				updateMonitor();
-			}
-
-			void removeAllMonitors()
-			{
-#ifndef RUN_ON_UI_THREAD
-				MutexLocker lock(&m_lock);
-#endif
-				m_callbackMouse.setNull();
-				m_callbackKeyboard.setNull();
-				updateMonitor();
-			}
-
-			void addMouseMonitor(const Function<void(UIEvent*)>& callback)
-			{
-#ifndef RUN_ON_UI_THREAD
-				MutexLocker lock(&m_lock);
-#endif
-				m_callbackMouse.add(callback);
-				updateMonitor();
-			}
-
-			void removeMouseMonitor(const Function<void(UIEvent*)>& callback)
-			{
-#ifndef RUN_ON_UI_THREAD
-				MutexLocker lock(&m_lock);
-#endif
-				m_callbackMouse.remove(callback);
-				updateMonitor();
-			}
-
-			void removeAllMouseMonitors()
-			{
-#ifndef RUN_ON_UI_THREAD
-				MutexLocker lock(&m_lock);
-#endif
-				m_callbackMouse.setNull();
-				updateMonitor();
-			}
-
-			void addKeyboardMonitor(const Function<void(UIEvent*)>& callback)
-			{
-#ifndef RUN_ON_UI_THREAD
-				MutexLocker lock(&m_lock);
-#endif
-				m_callbackKeyboard.add(callback);
-				updateMonitor();
-			}
-
-			void removeKeyboardMonitor(const Function<void(UIEvent*)>& callback)
-			{
-#ifndef RUN_ON_UI_THREAD
-				MutexLocker lock(&m_lock);
-#endif
-				m_callbackKeyboard.remove(callback);
-				updateMonitor();
-			}
-
-			void removeAllKeyboardMonitors()
-			{
-#ifndef RUN_ON_UI_THREAD
-				MutexLocker lock(&m_lock);
-#endif
-				m_callbackKeyboard.setNull();
-				updateMonitor();
-			}
-
-			void updateMonitor()
-			{
-				sl_uint32 mask = 0;
-				if (m_callbackMouse.isNotNull()) {
-					mask |= GlobalEventMonitorHelper::MASK_MOUSE;
-				}
-				if (m_callbackKeyboard.isNotNull()) {
-					mask |= GlobalEventMonitorHelper::MASK_KEYBOARD;
-				}
-				if (mask != m_maskCurrent) {
-					if (GlobalEventMonitorHelper::_updateMonitor(mask)) {
-						m_maskCurrent = mask;
-					} else {
-						m_maskCurrent = 0;
-					}
-				}
-			}
-
-			void processEvent(UIEvent* ev)
-			{
-				if (ev->isMouseEvent()) {
-					m_callbackMouse(ev);
-				} else if (ev->isKeyEvent()) {
-					m_callbackKeyboard(ev);
-				}
-			}
-
-		};
-
-		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-
+	GlobalEventMask::GlobalEventMask()
+	{
+		clearKeyEvents();
+		clearMouseEvents();
 	}
 
-	void GlobalEventMonitor::addMonitor(const Function<void(UIEvent*)>& callback)
+	void GlobalEventMask::setMouseEvents()
 	{
-#ifdef RUN_ON_UI_THREAD
-		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(Function<void()>::bind(&addMonitor, callback));
-			return;
-		}
-#endif
-		StaticContext* context = GetStaticContext();
-		if (context) {
-			context->addMonitor(callback);
-		}
+		flagLeftButtonDown = sl_true;
+		flagLeftButtonUp = sl_true;
+		flagLeftButtonDrag = sl_true;
+		flagRightButtonDown = sl_true;
+		flagRightButtonUp = sl_true;
+		flagRightButtonDrag = sl_true;
+		flagMiddleButtonDown = sl_true;
+		flagMiddleButtonUp = sl_true;
+		flagMiddleButtonDrag = sl_true;
+		flagMouseMove = sl_true;
+		flagMouseWheel = sl_true;
 	}
 
-	void GlobalEventMonitor::removeMonitor(const Function<void(UIEvent*)>& callback)
+	void GlobalEventMask::clearMouseEvents()
 	{
-#ifdef RUN_ON_UI_THREAD
-		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(Function<void()>::bind(&removeMonitor, callback));
-			return;
-		}
-#endif
-		StaticContext* context = GetStaticContext();
-		if (context) {
-			context->removeMonitor(callback);
-		}
+		flagLeftButtonDown = sl_false;
+		flagLeftButtonUp = sl_false;
+		flagLeftButtonDrag = sl_false;
+		flagRightButtonDown = sl_false;
+		flagRightButtonUp = sl_false;
+		flagRightButtonDrag = sl_false;
+		flagMiddleButtonDown = sl_false;
+		flagMiddleButtonUp = sl_false;
+		flagMiddleButtonDrag = sl_false;
+		flagMouseMove = sl_false;
+		flagMouseWheel = sl_false;
 	}
 
-	void GlobalEventMonitor::removeAllMonitors()
+	void GlobalEventMask::setKeyEvents()
 	{
-#ifdef RUN_ON_UI_THREAD
-		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(&removeAllMonitors);
-			return;
-		}
-#endif
-		StaticContext* context = GetStaticContext();
-		if (context) {
-			context->removeAllMonitors();
-		}
+		flagKeyDown = sl_true;
+		flagKeyUp = sl_true;
 	}
 
-	void GlobalEventMonitor::addMouseMonitor(const Function<void(UIEvent*)>& callback)
+	void GlobalEventMask::clearKeyEvents()
 	{
-#ifdef RUN_ON_UI_THREAD
-		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(Function<void()>::bind(&addMouseMonitor, callback));
-			return;
-		}
-#endif
-		StaticContext* context = GetStaticContext();
-		if (context) {
-			context->addMouseMonitor(callback);
-		}
+		flagKeyDown = sl_false;
+		flagKeyUp = sl_false;
 	}
 
-	void GlobalEventMonitor::removeMouseMonitor(const Function<void(UIEvent*)>& callback)
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(GlobalEventMonitorParam)
+
+	GlobalEventMonitorParam::GlobalEventMonitorParam()
 	{
-#ifdef RUN_ON_UI_THREAD
-		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(Function<void()>::bind(&removeMouseMonitor, callback));
-			return;
-		}
-#endif
-		StaticContext* context = GetStaticContext();
-		if (context) {
-			context->removeMouseMonitor(callback);
-		}
+		flagEventTap = sl_true;
+		flagSessionEventTap = sl_false;
 	}
 
-	void GlobalEventMonitor::removeAllMouseMonitors()
+
+	SLIB_DEFINE_OBJECT(GlobalEventMonitor, Object)
+
+	GlobalEventMonitor::GlobalEventMonitor()
 	{
-#ifdef RUN_ON_UI_THREAD
-		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(&removeAllMouseMonitors);
-			return;
-		}
-#endif
-		StaticContext* context = GetStaticContext();
-		if (context) {
-			context->removeAllMouseMonitors();
-		}
 	}
 
-	void GlobalEventMonitor::addKeyboardMonitor(const Function<void(UIEvent*)>& callback)
+	GlobalEventMonitor::~GlobalEventMonitor()
 	{
-#ifdef RUN_ON_UI_THREAD
-		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(Function<void()>::bind(&addKeyboardMonitor, callback));
-			return;
-		}
-#endif
-		StaticContext* context = GetStaticContext();
-		if (context) {
-			context->addKeyboardMonitor(callback);
-		}
 	}
 
-	void GlobalEventMonitor::removeKeyboardMonitor(const Function<void(UIEvent*)>& callback)
+	Ref<GlobalEventMonitor> GlobalEventMonitor::create(const Function<void(UIEvent*)>& onEvent, sl_bool flagKeyboard, sl_bool flagMouse)
 	{
-#ifdef RUN_ON_UI_THREAD
-		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(Function<void()>::bind(&removeKeyboardMonitor, callback));
-			return;
+		GlobalEventMonitorParam param;
+		if (flagKeyboard) {
+			param.setKeyEvents();
 		}
-#endif
-		StaticContext* context = GetStaticContext();
-		if (context) {
-			context->removeKeyboardMonitor(callback);
+		if (flagMouse) {
+			param.setMouseEvents();
 		}
+		param.onEvent = onEvent;
+		return create(param);
 	}
 
-	void GlobalEventMonitor::removeAllKeyboardMonitors()
+	void GlobalEventMonitor::_initialize(const GlobalEventMonitorParam& param)
 	{
-#ifdef RUN_ON_UI_THREAD
-		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(&removeAllKeyboardMonitors);
-			return;
-		}
-#endif
-		StaticContext* context = GetStaticContext();
-		if (context) {
-			context->removeAllKeyboardMonitors();
-		}
+		m_onEvent = param.onEvent;
 	}
 
 	void GlobalEventMonitor::_onEvent(UIEvent* ev)
 	{
-		StaticContext* context = GetStaticContext();
-		if (context) {
-			context->processEvent(ev);
-		}
+		m_onEvent(ev);
 	}
 
-#else
-	void GlobalEventMonitor::addMonitor(const Function<void(UIEvent*)>& callback)
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_MACOS) && !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+	Ref<GlobalEventMonitor> GlobalEventMonitor::create(const GlobalEventMonitorParam& param)
 	{
-	}
-
-	void GlobalEventMonitor::removeMonitor(const Function<void(UIEvent*)>& callback)
-	{
-	}
-
-	void GlobalEventMonitor::removeAllMonitors()
-	{
-	}
-
-	void GlobalEventMonitor::addMouseMonitor(const Function<void(UIEvent*)>& callback)
-	{
-	}
-
-	void GlobalEventMonitor::removeMouseMonitor(const Function<void(UIEvent*)>& callback)
-	{
-	}
-
-	void GlobalEventMonitor::removeAllMouseMonitors()
-	{
-	}
-
-	void GlobalEventMonitor::addKeyboardMonitor(const Function<void(UIEvent*)>& callback)
-	{
-	}
-
-	void GlobalEventMonitor::removeKeyboardMonitor(const Function<void(UIEvent*)>& callback)
-	{
-	}
-
-	void GlobalEventMonitor::removeAllKeyboardMonitors()
-	{
+		return sl_null;
 	}
 #endif
 

@@ -5,7 +5,7 @@ using namespace slib;
 int main(int argc, const char * argv[])
 {
 	System::setDebugFlags();
-	GlobalEventMonitor::addMonitor([](UIEvent* ev) {
+	auto monitor = GlobalEventMonitor::create([](UIEvent* ev) {
 		auto action = ev->getAction();
 		auto flagInjected = ev->getFlags() & UIEventFlags::Injected;
 		auto strInjected = flagInjected ? "Injected" : "";
@@ -44,6 +44,10 @@ int main(int argc, const char * argv[])
 				break;
 		}
 	});
+	if (!monitor) {
+		Println("Failed to create monitor!");
+		return -1;
+	}
 	Println("Press x to exit!");
 	for (;;) {
 		if (Console::readChar() == 'x') {
@@ -51,6 +55,5 @@ int main(int argc, const char * argv[])
 		}
 		System::sleep(10);
 	}
-	GlobalEventMonitor::removeAllMonitors();
 	return 0;
 }

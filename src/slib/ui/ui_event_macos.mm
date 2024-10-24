@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		class KeyMapper
 		{
 		private:
@@ -220,7 +220,6 @@ namespace slib
 		};
 
 		SLIB_SAFE_STATIC_GETTER(KeyMapper, GetKeyMapper)
-
 	}
 
 	sl_uint32 UIEvent::getSystemKeycode(Keycode key)
@@ -271,10 +270,13 @@ namespace slib
 
 	UIPoint UI::getCursorPos()
 	{
-		NSScreen* screen = [NSScreen mainScreen];
-		NSRect rect = [screen frame];
-		NSPoint pt = [NSEvent mouseLocation];
-		return UIPoint((sl_ui_pos)(pt.x), (sl_ui_pos)(rect.size.height - pt.y));
+		CGEventRef ev = CGEventCreate(sl_null);
+		if (ev) {
+			CGPoint pt = CGEventGetLocation(ev);
+			CFRelease(ev);
+			return {(sl_ui_pos)(pt.x), (sl_ui_pos)(pt.y)};
+		}
+		return UIPoint::zero();
 	}
 
 	sl_bool UI::isLeftButtonPressed()
@@ -297,10 +299,77 @@ namespace slib
 
 	void UI::sendKeyEvent(UIAction action, Keycode key)
 	{
+		CGEventRef ev = CGEventCreateKeyboardEvent(sl_null, UIEvent::getSystemKeycode(key), action == UIAction::KeyDown);
+		if (ev) {
+			CGEventPost(kCGHIDEventTap, ev);
+			CFRelease(ev);
+		}
 	}
 
 	void UI::sendMouseEvent(UIAction action, sl_ui_pos x, sl_ui_pos y, sl_bool flagAbsolutePos)
 	{
+		CGEventType type;
+		CGMouseButton button;
+		switch (action) {
+			case UIAction::LeftButtonDown:
+				type = kCGEventLeftMouseDown;
+				button = kCGMouseButtonLeft;
+				break;
+			case UIAction::LeftButtonUp:
+				type = kCGEventLeftMouseUp;
+				button = kCGMouseButtonLeft;
+				break;
+			case UIAction::RightButtonDown:
+				type = kCGEventRightMouseDown;
+				button = kCGMouseButtonRight;
+				break;
+			case UIAction::RightButtonUp:
+				type = kCGEventRightMouseUp;
+				button = kCGMouseButtonRight;
+				break;
+			case UIAction::MiddleButtonDown:
+				type = kCGEventOtherMouseDown;
+				button = kCGMouseButtonCenter;
+				break;
+			case UIAction::MiddleButtonUp:
+				type = kCGEventOtherMouseUp;
+				button = kCGMouseButtonCenter;
+				break;
+			case UIAction::MouseMove:
+				type = kCGEventMouseMoved;
+				button = kCGMouseButtonLeft;
+				break;
+			case UIAction::MouseWheel:
+				{
+					CGEventRef ev = CGEventCreateScrollWheelEvent(sl_null, kCGScrollEventUnitLine, 2, (int32_t)y, (int32_t)x);
+					if (ev) {
+						CGEventPost(kCGHIDEventTap, ev);
+						CFRelease(ev);
+					}
+				}
+				return;
+			default:
+				return;
+		}
+		CGPoint point;
+		if (flagAbsolutePos) {
+			point.x = (CGFloat)x;
+			point.y = (CGFloat)y;
+		} else {
+			CGEventRef ev = CGEventCreate(sl_null);
+			if (!ev) {
+				return;
+			}
+			point = CGEventGetLocation(ev);
+			CFRelease(ev);
+			point.x += (CGFloat)x;
+			point.y += (CGFloat)y;
+		}
+		CGEventRef ev = CGEventCreateMouseEvent(sl_null, type, point, button);
+		if (ev) {
+			CGEventPost(kCGHIDEventTap, ev);
+			CFRelease(ev);
+		}
 	}
 
 	NSString* UIPlatform::getKeyEquivalent(const KeycodeAndModifiers& km, NSUInteger& mask)

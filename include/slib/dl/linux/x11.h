@@ -81,6 +81,13 @@ namespace slib
 		#define XCloseDisplay slib::x11::getApi_XCloseDisplay()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XFlush,
+			int, ,
+			Display*
+		)
+		#define XFlush slib::x11::getApi_XFlush()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			XGetWindowAttributes,
 			Status, ,
 			Display*, Window, XWindowAttributes*

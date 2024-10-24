@@ -200,8 +200,10 @@ namespace slib
 
 		static UIPoint getCursorPos();
 
+		// [macOS] Accessibility authentication is required. See `Setting::isAccessibilityEnabled()`.
 		static void sendKeyEvent(UIAction action, Keycode key);
 
+		// [macOS] Accessibility authentication is required. See `Setting::isAccessibilityEnabled()`.
 		static void sendMouseEvent(UIAction action, sl_ui_pos x, sl_ui_pos y, sl_bool flagAbsolutePos = sl_true);
 
 		// UI Thread
