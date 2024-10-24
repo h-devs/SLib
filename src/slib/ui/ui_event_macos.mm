@@ -295,6 +295,14 @@ namespace slib
 		return (flags & 4) != 0;
 	}
 
+	void UI::sendKeyEvent(UIAction action, Keycode key)
+	{
+	}
+
+	void UI::sendMouseEvent(UIAction action, sl_ui_pos x, sl_ui_pos y, sl_bool flagAbsolutePos)
+	{
+	}
+
 	NSString* UIPlatform::getKeyEquivalent(const KeycodeAndModifiers& km, NSUInteger& mask)
 	{
 		KeyMapper* mapper = GetKeyMapper();

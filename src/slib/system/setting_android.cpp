@@ -24,17 +24,16 @@
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)
 
-#include "slib/core/app.h"
+#include "slib/system/setting.h"
 
-#include "slib/core/function.h"
 #include "slib/core/safe_static.h"
 #include "slib/platform.h"
 
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		SLIB_JNI_BEGIN_CLASS(JApplication, "slib/android/app/Application")
 			SLIB_JNI_STATIC_METHOD(checkPermissions, "checkPermissions", "(Landroid/app/Activity;I)Z");
 			SLIB_JNI_STATIC_METHOD(grantPermissions, "grantPermissions", "(Landroid/app/Activity;I)V");
@@ -79,10 +78,25 @@ namespace slib
 				g_callbackOnSetDefaultCallingApp.setNull();
 			}
 		SLIB_JNI_END_CLASS_SECTION
-
 	}
 
-	sl_bool Application::checkPermissions(const AppPermissions& permissions)
+	void Setting::openDefaultApps()
+	{
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JApplication::openDefaultAppsSetting.call(sl_null, context);
+		}
+	}
+
+	void Setting::openSystemOverlay()
+	{
+		jobject context = Android::getCurrentContext();
+		if (context) {
+			JApplication::openSystemOverlaySetting.call(sl_null, context);
+		}
+	}
+
+	sl_bool Setting::checkPermissions(const AppPermissions& permissions)
 	{
 		jobject context = Android::getCurrentContext();
 		if (context) {
@@ -91,7 +105,7 @@ namespace slib
 		return sl_null;
 	}
 
-	void Application::grantPermissions(const AppPermissions& permissions, const Function<void()>& callback)
+	void Setting::grantPermissions(const AppPermissions& permissions, const Function<void()>& callback)
 	{
 		jobject context = Android::getCurrentContext();
 		if (context) {
@@ -101,7 +115,7 @@ namespace slib
 		}
 	}
 
-	sl_bool Application::isRoleHeld(AppRole role)
+	sl_bool Setting::isRoleHeld(AppRole role)
 	{
 		jobject context = Android::getCurrentContext();
 		if (context) {
@@ -110,7 +124,7 @@ namespace slib
 		return sl_null;
 	}
 
-	void Application::requestRole(AppRole role, const Function<void()>& callback)
+	void Setting::requestRole(AppRole role, const Function<void()>& callback)
 	{
 		jobject context = Android::getCurrentContext();
 		if (context) {
@@ -120,20 +134,12 @@ namespace slib
 		}
 	}
 
-	void Application::openDefaultAppsSetting()
-	{
-		jobject context = Android::getCurrentContext();
-		if (context) {
-			JApplication::openDefaultAppsSetting.call(sl_null, context);
-		}
-	}
-
-	sl_bool Application::isSupportedDefaultCallingApp()
+	sl_bool Setting::isSupportedDefaultCallingApp()
 	{
 		return JApplication::isSupportedDefaultCallingApp.callBoolean(sl_null);
 	}
 
-	sl_bool Application::isDefaultCallingApp()
+	sl_bool Setting::isDefaultCallingApp()
 	{
 		if (Android::getSdkVersion() >= AndroidSdkVersion::Q) {
 			return isRoleHeld(AppRole::Dialer);
@@ -145,7 +151,7 @@ namespace slib
 		return sl_false;
 	}
 
-	void Application::setDefaultCallingApp(const Function<void()>& callback)
+	void Setting::setDefaultCallingApp(const Function<void()>& callback)
 	{
 		if (Android::getSdkVersion() >= AndroidSdkVersion::Q) {
 			requestRole(AppRole::Dialer, callback);
@@ -159,21 +165,13 @@ namespace slib
 		}
 	}
 
-	sl_bool Application::isSystemOverlayEnabled()
+	sl_bool Setting::isSystemOverlayEnabled()
 	{
 		jobject context = Android::getCurrentContext();
 		if (context) {
 			return JApplication::isSystemOverlayEnabled.callBoolean(sl_null, context);
 		}
 		return sl_false;
-	}
-
-	void Application::openSystemOverlaySetting()
-	{
-		jobject context = Android::getCurrentContext();
-		if (context) {
-			JApplication::openSystemOverlaySetting.call(sl_null, context);
-		}
 	}
 
 }

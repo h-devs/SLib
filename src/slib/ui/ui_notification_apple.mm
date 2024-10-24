@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 #if defined(SLIB_PLATFORM_IS_APPLE)
 
 #include "slib/ui/notification.h"
+#include "slib/system/setting.h"
 
 #include "slib/core/safe_static.h"
 #include "slib/ui/platform.h"
@@ -70,8 +71,8 @@ DEFINE_UN_API
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		class StaticContext
 		{
 		public:
@@ -188,21 +189,13 @@ namespace slib
 					}
 					if (message.targetContentIdentifier.isNotEmpty()) {
 #ifdef SLIB_UI_IS_IOS
-#	ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
-#		if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
 						if (@available(iOS 13.0, *)) {
 							content.targetContentIdentifier = Apple::getNSStringFromString(message.targetContentIdentifier);
 						}
-#		endif
-#	endif
 #else
-#	ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
-#		if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500
 						if (@available(macOS 10.15, *)) {
 							content.targetContentIdentifier = Apple::getNSStringFromString(message.targetContentIdentifier);
 						}
-#		endif
-#	endif
 #endif
 					}
 					if (message.badge.isNotNull()) {
@@ -467,7 +460,6 @@ namespace slib
 			}
 #endif
 		};
-
 	}
 
 	void UserNotification::startInternal()
@@ -494,46 +486,6 @@ namespace slib
 	Ref<UserNotification> UserNotification::add(const UserNotificationMessage& message)
 	{
 		return Ref<UserNotification>::cast(UserNotificationImpl::create(message));
-	}
-
-	void UserNotification::checkAuthorizationStatus(const Function<void(sl_bool flagGranted)>& _callback)
-	{
-#if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
-		if (CHECK_UN_API) {
-			Function<void(sl_bool flagGranted)> callback = _callback;
-			UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
-			[center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings *settings) {
-				callback(settings.authorizationStatus == UNAuthorizationStatusAuthorized);
-			}];
-			return;
-		}
-#endif
-
-		_callback(sl_true);
-	}
-
-	void UserNotification::requestAuthorization(const UserNotificationAuthorizationOptions& options, const Function<void(sl_bool flagGranted)>& _callback)
-	{
-#if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
-		if (CHECK_UN_API) {
-			StaticContext* context = GetStaticContext();
-			Function<void(sl_bool flagGranted)> callback = _callback;
-			[context->centerUN requestAuthorizationWithOptions:options.value completionHandler:^(BOOL granted, NSError* error) {
-				callback(granted);
-			}];
-			return;
-		}
-#endif
-		_callback(sl_true);
-	}
-
-	void UserNotification::openSystemPreferencesForNotification()
-	{
-#if defined(SLIB_PLATFORM_IS_MACOS) && defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
-		if (CHECK_UN_API) {
-			[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.notifications"]];
-		}
-#endif
 	}
 
 	void UserNotification::removePendingNotification(const String& identifier)
@@ -625,6 +577,36 @@ namespace slib
 		}
 	}
 
+
+	void Setting::checkNotification(const Function<void(sl_bool flagGranted)>& _callback)
+	{
+#if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
+		if (CHECK_UN_API) {
+			Function<void(sl_bool flagGranted)> callback = _callback;
+			UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+			[center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings* settings) {
+				callback(settings.authorizationStatus == UNAuthorizationStatusAuthorized);
+			}];
+			return;
+		}
+#endif
+		_callback(sl_true);
+	}
+
+	void Setting::requestNotification(const NotificationOptions& options, const Function<void(sl_bool flagGranted)>& _callback)
+	{
+#if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
+		if (CHECK_UN_API) {
+			StaticContext* context = GetStaticContext();
+			Function<void(sl_bool flagGranted)> callback = _callback;
+			[context->centerUN requestAuthorizationWithOptions:options.value completionHandler:^(BOOL granted, NSError* error) {
+				callback(granted);
+			}];
+			return;
+		}
+#endif
+		_callback(sl_true);
+	}
 }
 
 using namespace slib;

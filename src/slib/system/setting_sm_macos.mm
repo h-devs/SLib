@@ -24,7 +24,7 @@
 
 #if defined(SLIB_PLATFORM_IS_MACOS)
 
-#include "slib/core/app.h"
+#include "slib/system/setting.h"
 
 #include "slib/system/system.h"
 #include "slib/platform.h"
@@ -43,12 +43,12 @@ namespace slib
 			if (path.isEmpty()) {
 				return;
 			}
-			
+
 			NSURL *itemURL = [NSURL fileURLWithPath:(Apple::getNSStringFromString(path))];
 			LSSharedFileListItemRef existingItem = NULL;
-			
+
 			LSSharedFileListRef loginItems = LSSharedFileListCreate(NULL, kLSSharedFileListSessionLoginItems, NULL);
-			
+
 			if(loginItems) {
 				UInt32 seed = 0U;
 				NSArray *currentLoginItems = CFBridgingRelease(LSSharedFileListCopySnapshot(loginItems, &seed));
@@ -96,27 +96,27 @@ namespace slib
 		}
 	}
 
-	void Application::registerRunAtStartup(const StringParam& appName, const StringParam& path)
+	void Setting::registerRunAtStartup(const StringParam& appName, const StringParam& path)
 	{
 		registerRunAtStartup(path);
 	}
 
-	void Application::registerRunAtStartup(const StringParam& path)
+	void Setting::registerRunAtStartup(const StringParam& path)
 	{
 		SetBundleLoginItemEnabled(path, sl_true);
 	}
 
-	void Application::registerRunAtStartup()
+	void Setting::registerRunAtStartup()
 	{
 		SetBundleLoginItemEnabled(sl_true);
 	}
 
-	void Application::unregisterRunAtStartup(const StringParam& path)
+	void Setting::unregisterRunAtStartup(const StringParam& path)
 	{
 		SetBundleLoginItemEnabled(path, sl_false);
 	}
 
-	void Application::unregisterRunAtStartup()
+	void Setting::unregisterRunAtStartup()
 	{
 		SetBundleLoginItemEnabled(sl_false);
 	}

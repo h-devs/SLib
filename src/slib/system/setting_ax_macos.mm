@@ -20,16 +20,28 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_SYSTEM_HEADER
-#define CHECKHEADER_SLIB_SYSTEM_HEADER
+#include "slib/core/definition.h"
 
-#include "system/system.h"
-#include "system/process.h"
-#include "system/dynamic_library.h"
-#include "system/service.h"
-#include "system/setting.h"
-#include "system/asset.h"
-#include "system/preference.h"
-#include "system/named_instance.h"
+#if defined(SLIB_PLATFORM_IS_MACOS)
+
+#include "slib/system/setting.h"
+
+#include <ApplicationServices/ApplicationServices.h>
+
+namespace slib
+{
+
+	sl_bool Setting::isAccessibilityEnabled()
+	{
+		return AXIsProcessTrustedWithOptions(NULL) != FALSE;
+	}
+
+	void Setting::requestAccessibility()
+	{
+		NSDictionary *options = @{(__bridge NSString*)kAXTrustedCheckOptionPrompt: @YES};
+		AXIsProcessTrustedWithOptions((CFDictionaryRef)options);
+	}
+
+}
 
 #endif

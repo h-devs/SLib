@@ -255,7 +255,7 @@ namespace slib
 
 		static String getActiveApplicationName();
 
-		// [macOS] Accessibility authentication is required. See `Application::isAccessibilityEnabled()`.
+		// [macOS] Accessibility authentication is required. See `Setting::isAccessibilityEnabled()`.
 		static String getActiveWindowTitle(sl_int32 timeout = -1);
 
 	};

@@ -50,6 +50,7 @@ namespace slib
 			MobileGameView,
 			Cursor,
 			GestureDetector,
+			GlobalEventMonitor,
 			UIAnimation,
 			UIAnimation_End = UIAnimation + 10,
 			ViewLayout,

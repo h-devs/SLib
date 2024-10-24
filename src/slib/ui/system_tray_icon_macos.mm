@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +27,16 @@
 #include "slib/ui/system_tray_icon.h"
 
 #include "slib/core/safe_static.h"
+#include "slib/system/setting.h"
 #include "slib/ui/notification.h"
 #include "slib/ui/platform.h"
 
 #define NOTIFICATION_ID_PREFIX "system_tray_icon.notify."
 
-namespace slib {
-	namespace {
+namespace slib
+{
+	namespace
+	{
 		class SystemTrayIconImpl;
 	}
 }
@@ -54,8 +57,8 @@ namespace slib {
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		class StaticContext
 		{
 		public:
@@ -66,7 +69,7 @@ namespace slib
 			StaticContext()
 			{
 				UserNotification::start();
-				UserNotification::requestAuthorization(UserNotificationAuthorizationOptions::Alert | UserNotificationAuthorizationOptions::Sound, sl_null);
+				Setting::requestNotification(NotificationOptions::Alert | NotificationOptions::Sound, sl_null);
 				callbackClick = [this](UserNotificationMessage& msg) {
 					if (msg.identifier.startsWith(NOTIFICATION_ID_PREFIX)) {
 						Ref<SystemTrayIcon> icon = icons.getValue(msg.identifier.substring(StringView(NOTIFICATION_ID_PREFIX).getLength()));
@@ -306,7 +309,6 @@ namespace slib
 			}
 
 		};
-
 	}
 
 	Ref<SystemTrayIcon> SystemTrayIcon::create(const SystemTrayIconParam& param)

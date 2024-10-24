@@ -25,8 +25,8 @@
 #if defined(SLIB_UI_IS_MACOS)
 
 #include "slib/ui/screen_capture.h"
+#include "slib/system/setting.h"
 
-#include "slib/system/system.h"
 #include "slib/media/audio_data.h"
 #include "slib/graphics/util.h"
 #include "slib/graphics/platform.h"
@@ -662,7 +662,7 @@ namespace slib
 		return count;
 	}
 
-	sl_bool ScreenCapture::isEnabled()
+	sl_bool Setting::isScreenRecordingEnabled()
 	{
 #ifdef __MAC_10_15
 		if (@available(macOS 10.15, *)) {
@@ -672,14 +672,7 @@ namespace slib
 		return sl_true;
 	}
 
-	void ScreenCapture::openSystemPreferences()
-	{
-		if (@available(macos 10.15, *)) {
-			[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"]];
-		}
-	}
-
-	void ScreenCapture::requestAccess()
+	void Setting::requestScreenRecording()
 	{
 #ifdef USE_SCREEN_CAPTURE_KIT
 		if (@available(macos 13.0, *)) {
@@ -688,13 +681,6 @@ namespace slib
 #endif
 		if (@available(macos 10.15, *)) {
 			ScreenCapture::takeScreenshot();
-		}
-	}
-
-	void ScreenCapture::resetAccess(const StringParam& appBundleId)
-	{
-		if (@available(macos 10.15, *)) {
-			System::execute(String::concat(StringView::literal("tccutil reset ScreenCapture "), appBundleId));
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -262,13 +262,13 @@ namespace slib
 		return SetUsbMassStorageEnabled(sl_true);
 	}
 
-	sl_bool Storage::isEnabledUsbMassStorage()
+	sl_bool Storage::isUsbMassStorageEnabled()
 	{
 		return IsUsbMassStorageEnabled();
 	}
 
-	namespace {
-
+	namespace
+	{
 		static char GetFirstDriveFromMask(ULONG mask)
 		{
 			char i;
@@ -351,7 +351,6 @@ namespace slib
 		};
 
 		SLIB_SAFE_STATIC_GETTER(DeviceChangeMonitor, GetMonitor)
-
 	}
 
 	void Storage::addOnVolumeArrival(const VolumeArrivalCallback& callback)

@@ -97,8 +97,9 @@ void WebViewApp::onStart()
 
 void WebViewApp::onClickTest1(View* button)
 {
-	Application::grantPermissions(AppPermissions::Camera | AppPermissions::WriteExternalStorage);
-
+#ifdef SLIB_PLATFORM_IS_ANDROID
+	Setting::grantPermissions(AppPermissions::Camera | AppPermissions::WriteExternalStorage);
+#endif
 	String html = SLIB_STRINGIFY
 	(
 		<html>

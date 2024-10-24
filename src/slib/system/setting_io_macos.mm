@@ -24,38 +24,26 @@
 
 #if defined(SLIB_PLATFORM_IS_MACOS)
 
-#include "slib/core/app.h"
+#include "slib/system/setting.h"
 
-#include "slib/system/system.h"
-#include "slib/platform.h"
+#include <IOKit/hidsystem/IOHIDLib.h>
 
 namespace slib
 {
 
-	sl_bool Application::isAccessibilityEnabled()
+	sl_bool Setting::isInputMonitoringEnabled()
 	{
-		return AXIsProcessTrustedWithOptions(NULL) != FALSE;
+		if (@available(macOS 10.15, *)) {
+			return IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == IOHIDAccessType::kIOHIDAccessTypeGranted;
+		}
+		return sl_true;
 	}
 
-	void Application::authenticateAccessibility()
+	void Setting::requestInputMonitoring()
 	{
-		NSDictionary *options = @{(__bridge NSString*)kAXTrustedCheckOptionPrompt: @YES};
-		AXIsProcessTrustedWithOptions((CFDictionaryRef)options);
-	}
-
-	void Application::openSystemPreferencesForAccessibility()
-	{
-		[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"]];
-	}
-
-	void Application::resetAccessibility(const StringParam& appBundleId)
-	{
-		System::execute(String::concat(StringView::literal("tccutil reset Accessibility "), appBundleId));
-	}
-
-	void Application::resetAutomationAccess(const StringParam& appBundleId)
-	{
-		System::execute(String::concat(StringView::literal("tccutil reset AppleEvents "), appBundleId));
+		if (@available(macOS 10.15, *)) {
+			IOHIDRequestAccess(kIOHIDRequestTypeListenEvent);
+		}
 	}
 
 }

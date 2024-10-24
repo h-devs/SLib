@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@
 #include "slib/ui/photo.h"
 
 #include "slib/io/file.h"
-#include "slib/core/app.h"
+#include "slib/system/setting.h"
 #include "slib/core/safe_static.h"
 #include "slib/ui/core.h"
 #include "slib/ui/platform.h"
@@ -37,8 +37,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		static void JNICALL OnCompleteTakePhoto(JNIEnv* env, jobject _this, jstring filePath, jint fd, jint rotation, jboolean flipHorz, jboolean flipVert, jboolean flagCancel);
 
 		SLIB_JNI_BEGIN_CLASS(JTakePhoto, "slib/android/camera/TakePhoto")
@@ -171,7 +171,6 @@ namespace slib
 				p->onComplete(Jni::getString(filePath), (int)fd, (slib::RotationMode)rotation, flipHorz, flipVert, flagCancel);
 			}
 		}
-
 	}
 
 	void TakePhoto::takeFromCamera()
@@ -187,8 +186,8 @@ namespace slib
 
 	void PhotoKit::saveImage(const SaveImageParam& param)
 	{
-		Application::grantPermissions(AppPermissions::WriteExternalStorage, [param]() {
-			if (Application::checkPermissions(AppPermissions::WriteExternalStorage)) {
+		Setting::grantPermissions(AppPermissions::WriteExternalStorage, [param]() {
+			if (Setting::checkPermissions(AppPermissions::WriteExternalStorage)) {
 				Memory content;
 				if (param.image.isNotNull()) {
 					Ref<Image> image = param.image->toImage();

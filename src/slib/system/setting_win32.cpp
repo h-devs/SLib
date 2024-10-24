@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
-#include "slib/core/app.h"
+#include "slib/system/setting.h"
 
 #include "slib/io/file.h"
 #include "slib/system/system.h"
@@ -33,7 +33,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 		static void SetRunAtStartup(const StringParam& _appName, const StringParam& _path, sl_bool flagRegister)
 		{
 			StringCstr16 path(_path);
@@ -82,33 +83,33 @@ namespace slib
 		}
 	}
 
-	void Application::registerRunAtStartup(const StringParam& appName, const StringParam& path)
+	void Setting::registerRunAtStartup(const StringParam& appName, const StringParam& path)
 	{
 		SetRunAtStartup(appName, path, sl_true);
 	}
 
-	void Application::registerRunAtStartup(const StringParam& path)
+	void Setting::registerRunAtStartup(const StringParam& path)
 	{
 		String name = File::getFileNameOnly(path);
 		SetRunAtStartup(name, path, sl_true);
 	}
 
-	void Application::registerRunAtStartup()
+	void Setting::registerRunAtStartup()
 	{
 		registerRunAtStartup(getApplicationPath());
 	}
 
-	void Application::unregisterRunAtStartup(const StringParam& path)
+	void Setting::unregisterRunAtStartup(const StringParam& path)
 	{
 		SetRunAtStartup(sl_null, path, sl_false);
 	}
 
-	void Application::unregisterRunAtStartup()
+	void Setting::unregisterRunAtStartup()
 	{
 		unregisterRunAtStartup(getApplicationPath());
 	}
 
-	void Application::registerAtStartMenu(const StartMenuParam& param)
+	void Setting::registerAtStartMenu(const StartMenuParam& param)
 	{
 		StringParam executablePath = param.executablePath;
 		if (executablePath.isNull()) {

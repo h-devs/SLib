@@ -73,6 +73,7 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/system/process_unix.cpp"
  "${SLIB_PATH}/src/slib/system/service.cpp"
  "${SLIB_PATH}/src/slib/system/service_manager.cpp"
+ "${SLIB_PATH}/src/slib/system/setting.cpp"
  "${SLIB_PATH}/src/slib/system/system.cpp"
  "${SLIB_PATH}/src/slib/system/system_unix.cpp"
 
@@ -317,7 +318,6 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/ui/ui_event.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_menu.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_notification.cpp"
- "${SLIB_PATH}/src/slib/ui/ui_notification_gtk.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_photo.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_platform.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_resource.cpp"
@@ -342,7 +342,6 @@ set (SLIB_SOURCE_FILES
 
 if (ANDROID)
  set (SLIB_PLATFORM_FILES
-  "${SLIB_PATH}/src/slib/core/app_android.cpp"
   "${SLIB_PATH}/src/slib/core/charset_android.cpp"
 
   "${SLIB_PATH}/src/slib/system/asset_android.cpp"
@@ -367,6 +366,8 @@ if (ANDROID)
   "${SLIB_PATH}/src/slib/device/device_call_android.cpp"
   "${SLIB_PATH}/src/slib/device/sensor_android.cpp"
 
+  "${SLIB_PATH}/src/slib/system/setting_android.cpp"
+
   "${SLIB_PATH}/src/slib/ui/clipboard_android.cpp"
   "${SLIB_PATH}/src/slib/ui/common_dialogs_android.cpp"
   "${SLIB_PATH}/src/slib/ui/edit_view_android.cpp"
@@ -387,13 +388,13 @@ if (ANDROID)
  )
 else()
  set (SLIB_PLATFORM_FILES
-  "${SLIB_PATH}/src/slib/core/app_linux.cpp"
   "${SLIB_PATH}/src/slib/core/charset_icu.cpp"
   "${SLIB_PATH}/src/slib/core/wrapped_symbols.cpp"
 
   "${SLIB_PATH}/src/slib/system/asset.cpp"
   "${SLIB_PATH}/src/slib/system/preference_linux.cpp"
   "${SLIB_PATH}/src/slib/system/service_manager_linux.cpp"
+  "${SLIB_PATH}/src/slib/system/setting_linux.cpp"
 
   "${SLIB_PATH}/src/slib/network/pcap.cpp"
 
@@ -439,6 +440,7 @@ else()
   "${SLIB_PATH}/src/slib/ui/ui_core_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_event_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_menu_gtk.cpp"
+  "${SLIB_PATH}/src/slib/ui/ui_notification_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/web_view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/window_gtk.cpp"

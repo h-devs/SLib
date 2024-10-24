@@ -46,24 +46,24 @@ void MainPage::onOpen()
 			return;
 		}
 		if (value) {
-			Application::setDefaultCallingApp([]() {
-				if (!(Application::isDefaultCallingApp())) {
-					Application::openDefaultAppsSetting();
+			Setting::setDefaultCallingApp([]() {
+				if (!(Setting::isDefaultCallingApp())) {
+					Setting::openDefaultApps();
 				}
 			});
 		} else {
-			Application::openDefaultAppsSetting();
+			Setting::openDefaultApps();
 		}
 	});
 	switchSystemOverlay->setOnChange([](SwitchView*, SwitchValue value, UIEvent* ev) {
 		if (!ev) {
 			return;
 		}
-		Application::openSystemOverlaySetting();
+		Setting::openSystemOverlay();
 	});
 
 	btnCall->setOnClick([this](View*) {
-		Application::grantPermissions(AppPermissions::CallPhone, [this]() {
+		Setting::grantPermissions(AppPermissions::CallPhone, [this]() {
 			String value = selectSIM->getSelectedValue();
 			if (value != "empty") {
 				if (value.isNotEmpty()) {
@@ -89,10 +89,10 @@ void MainPage::onOpen()
 
 void MainPage::onResume()
 {
-	switchSetDefault->setValue(Application::isDefaultCallingApp());
-	switchSystemOverlay->setValue(Application::isSystemOverlayEnabled());
+	switchSetDefault->setValue(Setting::isDefaultCallingApp());
+	switchSystemOverlay->setValue(Setting::isSystemOverlayEnabled());
 
-	Application::grantPermissions(AppPermissions::ReadPhoneState, [this]() {
+	Setting::grantPermissions(AppPermissions::ReadPhoneState, [this]() {
 		sl_uint32 nSIM = Device::getSimSlotCount();
 		selectSIM->setItemCount(1 + nSIM);
 		for (sl_uint32 i = 0; i < nSIM; i++) {
@@ -129,8 +129,8 @@ void MainPage::showRecording()
 	btnRecord->setVisibility(Visibility::Visible);
 
 	btnRecord->setOnClick([this](View*) {
-		Application::grantPermissions(AppPermissions::RecordAudio, [this]() {
-			if (!(Application::checkPermissions(AppPermissions::RecordAudio))) {
+		Setting::grantPermissions(AppPermissions::RecordAudio, [this]() {
+			if (!(Setting::checkPermissions(AppPermissions::RecordAudio))) {
 				return;
 			}
 			AudioRecorderParam param;

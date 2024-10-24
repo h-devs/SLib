@@ -20,53 +20,50 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/media/definition.h"
-
-#if defined(SLIB_PLATFORM_IS_MACOS)
-
-#include "slib/media/audio_device.h"
-
-#include "slib/system/system.h"
-
-#import <AVFoundation/AVFoundation.h>
+#include "slib/system/setting.h"
 
 namespace slib
 {
 
-	sl_bool AudioRecorder::isEnabled()
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StartMenuParam)
+
+	StartMenuParam::StartMenuParam()
 	{
-		if (@available(macos 10.14, *)) {
-			AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
-			return status == AVAuthorizationStatusNotDetermined || status == AVAuthorizationStatusAuthorized;
-		} else {
-			return sl_true;
-		}
 	}
 
-	void AudioRecorder::requestAccess(const Function<void(sl_bool flagGranted)>& callback)
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_MACOS) && !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+	void Setting::registerRunAtStartup(const StringParam& appName, const StringParam& path)
 	{
-		if (@available(macos 10.14, *)) {
-			Function<void(sl_bool flagGranted)> _callback = callback;
-			[AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted) {
-				_callback(granted ? sl_true : sl_false);
-			}];
-		} else {
-			callback(sl_true);
-		}
+		registerRunAtStartup(path);
 	}
 
-	void AudioRecorder::resetAccess(const StringParam& appBundleId)
+	void Setting::registerRunAtStartup(const StringParam& path)
 	{
-		if (@available(macos 10.14, *)) {
-			System::execute(String::concat(StringView::literal("tccutil reset Microphone "), appBundleId));
-		}
 	}
 
-	void AudioRecorder::requestAccess()
+	void Setting::registerRunAtStartup()
 	{
-		requestAccess(sl_null);
 	}
+
+	void Setting::unregisterRunAtStartup(const StringParam& path)
+	{
+	}
+
+	void Setting::unregisterRunAtStartup()
+	{
+	}
+#endif
+
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+	void Setting::registerAtStartMenu(const StartMenuParam& param)
+	{
+	}
+#endif
+
+#if !defined(SLIB_UI_IS_ANDROID)
+	void Setting::openDefaultApps()
+	{
+	}
+#endif
 
 }
-
-#endif

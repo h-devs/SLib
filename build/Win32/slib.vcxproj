@@ -78,7 +78,6 @@
     <ClCompile Include="..\..\src\res\gen\raws.cpp" />
     <ClCompile Include="..\..\src\res\gen\strings.cpp" />
     <ClCompile Include="..\..\src\slib\core\app.cpp" />
-    <ClCompile Include="..\..\src\slib\core\app_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\atomic.cpp" />
     <ClCompile Include="..\..\src\slib\core\base.cpp" />
     <ClCompile Include="..\..\src\slib\core\charset.cpp" />
@@ -391,6 +390,8 @@
     <ClCompile Include="..\..\src\slib\system\service_win32.cpp" />
     <ClCompile Include="..\..\src\slib\system\system.cpp" />
     <ClCompile Include="..\..\src\slib\system\system_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\system\setting.cpp" />
+    <ClCompile Include="..\..\src\slib\system\setting_win32.cpp" />
     <ClCompile Include="..\..\src\slib\ui\audio_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button_win32.cpp" />

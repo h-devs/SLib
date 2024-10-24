@@ -83,16 +83,6 @@ namespace slib
 
 		static List<AudioRecorderDeviceInfo> getDevices();
 
-		static sl_bool isEnabled();
-
-		static void requestAccess(const Function<void(sl_bool flagGranted)>& callback);
-
-		static void requestAccess();
-
-#ifdef SLIB_PLATFORM_IS_MACOS
-		static void resetAccess(const StringParam& appBundleId);
-#endif
-
 	public:
 		void release();
 

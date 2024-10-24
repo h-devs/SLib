@@ -26,7 +26,6 @@
 #include "slib/io/file.h"
 #include "slib/system/system.h"
 #include "slib/system/process.h"
-#include "slib/core/hash_map.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/log.h"
@@ -285,106 +284,6 @@ namespace slib
 		}
 		return appPath;
 	}
-
-#if !defined(SLIB_UI_IS_ANDROID)
-	sl_bool Application::checkPermissions(const AppPermissions& permissions)
-	{
-		return sl_true;
-	}
-
-	void Application::grantPermissions(const AppPermissions& permissions, const Function<void()>& callback)
-	{
-		callback();
-	}
-
-	sl_bool Application::isRoleHeld(AppRole role)
-	{
-		return sl_true;
-	}
-
-	void Application::requestRole(AppRole role, const Function<void()>& callback)
-	{
-		callback();
-	}
-
-	void Application::openDefaultAppsSetting()
-	{
-	}
-
-	sl_bool Application::isSupportedDefaultCallingApp()
-	{
-		return sl_false;
-	}
-
-	sl_bool Application::isDefaultCallingApp()
-	{
-		return sl_false;
-	}
-
-	void Application::setDefaultCallingApp(const Function<void()>& callback)
-	{
-	}
-
-	sl_bool Application::isSystemOverlayEnabled()
-	{
-		return sl_false;
-	}
-
-	void Application::openSystemOverlaySetting()
-	{
-	}
-#endif
-
-#if !defined(SLIB_PLATFORM_IS_MACOS)
-	sl_bool Application::isAccessibilityEnabled()
-	{
-		return sl_true;
-	}
-
-	void Application::authenticateAccessibility()
-	{
-	}
-
-	void Application::openSystemPreferencesForAccessibility()
-	{
-	}
-#endif
-
-#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_MACOS) && !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-	void Application::registerRunAtStartup(const StringParam& appName, const StringParam& path)
-	{
-		registerRunAtStartup(path);
-	}
-
-	void Application::registerRunAtStartup(const StringParam& path)
-	{
-	}
-
-	void Application::registerRunAtStartup()
-	{
-	}
-
-	void Application::unregisterRunAtStartup(const StringParam& path)
-	{
-	}
-
-	void Application::unregisterRunAtStartup()
-	{
-	}
-#endif
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StartMenuParam)
-
-	StartMenuParam::StartMenuParam()
-	{
-	}
-
-#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-	void Application::registerAtStartMenu(const StartMenuParam& param)
-	{
-	}
-#endif
-
 
 /**************************************************************************************
 For parsing command line in Win32 platform,

@@ -36,12 +36,12 @@ namespace slib
 
 	sl_bool Storage::enableUsbMassStorage()
 	{
-	   return sl_false;
+		return sl_false;
 	}
 
-	sl_bool Storage::isEnabledUsbMassStorage()
+	sl_bool Storage::isUsbMassStorageEnabled()
 	{
-	   return sl_false;
+		return sl_false;
 	}
 
 }

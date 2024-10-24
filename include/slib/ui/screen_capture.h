@@ -144,17 +144,9 @@ namespace slib
 
 		static sl_uint32 getScreenCount();
 
-		static sl_bool isEnabled();
-
-		static void openSystemPreferences();
-
-		static void requestAccess();
-
-#ifdef SLIB_PLATFORM_IS_MACOS
-		static void resetAccess(const StringParam& appBundleId);
-#endif
-
+#ifdef SLIB_PLATFORM_IS_WIN32
 		static void switchToCurrentDesktop();
+#endif
 
 	public:
 		virtual void release() = 0;

@@ -318,22 +318,6 @@ namespace slib
 		}
 	}
 
-#ifndef SLIB_PLATFORM_IS_MACOS
-	sl_bool AudioRecorder::isEnabled()
-	{
-		return sl_true;
-	}
-
-	void AudioRecorder::requestAccess(const Function<void(sl_bool flagGranted)>& callback)
-	{
-		callback(sl_true);
-	}
-
-	void AudioRecorder::requestAccess()
-	{
-		requestAccess(sl_null);
-	}
-#endif
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerParam)
 

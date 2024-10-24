@@ -1561,7 +1561,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 	}
 #endif
 
-#if !defined(SLIB_UI_IS_WIN32)
+#if !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_MACOS)
 	void UI::sendKeyEvent(UIAction action, Keycode key)
 	{
 	}

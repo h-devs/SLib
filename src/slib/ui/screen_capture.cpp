@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -125,31 +125,6 @@ sl_bool ScreenCapture::takeScreenshotFromCurrentMonitor(Screenshot& _out, sl_uin
 	sl_uint32 ScreenCapture::getScreenCount()
 	{
 		return 0;
-	}
-#endif
-
-#if !defined(SLIB_UI_IS_MACOS)
-	sl_bool ScreenCapture::isEnabled()
-	{
-#	if defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_GTK)
-		return sl_true;
-#	else
-		return sl_false;
-#	endif
-	}
-
-	void ScreenCapture::openSystemPreferences()
-	{
-	}
-
-	void ScreenCapture::requestAccess()
-	{
-	}
-#endif
-
-#if !defined(SLIB_PLATFORM_IS_WIN32)
-	void ScreenCapture::switchToCurrentDesktop()
-	{
 	}
 #endif
 

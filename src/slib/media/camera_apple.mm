@@ -694,37 +694,6 @@ namespace slib
 	}
 #endif
 
-#if defined(SLIB_PLATFORM_IS_MACOS)
-	sl_bool Camera::isEnabled()
-	{
-		if (@available(macos 10.14, *)) {
-			AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
-			return status == AVAuthorizationStatusNotDetermined || status == AVAuthorizationStatusAuthorized;
-		} else {
-			return sl_true;
-		}
-	}
-
-	void Camera::requestAccess(const Function<void(sl_bool flagGranted)>& callback)
-	{
-		if (@available(macos 10.14, *)) {
-			Function<void(sl_bool flagGranted)> _callback = callback;
-			[AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
-				_callback(granted ? sl_true : sl_false);
-			}];
-		} else {
-			callback(sl_true);
-		}
-	}
-
-	void Camera::resetAccess(const StringParam& appBundleId)
-	{
-		if (@available(macos 10.14, *)) {
-			System::execute(String::concat(StringView::literal("tccutil reset Camera "), appBundleId));
-		}
-	}
-#endif
-
 }
 
 using namespace slib;

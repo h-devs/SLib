@@ -26,7 +26,6 @@
 #include "definition.h"
 
 #include "../data/json.h"
-#include "../core/flags.h"
 #include "../graphics/color.h"
 
 namespace slib
@@ -114,18 +113,6 @@ namespace slib
 
 	};
 
-	// same as UNAuthorizationOptions
-	SLIB_DEFINE_FLAGS(UserNotificationAuthorizationOptions, {
-		Badge = 1,
-		Sound = (1<<1),
-		Alert = (1<<2),
-		CarPlay = (1<<3),
-		CriticalAlert = (1<<4),
-		ProvidesAppNotificationSettings = (1<<5),
-		Provisional = (1<<6),
-		Announcement = (1<<7)
-	})
-
 	class SLIB_EXPORT UserNotification : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -151,12 +138,6 @@ namespace slib
 		static void removeDeliveredNotification(sl_uint32 _id);
 
 		static void removeAllDeliveredNotifications();
-
-		static void checkAuthorizationStatus(const Function<void(sl_bool flagGranted)>& callback);
-
-		static void requestAuthorization(const UserNotificationAuthorizationOptions& options, const Function<void(sl_bool flagGranted)>& callback);
-
-		static void openSystemPreferencesForNotification();
 
 		static void addOnClickMessage(const Function<void(UserNotificationMessage&)>& callback);
 

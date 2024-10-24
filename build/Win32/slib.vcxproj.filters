@@ -989,9 +989,6 @@
     <ClCompile Include="..\..\src\slib\core\container.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\app_win32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\doc\zip.cpp">
       <Filter>src\doc</Filter>
     </ClCompile>
@@ -1263,6 +1260,12 @@
       <Filter>src\db</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\system\system_win32.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\setting.cpp">
+      <Filter>src\system</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\system\setting_win32.cpp">
       <Filter>src\system</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\system\dynamic_library.cpp">

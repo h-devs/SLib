@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,7 @@
 
 #include "object.h"
 #include "string.h"
-#include "function.h"
-#include "flags.h"
+#include "list.h"
 
 #include "../system/named_instance.h"
 
@@ -37,74 +36,6 @@ namespace slib
 	{
 		UI = 0,
 		Service = 1
-	};
-
-	SLIB_DEFINE_FLAGS(AppPermissions, {
-
-		Camera = 1,
-
-		RecordAudio = (1<<1),
-
-		WriteExternalStorage = (1<<2),
-		ReadExternalStorage = (1<<3),
-
-		ReadPhoneState = (1<<4),
-		ReadPhoneNumbers = (1<<5),
-		CallPhone = (1<<6),
-		AnswerPhoneCalls = (1<<7),
-		AddVoiceMail = (1<<8),
-		UseSip = (1<<9),
-
-		SendSMS = (1<<10),
-		ReceiveSMS = (1<<11),
-		ReadSMS = (1<<12),
-		ReceiveWapPush = (1<<13),
-		ReceiveMMS = (1<<14),
-
-		ReadContacts = (1<<15),
-		WriteContacts = (1<<16),
-		GetAccounts = (1<<17),
-
-		AccessFineLocation = (1<<18),
-		AccessCoarseLocation = (1<<19),
-
-		ReadCalendar = (1<<20),
-		WriteCalendar = (1<<21),
-
-		ReadCallLog = (1<<22),
-		WriteCallLog = (1<<23),
-		ProcessOutgoingCalls = (1<<24),
-
-		BodySensors = (1<<25)
-
-	})
-
-	enum class AppRole
-	{
-		Home = 0,
-		Browser = 1,
-		Dialer = 2,
-		SMS = 3,
-		Emergency = 4,
-		CallRedirection = 5,
-		CallScreening = 6,
-		Assistant = 7
-	};
-
-	class SLIB_EXPORT StartMenuParam
-	{
-	public:
-		StringParam appId; // [Linux] Uses `Application::getApp()->getApplicationId()` by default
-		StringParam appName; // Non-empty. Application's display name
-		StringParam executablePath; // Uses `Application::getApplicationPath()` by default
-		StringParam iconPath; // [Linux] Path to PNG file
-		StringParam categories; // [Linux] eg, "Development;Utility;"
-
-	public:
-		StartMenuParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StartMenuParam)
-
 	};
 
 	class SLIB_EXPORT Application : public Object
@@ -185,58 +116,6 @@ namespace slib
 		static void setApplicationDirectory(const StringParam& path);
 
 		static String findFileAndSetApplicationDirectory(const StringParam& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX);
-
-	public:
-		static sl_bool checkPermissions(const AppPermissions& permissions);
-
-		static void grantPermissions(const AppPermissions& permissions, const Function<void()>& callback = sl_null);
-
-		static sl_bool isRoleHeld(AppRole role);
-
-		static void requestRole(AppRole role, const Function<void()>& callback = sl_null);
-
-		static void openDefaultAppsSetting();
-
-		static sl_bool isSupportedDefaultCallingApp();
-
-		static sl_bool isDefaultCallingApp();
-
-		static void setDefaultCallingApp(const Function<void()>& callback = sl_null);
-
-		// Android only
-		static sl_bool isSystemOverlayEnabled();
-
-		// Android only
-		static void openSystemOverlaySetting();
-
-
-		// macOS only
-		static sl_bool isAccessibilityEnabled();
-
-		// macOS only
-		static void authenticateAccessibility();
-
-		// macOS only
-		static void openSystemPreferencesForAccessibility();
-
-#ifdef SLIB_PLATFORM_IS_MACOS
-		static void resetAccessibility(const StringParam& appBundleId);
-
-		static void resetAutomationAccess(const StringParam& appBundleId);
-#endif
-
-	public:
-		static void registerRunAtStartup(const StringParam& appName, const StringParam& path);
-
-		static void registerRunAtStartup(const StringParam& path);
-
-		static void registerRunAtStartup();
-
-		static void unregisterRunAtStartup(const StringParam& path);
-
-		static void unregisterRunAtStartup();
-
-		static void registerAtStartMenu(const StartMenuParam& param);
 
 	protected:
 		void _initApp();

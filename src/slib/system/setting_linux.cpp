@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 
-#include "slib/core/app.h"
+#include "slib/system/setting.h"
 
 #include "slib/system/system.h"
 #include "slib/core/string_buffer.h"
@@ -33,7 +33,7 @@
 namespace slib
 {
 
-	void Application::registerRunAtStartup(const StringParam& _appName, const StringParam& _path)
+	void Setting::registerRunAtStartup(const StringParam& _appName, const StringParam& _path)
 	{
 		String path = _path.toString();
 		if (path.isEmpty()) {
@@ -65,25 +65,25 @@ namespace slib
 		File::writeAllTextUTF8(pathDesktopFile, sb.merge());
 	}
 
-	void Application::registerRunAtStartup(const StringParam& path)
+	void Setting::registerRunAtStartup(const StringParam& path)
 	{
 		registerRunAtStartup(sl_null, path);
 	}
 
-	void Application::registerRunAtStartup()
+	void Setting::registerRunAtStartup()
 	{
 		registerRunAtStartup(sl_null, sl_null);
 	}
 
-	void Application::unregisterRunAtStartup(const StringParam& path)
+	void Setting::unregisterRunAtStartup(const StringParam& path)
 	{
 	}
 
-	void Application::unregisterRunAtStartup()
+	void Setting::unregisterRunAtStartup()
 	{
 	}
 
-	void Application::registerAtStartMenu(const StartMenuParam& param)
+	void Setting::registerAtStartMenu(const StartMenuParam& param)
 	{
 		StringParam appId = param.appId;
 		if (appId.isEmpty()) {
