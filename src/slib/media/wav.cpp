@@ -122,6 +122,7 @@ namespace slib
 			}
 
 			sl_uint16 flags = file.readUint16();
+			SLIB_UNUSED(flags)
 			sl_uint16 channels = file.readUint16();
 			if (channels != 1 && channels != 2) {
 				return sl_false;
@@ -132,7 +133,9 @@ namespace slib
 			}
 
 			sl_uint32 byteRate = file.readUint32();
+			SLIB_UNUSED(byteRate)
 			sl_uint16 blockAlign = file.readUint16();
+			SLIB_UNUSED(blockAlign)
 			sl_uint16 bitsPerSample = file.readUint16();
 			if (bitsPerSample != 8 && bitsPerSample != 16) {
 				return sl_false;

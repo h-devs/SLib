@@ -1559,7 +1559,6 @@ namespace slib
 					}
 				} else {
 					for (sl_size i = 0; i < 4; i++) {
-						const Double3& input = inputs[i];
 						Vector3 pt = state.viewTransform.transformPosition(inputs[i]);
 						points[i] = Vector2(pt.x, pt.y);
 					}
