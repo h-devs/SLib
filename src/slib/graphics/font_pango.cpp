@@ -137,7 +137,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Font::_measureText_PO(const StringParam& text, TextMetrics& _out)
+	sl_bool Font::_measureText_PO(const StringParam& _text, TextMetrics& _out)
 	{
 		StringData text(_text);
 		sl_size len = text.getLength();

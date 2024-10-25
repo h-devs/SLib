@@ -27,7 +27,6 @@
 #include "slib/ui/global_event_monitor.h"
 
 #include "slib/core/thread.h"
-#include "slib/ui/core.h"
 #include "slib/dl/linux/x11.h"
 
 namespace slib
@@ -86,7 +85,6 @@ namespace slib
 								range->device_events.first = KeyPress;
 							} else {
 								range->device_events.first = ButtonPress;
-								range->device_events.last = MotionNotify;
 							}
 							if (param.flagMouseMove) {
 								range->device_events.last = MotionNotify;
@@ -108,7 +106,7 @@ namespace slib
 								ret->m_displayRecord = displayRecord;
 								ret->m_range = range;
 								ret->m_context = context;
-								if (XRecordEnableContextAsync(displayRecord, context, &onEventCallback, (XPointer)this)) {
+								if (XRecordEnableContextAsync(displayRecord, context, &onEventCallback, (XPointer)(ret.get()))) {
 									ret->m_flagContextEnabled = sl_true;
 									Ref<Thread> thread = Thread::start(SLIB_FUNCTION_WEAKREF(ret, onRun));
 									if (thread.isNotNull()) {
@@ -170,13 +168,18 @@ namespace slib
 				CurrentThread thread;
 				while (thread.isNotStopping()) {
 					XRecordProcessReplies(m_displayRecord);
-					thread.wait(10);
+					if (XEventsQueued(m_displayRecord, QueuedAlready)) {
+						XEvent event;
+						XNextEvent(m_displayRecord, &event);
+					} else {
+						thread.sleep(10);
+					}
 				}
 			}
 
 			void processKeyEvent(UIAction action, xEvent* event)
 			{
-				KeySym sym = XkbKeycodeToKeysym(m_display, event->u.u.detail, 0, 0);
+				KeySym sym = XkbKeycodeToKeysym(m_displayControl, event->u.u.detail, 0, 0);
 				Keycode key = UIEvent::getKeycodeFromSystemKeycode(sym);
 				Ref<UIEvent> ev = UIEvent::createKeyEvent(action, key, sym, Time::now());
 				if (ev.isNotNull()) {
@@ -205,17 +208,9 @@ namespace slib
 				}
 			}
 
-			void processEvent(XRecordInterceptData* data)
+			void processEvent(xEvent* event)
 			{
-				if (data->category != XRecordFromServer) {
-					return;
-				}
-				if (data->client_swapped) {
-					return;
-				}
-				xEvent* event = (xEvent*)(data->data);
-				BYTE type = event->u.u.type;
-				switch (type) {
+				switch (event->u.u.type) {
 					case KeyPress:
 						if (m_mask.flagKeyDown) {
 							processKeyEvent(UIAction::KeyDown, event);
@@ -295,6 +290,21 @@ namespace slib
 						break;
 					default:
 						break;
+				}
+			}
+
+			void processEvent(XRecordInterceptData* data)
+			{
+				if (data->category != XRecordFromServer) {
+					return;
+				}
+				if (data->client_swapped) {
+					return;
+				}
+				sl_uint32 n = (sl_uint32)((data->data_len << 2) / sizeof(xEvent));
+				xEvent* events = (xEvent*)(data->data);
+				for (sl_uint32 i = 0; i < n; i++) {
+					processEvent(events + i);
 				}
 			}
 

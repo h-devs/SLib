@@ -88,6 +88,22 @@ namespace slib
 		#define XFlush slib::x11::getApi_XFlush()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XEventsQueued,
+			int, ,
+			Display*,
+			int mode
+		)
+		#define XEventsQueued slib::x11::getApi_XEventsQueued()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XNextEvent,
+			int, ,
+			Display*,
+			XEvent*
+		)
+		#define XNextEvent slib::x11::getApi_XNextEvent()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			XGetWindowAttributes,
 			Status, ,
 			Display*, Window, XWindowAttributes*

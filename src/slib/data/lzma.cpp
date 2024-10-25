@@ -120,7 +120,7 @@ namespace slib
 		flagWritePropsFirst = sl_false;
 	}
 
-	Memory Lzma::compress(LzmaParam& param, const void* input, sl_size n)
+	Memory Lzma::compress(LzmaParam& param, const void* data, sl_size n)
 	{
 		CLzmaEncHandle p = LzmaEnc_Create(&g_alloc);
 		if (!p) {
@@ -140,7 +140,7 @@ namespace slib
 		if (LzmaEnc_SetProps(p, &props) == SZ_OK) {
 			size_t nProps = 5;
 			if (LzmaEnc_WriteProperties(p, param.props, &nProps) == SZ_OK) {
-				MemoryInputStream input(input, n);
+				MemoryInputStream input(data, n);
 				MemoryOutputStream output;
 				if (param.flagWritePropsFirst) {
 					output.buffer.addStatic(param.props, 5);

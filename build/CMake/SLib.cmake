@@ -86,6 +86,7 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/data/ini.cpp"
  "${SLIB_PATH}/src/slib/data/json.cpp"
  "${SLIB_PATH}/src/slib/data/lzw.cpp"
+ "${SLIB_PATH}/src/slib/data/lzma.cpp"
  "${SLIB_PATH}/src/slib/data/table_model.cpp"
  "${SLIB_PATH}/src/slib/data/xml.cpp"
  "${SLIB_PATH}/src/slib/data/zlib.cpp"
@@ -499,6 +500,7 @@ set (
  "${EXTERNAL_SRC_DIR}/brotli/brotli_unity.c"
  "${EXTERNAL_SRC_DIR}/snappy/snappy_unity.cc"
  "${EXTERNAL_SRC_DIR}/lz4/lz4_unity.c"
+ "${EXTERNAL_SRC_DIR}/lzma/lzma_unity.c"
  "${EXTERNAL_SRC_DIR}/lmdb/lmdb_unity.c"
  "${EXTERNAL_SRC_DIR}/leveldb/leveldb_unity.cc"
 )

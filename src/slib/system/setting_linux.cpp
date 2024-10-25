@@ -26,8 +26,9 @@
 
 #include "slib/system/setting.h"
 
-#include "slib/system/system.h"
+#include "slib/core/app.h"
 #include "slib/core/string_buffer.h"
+#include "slib/system/system.h"
 #include "slib/io/file.h"
 
 namespace slib
@@ -37,14 +38,14 @@ namespace slib
 	{
 		String path = _path.toString();
 		if (path.isEmpty()) {
-			path = getApplicationPath();
+			path = Application::getApplicationPath();
 		}
 		String appName = _appName.toString();
 		if (appName.isEmpty()) {
 			appName = File::getFileNameOnly(path);
 		}
 		String appId;
-		Ref<Application> app = getApp();
+		Ref<Application> app = Application::getApp();
 		if (app.isNotNull()) {
 			appId = app->getApplicationId();
 		}
@@ -87,7 +88,7 @@ namespace slib
 	{
 		StringParam appId = param.appId;
 		if (appId.isEmpty()) {
-			Ref<Application> app = getApp();
+			Ref<Application> app = Application::getApp();
 			if (app.isNotNull()) {
 				appId = app->getApplicationId();
 			}
@@ -104,7 +105,7 @@ namespace slib
 		if (param.executablePath.isNotNull()) {
 			sb.add(param.executablePath.toString());
 		} else {
-			sb.add(getApplicationPath());
+			sb.add(Application::getApplicationPath());
 		}
 		sb.addStatic("\nIcon=");
 		sb.add(param.iconPath.toString());
