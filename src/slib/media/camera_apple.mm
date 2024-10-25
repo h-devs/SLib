@@ -82,7 +82,7 @@ namespace slib
 		public:
 			GlobalContext()
 			{
-				dispatch_queue = dispatch_queue_create("SLIB_CAMERA", DISPATCH_QUEUE_SERIAL);
+				dispatch_queue = dispatch_queue_create(sl_null, DISPATCH_QUEUE_SERIAL);
 			}
 		};
 

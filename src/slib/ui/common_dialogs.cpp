@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,22 @@
 #include "slib/ui/common_dialogs.h"
 
 #include "slib/core/event.h"
-
 #include "slib/ui/core.h"
+#include "slib/ui/window.h"
+
+#if defined(SLIB_UI_IS_IOS)
 #include "slib/ui/label_view.h"
 #include "slib/ui/button.h"
-
 #include "../resources.h"
+#endif
 
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		namespace alert
 		{
-
 			class RunOnUiThread
 			{
 			public:
@@ -102,7 +103,6 @@ namespace slib
 				DialogResult result = alert->_run();
 				alert->_onResult(result);
 			}
-
 		}
 	}
 
@@ -218,6 +218,7 @@ namespace slib
 		}
 	}
 
+#if defined(SLIB_UI_IS_IOS)
 	sl_bool AlertDialog::_showMobilePopup()
 	{
 		Ref<MobileApp> app = MobileApp::getApp();
@@ -303,10 +304,9 @@ namespace slib
 		}
 
 		app->popupPage(dlg);
-
 		return sl_true;
-
 	}
+#endif
 
 	AlertDialog* AlertDialog::_getRefObj()
 	{
@@ -318,11 +318,10 @@ namespace slib
 	}
 
 
-	namespace {
-
+	namespace
+	{
 		namespace file
 		{
-
 			class RunOnUiThread
 			{
 			public:
@@ -396,7 +395,6 @@ namespace slib
 				DialogResult result = dialog->_run();
 				dialog->_onResult(result);
 			}
-
 		}
 	}
 
