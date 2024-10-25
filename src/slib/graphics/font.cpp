@@ -652,7 +652,7 @@ namespace slib
 		return addResource(content.data, content.size);
 	}
 
-#if !defined(SLIB_PLATFORM_IS_WIN32)
+#if !defined(SLIB_GRAPHICS_IS_GDI) && !defined(SLIB_GRAPHICS_IS_QUARTZ)
 	sl_bool Font::_measureChar_PO(sl_char32 ch, TextMetrics& _out)
 	{
 		String str = String::create(&ch, 1);

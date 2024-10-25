@@ -435,6 +435,18 @@ namespace slib
 				}
 			}
 
+#ifdef SLIB_PLATFORM_IS_MACOS
+			static NSColor* getUIColor(const Color& color)
+			{
+				return GraphicsPlatform::getNSColorFromColor(color);
+			}
+#else
+			static UIColor* getUIColor(const Color& color)
+			{
+				return GraphicsPlatform::getUIColorFromColor(color);
+			}
+#endif
+
 			void onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param) override
 			{
 				NSString* text = Apple::getNSStringFromString(_text);
@@ -448,23 +460,22 @@ namespace slib
 				if (!hFont) {
 					return;
 				}
-				CGColorRef _color = GraphicsPlatform::getCGColorFromColor(param.color);
-#ifdef SLIB_PLATFORM_IS_MACOS
-				NSColor* color = [NSColor colorWithCGColor:_color];
-#else
-				UIColor* color = [UIColor colorWithCGColor:_color];
-#endif
-				if (_color) {
-					CFRelease(_color);
-				}
 				NSAttributedString* attrText = [[NSAttributedString alloc] initWithString:text attributes:@{
 					NSFontAttributeName: hFont,
 					NSUnderlineStyleAttributeName: @(font->isUnderline()? NSUnderlineStyleSingle : NSUnderlineStyleNone),
 					NSStrikethroughStyleAttributeName: @(font->isStrikeout()? NSUnderlineStyleSingle : NSUnderlineStyleNone),
-					NSForegroundColorAttributeName: color
+					NSForegroundColorAttributeName: getUIColor(param.color)
 				}];
 				if (attrText == nil) {
 					return;
+				}
+				NSAttributedString* attrStroke = nil;
+				if (param.strokeWidth > 0.0001f) {
+					attrStroke = [[NSAttributedString alloc] initWithString:text attributes:@{
+						NSFontAttributeName: hFont,
+						NSStrokeColorAttributeName: getUIColor(param.strokeColor),
+						NSStrokeWidthAttributeName: @((CGFloat)(param.strokeWidth * 100.0 / hFont.pointSize))
+					}];
 				}
 				sl_bool flagSaveState = sl_false;
 				sl_real shadowOpacity = param.shadowOpacity;
@@ -491,10 +502,16 @@ namespace slib
 				NSGraphicsContext* oldContext = [NSGraphicsContext currentContext];
 				NSGraphicsContext* context = [NSGraphicsContext graphicsContextWithGraphicsPort:m_graphics flipped:YES];
 				[NSGraphicsContext setCurrentContext:context];
+				if (attrStroke != nil) {
+					[attrStroke drawAtPoint:NSMakePoint(x, y)];
+				}
 				[attrText drawAtPoint:NSMakePoint(x, y)];
 				[NSGraphicsContext setCurrentContext:oldContext];
 #else
 				UIGraphicsPushContext(m_graphics);
+				if (attrStroke != nil) {
+					[attrStroke drawAtPoint:CGPointMake(x, y)];
+				}
 				[attrText drawAtPoint:CGPointMake(x, y)];
 				UIGraphicsPopContext();
 #endif

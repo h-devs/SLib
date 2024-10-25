@@ -157,6 +157,34 @@ namespace slib
 		return sl_true;
 	}
 
+	sl_bool Font::_measureChar_PO(sl_char32 _ch, TextMetrics& _out)
+	{
+		UIFont* hFont = GraphicsPlatform::getNativeFont(this);
+		if (hFont == nil) {
+			return sl_false;
+		}
+		CTFontRef font = (__bridge CTFontRef)hFont;
+		CGGlyph glyph = 0;
+		UniChar ch = (UniChar)_ch;
+		CTFontGetGlyphsForCharacters(font, &ch, &glyph, 1);
+		if (!glyph) {
+			return sl_false;
+		}
+		CGFloat ascent = CTFontGetAscent(font);
+		CGRect rect = CTFontGetBoundingRectsForGlyphs(font, kCTFontOrientationHorizontal, &glyph, sl_null, 1);
+		if (Base::equalsMemory(&rect, &(CGRectZero), sizeof(CGRect))) {
+			return sl_false;
+		}
+		_out.left = (sl_real)(rect.origin.x);
+		_out.bottom = (sl_real)(ascent - rect.origin.y);
+		_out.right = (sl_real)(rect.origin.x + rect.size.width);
+		_out.top = (sl_real)(_out.bottom - rect.size.height);
+		double advance = CTFontGetAdvancesForGlyphs(font, kCTFontOrientationHorizontal, &glyph, sl_null, 1);
+		_out.advanceX = (sl_real)(advance);
+		_out.advanceY = getFontHeight();
+		return sl_true;
+	}
+
 	sl_bool Font::_measureText_PO(const StringParam& _text, TextMetrics& _out)
 	{
 		UIFont* hFont = GraphicsPlatform::getNativeFont(this);
@@ -177,9 +205,77 @@ namespace slib
 		CGRect bounds = [attrText boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) options:0 context:nil];
 #endif
 		_out.left = (sl_real)(bounds.origin.x);
-		_out.top = (sl_real)(getFontHeight() - (bounds.origin.y + bounds.size.height));
+		_out.top = (sl_real)(getFontAscent() - (bounds.origin.y + bounds.size.height));
 		_out.right = _out.left + (sl_real)(bounds.size.width);
 		_out.bottom = _out.top + (sl_real)(bounds.size.height);
+		return sl_true;
+	}
+
+	namespace
+	{
+		struct PathApplierInfo
+		{
+			GraphicsPath* path;
+			sl_real x;
+			sl_real y;
+			sl_real ascent;
+		};
+
+		static Point ConvertPoint(PathApplierInfo* info, CGPoint& pt)
+		{
+			return { info->x + (sl_real)(pt.x), info->y + info->ascent - (sl_real)(pt.y) };
+		}
+
+		static void PathApplier(void* _info, const CGPathElement* element)
+		{
+			PathApplierInfo* info = (PathApplierInfo*)_info;
+			switch (element->type) {
+				case kCGPathElementMoveToPoint:
+					info->path->moveTo(ConvertPoint(info, *(element->points)));
+					break;
+				case kCGPathElementAddLineToPoint:
+					info->path->lineTo(ConvertPoint(info, *(element->points)));
+					break;
+				case kCGPathElementAddQuadCurveToPoint:
+					info->path->conicTo(ConvertPoint(info, *(element->points)), ConvertPoint(info, element->points[1]));
+					break;
+				case kCGPathElementAddCurveToPoint:
+					info->path->cubicTo(ConvertPoint(info, *(element->points)), ConvertPoint(info, element->points[1]), ConvertPoint(info, element->points[2]));
+					break;
+				case kCGPathElementCloseSubpath:
+					info->path->closeSubpath();
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
+	sl_bool Font::_buildOutline_PO(Ref<GraphicsPath>& _out, sl_real x, sl_real y, sl_char32 _ch, sl_real& advanceX)
+	{
+		UIFont* hFont = GraphicsPlatform::getNativeFont(this);
+		if (hFont == nil) {
+			return sl_false;
+		}
+		CTFontRef font = (__bridge CTFontRef)hFont;
+		CGGlyph glyph = 0;
+		UniChar ch = (UniChar)_ch;
+		CTFontGetGlyphsForCharacters(font, &ch, &glyph, 1);
+		if (!glyph) {
+			return sl_false;
+		}
+		CGPathRef path = CTFontCreatePathForGlyph(font, glyph, sl_null);
+		if (!path) {
+			return sl_false;
+		}
+		PathApplierInfo info;
+		info.path = _out.get();
+		info.x = x;
+		info.y = y;
+		info.ascent = (sl_real)(CTFontGetAscent(font));
+		CGPathApply(path, &info, &PathApplier);
+		double advance = CTFontGetAdvancesForGlyphs(font, kCTFontOrientationHorizontal, &glyph, sl_null, 1);
+		advanceX = (sl_real)advance;
 		return sl_true;
 	}
 
