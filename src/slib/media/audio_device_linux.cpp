@@ -308,7 +308,7 @@ namespace slib
 						return sl_false;
 					}
 				}
-				m_thread = Thread::start(SLIB_FUNCTION_WEAKREF(this, run));
+				m_thread = Thread::start(SLIB_FUNCTION_MEMBER(this, run));
 				if (m_thread.isNotNull()) {
 					return sl_true;
 				}
@@ -461,7 +461,7 @@ namespace slib
 						return sl_false;
 					}
 				}
-				m_thread = Thread::start(SLIB_FUNCTION_WEAKREF(this, run));
+				m_thread = Thread::start(SLIB_FUNCTION_MEMBER(this, run));
 				if (m_thread.isNotNull()) {
 					return sl_true;
 				}

@@ -195,10 +195,9 @@ namespace slib
 		~AsyncIoObject();
 
 	public:
-		const Ref<AsyncIoInstance>& getIoInstance()
-		{
-			return m_ioInstance;
-		}
+		const Ref<AsyncIoInstance>& getIoInstance();
+
+		sl_async_handle getHandle();
 
 		Ref<AsyncIoLoop> getIoLoop();
 

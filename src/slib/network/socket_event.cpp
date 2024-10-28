@@ -392,6 +392,32 @@ namespace slib
 	}
 
 
+	SocketAndEvent::SocketAndEvent()
+	{
+	}
+
+	SocketAndEvent::SocketAndEvent(SocketAndEvent&&) = default;
+
+	SocketAndEvent::~SocketAndEvent()
+	{
+		event.setNull();
+	}
+
+	SocketAndEvent& SocketAndEvent::operator=(SocketAndEvent&&) = default;
+
+	sl_bool SocketAndEvent::initialize(Socket&& _socket, sl_uint32 events)
+	{
+		event = SocketEvent::create(socket, events);
+		return event.isNotNull();
+	}
+
+	void SocketAndEvent::free()
+	{
+		event.setNull();
+		socket.setNone();
+	}
+
+
 	sl_bool Socket::connectAndWait(const SocketAddress& address, sl_int32 timeout) const noexcept
 	{
 		if (timeout >= 0) {

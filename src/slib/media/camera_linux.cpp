@@ -27,7 +27,7 @@
 #include "slib/media/camera.h"
 
 #include "slib/core/time_counter.h"
-#include "slib/core/thread.h"
+#include "slib/core/thread_service.h"
 #include "slib/core/log.h"
 
 #include <unistd.h>
@@ -218,7 +218,7 @@ namespace slib
 			ReleaseBuffers(handle, buffers, nBuffers);
 		}
 
-		class CameraImpl : public Camera
+		class CameraImpl : public Camera, public ThreadService
 		{
 		public:
 			int m_handle;
@@ -232,12 +232,13 @@ namespace slib
 			sl_uint32 m_nBuffers;
 			Memory m_bufFrame;
 
-			Ref<Thread> m_threadCapture;
-
 		public:
 			CameraImpl()
 			{
 				m_handle = -1;
+				m_serviceLock = getLocker();
+				m_onRunService = SLIB_FUNCTION_MEMBER(this, _run);
+				m_onReleaseService = SLIB_FUNCTION_MEMBER(this, _release);
 			}
 
 			~CameraImpl()
@@ -380,16 +381,20 @@ namespace slib
 
 			void release() override
 			{
-				if (m_handle == -1) {
-					return;
-				}
-				ObjectLocker lock(this);
-				stop();
-				if (m_handle != -1) {
-					ReleaseCapture(m_handle, m_pBuffers, m_nBuffers);
-					::close(m_handle);
-					m_handle = -1;
-				}
+				ThreadService::release();
+			}
+
+			Function<void()> _release()
+			{
+				int handle = m_handle;
+				m_handle = -1;
+				List<CaptureBuffer> buffers = m_buffers;
+				return [handle, buffers]() {
+					if (handle != -1) {
+						ReleaseCapture(handle, buffers.getData(), (sl_uint32)(buffers.getCount()));
+						::close(handle);
+					}
+				};
 			}
 
 			sl_bool isOpened() override
@@ -399,24 +404,17 @@ namespace slib
 
 			void start() override
 			{
-				ObjectLocker lock(this);
-				if (m_threadCapture.isNull()) {
-					m_threadCapture = Thread::start(SLIB_FUNCTION_WEAKREF(this, _run));
-				}
+				ThreadService::start();
 			}
 
 			void stop() override
 			{
-				ObjectLocker lock(this);
-				if (m_threadCapture.isNotNull()) {
-					m_threadCapture->finishAndWait();
-					m_threadCapture.setNull();
-				}
+				ThreadService::stop();
 			}
 
 			sl_bool isRunning() override
 			{
-				return m_threadCapture.isNotNull();
+				return ThreadService::isRunning();
 			}
 
 			sl_bool _runStep()
@@ -498,9 +496,7 @@ namespace slib
 					t.reset();
 				}
 			}
-
 		};
-
 	}
 
 	Ref<Camera> Camera::create(const CameraParam& param)

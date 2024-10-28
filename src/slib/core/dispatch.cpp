@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 #include "slib/core/dispatch_loop.h"
 
 #include "slib/core/timer.h"
-#include "slib/core/thread.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -110,17 +109,17 @@ namespace slib
 
 	DispatchLoop::DispatchLoop()
 	{
-		m_flagInit = sl_false;
-		m_flagRunning = sl_false;
+		m_serviceLock = getLocker();
+		m_onRunService = SLIB_FUNCTION_MEMBER(this, _runLoop);
 	}
 
 	DispatchLoop::~DispatchLoop()
 	{
-		release();
+		stop();
 	}
 
-	namespace {
-
+	namespace
+	{
 		static Ref<DispatchLoop> CreateDefaultDispatchLoop(sl_bool flagRelease = sl_false)
 		{
 			if (flagRelease) {
@@ -144,7 +143,6 @@ namespace slib
 			}
 			return sl_null;
 		}
-
 	}
 
 	Ref<DispatchLoop> DispatchLoop::getDefault()
@@ -161,12 +159,11 @@ namespace slib
 	{
 		Ref<DispatchLoop> ret = new DispatchLoop;
 		if (ret.isNotNull()) {
-			ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _runLoop));
-			if (ret->m_thread.isNotNull()) {
-				ret->m_flagInit = sl_true;
-				if (flagAutoStart) {
-					ret->start();
+			if (flagAutoStart) {
+				if (ret->start()) {
+					return ret;
 				}
+			} else {
 				return ret;
 			}
 		}
@@ -175,51 +172,18 @@ namespace slib
 
 	void DispatchLoop::release()
 	{
-		ObjectLocker lock(this);
-		if (!m_flagInit) {
-			return;
-		}
-		m_flagInit = sl_false;
-
-		if (m_flagRunning) {
-			m_flagRunning = sl_false;
-			lock.unlock();
-			m_thread->finishAndWait();
-		}
-
+		ThreadService::release();
 		m_queueTasks.removeAll();
-
-		MutexLocker lockTime(&m_lockTimeTasks);
 		m_timeTasks.removeAll();
-	}
-
-	void DispatchLoop::start()
-	{
-		ObjectLocker lock(this);
-		if (!m_flagInit) {
-			return;
-		}
-		if (m_flagRunning) {
-			return;
-		}
-		m_flagRunning = sl_true;
-		if (!(m_thread->start())) {
-			m_flagRunning = sl_false;
-		}
-	}
-
-	sl_bool DispatchLoop::isRunning()
-	{
-		return m_flagRunning;
+		m_queueTimers.removeAll();
 	}
 
 	void DispatchLoop::_wake()
 	{
 		ObjectLocker lock(this);
-		if (!m_flagRunning) {
-			return;
+		if (m_serviceThread.isNotNull()) {
+			m_serviceThread->wakeSelfEvent();
 		}
-		m_thread->wakeSelfEvent();
 	}
 
 	sl_int32 DispatchLoop::_getTimeout()
@@ -251,7 +215,6 @@ namespace slib
 				return sl_true;
 			}
 		} else {
-			MutexLocker lock(&m_lockTimeTasks);
 			TimeTask tt;
 			tt.time = getElapsedMilliseconds() + delayMillis;
 			tt.task = task;
@@ -265,16 +228,16 @@ namespace slib
 
 	sl_int32 DispatchLoop::_getTimeout_TimeTasks()
 	{
-		MutexLocker lock(&m_lockTimeTasks);
+		ObjectLocker lock(&m_timeTasks);
 		sl_uint64 rel = getElapsedMilliseconds();
-		if (m_timeTasks.getCount() == 0) {
+		if (m_timeTasks.isEmpty()) {
 			return -1;
 		}
 		sl_int32 timeout = -1;
 		LinkedQueue< Function<void()> > tasks;
 		while (MapNode<sl_uint64, TimeTask>* node = m_timeTasks.getFirstNode()) {
 			if (rel >= node->key) {
-				tasks.push(node->value.task);
+				tasks.push_NoLock(node->value.task);
 				m_timeTasks.removeAt(node);
 			} else {
 				timeout = (sl_int32)(node->key - rel);
@@ -284,7 +247,7 @@ namespace slib
 		lock.unlock();
 
 		Function<void()> task;
-		while (tasks.pop(&task)) {
+		while (tasks.pop_NoLock(&task)) {
 			task();
 		}
 		return timeout;
@@ -292,7 +255,7 @@ namespace slib
 
 	sl_int32 DispatchLoop::_getTimeout_Timer()
 	{
-		MutexLocker lock(&m_lockTimer);
+		ObjectLocker lock(&m_queueTimers);
 
 		sl_int32 timeout = -1;
 		LinkedQueue< Ref<Timer> > tasks;
@@ -305,7 +268,7 @@ namespace slib
 				if (timer->isStarted()) {
 					sl_uint64 t = rel - timer->getLastRunTime();
 					if (t >= timer->getInterval()) {
-						tasks.push(timer);
+						tasks.push_NoLock(timer);
 						timer->setLastRunTime(rel);
 						t = timer->getInterval();
 					} else {
@@ -326,7 +289,7 @@ namespace slib
 		lock.unlock();
 
 		Ref<Timer> task;
-		while (tasks.pop(&task)) {
+		while (tasks.pop_NoLock(&task)) {
 			if (task.isNotNull()) {
 				task->run();
 			}
@@ -346,7 +309,6 @@ namespace slib
 		}
 		TimerTask t;
 		t.timer = timer;
-		MutexLocker lock(&m_lockTimer);
 		if (m_queueTimers.push(t)) {
 			_wake();
 			return sl_true;
@@ -357,7 +319,6 @@ namespace slib
 
 	void DispatchLoop::removeTimer(const Ref<Timer>& timer)
 	{
-		MutexLocker lock(&m_lockTimer);
 		TimerTask t;
 		t.timer = timer;
 		m_queueTimers.remove(t);
@@ -374,13 +335,14 @@ namespace slib
 		if (!thread) {
 			return;
 		}
-
 		while (thread->isNotStopping()) {
-
 			// Async Tasks
 			{
 				LinkedQueue< Function<void()> > tasks;
-				tasks.merge(&m_queueTasks);
+				{
+					ObjectLocker lock(&m_queueTasks);
+					tasks.merge_NoLock(&m_queueTasks);
+				}
 				Function<void()> task;
 				while (tasks.pop_NoLock(&task)) {
 					task();

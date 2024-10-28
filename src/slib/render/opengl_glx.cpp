@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -40,22 +40,20 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 		class RendererImpl : public Renderer
 		{
 		public:
-			Display* m_xdisplay;
-			Window m_xwindow;
-			GLXContext m_context;
-
-			sl_bool m_flagRequestRender;
-			AtomicRef<Thread> m_threadRender;
+			Display* m_display = sl_null;
+			Window m_window  = 0;
+			GLXContext m_context = sl_null;
+			sl_bool m_flagRequestRender = sl_true;
+			Ref<Thread> m_threadRender;
 
 		public:
 			RendererImpl()
 			{
-				m_context = sl_null;
-				m_flagRequestRender = sl_true;
 			}
 
 			~RendererImpl()
@@ -64,15 +62,14 @@ namespace slib
 			}
 
 		public:
-			static Ref<RendererImpl> create(Display* xdisplay, Window xwindow, const RendererParam& param)
+			static Ref<RendererImpl> create(Display* display, Window window, const RendererParam& param)
 			{
-				if (!xdisplay) {
+				if (!display) {
 					return sl_null;
 				}
-				if (!xwindow) { // None
+				if (!window) { // None
 					return sl_null;
 				}
-
 				GLint attrs[] = {
 					GLX_RGBA,
 					GLX_RED_SIZE, param.nRedBits,
@@ -84,49 +81,49 @@ namespace slib
 					GLX_DOUBLEBUFFER,
 					0
 				};
-
-				XVisualInfo* xvinfo = glXChooseVisual(xdisplay, 0, attrs);
+				XVisualInfo* xvinfo = glXChooseVisual(display, 0, attrs);
 				if (!xvinfo) {
 					return sl_null;
 				}
-
-				GLXContext context = glXCreateContext(xdisplay, xvinfo, NULL, GL_TRUE);
+				GLXContext context = glXCreateContext(display, xvinfo, NULL, GL_TRUE);
 				if (!context) {
 					return sl_null;
 				}
-
 				Ref<RendererImpl> ret = new RendererImpl();
-
 				if (ret.isNotNull()) {
-					ret->m_xdisplay = xdisplay;
-					ret->m_xwindow = xwindow;
-					ret->m_context = context;
-
 					ret->initWithParam(param);
-
-					ret->m_threadRender = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), run));
-
-					return ret;
+					ret->m_display = display;
+					ret->m_window = window;
+					ret->m_context = context;
+					Ref<Thread> thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), run));
+					if (thread.isNotNull()) {
+						ret->m_threadRender = Move(thread);
+						if (ret->m_threadRender->start()) {
+							return ret;
+						}
+					}
+					return sl_null;
 				}
-
-				glXDestroyContext(xdisplay, context);
-
+				glXDestroyContext(display, context);
 				return sl_null;
 			}
 
 			void release()
 			{
 				ObjectLocker lock(this);
-
-				Ref<Thread> thread = m_threadRender;
+				Ref<Thread> thread = Move(m_threadRender);
+				Display* display = m_display;
+				m_display = sl_null;
+				Window window = m_window;
+				m_window  = 0;
+				GLXContext context = m_context;
+				m_context = sl_null;
+				lock.unlock();
 				if (thread.isNotNull()) {
 					thread->finishAndWait();
-					m_threadRender.setNull();
 				}
-
-				if (m_context) {
-					glXDestroyContext(m_xdisplay, m_context);
-					m_context = sl_null;
+				if (context) {
+					glXDestroyContext(display, context);
 				}
 			}
 
@@ -137,7 +134,7 @@ namespace slib
 					return;
 				}
 
-				glXMakeCurrent(m_xdisplay, m_xwindow, m_context);
+				glXMakeCurrent(m_display, m_window, m_context);
 
 				Ref<RenderEngine> engine = GL::createEngine();
 				if (engine.isNull()) {
@@ -159,13 +156,13 @@ namespace slib
 					}
 				}
 
-				glXMakeCurrent(m_xdisplay, 0, NULL);
+				glXMakeCurrent(m_display, 0, NULL);
 			}
 
 			void runStep(RenderEngine* engine)
 			{
 				XWindowAttributes attrs;
-				if (!(XGetWindowAttributes(m_xdisplay, m_xwindow, &attrs))) {
+				if (!(XGetWindowAttributes(m_display, m_window, &attrs))) {
 					return;
 				}
 				if (attrs.map_state != IsViewable) {
@@ -184,7 +181,7 @@ namespace slib
 					if (attrs.width != 0 && attrs.height != 0) {
 						engine->setViewport(0, 0, attrs.width, attrs.height);
 						handleFrame(engine);
-						glXSwapBuffers(m_xdisplay, m_xwindow);
+						glXSwapBuffers(m_display, m_window);
 					}
 				}
 			}
@@ -193,7 +190,6 @@ namespace slib
 			{
 				m_flagRequestRender = sl_true;
 			}
-
 		};
 	}
 

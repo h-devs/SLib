@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -266,8 +266,8 @@ namespace slib
 		return m_flagRunning;
 	}
 
-	namespace {
-
+	namespace
+	{
 		struct Option
 		{
 			DhcpOptionCode code;
@@ -540,7 +540,6 @@ namespace slib
 			}
 			return output.merge();
 		}
-
 	}
 
 	void DhcpServer::_onReceiveFrom(AsyncUdpSocket* socket, const SocketAddress& addressFrom, void* _data, sl_uint32 size)

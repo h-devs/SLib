@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -64,8 +64,7 @@ namespace slib
 #endif
 
 			HWND m_hWnd = sl_null;
-
-			AtomicRef<Thread> m_threadRender;
+			Ref<Thread> m_threadRender;
 
 		public:
 			RendererImpl()
@@ -157,13 +156,18 @@ namespace slib
 					ret->m_param = param;
 					if (ret->createResources()) {
 						ret->initWithParam(param);
-						ret->m_threadRender = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), run));
-						return ret;
+						Ref<Thread> thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), run));
+						if (thread.isNotNull()) {
+							ret->m_threadRender = Move(thread);
+							if (ret->m_threadRender->start()) {
+								return ret;
+							}
+						}
 					}
-				} else {
-					if (flagFreeOnFailure) {
-						device->Release();
-					}
+					return sl_null;
+				}
+				if (flagFreeOnFailure) {
+					device->Release();
 				}
 				return sl_null;
 			}
@@ -231,15 +235,43 @@ namespace slib
 			void release()
 			{
 				ObjectLocker lock(this);
-				Ref<Thread> thread = m_threadRender;
+				Ref<Thread> thread = Move(m_threadRender);
+				ID3DDevice* device = m_device;
+				m_device = sl_null;
+#if D3D_VERSION_MAJOR >= 10
+				ID3DRenderTargetView* pRenderTarget = m_pRenderTarget;
+				m_pRenderTarget = sl_null;
+				ID3DDepthStencilView* pDepthStencil = m_pDepthStencil;
+				m_pDepthStencil = sl_null;
+				IDXGISwapChain* pSwapChain = m_pSwapChain;
+				m_pSwapChain = sl_null;
+#endif
+#if D3D_VERSION_MAJOR >= 11
+				ID3DDeviceContext* context = m_context;
+				m_context = sl_null;
+#endif
+				lock.unlock();
 				if (thread.isNotNull()) {
 					thread->finishAndWait();
-					m_threadRender.setNull();
 				}
-				releaseResources();
-				if (m_device) {
-					m_device->Release();
-					m_device = sl_null;
+#if D3D_VERSION_MAJOR >= 10
+				if (pRenderTarget) {
+					pRenderTarget->Release();
+				}
+				if (pDepthStencil) {
+					pDepthStencil->Release();
+				}
+				if (pSwapChain) {
+					pSwapChain->Release();
+				}
+#endif
+#if D3D_VERSION_MAJOR >= 11
+				if (context) {
+					context->Release();
+				}
+#endif
+				if (device) {
+					device->Release();
 				}
 			}
 

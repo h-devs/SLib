@@ -22,7 +22,6 @@
 
 #include "slib/ui/app.h"
 
-#include "slib/core/thread.h"
 #include "slib/core/dispatch_loop.h"
 #include "slib/io/async.h"
 #include "slib/network/url_request.h"

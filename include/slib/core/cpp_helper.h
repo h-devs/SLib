@@ -73,6 +73,11 @@ namespace slib
 		MoveT(const MoveT& other) noexcept: T(Move(*((T*)&other))) {}
 
 	public:
+		T& get() const noexcept
+		{
+			return *((T*)this);
+		}
+
 		T&& release() const noexcept
 		{
 			return static_cast<T&&>(*((T*)this));

@@ -129,10 +129,12 @@ namespace slib
 					ret->_initialize(param);
 					ret->m_tap = tap;
 					ret->m_loopSource = loopSource;
-					Ref<Thread> thread = Thread::start(SLIB_FUNCTION_WEAKREF(ret, onRunLoop));
+					Ref<Thread> thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), onRunLoop));
 					if (thread.isNotNull()) {
 						ret->m_thread = Move(thread);
-						return ret;
+						if (ret->m_thread->start()) {
+							return ret;
+						}
 					}
 					return sl_null;
 				}

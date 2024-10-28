@@ -41,25 +41,20 @@ namespace slib
 		class RendererImpl : public Renderer
 		{
 		public:
-			sl_bool m_flagRequestRender;
-
-			EGLDisplay m_display;
-			EGLSurface m_surface;
-			EGLContext m_context;
-			EGLConfig m_config;
+			EGLDisplay m_display = sl_null;
+			EGLSurface m_surface = sl_null;
+			EGLContext m_context = sl_null;
+			EGLConfig m_config = sl_null;
+			EGLNativeWindowType m_hWindow = sl_null;
+			EGLNativeDisplayType m_hDisplay = sl_null;
 
 			RendererParam m_param;
-
-			AtomicRef<Thread> m_threadRender;
-
-			EGLNativeWindowType m_hWindow;
-			EGLNativeDisplayType m_hDisplay;
+			Ref<Thread> m_threadRender;
+			sl_bool m_flagRequestRender = sl_true;
 
 		public:
 			RendererImpl()
 			{
-				m_context = sl_null;
-				m_flagRequestRender = sl_true;
 			}
 
 			~RendererImpl()
@@ -177,51 +172,43 @@ namespace slib
 										EGLint nStencilBits;
 										PRIV_EGL_ENTRY(eglGetConfigAttrib)(display, config, EGL_STENCIL_SIZE, &nStencilBits);
 										param.nStencilBits = nStencilBits;
-
 										const EGLint surfaceAttributes[] =
 										{
 											EGL_POST_SUB_BUFFER_SUPPORTED_NV, EGL_TRUE,
 											EGL_NONE, EGL_NONE,
 										};
-
 										EGLSurface surface = PRIV_EGL_ENTRY(eglCreateWindowSurface)(display, config, windowHandle, surfaceAttributes);
 										if (surface != EGL_NO_SURFACE) {
-
 											if (PRIV_EGL_ENTRY(eglGetError()) == EGL_SUCCESS) {
-
 												EGLint contextAttibutes[] =
 												{
 													EGL_CONTEXT_CLIENT_VERSION, _clientVersion,
 													EGL_NONE
 												};
-
 												EGLContext context = PRIV_EGL_ENTRY(eglCreateContext)(display, config, NULL, contextAttibutes);
 												if (PRIV_EGL_ENTRY(eglGetError()) == EGL_SUCCESS) {
-
 													Ref<RendererImpl> ret = new RendererImpl();
-
 													if (ret.isNotNull()) {
-
+														ret->initWithParam(param);
 														ret->m_param = param;
-
 														ret->m_hWindow = windowHandle;
 														ret->m_hDisplay = displayHandle;
-
 														ret->m_display = display;
 														ret->m_surface = surface;
 														ret->m_context = context;
 														ret->m_config = config;
-														ret->initWithParam(param);
-
-														ret->m_threadRender = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), run));
-
-														return ret;
+														Ref<Thread> thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), run));
+														if (thread.isNotNull()) {
+															ret->m_threadRender = Move(thread);
+															if (ret->m_threadRender->start()) {
+																return ret;
+															}
+														}
+														return sl_null;
 													}
-
 													PRIV_EGL_ENTRY(eglDestroyContext)(display, context);
 												}
 											}
-
 											PRIV_EGL_ENTRY(eglDestroySurface)(display, surface);
 										}
 									}
@@ -238,21 +225,32 @@ namespace slib
 			void release()
 			{
 				ObjectLocker lock(this);
-
-				Ref<Thread> thread = m_threadRender;
+				Ref<Thread> thread = Move(m_threadRender);
+				EGLDisplay display = m_display;
+				m_display = sl_null;
+				EGLSurface surface = m_surface;
+				m_surface = sl_null;
+				EGLContext context = m_context;
+				m_context = sl_null;
+				EGLNativeWindowType hWindow = m_hWindow;
+				m_hWindow = sl_null;
+				EGLNativeDisplayType hDisplay = m_hDisplay;
+				m_hDisplay = sl_null;
+				lock.unlock();
 				if (thread.isNotNull()) {
 					thread->finishAndWait();
-					m_threadRender.setNull();
 				}
-
-				if (m_context) {
-					PRIV_EGL_ENTRY(eglDestroyContext)(m_display, m_context);
-					PRIV_EGL_ENTRY(eglDestroySurface)(m_display, m_surface);
-					PRIV_EGL_ENTRY(eglTerminate)(m_display);
-
-					releaseDisplay(m_hWindow, m_hDisplay);
-
-					m_context = sl_null;
+				if (display) {
+					if (context) {
+						PRIV_EGL_ENTRY(eglDestroyContext)(display, context);
+					}
+					if (surface) {
+						PRIV_EGL_ENTRY(eglDestroySurface)(display, surface);
+					};
+					PRIV_EGL_ENTRY(eglTerminate)(display);
+				}
+				if (hDisplay) {
+					releaseDisplay(hWindow, hDisplay);
 				}
 			}
 
@@ -315,7 +313,6 @@ namespace slib
 			{
 				m_flagRequestRender = sl_true;
 			}
-
 		};
 	}
 

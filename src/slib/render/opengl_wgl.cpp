@@ -40,20 +40,16 @@ namespace slib
 		class RendererImpl : public Renderer
 		{
 		public:
-			sl_bool m_flagRequestRender;
+			sl_bool m_flagRequestRender = sl_true;
+			HGLRC m_context = sl_null;
+			HWND m_hWindow = sl_null;
+			HDC m_hDC = sl_null;
 
-			HGLRC m_context;
-
-			HWND m_hWindow;
-			HDC m_hDC;
-
-			AtomicRef<Thread> m_threadRender;
+			Ref<Thread> m_threadRender;
 
 		public:
 			RendererImpl()
 			{
-				m_context = sl_null;
-				m_flagRequestRender = sl_true;
 			}
 
 			~RendererImpl()
@@ -68,10 +64,8 @@ namespace slib
 				if (!hWnd) {
 					return sl_null;
 				}
-
 				HDC hDC = GetDC(hWnd);
 				if (hDC) {
-
 					PIXELFORMATDESCRIPTOR pfd;
 					Base::zeroMemory(&pfd, sizeof(pfd));
 					pfd.nSize = sizeof(pfd);
@@ -87,26 +81,24 @@ namespace slib
 
 					int iPixelFormat = ChoosePixelFormat(hDC, &pfd);
 					if (iPixelFormat) {
-
 						if (SetPixelFormat(hDC, iPixelFormat, &pfd)) {
-
 							HGLRC context = wglCreateContext(hDC);
 							if (context) {
-
 								Ref<RendererImpl> ret = new RendererImpl();
-
 								if (ret.isNotNull()) {
+									ret->initWithParam(param);
 									ret->m_hWindow = hWnd;
 									ret->m_hDC = hDC;
 									ret->m_context = context;
-
-									ret->initWithParam(param);
-
-									ret->m_threadRender = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), run));
-
-									return ret;
+									Ref<Thread> thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), run));
+									if (thread.isNotNull()) {
+										ret->m_threadRender = Move(thread);
+										if (ret->m_threadRender->start()) {
+											return ret;
+										}
+									}
+									return sl_null;
 								}
-
 								wglDeleteContext(context);
 							}
 						}
@@ -119,18 +111,22 @@ namespace slib
 			void release()
 			{
 				ObjectLocker lock(this);
-
-				Ref<Thread> thread = m_threadRender;
+				Ref<Thread> thread = Move(m_threadRender);
+				HGLRC context = m_context;
+				m_context = sl_null;
+				HWND hWindow = m_hWindow;
+				m_hWindow = sl_null;
+				HDC hDC = m_hDC;
+				m_hDC = sl_null;
+				lock.unlock();
 				if (thread.isNotNull()) {
 					thread->finishAndWait();
-					m_threadRender.setNull();
 				}
-
-				if (m_context) {
-					wglDeleteContext(m_context);
-					ReleaseDC(m_hWindow, m_hDC);
-					m_context = sl_null;
-					m_hDC = sl_null;
+				if (context) {
+					wglDeleteContext(context);
+				}
+				if (hDC) {
+					ReleaseDC(hWindow, hDC);
 				}
 			}
 

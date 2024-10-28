@@ -29,7 +29,6 @@
 #include "slib/io/async_copy.h"
 #include "slib/io/async_output.h"
 
-#include "slib/core/thread.h"
 #include "slib/core/dispatch_loop.h"
 #include "slib/core/handle_ptr.h"
 #include "slib/core/mio.h"
@@ -361,6 +360,19 @@ namespace slib
 	AsyncIoObject::~AsyncIoObject()
 	{
 		closeInstance();
+	}
+
+	const Ref<AsyncIoInstance>& AsyncIoObject::getIoInstance()
+	{
+		return m_ioInstance;
+	}
+
+	sl_async_handle AsyncIoObject::getHandle()
+	{
+		if (m_ioInstance.isNotNull()) {
+			return m_ioInstance->getHandle();
+		}
+		return SLIB_ASYNC_INVALID_HANDLE;
 	}
 
 	Ref<AsyncIoLoop> AsyncIoObject::getIoLoop()
@@ -1077,11 +1089,6 @@ namespace slib
 	Ref<AsyncFileStreamInstance> AsyncFileStream::getIoInstance()
 	{
 		return Ref<AsyncFileStreamInstance>::cast(AsyncIoObject::getIoInstance());
-	}
-
-	sl_file AsyncFileStream::getHandle()
-	{
-		return SLIB_FILE_INVALID_HANDLE;
 	}
 
 

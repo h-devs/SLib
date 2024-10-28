@@ -99,6 +99,33 @@ namespace slib
 
 	};
 
+	class SocketAndEvent
+	{
+	public:
+		Socket socket;
+		Ref<SocketEvent> event;
+
+	public:
+		SocketAndEvent();
+
+		SocketAndEvent(const SocketAndEvent&) = delete;
+
+		SocketAndEvent(SocketAndEvent&&);
+
+		~SocketAndEvent();
+
+	public:
+		SocketAndEvent& operator=(const SocketAndEvent&) = delete;
+
+		SocketAndEvent& operator=(SocketAndEvent&&);
+
+	public:
+		sl_bool initialize(Socket&& _socket, sl_uint32 events);
+
+		void free();
+
+	};
+
 }
 
 #endif

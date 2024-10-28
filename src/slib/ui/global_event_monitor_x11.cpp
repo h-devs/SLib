@@ -108,10 +108,12 @@ namespace slib
 								ret->m_context = context;
 								if (XRecordEnableContextAsync(displayRecord, context, &onEventCallback, (XPointer)(ret.get()))) {
 									ret->m_flagContextEnabled = sl_true;
-									Ref<Thread> thread = Thread::start(SLIB_FUNCTION_WEAKREF(ret, onRun));
+									Ref<Thread> thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), onRun));
 									if (thread.isNotNull()) {
 										ret->m_thread = Move(thread);
-										return ret;
+										if (ret->m_thread->start()) {
+											return ret;
+										}
 									}
 								}
 								return sl_null;

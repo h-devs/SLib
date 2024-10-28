@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_CORE_DISPATCH_LOOP
 
 #include "dispatch.h"
+#include "thread_service.h"
 #include "time_counter.h"
 #include "map.h"
 #include "queue.h"
@@ -34,7 +35,7 @@ namespace slib
 	class Thread;
 	class Timer;
 
-	class SLIB_EXPORT DispatchLoop : public Dispatcher
+	class SLIB_EXPORT DispatchLoop : public Dispatcher, public ThreadService
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -53,10 +54,6 @@ namespace slib
 	public:
 		void release();
 
-		void start();
-
-		sl_bool isRunning();
-
 		sl_bool dispatch(const Function<void()>& task, sl_uint64 delayMillis = 0) override;
 
 		sl_bool addTimer(const Ref<Timer>& timer);
@@ -66,10 +63,6 @@ namespace slib
 		sl_uint64 getElapsedMilliseconds();
 
 	protected:
-		sl_bool m_flagInit;
-		sl_bool m_flagRunning;
-		Ref<Thread> m_thread;
-
 		TimeCounter m_timeCounter;
 
 		LinkedQueue< Function<void()> > m_queueTasks;
@@ -80,7 +73,6 @@ namespace slib
 			Function<void()> task;
 		};
 		CMap<sl_uint64, TimeTask> m_timeTasks;
-		Mutex m_lockTimeTasks;
 
 		class TimerTask
 		{
@@ -96,7 +88,6 @@ namespace slib
 			sl_bool operator==(const TimerTask& other) const noexcept;
 		};
 		LinkedQueue<TimerTask> m_queueTimers;
-		Mutex m_lockTimer;
 
 	protected:
 		void _wake();

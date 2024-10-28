@@ -22,6 +22,7 @@
 
 #include "slib/core/thread.h"
 #include "slib/core/thread_pool.h"
+#include "slib/core/thread_service.h"
 
 #include "slib/system/system.h"
 #include "slib/core/event.h"
@@ -629,6 +630,77 @@ namespace slib
 				}
 			}
 		}
+	}
+
+
+	ThreadService::ThreadService()
+	{
+		m_flagReleasedService = sl_false;
+		m_serviceLock = sl_null;
+	}
+
+	ThreadService::~ThreadService()
+	{
+	}
+
+	void ThreadService::release()
+	{
+		MutexLocker locker(m_serviceLock);
+		if (m_flagReleasedService) {
+			return;
+		}
+		m_flagReleasedService = sl_true;
+		Ref<Thread> thread = Move(m_serviceThread);
+		Function<void()> freeResources = m_onReleaseService();
+		locker.unlock();
+		if (thread.isNotNull()) {
+			thread->finishAndWait();
+		}
+		freeResources();
+	}
+
+	sl_bool ThreadService::start()
+	{
+		MutexLocker locker(m_serviceLock);
+		if (m_flagReleasedService) {
+			return sl_false;
+		}
+		if (m_serviceThread.isNotNull()) {
+			return sl_true;
+		}
+		Ref<Thread> thread = Thread::start(m_onRunService);
+		if (thread.isNull()) {
+			return sl_false;
+		}
+		m_serviceThread = Move(thread);
+		return sl_true;
+	}
+
+	void ThreadService::stop()
+	{
+		MutexLocker locker(m_serviceLock);
+		if (m_flagReleasedService) {
+			return;
+		}
+		Ref<Thread> thread = Move(m_serviceThread);
+		if (thread.isNotNull()) {
+			thread->finishAndWait();
+		}
+	}
+
+	sl_bool ThreadService::isReleased()
+	{
+		return m_flagReleasedService;
+	}
+
+	sl_bool ThreadService::isRunning()
+	{
+		return m_serviceThread.isNotNull();
+	}
+
+	sl_bool ThreadService::isNotRunning()
+	{
+		return m_serviceThread.isNull();
 	}
 
 }
