@@ -33,7 +33,26 @@ namespace slib
 {
 
 	typedef DataContainer IPCMessage;
-	typedef IPCMessage IPCRequestMessage;
+
+	class SLIB_EXPORT IPCRequestMessage : public IPCMessage
+	{
+	public:
+		sl_uint32 remoteProcessId;
+
+	public:
+		IPCRequestMessage() noexcept;
+
+		IPCRequestMessage(const void* data, sl_size size, CRef* ref = sl_null) noexcept;
+
+		template <class T>
+		IPCRequestMessage(T&& value): remoteProcessId(0)
+		{
+			setContent(Forward<T>(value));
+		}
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(IPCRequestMessage)
+	};
+
 	typedef IPCMessage IPCResponseMessage;
 
 	class SLIB_EXPORT IPCRequestParam
@@ -71,15 +90,38 @@ namespace slib
 		~IPCRequest();
 
 	public:
+		void initialize(const IPCRequestParam&);
+
+		void initialize(const IPCRequestParam&, sl_int64 tickEnd);
+
+	protected:
+		void onResponse(IPCResponseMessage& response);
+
+		void dispatchResponse(const Memory& data);
+
+		void dispatchError();
+
+	protected:
+		sl_bool m_flagSelfAlive;
+		Ref<Dispatcher> m_dispatcher;
+		Function<void(IPCResponseMessage&)> m_onResponse;
+		sl_int32 m_nCountFinish;
+		sl_int64 m_tickEnd;
+	};
+
+	class SLIB_EXPORT IPCStreamRequest : public IPCRequest
+	{
+	protected:
+		IPCStreamRequest();
+
+		~IPCStreamRequest();
+
+	public:
 		sl_bool initialize(Ref<AsyncStream>&&, const IPCRequestParam&);
 
 		sl_bool initialize(Ref<AsyncStream>&&, const IPCRequestParam&, sl_int64 tickEnd);
 
 	protected:
-		void onError();
-
-		void onResponse(IPCResponseMessage& response);
-
 		void sendRequest();
 
 		void onSentRequest(AsyncStream*, sl_bool flagError);
@@ -90,18 +132,11 @@ namespace slib
 
 	protected:
 		Ref<AsyncStream> m_stream;
-		sl_bool m_flagSelfAlive;
-		Ref<Dispatcher> m_dispatcher;
-		Function<void(IPCResponseMessage&)> m_onResponse;
 
 		Memory m_requestData;
 		Memory m_responseData;
-		sl_int64 m_tickEnd;
 		sl_int32 m_maximumResponseSize;
 		sl_uint32 m_messageSegmentSize;
-
-		sl_int32 m_nCountFinish;
-
 	};
 
 	class SLIB_EXPORT IPCServerParam
@@ -112,6 +147,7 @@ namespace slib
 		Ref<AsyncIoLoop> ioLoop;
 		Ref<Dispatcher> dispatcher; // usually ThreadPool
 
+		sl_int32 responseTimeout; // In milliseconds
 		sl_uint32 maximumMessageSize;
 		sl_uint32 messageSegmentSize;
 		sl_bool flagAcceptOtherUsers; // default: true
@@ -135,6 +171,23 @@ namespace slib
 		~IPCServer();
 
 	protected:
+		void initialize(const IPCServerParam& param);
+
+	protected:
+		Ref<Dispatcher> m_dispatcher;
+		sl_int32 m_responseTimeout;
+		sl_bool m_flagAcceptOtherUsers;
+		Function<void(IPCRequestMessage&, IPCResponseMessage&)> m_onReceiveMessage;
+	};
+
+	class SLIB_EXPORT IPCStreamServer : public IPCServer
+	{
+	public:
+		IPCStreamServer();
+
+		~IPCStreamServer();
+
+	protected:
 		sl_bool initialize(const IPCServerParam& param);
 
 		void startStream(AsyncStream*);
@@ -150,15 +203,13 @@ namespace slib
 		void onSentResponse(AsyncStream*, sl_bool flagError);
 
 	protected:
+		virtual void prepareRequest(AsyncStream*, IPCRequestMessage&);
+
+	protected:
 		Ref<AsyncIoLoop> m_ioLoop;
-		Ref<Dispatcher> m_dispatcher;
+		HashMap< AsyncStream*, Ref<AsyncStream> > m_streams;
 		sl_uint32 m_maximumMessageSize;
 		sl_uint32 m_messageSegmentSize;
-		sl_bool m_flagAcceptOtherUsers;
-		Function<void(IPCRequestMessage&, IPCResponseMessage&)> m_onReceiveMessage;
-
-		HashMap< AsyncStream*, Ref<AsyncStream> > m_streams;
-
 	};
 
 	class SLIB_EXPORT IPC

@@ -20,6 +20,8 @@
 		0523C3A82CCC339A0055F6E1 /* dl_security_framework.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0523C3A72CCC339A0055F6E1 /* dl_security_framework.cpp */; };
 		0523C3AC2CCC44480055F6E1 /* iokit.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0523C3AA2CCC44480055F6E1 /* iokit.mm */; };
 		0523C3AD2CCC44480055F6E1 /* platform.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0523C3AB2CCC44480055F6E1 /* platform.mm */; };
+		0523C3AF2CCE01130055F6E1 /* ipc_macos.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0523C3AE2CCE01130055F6E1 /* ipc_macos.mm */; };
+		0523C3B12CCE1F9E0055F6E1 /* mach_port.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0523C3B02CCE1F9E0055F6E1 /* mach_port.mm */; };
 		1847A9702A2B050C00E11B67 /* dhcp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1847A96F2A2B050C00E11B67 /* dhcp.cpp */; };
 		1847A9722A2B051500E11B67 /* utm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1847A9712A2B051500E11B67 /* utm.cpp */; };
 		1852CC46279FEC4C00BA677C /* common_dialogs_prompt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1852CC45279FEC4C00BA677C /* common_dialogs_prompt.cpp */; };
@@ -506,6 +508,8 @@
 		0523C3A72CCC339A0055F6E1 /* dl_security_framework.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = dl_security_framework.cpp; path = apple/macos/dl_security_framework.cpp; sourceTree = "<group>"; };
 		0523C3AA2CCC44480055F6E1 /* iokit.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = iokit.mm; path = apple/iokit.mm; sourceTree = "<group>"; };
 		0523C3AB2CCC44480055F6E1 /* platform.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = platform.mm; path = apple/platform.mm; sourceTree = "<group>"; };
+		0523C3AE2CCE01130055F6E1 /* ipc_macos.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ipc_macos.mm; sourceTree = "<group>"; };
+		0523C3B02CCE1F9E0055F6E1 /* mach_port.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = mach_port.mm; path = apple/mach_port.mm; sourceTree = "<group>"; };
 		1847A96F2A2B050C00E11B67 /* dhcp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dhcp.cpp; sourceTree = "<group>"; };
 		1847A9712A2B051500E11B67 /* utm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = utm.cpp; sourceTree = "<group>"; };
 		1852CC45279FEC4C00BA677C /* common_dialogs_prompt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = common_dialogs_prompt.cpp; sourceTree = "<group>"; };
@@ -1019,6 +1023,7 @@
 			children = (
 				0523C3AA2CCC44480055F6E1 /* iokit.mm */,
 				0523C3AB2CCC44480055F6E1 /* platform.mm */,
+				0523C3B02CCE1F9E0055F6E1 /* mach_port.mm */,
 				0523C3A72CCC339A0055F6E1 /* dl_security_framework.cpp */,
 			);
 			path = platform;
@@ -1322,6 +1327,7 @@
 				26BAE0322223E3BB0085B5AB /* http_openssl.cpp */,
 				266DD4C41C11940A00D47AB0 /* icmp.cpp */,
 				D71B3A56268A4D7400707369 /* ipc.cpp */,
+				0523C3AE2CCE01130055F6E1 /* ipc_macos.mm */,
 				266DD4C51C11940A00D47AB0 /* ip_address.cpp */,
 				266DD4C61C11940A00D47AB0 /* mac_address.cpp */,
 				266DD4C71C11940A00D47AB0 /* nat.cpp */,
@@ -2176,6 +2182,7 @@
 				2639194421CD2510008B335B /* redis.cpp in Sources */,
 				26D9D9D51E96468D005F7BD3 /* slider.cpp in Sources */,
 				D7BF60E626311F3600E0B3DD /* snappy_unity.cc in Sources */,
+				0523C3B12CCE1F9E0055F6E1 /* mach_port.mm in Sources */,
 				1887E12D202CCC3B00A81967 /* async_kqueue.cpp in Sources */,
 				26D9D9651E964669005F7BD3 /* brush.cpp in Sources */,
 				26C795A5221565C70053C5A1 /* url_request_param.cpp in Sources */,
@@ -2330,6 +2337,7 @@
 				26D9D9351E9645CE005F7BD3 /* rsa.cpp in Sources */,
 				26D9D9361E9645CE005F7BD3 /* content_type.cpp in Sources */,
 				26D9D99C1E96467B005F7BD3 /* pcap.cpp in Sources */,
+				0523C3AF2CCE01130055F6E1 /* ipc_macos.mm in Sources */,
 				18FD6D6A2A159DA400ED23A9 /* certificate.cpp in Sources */,
 				1887E15F202CCE1800A81967 /* oauth_server_openssl.cpp in Sources */,
 				26F5C77E237EEDFD009F3EEF /* ui_notification_apple.mm in Sources */,

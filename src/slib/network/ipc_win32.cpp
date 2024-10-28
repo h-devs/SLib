@@ -39,7 +39,6 @@ namespace slib
 
 	namespace
 	{
-
 		static String16 GetPipeName(const StringParam& _targetName, sl_bool flagGlobal)
 		{
 			if (flagGlobal) {
@@ -82,7 +81,7 @@ namespace slib
 			return INVALID_HANDLE_VALUE;
 		}
 
-		class PipeRequest : public IPCRequest
+		class PipeRequest : public IPCStreamRequest
 		{
 		public:
 			static Ref<PipeRequest> create(const IPCRequestParam& param)
@@ -108,10 +107,9 @@ namespace slib
 				param.onResponse(errorMsg);
 				return sl_null;
 			}
-
 		};
 
-		class PipeServer : public IPCServer
+		class PipeServer : public IPCStreamServer
 		{
 		public:
 			String16 m_name;
@@ -235,8 +233,17 @@ namespace slib
 				}
 			}
 
+			void prepareRequest(AsyncStream* stream, IPCRequestMessage& msg) override
+			{
+				HANDLE hPipe = (HANDLE)(stream->getHandle());
+				if (hPipe != INVALID_HANDLE_VALUE) {
+					ULONG processId = 0;
+					if (GetNamedPipeClientProcessId(hPipe, &processId)) {
+						msg.remoteProcessId = (sl_uint32)processId;
+					}
+				}
+			}
 		};
-
 	}
 
 	Ref<IPCRequest> IPC::sendMessage(const RequestParam& param)
