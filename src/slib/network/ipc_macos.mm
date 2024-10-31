@@ -39,96 +39,6 @@ namespace slib
 	{
 		typedef apple::MachPort MachPort;
 
-		struct MACH_MESSAGE_BASE
-		{
-			mach_msg_header_t header;
-			mach_msg_body_t body;
-			mach_msg_ool_descriptor_t data;
-			mach_msg_type_number_t count;
-		};
-
-		typedef MACH_MESSAGE_BASE MACH_SEND_MESSAGE;
-	
-		struct MACH_RECEIVE_MESSAGE : MACH_MESSAGE_BASE
-		{
-			sl_uint8 trailer[sizeof(void*) * 8];
-		};
-
-		static sl_bool SendMachMessage(mach_port_t from, mach_port_t to, const void* data, sl_size size, sl_int32 _timeout)
-		{
-			MACH_SEND_MESSAGE msg = {};
-			msg.header.msgh_remote_port = to;
-			msg.header.msgh_local_port = from;
-			msg.header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, MACH_MSG_TYPE_COPY_SEND) | MACH_MSGH_BITS_COMPLEX;
-			msg.header.msgh_size = sizeof(msg);
-			msg.body.msgh_descriptor_count = 1;
-			msg.data.address = (void*)data;
-			msg.data.size = (mach_msg_size_t)size;
-			msg.data.copy = MACH_MSG_VIRTUAL_COPY;
-			msg.data.type = MACH_MSG_OOL_DESCRIPTOR;
-			msg.count = msg.data.size;
-			mach_msg_option_t options = MACH_SEND_MSG;
-			mach_msg_timeout_t timeout;
-			if (_timeout >= 0) {
-				options |= MACH_SEND_TIMEOUT;
-				timeout = (mach_msg_timeout_t)_timeout;
-				if (timeout == MACH_MSG_TIMEOUT_NONE) {
-					timeout = 1;
-				}
-			} else {
-				timeout = MACH_MSG_TIMEOUT_NONE;
-			}
-			kern_return_t kRet = mach_msg(&msg.header, options, sizeof(msg), 0, MACH_PORT_NULL, timeout, MACH_PORT_NULL);
-			return kRet == KERN_SUCCESS;
-		}
-
-		class KernelMemory : public CMemory
-		{
-		public:
-			KernelMemory(const void* data, sl_size size): CMemory(data, size) {}
-
-			~KernelMemory()
-			{
-				vm_deallocate(mach_task_self(), (vm_address_t)data, (vm_size_t)size);
-			}
-		};
-
-		static sl_bool ReceiveMachMessage(mach_port_t from, sl_int32 _timeout, Memory& outData, mach_port_t& outRemotePort, sl_uint32& outPid)
-		{
-			MACH_RECEIVE_MESSAGE msg = {};
-			msg.header.msgh_size = sizeof(msg);
-			mach_msg_option_t options = MACH_RCV_MSG | MACH_RCV_LARGE | MACH_RCV_TRAILER_TYPE(MACH_MSG_TRAILER_FORMAT_0) | MACH_RCV_TRAILER_ELEMENTS(MACH_RCV_TRAILER_AUDIT);
-			mach_msg_timeout_t timeout;
-			if (_timeout >= 0) {
-				options |= MACH_RCV_TIMEOUT;
-				timeout = (mach_msg_timeout_t)_timeout;
-				if (timeout == MACH_MSG_TIMEOUT_NONE) {
-					timeout = 1;
-				}
-			} else {
-				timeout = MACH_MSG_TIMEOUT_NONE;
-			}
-			kern_return_t kRet = mach_msg(&msg.header, options, 0, sizeof(msg), from, timeout, MACH_PORT_NULL);
-			if (kRet != KERN_SUCCESS) {
-				return sl_false;
-			}
-			outRemotePort = msg.header.msgh_remote_port;
-			mach_msg_audit_trailer_t* trailer = (mach_msg_audit_trailer_t*)(msg.trailer);
-			if(trailer->msgh_trailer_size == sizeof(mach_msg_audit_trailer_t)) {
-				outPid = (sl_uint32)(trailer->msgh_audit.val[5]);
-			} else {
-				outPid = 0;
-			}
-			if (msg.data.address) {
-				if (msg.data.size) {
-					outData = new KernelMemory(msg.data.address, msg.data.size);
-					return outData.isNotNull();
-				}
-				vm_deallocate(mach_task_self(), (vm_address_t)(msg.data.address), (vm_size_t)(msg.data.size));
-			}
-			return sl_true;
-		}
-
 		class MachPortRequest : public IPCRequest
 		{
 		public:
@@ -156,7 +66,7 @@ namespace slib
 					MachPort portLocal = MachPort::create(sl_true);
 					if (portLocal.isNotNone()) {
 						sl_int64 tickEnd = GetTickFromTimeout(param.timeout);
-						if (SendMachMessage(portLocal.get(), portRemote.get(), param.message.data, param.message.size, param.timeout)) {
+						if (MachPort::sendMessage(portLocal.get(), portRemote.get(), param.message.data, param.message.size, param.timeout)) {
 							dispatch_queue_t queue = getDispatchQueue();
 							if (queue != nil) {
 								dispatch_source_t source = dispatch_source_create(DISPATCH_SOURCE_TYPE_MACH_RECV, portLocal.get(), 0, queue);
@@ -212,11 +122,10 @@ namespace slib
 		public:
 			void receive()
 			{
-				sl_int32 timeout = GetTimeoutFromTick(m_tickEnd);
 				Memory data;
 				mach_port_t remotePort;
-				sl_uint32 pid;
-				if (ReceiveMachMessage(m_portLocal.get(), timeout, data, remotePort, pid)) {
+				sl_int32 timeout = GetTimeoutFromTick(m_tickEnd);
+				if (MachPort::receiveMessage(data, m_portLocal.get(), &remotePort, sl_null, timeout)) {
 					if (remotePort != m_portRemote.get()) {
 						return;
 					}
@@ -275,7 +184,7 @@ namespace slib
 					Memory data;
 					mach_port_t remotePort;
 					sl_uint32 pid;
-					if (ReceiveMachMessage(m_port.get(), 10, data, remotePort, pid)) {
+					if (MachPort::receiveMessage(data, m_port.get(), &remotePort, &pid, 10)) {
 						if (m_dispatcher.isNotNull()) {
 							WeakRef<IPCServer> thiz = this;
 							m_dispatcher->dispatch([this, thiz, data, remotePort, pid]() {
@@ -298,7 +207,7 @@ namespace slib
 				request.remoteProcessId = pid;
 				IPCResponseMessage response;
 				m_onReceiveMessage(request, response);
-				SendMachMessage(m_port.get(), remotePort, response.data, response.size, m_responseTimeout);
+				MachPort::sendMessage(m_port.get(), remotePort, response.data, response.size, m_responseTimeout);
 			}
 		};
 	}
@@ -309,7 +218,7 @@ namespace slib
 	}
 
 	sl_bool IPC::sendMessageSynchronous(const RequestParam& param, ResponseMessage& response)
-{
+	{
 		MachPort portRemote = MachPort::lookUp(param.targetName);
 		if (portRemote.isNone()) {
 			return sl_false;
@@ -319,14 +228,13 @@ namespace slib
 			return sl_false;
 		}
 		sl_int64 tickEnd = GetTickFromTimeout(param.timeout);
-		if (!(SendMachMessage(portLocal.get(), portRemote.get(), param.message.data, param.message.size, param.timeout))) {
+		if (!(MachPort::sendMessage(portLocal.get(), portRemote.get(), param.message.data, param.message.size, param.timeout))) {
 			return sl_false;
 		}
 		sl_int32 timeout = GetTimeoutFromTick(tickEnd);
 		Memory data;
 		mach_port_t remotePort;
-		sl_uint32 pid;
-		if (ReceiveMachMessage(portLocal.get(), timeout, data, remotePort, pid)) {
+		if (MachPort::receiveMessage(data, portLocal.get(), &remotePort, sl_null, timeout)) {
 			if (remotePort == portRemote.get()) {
 				response.setMemory(data);
 				return sl_true;
