@@ -303,8 +303,10 @@ namespace slib
 		}
 		sl_size i = 0;
 		for (;;) {
-			sl_char8 ch = data[i];
-			while (i < len && SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+			while (i < len) {
+				if (!SLIB_CHAR_IS_WHITE_SPACE(data[i])) {
+					break;
+				}
 				i++;
 			}
 			if (i >= len) {
@@ -330,8 +332,10 @@ namespace slib
 					} else if (data[i] == '=') {
 						indexEndName = indexEndValue;
 						i++;
-						ch = data[i];
-						while (i < len && SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+						while (i < len) {
+							if (!SLIB_CHAR_IS_WHITE_SPACE(data[i])) {
+								break;
+							}
 							i++;
 						}
 						if (i < len) {
@@ -345,8 +349,7 @@ namespace slib
 						indexValue = i;
 						break;
 					} else {
-						ch = data[i];
-						if (!SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+						if (!SLIB_CHAR_IS_WHITE_SPACE(data[i])) {
 							indexEndValue = i + 1;
 						}
 						i++;
@@ -380,8 +383,7 @@ namespace slib
 						}
 						i++;
 						while (i < len) {
-							sl_char8 ch = data[i];
-							if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+							if (SLIB_CHAR_IS_WHITE_SPACE(data[i])) {
 								i++;
 							} else {
 								break;
@@ -426,8 +428,7 @@ namespace slib
 						}
 						break;
 					} else {
-						ch = data[i];
-						if (!SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+						if (!SLIB_CHAR_IS_WHITE_SPACE(data[i])) {
 							indexEndValue = i + 1;
 						}
 						i++;
