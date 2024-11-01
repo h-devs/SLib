@@ -1349,7 +1349,7 @@ namespace slib
 		}
 		appendQuerySource(join);
 		if (join.on.isNotNull()) {
-			appendStatic(" ");
+			appendStatic(" ON ");
 			join.on.appendTo(*this, sl_false);
 		}
 	}
