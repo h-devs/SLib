@@ -306,7 +306,7 @@ namespace slib
 		for (sl_size i = 0; i < _styles.count; i++) {
 			Ref<SAppLayoutStyle> style = _styles[_styles.count - 1 - i];
 			if (style.isNotNull()) {
-				value = style->getXmlAttribute(name);
+				String value = style->getXmlAttribute(name);
 				if (value.isNotNull()) {
 					return value;
 				}
@@ -348,17 +348,35 @@ namespace slib
 
 	String SAppLayoutXmlItem::getXmlAttribute(const String& name)
 	{
-		return _resolveVariables(name, _getXmlAttribute(name));
+		sl_bool flagElementValue = sl_false;
+		String value = element->getAttribute(name);
+		if (value.isNotNull()) {
+			value = _resolveVariables(name, value);
+			if (value != StringView::literal("@inherit")) {
+				return value;
+			}
+		}
+		{
+			ListLocker< Ref<SAppLayoutStyle> > _styles(styles);
+			for (sl_size i = 0; i < _styles.count; i++) {
+				Ref<SAppLayoutStyle> style = _styles[_styles.count - 1 - i];
+				if (style.isNotNull()) {
+					String value = style->getXmlAttribute(name);
+					if (value.isNotNull()) {
+						value = _resolveVariables(name, value);
+						if (value != StringView::literal("@inherit")) {
+							return value;
+						}
+					}
+				}
+			}
+		}
+		return _resolveDefaultValue(name);
 	}
 
 	String SAppLayoutXmlItem::getXmlAttributeWithoutStyle(const String& name)
 	{
 		return _resolveVariables(name, element->getAttribute(name));
-	}
-
-	String SAppLayoutXmlItem::_getXmlAttribute(const String& name)
-	{
-		return SAppLayoutStyledElement::getXmlAttribute(name);
 	}
 
 	String SAppLayoutXmlItem::getVariableValue(const String& name)
@@ -398,12 +416,7 @@ namespace slib
 		sl_size len = value.getLength();
 		if (!len) {
 			if (value.isNull()) {
-				if (!(name.startsWith(':')) && element->getProperty("inherit").getBoolean()) {
-					RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::cast(element->getProperty("caller").getRef());
-					if (caller.isNotNull()) {
-						return caller->getXmlAttribute(name);
-					}
-				}
+				return _resolveDefaultValue(name);
 			}
 			return value;
 		}
@@ -510,6 +523,17 @@ namespace slib
 			buf.addStatic(s, e - s);
 		}
 		return buf.merge();
+	}
+
+	String SAppLayoutXmlItem::_resolveDefaultValue(const String& name)
+	{
+		if (!(name.startsWith(':')) && element->getProperty("inherit").getBoolean()) {
+			RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::cast(element->getProperty("caller").getRef());
+			if (caller.isNotNull()) {
+				return caller->getXmlAttribute(name);
+			}
+		}
+		return sl_null;
 	}
 
 

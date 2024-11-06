@@ -103,7 +103,7 @@ namespace slib
 	class SAppDrawableResourceNinePiecesAttributes : public CRef
 	{
 	public:
-		String localNamespace;
+		String fileNamespace;
 
 		SAppDimensionValue leftWidth;
 		SAppDimensionValue rightWidth;
@@ -124,7 +124,7 @@ namespace slib
 	class SAppDrawableResourceNinePatchAttributes : public CRef
 	{
 	public:
-		String localNamespace;
+		String fileNamespace;
 
 		SAppDimensionValue dstLeftWidth;
 		SAppDimensionValue dstRightWidth;
@@ -193,7 +193,7 @@ namespace slib
 	{
 	public:
 		String name;
-		String localNamespace;
+		String fileNamespace;
 		sl_bool flagPopup;
 		CList< Ref<SAppMenuResourceItem> > children;
 		CHashMap<String, Ref<SAppMenuResourceItem> > itemsWindows;
@@ -1299,9 +1299,9 @@ namespace slib
 		String getVariableValue(const String& name);
 
 	private:
-		String _getXmlAttribute(const String& name);
-
 		String _resolveVariables(const String& name, const String& value);
+
+		String _resolveDefaultValue(const String& name);
 	};
 
 	class SAppLayoutResourceItem : public CRef, public SAppLayoutXmlItem
@@ -1310,7 +1310,8 @@ namespace slib
 		SAppLayoutItemType itemType;
 		String itemTypeName;
 		String name;
-		String localNamespace;
+		String fileNamespace;
+		String theme;
 		sl_bool flagGeneratedName;
 		String arrayName;
 		sl_int32 arrayIndex;

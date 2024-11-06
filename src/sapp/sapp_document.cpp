@@ -190,10 +190,10 @@ namespace slib
 		if (!(_openImageResources(pathApp))) {
 			return sl_false;
 		}
-		if (!(_openGlobalResources(pathApp, sl_null))) {
+		if (!(_openGlobalResources(pathApp, sl_null, sl_false))) {
 			return sl_false;
 		}
-		if (!(_openGlobalResources(pathApp, "global"))) {
+		if (!(_openGlobalResources(pathApp, "global", sl_true))) {
 			return sl_false;
 		}
 		return sl_true;
@@ -241,15 +241,31 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_openGlobalResources(const String& pathApp, const String& subdir)
+	sl_bool SAppDocument::_openGlobalResources(const String& pathApp, const String& subdir, sl_bool flagLoadHierarchically)
 	{
 		String pathDir = File::concatPath(pathApp, subdir);
-		for (auto&& fileName : File::getFiles(pathDir)) {
-			String path = File::concatPath(pathDir, fileName);
-			if (File::exists(path)) {
-				if (!(File::isDirectory(path))) {
-					if (File::getFileExtension(fileName) == "xml" && !(subdir.isEmpty() && fileName == "sapp.xml")) {
-						if (!(_parseResourcesXml(sl_null, path))) {
+		List<String> fileNames = File::getFiles(pathDir);
+		fileNames.sort_NoLock();
+		{
+			for (auto&& fileName : fileNames) {
+				String path = File::concatPath(pathDir, fileName);
+				if (File::exists(path)) {
+					if (!File::isDirectory(path)) {
+						if (File::getFileExtension(fileName) == "xml" && !(subdir.isEmpty() && fileName == "sapp.xml")) {
+							if (!(_parseResourcesXml(sl_null, path))) {
+								return sl_false;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (flagLoadHierarchically) {
+			for (auto&& fileName : fileNames) {
+				String path = File::concatPath(pathDir, fileName);
+				if (File::exists(path)) {
+					if (File::isDirectory(path)) {
+						if (!(_openGlobalResources(pathApp, File::concatPath(subdir, fileName), sl_true))) {
 							return sl_false;
 						}
 					}
@@ -303,10 +319,10 @@ namespace slib
 		if (File::exists(path)) {
 			if (!(File::isDirectory(path))) {
 				String fileName = File::getFileName(path);
-				String localNamespace = File::getFileNameOnly(fileName);
-				if (localNamespace.isNotEmpty()) {
-					if (SAppUtil::checkName(localNamespace.getData())) {
-						if (_parseResourcesXml(localNamespace, path)) {
+				String fileNamespace = File::getFileNameOnly(fileName);
+				if (fileNamespace.isNotEmpty()) {
+					if (SAppUtil::checkName(fileNamespace.getData())) {
+						if (_parseResourcesXml(fileNamespace, path)) {
 							return sl_true;
 						}
 					}
@@ -546,12 +562,27 @@ namespace slib
 		return ret;
 	}
 
-	String SAppDocument::getNameInLocalNamespace(const String& localNamespace, const String& name)
+	String SAppDocument::getGlobalName(const String& fileNamespace, const String& name)
 	{
-		if (localNamespace.isNotEmpty()) {
-			return localNamespace + "_" + name;
+		if (fileNamespace.isNotEmpty()) {
+			return fileNamespace + "_" + name;
 		} else {
 			return name;
+		}
+	}
+
+	String SAppDocument::getGlobalStyleName(const String& fileNamespace, const String& theme, const String& name)
+	{
+		String s;
+		if (theme.isNotEmpty()) {
+			s = String::concat(theme, StringView::literal(":"), name);
+		} else {
+			s = name;
+		}
+		if (fileNamespace.isNotEmpty()) {
+			return String::concat(fileNamespace, StringView::literal("/"), s);
+		} else {
+			return s;
 		}
 	}
 
@@ -895,7 +926,7 @@ namespace slib
 		m_layoutSimulationWindows.removeAll();
 	}
 
-	sl_bool SAppDocument::_parseResourcesXml(const String& localNamespace, const String& filePath)
+	sl_bool SAppDocument::_parseResourcesXml(const String& fileNamespace, const String& filePath)
 	{
 		log(g_str_log_open_resource_begin, filePath);
 
@@ -941,45 +972,47 @@ namespace slib
 			Ref<XmlElement>& child = children[i];
 			if (child.isNotNull()) {
 				String type = child->getName().toLower();
-				if (type == "strings" || type == "string" || type == "vstring") {
-					if (type == "strings") {
-						if (!_parseStringResources(localNamespace, child, locale, textXML)) {
+				if (type == StringView::literal("layout")) {
+					continue;
+				}
+				if (type == StringView::literal("strings") || type == StringView::literal("string") || type == StringView::literal("vstring")) {
+					if (type == StringView::literal("strings")) {
+						if (!_parseStringResources(fileNamespace, child, locale, textXML)) {
 							return sl_false;
 						}
 					} else {
-						if (!_parseStringResource(localNamespace, child, locale, type == "vstring", textXML)) {
+						if (!_parseStringResource(fileNamespace, child, locale, type == StringView::literal("vstring"), textXML)) {
 							return sl_false;
 						}
 					}
-				} else if (type == "color") {
-					if (!_parseColorResource(localNamespace, child)) {
+				} else if (type == StringView::literal("color")) {
+					if (!_parseColorResource(fileNamespace, child)) {
 						return sl_false;
 					}
-				} else if (type == "nine-pieces") {
-					if (!_parseNinePiecesDrawableResource(localNamespace, child)) {
+				} else if (type == StringView::literal("nine-pieces")) {
+					if (!_parseNinePiecesDrawableResource(fileNamespace, child)) {
 						return sl_false;
 					}
-				} else if (type == "nine-patch") {
-					if (!_parseNinePatchDrawableResource(localNamespace, child)) {
+				} else if (type == StringView::literal("nine-patch")) {
+					if (!_parseNinePatchDrawableResource(fileNamespace, child)) {
 						return sl_false;
 					}
-				} else if (type == "menu" || type == "popupmenu" || type == "popup-menu") {
-					if (!_parseMenuResource(localNamespace, child, type != "menu")) {
+				} else if (type == StringView::literal("menu") || type == StringView::literal("popup-menu")) {
+					if (!_parseMenuResource(fileNamespace, child, type != "menu")) {
 						return sl_false;
 					}
-				} else if (type == "layout-include" || type == "include") {
-					if (!_parseLayoutInclude(localNamespace, child)) {
+				} else if (type == StringView::literal("include")) {
+					if (!_parseLayoutInclude(fileNamespace, child)) {
 						return sl_false;
 					}
-				} else if (type == "layout-style" || type == "style") {
-					if (!_parseLayoutStyle(localNamespace, child)) {
+				} else if (type == StringView::literal("style")) {
+					if (!_parseLayoutStyle(fileNamespace, sl_null, child)) {
 						return sl_false;
 					}
-				} else if (type == "unit") {
-					if (!_parseLayoutUnit(localNamespace, child)) {
+				} else if (type == StringView::literal("unit")) {
+					if (!_parseLayoutUnit(fileNamespace, child)) {
 						return sl_false;
 					}
-				} else if (type == "layout") {
 				} else {
 					logError(child, String::format(g_str_error_invalid_tag, child->getName()));
 					return sl_false;
@@ -989,8 +1022,8 @@ namespace slib
 		for (i = 0; i < children.count; i++) {
 			Ref<XmlElement>& child = children[i];
 			if (child.isNotNull()) {
-				if (child->getName() == "layout") {
-					Ref<SAppLayoutResource> layout = _parseLayoutResource(filePath, localNamespace, child, textXML);
+				if (child->getName() == StringView::literal("layout")) {
+					Ref<SAppLayoutResource> layout = _parseLayoutResource(filePath, fileNamespace, child, textXML);
 					if (layout.isNull()) {
 						return sl_false;
 					}
@@ -1024,13 +1057,13 @@ namespace slib
 	}
 
 	template <class MAP, class ITEM>
-	sl_bool SAppDocument::getItemFromMap(const MAP& map, const String& localNamespace, const String& name, String* outName, ITEM* _out)
+	sl_bool SAppDocument::getItemFromMap(const MAP& map, const String& fileNamespace, const String& name, String* outName, ITEM* _out)
 	{
-		if (localNamespace.isNotEmpty()) {
-			String localName = getNameInLocalNamespace(localNamespace, name);
-			if (map.get(localName, _out)) {
+		if (fileNamespace.isNotEmpty()) {
+			String globalName = getGlobalName(fileNamespace, name);
+			if (map.get(globalName, _out)) {
 				if (outName) {
-					*outName = localName;
+					*outName = globalName;
 				}
 				return sl_true;
 			}

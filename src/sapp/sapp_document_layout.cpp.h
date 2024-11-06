@@ -23,7 +23,26 @@
 namespace slib
 {
 
-	sl_bool SAppDocument::_parseLayoutStyle(const String& localNamespace, const Ref<XmlElement>& element)
+	namespace
+	{
+		SLIB_STATIC_STRING(sTheme, "theme")
+		SLIB_STATIC_STRING(sName, "name")
+		SLIB_STATIC_STRING(sValue, "value")
+		SLIB_STATIC_STRING(sCaller, "caller")
+		SLIB_STATIC_STRING(sInherit, "inherit")
+		SLIB_STATIC_STRING(sSrc, "src")
+		SLIB_STATIC_STRING(sOverride, "override")
+		SLIB_STATIC_STRING(sType, "type")
+		SLIB_STATIC_STRING(sBase, "base")
+		SLIB_STATIC_STRING(sClass, "class")
+		SLIB_STATIC_STRING(sSp, "sp")
+		SLIB_STATIC_STRING(sStyle, "style")
+		SLIB_STATIC_STRING(sThis, "this")
+		SLIB_STATIC_STRING(sSimulatorWidth, "simulatorWidth")
+		SLIB_STATIC_STRING(sSimulatorHeight, "simulatorHeight")
+	}
+
+	sl_bool SAppDocument::_parseLayoutStyle(const String& fileNamespace, const String& parentTheme, const Ref<XmlElement>& element)
 	{
 		if (element.isNull()) {
 			return sl_false;
@@ -37,30 +56,32 @@ namespace slib
 
 		style->element = element;
 
-		String name = element->getAttribute("name").trim();
+		String theme = element->getAttribute(sTheme).trim();
+		if (theme.isEmpty()) {
+			theme = parentTheme;
+		}
+		String name = element->getAttribute(sName).trim();
 		if (name.isEmpty()) {
 			logError(element, g_str_error_resource_layout_name_is_empty);
 			return sl_false;
 		}
+		name = getGlobalStyleName(fileNamespace, theme, name);
+		style->name = name;
 
-		name = getNameInLocalNamespace(localNamespace, name);
-
-		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
+		sl_bool flagOverride = element->getAttribute(sOverride).equals_IgnoreCase(StringView::literal("true"));
 		if (!flagOverride) {
 			if (m_layoutStyles.find(name)) {
 				logError(element, g_str_error_resource_layout_name_redefined, name);
 				return sl_false;
 			}
 		}
-		style->name = name;
 
-		String strInherit = element->getAttribute("inherit").trim();
+		String strInherit = element->getAttribute(sInherit).trim();
 		if (strInherit.isNotEmpty()) {
-			ListElements<String> arr(strInherit.split(","));
+			ListElements<String> arr(strInherit.split(','));
 			for (sl_size i = 0; i < arr.count; i++) {
 				String s = arr[i].trim();
-				Ref<SAppLayoutStyle> inheritStyle;
-				getItemFromMap(m_layoutStyles, localNamespace, s, sl_null, &inheritStyle);
+				Ref<SAppLayoutStyle> inheritStyle = _lookupLayoutStyle(fileNamespace, theme, s);
 				if (inheritStyle.isNotNull()) {
 					if (!(style->styles.add_NoLock(Move(inheritStyle)))) {
 						logError(element, g_str_error_out_of_memory);
@@ -81,7 +102,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_parseLayoutInclude(const String& localNamespace, const Ref<XmlElement>& element)
+	sl_bool SAppDocument::_parseLayoutInclude(const String& fileNamespace, const Ref<XmlElement>& element)
 	{
 		if (element.isNull()) {
 			return sl_false;
@@ -95,15 +116,15 @@ namespace slib
 
 		include->element = element;
 
-		String name = element->getAttribute("name").trim();
+		String name = element->getAttribute(sName).trim();
 		if (name.isEmpty()) {
 			logError(element, g_str_error_resource_layout_name_is_empty);
 			return sl_false;
 		}
 
-		name = getNameInLocalNamespace(localNamespace, name);
+		name = getGlobalName(fileNamespace, name);
 
-		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
+		sl_bool flagOverride = element->getAttribute(sOverride).equals_IgnoreCase(StringView::literal("true"));
 		if (!flagOverride) {
 			if (m_layoutIncludes.find(name)) {
 				logError(element, g_str_error_resource_layout_name_redefined, name);
@@ -120,21 +141,21 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_parseLayoutUnit(const String& localNamespace, const Ref<XmlElement>& element)
+	sl_bool SAppDocument::_parseLayoutUnit(const String& fileNamespace, const Ref<XmlElement>& element)
 	{
 		if (element.isNull()) {
 			return sl_false;
 		}
 
-		String name = element->getAttribute("name").trim();
+		String name = element->getAttribute(sName).trim();
 		if (name.isEmpty()) {
 			logError(element, g_str_error_resource_layout_name_is_empty);
 			return sl_false;
 		}
 
-		name = getNameInLocalNamespace(localNamespace, name);
+		name = getGlobalName(fileNamespace, name);
 
-		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
+		sl_bool flagOverride = element->getAttribute(sOverride).equals_IgnoreCase(StringView::literal("true"));
 		if (!flagOverride) {
 			if (m_layoutUnits.find(name)) {
 				logError(element, g_str_error_resource_layout_name_redefined, name);
@@ -158,7 +179,7 @@ namespace slib
 		return sl_true;
 	}
 
-	Ref<SAppLayoutResource> SAppDocument::_parseLayoutResource(const String& filePath, const String& localNamespace, const Ref<XmlElement>& element, const String16& source, SAppLayoutResource* parent, String* outChildLayoutName, sl_bool* outFlagGeneratedName)
+	Ref<SAppLayoutResource> SAppDocument::_parseLayoutResource(const String& filePath, const String& fileNamespace, const Ref<XmlElement>& element, const String16& source, SAppLayoutResource* parent, String* outChildLayoutName, sl_bool* outFlagGeneratedName)
 	{
 		if (outFlagGeneratedName) {
 			*outFlagGeneratedName = sl_false;
@@ -172,32 +193,32 @@ namespace slib
 			return sl_null;
 		}
 		layout->filePath = filePath;
-		String name = element->getAttribute("name").trim();
+		String name = element->getAttribute(sName).trim();
 		if (name.isEmpty()) {
 			if (outChildLayoutName) {
 				parent->nAutoIncreaseNameChildLayout++;
-				name = String::format("GeneratedLayout%d", parent->nAutoIncreaseNameChildLayout);
+				name = String::format(StringView::literal("GeneratedLayout%d"), parent->nAutoIncreaseNameChildLayout);
 				*outChildLayoutName = name;
-				name = getNameInLocalNamespace(localNamespace, name);
+				name = getGlobalName(fileNamespace, name);
 				if (outFlagGeneratedName) {
 					*outFlagGeneratedName = sl_true;
 				}
 			} else {
 				if (parent) {
-					logError(element, g_str_error_resource_layout_name_is_empty, "name");
+					logError(element, g_str_error_resource_layout_name_is_empty, sName);
 					return sl_null;
 				} else {
-					name = localNamespace;
+					name = fileNamespace;
 				}
 			}
 		} else {
 			if (outChildLayoutName) {
 				*outChildLayoutName = name;
 			}
-			name = getNameInLocalNamespace(localNamespace, name);
+			name = getGlobalName(fileNamespace, name);
 		}
 
-		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
+		sl_bool flagOverride = element->getAttribute(sOverride).equals_IgnoreCase(StringView::literal("true"));
 		if (!flagOverride) {
 			if (m_layouts.find(name)) {
 				logError(element, g_str_error_resource_layout_name_redefined, name);
@@ -205,7 +226,7 @@ namespace slib
 			}
 		}
 		layout->name = name;
-		layout->localNamespace = localNamespace;
+		layout->fileNamespace = fileNamespace;
 
 		if (!(_parseLayoutResourceItem(layout.get(), layout.get(), sl_null, source))) {
 			return sl_null;
@@ -222,7 +243,7 @@ namespace slib
 	Ref<SAppLayoutResource> SAppDocument::_openLayoutResource(SAppLayoutResource* parent, const String& name)
 	{
 		Ref<SAppLayoutResource> ret;
-		getItemFromMap(m_layouts, parent->localNamespace, name, sl_null, &ret);
+		getItemFromMap(m_layouts, parent->fileNamespace, name, sl_null, &ret);
 		if (ret.isNotNull()) {
 			return ret;
 		}
@@ -254,41 +275,79 @@ namespace slib
 
 	sl_bool SAppDocument::_parseLayoutResourceItem(SAppLayoutResource* layout, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, const String16& source)
 	{
-		const Ref<XmlElement>& element = item->element;
-		if (element.isNull()) {
+		if (item->element.isNull()) {
 			return sl_false;
 		}
-		if (!(_parseStyleAttribute(layout->localNamespace, item))) {
+
+		if (!(_parseStyleAttribute(layout->fileNamespace, parent ? parent->theme : String::null(), item))) {
 			return sl_false;
+		}
+		item->theme = layout->getXmlAttribute(sTheme);
+		if (item->theme.isNull()) {
+			if (parent) {
+				item->theme = parent->theme;
+			}
 		}
 
 		if (layout == item) {
-
+			String strType = layout->getXmlAttribute(sType);
+			Ref<XmlElement> originalElement = layout->element;
+			Ref<SAppLayoutInclude> include;
+			getItemFromMap(m_layoutIncludes, layout->fileNamespace, strType, sl_null, &include);
+			if (include.isNotNull()) {
+				List< Ref<XmlElement> > list;
+				RefT<SAppLayoutXmlItem> xml = new CRefT<SAppLayoutXmlItem>(layout->element);
+				if (xml.isNull()) {
+					logError(layout->element, g_str_error_out_of_memory);
+					return sl_false;
+				}
+				if (!_addXmlChildElements(list, layout->fileNamespace, item->theme, include->element, xml, sl_null)) {
+					return sl_false;
+				}
+				if (list.getCount() != 1) {
+					logError(include->element, g_str_error_resource_layout_must_contain_one_child);
+					return sl_false;
+				}
+				layout->element = list.getValueAt_NoLock(0);
+				if (!(_parseStyleAttribute(layout->fileNamespace, item->theme, layout))) {
+					return sl_false;
+				}
+				strType = layout->getXmlAttribute(sType);
+				layout->theme = layout->getXmlAttribute(sTheme);
+			}
 			SAppLayoutType type;
-			String strType = layout->getXmlAttribute("type");
-			if (strType.isEmpty() || strType == "view") {
+			if (strType.isEmpty() || strType == StringView::literal("view")) {
 				type = SAppLayoutType::View;
-			} else if (strType == "window") {
+			} else if (strType == StringView::literal("window")) {
 				type = SAppLayoutType::Window;
-			} else if (strType == "page") {
+			} else if (strType == StringView::literal("page")) {
 				type = SAppLayoutType::Page;
 			} else {
-				logError(element, g_str_error_resource_layout_type_invalid, strType);
+				logError(layout->element, g_str_error_resource_layout_type_invalid, strType);
 				return sl_false;
 			}
 			layout->layoutType = type;
+			layout->baseClassName = layout->getXmlAttribute(sBase);
 
-			layout->baseClassName = layout->getXmlAttribute("base");
+			{
+				ListElements< Ref<XmlElement> > styles(originalElement->getChildElements(sStyle));
+				for (sl_size i = 0; i < styles.count; i++) {
+					Ref<XmlElement>& eStyle = styles[i];
+					if (!(_parseLayoutStyle(layout->fileNamespace, layout->theme, eStyle))) {
+						return sl_false;
+					}
+					originalElement->removeChild(eStyle);
+				}
+			}
 
 		} else {
-
-			String strType = item->getXmlAttribute("type");
+			String strType = item->getXmlAttribute(sType);
 			if (strType.isEmpty()) {
-				strType = element->getName();
+				strType = item->element->getName();
 			}
 			SAppLayoutItemType type = SAppLayoutResource::getTypeFromName(strType);
 			if (type == SAppLayoutItemType::Unknown && parent) {
-				if (strType == "item") {
+				if (strType == StringView::literal("item")) {
 					switch (parent->itemType) {
 						case SAppLayoutItemType::Tree:
 						case SAppLayoutItemType::TreeItem:
@@ -300,19 +359,18 @@ namespace slib
 				}
 			}
 			if (type == SAppLayoutItemType::Unknown) {
-				logError(element, g_str_error_resource_layout_type_invalid, strType);
+				logError(item->element, g_str_error_resource_layout_type_invalid, strType);
 				return sl_false;
 			}
-
 			item->itemType = type;
 			item->itemTypeName = strType;
-			item->localNamespace = layout->localNamespace;
-
+			item->fileNamespace = layout->fileNamespace;
 		}
 
+		const Ref<XmlElement>& element = item->element;
 		if (parent) {
 			SAppLayoutXmlItem xml(element);
-			String name = xml.getXmlAttributeWithoutStyle("name");
+			String name = xml.getXmlAttributeWithoutStyle(sName);
 			String arrayName;
 			sl_int32 arrayIndex = -1;
 			if (name.isNotEmpty()) {
@@ -348,7 +406,7 @@ namespace slib
 			return sl_false;
 		}
 
-		String customClassName = item->getXmlAttribute("class").trim();
+		String customClassName = item->getXmlAttribute(sClass).trim();
 		if (customClassName.isNotEmpty()) {
 			item->className = customClassName;
 			if (!(layout->customClasses.put(customClassName, sl_true))) {
@@ -358,12 +416,12 @@ namespace slib
 		}
 
 		if (!parent) {
-			String strSP = layout->getXmlAttribute("sp");
+			String strSP = layout->getXmlAttribute(sSp);
 			if (!(layout->sp.parse(strSP, this))) {
-				logError(element, g_str_error_resource_layout_attribute_invalid, "sp", strSP);
+				logError(element, g_str_error_resource_layout_attribute_invalid, sSp, strSP);
 			}
 			if (!(layout->sp.checkSP())) {
-				logError(element, g_str_error_resource_layout_attribute_invalid, "sp", strSP);
+				logError(element, g_str_error_resource_layout_attribute_invalid, sSp, strSP);
 				return sl_false;
 			}
 		}
@@ -431,60 +489,60 @@ namespace slib
 	{
 		log(g_str_log_generate_cpp_layouts_begin);
 
-		if (!(File::isDirectory(targetPath + "/ui"))) {
-			File::createDirectory(targetPath + "/ui");
-			if (!(File::isDirectory(targetPath + "/ui"))) {
-				log(g_str_error_directory_create_failed, targetPath + "/ui");
+		if (!(File::isDirectory(targetPath + StringView::literal("/ui")))) {
+			File::createDirectory(targetPath + StringView::literal("/ui"));
+			if (!(File::isDirectory(targetPath + StringView::literal("/ui")))) {
+				log(g_str_error_directory_create_failed, targetPath + StringView::literal("/ui"));
 				return sl_false;
 			}
 		}
 
 		StringBuffer sbHeader, sbHeaderBase, sbCpp;
-		sbHeaderBase.add("#pragma once\r\n\r\n#include <slib/ui/resource.h>\r\n#include \"menus.h\"\r\n");
-		sbHeader.add("#pragma once\r\n\r\n");
+		sbHeaderBase.addStatic("#pragma once\r\n\r\n#include <slib/ui/resource.h>\r\n#include \"menus.h\"\r\n");
+		sbHeader.addStatic("#pragma once\r\n\r\n");
 
 		{
 			ListElements<String> includes(m_conf.generate_cpp_layout_include_headers);
 			for (sl_size i = 0; i < includes.count; i++) {
 				if (includes[i].isNotEmpty()) {
-					sbHeaderBase.add(String::format("#include \"%s\"%n", includes[i]));
+					sbHeaderBase.add(String::format(StringView::literal("#include \"%s\"%n"), includes[i]));
 				}
 			}
 		}
 
-		sbCpp.add(String::format(
+		sbCpp.add(String::format(StringView::literal(
 								 "#include <slib/ui.h>%n%n"
 								 "#include \"layouts.h\"%n%n"
 								 "#include \"strings.h\"%n"
 								 "#include \"colors.h\"%n"
 								 "#include \"drawables.h\"%n"
-								 , m_conf.generate_cpp_namespace));
+								), m_conf.generate_cpp_namespace));
 
 		{
 			ListElements<String> includes(m_conf.generate_cpp_layout_include_headers_in_cpp);
 			for (sl_size i = 0; i < includes.count; i++) {
 				if (includes[i].isNotEmpty()) {
-					sbCpp.add(String::format("#include \"%s\"%n", includes[i]));
+					sbCpp.add(String::format(StringView::literal("#include \"%s\"%n"), includes[i]));
 				}
 			}
 		}
 
-		sbHeaderBase.add(String::format("%n" "namespace %s%n" "{%n\tnamespace ui%n\t{%n", m_conf.generate_cpp_namespace));
+		sbHeaderBase.add(String::format(StringView::literal("%n" "namespace %s%n" "{%n\tnamespace ui%n\t{%n"), m_conf.generate_cpp_namespace));
 		{
 			for (auto&& pair : m_layouts) {
 				if (pair.value.isNotNull()) {
 					Ref<SAppLayoutResource> layout = pair.value;
-					sbHeaderBase.add(String::format("\t\tclass %s;%n", pair.key));
+					sbHeaderBase.add(String::format(StringView::literal("\t\tclass %s;%n"), pair.key));
 				}
 			}
 		}
-		sbHeaderBase.add("\t}\r\n}\r\n");
+		sbHeaderBase.addStatic("\t}\r\n}\r\n");
 
 		{
 			for (auto&& pair : m_layouts) {
 				if (pair.value.isNotNull()) {
-					sbHeader.add(String::format("#include \"ui/%s.h\"%n", pair.key));
-					sbCpp.add(String::format("#include \"ui/%s.cpp.inc\"%n", pair.key));
+					sbHeader.add(String::format(StringView::literal("#include \"ui/%s.h\"%n"), pair.key));
+					sbCpp.add(String::format(StringView::literal("#include \"ui/%s.cpp.inc\"%n"), pair.key));
 					if (!(_generateLayoutsCpp_Layout(targetPath, pair.value.get()))) {
 						return sl_false;
 					}
@@ -492,7 +550,7 @@ namespace slib
 			}
 		}
 
-		String pathHeaderBase = targetPath + "/layouts_base.h";
+		String pathHeaderBase = targetPath + StringView::literal("/layouts_base.h");
 		String contentHeaderBase = sbHeaderBase.merge();
 		if (File::readAllTextUTF8(pathHeaderBase) != contentHeaderBase) {
 			if (!(File::writeAllTextUTF8(pathHeaderBase, contentHeaderBase))) {
@@ -501,7 +559,7 @@ namespace slib
 			}
 		}
 
-		String pathHeader = targetPath + "/layouts.h";
+		String pathHeader = targetPath + StringView::literal("/layouts.h");
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
 			if (!(File::writeAllTextUTF8(pathHeader, contentHeader))) {
@@ -510,7 +568,7 @@ namespace slib
 			}
 		}
 
-		String pathCpp = targetPath + "/layouts.cpp";
+		String pathCpp = targetPath + StringView::literal("/layouts.cpp");
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
 			if (!(File::writeAllTextUTF8(pathCpp, contentCpp))) {
@@ -534,80 +592,80 @@ namespace slib
 			String prefix = name + "_";
 			for (auto&& item : m_layouts) {
 				if (item.key.startsWith(prefix)) {
-					sbHeader.add(String::format("#include \"%s.h\"%n", item.key));
+					sbHeader.add(String::format(StringView::literal("#include \"%s.h\"%n"), item.key));
 				}
 			}
 		}
 		sbHeader.addStatic("\r\n");
 
-		String namespacePrefix = String::format("namespace %s%n" "{%n\tnamespace ui%n\t{%n" , m_conf.generate_cpp_namespace);
+		String namespacePrefix = String::format(StringView::literal("namespace %s%n" "{%n\tnamespace ui%n\t{%n") , m_conf.generate_cpp_namespace);
 		sbHeader.add(namespacePrefix);
 		sbCpp.add(namespacePrefix);
 
 		if (layout->baseClassName.isNotEmpty()) {
-			sbHeader.add(String::format("\t\tSLIB_DECLARE_UILAYOUT_BEGIN(%s, %s)%n", name, layout->baseClassName));
-			sbCpp.add(String::format("\t\tSLIB_DEFINE_UILAYOUT(%s, %s)%n%n", name, layout->baseClassName));
+			sbHeader.add(String::format(StringView::literal("\t\tSLIB_DECLARE_UILAYOUT_BEGIN(%s, %s)%n"), name, layout->baseClassName));
+			sbCpp.add(String::format(StringView::literal("\t\tSLIB_DEFINE_UILAYOUT(%s, %s)%n%n"), name, layout->baseClassName));
 		} else {
 			if (layout->layoutType == SAppLayoutType::Window) {
-				sbHeader.add(String::format("\t\tSLIB_DECLARE_WINDOW_LAYOUT_BEGIN(%s)%n", name));
-				sbCpp.add(String::format("\t\tSLIB_DEFINE_WINDOW_LAYOUT(%s)%n%n", name));
+				sbHeader.add(String::format(StringView::literal("\t\tSLIB_DECLARE_WINDOW_LAYOUT_BEGIN(%s)%n"), name));
+				sbCpp.add(String::format(StringView::literal("\t\tSLIB_DEFINE_WINDOW_LAYOUT(%s)%n%n"), name));
 			} else if (layout->layoutType == SAppLayoutType::Page) {
-				sbHeader.add(String::format("\t\tSLIB_DECLARE_PAGE_LAYOUT_BEGIN(%s)%n", name));
-				sbCpp.add(String::format("\t\tSLIB_DEFINE_PAGE_LAYOUT(%s)%n%n", name));
+				sbHeader.add(String::format(StringView::literal("\t\tSLIB_DECLARE_PAGE_LAYOUT_BEGIN(%s)%n"), name));
+				sbCpp.add(String::format(StringView::literal("\t\tSLIB_DEFINE_PAGE_LAYOUT(%s)%n%n"), name));
 			} else if (layout->layoutType == SAppLayoutType::View) {
-				sbHeader.add(String::format("\t\tSLIB_DECLARE_VIEW_LAYOUT_BEGIN(%s)%n", name));
-				sbCpp.add(String::format("\t\tSLIB_DEFINE_VIEW_LAYOUT(%s)%n%n", name));
+				sbHeader.add(String::format(StringView::literal("\t\tSLIB_DECLARE_VIEW_LAYOUT_BEGIN(%s)%n"), name));
+				sbCpp.add(String::format(StringView::literal("\t\tSLIB_DEFINE_VIEW_LAYOUT(%s)%n%n"), name));
 			} else {
 				return sl_false;
 			}
 		}
 
 		{
-			String prefix = name + "_";
+			String prefix = name + StringView::literal("_");
 			for (auto&& name : m_layouts) {
 				if (name.key.startsWith(prefix)) {
-					sbHeader.add(String::format("\t\t\ttypedef %s %s;%n", name.key, name.key.substring(prefix.getLength())));
+					sbHeader.add(String::format(StringView::literal("\t\t\ttypedef %s %s;%n"), name.key, name.key.substring(prefix.getLength())));
 				}
 			}
 		}
 
-		sbCpp.add(String::format("\t\tvoid %s::initialize()%n\t\t{%n", name));
+		sbCpp.add(String::format(StringView::literal("\t\tvoid %s::initialize()%n\t\t{%n"), name));
 
 		{
 			ListElements<String> radioGroups(layout->radioGroups.getAllKeys());
 			for (sl_size i = 0; i < radioGroups.count; i++) {
-				sbHeader.add(String::format("\t\t\tslib::Ref<slib::RadioGroup> %s;%n", radioGroups[i]));
-				sbCpp.add(String::format("\t\t\t%s = new slib::RadioGroup;%n", radioGroups[i]));
+				sbHeader.add(String::format(StringView::literal("\t\t\tslib::Ref<slib::RadioGroup> %s;%n"), radioGroups[i]));
+				sbCpp.add(String::format(StringView::literal("\t\t\t%s = new slib::RadioGroup;%n"), radioGroups[i]));
 			}
 			if (radioGroups.count > 0) {
-				sbHeader.add("\r\n");
-				sbCpp.add("\r\n");
+				sbHeader.addStatic("\r\n");
+				sbCpp.addStatic("\r\n");
 			}
 		}
 		{
 			ObjectLocker lock(&(layout->itemArrays));
 			for (auto&& item : layout->itemArrays) {
-				sbHeader.add(String::format("\t\t\tslib::Ref<%s> %s[%d];%n", item.value.className, item.key, item.value.itemCount));
+				sbHeader.add(String::format(StringView::literal("\t\t\tslib::Ref<%s> %s[%d];%n"), item.value.className, item.key, item.value.itemCount));
 			}
 			if (layout->itemArrays.isNotEmpty()) {
-				sbHeader.add("\r\n");
+				sbHeader.addStatic("\r\n");
 			}
 		}
 		{
 			MutexLocker lock(layout->customEvents.getLocker());
 			for (auto&& ev : layout->customEvents) {
-				sbHeader.add(String::format("\t\t\tSLIB_UILAYOUT_EVENT(%s) {%n", StringView(ev.key).substring(2)));
+				sbHeader.add(String::format(StringView::literal("\t\t\tSLIB_UILAYOUT_EVENT(%s) {%n"), StringView(ev.key).substring(2)));
 				for (auto&& item : ev.value) {
 					if (item.flagIterate) {
-						sbHeader.add(String::format("\t\t\t\tSLIB_UILAYOUT_FORWARD_ITERATE_EVENT(%s, %s)%n", item.name, item.event));
+						sbHeader.add(String::format(StringView::literal("\t\t\t\tSLIB_UILAYOUT_FORWARD_ITERATE_EVENT(%s, %s)%n"), item.name, item.event));
 					} else {
-						sbHeader.add(String::format("\t\t\t\tSLIB_UILAYOUT_FORWARD_EVENT(%s, %s)%n", item.name, item.event));
+						sbHeader.add(String::format(StringView::literal("\t\t\t\tSLIB_UILAYOUT_FORWARD_EVENT(%s, %s)%n"), item.name, item.event));
 					}
 				}
 				sbHeader.addStatic("\t\t\t}\r\n");
 			}
 			if (layout->customEvents.isNotEmpty()) {
-				sbHeader.add("\r\n");
+				sbHeader.addStatic("\r\n");
 			}
 		}
 
@@ -615,9 +673,9 @@ namespace slib
 
 		if (layout->sp.flagDefined) {
 			if (layout->sp.isNeededOnLayoutFunction()) {
-				sbLayout.add(String::format("%n\t\t\tsetScaledPixel(%s);%n", layout->sp.getAccessString()));
+				sbLayout.add(String::format(StringView::literal("%n\t\t\tsetScaledPixel(%s);%n"), layout->sp.getAccessString()));
 			} else {
-				sbCpp.add(String::format("%n\t\t\tsetScaledPixel(%s);%n%n", layout->sp.getAccessString()));
+				sbCpp.add(String::format(StringView::literal("%n\t\t\tsetScaledPixel(%s);%n%n"), layout->sp.getAccessString()));
 			}
 		}
 
@@ -637,31 +695,26 @@ namespace slib
 		if (sbDelayed.getLength()) {
 			sbCpp.link(sbDelayed);
 		}
-		sbCpp.add(String::format("\t\t}%n%n\t\tvoid %s::layoutViews(sl_ui_len CONTENT_WIDTH, sl_ui_len CONTENT_HEIGHT)%n\t\t{%n", name));
+		sbCpp.add(String::format(StringView::literal("\t\t}%n%n\t\tvoid %s::layoutViews(sl_ui_len CONTENT_WIDTH, sl_ui_len CONTENT_HEIGHT)%n\t\t{%n"), name));
 		sbCpp.link(sbLayout);
-		sbCpp.add(String::format("\t\t}%n%n\t\tvoid %s::setData(const slib::Variant& data, slib::UIUpdateMode mode)%n\t\t{%n", name));
+		sbCpp.add(String::format(StringView::literal("\t\t}%n%n\t\tvoid %s::setData(const slib::Variant& data, slib::UIUpdateMode mode)%n\t\t{%n"), name));
 		sbCpp.link(sbSetData);
-		static sl_char8 strEndCpp[] = "\t\t}\r\n\r\n";
-		sbCpp.addStatic(strEndCpp, sizeof(strEndCpp)-1);
+		sbCpp.addStatic("\t\t}\r\n\r\n");
 
 		if (layout->baseClassName.isNotEmpty()) {
-			static sl_char8 strEndHeader[] = "\t\tSLIB_DECLARE_UILAYOUT_END\r\n\r\n";
-			sbHeader.addStatic(strEndHeader, sizeof(strEndHeader)-1);
+			sbHeader.addStatic("\t\tSLIB_DECLARE_UILAYOUT_END\r\n\r\n");
 		} else {
 			if (layout->layoutType == SAppLayoutType::Window) {
-				static sl_char8 strEndHeader[] = "\t\tSLIB_DECLARE_WINDOW_LAYOUT_END\r\n\r\n";
-				sbHeader.addStatic(strEndHeader, sizeof(strEndHeader)-1);
+				sbHeader.addStatic("\t\tSLIB_DECLARE_WINDOW_LAYOUT_END\r\n\r\n");
 			} else if (layout->layoutType == SAppLayoutType::Page) {
-				static sl_char8 strEndHeader[] = "\t\tSLIB_DECLARE_PAGE_LAYOUT_END\r\n\r\n";
-				sbHeader.addStatic(strEndHeader, sizeof(strEndHeader)-1);
+				sbHeader.addStatic("\t\tSLIB_DECLARE_PAGE_LAYOUT_END\r\n\r\n");
 			} else if (layout->layoutType == SAppLayoutType::View) {
-				static sl_char8 strEndHeader[] = "\t\tSLIB_DECLARE_VIEW_LAYOUT_END\r\n\r\n";
-				sbHeader.addStatic(strEndHeader, sizeof(strEndHeader)-1);
+				sbHeader.addStatic("\t\tSLIB_DECLARE_VIEW_LAYOUT_END\r\n\r\n");
 			}
 		}
 
-		sbHeader.add("\t}\r\n}\r\n");
-		sbCpp.add("\t}\r\n}\r\n");
+		sbHeader.addStatic("\t}\r\n}\r\n");
+		sbCpp.addStatic("\t}\r\n}\r\n");
 
 		String pathHeader = String::concat(targetPath, "/ui/", name, ".h");
 		String contentHeader = sbHeader.merge();
@@ -694,18 +747,18 @@ namespace slib
 				className = item->classNameGetter(this, item);
 			} else {
 				className = item->className;
-				getItemFromMap(m_layouts, layout->localNamespace, className, &className, (Ref<SAppLayoutResource>*)sl_null);
+				getItemFromMap(m_layouts, layout->fileNamespace, className, &className, (Ref<SAppLayoutResource>*)sl_null);
 			}
 			if (item->arrayIndex < 0) {
 				if (className.endsWith('>')) {
-					params->sbDeclare->add(String::format("\t\t\tslib::Ref< %s > %s;%n", className, name));
+					params->sbDeclare->add(String::format(StringView::literal("\t\t\tslib::Ref< %s > %s;%n"), className, name));
 				} else {
-					params->sbDeclare->add(String::format("\t\t\tslib::Ref<%s> %s;%n", className, name));
+					params->sbDeclare->add(String::format(StringView::literal("\t\t\tslib::Ref<%s> %s;%n"), className, name));
 				}
 			}
-			params->sbDefineInit->add(String::format("\t\t\t%2$s = new %1$s;%n", className, name));
+			params->sbDefineInit->add(String::format(StringView::literal("\t\t\t%2$s = new %1$s;%n"), className, name));
 		} else {
-			name = "this";
+			name = sThis;
 		}
 
 		LayoutControlProcessParams pp;
@@ -732,14 +785,14 @@ namespace slib
 			m_layoutSimulationParams.screenWidth = size.x;
 			m_layoutSimulationParams.screenHeight = size.y;
 			SAppDimensionValue simulatorWidth;
-			if (simulatorWidth.parse(layout->getXmlAttribute("simulatorWidth"), sl_null)) {
+			if (simulatorWidth.parse(layout->getXmlAttribute(sSimulatorWidth), sl_null)) {
 				if (simulatorWidth.flagDefined && simulatorWidth.checkForWindowSize()) {
 					param.pageSize.x = _getDimensionValue(simulatorWidth);
 					window->setSavingPageSize(sl_false);
 				}
 			}
 			SAppDimensionValue simulatorHeight;
-			if (simulatorHeight.parse(layout->getXmlAttribute("simulatorHeight"), sl_null)) {
+			if (simulatorHeight.parse(layout->getXmlAttribute(sSimulatorHeight), sl_null)) {
 				if (simulatorHeight.flagDefined && simulatorHeight.checkForWindowSize()) {
 					param.pageSize.y = _getDimensionValue(simulatorHeight);
 					window->setSavingPageSize(sl_false);
@@ -931,27 +984,29 @@ namespace slib
 		return 0;
 	}
 
-	sl_bool SAppDocument::_getFontAccessString(const String& localNamespace, const SAppFontValue& value, String& result)
+	sl_bool SAppDocument::_getFontAccessString(const String& fileNamespace, const SAppFontValue& value, String& result)
 	{
 		String strSize;
 		if (value.size.flagDefined) {
 			strSize = value.size.getAccessString();
 		} else {
-			strSize = "slib::UI::getDefaultFontSize()";
+			SLIB_STATIC_STRING(v, "slib::UI::getDefaultFontSize()")
+			strSize = v;
 		}
 		String strFamily;
 		if (value.family.flagDefined) {
-			if (!(_getStringAccessString(localNamespace, value.family, strFamily))) {
+			if (!(_getStringAccessString(fileNamespace, value.family, strFamily))) {
 				return sl_false;
 			}
 		} else {
-			strFamily = "slib::UI::getDefaultFontFamily()";
+			SLIB_STATIC_STRING(v, "slib::UI::getDefaultFontFamily()")
+			strFamily = v;
 		}
-		result = String::format("slib::Font::create(%s, %s, %s, %s, %s)", strFamily, strSize, value.bold.value?"sl_true":"sl_false", value.italic.value?"sl_true":"sl_false", value.underline.value?"sl_true":"sl_false");
+		result = String::format(StringView::literal("slib::Font::create(%s, %s, %s, %s, %s)"), strFamily, strSize, value.bold.value ? StringView::literal("sl_true") : StringView::literal("sl_false"), value.italic.value ? StringView::literal("sl_true") : StringView::literal("sl_false"), value.underline.value ? StringView::literal("sl_true") : StringView::literal("sl_false"));
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_getFontValue(const String& localNamespace, const SAppFontValue& value, Ref<Font>& result)
+	sl_bool SAppDocument::_getFontValue(const String& fileNamespace, const SAppFontValue& value, Ref<Font>& result)
 	{
 		sl_real size;
 		if (value.size.flagDefined) {
@@ -961,7 +1016,7 @@ namespace slib
 		}
 		String family;
 		if (value.family.flagDefined) {
-			if (!(_getStringValue(localNamespace, value.family, family))) {
+			if (!(_getStringValue(fileNamespace, value.family, family))) {
 				return sl_false;
 			}
 		} else {
@@ -971,37 +1026,41 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_getBorderAccessString(const String& localNamespace, const SAppBorderValue& value, String& result)
+	sl_bool SAppDocument::_getBorderAccessString(const String& fileNamespace, const SAppBorderValue& value, String& result)
 	{
 		if (value.flagNull) {
-			result = "sl_null";
+			SLIB_STATIC_STRING(v, "sl_null")
+			result = v;
 			return sl_true;
 		}
 		String strStyle;
 		if (value.style.flagDefined) {
 			strStyle = value.style.getAccessString();
 		} else {
-			strStyle = "slib::PenStyle::Default";
+			SLIB_STATIC_STRING(v, "slib::PenStyle::Default")
+			strStyle = v;
 		}
 		String strWidth;
 		if (value.width.flagDefined) {
 			strWidth = value.width.getAccessString();
 		} else {
-			strWidth = "-1.0f";
+			SLIB_STATIC_STRING(v, "-1.0f")
+			strWidth = v;
 		}
 		String strColor;
 		if (value.color.flagDefined) {
-			if (!(_getColorAccessString(localNamespace, value.color, strColor))) {
+			if (!(_getColorAccessString(fileNamespace, value.color, strColor))) {
 				return sl_false;
 			}
 		} else {
-			strColor = "slib::Color::zero()";
+			SLIB_STATIC_STRING(v, "slib::Color::zero()")
+			strColor = v;
 		}
-		result = String::format("slib::PenDesc(%s, %s, %s)", strStyle, strWidth, strColor);
+		result = String::format(StringView::literal("slib::PenDesc(%s, %s, %s)"), strStyle, strWidth, strColor);
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_getBorderValue(const String& localNamespace, const SAppBorderValue& value, PenDesc& result)
+	sl_bool SAppDocument::_getBorderValue(const String& fileNamespace, const SAppBorderValue& value, PenDesc& result)
 	{
 		if (value.style.flagDefined) {
 			result.style = value.style.value;
@@ -1014,7 +1073,7 @@ namespace slib
 			result.width = -1.0f;
 		}
 		if (value.color.flagDefined) {
-			if (!(_getColorValue(localNamespace, value.color, result.color))) {
+			if (!(_getColorValue(fileNamespace, value.color, result.color))) {
 				return sl_false;
 			}
 		} else {
@@ -1023,41 +1082,81 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_parseStyleAttribute(const String& localNamespace, SAppLayoutXmlItem* item)
+	Ref<SAppLayoutStyle> SAppDocument::_lookupLayoutStyle(const String& fileNamespace, const String& theme, const String& styleName)
+	{
+		Ref<SAppLayoutStyle> style;
+		if (fileNamespace.isNotEmpty()) {
+			if (theme.isNotEmpty()) {
+				if (m_layoutStyles.get(getGlobalStyleName(fileNamespace, theme, styleName), &style)) {
+					return style;
+				}
+			}
+			if (m_layoutStyles.get(getGlobalStyleName(fileNamespace, sl_null, styleName), &style)) {
+				return style;
+			}
+		}
+		if (theme.isNotEmpty()) {
+			if (m_layoutStyles.get(getGlobalStyleName(sl_null, theme, styleName), &style)) {
+				return style;
+			}
+		}
+		if (m_layoutStyles.get(styleName, &style)) {
+			return style;
+		}
+		return sl_null;
+	}
+
+	sl_bool SAppDocument::_parseStyleAttribute(const String& fileNamespace, const String& parentTheme, SAppLayoutXmlItem* item)
 	{
 		if (item->element.isNull()) {
 			return sl_true;
 		}
-		String strStyles = item->getXmlAttributeWithoutStyle("style").trim();
+		String theme = item->element->getAttribute(sTheme);
+		if (theme.isNull()) {
+			theme = parentTheme;
+		}
+		String propStyles = theme + StringView::literal("::styles");
+		Ref< CList< Ref<SAppLayoutStyle> > > _styles = Ref< CList< Ref<SAppLayoutStyle> > >::cast(item->element->getProperty(propStyles).getRef());
+		List< Ref<SAppLayoutStyle> >& styles = *(reinterpret_cast<List< Ref<SAppLayoutStyle> >*>(&_styles));
+		if (styles.isNotNull()) {
+			item->styles = Move(styles);
+			return sl_true;
+		}
+		styles = List< Ref<SAppLayoutStyle> >::create();
+		{
+			Ref<SAppLayoutStyle> style = _lookupLayoutStyle(fileNamespace, theme, StringView::literal("$") + item->element->getName());
+			if (style.isNotNull()) {
+				if (!(styles.add_NoLock(Move(style)))) {
+					logError(item->element, g_str_error_out_of_memory);
+					return sl_false;
+				}
+			}
+		}
+		String strStyles = item->getXmlAttributeWithoutStyle(sStyle).trim();
 		if (strStyles.isNotEmpty()) {
-			Ref< CList< Ref<SAppLayoutStyle> > > _styles = Ref< CList< Ref<SAppLayoutStyle> > >::cast(item->element->getProperty("styles").getRef());
-			List< Ref<SAppLayoutStyle> >& styles = *(reinterpret_cast<List< Ref<SAppLayoutStyle> >*>(&_styles));
-			if (styles.isNull()) {
-				ListElements<String> arr(strStyles.split(","));
-				for (sl_size i = 0; i < arr.count; i++) {
-					String s = arr[i].trim();
-					Ref<SAppLayoutStyle> style;
-					getItemFromMap(m_layoutStyles, localNamespace, s, sl_null, &style);
-					if (style.isNotNull()) {
-						if (!(styles.add_NoLock(Move(style)))) {
-							logError(item->element, g_str_error_out_of_memory);
-							return sl_false;
-						}
-					} else {
-						logError(item->element, g_str_error_layout_style_not_found, s);
+			ListElements<String> arr(strStyles.split(','));
+			for (sl_size i = 0; i < arr.count; i++) {
+				String s = arr[i].trim();
+				Ref<SAppLayoutStyle> style = _lookupLayoutStyle(fileNamespace, theme, s);
+				if (style.isNotNull()) {
+					if (!(styles.add_NoLock(Move(style)))) {
+						logError(item->element, g_str_error_out_of_memory);
 						return sl_false;
 					}
+				} else {
+					logError(item->element, g_str_error_layout_style_not_found, s);
+					return sl_false;
 				}
-				item->element->setProperty("styles", styles.ref);
 			}
-			item->styles = Move(styles);
 		}
+		item->element->setProperty(propStyles, styles.ref);
+		item->styles = Move(styles);
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_getXmlChildElements(List< Ref<XmlElement> >& ret, const String& localNamespace, SAppLayoutXmlItem* item, const String& tagName)
+	sl_bool SAppDocument::_getXmlChildElements(List< Ref<XmlElement> >& ret, const String& fileNamespace, const String& theme, SAppLayoutXmlItem* item, const String& tagName)
 	{
-		if (!_addXmlChildElements(ret, item->element, sl_null, localNamespace, tagName)) {
+		if (!_addXmlChildElements(ret, fileNamespace, theme, item->element, sl_null, tagName)) {
 			return sl_false;
 		}
 		{
@@ -1065,7 +1164,7 @@ namespace slib
 			for (sl_size i = 0; i < _styles.count; i++) {
 				Ref<SAppLayoutStyle> style = _styles[i];
 				if (style.isNotNull()) {
-					if (!(_addXmlChildElements(ret, style.get(), localNamespace, tagName))) {
+					if (!(_addXmlChildElements(ret, fileNamespace, theme, style.get(), tagName))) {
 						return sl_false;
 					}
 				}
@@ -1074,23 +1173,23 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_addXmlChildElements(List< Ref<XmlElement> >& list, SAppLayoutStyle* style, const String& localNamespace, const String& tagName)
+	sl_bool SAppDocument::_addXmlChildElements(List< Ref<XmlElement> >& list, const String& fileNamespace, const String& theme, SAppLayoutStyle* style, const String& tagName)
 	{
 		{
 			ListElements< Ref<SAppLayoutStyle> > _styles(style->styles);
 			for (sl_size i = 0; i < _styles.count; i++) {
 				Ref<SAppLayoutStyle> other = _styles[i];
 				if (other.isNotNull()) {
-					if (!_addXmlChildElements(list, other.get(), localNamespace, tagName)) {
+					if (!_addXmlChildElements(list, fileNamespace, theme, other.get(), tagName)) {
 						return sl_false;
 					}
 				}
 			}
 		}
-		return _addXmlChildElements(list, style->element, sl_null, localNamespace, tagName);
+		return _addXmlChildElements(list, fileNamespace, theme, style->element, sl_null, tagName);
 	}
 
-	sl_bool SAppDocument::_addXmlChildElements(List< Ref<XmlElement> >& list, const Ref<XmlElement>& parent, const RefT<SAppLayoutXmlItem>& caller, const String& localNamespace, const String& tagName)
+	sl_bool SAppDocument::_addXmlChildElements(List< Ref<XmlElement> >& list, const String& fileNamespace, const String& theme, const Ref<XmlElement>& parent, const RefT<SAppLayoutXmlItem>& caller, const String& tagName)
 	{
 		{
 			ListElements< Ref<XmlElement> > children(parent->getChildElements());
@@ -1103,26 +1202,26 @@ namespace slib
 							logError(element, g_str_error_out_of_memory);
 							return sl_false;
 						}
-						element->setProperty("caller", caller);
+						element->setProperty(sCaller, caller);
 						if (children.count == 1) {
-							element->setProperty("inherit", sl_true);
+							element->setProperty(sInherit, sl_true);
 						}
 					}
 					Ref<SAppLayoutInclude> include;
 					String name = element->getName();
 					if (name == StringView::literal("include")) {
-						String src = element->getAttribute("src");
+						String src = element->getAttribute(sSrc);
 						if (src.isEmpty()) {
-							logError(element, g_str_error_resource_layout_attribute_invalid, "src", name);
+							logError(element, g_str_error_resource_layout_attribute_invalid, sSrc, name);
 							return sl_false;
 						}
-						getItemFromMap(m_layoutIncludes, localNamespace, src, sl_null, &include);
+						getItemFromMap(m_layoutIncludes, fileNamespace, src, sl_null, &include);
 						if (include.isNull()) {
 							logError(element, g_str_error_layout_include_not_found, name);
 							return sl_false;
 						}
 					} else {
-						getItemFromMap(m_layoutIncludes, localNamespace, name, sl_null, &include);
+						getItemFromMap(m_layoutIncludes, fileNamespace, name, sl_null, &include);
 					}
 					if (include.isNotNull()) {
 						RefT<SAppLayoutXmlItem> xml = new CRefT<SAppLayoutXmlItem>(element);
@@ -1130,10 +1229,14 @@ namespace slib
 							logError(element, g_str_error_out_of_memory);
 							return sl_false;
 						}
-						if (!(_parseStyleAttribute(localNamespace, xml.get()))) {
+						if (!(_parseStyleAttribute(fileNamespace, theme, xml.get()))) {
 							return sl_false;
 						}
-						if (!_addXmlChildElements(list, include->element, xml, localNamespace, tagName)) {
+						String _theme = xml->getXmlAttribute(sTheme);
+						if (_theme.isNull()) {
+							_theme = theme;
+						}
+						if (!_addXmlChildElements(list, fileNamespace, _theme, include->element, xml, tagName)) {
 							return sl_false;
 						}
 					} else {
@@ -1142,7 +1245,7 @@ namespace slib
 						sl_bool flagIfeq = name == StringView::literal("ifeq");
 						sl_bool flagIfneq = name == StringView::literal("ifneq");
 						if (flagIfdef || flagIfndef || flagIfeq || flagIfneq) {
-							String var = element->getAttribute("name");
+							String var = element->getAttribute(sName);
 							if (var.startsWith(':')) {
 								SAppLayoutXmlItem item(element);
 								String value = item.getVariableValue(var.substring(1));
@@ -1152,21 +1255,21 @@ namespace slib
 								} else if (flagIfndef) {
 									flagPass = value.isEmpty();
 								} else if (flagIfeq) {
-									flagPass = value == item.getXmlAttribute("value");
+									flagPass = value == item.getXmlAttribute(sValue);
 								} else {
-									flagPass = value != item.getXmlAttribute("value");
+									flagPass = value != item.getXmlAttribute(sValue);
 								}
 								if (flagPass) {
-									if (!_addXmlChildElements(list, element, sl_null, localNamespace, tagName)) {
+									if (!_addXmlChildElements(list, fileNamespace, theme, element, sl_null, tagName)) {
 										return sl_false;
 									}
 								}
 							}
-						} else if (name == "children") {
+						} else if (name == StringView::literal("children")) {
 							RefT<SAppLayoutXmlItem> caller;
 							Ref<XmlElement> e = parent;
 							while (e.isNotNull()) {
-								caller = RefT<SAppLayoutXmlItem>::cast(e->getProperty("caller").getRef());
+								caller = RefT<SAppLayoutXmlItem>::cast(e->getProperty(sCaller).getRef());
 								if (caller.isNotNull()) {
 									break;
 								}
@@ -1216,7 +1319,7 @@ namespace slib
 
 	sl_bool SAppDocument::_processLayoutResourceControl(LayoutControlProcessParams* params)
 	{
-		m_currentLocalNamespace = params->resource->name;
+		m_currentFileNamespace = params->resource->name;
 		SAppLayoutResourceItem* resourceItem = params->resourceItem;
 		SAppLayoutOperation op = params->op;
 		SAppLayoutItemType resourceType = resourceItem->itemType;
@@ -1300,14 +1403,14 @@ namespace slib
 				return sl_true;
 			}
 			List< Ref<XmlElement> > children;
-			if (!(_getXmlChildElements(children, params->resource->localNamespace, resourceItem, sl_null))) {
+			if (!(_getXmlChildElements(children, params->resource->fileNamespace, resourceItem->theme, resourceItem, sl_null))) {
 				return sl_false;
 			}
 			for (auto&& child : children) {
 				String tagName = child->getName();
-				if (tagName == "layout") {
+				if (tagName == StringView::literal("layout")) {
 					if (resourceType != SAppLayoutItemType::LinearIterate && resourceType != SAppLayoutItemType::TileIterate && resourceType != SAppLayoutItemType::List && resourceType != SAppLayoutItemType::Collection) {
-						Ref<SAppLayoutResource> childLayout = _parseLayoutResource(params->resource->filePath, params->resource->localNamespace, child, params->source, params->resource, sl_null);
+						Ref<SAppLayoutResource> childLayout = _parseLayoutResource(params->resource->filePath, params->resource->fileNamespace, child, params->source, params->resource, sl_null);
 						if (childLayout.isNull()) {
 							return sl_false;
 						}
@@ -1317,13 +1420,13 @@ namespace slib
 				sl_bool flagIgnoreChild = sl_false;
 				switch (resourceType) {
 					case SAppLayoutItemType::Table:
-						flagIgnoreChild = tagName == "column" || tagName == "row";
+						flagIgnoreChild = tagName == StringView::literal("column") || tagName == StringView::literal("row");
 						break;
 					case SAppLayoutItemType::ListControl:
-						flagIgnoreChild = tagName == "column";
+						flagIgnoreChild = tagName == StringView::literal("column");
 						break;
 					case SAppLayoutItemType::Grid:
-						flagIgnoreChild = tagName == "column" || tagName == "row" || tagName == "header" || tagName == "footer" || tagName == "body";
+						flagIgnoreChild = tagName == StringView::literal("column") || tagName == StringView::literal("row") || tagName == StringView::literal("header") || tagName == StringView::literal("footer") || tagName == StringView::literal("body");
 						break;
 					case SAppLayoutItemType::Select:
 					case SAppLayoutItemType::SelectSwitch:
@@ -1333,10 +1436,10 @@ namespace slib
 					case SAppLayoutItemType::Tab:
 					case SAppLayoutItemType::Split:
 					case SAppLayoutItemType::Pager:
-						flagIgnoreChild = tagName == "item";
+						flagIgnoreChild = tagName == StringView::literal("item");
 						break;
 					case SAppLayoutItemType::TreeItem:
-						if (tagName != "item") {
+						if (tagName != StringView::literal("item")) {
 							logError(child, g_str_error_resource_layout_type_invalid, tagName);
 							return sl_false;
 						}
@@ -1389,14 +1492,14 @@ namespace slib
 			if (params->parentResourceItem) {
 				name = params->name;
 			} else {
-				static sl_char8 strEnd[] = "\r\n";
-				params->sbDefineInit->addStatic(strEnd, sizeof(strEnd)-1);
-				name = "m_contentView";
+				params->sbDefineInit->addStatic("\r\n");
+				SLIB_STATIC_STRING(v, "m_contentView")
+				name = v;
 			}
 			ListElements< Ref<SAppLayoutResourceItem> > children(resourceItem->children);
 			for (sl_size i = 0; i < children.count; i++) {
 				Ref<SAppLayoutResourceItem>& child = children[i];
-				String addStatement = String::format("\t\t\t%s->addChild(%s, slib::UIUpdateMode::Init);%n%n", name, child->name);
+				String addStatement = String::format(StringView::literal("\t\t\t%s->addChild(%s, slib::UIUpdateMode::Init);%n%n"), name, child->name);
 				if (!(_generateLayoutsCpp_Item(params->resource, child.get(), resourceItem, params, addStatement) )) {
 					return sl_false;
 				}
@@ -1456,7 +1559,8 @@ namespace slib
 				} \
 			} \
 			if (resourceItem->className.isEmpty()) { \
-				resourceItem->className = "slib::" #VIEWTYPE; \
+				SLIB_STATIC_STRING(v, "slib::" #VIEWTYPE) \
+				resourceItem->className = v; \
 			} \
 		} else if (op == SAppLayoutOperation::SimulateInit) { \
 			if (params->viewItem.isNull()) { \
@@ -1472,13 +1576,13 @@ namespace slib
 
 #define LAYOUT_CONTROL_DEFINE_XML(NAME, ...) \
 	SAppLayoutXmlItem NAME(__VA_ARGS__); \
-	if (!(_parseStyleAttribute(resource->localNamespace, &NAME))) { \
+	if (!(_parseStyleAttribute(resource->fileNamespace, params->parentResourceItem ? params->parentResourceItem->theme : String::null(), &NAME))) { \
 		return sl_false; \
 	}
 
 #define LAYOUT_CONTROL_DEFINE_XML_CHILDREN(NAME, XML, TAG_NAME) \
 	List< Ref<XmlElement> > _##NAME; \
-	if (!(_getXmlChildElements(_##NAME, resource->localNamespace, &XML, TAG_NAME))) { \
+	if (!(_getXmlChildElements(_##NAME, resource->fileNamespace, resourceItem->theme, &XML, TAG_NAME))) { \
 		return sl_false; \
 	} \
 	ListElements< Ref<XmlElement> > NAME(_##NAME);
@@ -1582,7 +1686,7 @@ namespace slib
 #define LAYOUT_CONTROL_PARSE(XML, NAME, VAR, ...) { PRIV_LAYOUT_CONTROL_PARSE(XML, NAME, VAR, ##__VA_ARGS__) }
 
 #define PRIV_LAYOUT_CONTROL_GENERATE(BUF_TYPE, SETFUNC, ARG_FORMAT, ...) \
-	params->sbDefine##BUF_TYPE->add(String::format("%s%s->" #SETFUNC "(" ARG_FORMAT ");%n", strTab, name, ##__VA_ARGS__));
+	params->sbDefine##BUF_TYPE->add(String::format(StringView::literal("%s%s->" #SETFUNC "(" ARG_FORMAT ");%n"), strTab, name, ##__VA_ARGS__));
 #define LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT, ...) PRIV_LAYOUT_CONTROL_GENERATE(Init, SETFUNC, ARG_FORMAT, ##__VA_ARGS__)
 #define LAYOUT_CONTROL_GENERATE_LAYOUT(SETFUNC, ARG_FORMAT, ...) PRIV_LAYOUT_CONTROL_GENERATE(Layout, SETFUNC, ARG_FORMAT, ##__VA_ARGS__)
 #define LAYOUT_CONTROL_GENERATE_DELAYED(SETFUNC, ARG_FORMAT, ...) PRIV_LAYOUT_CONTROL_GENERATE(InitDelayed, SETFUNC, ARG_FORMAT, ##__VA_ARGS__)
@@ -1594,7 +1698,7 @@ namespace slib
 #define LAYOUT_CONTROL_PARSE_GENERIC(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME SUFFIX, VAR)
 #define LAYOUT_CONTROL_GENERATE_GENERIC(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.isDefinedDataAccess()) { \
-		params->sbDefineSetData->add(String::format("%s%s->" #SETFUNC "(%s" SET_DATA_MODE_##CATEGORY(", mode") ");%n", strTab, name, VAR.getDataAccessString())); \
+		params->sbDefineSetData->add(String::format(StringView::literal("%s%s->" #SETFUNC "(%s" SET_DATA_MODE_##CATEGORY(", mode") ");%n"), strTab, name, VAR.getDataAccessString())); \
 	} \
 	if (VAR.flagDefined) { \
 		String value = VAR.getAccessString(); \
@@ -1686,14 +1790,14 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_STRING(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.isDefinedDataAccess()) { \
 		String value; \
-		if (!(_getStringDataAccessString(resource->localNamespace, VAR, value))) { \
+		if (!(_getStringDataAccessString(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
-		params->sbDefineSetData->add(String::format("%s%s->" #SETFUNC "(%s" SET_DATA_MODE_##CATEGORY(", mode") ");%n", strTab, name, value)); \
+		params->sbDefineSetData->add(String::format(StringView::literal("%s%s->" #SETFUNC "(%s" SET_DATA_MODE_##CATEGORY(", mode") ");%n"), strTab, name, value)); \
 	} \
 	if (VAR.flagDefined) { \
 		String value; \
-		if (!(_getStringAccessString(resource->localNamespace, VAR, value))) { \
+		if (!(_getStringAccessString(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
@@ -1701,7 +1805,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_STRING(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined && op == SAppLayoutOperation::SimulateInit) { \
 		String value; \
-		if (!(_getStringValue(resource->localNamespace, VAR, value))) { \
+		if (!(_getStringValue(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
@@ -1711,14 +1815,14 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_DRAWABLE(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.isDefinedDataAccess()) { \
 		String value; \
-		if (!(_getDrawableDataAccessString(resource->localNamespace, VAR, value))) { \
+		if (!(_getDrawableDataAccessString(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
-		params->sbDefineSetData->add(String::format("%s%s->" #SETFUNC "(%s, mode);%n", strTab, name, value)); \
+		params->sbDefineSetData->add(String::format(StringView::literal("%s%s->" #SETFUNC "(%s, mode);%n"), strTab, name, value)); \
 	} \
 	if (VAR.flagDefined) { \
 		String value; \
-		if (!(_getDrawableAccessString(resource->localNamespace, VAR, value))) { \
+		if (!(_getDrawableAccessString(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
@@ -1726,7 +1830,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_DRAWABLE(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined && LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR)) { \
 		Ref<Drawable> value; \
-		if (!(_getDrawableValue(resource->localNamespace, VAR, value))) { \
+		if (!(_getDrawableValue(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		if (op == SAppLayoutOperation::SimulateLayout) { \
@@ -1740,14 +1844,14 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_COLOR(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.isDefinedDataAccess()) { \
 		String value; \
-		if (!(_getColorDataAccessString(resource->localNamespace, VAR, value))) { \
+		if (!(_getColorDataAccessString(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
-		params->sbDefineSetData->add(String::format("%s%s->" #SETFUNC "(%s, mode);%n", strTab, name, value)); \
+		params->sbDefineSetData->add(String::format(StringView::literal("%s%s->" #SETFUNC "(%s, mode);%n"), strTab, name, value)); \
 	} \
 	if (VAR.flagDefined) { \
 		String value; \
-		if (!(_getColorAccessString(resource->localNamespace, VAR, value))) { \
+		if (!(_getColorAccessString(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
@@ -1755,7 +1859,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_COLOR(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined && op == SAppLayoutOperation::SimulateInit) { \
 		Color value; \
-		if (!(_getColorValue(resource->localNamespace, VAR, value))) { \
+		if (!(_getColorValue(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
@@ -1768,7 +1872,7 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_FONT(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		String value; \
-		if (!(_getFontAccessString(resource->localNamespace, VAR, value))) { \
+		if (!(_getFontAccessString(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		if (VAR.size.isNeededOnLayoutFunction()) { \
@@ -1780,7 +1884,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_FONT(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined && LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR.size)) { \
 		Ref<Font> value; \
-		if (!(_getFontValue(resource->localNamespace, VAR, value))) { \
+		if (!(_getFontValue(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		if (op == SAppLayoutOperation::SimulateLayout) { \
@@ -1797,7 +1901,7 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_BORDER(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		String value; \
-		if (!(_getBorderAccessString(resource->localNamespace, VAR, value))) { \
+		if (!(_getBorderAccessString(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		if (VAR.width.isNeededOnLayoutFunction()) { \
@@ -1817,7 +1921,7 @@ namespace slib
 			} \
 		} else { \
 			PenDesc value; \
-			if (!(_getBorderValue(resource->localNamespace, VAR, value))) { \
+			if (!(_getBorderValue(resource->fileNamespace, VAR, value))) { \
 				return sl_false; \
 			} \
 			if (op == SAppLayoutOperation::SimulateLayout) { \
@@ -1832,7 +1936,7 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_MENU(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		String name, value; \
-		if (!(_getMenuAccessString(resource->localNamespace, VAR, sl_false, name, value))) { \
+		if (!(_getMenuAccessString(resource->fileNamespace, VAR, sl_false, name, value))) { \
 			return sl_false; \
 		} \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
@@ -1840,7 +1944,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_MENU(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined && op == SAppLayoutOperation::SimulateInit) { \
 		Ref<Menu> value; \
-		if (!(_getMenuValue(resource->localNamespace, VAR, value))) { \
+		if (!(_getMenuValue(resource->fileNamespace, VAR, value))) { \
 			return sl_false; \
 		} \
 		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
@@ -1850,13 +1954,13 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_SIZE(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		if (VAR.unit == SAppDimensionValue::FILL || VAR.unit == SAppDimensionValue::MATCH_PARENT) { \
-			String value = String::format("%ff", VAR.unit == SAppDimensionValue::FILL ? VAR.amount : -(VAR.amount)); \
+			String value = String::format(StringView::literal("%ff"), VAR.unit == SAppDimensionValue::FILL ? VAR.amount : -(VAR.amount)); \
 			LAYOUT_CONTROL_GENERATE(SETFUNC##Filling, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 		} else if (VAR.unit == SAppDimensionValue::WRAP) { \
 			StringView value = StringView::literal("sl_true"); \
 			LAYOUT_CONTROL_GENERATE(SETFUNC##Wrapping, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 		} else if (VAR.unit == SAppDimensionValue::WEIGHT) { \
-			String value = String::format("%ff", VAR.amount); \
+			String value = String::format(StringView::literal("%ff"), VAR.amount); \
 			LAYOUT_CONTROL_GENERATE(SETFUNC##Weight, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 		} else { \
 			PRIV_LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ##__VA_ARGS__) \
@@ -1888,7 +1992,7 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_MARGIN(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		if (VAR.unit == SAppDimensionValue::WEIGHT) { \
-			String value = String::format("%ff", VAR.amount); \
+			String value = String::format(StringView::literal("%ff"), VAR.amount); \
 			LAYOUT_CONTROL_GENERATE(SETFUNC##Weight, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 		} else { \
  			if (!(SAppDimensionValue::isSpecialUnit(VAR.unit))) { \
@@ -1910,7 +2014,11 @@ namespace slib
 		} \
 	}
 
-#define LAYOUT_CONTROL_PARSE_XML(TYPE, XML, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_##TYPE(XML, #NAME, , ATTR NAME, ##__VA_ARGS__)
+#define LAYOUT_CONTROL_PARSE_XML(TYPE, XML, ATTR, NAME, ...) \
+	{ \
+		SLIB_STATIC_STRING(_name, #NAME) \
+		LAYOUT_CONTROL_PARSE_##TYPE(XML, _name, , ATTR NAME, ##__VA_ARGS__) \
+	}
 #define LAYOUT_CONTROL_PARSE_ATTR(TYPE, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_XML(TYPE, *resourceItem, ATTR, NAME, ##__VA_ARGS__)
 
 #define PRIV_LAYOUT_CONTROL_GENERATE_ATTR(TYPE, VAR, SETFUNC, CATEGORY) LAYOUT_CONTROL_GENERATE_##TYPE(VAR, SETFUNC, CATEGORY, "%s", value)
@@ -1958,7 +2066,11 @@ namespace slib
 			} \
 		} \
 	}
-#define LAYOUT_CONTROL_PARSE_STATE_MAP_XML(TYPE, XML, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, XML, #NAME, , ATTR NAME, ##__VA_ARGS__)
+#define LAYOUT_CONTROL_PARSE_STATE_MAP_XML(TYPE, XML, ATTR, NAME, ...) \
+	{ \
+		SLIB_STATIC_STRING(_name, #NAME) \
+		LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, XML, _name, , ATTR NAME, ##__VA_ARGS__) \
+	}
 #define LAYOUT_CONTROL_PARSE_STATE_MAP_ATTR(TYPE, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_STATE_MAP_XML(TYPE, *resourceItem, ATTR, NAME, ##__VA_ARGS__)
 #define LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	{ \
@@ -2644,7 +2756,7 @@ namespace slib
 		} else if (op == SAppLayoutOperation::Generate) {
 			if (attr->menu.flagDefined) {
 				String menuName, value;
-				if (!(_getMenuAccessString(resource->localNamespace, attr->menu, sl_true, menuName, value))) {
+				if (!(_getMenuAccessString(resource->fileNamespace, attr->menu, sl_true, menuName, value))) {
 					return sl_false;
 				}
 				params->sbDeclare->add(String::format("\t\t\tslib::Ref<menu::%s> menu;%n", menuName));
@@ -2653,7 +2765,7 @@ namespace slib
 		} else if (op == SAppLayoutOperation::SimulateInit) {
 			if (attr->menu.flagDefined) {
 				Ref<Menu> value;
-				if (!(_getMenuValue(resource->localNamespace, attr->menu, value))) {
+				if (!(_getMenuValue(resource->fileNamespace, attr->menu, value))) {
 					return sl_false;
 				}
 				if (value.isNotNull()) {
@@ -3248,11 +3360,11 @@ namespace slib
 				for (i = 0; i < selectItems.count; i++) { \
 					SAppLayoutSelectItem& selectItem = selectItems[i]; \
 					String strSelectedItemTitle; \
-					if (!(_getStringAccessString(resource->localNamespace, selectItem.title, strSelectedItemTitle))) { \
+					if (!(_getStringAccessString(resource->fileNamespace, selectItem.title, strSelectedItemTitle))) { \
 						return sl_false; \
 					} \
 					String strSelectedItemValue; \
-					if (!(_getStringAccessString(resource->localNamespace, selectItem.value, strSelectedItemValue))) { \
+					if (!(_getStringAccessString(resource->fileNamespace, selectItem.value, strSelectedItemValue))) { \
 						return sl_false; \
 					} \
 					LAYOUT_CONTROL_GENERATE(addItem, "%s, %s, slib::UIUpdateMode::Init", strSelectedItemValue, strSelectedItemTitle) \
@@ -3272,11 +3384,11 @@ namespace slib
 				for (i = 0; i < n; i++) { \
 					SAppLayoutSelectItem& selectItem = selectItems[i]; \
 					String selectedItemTitle; \
-					if (!(_getStringValue(resource->localNamespace, selectItem.title, selectedItemTitle))) { \
+					if (!(_getStringValue(resource->fileNamespace, selectItem.title, selectedItemTitle))) { \
 						return sl_false; \
 					} \
 					String selectedItemValue; \
-					if (!(_getStringValue(resource->localNamespace, selectItem.value, selectedItemValue))) { \
+					if (!(_getStringValue(resource->fileNamespace, selectItem.value, selectedItemValue))) { \
 						return sl_false; \
 					} \
 					view->addItem(selectedItemValue, selectedItemTitle, UIUpdateMode::Init); \
@@ -3468,7 +3580,7 @@ namespace slib
 			Ref<XmlElement>& childXml = childXmls[0]; \
 			if (childXml->getName() == "layout") { \
 				sl_bool flagGeneratedName; \
-				Ref<SAppLayoutResource> childLayout = _parseLayoutResource(resource->filePath, resource->localNamespace, childXml, params->source, resource, &(attr->layout.name), &flagGeneratedName); \
+				Ref<SAppLayoutResource> childLayout = _parseLayoutResource(resource->filePath, resource->fileNamespace, childXml, params->source, resource, &(attr->layout.name), &flagGeneratedName); \
 				if (childLayout.isNull()) { \
 					return sl_false; \
 				} \
@@ -3495,7 +3607,7 @@ namespace slib
 				String _layoutName = attr->layout.name; \
 				resourceItem->classNameGetter = [_layoutName](SAppDocument* doc, SAppLayoutResourceItem* item) { \
 					String layoutName = _layoutName; \
-					doc->getItemFromMap(doc->m_layouts, item->localNamespace, layoutName, &layoutName, (Ref<SAppLayoutResource>*)sl_null); \
+					doc->getItemFromMap(doc->m_layouts, item->fileNamespace, layoutName, &layoutName, (Ref<SAppLayoutResource>*)sl_null); \
 					return String::concat("slib::IterateLayout<slib::" #SUPER_VIEW ", ", layoutName, ">"); \
 				}; \
 			} \
@@ -4460,11 +4572,11 @@ namespace slib
 		} else {
 			if (op == SAppLayoutOperation::Generate) {
 				String strUrl;
-				if (!(_getStringAccessString(resource->localNamespace, attr->url, strUrl))) {
+				if (!(_getStringAccessString(resource->fileNamespace, attr->url, strUrl))) {
 					return sl_false;
 				}
 				String strHtml;
-				if (!(_getStringAccessString(resource->localNamespace, attr->html, strHtml))) {
+				if (!(_getStringAccessString(resource->fileNamespace, attr->html, strHtml))) {
 					return sl_false;
 				}
 				if (attr->html.flagDefined) {
@@ -4480,11 +4592,11 @@ namespace slib
 				}
 			} else if (op == SAppLayoutOperation::SimulateInit) {
 				String _url;
-				if (!(_getStringValue(resource->localNamespace, attr->url, _url))) {
+				if (!(_getStringValue(resource->fileNamespace, attr->url, _url))) {
 					return sl_false;
 				}
 				String _html;
-				if (!(_getStringValue(resource->localNamespace, attr->html, _html))) {
+				if (!(_getStringValue(resource->fileNamespace, attr->html, _html))) {
 					return sl_false;
 				}
 				if (attr->html.flagDefined) {
@@ -4754,7 +4866,7 @@ namespace slib
 		} else if (op == SAppLayoutOperation::SimulateInit) {
 			if (attr->src.flagDefined) {
 				String value;
-				if (!(_getStringValue(resource->localNamespace, attr->src, value))) {
+				if (!(_getStringValue(resource->fileNamespace, attr->src, value))) {
 					return sl_false;
 				}
 				if (value.startsWith("asset://")) {

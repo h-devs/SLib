@@ -23,7 +23,7 @@
 namespace slib
 {
 
-	sl_bool SAppDocument::_parseStringResources(const String& localNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, const String16& source)
+	sl_bool SAppDocument::_parseStringResources(const String& fileNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, const String16& source)
 	{
 		if (element.isNull()) {
 			return sl_false;
@@ -52,7 +52,7 @@ namespace slib
 				String tagName = child->getName();
 				sl_bool flagString = tagName == "string";
 				if (flagString || tagName == "vstring") {
-					if (!_parseStringResource(localNamespace, child, locale, !flagString, source)) {
+					if (!_parseStringResource(fileNamespace, child, locale, !flagString, source)) {
 						return sl_false;
 					}
 				} else {
@@ -64,7 +64,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_parseStringResource(const String& localNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, sl_bool flagVariants, const String16& source)
+	sl_bool SAppDocument::_parseStringResource(const String& fileNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, sl_bool flagVariants, const String16& source)
 	{
 		if (element.isNull()) {
 			return sl_false;
@@ -95,7 +95,7 @@ namespace slib
 			logError(element, g_str_error_resource_string_name_invalid, name);
 			return sl_false;
 		}
-		name = getNameInLocalNamespace(localNamespace, name);
+		name = getGlobalName(fileNamespace, name);
 
 		Ref<SAppStringResource> res = _registerOrGetStringResource(name, element);
 		if (res.isNull()) {
@@ -324,7 +324,7 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_getStringAccessString(const String& localNamespace, const SAppStringValue& value, String& result)
+	sl_bool SAppDocument::_getStringAccessString(const String& fileNamespace, const SAppStringValue& value, String& result)
 	{
 		if (!(value.flagDefined)) {
 			result = "slib::String::null()";
@@ -332,7 +332,7 @@ namespace slib
 		}
 		if (value.flagReferResource) {
 			String name;
-			if (_checkStringResource(localNamespace, value, &name)) {
+			if (_checkStringResource(fileNamespace, value, &name)) {
 				result = String::format("string::%s::get()", name);
 				return sl_true;
 			} else {
@@ -348,13 +348,13 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_getStringDataAccessString(const String& localNamespace, const SAppStringValue& value, String& result)
+	sl_bool SAppDocument::_getStringDataAccessString(const String& fileNamespace, const SAppStringValue& value, String& result)
 	{
 		if (value.flagFormattingDataValue) {
 			result = String::format("slib::String::format(%s, data)", Stringx::applyBackslashEscapes(value.dataAccess));
 		} else {
 			String def;
-			if (!(_getStringAccessString(localNamespace, value, def))) {
+			if (!(_getStringAccessString(fileNamespace, value, def))) {
 				return sl_false;
 			}
 			result = String::format("data%s.getString(%s)", value.dataAccess, def);
@@ -362,7 +362,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_getStringValue(const String& localNamespace, const SAppStringValue& value, String& result)
+	sl_bool SAppDocument::_getStringValue(const String& fileNamespace, const SAppStringValue& value, String& result)
 	{
 		Locale locale = getCurrentSimulatorLocale();
 		if (!(value.flagDefined)) {
@@ -372,7 +372,7 @@ namespace slib
 		if (value.flagReferResource) {
 			Ref<SAppStringResource> resource;
 			SAppStringResourceItem item;
-			if (_checkStringResource(localNamespace, value, sl_null, &resource, value.variant.isNotNull() ? &item : sl_null)) {
+			if (_checkStringResource(fileNamespace, value, sl_null, &resource, value.variant.isNotNull() ? &item : sl_null)) {
 				if (value.variant.isNotNull()) {
 					if (item.defaultValue.isNotNull()) {
 						result = item.get(locale, resource->get(locale, item.defaultValue));
@@ -392,23 +392,23 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_checkStringValue(const String& localNamespace, const SAppStringValue& value)
+	sl_bool SAppDocument::_checkStringValue(const String& fileNamespace, const SAppStringValue& value)
 	{
 		if (!(value.flagDefined)) {
 			return sl_true;
 		}
 		if (value.flagReferResource) {
-			return _checkStringResource(localNamespace, value);
+			return _checkStringResource(fileNamespace, value);
 		} else {
 			return sl_true;
 		}
 	}
 
-	sl_bool SAppDocument::_checkStringResource(const String& localNamespace, const SAppStringValue& value, String* outName, Ref<SAppStringResource>* outResource, SAppStringResourceItem* outItem)
+	sl_bool SAppDocument::_checkStringResource(const String& fileNamespace, const SAppStringValue& value, String* outName, Ref<SAppStringResource>* outResource, SAppStringResourceItem* outItem)
 	{
 		if (value.variant.isNotNull()) {
 			Ref<SAppStringResource> res;
-			if (getItemFromMap(m_strings, localNamespace, value.valueOrName, outName, &res)) {
+			if (getItemFromMap(m_strings, fileNamespace, value.valueOrName, outName, &res)) {
 				if (res->variants.get(value.variant, outItem)) {
 					if (outName) {
 						*outName = String::concat(*outName, "::", value.variant);
@@ -420,7 +420,7 @@ namespace slib
 				return sl_true;
 			}
 		} else {
-			if (getItemFromMap(m_strings, localNamespace, value.valueOrName, outName, outResource)) {
+			if (getItemFromMap(m_strings, fileNamespace, value.valueOrName, outName, outResource)) {
 				return sl_true;
 			}
 		}

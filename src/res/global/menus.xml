@@ -1,5 +1,5 @@
 <sapp>
-	<popupMenu name='label_view_context'>
+	<popup-menu name='label_view_context'>
 		<item name='copy' title='@string/copy' />
-	</popupMenu>
+	</popup-menu>
 </sapp>

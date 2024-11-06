@@ -23,7 +23,7 @@
 namespace slib
 {
 
-	sl_bool SAppDocument::_parseColorResource(const String& localNamespace, const Ref<XmlElement>& element)
+	sl_bool SAppDocument::_parseColorResource(const String& fileNamespace, const Ref<XmlElement>& element)
 	{
 		if (element.isNull()) {
 			return sl_false;
@@ -39,7 +39,7 @@ namespace slib
 			return sl_false;
 		}
 
-		name = getNameInLocalNamespace(localNamespace, name);
+		name = getGlobalName(fileNamespace, name);
 
 		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
 		if (!flagOverride) {
@@ -144,7 +144,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_getColorAccessString(const String& localNamespace, const SAppColorValue& value, String& result)
+	sl_bool SAppDocument::_getColorAccessString(const String& fileNamespace, const SAppColorValue& value, String& result)
 	{
 		if (!(value.flagDefined)) {
 			result = "slib::Color::zero()";
@@ -155,7 +155,7 @@ namespace slib
 			return sl_true;
 		} else {
 			String name;
-			if (_checkColorName(localNamespace, value.resourceName, value.referingElement, &name)) {
+			if (_checkColorName(fileNamespace, value.resourceName, value.referingElement, &name)) {
 				result = String::format("color::%s::get()", name);
 				return sl_true;
 			} else {
@@ -164,17 +164,17 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_getColorDataAccessString(const String& localNamespace, const SAppColorValue& value, String& result)
+	sl_bool SAppDocument::_getColorDataAccessString(const String& fileNamespace, const SAppColorValue& value, String& result)
 	{
 		String def;
-		if (_getColorAccessString(localNamespace, value, def)) {
+		if (_getColorAccessString(fileNamespace, value, def)) {
 			result = String::format("data%s.getUint32(%s)", value.dataAccess, def);
 			return sl_true;
 		}
 		return sl_false;
 	}
 
-	sl_bool SAppDocument::_getColorValue(const String& localNamespace, const SAppColorValue& value, Color& result)
+	sl_bool SAppDocument::_getColorValue(const String& fileNamespace, const SAppColorValue& value, Color& result)
 	{
 		if (!(value.flagDefined)) {
 			result = Color::zero();
@@ -185,7 +185,7 @@ namespace slib
 			return sl_true;
 		} else {
 			Ref<SAppColorResource> resource;
-			if (_checkColorName(localNamespace, value.resourceName, value.referingElement, sl_null, &resource)) {
+			if (_checkColorName(fileNamespace, value.resourceName, value.referingElement, sl_null, &resource)) {
 				result = resource->value;
 				return sl_true;
 			} else {
@@ -194,7 +194,7 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_checkColorValue(const String& localNamespace, const SAppColorValue& value)
+	sl_bool SAppDocument::_checkColorValue(const String& fileNamespace, const SAppColorValue& value)
 	{
 		if (!(value.flagDefined)) {
 			return sl_true;
@@ -202,13 +202,13 @@ namespace slib
 		if (value.resourceName.isNull()) {
 			return sl_true;
 		} else {
-			return _checkColorName(localNamespace, value.resourceName, value.referingElement);
+			return _checkColorName(fileNamespace, value.resourceName, value.referingElement);
 		}
 	}
 
-	sl_bool SAppDocument::_checkColorName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName, Ref<SAppColorResource>* outResource)
+	sl_bool SAppDocument::_checkColorName(const String& fileNamespace, const String& name, const Ref<XmlElement>& element, String* outName, Ref<SAppColorResource>* outResource)
 	{
-		if (getItemFromMap(m_colors, localNamespace, name, outName, outResource)) {
+		if (getItemFromMap(m_colors, fileNamespace, name, outName, outResource)) {
 			return sl_true;
 		} else {
 			logError(element, String::format(g_str_error_color_not_found, name));

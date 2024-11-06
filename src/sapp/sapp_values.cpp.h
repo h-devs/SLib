@@ -462,7 +462,7 @@ namespace slib
 			String strUnit(data + pos, len - pos);
 			if (doc) {
 				SAppDimensionValue refer;
-				String strUnitLocal = SAppDocument::getNameInLocalNamespace(doc->m_currentLocalNamespace, strUnit);
+				String strUnitLocal = SAppDocument::getGlobalName(doc->m_currentFileNamespace, strUnit);
 				if (doc->m_layoutUnits.get(strUnitLocal, &refer)) {
 					amount = refer.amount * f;
 					unit = refer.unit;
