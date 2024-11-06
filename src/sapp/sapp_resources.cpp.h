@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -381,10 +381,10 @@ namespace slib
 
 	String SAppLayoutXmlItem::getVariableValue(const String& name)
 	{
-		String vName = ":" + name;
+		String vName = StringView::literal(":") + name;
 		Ref<XmlElement> e = element;
 		do {
-			Ref<CRef> refStyles = e->getProperty("styles").getRef();
+			Ref<CRef> refStyles = e->getProperty(sStyles).getRef();
 			if (refStyles.isNotNull()) {
 				SAppLayoutXmlItem item(e);
 				item.styles = Ref< CList< Ref<SAppLayoutStyle> > >::cast(refStyles);
@@ -398,7 +398,7 @@ namespace slib
 					return value;
 				}
 			}
-			RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::cast(e->getProperty("caller").getRef());
+			RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::cast(e->getProperty(sCaller).getRef());
 			if (caller.isNotNull()) {
 				String value = caller->getXmlAttribute(name);
 				if (value.isNotNull()) {
@@ -527,8 +527,8 @@ namespace slib
 
 	String SAppLayoutXmlItem::_resolveDefaultValue(const String& name)
 	{
-		if (!(name.startsWith(':')) && element->getProperty("inherit").getBoolean()) {
-			RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::cast(element->getProperty("caller").getRef());
+		if (!(name.startsWith(':')) && element->getProperty(sInherit).getBoolean()) {
+			RefT<SAppLayoutXmlItem> caller = RefT<SAppLayoutXmlItem>::cast(element->getProperty(sCaller).getRef());
 			if (caller.isNotNull()) {
 				return caller->getXmlAttribute(name);
 			}
@@ -751,7 +751,7 @@ namespace slib
 		}
 		for (;;) {
 			(*pN)++;
-			String name = String::format("_%s%d", prefix, *pN);
+			String name = String::format(StringView::literal("_%s%d"), prefix, *pN);
 			if (!(itemsByName.find(name))) {
 				return name;
 			}

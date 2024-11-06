@@ -30,10 +30,30 @@
 
 #define TAG "SApp"
 
+#define RAW_MAX_SIZE 0x1000000 // 16MB
+
 namespace slib
 {
 
-#define RAW_MAX_SIZE 0x1000000 // 16MB
+	namespace
+	{
+		SLIB_STATIC_STRING(sTheme, "theme")
+		SLIB_STATIC_STRING(sName, "name")
+		SLIB_STATIC_STRING(sValue, "value")
+		SLIB_STATIC_STRING(sCaller, "caller")
+		SLIB_STATIC_STRING(sInherit, "inherit")
+		SLIB_STATIC_STRING(sSrc, "src")
+		SLIB_STATIC_STRING(sOverride, "override")
+		SLIB_STATIC_STRING(sType, "type")
+		SLIB_STATIC_STRING(sBase, "base")
+		SLIB_STATIC_STRING(sClass, "class")
+		SLIB_STATIC_STRING(sSp, "sp")
+		SLIB_STATIC_STRING(sStyle, "style")
+		SLIB_STATIC_STRING(sStyles, "styles")
+		SLIB_STATIC_STRING(sThis, "this")
+		SLIB_STATIC_STRING(sSimulatorWidth, "simulatorWidth")
+		SLIB_STATIC_STRING(sSimulatorHeight, "simulatorHeight")
+	}
 
 	SAppConfiguration::SAppConfiguration()
 	{

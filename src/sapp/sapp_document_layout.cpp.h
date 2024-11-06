@@ -23,25 +23,6 @@
 namespace slib
 {
 
-	namespace
-	{
-		SLIB_STATIC_STRING(sTheme, "theme")
-		SLIB_STATIC_STRING(sName, "name")
-		SLIB_STATIC_STRING(sValue, "value")
-		SLIB_STATIC_STRING(sCaller, "caller")
-		SLIB_STATIC_STRING(sInherit, "inherit")
-		SLIB_STATIC_STRING(sSrc, "src")
-		SLIB_STATIC_STRING(sOverride, "override")
-		SLIB_STATIC_STRING(sType, "type")
-		SLIB_STATIC_STRING(sBase, "base")
-		SLIB_STATIC_STRING(sClass, "class")
-		SLIB_STATIC_STRING(sSp, "sp")
-		SLIB_STATIC_STRING(sStyle, "style")
-		SLIB_STATIC_STRING(sThis, "this")
-		SLIB_STATIC_STRING(sSimulatorWidth, "simulatorWidth")
-		SLIB_STATIC_STRING(sSimulatorHeight, "simulatorHeight")
-	}
-
 	sl_bool SAppDocument::_parseLayoutStyle(const String& fileNamespace, const String& parentTheme, const Ref<XmlElement>& element)
 	{
 		if (element.isNull()) {
@@ -299,6 +280,9 @@ namespace slib
 				RefT<SAppLayoutXmlItem> xml = new CRefT<SAppLayoutXmlItem>(layout->element);
 				if (xml.isNull()) {
 					logError(layout->element, g_str_error_out_of_memory);
+					return sl_false;
+				}
+				if (!(_parseStyleAttribute(layout->fileNamespace, item->theme, xml.get()))) {
 					return sl_false;
 				}
 				if (!_addXmlChildElements(list, layout->fileNamespace, item->theme, include->element, xml, sl_null)) {
@@ -1119,6 +1103,7 @@ namespace slib
 		Ref< CList< Ref<SAppLayoutStyle> > > _styles = Ref< CList< Ref<SAppLayoutStyle> > >::cast(item->element->getProperty(propStyles).getRef());
 		List< Ref<SAppLayoutStyle> >& styles = *(reinterpret_cast<List< Ref<SAppLayoutStyle> >*>(&_styles));
 		if (styles.isNotNull()) {
+			item->element->setProperty(sStyles, styles.ref);
 			item->styles = Move(styles);
 			return sl_true;
 		}
@@ -1150,6 +1135,7 @@ namespace slib
 			}
 		}
 		item->element->setProperty(propStyles, styles.ref);
+		item->element->setProperty(sStyles, styles.ref);
 		item->styles = Move(styles);
 		return sl_true;
 	}
