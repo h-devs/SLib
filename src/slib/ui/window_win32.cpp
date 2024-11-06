@@ -809,7 +809,7 @@ namespace slib
 				if (m_flagTitleBar) {
 					return sl_false;
 				}
-				if (m_flagResizable) {
+				if (m_flagResizable && !(IsZoomed(handle))) {
 					RECT rc = { 0 };
 					GetWindowRect(handle, &rc);
 #define BORDER_SIZE 4

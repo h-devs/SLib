@@ -2141,7 +2141,7 @@ namespace slib
 	{
 		Color c;
 		if (ColorDrawable::check(icon, &c)) {
-			m_iconDesc = new DefaultSortIcon(c, sl_true);
+			m_iconDesc = new DefaultSortIcon(c, sl_false);
 		} else {
 			m_iconDesc = icon;
 		}

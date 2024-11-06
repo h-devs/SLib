@@ -8335,6 +8335,9 @@ namespace slib
 				if (window.isNull()) {
 					return;
 				}
+				if (window->isMaximized()) {
+					return;
+				}
 				auto pt = view->convertCoordinateToScreen(ev->getPoint());
 				sl_ui_pos x = (sl_ui_pos)(pt.x);
 				sl_ui_pos y = (sl_ui_pos)(pt.y);
