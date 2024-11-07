@@ -42,36 +42,48 @@ namespace slib
 	class SAppConfiguration : public SAppModuleConfiguration
 	{
 	public:
-		String generate_cpp_target_path;
-		String generate_cpp_namespace;
-		List<String> generate_cpp_layout_include_headers;
-		List<String> generate_cpp_layout_include_headers_in_cpp;
-		sl_bool generate_cpp_string_map;
-		List<String> generate_cpp_string_filter_include;
-		List<String> generate_cpp_string_filter_exclude;
-		sl_bool generate_cpp_color_map;
-		List<String> generate_cpp_color_filter_include;
-		List<String> generate_cpp_color_filter_exclude;
-		sl_bool generate_cpp_drawable_map;
-		List<String> generate_cpp_drawable_filter_include;
-		List<String> generate_cpp_drawable_filter_exclude;
-		sl_bool generate_cpp_raw_map;
-		List<String> generate_cpp_raw_filter_include;
-		List<String> generate_cpp_raw_filter_exclude;
-		List<String> generate_cpp_raw_compress;
+		struct GenerateCppConfig
+		{
+			String target_path;
+			String ns;
 
-		Locale simulator_locale;
-		List<Locale> locale_excludes;
+			struct TypeConfig
+			{
+				sl_bool map = sl_true;
+				struct FilterConfig
+				{
+					Nullable<sl_bool> layout;
+					List<String> include;
+					List<String> exclude;
+				} filter;
+			};
+			TypeConfig string;
+			TypeConfig color;
+			TypeConfig drawable;
+			TypeConfig menu;
 
-	public:
-		SAppConfiguration();
+			struct RawConfig : TypeConfig
+			{
+				List<String> compress;
+			} raw;
 
-		SAppConfiguration(SAppConfiguration&& other);
+			struct LayoutConfig
+			{
+				List<String> include_headers;
+				List<String> include_headers_in_cpp;
+			} layout;
 
-		~SAppConfiguration();
+		} generate_cpp;
 
-		SAppConfiguration& operator=(SAppConfiguration&& other);
+		struct SimulatorConfig
+		{
+			Locale locale = Locale::Unknown;
+		} simulator;
 
+		struct LocaleConfig
+		{
+			List<Locale> exclude;
+		} locale;
 	};
 
 	class SAppLayoutSimulationWindow;
@@ -129,6 +141,8 @@ namespace slib
 
 		static String getGlobalStyleName(const String& fileNamespace, const String& theme, const String& name);
 
+		String resolvePath(const String& path, const String& currentFilePath);
+
 	public:
 		static void log(const StringView& text);
 
@@ -169,7 +183,6 @@ namespace slib
 		sl_bool _openUiResource(const String& path);
 		sl_bool _openUiResourceByName(const String& name);
 		sl_bool _openUiResourceByName(const String& name, sl_bool& flagFound, const SAppModuleConfiguration& conf, HashSet<String>& includedSet);
-		String _resolvePath(const String& path, const String& currentFilePath);
 		sl_bool _isExcludedLocale(const Locale& locale);
 
 		// Resources Entry

@@ -139,14 +139,14 @@ namespace slib
 
 	Ref<SAppStringResource> SAppDocument::_registerOrGetStringResource(const String& name, const Ref<XmlElement>& element)
 	{
-		Ref<SAppStringResource> res = m_strings.getValue(name, Ref<SAppStringResource>::null());
+		Ref<SAppStringResource> res = m_strings.getValue_NoLock(name, Ref<SAppStringResource>::null());
 		if (res.isNotNull()) {
 			return res;
 		}
 		res = new SAppStringResource;
 		if (res.isNotNull()) {
 			res->name = name;
-			if (m_strings.put(name, res)) {
+			if (m_strings.put_NoLock(name, res)) {
 				return res;
 			}
 		}
@@ -197,54 +197,45 @@ namespace slib
 									"#include <slib/core/resource.h>%n%n"
 									"namespace %s%n"
 									"{%n\tnamespace string%n\t{%n%n"
-									, m_conf.generate_cpp_namespace));
+									, m_conf.generate_cpp.ns));
 		sbCpp.add(String::format(
 								 "#include \"strings.h\"%n%n"
 								 "namespace %s%n"
 								 "{%n\tnamespace string%n\t{%n%n"
-								 , m_conf.generate_cpp_namespace));
+								 , m_conf.generate_cpp.ns));
 
-		if (m_conf.generate_cpp_string_map) {
-			sbMap.add("\t\tSLIB_DEFINE_STRING_RESOURCE_MAP_BEGIN\r\n");
+		if (m_conf.generate_cpp.string.map) {
+			sbMap.addStatic("\t\tSLIB_DEFINE_STRING_RESOURCE_MAP_BEGIN\r\n");
 		}
 
 		for (auto&& pair : m_strings) {
-			if (m_conf.generate_cpp_string_filter_include.isNotEmpty()) {
-				if (!(m_conf.generate_cpp_string_filter_include.contains_NoLock(pair.key))) {
-					continue;
-				}
+			if (!(IsFilterPassableDuringGeneratingCpp(m_conf.generate_cpp.string.filter, pair.key, pair.value))) {
+				continue;
 			}
-			if (m_conf.generate_cpp_string_filter_exclude .isNotEmpty()) {
-				if (m_conf.generate_cpp_string_filter_exclude.contains_NoLock(pair.key)) {
-					continue;
-				}
+			auto& res = *(pair.value);
+			sbHeader.add(String::format("\t\tSLIB_DECLARE_STRING_RESOURCE(%s)%n", pair.key));
+			if (m_conf.generate_cpp.string.map) {
+				sbMap.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_MAP_ITEM(%s)%n", pair.key));
 			}
-			if (pair.value.isNotNull()) {
-				auto& res = *(pair.value);
-				sbHeader.add(String::format("\t\tSLIB_DECLARE_STRING_RESOURCE(%s)%n", pair.key));
-				if (m_conf.generate_cpp_string_map) {
-					sbMap.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_MAP_ITEM(%s)%n", pair.key));
+			_generateStringsCpp_Item(sbCpp, pair.key, sl_null, res);
+			for (auto&& var : res.variants) {
+				sbHeader.add(String::format("\t\tSLIB_DECLARE_STRING_VARIANT(%s, %s)%n", pair.key, var.key));
+				if (m_conf.generate_cpp.string.map) {
+					sbMap.add(String::format("\t\t\tSLIB_DEFINE_STRING_VARIANT_MAP_ITEM(%s, %s)%n", pair.key, var.key));
 				}
-				_generateStringsCpp_Item(sbCpp, pair.key, sl_null, res);
-				for (auto&& var : res.variants) {
-					sbHeader.add(String::format("\t\tSLIB_DECLARE_STRING_VARIANT(%s, %s)%n", pair.key, var.key));
-					if (m_conf.generate_cpp_string_map) {
-						sbMap.add(String::format("\t\t\tSLIB_DEFINE_STRING_VARIANT_MAP_ITEM(%s, %s)%n", pair.key, var.key));
-					}
-					_generateStringsCpp_Item(sbCpp, pair.key, var.key, var.value);
-				}
+				_generateStringsCpp_Item(sbCpp, pair.key, var.key, var.value);
 			}
 		}
 
-		if (m_conf.generate_cpp_string_map) {
-			sbMap.add("\t\tSLIB_DEFINE_STRING_RESOURCE_MAP_END\r\n");
-			sbHeader.add("\r\n\t\tSLIB_DECLARE_STRING_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
+		if (m_conf.generate_cpp.string.map) {
+			sbMap.addStatic("\t\tSLIB_DEFINE_STRING_RESOURCE_MAP_END\r\n");
+			sbHeader.addStatic("\r\n\t\tSLIB_DECLARE_STRING_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
 			sbCpp.link(sbMap);
 		} else {
-			sbHeader.add("\r\n\r\n\t}\r\n}\r\n");
+			sbHeader.addStatic("\r\n\r\n\t}\r\n}\r\n");
 		}
 
-		sbCpp.add("\r\n\t}\r\n}\r\n");
+		sbCpp.addStatic("\r\n\t}\r\n}\r\n");
 
 		String pathHeader = targetPath + "/strings.h";
 		String contentHeader = sbHeader.merge();
@@ -315,11 +306,9 @@ namespace slib
 				}
 			}
 			if (varName.isNotNull()) {
-				static sl_char8 strEnd[] = "\t\tSLIB_DEFINE_STRING_VARIANT_END\r\n\r\n";
-				sbCpp.addStatic(strEnd, sizeof(strEnd) - 1);
+				sbCpp.addStatic("\t\tSLIB_DEFINE_STRING_VARIANT_END\r\n\r\n");
 			} else {
-				static sl_char8 strEnd[] = "\t\tSLIB_DEFINE_STRING_RESOURCE_END\r\n\r\n";
-				sbCpp.addStatic(strEnd, sizeof(strEnd) - 1);
+				sbCpp.addStatic("\t\tSLIB_DEFINE_STRING_RESOURCE_END\r\n\r\n");
 			}
 		}
 	}
@@ -406,9 +395,10 @@ namespace slib
 
 	sl_bool SAppDocument::_checkStringResource(const String& fileNamespace, const SAppStringValue& value, String* outName, Ref<SAppStringResource>* outResource, SAppStringResourceItem* outItem)
 	{
+		Ref<SAppStringResource> res;
 		if (value.variant.isNotNull()) {
-			Ref<SAppStringResource> res;
 			if (getItemFromMap(m_strings, fileNamespace, value.valueOrName, outName, &res)) {
+				res->flagUsed = sl_true;
 				if (res->variants.get(value.variant, outItem)) {
 					if (outName) {
 						*outName = String::concat(*outName, "::", value.variant);
@@ -420,7 +410,11 @@ namespace slib
 				return sl_true;
 			}
 		} else {
+			if (!outResource) {
+				outResource = &res;
+			}
 			if (getItemFromMap(m_strings, fileNamespace, value.valueOrName, outName, outResource)) {
+				(*outResource)->flagUsed = sl_true;
 				return sl_true;
 			}
 		}

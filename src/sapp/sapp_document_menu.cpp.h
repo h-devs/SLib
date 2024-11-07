@@ -51,7 +51,7 @@ namespace slib
 
 		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
 		if (!flagOverride) {
-			if (m_menus.find(name)) {
+			if (m_menus.find_NoLock(name)) {
 				logError(element, g_str_error_resource_menu_name_redefined, name);
 				return sl_false;
 			}
@@ -75,7 +75,7 @@ namespace slib
 			}
 		}
 
-		if (!(m_menus.put(name, menu))) {
+		if (!(m_menus.put_NoLock(name, menu))) {
 			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
@@ -272,7 +272,7 @@ namespace slib
 									"#include <slib/ui/resource.h>%n%n"
 									"namespace %s%n"
 									"{%n\tnamespace menu%n\t{%n%n"
-									, m_conf.generate_cpp_namespace));
+									, m_conf.generate_cpp.ns));
 
 		sbCpp.add(String::format(
 								 "#include \"menus.h\"%n%n"
@@ -280,39 +280,39 @@ namespace slib
 								 "#include \"drawables.h\"%n%n"
 								 "namespace %s%n"
 								 "{%n\tnamespace menu%n\t{%n%n"
-								 , m_conf.generate_cpp_namespace));
+								 , m_conf.generate_cpp.ns));
 
 
 		for (auto&& pair : m_menus) {
-			if (pair.value.isNotNull()) {
 
-				sbHeader.add(String::format("\t\tSLIB_DECLARE_MENU_BEGIN(%s)%n", pair.key));
-				if (pair.value->flagPopup) {
-					sbCpp.add(String::format("\t\tSLIB_DEFINE_MENU_BEGIN(%s, sl_true)%n", pair.key));
-				} else {
-					sbCpp.add(String::format("\t\tSLIB_DEFINE_MENU_BEGIN(%s)%n", pair.key));
-				}
+			if (!(IsFilterPassableDuringGeneratingCpp(m_conf.generate_cpp.menu.filter, pair.key, pair.value))) {
+				continue;
+			}
 
-				ListLocker< Ref<SAppMenuResourceItem> > items(pair.value->children);
-				for (sl_size i = 0; i < items.count; i++) {
-					Ref<SAppMenuResourceItem>& item = items[i];
-					if (item.isNotNull()) {
-						if (!_generateMenusCpp_Item(pair.value.get(), "root", SAppMenuResourceItem::all_platforms, item.get(), sbHeader, sbCpp, 3)) {
-							return sl_false;
-						}
+			sbHeader.add(String::format("\t\tSLIB_DECLARE_MENU_BEGIN(%s)%n", pair.key));
+			if (pair.value->flagPopup) {
+				sbCpp.add(String::format("\t\tSLIB_DEFINE_MENU_BEGIN(%s, sl_true)%n", pair.key));
+			} else {
+				sbCpp.add(String::format("\t\tSLIB_DEFINE_MENU_BEGIN(%s)%n", pair.key));
+			}
+
+			ListLocker< Ref<SAppMenuResourceItem> > items(pair.value->children);
+			for (sl_size i = 0; i < items.count; i++) {
+				Ref<SAppMenuResourceItem>& item = items[i];
+				if (item.isNotNull()) {
+					if (!_generateMenusCpp_Item(pair.value.get(), "root", SAppMenuResourceItem::all_platforms, item.get(), sbHeader, sbCpp, 3)) {
+						return sl_false;
 					}
 				}
-
-				static sl_char8 strEndHeader[] = "\t\tSLIB_DECLARE_MENU_END\r\n\r\n";
-				sbHeader.addStatic(strEndHeader, sizeof(strEndHeader)-1);
-				static sl_char8 strEndCpp[] = "\t\tSLIB_DEFINE_MENU_END\r\n\r\n";
-				sbCpp.addStatic(strEndCpp, sizeof(strEndCpp)-1);
 			}
+
+			sbHeader.addStatic("\t\tSLIB_DECLARE_MENU_END\r\n\r\n");
+			sbCpp.addStatic("\t\tSLIB_DEFINE_MENU_END\r\n\r\n");
+
 		}
 
-
-		sbHeader.add("\t}\r\n}\r\n");
-		sbCpp.add("\t}\r\n}\r\n");
+		sbHeader.addStatic("\t}\r\n}\r\n");
+		sbCpp.addStatic("\t}\r\n}\r\n");
 
 		String pathHeader = targetPath + "/menus.h";
 		String contentHeader = sbHeader.merge();
@@ -548,7 +548,12 @@ namespace slib
 
 	sl_bool SAppDocument::_checkMenuName(const String& fileNamespace, const String& name, const Ref<XmlElement>& element, String* outName, Ref<SAppMenuResource>* outResource)
 	{
+		Ref<SAppMenuResource> res;
+		if (!outResource) {
+			outResource = &res;
+		}
 		if (getItemFromMap(m_menus, fileNamespace, name, outName, outResource)) {
+			(*outResource)->flagUsed = sl_true;
 			return sl_true;
 		} else {
 			logError(element, g_str_error_menu_not_found, name);

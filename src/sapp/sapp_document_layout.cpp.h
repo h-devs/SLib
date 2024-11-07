@@ -486,7 +486,7 @@ namespace slib
 		sbHeader.addStatic("#pragma once\r\n\r\n");
 
 		{
-			ListElements<String> includes(m_conf.generate_cpp_layout_include_headers);
+			ListElements<String> includes(m_conf.generate_cpp.layout.include_headers);
 			for (sl_size i = 0; i < includes.count; i++) {
 				if (includes[i].isNotEmpty()) {
 					sbHeaderBase.add(String::format(StringView::literal("#include \"%s\"%n"), includes[i]));
@@ -500,10 +500,10 @@ namespace slib
 								 "#include \"strings.h\"%n"
 								 "#include \"colors.h\"%n"
 								 "#include \"drawables.h\"%n"
-								), m_conf.generate_cpp_namespace));
+								), m_conf.generate_cpp.ns));
 
 		{
-			ListElements<String> includes(m_conf.generate_cpp_layout_include_headers_in_cpp);
+			ListElements<String> includes(m_conf.generate_cpp.layout.include_headers_in_cpp);
 			for (sl_size i = 0; i < includes.count; i++) {
 				if (includes[i].isNotEmpty()) {
 					sbCpp.add(String::format(StringView::literal("#include \"%s\"%n"), includes[i]));
@@ -511,7 +511,7 @@ namespace slib
 			}
 		}
 
-		sbHeaderBase.add(String::format(StringView::literal("%n" "namespace %s%n" "{%n\tnamespace ui%n\t{%n"), m_conf.generate_cpp_namespace));
+		sbHeaderBase.add(String::format(StringView::literal("%n" "namespace %s%n" "{%n\tnamespace ui%n\t{%n"), m_conf.generate_cpp.ns));
 		{
 			for (auto&& pair : m_layouts) {
 				if (pair.value.isNotNull()) {
@@ -582,7 +582,7 @@ namespace slib
 		}
 		sbHeader.addStatic("\r\n");
 
-		String namespacePrefix = String::format(StringView::literal("namespace %s%n" "{%n\tnamespace ui%n\t{%n") , m_conf.generate_cpp_namespace);
+		String namespacePrefix = String::format(StringView::literal("namespace %s%n" "{%n\tnamespace ui%n\t{%n") , m_conf.generate_cpp.ns);
 		sbHeader.add(namespacePrefix);
 		sbCpp.add(namespacePrefix);
 

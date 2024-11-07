@@ -58,6 +58,7 @@ namespace slib
 	public:
 		String name;
 		HashMap<String, SAppStringResourceItem> variants;
+		sl_bool flagUsed = sl_false;
 	};
 
 	class SAppColorResource : public CRef
@@ -65,6 +66,7 @@ namespace slib
 	public:
 		String name;
 		Color value;
+		sl_bool flagUsed = sl_false;
 	};
 
 	class SAppRawResource : public CRef
@@ -74,8 +76,8 @@ namespace slib
 		String resourcePath;
 		String filePath;
 		String drawableName;
-
 		Map< String, Ref<SAppRawResource> > sub;
+		sl_bool flagUsed = sl_false;
 	};
 
 	class SAppDrawableResourceFileItem : public Object
@@ -142,7 +144,7 @@ namespace slib
 	{
 	public:
 		String name;
-		int type;
+		int type = typeUnknown;
 		enum {
 			typeUnknown = 0,
 			typeFile = 1,
@@ -153,9 +155,7 @@ namespace slib
 		Ref<SAppDrawableResourceFileAttributes> fileAttrs;
 		Ref<SAppDrawableResourceNinePiecesAttributes> ninePiecesAttrs;
 		Ref<SAppDrawableResourceNinePatchAttributes> ninePatchAttrs;
-
-	public:
-		SAppDrawableResource();
+		sl_bool flagUsed = sl_false;
 	};
 
 
@@ -199,6 +199,7 @@ namespace slib
 		CHashMap<String, Ref<SAppMenuResourceItem> > itemsWindows;
 		CHashMap<String, Ref<SAppMenuResourceItem> > itemsLinux;
 		CHashMap<String, Ref<SAppMenuResourceItem> > itemsMac;
+		sl_bool flagUsed = sl_false;
 	};
 
 	class SAppLayoutResourceItem;

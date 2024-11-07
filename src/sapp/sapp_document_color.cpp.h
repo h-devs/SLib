@@ -43,7 +43,7 @@ namespace slib
 
 		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
 		if (!flagOverride) {
-			if (m_colors.find(name)) {
+			if (m_colors.find_NoLock(name)) {
 				logError(element, String::format(g_str_error_resource_color_name_redefined, name));
 				return sl_false;
 			}
@@ -63,7 +63,7 @@ namespace slib
 		}
 		res->name = name;
 		res->value = value;
-		if (!(m_colors.put(name, res))) {
+		if (!(m_colors.put_NoLock(name, res))) {
 			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
@@ -82,46 +82,37 @@ namespace slib
 									"#include <slib/graphics/resource.h>%n%n"
 									"namespace %s%n"
 									"{%n\tnamespace color%n\t{%n%n"
-									, m_conf.generate_cpp_namespace));
+									, m_conf.generate_cpp.ns));
 		sbCpp.add(String::format(
 								 "#include \"colors.h\"%n%n"
 								 "namespace %s%n"
 								 "{%n\tnamespace color%n\t{%n%n"
-								 , m_conf.generate_cpp_namespace));
+								 , m_conf.generate_cpp.ns));
 
-		if (m_conf.generate_cpp_color_map) {
-			sbMap.add("\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_BEGIN\r\n");
+		if (m_conf.generate_cpp.color.map) {
+			sbMap.addStatic("\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_BEGIN\r\n");
 		}
 
 		for (auto&& pair : m_colors) {
-			if (m_conf.generate_cpp_color_filter_include.isNotEmpty()) {
-				if (!(m_conf.generate_cpp_color_filter_include.contains_NoLock(pair.key))) {
-					continue;
-				}
+			if (!(IsFilterPassableDuringGeneratingCpp(m_conf.generate_cpp.color.filter, pair.key, pair.value))) {
+				continue;
 			}
-			if (m_conf.generate_cpp_color_filter_exclude.isNotEmpty()) {
-				if (m_conf.generate_cpp_color_filter_exclude.contains_NoLock(pair.key)) {
-					continue;
-				}
-			}
-			if (pair.value.isNotNull()) {
-				sbHeader.add(String::format("\t\tSLIB_DECLARE_COLOR_RESOURCE(%s)%n", pair.key));
-				Color& color = pair.value->value;
-				sbCpp.add(String::format("\t\tSLIB_DEFINE_COLOR_RESOURCE(%s, %d, %d, %d, %d)%n", pair.key, color.r, color.g, color.b, color.a));
-				if (m_conf.generate_cpp_color_map) {
-					sbMap.add(String::format("\t\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_ITEM(%s)%n", pair.key));
-				}
+			sbHeader.add(String::format("\t\tSLIB_DECLARE_COLOR_RESOURCE(%s)%n", pair.key));
+			Color& color = pair.value->value;
+			sbCpp.add(String::format("\t\tSLIB_DEFINE_COLOR_RESOURCE(%s, %d, %d, %d, %d)%n", pair.key, color.r, color.g, color.b, color.a));
+			if (m_conf.generate_cpp.color.map) {
+				sbMap.add(String::format("\t\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_ITEM(%s)%n", pair.key));
 			}
 		}
 
-		if (m_conf.generate_cpp_color_map) {
-			sbMap.add("\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_END\r\n");
-			sbHeader.add("\r\n\t\tSLIB_DECLARE_COLOR_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
+		if (m_conf.generate_cpp.color.map) {
+			sbMap.addStatic("\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_END\r\n");
+			sbHeader.addStatic("\r\n\t\tSLIB_DECLARE_COLOR_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
 			sbCpp.link(sbMap);
 		} else {
-			sbHeader.add("\r\n\r\n\t}\r\n}\r\n");
+			sbHeader.addStatic("\r\n\r\n\t}\r\n}\r\n");
 		}
-		sbCpp.add("\r\n\t}\r\n}\r\n");
+		sbCpp.addStatic("\r\n\t}\r\n}\r\n");
 
 		String pathHeader = targetPath + "/colors.h";
 		String contentHeader = sbHeader.merge();
@@ -208,7 +199,12 @@ namespace slib
 
 	sl_bool SAppDocument::_checkColorName(const String& fileNamespace, const String& name, const Ref<XmlElement>& element, String* outName, Ref<SAppColorResource>* outResource)
 	{
+		Ref<SAppColorResource> res;
+		if (!outResource) {
+			outResource = &res;
+		}
 		if (getItemFromMap(m_colors, fileNamespace, name, outName, outResource)) {
+			(*outResource)->flagUsed = sl_true;
 			return sl_true;
 		} else {
 			logError(element, String::format(g_str_error_color_not_found, name));

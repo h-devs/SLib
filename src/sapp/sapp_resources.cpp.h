@@ -77,11 +77,6 @@ namespace slib
 		defaultFiles = List< Ref<SAppDrawableResourceFileItem> >::create();
 	}
 
-	SAppDrawableResource::SAppDrawableResource()
-	{
-		type = typeUnknown;
-	}
-
 
 	SAppLayoutViewAttributes::SAppLayoutViewAttributes()
 	{

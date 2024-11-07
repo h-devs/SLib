@@ -53,24 +53,9 @@ namespace slib
 		SLIB_STATIC_STRING(sThis, "this")
 		SLIB_STATIC_STRING(sSimulatorWidth, "simulatorWidth")
 		SLIB_STATIC_STRING(sSimulatorHeight, "simulatorHeight")
+		SLIB_STATIC_STRING(sInclude, "include")
+		SLIB_STATIC_STRING(sExclude, "exclude")
 	}
-
-	SAppConfiguration::SAppConfiguration()
-	{
-		generate_cpp_string_map = sl_true;
-		generate_cpp_color_map = sl_true;
-		generate_cpp_drawable_map = sl_true;
-		generate_cpp_raw_map = sl_true;
-		simulator_locale = Locale::Unknown;
-	}
-
-	SAppConfiguration::SAppConfiguration(SAppConfiguration&& other) = default;
-
-	SAppConfiguration::~SAppConfiguration()
-	{
-	}
-
-	SAppConfiguration& SAppConfiguration::operator=(SAppConfiguration&& other) = default;
 
 	SAppSimulateLayoutParam::SAppSimulateLayoutParam()
 	{
@@ -129,6 +114,7 @@ namespace slib
 		m_colors.removeAll();
 		m_menus.removeAll();
 		m_raws.removeAll();
+
 		m_layouts.removeAll();
 		m_layoutStyles.removeAll();
 		m_layoutIncludes.removeAll();
@@ -394,21 +380,12 @@ namespace slib
 		}
 	}
 
-	String SAppDocument::_resolvePath(const String& path, const String& currentFilePath)
-	{
-		String ret = Stringx::resolveEnvironmentVariables(path);
-		if (ret.startsWith('.')) {
-			ret = File::concatPath(File::getParentDirectoryPath(currentFilePath), path);
-		}
-		return ret;
-	}
-
 	sl_bool SAppDocument::_isExcludedLocale(const Locale& locale)
 	{
 		slib::Locale localeLang(locale.getLanguage());
 		slib::Locale localeLangCountry(locale.getLanguage(), locale.getCountry());
 		slib::Locale localeDetail(locale.getLanguage(), locale.getScript(), slib::Country::Unknown);
-		ListLocker<Locale> excludes(m_conf.locale_excludes);
+		ListLocker<Locale> excludes(m_conf.locale.exclude);
 		for (sl_size i = 0; i < excludes.count; i++) {
 			Locale& localeSource = excludes[i];
 			if (locale == localeSource || localeLang == localeSource || localeLangCountry == localeSource || localeDetail == localeSource) {
@@ -426,7 +403,7 @@ namespace slib
 			return sl_false;
 		}
 
-		String path = m_conf.generate_cpp_target_path;
+		String path = m_conf.generate_cpp.target_path;
 		if (path.isEmpty()) {
 			logError(g_str_error_generate_cpp_target_path_is_empty);
 			return sl_false;
@@ -439,12 +416,12 @@ namespace slib
 			}
 		}
 
-		if (m_conf.generate_cpp_namespace.isEmpty()) {
+		if (m_conf.generate_cpp.ns.isEmpty()) {
 			logError(g_str_error_generate_cpp_namespace_is_empty);
 			return sl_false;
 		}
-		if (!(SAppUtil::checkName(m_conf.generate_cpp_namespace.getData(), m_conf.generate_cpp_namespace.getLength()))) {
-			logError(g_str_error_generate_cpp_namespace_invalid, m_conf.generate_cpp_namespace);
+		if (!(SAppUtil::checkName(m_conf.generate_cpp.ns.getData(), m_conf.generate_cpp.ns.getLength()))) {
+			logError(g_str_error_generate_cpp_namespace_invalid, m_conf.generate_cpp.ns);
 			return sl_false;
 		}
 
@@ -453,10 +430,13 @@ namespace slib
 		if (!_generateResourcesH(path)) {
 			return sl_false;
 		}
-		if (!_generateStringsCpp(path)) {
+		if (!_generateLayoutsCpp(path)) {
 			return sl_false;
 		}
-		if (!_generateRawCpp(path, m_conf.generate_cpp_namespace, "raw")) {
+		if (!_generateMenusCpp(path)) {
+			return sl_false;
+		}
+		if (!_generateStringsCpp(path)) {
 			return sl_false;
 		}
 		if (!_generateDrawablesCpp(path)) {
@@ -465,10 +445,7 @@ namespace slib
 		if (!_generateColorsCpp(path)) {
 			return sl_false;
 		}
-		if (!_generateMenusCpp(path)) {
-			return sl_false;
-		}
-		if (!_generateLayoutsCpp(path)) {
+		if (!_generateRawCpp(path, m_conf.generate_cpp.ns, "raw")) {
 			return sl_false;
 		}
 
@@ -518,7 +495,7 @@ namespace slib
 
 	Locale SAppDocument::getCurrentSimulatorLocale()
 	{
-		Locale locale = m_conf.simulator_locale;
+		Locale locale = m_conf.simulator.locale;
 		if (locale == Locale::Unknown) {
 			locale = Locale::getCurrent();
 		}
@@ -606,6 +583,15 @@ namespace slib
 		}
 	}
 
+	String SAppDocument::resolvePath(const String& path, const String& currentFilePath)
+	{
+		String ret = Stringx::resolveEnvironmentVariables(path);
+		if (ret.startsWith('.')) {
+			ret = File::concatPath(File::getParentDirectoryPath(currentFilePath), path);
+		}
+		return ret;
+	}
+
 	/***************************************************
 						Log
 	***************************************************/
@@ -638,6 +624,91 @@ namespace slib
 	/***************************************************
 					Resources Entry
 	***************************************************/
+
+	namespace
+	{
+		static sl_bool ConfigParsePathElement(String& _out, SAppDocument* doc, const String& filePath, const Ref<XmlElement>& parentElement, const String& name, sl_bool flagDirectory)
+		{
+			Ref<XmlElement> element = parentElement->getFirstChildElement(name);
+			if (element.isNotNull()) {
+				String strPath = doc->resolvePath(element->getText(), filePath);
+				if (strPath.isEmpty()) {
+					doc->logError(element, g_str_error_configuration_value_empty, name);
+					return sl_false;
+				}
+				if (flagDirectory) {
+					if (!(File::isDirectory(strPath))) {
+						doc->logError(element, g_str_error_directory_not_found, strPath);
+						return sl_false;
+					}
+				}
+				_out = strPath;
+			}
+			return sl_true;
+		}
+
+		static sl_bool ConfigParseNameElement(String& _out, SAppDocument* doc, const Ref<XmlElement>& parentElement, const String& name)
+		{
+			Ref<XmlElement> element = parentElement->getFirstChildElement(name);
+			if (element.isNotNull()) {
+				_out = element->getText();
+				if (!(SAppUtil::checkName(_out.getData(), _out.getLength()))) {
+					doc->logError(element, g_str_error_configuration_value_invalid, name, _out);
+					return sl_false;
+				}
+			}
+			return sl_true;
+		}
+
+		static sl_bool ConfigParseLocaleItem(Locale& _out, SAppDocument* doc, const Ref<XmlElement>& element, const String& name)
+		{
+			String strLocale = element->getText();
+			if (strLocale.isNotEmpty()) {
+				Locale locale;
+				if (locale.parse(strLocale)) {
+					_out = locale;
+				} else {
+					doc->logError(element, g_str_error_configuration_value_invalid, name, strLocale);
+					return sl_false;
+				}
+			}
+			return sl_true;
+		}
+
+		static sl_bool ConfigParseLocaleElement(Locale& _out, SAppDocument* doc, const Ref<XmlElement>& parentElement, const String& name)
+		{
+			Ref<XmlElement> element = parentElement->getFirstChildElement(name);
+			if (element.isNotNull()) {
+				return ConfigParseLocaleItem(_out, doc, element, name);
+			}
+			return sl_true;
+		}
+
+		template <class OUT>
+		static sl_bool ConfigParseBooleanElement(OUT& _out, SAppDocument* doc, const Ref<XmlElement>& parentElement, const String& name, const StringView& _true, const StringView& _false)
+		{
+			Ref<XmlElement> element = parentElement->getFirstChildElement(name);
+			if (element.isNotNull()) {
+				String value = element->getText();
+				if (value == _true) {
+					_out = sl_true;
+				} else if (value == _false) {
+					_out = sl_false;
+				} else {
+					doc->logError(element, g_str_error_configuration_value_invalid, name, value);
+					return sl_false;
+				}
+			}
+			return sl_true;
+		}
+
+		template <class OUT>
+		static sl_bool ConfigParseBooleanElement(OUT& _out, SAppDocument* doc, const Ref<XmlElement>& parentElement, const String& name)
+		{
+			return ConfigParseBooleanElement(_out, doc, parentElement, name, StringView::literal("true"), StringView::literal("false"));
+		}
+	}
+
 	sl_bool SAppDocument::_parseModuleConfiguration(const String& filePath, SAppModuleConfiguration& conf, const Function<sl_bool(XmlElement* root)>& onAdditionalConfig)
 	{
 		if (!(File::exists(filePath))) {
@@ -674,28 +745,17 @@ namespace slib
 			return sl_false;
 		}
 
-		// app-path
-		{
-			Ref<XmlElement> el_app_path = root->getFirstChildElement("app-path");
-			if (el_app_path.isNotNull()) {
-				String strPath = _resolvePath(el_app_path->getText(), filePath);
-				if (File::isDirectory(strPath)) {
-					conf.app_path = strPath;
-				} else {
-					logError(el_app_path, String::format(g_str_error_directory_not_found, strPath));
-					return sl_false;
-				}
-			} else {
-				conf.app_path = File::getParentDirectoryPath(filePath);
-			}
+		conf.app_path = File::getParentDirectoryPath(filePath);
+		if (!(ConfigParsePathElement(conf.app_path, this, filePath, root, "app-path", sl_true))) {
+			return sl_false;
 		}
-
+		
 		// include
 		{
-			ListElements< Ref<XmlElement> > el_includes(root->getChildElements("include"));
+			ListElements< Ref<XmlElement> > el_includes(root->getChildElements(sInclude));
 			for (sl_size i = 0; i < el_includes.count; i++) {
 				Ref<XmlElement>& el_include = el_includes[i];
-				String strPath = _resolvePath(el_include->getText(), filePath);
+				String strPath = resolvePath(el_include->getText(), filePath);
 				if (File::isDirectory(strPath)) {
 					String configPath = File::concatPath(strPath, "sapp.xml");
 					SAppModuleConfiguration include;
@@ -708,7 +768,7 @@ namespace slib
 						return sl_false;
 					}
 				} else {
-					logError(el_include, String::format(g_str_error_directory_not_found, strPath));
+					logError(el_include, g_str_error_directory_not_found, strPath);
 					return sl_false;
 				}
 			}
@@ -727,139 +787,66 @@ namespace slib
 			// generate-cpp
 			Ref<XmlElement> el_generate_cpp = root->getFirstChildElement("generate-cpp");
 			if (el_generate_cpp.isNotNull()) {
-				Ref<XmlElement> el_target_path = el_generate_cpp->getFirstChildElement("target-path");
-				if (el_target_path.isNotNull()) {
-					String strPath = _resolvePath(el_target_path->getText(), filePath);
-					if (strPath.isEmpty()) {
-						logError(el_target_path, String::format(g_str_error_configuration_value_empty, "target-path"));
-						return sl_false;
-					}
-					conf.generate_cpp_target_path = strPath;
+				if (!(ConfigParsePathElement(conf.generate_cpp.target_path, this, filePath, el_generate_cpp, "target-path", sl_false))) {
+					return sl_false;
 				}
-				Ref<XmlElement> el_namespace = el_generate_cpp->getFirstChildElement("namespace");
-				if (el_namespace.isNotNull()) {
-					conf.generate_cpp_namespace = el_namespace->getText();
-					if (!(SAppUtil::checkName(conf.generate_cpp_namespace.getData(), conf.generate_cpp_namespace.getLength()))) {
-						logError(el_namespace, String::format(g_str_error_configuration_value_invalid, "namespace", conf.generate_cpp_namespace));
-						return sl_false;
-					}
+				if (!(ConfigParseNameElement(conf.generate_cpp.ns, this, el_generate_cpp, "namespace"))) {
+					return sl_false;
 				}
-				Ref<XmlElement> el_string = el_generate_cpp->getFirstChildElement("string");
-				if (el_string.isNotNull()) {
-					Ref<XmlElement> el_map = el_string->getFirstChildElement("map");
-					if (el_map.isNotNull()) {
-						String value = el_map->getText();
-						if (value == "true") {
-							conf.generate_cpp_string_map = sl_true;
-						} else if (value == "false") {
-							conf.generate_cpp_string_map = sl_false;
-						} else {
-							logError(el_map, String::format(g_str_error_configuration_value_invalid, "map", value));
+				sl_bool flagDefaultGenerateMap = sl_true;
+				if (!(ConfigParseBooleanElement(flagDefaultGenerateMap, this, el_generate_cpp, "map"))) {
+					return sl_false;
+				}
+				Nullable<sl_bool> flagDefaultFilterLayout;
+				if (!(ConfigParseBooleanElement(flagDefaultFilterLayout, this, el_generate_cpp, "filter-layout", sInclude, sExclude))) {
+					return sl_false;
+				}
+				auto funcParseType = [this, el_generate_cpp, flagDefaultGenerateMap, flagDefaultFilterLayout](const String& type, SAppConfiguration::GenerateCppConfig::TypeConfig& conf) {
+					conf.map = flagDefaultGenerateMap;
+					conf.filter.layout = flagDefaultFilterLayout;
+					Ref<XmlElement> el_type = el_generate_cpp->getFirstChildElement(type);
+					if (el_type.isNotNull()) {
+						if (!(ConfigParseBooleanElement(conf.map, this, el_type, "map"))) {
 							return sl_false;
 						}
-					}
-					Ref<XmlElement> el_filter = el_string->getFirstChildElement("filter");
-					if (el_filter.isNotNull()) {
-						ListElements< Ref<XmlElement> > children(el_filter->getChildElements());
-						for (sl_size i = 0; i < children.count; i++) {
-							Ref<XmlElement>& child = children[i];
-							String name = child->getName();
-							if (name == "include") {
-								conf.generate_cpp_string_filter_include.add_NoLock(child->getText());
-							} else if (name == "exclude") {
-								conf.generate_cpp_string_filter_exclude.add_NoLock(child->getText());
+						Ref<XmlElement> el_filter = el_type->getFirstChildElement("filter");
+						if (el_filter.isNotNull()) {
+							if (!(ConfigParseBooleanElement(conf.filter.layout, this, el_filter, "layout"))) {
+								return sl_false;
+							}
+							ListElements< Ref<XmlElement> > children(el_filter->getChildElements());
+							for (sl_size i = 0; i < children.count; i++) {
+								Ref<XmlElement>& child = children[i];
+								String name = child->getName();
+								if (name == sInclude) {
+									conf.filter.include.add_NoLock(child->getText());
+								} else if (name == sExclude) {
+									conf.filter.exclude.add_NoLock(child->getText());
+								}
 							}
 						}
 					}
+					return sl_true;
+				};
+				if (!(funcParseType("string", conf.generate_cpp.string))) {
+					return sl_false;
 				}
-				Ref<XmlElement> el_color = el_generate_cpp->getFirstChildElement("color");
-				if (el_color.isNotNull()) {
-					Ref<XmlElement> el_map = el_color->getFirstChildElement("map");
-					if (el_map.isNotNull()) {
-						String value = el_map->getText();
-						if (value == "true") {
-							conf.generate_cpp_color_map = sl_true;
-						} else if (value == "false") {
-							conf.generate_cpp_color_map = sl_false;
-						} else {
-							logError(el_map, String::format(g_str_error_configuration_value_invalid, "map", value));
-							return sl_false;
-						}
-					}
-					Ref<XmlElement> el_filter = el_color->getFirstChildElement("filter");
-					if (el_filter.isNotNull()) {
-						ListElements< Ref<XmlElement> > children(el_filter->getChildElements());
-						for (sl_size i = 0; i < children.count; i++) {
-							Ref<XmlElement>& child = children[i];
-							String name = child->getName();
-							if (name == "include") {
-								conf.generate_cpp_color_filter_include.add_NoLock(child->getText());
-							} else if (name == "exclude") {
-								conf.generate_cpp_color_filter_exclude.add_NoLock(child->getText());
-							}
-						}
-					}
+				if (!(funcParseType("color", conf.generate_cpp.color))) {
+					return sl_false;
 				}
-				Ref<XmlElement> el_drawable = el_generate_cpp->getFirstChildElement("drawable");
-				if (el_drawable.isNotNull()) {
-					Ref<XmlElement> el_map = el_drawable->getFirstChildElement("map");
-					if (el_map.isNotNull()) {
-						String value = el_map->getText();
-						if (value == "true") {
-							conf.generate_cpp_drawable_map = sl_true;
-						} else if (value == "false") {
-							conf.generate_cpp_drawable_map = sl_false;
-						} else {
-							logError(el_map, String::format(g_str_error_configuration_value_invalid, "map", value));
-							return sl_false;
-						}
-					}
-					Ref<XmlElement> el_filter = el_drawable->getFirstChildElement("filter");
-					if (el_filter.isNotNull()) {
-						ListElements< Ref<XmlElement> > children(el_filter->getChildElements());
-						for (sl_size i = 0; i < children.count; i++) {
-							Ref<XmlElement>& child = children[i];
-							String name = child->getName();
-							if (name == "include") {
-								conf.generate_cpp_drawable_filter_include.add_NoLock(child->getText());
-							} else if (name == "exclude") {
-								conf.generate_cpp_drawable_filter_exclude.add_NoLock(child->getText());
-							}
-						}
-					}
+				if (!(funcParseType("drawable", conf.generate_cpp.drawable))) {
+					return sl_false;
+				}
+				if (!(funcParseType("raw", conf.generate_cpp.raw))) {
+					return sl_false;
 				}
 				Ref<XmlElement> el_raw = el_generate_cpp->getFirstChildElement("raw");
 				if (el_raw.isNotNull()) {
-					Ref<XmlElement> el_map = el_raw->getFirstChildElement("map");
-					if (el_map.isNotNull()) {
-						String value = el_map->getText();
-						if (value == "true") {
-							conf.generate_cpp_raw_map = sl_true;
-						} else if (value == "false") {
-							conf.generate_cpp_raw_map = sl_false;
-						} else {
-							logError(el_map, String::format(g_str_error_configuration_value_invalid, "map", value));
-							return sl_false;
-						}
-					}
-					Ref<XmlElement> el_filter = el_raw->getFirstChildElement("filter");
-					if (el_filter.isNotNull()) {
-						ListElements< Ref<XmlElement> > children(el_filter->getChildElements());
-						for (sl_size i = 0; i < children.count; i++) {
-							Ref<XmlElement>& child = children[i];
-							String name = child->getName();
-							if (name == "include") {
-								conf.generate_cpp_raw_filter_include.add_NoLock(child->getText());
-							} else if (name == "exclude") {
-								conf.generate_cpp_raw_filter_exclude.add_NoLock(child->getText());
-							}
-						}
-					}
 					{
 						ListElements< Ref<XmlElement> > children(el_raw->getChildElements("compress"));
 						for (sl_size i = 0; i < children.count; i++) {
 							Ref<XmlElement>& child = children[i];
-							conf.generate_cpp_raw_compress.add_NoLock(child->getText());
+							conf.generate_cpp.raw.compress.add_NoLock(child->getText());
 						}
 					}
 				}
@@ -872,12 +859,12 @@ namespace slib
 							if (child->getName() == "include-header") {
 								String str = child->getText().trim();
 								if (str.isNotEmpty()) {
-									conf.generate_cpp_layout_include_headers.add(str);
+									conf.generate_cpp.layout.include_headers.add(str);
 								}
 							} else if (child->getName() == "include-header-in-cpp") {
 								String str = child->getText().trim();
 								if (str.isNotEmpty()) {
-									conf.generate_cpp_layout_include_headers_in_cpp.add(str);
+									conf.generate_cpp.layout.include_headers_in_cpp.add(str);
 								}
 							}
 						}
@@ -888,18 +875,8 @@ namespace slib
 			// simulator
 			Ref<XmlElement> el_simulator = root->getFirstChildElement("simulator");
 			if (el_simulator.isNotNull()) {
-				Ref<XmlElement> el_locale = el_simulator->getFirstChildElement("locale");
-				if (el_locale.isNotNull()) {
-					String strLocale = el_locale->getText();
-					if (strLocale.isNotEmpty()) {
-						Locale locale;
-						if (locale.parse(strLocale)) {
-							conf.simulator_locale = locale;
-						} else {
-							logError(el_locale, String::format(g_str_error_configuration_value_invalid, "locale", strLocale));
-							return sl_false;
-						}
-					}
+				if (!(ConfigParseLocaleElement(conf.simulator.locale, this, el_simulator, "locale"))) {
+					return sl_false;
 				}
 			}
 
@@ -909,19 +886,18 @@ namespace slib
 				if (el_locale.isNotNull()) {
 					// exclude
 					{
-						ListElements< Ref<XmlElement> > el_excludes(el_locale->getChildElements("exclude"));
+						ListElements< Ref<XmlElement> > el_excludes(el_locale->getChildElements(sExclude));
 						for (sl_size i = 0; i < el_excludes.count; i++) {
 							Ref<XmlElement>& el_exclude = el_excludes[i];
-							String exclude = el_exclude->getText();
-							Locale locale;
-							if (locale.parse(exclude)) {
-								if (!(conf.locale_excludes.add_NoLock(locale))) {
+							Locale locale = Locale::Unknown;
+							if (!(ConfigParseLocaleItem(locale, this, el_exclude, sExclude))) {
+								return sl_false;
+							}
+							if (locale != Locale::Unknown) {
+								if (!(conf.locale.exclude.add_NoLock(locale))) {
 									logError(el_exclude, g_str_error_out_of_memory);
 									return sl_false;
 								}
-							} else {
-								logError(el_exclude, String::format(g_str_error_configuration_value_invalid, "exclude", exclude));
-								return sl_false;
 							}
 						}
 					}
@@ -929,6 +905,31 @@ namespace slib
 			}
 			return sl_true;
 		});
+	}
+
+	namespace
+	{
+		template <class RES>
+		static sl_bool IsFilterPassableDuringGeneratingCpp(const SAppConfiguration::GenerateCppConfig::TypeConfig::FilterConfig& filter, const String& key, Ref<RES>& value)
+		{
+			if (filter.layout.isNotNull() || filter.include.isNotEmpty()) {
+				if (!(filter.include.contains_NoLock(key))) {
+					if (filter.layout.isNotNull() && filter.layout.value) {
+						if (!(value->flagUsed)) {
+							return sl_false;
+						}
+					} else {
+						return sl_false;
+					}
+				}
+			}
+			if (filter.exclude.isNotEmpty()) {
+				if (filter.exclude.contains_NoLock(key)) {
+					return sl_false;
+				}
+			}
+			return sl_true;
+		}
 	}
 
 	void SAppDocument::_freeResources()
@@ -1088,7 +1089,7 @@ namespace slib
 				return sl_true;
 			}
 		}
-		if (map.get(name, _out)) {
+		if (map.get_NoLock(name, _out)) {
 			if (outName) {
 				*outName = name;
 			}
