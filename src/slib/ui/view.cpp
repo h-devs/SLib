@@ -8335,24 +8335,44 @@ namespace slib
 				if (window.isNull()) {
 					return;
 				}
+				UIAction action = ev->getAction();
 				if (window->isMaximized()) {
+					if (action == UIAction::LeftButtonDoubleClick) {
+						if (window->isResizable()) {
+							window->setMaximized(sl_false);
+							view->setPressedState(sl_false);
+						}
+					}
+					return;
+				}
+				if (action == UIAction::LeftButtonDoubleClick) {
+					if (window->isResizable()) {
+						window->setMaximized();
+						view->setPressedState(sl_false);
+					}
 					return;
 				}
 				auto pt = view->convertCoordinateToScreen(ev->getPoint());
 				sl_ui_pos x = (sl_ui_pos)(pt.x);
 				sl_ui_pos y = (sl_ui_pos)(pt.y);
-				UIAction action = ev->getAction();
-				if (action == UIAction::LeftButtonDown || action == UIAction::TouchBegin) {
-					oldLeft = window->getLeft();
-					oldTop = window->getTop();
-					oldX = x;
-					oldY = y;
-				} else if (action == UIAction::LeftButtonDrag || action == UIAction::TouchMove) {
-					if (view->isPressedState()) {
-						auto dx = x - oldX;
-						auto dy = y - oldY;
-						window->setLocation(oldLeft + dx, oldTop + dy);
-					}
+				switch (action) {
+					case UIAction::LeftButtonDown:
+					case UIAction::TouchBegin:
+						oldLeft = window->getLeft();
+						oldTop = window->getTop();
+						oldX = x;
+						oldY = y;
+						break;
+					case UIAction::LeftButtonDrag:
+					case UIAction::TouchMove:
+						if (view->isPressedState()) {
+							auto dx = x - oldX;
+							auto dy = y - oldY;
+							window->setLocation(oldLeft + dx, oldTop + dy);
+						}
+						break;
+					default:
+						break;
 				}
 			}
 		};
