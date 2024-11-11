@@ -90,11 +90,12 @@ namespace slib
 			sl_int64 tickEnd = GetTickFromTimeout(timeout);
 			CurrentThread thread;
 			do {
-				sl_size nRequest = SLIB_MIN(segmentSize, size);
-				Memory segment = Memory::create(nRequest);
+				sl_size nSegment = SLIB_MIN(segmentSize, size);
+				Memory segment = Memory::create(nSegment);
 				if (segment.isNull()) {
 					return SLIB_IO_ERROR;
 				}
+				sl_size nRequest = nSegment;
 				sl_uint8* buf = (sl_uint8*)(segment.getData());
 				sl_size nRead = 0;
 				for (;;) {
@@ -109,7 +110,7 @@ namespace slib
 						timeout = GetTimeoutFromTick(tickEnd);
 					} else if (m == SLIB_IO_ENDED || m == SLIB_IO_WOULD_BLOCK) {
 						if (nRead) {
-							if (nRead < nRequest) {
+							if (nRead < nSegment) {
 								segment = segment.sub(0, nRead);
 								if (segment.isNull()) {
 									return SLIB_IO_ERROR;
@@ -135,10 +136,10 @@ namespace slib
 				if (!(output.add(Move(segment)))) {
 					return SLIB_IO_ERROR;
 				}
-				if (size <= nRequest) {
+				if (size <= nSegment) {
 					return output.getSize();
 				}
-				size -= nRequest;
+				size -= nSegment;
 			} while (thread.isNotStopping());
 			return SLIB_IO_ERROR;
 		}
