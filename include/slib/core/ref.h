@@ -138,6 +138,7 @@ public: \
 	Atomic& operator=(typename RemoveAtomic<Atomic>::Type&& other) noexcept { ref = Move(*(reinterpret_cast<Ref<__VA_ARGS__>*>(&other))); return *this; } \
 	Atomic& operator=(typename RemoveAtomic<Atomic>::Type const& other) noexcept { ref = *(reinterpret_cast<const Ref<__VA_ARGS__>*>(&other)); return *this; } \
 	typename RemoveAtomic<Atomic>::Type release() noexcept { return (priv::ref::DummyContainer*)((void*)(ref._release())); } \
+	void swap(typename RemoveAtomic<Atomic>::Type& other) noexcept { ref.swap(other.ref); } \
 	SLIB_DEFINE_CAST_REF_FUNCTIONS(class OTHER, Atomic, AtomicRef<OTHER>)
 
 #define SLIB_ATOMIC_REF_WRAPPER(...) \
@@ -711,10 +712,15 @@ namespace slib
 		{
 			_replace(sl_null);
 		}
-		
+
 		Ref<T> release() noexcept
 		{
 			return (priv::ref::DummyContainer*)((void*)_release());
+		}
+
+		void swap(Ref<T>& other) noexcept
+		{
+			_swap(&(other.ptr));
 		}
 
 		SLIB_DEFINE_CAST_REF_FUNCTIONS(class OTHER, Atomic, AtomicRef<OTHER>)
@@ -919,6 +925,15 @@ namespace slib
 			_ptr = sl_null;
 			m_lock.unlock();
 			return before;
+		}
+
+		void _swap(T** other) noexcept
+		{
+			m_lock.lock();
+			T* before = _ptr;
+			_ptr = *other;
+			*other = before;
+			m_lock.unlock();
 		}
 
 	public:
@@ -1274,6 +1289,11 @@ namespace slib
 		WeakRef<T> release() noexcept
 		{
 			return reinterpret_cast<WeakRef<T>&&>(_weak.release());
+		}
+
+		void swap(WeakRef<T>& other) noexcept
+		{
+			_weak.swap(other._weak);
 		}
 
 		SLIB_DEFINE_CAST_REF_FUNCTIONS(class OTHER, Atomic, AtomicWeakRef<OTHER>)

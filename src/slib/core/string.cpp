@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -4442,8 +4442,8 @@ namespace slib
 	}
 
 	DEFINE_STRING_CONTAINER_IMPL(StringContainer)
-	DEFINE_STRING_CONTAINER_IMPL(StringContainer16)
-	DEFINE_STRING_CONTAINER_IMPL(StringContainer32)
+		DEFINE_STRING_CONTAINER_IMPL(StringContainer16)
+		DEFINE_STRING_CONTAINER_IMPL(StringContainer32)
 
 
 #define DEFINE_STRING_INLINE_IMPL(STRING) \
@@ -4490,6 +4490,15 @@ namespace slib
 		m_container = sl_null; \
 		m_lock.unlock(); \
 		return container; \
+	} \
+	\
+	SLIB_INLINE void Atomic<STRING>::_swapContainer(typename STRING::Container** other) noexcept \
+	{ \
+		m_lock.lock(); \
+		Container* container = m_container; \
+		m_container = *other; \
+		*other = container; \
+		m_lock.unlock(); \
 	}
 
 	DEFINE_STRING_INLINE_IMPL(String)
@@ -5992,9 +6001,15 @@ namespace slib
 			_replaceContainer(sl_null); \
 		} \
 	} \
+	\
 	STRING Atomic<STRING>::release() noexcept \
 	{ \
 		return _releaseContainer(); \
+	} \
+	\
+	void Atomic<STRING>::swap(STRING& other) noexcept \
+	{ \
+		_swapContainer(&(other.m_container)); \
 	} \
 	\
 	Atomic<STRING>& Atomic<STRING>::operator=(sl_null_t) noexcept \

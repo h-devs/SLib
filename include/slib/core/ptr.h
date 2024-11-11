@@ -703,6 +703,11 @@ namespace slib
 			return Move(*this);
 		}
 
+		void swap(Ptr<T>& other) noexcept
+		{
+			_swap(other);
+		}
+
 		SLIB_DEFINE_CAST_REF_FUNCTIONS(class OTHER, Atomic, AtomicPtr<OTHER>)
 
 	public:
@@ -928,6 +933,18 @@ namespace slib
 			if (refOld) {
 				refOld->decreaseReference();
 			}
+		}
+
+		void _swap(Ptr<T>& other) noexcept
+		{
+			m_lock.lock();
+			T* ptr = _ptr;
+			CRef* ref = _ref.ptr;
+			_ptr = other.ptr;
+			_ref.ptr = other.ref.ptr;
+			other.ptr = ptr;
+			other.ref.ptr = ref;
+			m_lock.unlock();
 		}
 
 		void _move_init(void* _other) noexcept

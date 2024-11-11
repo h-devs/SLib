@@ -1044,6 +1044,11 @@ namespace slib
 		 */
 		String16 release() noexcept;
 
+		/**
+		 * Exchanges the stored string values
+		 */
+		void swap(String16& other) noexcept;
+
 	public:
 		/**
 		 * String assignment
@@ -1064,6 +1069,7 @@ namespace slib
 		Container* _retainContainer() const noexcept;
 		Container* _releaseContainer() noexcept;
 		void _replaceContainer(Container* other) noexcept;
+		void _swapContainer(Container** other) noexcept;
 
 		friend class String16;
 	};

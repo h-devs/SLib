@@ -129,6 +129,15 @@ namespace slib
 			m_lock.unlock();
 		}
 
+		void swap(T& other)
+		{
+			T temp = Move(other);
+			m_lock.lock();
+			other = Move(*((T*)m_value));
+			*((T*)m_value) = Move(temp);
+			m_lock.unlock();
+		}
+
 	public:
 		void _retain_construct(void* other) const
 		{
