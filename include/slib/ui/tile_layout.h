@@ -69,6 +69,7 @@ namespace slib
 
 		void onUpdateLayout() override;
 
+	public:
 		void dispatchDraw(Canvas* canvas) override;
 
 	private:

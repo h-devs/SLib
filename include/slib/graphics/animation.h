@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/function.h"
+#include "../core/event_handler.h"
 #include "../core/hash_map.h"
 #include "../core/flags.h"
 #include "../data/interpolation.h"

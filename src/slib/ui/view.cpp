@@ -46,28 +46,34 @@
 #define DEFAULT_BORDER_PARAMS PenStyle::Solid, 1.0f, Color::Black
 
 #define DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(NAME, DEFINE_ARGS, ...) \
-	View::On##NAME View::getOn##NAME() const { \
+	View::On##NAME View::getOn##NAME() const \
+	{ \
 		const Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) return attrs->on##NAME; else return sl_null; \
+		if (attrs.isNotNull()) { \
+			return attrs->on##NAME; \
+		} \
+		return sl_null; \
 	} \
-	View::On##NAME View::setOn##NAME(const On##NAME& handler) { \
+	View::On##NAME View::getOn##NAME(sl_bool flagDefaultHandler) const \
+	{ \
+		const Ref<EventAttributes>& attrs = m_eventAttrs; \
+		if (attrs.isNotNull()) { \
+			if (attrs->on##NAME.isNotNull()) { \
+				return attrs->on##NAME; \
+			} \
+			if (flagDefaultHandler) { \
+				return priv::CreateMemberEventHandler(&View::on##NAME); \
+			} \
+		} \
+		return sl_null; \
+	} \
+	void View::setOn##NAME(const On##NAME& handler) \
+	{ \
 		_initializeEventAttributes(); \
 		Ref<EventAttributes>& attrs = m_eventAttrs; \
 		if (attrs.isNotNull()) { \
 			attrs->on##NAME = handler; \
 		} \
-		return handler; \
-	} \
-	View::On##NAME View::addOn##NAME(const On##NAME& handler) { \
-		_initializeEventAttributes(); \
-		Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) attrs->on##NAME.add(handler); \
-		return handler; \
-	} \
-	void View::removeOn##NAME(const On##NAME& handler) { \
-		_initializeEventAttributes(); \
-		Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) attrs->on##NAME.remove(handler); \
 	} \
 	void View::invoke##NAME DEFINE_ARGS \
 	{ \
@@ -86,28 +92,22 @@
 	void View::on##NAME DEFINE_ARGS {}
 
 #define DEFINE_SIMPLE_EVENT_HANDLER(NAME) \
-	View::On##NAME View::getOn##NAME() const { \
+	View::On##NAME View::getOn##NAME() const \
+	{ \
 		const Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) return attrs->on##NAME; else return sl_null; \
+		if (attrs.isNotNull()) { \
+			return attrs->on##NAME; \
+		} else { \
+			return sl_null; \
+		} \
 	} \
-	View::On##NAME View::setOn##NAME(const On##NAME& handler) { \
+	void View::setOn##NAME(const On##NAME& handler) \
+	{ \
 		_initializeEventAttributes(); \
 		Ref<EventAttributes>& attrs = m_eventAttrs; \
 		if (attrs.isNotNull()) { \
 			attrs->on##NAME = handler; \
 		} \
-		return handler; \
-	} \
-	View::On##NAME View::addOn##NAME(const On##NAME& handler) { \
-		_initializeEventAttributes(); \
-		Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) attrs->on##NAME.add(handler); \
-		return handler; \
-	} \
-	void View::removeOn##NAME(const On##NAME& handler) { \
-		_initializeEventAttributes(); \
-		Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) attrs->on##NAME.remove(handler); \
 	}
 
 namespace slib

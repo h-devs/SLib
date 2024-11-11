@@ -26,7 +26,7 @@
 #include "canvas.h"
 
 #include "../graphics/drawable.h"
-#include "../core/function.h"
+#include "../core/event_handler.h"
 
 namespace slib
 {

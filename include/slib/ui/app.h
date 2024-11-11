@@ -26,7 +26,7 @@
 #include "definition.h"
 
 #include "../core/app.h"
-#include "../core/function.h"
+#include "../core/event_handler.h"
 
 namespace slib
 {

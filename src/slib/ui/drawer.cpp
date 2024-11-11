@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,7 @@ namespace slib
 		m_dragEdgeSize = 0;
 		m_gravity = Alignment::Left;
 
+		m_parent = sl_null;
 		m_flagMouseDown = sl_false;
 		m_posMouseDown = 0;
 	}
@@ -54,8 +55,6 @@ namespace slib
 	void Drawer::init()
 	{
 		ViewGroup::init();
-
-		m_callbackParentMouseEvent = SLIB_FUNCTION_WEAKREF(this, _onParentMouseEvent);
 	}
 
 	sl_bool Drawer::isOpened()
@@ -190,11 +189,16 @@ namespace slib
 
 	void Drawer::onChangeParent(View* oldParent, View* newParent)
 	{
-		if (oldParent) {
-			oldParent->removeOnMouseEvent(m_callbackParentMouseEvent);
+		if (oldParent && oldParent == m_parent) {
+			oldParent->setOnMouseEvent(m_parentMouseEventHandler);
 		}
 		if (newParent) {
-			newParent->addOnMouseEvent(m_callbackParentMouseEvent);
+			m_parent = newParent;
+			m_parentMouseEventHandler = newParent->getOnMouseEvent(sl_true);
+			newParent->setOnMouseEvent(SLIB_FUNCTION_MEMBER(this, _onParentMouseEvent));
+		} else {
+			m_parent = sl_null;
+			m_parentMouseEventHandler.setNull();
 		}
 	}
 
@@ -236,9 +240,11 @@ namespace slib
 	{
 		Ref<View> content = getContent();
 		if (content.isNull()) {
+			m_parentMouseEventHandler(parent, ev);
 			return;
 		}
 		if (m_flagOpened) {
+			m_parentMouseEventHandler(parent, ev);
 			return;
 		}
 		UIAction action = ev->getAction();
@@ -252,6 +258,7 @@ namespace slib
 		} else if (m_gravity == Alignment::Bottom) {
 			pos = parent->getHeight() - ev->getY();
 		} else {
+			m_parentMouseEventHandler(parent, ev);
 			return;
 		}
 		if (action == UIAction::LeftButtonDown || action == UIAction::TouchBegin) {
@@ -292,7 +299,7 @@ namespace slib
 				m_motionTracker.clearMovements();
 			}
 		}
-
+		m_parentMouseEventHandler(parent, ev);
 	}
 
 	Vector2 Drawer::_makeContentTranslation(sl_real t)

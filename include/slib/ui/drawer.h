@@ -97,7 +97,8 @@ namespace slib
 		Alignment m_gravity;
 
 		AtomicRef<Animation> m_animation;
-		Function<void(View*, UIEvent*)> m_callbackParentMouseEvent;
+		View* m_parent;
+		Function<void(View*, UIEvent*)> m_parentMouseEventHandler;
 
 		sl_bool m_flagMouseDown;
 		sl_real m_posMouseDown;

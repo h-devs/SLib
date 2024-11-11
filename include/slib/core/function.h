@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -742,9 +742,10 @@ namespace slib
 	{
 	public:
 		typedef RET_TYPE ReturnType;
-		Ref< Callable<RET_TYPE(ARGS...)> > ref;
-		SLIB_REF_WRAPPER(Function, Callable<RET_TYPE(ARGS...)>)
-		SLIB_REF_WRAPPER_ALL_LRVALUES(Function, Callable<RET_TYPE(ARGS...)>)
+		typedef Callable<RET_TYPE(ARGS...)> CType;
+		Ref<CType> ref;
+		SLIB_REF_WRAPPER(Function, CType)
+		SLIB_REF_WRAPPER_ALL_LRVALUES(Function, CType)
 
 	public:
 		template <class FUNC>
@@ -760,7 +761,7 @@ namespace slib
 
 		RET_TYPE operator()(ARGS... args) const
 		{
-			Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
+			CType* object = ref.ptr;
 			if (object) {
 				return object->invoke(args...);
 			} else {
@@ -781,14 +782,14 @@ namespace slib
 			if (function.isNull()) {
 				return *this;
 			}
-			Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
+			CType* object = ref.ptr;
 			if (object) {
 				if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 					List<Function> list(((FunctionList<RET_TYPE(ARGS...)>*)object)->list.duplicate_NoLock());
 					list.add_NoLock(function);
-					return (Callable<RET_TYPE(ARGS...)>*)(new FunctionList<RET_TYPE(ARGS...)>(list));
+					return (CType*)(new FunctionList<RET_TYPE(ARGS...)>(list));
 				} else {
-					return (Callable<RET_TYPE(ARGS...)>*)(new FunctionList<RET_TYPE(ARGS...)>(List<Function>::createFromElements(*this, function)));
+					return (CType*)(new FunctionList<RET_TYPE(ARGS...)>(List<Function>::createFromElements(*this, function)));
 				}
 			} else {
 				return function;
@@ -811,7 +812,7 @@ namespace slib
 			if (ref == function.ref) {
 				return sl_null;
 			}
-			Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
+			CType* object = ref.ptr;
 			if (object) {
 				if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 					List<Function>& list = ((FunctionList<RET_TYPE(ARGS...)>*)object)->list;
@@ -837,7 +838,7 @@ namespace slib
 								if ((sl_size)index + 1 < count) {
 									newList.addElements_NoLock(data + index + 1, count - index - 1);
 								}
-								return (Callable<RET_TYPE(ARGS...)>*)(new FunctionList<RET_TYPE(ARGS...)>(newList));
+								return (CType*)(new FunctionList<RET_TYPE(ARGS...)>(newList));
 							}
 						}
 					} else {
@@ -852,14 +853,14 @@ namespace slib
 		template <class FUNC>
 		static Function create(FUNC&& func) noexcept
 		{
-			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func)));
+			return static_cast<CType*>(new priv::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func)));
 		}
 
 		template <class CLASS, class FUNC>
 		static Function fromMember(CLASS* object, const FUNC& func) noexcept
 		{
 			if (object) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromMember<CLASS, FUNC, RET_TYPE, ARGS...>(object, func));
+				return static_cast<CType*>(new priv::CallableFromMember<CLASS, FUNC, RET_TYPE, ARGS...>(object, func));
 			}
 			return sl_null;
 		}
@@ -870,7 +871,7 @@ namespace slib
 			typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) CLASS;
 			Ref<CLASS> object(Forward<OBJECT>(_object));
 			if (object.isNotNull()) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromRef<CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func));
+				return static_cast<CType*>(new priv::CallableFromRef<CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func));
 			}
 			return sl_null;
 		}
@@ -881,7 +882,7 @@ namespace slib
 			typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) CLASS;
 			WeakRef<CLASS> object(Forward<OBJECT>(_object));
 			if (object.isNotNull()) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromWeakRef<CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func));
+				return static_cast<CType*>(new priv::CallableFromWeakRef<CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func));
 			}
 			return sl_null;
 		}
@@ -892,7 +893,7 @@ namespace slib
 			typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) CLASS;
 			Ptr<CLASS> object(Forward<OBJECT>(_object));
 			if (object.isNotNull()) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromPtr<CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func));
+				return static_cast<CType*>(new priv::CallableFromPtr<CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func));
 			}
 			return sl_null;
 		}
@@ -907,7 +908,7 @@ namespace slib
 		static Function bind(FUNC&& func, BINDS&&... binds) noexcept
 		{
 			typedef Tuple<typename RemoveConstReference<BINDS>::Type...> TUPLE;
-			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::BindFromFunction<TUPLE, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func), TUPLE(Forward<BINDS>(binds)...)));
+			return static_cast<CType*>(new priv::BindFromFunction<TUPLE, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func), TUPLE(Forward<BINDS>(binds)...)));
 		}
 
 		template <class CLASS, class FUNC>
@@ -921,7 +922,7 @@ namespace slib
 		{
 			if (object) {
 				typedef Tuple<typename RemoveConstReference<BINDS>::Type...> TUPLE;
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::BindFromMember<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(object, func, TUPLE(Forward<BINDS>(binds)...)));
+				return static_cast<CType*>(new priv::BindFromMember<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(object, func, TUPLE(Forward<BINDS>(binds)...)));
 			}
 			return sl_null;
 		}
@@ -939,7 +940,7 @@ namespace slib
 			Ref<CLASS> object(Forward<OBJECT>(_object));
 			if (object.isNotNull()) {
 				typedef Tuple<typename RemoveConstReference<BINDS>::Type...> TUPLE;
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::BindFromRef<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func, TUPLE(Forward<BINDS>(binds)...)));
+				return static_cast<CType*>(new priv::BindFromRef<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func, TUPLE(Forward<BINDS>(binds)...)));
 			}
 			return sl_null;
 		}
@@ -957,7 +958,7 @@ namespace slib
 			WeakRef<CLASS> object(Forward<OBJECT>(_object));
 			if (object.isNotNull()) {
 				typedef Tuple<typename RemoveConstReference<BINDS>::Type...> TUPLE;
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::BindFromWeakRef<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func, TUPLE(Forward<BINDS>(binds)...)));
+				return static_cast<CType*>(new priv::BindFromWeakRef<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func, TUPLE(Forward<BINDS>(binds)...)));
 			}
 			return sl_null;
 		}
@@ -975,7 +976,7 @@ namespace slib
 			Ptr<CLASS> object(Forward<OBJECT>(_object));
 			if (object.isNotNull()) {
 				typedef Tuple<typename RemoveConstReference<BINDS>::Type...> TUPLE;
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::BindFromPtr<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func, TUPLE(Forward<BINDS>(binds)...)));
+				return static_cast<CType*>(new priv::BindFromPtr<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func, TUPLE(Forward<BINDS>(binds)...)));
 			}
 			return sl_null;
 		}
@@ -984,7 +985,7 @@ namespace slib
 		static Function with(const Ref<CLASS>& object, FUNC&& func) noexcept
 		{
 			if (object.isNotNull()) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableWithRef<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
+				return static_cast<CType*>(new priv::CallableWithRef<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
 			}
 			return sl_null;
 		}
@@ -993,7 +994,7 @@ namespace slib
 		static Function with(const WeakRef<CLASS>& object, FUNC&& func) noexcept
 		{
 			if (object.isNotNull()) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableWithWeakRef<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
+				return static_cast<CType*>(new priv::CallableWithWeakRef<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
 			}
 			return sl_null;
 		}
@@ -1002,14 +1003,14 @@ namespace slib
 		static Function with(const Ptr<CLASS>& object, FUNC&& func) noexcept
 		{
 			if (object.isNotNull()) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableWithPtr<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
+				return static_cast<CType*>(new priv::CallableWithPtr<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
 			}
 			return sl_null;
 		}
 
 		static Function fromList(const List< Function<RET_TYPE(ARGS...)> >& list) noexcept
 		{
-			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new FunctionList<RET_TYPE(ARGS...)>(list));
+			return static_cast<CType*>(new FunctionList<RET_TYPE(ARGS...)>(list));
 		}
 
 		SLIB_DEFINE_CAST_REF_FUNCTIONS(class TYPE, Function, Function<TYPE>)
@@ -1036,7 +1037,7 @@ namespace slib
 			if (function.isNull()) {
 				return function;
 			}
-			Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
+			CType* object = ref.ptr;
 			if (object) {
 				if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 					((FunctionList<RET_TYPE(ARGS...)>*)object)->list.add_NoLock(function);
@@ -1055,7 +1056,7 @@ namespace slib
 			if (function.isNull()) {
 				return function;
 			}
-			Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
+			CType* object = ref.ptr;
 			if (object) {
 				if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 					((FunctionList<RET_TYPE(ARGS...)>*)object)->list.addIfNotExist_NoLock(function);
@@ -1079,7 +1080,7 @@ namespace slib
 				ref.setNull();
 				return;
 			}
-			Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
+			CType* object = ref.ptr;
 			if (object) {
 				if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 					List<Function>& list = ((FunctionList<RET_TYPE(ARGS...)>*)object)->list;
@@ -1123,7 +1124,7 @@ namespace slib
 			if (function.isNull()) {
 				return sl_false;
 			}
-			Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
+			CType* object = ref.ptr;
 			if (object) {
 				if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 					return ((FunctionList<RET_TYPE(ARGS...)>*)object)->list.contains_NoLock(function);
@@ -1317,66 +1318,5 @@ namespace slib
  		slib::Function<TYPE> set##NAME(const slib::Function<TYPE>& value) { m_function_##NAME = value; return value; } \
 		slib::Function<TYPE> add##NAME(const slib::Function<TYPE>& value) { return m_function_##NAME.add(value); } \
 		void remove##NAME(const slib::Function<TYPE>& value) { m_function_##NAME.remove(value); }
-
-#define SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON2(CLASS, NAME, RET, ...) \
-	public: \
-		typedef slib::Function<RET(CLASS* sender, ##__VA_ARGS__)> On##NAME; \
-		slib::Function<RET(CLASS* sender, ##__VA_ARGS__)> getOn##NAME() const; \
-		On##NAME setOn##NAME(const slib::Function<RET(CLASS* sender, ##__VA_ARGS__)>& handler); \
-		On##NAME addOn##NAME(const slib::Function<RET(CLASS* sender, ##__VA_ARGS__)>& handler); \
-		void removeOn##NAME(const slib::Function<RET(CLASS* sender, ##__VA_ARGS__)>& handler); 
-
-#define SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(CLASS, NAME, ...) SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON2(CLASS, NAME, void, ##__VA_ARGS__)
-
-#define SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS2(CLASS, NAME, RET, ...) \
-	SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON2(CLASS, NAME, RET, ##__VA_ARGS__); \
-	public: \
-		virtual RET on##NAME(__VA_ARGS__); \
-		RET invoke##NAME(__VA_ARGS__);
-
-#define SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(CLASS, NAME, ...) SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS2(CLASS, NAME, void, ##__VA_ARGS__)
-
-#define SLIB_DECLARE_EVENT_HANDLER2(CLASS, NAME, RET, ...) \
-	protected: \
-		slib::AtomicFunction<RET(CLASS* sender, ##__VA_ARGS__)> m_eventHandler_on##NAME; \
-	SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS2(CLASS, NAME, RET, ##__VA_ARGS__)
-
-#define SLIB_DECLARE_EVENT_HANDLER(CLASS, NAME, ...) SLIB_DECLARE_EVENT_HANDLER2(CLASS, NAME, void, ##__VA_ARGS__)
-
-#define SLIB_DEFINE_EVENT_HANDLER_WITHOUT_INVOKE(CLASS, NAME, DEFINE_ARGS, ...) \
-	CLASS::On##NAME CLASS::getOn##NAME() const { return m_eventHandler_on##NAME; } \
-	CLASS::On##NAME CLASS::setOn##NAME(const On##NAME& handler) { m_eventHandler_on##NAME = handler; return handler; } \
-	CLASS::On##NAME CLASS::addOn##NAME(const On##NAME& handler) { return m_eventHandler_on##NAME.add(handler); } \
-	void CLASS::removeOn##NAME(const On##NAME& handler) { m_eventHandler_on##NAME.remove(handler); }
-
-#define SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(CLASS, NAME, DEFINE_ARGS, ...) \
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_INVOKE(CLASS, NAME, DEFINE_ARGS, ##__VA_ARGS__) \
-	CLASS::On##NAME::ReturnType CLASS::invoke##NAME DEFINE_ARGS \
-	{ \
-		if (m_eventHandler_on##NAME.isNotNull()) { \
-			m_eventHandler_on##NAME(this, ##__VA_ARGS__); \
-		} else { \
-			on##NAME(__VA_ARGS__); \
-		} \
-	}
-
-#define SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON2(CLASS, NAME, DEFINE_ARGS, ...) \
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_INVOKE(CLASS, NAME, DEFINE_ARGS, ##__VA_ARGS__) \
-	CLASS::On##NAME::ReturnType CLASS::invoke##NAME DEFINE_ARGS \
-	{ \
-		if (m_eventHandler_on##NAME.isNotNull()) { \
-			return m_eventHandler_on##NAME(this, ##__VA_ARGS__); \
-		} else { \
-			return on##NAME(__VA_ARGS__); \
-		} \
-	}
-
-#define SLIB_DEFINE_EVENT_HANDLER(CLASS, NAME, DEFINE_ARGS, ...) \
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(CLASS, NAME, DEFINE_ARGS, ##__VA_ARGS__) \
-	void CLASS::on##NAME DEFINE_ARGS {}
-
-#define SLIB_DEFINE_EVENT_HANDLER2(CLASS, NAME, DEFAULT, DEFINE_ARGS, ...) \
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON2(CLASS, NAME, DEFINE_ARGS, ##__VA_ARGS__) \
-	CLASS::On##NAME::ReturnType CLASS::on##NAME DEFINE_ARGS { return DEFAULT; }
 
 #endif
