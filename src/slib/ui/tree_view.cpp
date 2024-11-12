@@ -58,6 +58,14 @@ namespace slib
 			}
 		}
 
+		void onSetCursor(UIEvent* ev) override
+		{
+			Ref<TreeView> tree = m_tree;
+			if (tree.isNotNull()) {
+				tree->_processMouseEvent(ev);
+			}
+		}
+
 	};
 
 	SLIB_DEFINE_OBJECT(TreeViewItem, Object)
@@ -469,6 +477,16 @@ namespace slib
 	{
 		m_textColors.set(color);
 		_redrawTree(mode);
+	}
+
+	String TreeViewItem::getToolTip()
+	{
+		return m_toolTip;
+	}
+
+	void TreeViewItem::setToolTip(const String& toolTip)
+	{
+		m_toolTip = toolTip;
 	}
 
 	sl_ui_len TreeViewItem::getHeight()
@@ -1271,42 +1289,67 @@ namespace slib
 	void TreeView::_processMouseEvent(UIEvent* ev)
 	{
 		UIAction action = ev->getAction();
-		if (action == UIAction::MouseLeave) {
-			m_itemHover.setNull();
-			_redrawContent(UIUpdateMode::Redraw);
-			return;
-		}
-		if (action == UIAction::LeftButtonDown || action == UIAction::RightButtonDown || action == UIAction::TouchBegin) {
-			Ref<ContentView> content = m_content;
-			if (content.isNotNull()) {
-				m_pointBeginTapping = content->convertCoordinateToParent(ev->getPoint());
-				m_flagBeginTapping = sl_true;
-			}
-		} else if (action == UIAction::LeftButtonUp || action == UIAction::RightButtonUp || action == UIAction::TouchEnd) {
-			if (m_flagBeginTapping) {
-				Ref<ContentView> content = m_content;
-				if (content.isNotNull()) {
-					if (content->convertCoordinateToParent(ev->getPoint()).getLength2p(m_pointBeginTapping) < 25) {
-						Ref<TreeViewItem> root = m_root;
-						if (root.isNotNull()) {
-							_processMouseEventItem(ev, sl_true, root.get(), sl_true);
+		switch (action) {
+			case UIAction::LeftButtonDown:
+			case UIAction::RightButtonDown:
+			case UIAction::TouchBegin:
+				{
+					Ref<ContentView> content = m_content;
+					if (content.isNotNull()) {
+						m_pointBeginTapping = content->convertCoordinateToParent(ev->getPoint());
+						m_flagBeginTapping = sl_true;
+					}
+					break;
+				}
+			case UIAction::MouseMove:
+				{
+					if (m_flagBeginTapping) {
+						Ref<ContentView> content = m_content;
+						if (content.isNotNull()) {
+							if (content->convertCoordinateToParent(ev->getPoint()).getLength2p(m_pointBeginTapping) > 25) {
+								m_flagBeginTapping = sl_false;
+							}
 						}
 					}
-				}
-			}
-		} else if (action == UIAction::MouseMove) {
-			if (m_flagBeginTapping) {
-				Ref<ContentView> content = m_content;
-				if (content.isNotNull()) {
-					if (content->convertCoordinateToParent(ev->getPoint()).getLength2p(m_pointBeginTapping) > 25) {
-						m_flagBeginTapping = sl_false;
+					Ref<TreeViewItem> root = m_root;
+					if (root.isNotNull()) {
+						_processMouseEventItem(ev, sl_false, root.get(), sl_true);
 					}
+					break;
 				}
-			}
-			Ref<TreeViewItem> root = m_root;
-			if (root.isNotNull()) {
-				_processMouseEventItem(ev, sl_false, root.get(), sl_true);
-			}
+			case UIAction::LeftButtonUp:
+			case UIAction::RightButtonUp:
+			case UIAction::TouchEnd:
+				{
+					if (m_flagBeginTapping) {
+						Ref<ContentView> content = m_content;
+						if (content.isNotNull()) {
+							if (content->convertCoordinateToParent(ev->getPoint()).getLength2p(m_pointBeginTapping) < 25) {
+								Ref<TreeViewItem> root = m_root;
+								if (root.isNotNull()) {
+									_processMouseEventItem(ev, sl_true, root.get(), sl_true);
+								}
+							}
+						}
+					}
+					break;
+				}
+			case UIAction::MouseLeave:
+				{
+					m_itemHover.setNull();
+					_redrawContent(UIUpdateMode::Redraw);
+					break;
+				}
+			case UIAction::SetCursor:
+				{
+					Ref<TreeViewItem> root = m_root;
+					if (root.isNotNull()) {
+						_processMouseEventItem(ev, sl_false, root.get(), sl_true);
+					}
+					break;
+				}
+			default:
+				break;
 		}
 	}
 
@@ -1333,6 +1376,11 @@ namespace slib
 						if (m_itemHover != item) {
 							m_itemHover = item;
 							_redrawContent(UIUpdateMode::Redraw);
+						}
+					} else if (action == UIAction::SetCursor) {
+						String toolTip = item->getToolTip();
+						if (toolTip.isNotNull()) {
+							ev->setToolTip((sl_uint64)((void*)item), toolTip);
 						}
 					}
 				}

@@ -763,6 +763,7 @@ namespace slib
 		SAppDimensionValue iconSize;
 		SAppDimensionValue iconWidth;
 		SAppDimensionValue iconHeight;
+		SAppStringValue toolTip;
 		SAppDimensionValue height;
 		SAppBooleanValue opened;
 		SAppBooleanValue selected;

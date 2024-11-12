@@ -148,6 +148,10 @@ namespace slib
 
 		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		String getToolTip();
+
+		void setToolTip(const String& toolTip);
+
 		sl_ui_len getHeight();
 
 		void setHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -185,6 +189,7 @@ namespace slib
 		AtomicString m_text;
 		AtomicRef<Font> m_font;
 		ViewStateMap<Color> m_textColors;
+		AtomicString m_toolTip;
 		sl_ui_len m_height;
 
 		UIRect m_frame;

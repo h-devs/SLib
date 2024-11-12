@@ -4366,6 +4366,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconSize, setIconSize, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconWidth, setIconWidth, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconHeight, setIconHeight, checkScalarSize)
+		LAYOUT_CONTROL_ATTR(STRING, toolTip, setToolTip)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, height, setHeight, checkScalarSize)
 		if (op == SAppLayoutOperation::Parse) {
 			LAYOUT_CONTROL_PARSE_ATTR(GENERIC, attr->, opened)
