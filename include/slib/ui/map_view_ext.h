@@ -630,28 +630,68 @@ namespace slib
 		List< Ref<MapViewObject> > m_children;
 	};
 
-	class MapViewSprite : public MapViewObject
+	class MapViewObjectLocation
+	{
+	public:
+		MapViewObjectLocation();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MapViewObjectLocation)
+
+	public:
+		const LatLon& getValue() const;
+
+		const GeoLocation& getValue(MapViewData* data);
+
+		void setValue(const GeoLocation& location);
+
+		void setValue(const LatLon& location);
+
+	protected:
+		GeoLocation m_value;
+		sl_bool m_flagValidAltitude;
+	};
+
+	class SLIB_EXPORT MapViewSprite : public MapViewObject
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		MapViewSprite();
 
-		MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& atlas);
-
 		~MapViewSprite();
 
 	public:
-		void initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& atlas);
-
-	public:
-		const LatLon& getLocation();
-
 		const Ref<Image>& getImage();
+
+		template <class IMAGE>
+		void setImage(IMAGE&& image)
+		{
+			m_image = Forward<IMAGE>(image);
+		}
 
 		const String& getText();
 
+		template <class STRING>
+		void setText(STRING&& text)
+		{
+			m_text = Forward<STRING>(text);
+		}
+
 		const Ref<FontAtlas>& getFontAtlas();
+
+		template <class ATLAS>
+		void setFontAltlas(ATLAS&& atlas)
+		{
+			m_fontAtlas = Forward<ATLAS>(atlas);
+		}
+
+		const LatLon& getLocation();
+
+		const GeoLocation& getLocation(MapViewData* data);
+
+		void setLocation(const LatLon& location);
+
+		void setLocation(const GeoLocation& location);
 
 		const Size& getSize();
 
@@ -670,10 +710,6 @@ namespace slib
 
 		sl_bool getViewPoint(Point& _out, MapViewData* data);
 
-		double getAltitude(MapViewData* data);
-
-		GeoLocation getLocation(MapViewData* data);
-
 	protected:
 		void onPreDrawOrRender(MapViewData* data);
 
@@ -685,21 +721,67 @@ namespace slib
 		virtual void onRenderSprite(RenderEngine* engine, MapViewData* data, MapSurface* surface);
 
 	protected:
-		LatLon m_location;
 		Ref<Image> m_image;
 		String m_text;
 		Ref<FontAtlas> m_fontAtlas;
 
+		MapViewObjectLocation m_location;
 		Size m_size;
 		Color m_textColor;
 
-		sl_bool m_flagValidAltitude;
-		double m_altitude;
 		Point m_viewPoint;
 		sl_uint64 m_lastDrawId;
 	};
 
-	class MapViewExtension : public Object
+	class SLIB_EXPORT MapViewLine : public MapViewObject
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		MapViewLine();
+
+		~MapViewLine();
+
+	public:
+		const LatLon& getStartLocation();
+
+		const GeoLocation& getStartLocation(MapViewData* data);
+
+		void setStartLocation(const LatLon& location);
+
+		void setStartLocation(const GeoLocation& location);
+
+		const LatLon& getEndLocation();
+
+		const GeoLocation& getEndLocation(MapViewData* data);
+
+		void setEndLocation(const LatLon& location);
+
+		void setEndLocation(const GeoLocation& location);
+
+		sl_real getLineWidth();
+
+		void setLineWidth(sl_real width);
+
+		const Color& getLineColor();
+
+		void setLineColor(const Color& color);
+
+	public:
+		void draw(Canvas* canvas, MapViewData* data, MapPlane* plane) override;
+
+		void render(RenderEngine* engine, MapViewData* data, MapSurface* surface) override;
+
+	public:
+		MapViewObjectLocation m_startLocation;
+		MapViewObjectLocation m_endLocation;
+		sl_real m_lineWidth;
+		Color m_lineColor;
+
+		Ref<Pen> m_pen;
+	};
+
+	class SLIB_EXPORT MapViewExtension : public Object
 	{
 		SLIB_DECLARE_OBJECT
 

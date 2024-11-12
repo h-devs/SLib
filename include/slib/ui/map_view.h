@@ -187,6 +187,8 @@ namespace slib
 
 		void renderText(RenderEngine* engine, const Point& pt, const StringParam& text, const Ref<FontAtlas>& atlas, const Color& color = Color::White, const Alignment& align = Alignment::MiddleCenter);
 
+		void renderLine(RenderEngine* engine, const Point& pt1, const Point& pt2, const Color& color = Color::Black, sl_real width = 1.0f);
+
 	public:
 		sl_bool getLatLonFromViewPoint(const Double2& point, LatLon& _out) const;
 
@@ -206,7 +208,13 @@ namespace slib
 
 		sl_bool isLocationVisible(const GeoLocation& location) const;
 
+		sl_bool isEarthPointAtFront(const Double3& point) const;
+
 		sl_bool isEarthPointVisible(const Double3& point) const;
+
+		sl_bool isEarthLineVisible(const Double3& point1, const Double3& point2) const;
+
+		static double getLengthBetween(const GeoLocation& location1, const GeoLocation& location2);
 
 		static double getDegreeFromEarthLength(double length);
 
@@ -399,6 +407,7 @@ namespace slib
 	protected:
 		void init() override;
 
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onFrame(RenderEngine* engine) override;

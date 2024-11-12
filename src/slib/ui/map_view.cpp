@@ -64,7 +64,8 @@ namespace slib
 			MapTileLoader,
 			MapViewExtension,
 			MapViewObjectList,
-			MapViewSprite
+			MapViewSprite,
+			MapViewLine
 		};
 	}
 
@@ -2168,6 +2169,40 @@ namespace slib
 		m_children.removeAll_NoLock();
 	}
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MapViewObjectLocation)
+
+	MapViewObjectLocation::MapViewObjectLocation(): m_value(0.0, 0.0, 0.0), m_flagValidAltitude(sl_false)
+	{
+	}
+
+	const LatLon& MapViewObjectLocation::getValue() const
+	{
+		return m_value.getLatLon();
+	}
+
+	const GeoLocation& MapViewObjectLocation::getValue(MapViewData* data)
+	{
+		if (data) {
+			if (!m_flagValidAltitude) {
+				m_value.altitude = data->getAltitudeAt(m_value.getLatLon());
+				m_flagValidAltitude = sl_true;
+			}
+		}
+		return m_value;
+	}
+
+	void MapViewObjectLocation::setValue(const GeoLocation& location)
+	{
+		m_value = location;
+		m_flagValidAltitude = sl_true;
+	}
+
+	void MapViewObjectLocation::setValue(const LatLon& location)
+	{
+		m_value = location;
+		m_flagValidAltitude = sl_false;
+	}
+
 	SLIB_DEFINE_OBJECT(MapViewSprite, MapViewObject)
 
 	MapViewSprite::MapViewSprite()
@@ -2179,32 +2214,12 @@ namespace slib
 		m_size = Size::zero();
 		m_textColor = Color::White;
 
-		m_flagValidAltitude = sl_false;
-		m_altitude = 0.0;
 		m_viewPoint = Point::zero();
 		m_lastDrawId = 0;
 	}
 
-	MapViewSprite::MapViewSprite(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& font): MapViewSprite()
-	{
-		initialize(location, image, text, font);
-	}
-
 	MapViewSprite::~MapViewSprite()
 	{
-	}
-
-	void MapViewSprite::initialize(const LatLon& location, const Ref<Image>& image, const String& text, const Ref<FontAtlas>& atlas)
-	{
-		m_location = location;
-		m_image = image;
-		m_text = text;
-		m_fontAtlas = atlas;
-	}
-
-	const LatLon& MapViewSprite::getLocation()
-	{
-		return m_location;
 	}
 
 	const Ref<Image>& MapViewSprite::getImage()
@@ -2220,6 +2235,26 @@ namespace slib
 	const Ref<FontAtlas>& MapViewSprite::getFontAtlas()
 	{
 		return m_fontAtlas;
+	}
+
+	const LatLon& MapViewSprite::getLocation()
+	{
+		return m_location.getValue();
+	}
+
+	const GeoLocation& MapViewSprite::getLocation(MapViewData* data)
+	{
+		return m_location.getValue(data);
+	}
+
+	void MapViewSprite::setLocation(const GeoLocation& location)
+	{
+		m_location.setValue(location);
+	}
+
+	void MapViewSprite::setLocation(const LatLon& location)
+	{
+		m_location.setValue(location);
 	}
 
 	const Size& MapViewSprite::getSize()
@@ -2244,7 +2279,7 @@ namespace slib
 
 	void MapViewSprite::draw(Canvas* canvas, MapViewData* data, MapPlane* plane)
 	{
-		Point pt = plane->getViewPointFromMapLocation(plane->getMapLocationFromLatLon(m_location));
+		Point pt = plane->getViewPointFromMapLocation(plane->getMapLocationFromLatLon(m_location.getValue()));
 		sl_real w = m_size.x / 2.0f;
 		sl_real h = m_size.y / 2.0f;
 		Rectangle rc(pt.x - w, pt.y - h, pt.x + w, pt.y + h);
@@ -2287,21 +2322,6 @@ namespace slib
 		return sl_false;
 	}
 
-	double MapViewSprite::getAltitude(MapViewData* data)
-	{
-		if (m_flagValidAltitude) {
-			return m_altitude;
-		}
-		double altitude = data->getAltitudeAt(m_location);
-		m_altitude = altitude;
-		return altitude;
-	}
-
-	GeoLocation MapViewSprite::getLocation(MapViewData* data)
-	{
-		return GeoLocation(m_location, getAltitude(data));
-	}
-
 	void MapViewSprite::onPreDrawOrRender(MapViewData* data)
 	{
 		m_lastDrawId = data->getMapState().drawId;
@@ -2334,12 +2354,128 @@ namespace slib
 
 	void MapViewSprite::onRenderSprite(RenderEngine* engine, MapViewData* data, MapSurface* surface)
 	{
-		data->renderImage(engine, m_viewPoint, m_size, m_image);
+		if (m_image.isNotNull()) {
+			data->renderImage(engine, m_viewPoint, m_size, m_image);
+		}
 		if (m_text.isNotNull() && m_fontAtlas.isNotNull()) {
 			Point pt = m_viewPoint;
-			pt.y += m_size.y / 2.0f;
-			data->renderText(engine, pt, m_text, m_fontAtlas, m_textColor, Alignment::TopCenter);
+			if (m_image.isNotNull()) {
+				pt.y += m_size.y / 2.0f;
+				data->renderText(engine, pt, m_text, m_fontAtlas, m_textColor, Alignment::TopCenter);
+			} else {
+				data->renderText(engine, pt, m_text, m_fontAtlas, m_textColor, Alignment::MiddleCenter);
+			}
 		}
+	}
+
+	SLIB_DEFINE_OBJECT(MapViewLine, MapViewObject)
+
+	MapViewLine::MapViewLine()
+	{
+		setSupportingGlobeMode();
+		setSupportingPlaneMode();
+		setOverlay();
+		m_lineWidth = 1.0f;
+		m_lineColor = Color::Black;
+	}
+
+	MapViewLine::~MapViewLine()
+	{
+	}
+
+	const LatLon& MapViewLine::getStartLocation()
+	{
+		return m_startLocation.getValue();
+	}
+
+	const GeoLocation& MapViewLine::getStartLocation(MapViewData* data)
+	{
+		return m_startLocation.getValue(data);
+	}
+
+	void MapViewLine::setStartLocation(const LatLon& location)
+	{
+		m_startLocation.setValue(location);
+	}
+
+	void MapViewLine::setStartLocation(const GeoLocation& location)
+	{
+		m_startLocation.setValue(location);
+	}
+
+	const LatLon& MapViewLine::getEndLocation()
+	{
+		return m_endLocation.getValue();
+	}
+
+	const GeoLocation& MapViewLine::getEndLocation(MapViewData* data)
+	{
+		return m_endLocation.getValue(data);
+	}
+
+	void MapViewLine::setEndLocation(const LatLon& location)
+	{
+		m_endLocation.setValue(location);
+	}
+
+	void MapViewLine::setEndLocation(const GeoLocation& location)
+	{
+		m_endLocation.setValue(location);
+	}
+
+	sl_real MapViewLine::getLineWidth()
+	{
+		return m_lineWidth;
+	}
+
+	void MapViewLine::setLineWidth(sl_real width)
+	{
+		m_lineWidth = width;
+	}
+
+	const Color& MapViewLine::getLineColor()
+	{
+		return m_lineColor;
+	}
+
+	void MapViewLine::setLineColor(const Color& color)
+	{
+		m_lineColor = color;
+	}
+
+	void MapViewLine::draw(Canvas* canvas, MapViewData* data, MapPlane* plane)
+	{
+		Point pts[2];
+		pts[0] = plane->getViewPointFromMapLocation(plane->getMapLocationFromLatLon(m_startLocation.getValue()));
+		pts[1] = plane->getViewPointFromMapLocation(plane->getMapLocationFromLatLon(m_endLocation.getValue()));
+		Rectangle rc;
+		rc.setFromPoints(pts, 2);
+		if (!(plane->getViewport().intersect(rc))) {
+			return;
+		}
+		sl_bool flagValidPen = sl_false;
+		if (m_pen.isNotNull()) {
+			if (m_pen->getColor() == m_lineColor && Math::isAlmostZero(m_pen->getWidth() - m_lineWidth)) {
+				flagValidPen = sl_true;
+			}
+		}
+		if (!flagValidPen) {
+			m_pen = Pen::createSolidPen(m_lineWidth, m_lineColor);
+		}
+		canvas->drawLine(pts[0], pts[1], m_pen);
+	}
+
+	void MapViewLine::render(RenderEngine* engine, MapViewData* data, MapSurface* surface)
+	{
+		Double3 pts[2];
+		pts[0] = MapEarth::getCartesianPosition(m_startLocation.getValue(data));
+		pts[1] = MapEarth::getCartesianPosition(m_endLocation.getValue(data));
+		if (!(data->isEarthLineVisible(pts[0], pts[1]))) {
+			return;
+		}
+		Point vp1 = data->getViewPointFromEarthPoint(pts[0]);
+		Point vp2 = data->getViewPointFromEarthPoint(pts[1]);
+		data->renderLine(engine, vp1, vp2, m_lineColor, m_lineWidth);
 	}
 
 
@@ -3078,6 +3214,18 @@ namespace slib
 		engine->drawText((sl_real)(pt.x * 2.0 / m_state.viewportWidth - 1.0), (sl_real)(1.0 - pt.y * 2.0 / m_state.viewportHeight), (sl_real)(2.0 / m_state.viewportWidth), (sl_real)(2.0 / m_state.viewportHeight), text, atlas, color, align);
 	}
 
+	void MapViewData::renderLine(RenderEngine* engine, const Point& pt1, const Point& pt2, const Color& color, sl_real width)
+	{
+		Matrix3 mat;
+		Vector2 dir = pt2 - pt1;
+		mat = Transform2::getTranslationMatrix(-0.5f, -0.5f);
+		Transform2::scale(mat, width, dir.getLength());
+		mat *= Transform2::getTransformMatrixFromDirToDir(Vector2(0.0f, 1.0f), dir);
+		Transform2::scale(mat, (sl_real)(2.0 / m_state.viewportWidth), (sl_real)(- 2.0 / m_state.viewportHeight));
+		Transform2::translate(mat, (sl_real)((pt1.x + pt2.x) / m_state.viewportWidth - 1.0), (sl_real)(1.0 - (pt1.y + pt2.y) / m_state.viewportHeight));
+		engine->drawRectangle2D(mat, color);
+	}
+
 	sl_bool MapViewData::getLatLonFromViewPoint(const Double2& point, LatLon& _out) const
 	{
 		GeoLocation location;
@@ -3179,18 +3327,38 @@ namespace slib
 		return isEarthPointVisible(MapEarth::getCartesianPosition(location));
 	}
 
-	sl_bool MapViewData::isEarthPointVisible(const Double3& point) const
+	sl_bool MapViewData::isEarthPointAtFront(const Double3& point) const
 	{
-		// Check Distance
 		double e2 = m_state.eyePoint.getLength2p();
 		double r2 = MapEarth::getRadius();
 		r2 *= r2;
 		double p2 = (m_state.eyePoint - point).getLength2p();
-		if (p2 > e2 - r2) {
-			return sl_false;
+		return p2 < e2 - r2;
+	}
+
+	sl_bool MapViewData::isEarthPointVisible(const Double3& point) const
+	{
+		if (isEarthPointAtFront(point)) {
+			return m_state.viewFrustum.containsPoint(point);
 		}
-		// Check Frustum
-		return m_state.viewFrustum.containsPoint(point);
+		return sl_false;
+	}
+
+	sl_bool MapViewData::isEarthLineVisible(const Double3& point1, const Double3& point2) const
+	{
+		if (isEarthPointAtFront(point1) && isEarthPointAtFront(point2)) {
+			Double3 pts[] = { point1, point2 };
+			return m_state.viewFrustum.containsFacets(pts, 2);
+		}
+		return sl_false;
+	}
+
+	double MapViewData::getLengthBetween(const GeoLocation& location1, const GeoLocation& location2)
+	{
+		Double3 p1 = Earth::getCartesianPosition(location1);
+		Double3 p2 = Earth::getCartesianPosition(location2);
+		double angle = p1.getAngleBetween(p2);
+		return (p1.getLength() + p2.getLength()) / 2 * angle;
 	}
 
 	double MapViewData::getDegreeFromEarthLength(double length)
