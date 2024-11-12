@@ -84,9 +84,13 @@ namespace slib
 
 		sl_bool isLeaf();
 
+		sl_bool isVisible();
+
+		void setVisible(sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		sl_bool isOpened();
 
-		sl_bool isVisible();
+		sl_bool isVisibleState();
 
 		void open(UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -156,6 +160,10 @@ namespace slib
 
 		void setHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Ref<Cursor> getCursor();
+
+		void setCursor(const Ref<Cursor>& cursor);
+
 	public:
 		SLIB_PROPERTY_FUNCTION(void(TreeViewItem* item, TreeViewItem* former, UIEvent* /* nullable */), OnSelect)
 		SLIB_PROPERTY_FUNCTION(void(TreeViewItem* item, UIEvent*), OnClick)
@@ -175,12 +183,14 @@ namespace slib
 		void _redrawTree(UIUpdateMode mode);
 
 	private:
+		sl_bool m_flagVisible : 1;
+		sl_bool m_flagOpened : 1;
+
 		AtomicString m_id;
 		AtomicWeakRef<TreeView> m_tree;
 		AtomicWeakRef<TreeViewItem> m_parent;
 		sl_uint32 m_level;
 		CList< Ref<TreeViewItem> > m_children;
-		sl_bool m_flagOpened;
 		ViewStateMap< Ref<Drawable> > m_backgrounds;
 		ViewStateMap< Ref<Drawable> > m_closedIcons;
 		ViewStateMap< Ref<Drawable> > m_openedIcons;
@@ -191,6 +201,7 @@ namespace slib
 		ViewStateMap<Color> m_textColors;
 		AtomicString m_toolTip;
 		sl_ui_len m_height;
+		AtomicRef<Cursor> m_cursor;
 
 		UIRect m_frame;
 		sl_ui_pos m_bottomChildren;
@@ -312,6 +323,10 @@ namespace slib
 
 		void setTextIndent(sl_ui_pos indent, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Ref<Cursor> getItemCursor();
+
+		void setItemCursor(const Ref<Cursor>& cursor);
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(TreeView, SelectItem, TreeViewItem* item, TreeViewItem* former, UIEvent* ev /* nullable */)
 		SLIB_DECLARE_EVENT_HANDLER(TreeView, ClickItem, TreeViewItem* item, UIEvent* ev)
@@ -380,6 +395,7 @@ namespace slib
 		sl_ui_pos m_itemPadding;
 		sl_ui_pos m_itemIndent;
 		sl_ui_pos m_textIndent;
+		AtomicRef<Cursor> m_itemCursor;
 
 		AtomicRef<TreeViewItem> m_itemHover;
 		AtomicRef<TreeViewItem> m_itemSelected;

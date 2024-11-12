@@ -22,6 +22,7 @@
 
 #include "slib/ui/tree_view.h"
 
+#include "slib/ui/cursor.h"
 #include "slib/ui/priv/view_state_map.h"
 #include "slib/graphics/canvas.h"
 
@@ -72,8 +73,10 @@ namespace slib
 
 	TreeViewItem::TreeViewItem()
 	{
-		m_level = 0;
+		m_flagVisible = sl_true;
 		m_flagOpened = sl_false;
+
+		m_level = 0;
 		m_height = 0;
 
 		m_frame.setZero();
@@ -119,12 +122,9 @@ namespace slib
 		}
 		ListLocker< Ref<TreeViewItem> > children(m_children);
 		for (sl_size i = 0; i < children.count; i++) {
-			Ref<TreeViewItem> item = children[i];
+			Ref<TreeViewItem> item = children[i]->getItemById(_id);
 			if (item.isNotNull()) {
-				item = item->getItemById(_id);
-				if (item.isNotNull()) {
-					return item;
-				}
+				return item;
 			}
 		}
 		return sl_null;
@@ -207,7 +207,7 @@ namespace slib
 		}
 		_removeChild(item.get());
 		m_children.removeAt(index);
-		if (isVisible()) {
+		if (isVisibleState()) {
 			_relayoutTree(mode);
 		}
 	}
@@ -219,7 +219,7 @@ namespace slib
 		}
 		_removeChild(item.get());
 		m_children.remove(item);
-		if (isVisible()) {
+		if (isVisibleState()) {
 			_relayoutTree(mode);
 		}
 	}
@@ -231,7 +231,7 @@ namespace slib
 			_removeChild(children[i].get());
 		}
 		m_children.removeAll();
-		if (isVisible()) {
+		if (isVisibleState()) {
 			_relayoutTree(mode);
 		}
 	}
@@ -246,13 +246,36 @@ namespace slib
 		return m_children.isEmpty();
 	}
 
+	sl_bool TreeViewItem::isVisible()
+	{
+		return m_flagVisible;
+	}
+
+	void TreeViewItem::setVisible(sl_bool flagVisible, UIUpdateMode mode)
+	{
+		m_flagVisible = flagVisible;
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
+		Ref<TreeViewItem> parent = m_parent;
+		if (parent.isNull()) {
+			return;
+		}
+		if (parent->isVisibleState()) {
+			_relayoutTree(mode);
+		}
+	}
+
 	sl_bool TreeViewItem::isOpened()
 	{
 		return m_flagOpened;
 	}
 
-	sl_bool TreeViewItem::isVisible()
+	sl_bool TreeViewItem::isVisibleState()
 	{
+		if (!m_flagVisible) {
+			return sl_false;
+		}
 		Ref<TreeView> tree = m_tree;
 		if (tree.isNull()) {
 			return sl_false;
@@ -262,7 +285,7 @@ namespace slib
 			return sl_true;
 		}
 		if (parent->m_flagOpened) {
-			return parent->isVisible();
+			return parent->isVisibleState();
 		} else {
 			return sl_false;
 		}
@@ -502,6 +525,16 @@ namespace slib
 		}
 	}
 
+	Ref<Cursor> TreeViewItem::getCursor()
+	{
+		return m_cursor;
+	}
+
+	void TreeViewItem::setCursor(const Ref<Cursor>& cursor)
+	{
+		m_cursor = cursor;
+	}
+
 	void TreeViewItem::_addChild(TreeViewItem* item, UIUpdateMode mode)
 	{
 		item->m_parent = this;
@@ -509,7 +542,7 @@ namespace slib
 		if (tree.isNotNull()) {
 			item->_setTreeViewHierarchy(tree.get(), m_level + 1);
 		}
-		if (isVisible()) {
+		if (isVisibleState()) {
 			_relayoutTree(mode);
 		}
 	}
@@ -527,9 +560,7 @@ namespace slib
 		ListLocker< Ref<TreeViewItem> > children(m_children);
 		for (sl_size i = 0; i < children.count; i++) {
 			const Ref<TreeViewItem>& child = children[i];
-			if (child.isNotNull()) {
-				child->_setTreeViewHierarchy(view, level + 1);
-			}
+			child->_setTreeViewHierarchy(view, level + 1);
 		}
 	}
 
@@ -985,6 +1016,16 @@ namespace slib
 		_redrawContent(mode);
 	}
 
+	Ref<Cursor> TreeView::getItemCursor()
+	{
+		return m_itemCursor;
+	}
+
+	void TreeView::setItemCursor(const Ref<Cursor>& cursor)
+	{
+		m_itemCursor = cursor;
+	}
+
 	void TreeView::onDraw(Canvas* canvas)
 	{
 		if (m_flagInvalidTreeLayout) {
@@ -1127,7 +1168,7 @@ namespace slib
 			ListLocker< Ref<TreeViewItem> > children(item->m_children);
 			for (sl_size i = 0; i < children.count; i++) {
 				const Ref<TreeViewItem>& child = children[i];
-				if (child.isNotNull()) {
+				if (child->isVisible()) {
 					_makeLayoutItem(child.get(), top, left, right, textHeight, sl_false);
 				}
 			}
@@ -1279,7 +1320,7 @@ namespace slib
 			ListLocker< Ref<TreeViewItem> > children(item->m_children);
 			for (sl_size i = 0; i < children.count; i++) {
 				const Ref<TreeViewItem>& child = children[i];
-				if (child.isNotNull()) {
+				if (child->isVisible()) {
 					_drawItem(canvas, child.get(), font, sl_false);
 				}
 			}
@@ -1378,6 +1419,15 @@ namespace slib
 							_redrawContent(UIUpdateMode::Redraw);
 						}
 					} else if (action == UIAction::SetCursor) {
+						Ref<Cursor> cursor = item->getCursor();
+						if (cursor.isNotNull()) {
+							ev->setCursor(cursor);
+						} else {
+							cursor = m_itemCursor;
+							if (cursor.isNotNull()) {
+								ev->setCursor(cursor);
+							}
+						}
 						String toolTip = item->getToolTip();
 						if (toolTip.isNotNull()) {
 							ev->setToolTip((sl_uint64)((void*)item), toolTip);
@@ -1391,7 +1441,7 @@ namespace slib
 			ListLocker< Ref<TreeViewItem> > children(item->m_children);
 			for (sl_size i = 0; i < children.count; i++) {
 				const Ref<TreeViewItem>& child = children[i];
-				if (child.isNotNull()) {
+				if (child->isVisible()) {
 					if (child->m_frame.top <= y && y < child->m_bottomChildren) {
 						_processMouseEventItem(ev, flagClick, child.get(), sl_false);
 						return;

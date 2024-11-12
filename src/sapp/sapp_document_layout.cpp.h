@@ -4302,6 +4302,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemPadding, setItemPadding, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemIndent, setItemIndent, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, textIndent, setTextIndent, checkPosition)
+		LAYOUT_CONTROL_ATTR(GENERIC, itemCursor, setItemCursor)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
@@ -4368,6 +4369,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconHeight, setIconHeight, checkScalarSize)
 		LAYOUT_CONTROL_ATTR(STRING, toolTip, setToolTip)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, height, setHeight, checkScalarSize)
+		LAYOUT_CONTROL_ATTR(GENERIC, cursor, setCursor)
 		if (op == SAppLayoutOperation::Parse) {
 			LAYOUT_CONTROL_PARSE_ATTR(GENERIC, attr->, opened)
 			LAYOUT_CONTROL_PARSE_ATTR(GENERIC, attr->, selected)

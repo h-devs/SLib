@@ -765,6 +765,7 @@ namespace slib
 		SAppDimensionValue iconHeight;
 		SAppStringValue toolTip;
 		SAppDimensionValue height;
+		SAppCursorValue cursor;
 		SAppBooleanValue opened;
 		SAppBooleanValue selected;
 	};
@@ -786,6 +787,7 @@ namespace slib
 		SAppDimensionValue itemPadding;
 		SAppDimensionValue itemIndent;
 		SAppDimensionValue textIndent;
+		SAppCursorValue itemCursor;
 	};
 
 	struct SAppLayoutSplitItem
