@@ -323,6 +323,15 @@ namespace slib
 		return prepareStatement(sql);
 	}
 
+	sl_int64 Database::deleteRecords(const DatabaseIdentifier& table, const DatabaseExpression& where)
+	{
+		Ref<DatabaseStatement> stmt = prepareDelete(table, where);
+		if (stmt.isNotNull()) {
+			return stmt->executeBy(sl_null, 0);
+		}
+		return -1;
+	}
+
 	Ref<DatabaseStatement> Database::prepareQuery(const SelectParam& param)
 	{
 		SqlBuilder builder(m_dialect);

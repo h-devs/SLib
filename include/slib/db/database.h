@@ -197,6 +197,22 @@ namespace slib
 
 		Ref<DatabaseStatement> prepareUpdate(const DatabaseIdentifier& table, const ListParam<String>& columns, const DatabaseExpression& where);
 
+		template <class MAP>
+		sl_int64 update(const DatabaseIdentifier& table, const MAP& map, const DatabaseExpression& where)
+		{
+			List<String> names;
+			List<Variant> values;
+			for (auto&& pair : map) {
+				names.add_NoLock(pair.key);
+				values.add_NoLock(pair.value);
+			}
+			Ref<DatabaseStatement> stmt = prepareUpdate(table, names, where);
+			if (stmt.isNotNull()) {
+				return stmt->executeBy(values.getData(), values.getCount());
+			}
+			return -1;
+		}
+
 		template <class MAP, class... ARGS>
 		sl_int64 update(const DatabaseIdentifier& table, const MAP& map, const DatabaseExpression& where, ARGS&&... args)
 		{
@@ -219,6 +235,8 @@ namespace slib
 		}
 
 		Ref<DatabaseStatement> prepareDelete(const DatabaseIdentifier& table, const DatabaseExpression& where);
+
+		sl_int64 deleteRecords(const DatabaseIdentifier& table, const DatabaseExpression& where);
 
 		template <class... ARGS>
 		sl_int64 deleteRecords(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
