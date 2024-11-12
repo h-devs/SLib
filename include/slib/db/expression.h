@@ -81,7 +81,7 @@ namespace slib
 		static DatabaseExpression function(const String& name, const ListParam<DatabaseExpression>& params);
 
 		template <class... ARGS>
-		DatabaseExpression function(const String& name, const DatabaseExpression& param, ARGS&&... args)
+		static DatabaseExpression function(const String& name, const DatabaseExpression& param, ARGS&&... args)
 		{
 			DatabaseExpression params[] = { param, Forward<ARGS>(args)... };
 			return function(name, ListParam<DatabaseExpression>(params));
