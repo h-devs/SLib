@@ -41,33 +41,12 @@ namespace slib
 		class FontStaticContext
 		{
 		public:
-			Gdiplus::Bitmap* image;
-			Gdiplus::Graphics* graphics;
 			CHashMap< String, SharedPtr<Gdiplus::PrivateFontCollection> > fontCollections;
 
 		public:
 			FontStaticContext()
 			{
-				graphics = sl_null;
-
 				GraphicsPlatform::startGdiplus();
-				image = new Gdiplus::Bitmap(1, 1, PixelFormat24bppRGB);
-				if (image) {
-					graphics = new Gdiplus::Graphics(image);
-					if (graphics) {
-						graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
-					}
-				}
-			}
-
-			~FontStaticContext()
-			{
-				if (graphics) {
-					delete graphics;
-				}
-				if (image) {
-					delete image;
-				}
 			}
 
 		public:
@@ -335,13 +314,13 @@ namespace slib
 		if (!handle) {
 			return sl_false;
 		}
-		if (!(fs->graphics)) {
-			return sl_false;
-		}
+		Gdiplus::Bitmap bitmap(1, 1, PixelFormat24bppRGB);
+		Gdiplus::Graphics graphics(&bitmap);
+		graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
 		StringData16 text(_text);
 		Gdiplus::RectF bound;
 		Gdiplus::PointF origin(0.0f, 0.0f);
-		Gdiplus::Status result = fs->graphics->MeasureString((WCHAR*)(text.getData()), (INT)(text.getLength()), handle, origin, Gdiplus::StringFormat::GenericTypographic(), &bound);
+		Gdiplus::Status result = graphics.MeasureString((WCHAR*)(text.getData()), (INT)(text.getLength()), handle, origin, Gdiplus::StringFormat::GenericTypographic(), &bound);
 		if (result != Gdiplus::Ok) {
 			return sl_false;
 		}
