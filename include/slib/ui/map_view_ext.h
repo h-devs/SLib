@@ -602,14 +602,26 @@ namespace slib
 
 		void clearMaximumEyeAltitude();
 
-		sl_bool canDraw(MapViewData* data, MapPlane* plane);
+		String getToolTip();
 
-		sl_bool canRender(MapViewData* data, MapSurface* surface);
+		void setToolTip(const String& toolTip);
+
+		Ref<Cursor> getCursor();
+
+		void setCursor(const Ref<Cursor>& cursor);
+
+		sl_bool isVisibleState(MapViewData* data, MapPlane* plane);
 
 	public:
 		virtual void draw(Canvas* canvas, MapViewData* data, MapPlane* plane);
 
 		virtual void render(RenderEngine* engine, MapViewData* data, MapSurface* surface);
+
+		virtual Ref<MapViewObject> getObjectAt(MapViewData* data, MapPlane* plane, const Point& pt);
+
+	public:
+		SLIB_PROPERTY_FUNCTION(void(const Point& pt), OnClick)
+		SLIB_PROPERTY_FUNCTION(void(const Point& pt), OnRightButtonClick)
 
 	protected:
 		sl_bool m_flagVisible : 1;
@@ -618,6 +630,8 @@ namespace slib
 		sl_bool m_flagOverlay : 1;
 		sl_bool m_flagMaxEyeAltitude : 1;
 		double m_maxEyeAltitude;
+		AtomicString m_toolTip;
+		AtomicRef<Cursor> m_cursor;
 	};
 
 	class SLIB_EXPORT MapViewObjectList : public MapViewObject
@@ -630,13 +644,16 @@ namespace slib
 		~MapViewObjectList();
 
 	public:
+		void addChild(const Ref<MapViewObject>& child);
+
+		void removeAll();
+
+	public:
 		void draw(Canvas* canvas, MapViewData* data, MapPlane* plane) override;
 
 		void render(RenderEngine* engine, MapViewData* data, MapSurface* surface) override;
 
-		void addChild(const Ref<MapViewObject>& child);
-
-		void removeAll();
+		Ref<MapViewObject> getObjectAt(MapViewData* data, MapPlane* plane, const Point& pt) override;
 
 	protected:
 		List< Ref<MapViewObject> > m_children;
@@ -714,9 +731,15 @@ namespace slib
 		void setTextColor(const Color& color);
 
 	public:
+		virtual sl_bool canDraw(MapViewData* data, MapPlane* plane, const Point& ptView);
+
 		void draw(Canvas* canvas, MapViewData* data, MapPlane* plane) override;
 
+		virtual sl_bool canRender(MapViewData* data, MapSurface* surface, const Double3& pt);
+
 		void render(RenderEngine* engine, MapViewData* data, MapSurface* surface) override;
+
+		Ref<MapViewObject> getObjectAt(MapViewData* data, MapPlane* plane, const Point& pt) override;
 
 		sl_bool isBeingDrawn(MapViewData* data);
 

@@ -151,6 +151,8 @@ namespace slib
 
 		void putObject(const String& name, const Ref<MapViewObject>& object, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Ref<MapViewObject> getObjectAt(const Point& pt);
+
 		const MapViewState& getMapState() const;
 
 		MapViewState& getMapState();
@@ -166,6 +168,8 @@ namespace slib
 		void zoomAt(const Double2& point, double scale, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void click(const Double2& pt, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void rightClick(const Double2& pt, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void stopMoving();
 
@@ -205,6 +209,8 @@ namespace slib
 		double getAltitudeAt(const LatLon& location) const;
 
 		GeoLocation getLocationFromLatLon(const LatLon& location) const;
+
+		sl_bool isLocationAtFront(const GeoLocation& location) const;
 
 		sl_bool isLocationVisible(const GeoLocation& location) const;
 
@@ -417,6 +423,8 @@ namespace slib
 		void onMouseWheelEvent(UIEvent* ev) override;
 
 		void onKeyEvent(UIEvent* ev) override;
+
+		void onSetCursor(UIEvent* ev) override;
 
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 

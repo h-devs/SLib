@@ -33,6 +33,7 @@
 #include "slib/math/transform3d.h"
 #include "slib/ui/core.h"
 #include "slib/ui/resource.h"
+#include "slib/ui/cursor.h"
 #include "slib/ui/priv/view_state_map.h"
 #include "slib/core/thread_pool.h"
 #include "slib/core/stringify.h"
@@ -2121,33 +2122,49 @@ namespace slib
 		m_flagMaxEyeAltitude = sl_false;
 	}
 
-	sl_bool MapViewObject::canDraw(MapViewData* data, MapPlane* plane)
+	String MapViewObject::getToolTip()
 	{
-		if (!m_flagSupportPlane) {
-			return sl_false;
-		}
-		if (!m_flagVisible) {
-			return sl_false;
-		}
-		if (m_flagMaxEyeAltitude) {
-			if (plane->getEyeLocation().altitude > m_maxEyeAltitude) {
+		return m_toolTip;
+	}
+
+	void MapViewObject::setToolTip(const String& toolTip)
+	{
+		m_toolTip = toolTip;
+	}
+
+	Ref<Cursor> MapViewObject::getCursor()
+	{
+		return m_cursor;
+	}
+
+	void MapViewObject::setCursor(const Ref<Cursor>& cursor)
+	{
+		m_cursor = cursor;
+	}
+
+	sl_bool MapViewObject::isVisibleState(MapViewData* data, MapPlane* plane)
+	{
+		if (plane) {
+			if (!m_flagSupportPlane) {
+				return sl_false;
+			}
+		} else {
+			if (!m_flagSupportGlobe) {
 				return sl_false;
 			}
 		}
-		return sl_true;
-	}
-
-	sl_bool MapViewObject::canRender(MapViewData* data, MapSurface* surface)
-	{
-		if (!m_flagSupportGlobe) {
-			return sl_false;
-		}
 		if (!m_flagVisible) {
 			return sl_false;
 		}
 		if (m_flagMaxEyeAltitude) {
-			if (data->getMapState().eyeLocation.altitude > m_maxEyeAltitude) {
-				return sl_false;
+			if (plane) {
+				if (plane->getEyeLocation().altitude > m_maxEyeAltitude) {
+					return sl_false;
+				}
+			} else {
+				if (data->getMapState().eyeLocation.altitude > m_maxEyeAltitude) {
+					return sl_false;
+				}
 			}
 		}
 		return sl_true;
@@ -2159,6 +2176,11 @@ namespace slib
 
 	void MapViewObject::render(RenderEngine* engine, MapViewData* data, MapSurface* surface)
 	{
+	}
+
+	Ref<MapViewObject> MapViewObject::getObjectAt(MapViewData* data, MapPlane* plane, const Point& pt)
+	{
+		return sl_null;
 	}
 
 	SLIB_DEFINE_OBJECT(MapViewObjectList, MapViewObject)
@@ -2173,13 +2195,25 @@ namespace slib
 	{
 	}
 
+	void MapViewObjectList::addChild(const Ref<MapViewObject>& child)
+	{
+		ObjectLocker lock(this);
+		m_children.add_NoLock(child);
+	}
+
+	void MapViewObjectList::removeAll()
+	{
+		ObjectLocker lock(this);
+		m_children.removeAll_NoLock();
+	}
+
 	void MapViewObjectList::draw(Canvas* canvas, MapViewData* data, MapPlane* plane)
 	{
 		ObjectLocker lock(this);
 		ListElements< Ref<MapViewObject> > children(m_children);
 		for (sl_size i = 0; i < children.count; i++) {
 			Ref<MapViewObject>& child = children[i];
-			if (child->canDraw(data, plane)) {
+			if (child->isVisibleState(data, plane)) {
 				child->draw(canvas, data, plane);
 			}
 		}
@@ -2192,7 +2226,7 @@ namespace slib
 		ListElements< Ref<MapViewObject> > children(m_children);
 		for (sl_size i = 0; i < children.count; i++) {
 			Ref<MapViewObject>& child = children[i];
-			if (child->canRender(data, surface)) {
+			if (child->isVisibleState(data, sl_null)) {
 				if (child->isOverlay()) {
 					engine->setDepthStencilState(state.overlayDepthState);
 					engine->setBlendState(state.overlayBlendState);
@@ -2207,16 +2241,20 @@ namespace slib
 		}
 	}
 
-	void MapViewObjectList::addChild(const Ref<MapViewObject>& child)
+	Ref<MapViewObject> MapViewObjectList::getObjectAt(MapViewData* data, MapPlane* plane, const Point& pt)
 	{
 		ObjectLocker lock(this);
-		m_children.add_NoLock(child);
-	}
-
-	void MapViewObjectList::removeAll()
-	{
-		ObjectLocker lock(this);
-		m_children.removeAll_NoLock();
+		ListElements< Ref<MapViewObject> > children(m_children);
+		for (sl_size i = 0; i < children.count; i++) {
+			Ref<MapViewObject>& child = children[children.count - 1 - i];
+			if (child->isVisibleState(data, plane)) {
+				Ref<MapViewObject> obj = child->getObjectAt(data, plane, pt);
+				if (obj.isNotNull()) {
+					return obj;
+				}
+			}
+		}
+		return sl_null;
 	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MapViewObjectLocation)
@@ -2327,13 +2365,18 @@ namespace slib
 		m_textColor = color;
 	}
 
-	void MapViewSprite::draw(Canvas* canvas, MapViewData* data, MapPlane* plane)
+	sl_bool MapViewSprite::canDraw(MapViewData* data, MapPlane* plane, const Point& pt)
 	{
-		Point pt = plane->getViewPointFromMapLocation(plane->getMapLocationFromLatLon(m_location.getValue()));
 		sl_real w = m_size.x / 2.0f;
 		sl_real h = m_size.y / 2.0f;
 		Rectangle rc(pt.x - w, pt.y - h, pt.x + w, pt.y + h);
-		if (!(plane->getViewport().intersect(rc))) {
+		return plane->getViewport().intersect(rc);
+	}
+
+	void MapViewSprite::draw(Canvas* canvas, MapViewData* data, MapPlane* plane)
+	{
+		Point pt = plane->getViewPointFromMapLocation(plane->getMapLocationFromLatLon(m_location.getValue()));
+		if (!(canDraw(data, plane, pt))) {
 			return;
 		}
 		m_viewPoint = pt;
@@ -2341,15 +2384,32 @@ namespace slib
 		onDrawSprite(canvas, data, plane);
 	}
 
+	sl_bool MapViewSprite::canRender(MapViewData* data, MapSurface* surface, const Double3& pt)
+	{
+		return data->isEarthPointVisible(pt);
+	}
+
 	void MapViewSprite::render(RenderEngine* engine, MapViewData* data, MapSurface* surface)
 	{
 		Double3 pointEarth = MapEarth::getCartesianPosition(getLocation(data));
-		if (!(data->isEarthPointVisible(pointEarth))) {
+		if (!(canRender(data, surface, pointEarth))) {
 			return;
 		}
 		m_viewPoint = data->getViewPointFromEarthPoint(pointEarth);
 		onPreDrawOrRender(data);
 		onRenderSprite(engine, data, surface);
+	}
+
+	Ref<MapViewObject> MapViewSprite::getObjectAt(MapViewData* data, MapPlane* plane, const Point& pt)
+	{
+		sl_real w = m_size.x / 2.0f;
+		sl_real h = m_size.y / 2.0f;
+		Rectangle rc(m_viewPoint.x - w, m_viewPoint.y - h, m_viewPoint.x + w, m_viewPoint.y + h);
+		if (rc.containsPoint(pt)) {
+			return this;
+		} else {
+			return sl_null;
+		}
 	}
 
 	sl_bool MapViewSprite::isBeingDrawn(MapViewData* data)
@@ -2937,6 +2997,29 @@ namespace slib
 		invalidate(mode);
 	}
 
+	Ref<MapViewObject> MapViewData::getObjectAt(const Point& pt)
+	{
+		MutexLocker locker(&m_lock);
+		Ref<MapPlane> plane;
+		if (!m_flagGlobeMode) {
+			plane = m_plane;
+			if (plane.isNull()) {
+				return sl_null;
+			}
+		}
+		auto node = m_objects.getLastNode();
+		while (node) {
+			if (node->value->isVisibleState(this, plane.get())) {
+				Ref<MapViewObject> obj = node->value->getObjectAt(this, plane.get(), pt);
+				if (obj.isNotNull()) {
+					return obj;
+				}
+			}
+			node = node->previous;
+		}
+		return sl_null;
+	}
+
 	const MapViewState& MapViewData::getMapState() const
 	{
 		return m_state;
@@ -3072,6 +3155,19 @@ namespace slib
 
 	void MapViewData::click(const Double2& pt, UIUpdateMode mode)
 	{
+		Ref<MapViewObject> obj = getObjectAt(pt);
+		if (obj.isNotNull()) {
+			obj->getOnClick()(pt);
+		}
+		invalidate(mode);
+	}
+
+	void MapViewData::rightClick(const Double2& pt, UIUpdateMode mode)
+	{
+		Ref<MapViewObject> obj = getObjectAt(pt);
+		if (obj.isNotNull()) {
+			obj->getOnRightButtonClick()(pt);
+		}
 		invalidate(mode);
 	}
 
@@ -3176,7 +3272,7 @@ namespace slib
 			auto node = m_objects.getFirstNode();
 			while (node) {
 				Ref<MapViewObject>& object = node->value;
-				if (object->canDraw(this, plane)) {
+				if (object->isVisibleState(this, plane)) {
 					object->draw(canvas, this, plane);
 				}
 				node = node->next;
@@ -3218,7 +3314,7 @@ namespace slib
 			auto node = m_objects.getFirstNode();
 			while (node) {
 				Ref<MapViewObject>& object = node->value;
-				if (object->canRender(this, surface)) {
+				if (object->isVisibleState(this, sl_null)) {
 					if (object->isOverlay()) {
 						engine->setDepthStencilState(m_state.overlayDepthState);
 						engine->setBlendState(m_state.overlayBlendState);
@@ -3370,6 +3466,11 @@ namespace slib
 	GeoLocation MapViewData::getLocationFromLatLon(const LatLon& location) const
 	{
 		return GeoLocation(location, getAltitudeAt(location));
+	}
+
+	sl_bool MapViewData::isLocationAtFront(const GeoLocation& location) const
+	{
+		return isEarthPointAtFront(MapEarth::getCartesianPosition(location));
 	}
 
 	sl_bool MapViewData::isLocationVisible(const GeoLocation& location) const
@@ -4055,6 +4156,7 @@ namespace slib
 				if (isFocusable()) {
 					setFocus();
 				}
+				rightClick(pt);
 				break;
 			case UIAction::RightButtonDrag:
 				{
@@ -4107,6 +4209,21 @@ namespace slib
 			}
 		}
 		RenderView::onKeyEvent(ev);
+	}
+
+	void MapView::onSetCursor(UIEvent* ev)
+	{
+		Ref<MapViewObject> obj = getObjectAt(ev->getPoint());
+		if (obj.isNotNull()) {
+			Ref<Cursor> cursor = obj->getCursor();
+			if (cursor.isNotNull()) {
+				ev->setCursor(cursor);
+			}
+			String toolTip = obj->getToolTip();
+			if (toolTip.isNotNull()) {
+				ev->setToolTip((sl_uint64)((void*)(obj.get())), toolTip);
+			}
+		}
 	}
 
 	void MapView::onResize(sl_ui_len width, sl_ui_len height)
