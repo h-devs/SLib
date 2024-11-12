@@ -2057,6 +2057,8 @@ namespace slib
 		m_flagSupportGlobe = sl_false;
 		m_flagSupportPlane = sl_false;
 		m_flagOverlay = sl_false;
+		m_flagMaxEyeAltitude = sl_false;
+		m_maxEyeAltitude = 0.0;
 	}
 
 	MapViewObject::~MapViewObject()
@@ -2103,6 +2105,54 @@ namespace slib
 		m_flagOverlay = flag;
 	}
 
+	double MapViewObject::getMaximumEyeAltitude()
+	{
+		return m_maxEyeAltitude;
+	}
+
+	void MapViewObject::setMaximumEyeAltitude(double altitude)
+	{
+		m_maxEyeAltitude = altitude;
+		m_flagMaxEyeAltitude = sl_true;
+	}
+
+	void MapViewObject::clearMaximumEyeAltitude()
+	{
+		m_flagMaxEyeAltitude = sl_false;
+	}
+
+	sl_bool MapViewObject::canDraw(MapViewData* data, MapPlane* plane)
+	{
+		if (!m_flagSupportPlane) {
+			return sl_false;
+		}
+		if (!m_flagVisible) {
+			return sl_false;
+		}
+		if (m_flagMaxEyeAltitude) {
+			if (plane->getEyeLocation().altitude > m_maxEyeAltitude) {
+				return sl_false;
+			}
+		}
+		return sl_true;
+	}
+
+	sl_bool MapViewObject::canRender(MapViewData* data, MapSurface* surface)
+	{
+		if (!m_flagSupportGlobe) {
+			return sl_false;
+		}
+		if (!m_flagVisible) {
+			return sl_false;
+		}
+		if (m_flagMaxEyeAltitude) {
+			if (data->getMapState().eyeLocation.altitude > m_maxEyeAltitude) {
+				return sl_false;
+			}
+		}
+		return sl_true;
+	}
+
 	void MapViewObject::draw(Canvas* canvas, MapViewData* data, MapPlane* plane)
 	{
 	}
@@ -2129,7 +2179,7 @@ namespace slib
 		ListElements< Ref<MapViewObject> > children(m_children);
 		for (sl_size i = 0; i < children.count; i++) {
 			Ref<MapViewObject>& child = children[i];
-			if (child->isVisible() && child->isSupportingPlaneMode()) {
+			if (child->canDraw(data, plane)) {
 				child->draw(canvas, data, plane);
 			}
 		}
@@ -2142,7 +2192,7 @@ namespace slib
 		ListElements< Ref<MapViewObject> > children(m_children);
 		for (sl_size i = 0; i < children.count; i++) {
 			Ref<MapViewObject>& child = children[i];
-			if (child->isVisible() && child->isSupportingPlaneMode()) {
+			if (child->canRender(data, surface)) {
 				if (child->isOverlay()) {
 					engine->setDepthStencilState(state.overlayDepthState);
 					engine->setBlendState(state.overlayBlendState);
@@ -3126,7 +3176,7 @@ namespace slib
 			auto node = m_objects.getFirstNode();
 			while (node) {
 				Ref<MapViewObject>& object = node->value;
-				if (object->isVisible() && object->isSupportingPlaneMode()) {
+				if (object->canDraw(this, plane)) {
 					object->draw(canvas, this, plane);
 				}
 				node = node->next;
@@ -3168,7 +3218,7 @@ namespace slib
 			auto node = m_objects.getFirstNode();
 			while (node) {
 				Ref<MapViewObject>& object = node->value;
-				if (object->isVisible() && object->isSupportingGlobeMode()) {
+				if (object->canRender(this, surface)) {
 					if (object->isOverlay()) {
 						engine->setDepthStencilState(m_state.overlayDepthState);
 						engine->setBlendState(m_state.overlayBlendState);

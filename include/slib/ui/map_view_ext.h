@@ -596,6 +596,16 @@ namespace slib
 
 		void setOverlay(sl_bool flag = sl_true);
 
+		double getMaximumEyeAltitude();
+
+		void setMaximumEyeAltitude(double altitude);
+
+		void clearMaximumEyeAltitude();
+
+		sl_bool canDraw(MapViewData* data, MapPlane* plane);
+
+		sl_bool canRender(MapViewData* data, MapSurface* surface);
+
 	public:
 		virtual void draw(Canvas* canvas, MapViewData* data, MapPlane* plane);
 
@@ -606,6 +616,8 @@ namespace slib
 		sl_bool m_flagSupportGlobe : 1;
 		sl_bool m_flagSupportPlane : 1;
 		sl_bool m_flagOverlay : 1;
+		sl_bool m_flagMaxEyeAltitude : 1;
+		double m_maxEyeAltitude;
 	};
 
 	class SLIB_EXPORT MapViewObjectList : public MapViewObject
