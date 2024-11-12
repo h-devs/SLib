@@ -125,9 +125,23 @@ namespace slib
 	VariantList DatabaseModel::getRecords(sl_uint64 index, sl_size count)
 	{
 		ObjectLocker lock(this);
-		m_query->offset = index;
-		m_query->limit = count;
-		Ref<DatabaseStatement> stmt = m_db->prepareQuery(*m_query);
+		Database::SelectParam query = *m_query;
+		if (query.offset || query.limit) {
+			query.offset = query.offset + index;
+			if (query.limit) {
+				if (index >= query.limit) {
+					return sl_null;
+				}
+				if (index + count > query.limit) {
+					count = query.limit - index;
+				}
+			}
+			query.limit = count;
+		} else {
+			query.offset = index;
+			query.limit = count;
+		}
+		Ref<DatabaseStatement> stmt = m_db->prepareQuery(query);
 		if (stmt.isNotNull()) {
 			Ref<DatabaseCursor> cursor = stmt->queryBy(m_params);
 			if (cursor.isNotNull()) {
@@ -144,13 +158,26 @@ namespace slib
 	sl_uint64 DatabaseModel::getRecordCount()
 	{
 		ObjectLocker lock(this);
-		m_query->offset = 0;
-		m_query->limit = 0;
-		List<DatabaseColumn> columns = m_query->columns.toList();
-		m_query->columns = List<DatabaseColumn>::createFromElement(DatabaseExpression::count());
-		sl_uint64 count = m_db->findValueBy(*m_query, m_params).getUint64();
-		m_query->columns = Move(columns);
-		return count;
+		Database::SelectParam query = *m_query;
+		sl_uint64 offset = query.offset;
+		sl_uint64 limit = query.limit;
+		query.columns = List<DatabaseColumn>::createFromElement(DatabaseExpression::count());
+		query.offset = 0;
+		query.limit = 0;
+		sl_uint64 count = m_db->findValueBy(query, m_params).getUint64();
+		if (offset || limit) {
+			if (count <= offset) {
+				return 0;
+			}
+			if (limit) {
+				if (limit < count - offset) {
+					return limit;
+				}
+			}
+			return count - offset;
+		} else {
+			return count;
+		}
 	}
 
 	sl_bool DatabaseModel::isSortable()
