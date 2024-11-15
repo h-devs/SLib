@@ -132,13 +132,14 @@ namespace slib
 				if (index >= query.limit) {
 					return sl_null;
 				}
-				if (index + count > query.limit) {
+				if (count > query.limit - index) {
 					count = query.limit - index;
 				}
 			}
-			query.limit = count;
 		} else {
 			query.offset = index;
+		}
+		if (count != SLIB_SIZE_MAX) {
 			query.limit = count;
 		}
 		Ref<DatabaseStatement> stmt = m_db->prepareQuery(query);

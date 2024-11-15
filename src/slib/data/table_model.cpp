@@ -71,9 +71,8 @@ namespace slib
 	VariantList TableModel::getRecords(sl_uint64 index, sl_size count)
 	{
 		VariantList ret;
-		sl_uint64 end = index + count;
-		for (sl_uint64 i = index; i < end; i++) {
-			Variant record = getRecord(i);
+		for (sl_uint64 i = 0; i < count; i++) {
+			Variant record = getRecord(index + i);
 			if (record.isUndefined()) {
 				break;
 			}
