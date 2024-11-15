@@ -1147,6 +1147,8 @@ namespace slib
 			if (content.isNotNull()) {
 				if (content->getHeight() != top) {
 					content->setHeight(top, UIUpdateMode::Redraw);
+				} else {
+					content->invalidate();
 				}
 			}
 		}
