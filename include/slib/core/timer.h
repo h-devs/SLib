@@ -44,17 +44,17 @@ namespace slib
 	public:
 		static Ref<Timer> create(const Function<void(Timer*)>& task, sl_uint64 interval_ms);
 
-		static Ref<Timer> start(const Function<void(Timer*)>& task, sl_uint64 interval_ms);
+		static Ref<Timer> start(const Function<void(Timer*)>& task, sl_uint64 interval_ms, sl_bool flagRunImmediately = sl_false);
 
 		static Ref<Timer> createWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
 
-		static Ref<Timer> startWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
+		static Ref<Timer> startWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms, sl_bool flagRunImmediately = sl_false);
 
 		// use `createWithLoop` for `DispatchLoop`
 		static Ref<Timer> createWithDispatcher(const Ref<Dispatcher>& dispatcher, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
 
 		// use `startWithLoop` for `DispatchLoop`
-		static Ref<Timer> startWithDispatcher(const Ref<Dispatcher>& dispatcher, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
+		static Ref<Timer> startWithDispatcher(const Ref<Dispatcher>& dispatcher, const Function<void(Timer*)>& task, sl_uint64 interval_ms, sl_bool flagRunImmediately = sl_false);
 
 	public:
 		sl_uint64 getLastRunTime();
@@ -67,7 +67,7 @@ namespace slib
 		void setMaxConcurrentThread(sl_uint32 n);
 
 
-		void start();
+		void start(sl_bool flagRunImmediately = sl_false);
 
 		void stop();
 

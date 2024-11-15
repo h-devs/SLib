@@ -35,11 +35,10 @@ namespace slib
 		m_flagStarted = sl_false;
 		m_nCountRun = 0;
 
-		m_flagDispatched = sl_false;
-
 		m_lastRunTime = 0;
 		m_maxConcurrentThread = 1;
 
+		m_flagDispatched = sl_false;
 	}
 
 	Timer::~Timer()
@@ -69,9 +68,9 @@ namespace slib
 		return Timer::_createWithLoop(DispatchLoop::getDefault(), task, interval_ms);
 	}
 
-	Ref<Timer> Timer::start(const Function<void(Timer*)>& task, sl_uint64 interval_ms)
+	Ref<Timer> Timer::start(const Function<void(Timer*)>& task, sl_uint64 interval_ms, sl_bool flagRunImmediately)
 	{
-		return Timer::startWithLoop(sl_null, task, interval_ms);
+		return Timer::startWithLoop(sl_null, task, interval_ms, flagRunImmediately);
 	}
 
 	Ref<Timer> Timer::createWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms)
@@ -83,11 +82,11 @@ namespace slib
 		}
 	}
 
-	Ref<Timer> Timer::startWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms)
+	Ref<Timer> Timer::startWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms, sl_bool flagRunImmediately)
 	{
 		Ref<Timer> timer = Timer::createWithLoop(loop, task, interval_ms);
 		if (timer.isNotNull()) {
-			timer->start();
+			timer->start(flagRunImmediately);
 			return timer;
 		}
 		return sl_null;
@@ -113,11 +112,11 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<Timer> Timer::startWithDispatcher(const Ref<Dispatcher>& dispatcher, const Function<void(Timer*)>& task, sl_uint64 interval_ms)
+	Ref<Timer> Timer::startWithDispatcher(const Ref<Dispatcher>& dispatcher, const Function<void(Timer*)>& task, sl_uint64 interval_ms, sl_bool flagRunImmediately)
 	{
 		Ref<Timer> timer = Timer::createWithDispatcher(dispatcher, task, interval_ms);
 		if (timer.isNotNull()) {
-			timer->start();
+			timer->start(flagRunImmediately);
 			return timer;
 		}
 		return sl_null;
@@ -143,23 +142,31 @@ namespace slib
 		m_maxConcurrentThread = n;
 	}
 
-	void Timer::start()
+	void Timer::start(sl_bool flagRunImmediately)
 	{
 		ObjectLocker lock(this);
-		if (!m_flagStarted) {
-			if (m_dispatcher.isNotNull()) {
+		if (m_flagStarted) {
+			return;
+		}
+		if (m_dispatcher.isNotNull()) {
+			m_flagStarted = sl_true;
+			if (!m_flagDispatched) {
+				m_flagDispatched = sl_true;
+				lock.unlock();
+				if (flagRunImmediately) {
+					m_task(this);
+				}
+				m_dispatcher->dispatch(SLIB_FUNCTION_WEAKREF(this, _runFromDispatcher), m_interval);
+			}
+		} else {
+			Ref<DispatchLoop> loop = m_loop;
+			if (loop.isNotNull()) {
 				m_flagStarted = sl_true;
-				if (!m_flagDispatched) {
-					m_flagDispatched = sl_true;
-					m_dispatcher->dispatch(SLIB_FUNCTION_WEAKREF(this, _runFromDispatcher), m_interval);
+				lock.unlock();
+				if (flagRunImmediately) {
+					m_task(this);
 				}
-			} else {
-				Ref<DispatchLoop> loop = m_loop;
-				if (loop.isNotNull()) {
-					m_flagStarted = sl_true;
-					lock.unlock();
-					loop->addTimer(this);
-				}
+				loop->addTimer(this);
 			}
 		}
 	}
