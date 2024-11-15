@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 		struct AsyncIoLoopHandle
 		{
 			HANDLE hCompletionPort;
@@ -60,7 +61,8 @@ namespace slib
 		delete handle;
 	}
 
-	namespace {
+	namespace
+	{
 		BOOL WINAPI GetQueuedCompletionStatusExImpl(
 			HANDLE CompletionPort,
 			LPOVERLAPPED_ENTRY lpCompletionPortEntries,
@@ -96,6 +98,8 @@ namespace slib
 
 		while (m_flagRunning) {
 
+			increaseReference_NoSync();
+
 			_stepBegin();
 
 			DWORD nCount = 0;
@@ -118,6 +122,10 @@ namespace slib
 
 			if (m_flagRunning) {
 				_stepEnd();
+			}
+
+			if (!(decreaseReference())) {
+				break;
 			}
 		}
 

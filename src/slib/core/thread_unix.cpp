@@ -34,7 +34,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 		SLIB_THREAD Thread* g_currentThread = sl_null;
 		SLIB_THREAD sl_uint64 g_uniqueId = 0;
 	}
@@ -59,7 +60,8 @@ namespace slib
 		g_uniqueId = n;
 	}
 
-	namespace {
+	namespace
+	{
 		static void* ThreadProc(void* lpParam)
 		{
 			Thread* pThread = (Thread*)lpParam;
@@ -83,12 +85,12 @@ namespace slib
 		if (result) {
 			return;
 		}
-		this->increaseReference();
+		increaseReference();
 		result = pthread_create(&threadId, &attr, &ThreadProc, this);
 		if (result == 0) {
 			m_handle = (void*)(threadId);
 		} else {
-			this->decreaseReference();
+			decreaseReference();
 		}
 		pthread_attr_destroy(&attr);
 	}
@@ -102,7 +104,8 @@ namespace slib
 		return sl_true;
 	}
 
-	namespace {
+	namespace
+	{
 #define PRIV_UNIX_SCHED_POLICY SCHED_FIFO
 		static int GetUnixPriority(ThreadPriority priority)
 		{

@@ -143,10 +143,10 @@ namespace slib
 	void Thread::_nativeStart(sl_uint32 stackSize)
 	{
 		DWORD threadID = 0;
-		this->increaseReference();
+		increaseReference();
 		m_handle = (void*)(CreateThread(NULL, stackSize, ThreadProc, (LPVOID)this, 0, &threadID));
 		if (!m_handle) {
-			this->decreaseReference();
+			decreaseReference();
 		}
 	}
 
