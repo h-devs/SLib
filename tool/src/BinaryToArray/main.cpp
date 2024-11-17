@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -27,28 +27,21 @@ using namespace slib;
 int main(int argc, const char * argv[])
 {
 	if (argc < 3) {
-		Println("Usage: BinaryToArray [compress|decompress|compress-zstd|decompress-zstd|d] <source-path> <output-path>");
+		Println("Usage: BinaryToArray [compress|decompress|compress-zstd|decompress-zstd|compress-lzma|decompress-lzma|d] <source-path> <output-path>");
 		return -1;
 	}
 	String fileSource;
 	String fileOutput;
 	sl_bool flagToBinary = sl_false;
-	sl_bool flagCompressZstd = sl_false;
 	sl_bool flagCompressZlib = sl_false;
+	sl_bool flagCompressZstd = sl_false;
+	sl_bool flagCompressLzma = sl_false;
 	if (Base::equalsString(argv[1], "compress")) {
 		if (argc != 4) {
 			Println("Invalid argument count!");
 			return -1;
 		}
 		flagCompressZlib = sl_true;
-		fileSource = argv[2];
-		fileOutput = argv[3];
-	} else if (Base::equalsString(argv[1], "compress-zstd")) {
-		if (argc != 4) {
-			Println("Invalid argument count!");
-			return -1;
-		}
-		flagCompressZstd = sl_true;
 		fileSource = argv[2];
 		fileOutput = argv[3];
 	} else if (Base::equalsString(argv[1], "decompress")) {
@@ -60,12 +53,37 @@ int main(int argc, const char * argv[])
 		flagToBinary = sl_true;
 		fileSource = argv[2];
 		fileOutput = argv[3];
+	} else if (Base::equalsString(argv[1], "compress-zstd")) {
+		if (argc != 4) {
+			Println("Invalid argument count!");
+			return -1;
+		}
+		flagCompressZstd = sl_true;
+		fileSource = argv[2];
+		fileOutput = argv[3];
 	} else if (Base::equalsString(argv[1], "decompress-zstd")) {
 		if (argc != 4) {
 			Println("Invalid argument count!");
 			return -1;
 		}
 		flagCompressZstd = sl_true;
+		flagToBinary = sl_true;
+		fileSource = argv[2];
+		fileOutput = argv[3];
+	} else if (Base::equalsString(argv[1], "compress-lzma")) {
+		if (argc != 4) {
+			Println("Invalid argument count!");
+			return -1;
+		}
+		flagCompressLzma = sl_true;
+		fileSource = argv[2];
+		fileOutput = argv[3];
+	} else if (Base::equalsString(argv[1], "decompress-lzma")) {
+		if (argc != 4) {
+			Println("Invalid argument count!");
+			return -1;
+		}
+		flagCompressLzma = sl_true;
 		flagToBinary = sl_true;
 		fileSource = argv[2];
 		fileOutput = argv[3];
@@ -125,6 +143,12 @@ int main(int argc, const char * argv[])
 				Println("Failed to decompress!");
 				return -1;
 			}
+		} else if (flagCompressLzma) {
+			mem = Lzma::decompress(buf.getData(), buf.getCount());
+			if (mem.isNull()) {
+				Println("Failed to decompress!");
+				return -1;
+			}
 		} else {
 			mem = Memory::createStatic(buf.getData(), buf.getCount());
 		}
@@ -146,6 +170,12 @@ int main(int argc, const char * argv[])
 			}
 		} else if (flagCompressZstd) {
 			mem = Zstd::compress(mem.getData(), mem.getSize(), 22);
+			if (mem.isNull()) {
+				Println("Failed to compress!");
+				return -1;
+			}
+		} else if (flagCompressLzma) {
+			mem = Lzma::compress(mem.getData(), mem.getSize(), 22);
 			if (mem.isNull()) {
 				Println("Failed to compress!");
 				return -1;
