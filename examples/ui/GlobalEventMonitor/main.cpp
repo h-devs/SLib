@@ -48,6 +48,9 @@ int main(int argc, const char * argv[])
 		Println("Failed to create monitor!");
 		return -1;
 	}
+#ifdef SLIB_PLATFORM_IS_MACOS
+	UI::runApp();
+#else
 	Println("Press x to exit!");
 	for (;;) {
 		if (Console::readChar() == 'x') {
@@ -55,5 +58,6 @@ int main(int argc, const char * argv[])
 		}
 		System::sleep(10);
 	}
+#endif
 	return 0;
 }

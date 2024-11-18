@@ -80,7 +80,7 @@ namespace slib
 
 	GlobalEventMonitorParam::GlobalEventMonitorParam()
 	{
-		flagEventTap = sl_true;
+		flagEventTap = sl_false;
 		flagSessionEventTap = sl_false;
 	}
 
