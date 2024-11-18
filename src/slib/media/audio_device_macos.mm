@@ -65,7 +65,7 @@ namespace slib
 				}
 				AudioBufferList* bufferList = (AudioBufferList*)(memBufferList);
 				if (AudioObjectGetPropertyData(deviceID, &propDeviceConfig, 0, NULL, &sizeValue, bufferList) == kAudioHardwareNoError) {
-					if (bufferList->mNumberBuffers == 0) {
+					if (!(bufferList->mNumberBuffers)) {
 						return sl_false;
 					}
 				} else {
@@ -194,6 +194,15 @@ namespace slib
 		return ret;
 	}
 
+	String AudioRecorder::getDefaultDeviceId()
+	{
+		MacAudioDeviceInfo info;
+		if (GetDefaultDeviceInfo(info, sl_true)) {
+			return info.uid;
+		}
+		return sl_null;
+	}
+
 	List<AudioPlayerDeviceInfo> AudioPlayerDevice::getDevices()
 	{
 		ListElements<MacAudioDeviceInfo> list(GetAllDevices(sl_false));
@@ -205,6 +214,15 @@ namespace slib
 			ret.add_NoLock(info);
 		}
 		return ret;
+	}
+
+	String AudioPlayerDevice::getDefaultDeviceId()
+	{
+		MacAudioDeviceInfo info;
+		if (GetDefaultDeviceInfo(info, sl_false)) {
+			return info.uid;
+		}
+		return sl_null;
 	}
 
 	namespace
@@ -678,6 +696,11 @@ namespace slib
 	List<AudioPlayerDeviceInfo> AudioPlayer::getDevices()
 	{
 		return AudioPlayerDevice::getDevices();
+	}
+
+	String AudioPlayer::getDefaultDeviceId()
+	{
+		return AudioPlayerDevice::getDefaultDeviceId();
 	}
 
 }

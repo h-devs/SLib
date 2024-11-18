@@ -51,7 +51,7 @@ namespace slib
 			}
 			AudioDeviceID defaultDeviceID = kAudioObjectUnknown;
 			UInt32 size = sizeof(defaultDeviceID);
-			OSStatus ret = AudioObjectGetPropertyData(kAudioObjectSystemObject, &address, 0, nil, &size, &defaultDeviceID);
+			OSStatus ret = AudioObjectGetPropertyData(kAudioObjectSystemObject, &address, 0, sl_null, &size, &defaultDeviceID);
 			if (ret == noErr) {
 				return defaultDeviceID;
 			}
@@ -67,7 +67,61 @@ namespace slib
 		{
 			return GetDefaultDeviceID(kAudioHardwarePropertyDefaultInputDevice);
 		}
-	
+
+		static Array<AudioDeviceID> GetAllDeviceIDs()
+		{
+			AudioObjectPropertyAddress address;
+			address.mSelector = kAudioHardwarePropertyDevices;
+			address.mScope = kAudioObjectPropertyScopeGlobal;
+			address.mElement = kAudioObjectPropertyElementWildcard;
+			if (!(AudioObjectHasProperty(kAudioObjectSystemObject, &address))) {
+				return sl_null;
+			}
+			UInt32 size = 0;
+			AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &address, 0, sl_null, &size);
+			if (!size) {
+				return sl_null;
+			}
+			sl_uint32 n = (sl_uint32)(size / sizeof(AudioDeviceID));
+			if (!n) {
+				return sl_null;
+			}
+			Array<AudioDeviceID> ret = Array<AudioDeviceID>::create(n);
+			if (ret.isNull()) {
+				return sl_null;
+			}
+			if (AudioObjectGetPropertyData(kAudioObjectSystemObject, &address, 0, sl_null, &size, ret.getData()) == noErr) {
+				return ret;
+			}
+			return sl_null;
+		}
+
+		static sl_bool IsDeviceSupportingScope(AudioDeviceID deviceID, AudioObjectPropertyScope scope)
+		{
+			AudioObjectPropertyAddress address;
+			address.mSelector = kAudioDevicePropertyStreamConfiguration;
+			address.mScope = scope;
+			address.mElement = kAudioObjectPropertyElementWildcard;
+			if (!(AudioObjectHasProperty(deviceID, &address))) {
+				return sl_false;
+			}
+			UInt32 size = 0;
+			AudioObjectGetPropertyDataSize(deviceID, &address, 0, sl_null, &size);
+			if (!size) {
+				return sl_false;
+			}
+			SLIB_SCOPED_BUFFER(sl_uint8, 1024, buf, size)
+			if (!buf) {
+				return sl_false;
+			}
+			AudioBufferList* bufferList = (AudioBufferList*)buf;
+			if (AudioObjectGetPropertyData(deviceID, &address, 0, sl_null, &size, bufferList) == noErr) {
+				return bufferList->mNumberBuffers > 0;
+			} else {
+				return sl_false;
+			}
+		}
+
 		static float GetDeviceVolume(AudioDeviceID deviceID, AudioObjectPropertyScope scope)
 		{
 			if (deviceID == kAudioObjectUnknown) {
@@ -87,7 +141,7 @@ namespace slib
 			}
 			Float32 volume = 0;
 			UInt32 size = sizeof(volume);
-			OSStatus ret = AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, &volume);
+			OSStatus ret = AudioObjectGetPropertyData(deviceID, &address, 0, sl_null, &size, &volume);
 			if (ret == noErr) {
 				return (float)volume;
 			}
@@ -113,7 +167,7 @@ namespace slib
 			}
 			Float32 volume = (Float32)(Math::clamp(_volume, 0.0f, 1.0f));
 			UInt32 size = sizeof(volume);
-			AudioObjectSetPropertyData(deviceID, &address, 0, nil, size, &volume);
+			AudioObjectSetPropertyData(deviceID, &address, 0, sl_null, size, &volume);
 		}
 
 		static sl_bool IsDeviceMute(AudioDeviceID deviceID, AudioObjectPropertyScope scope)
@@ -134,7 +188,7 @@ namespace slib
 			}
 			UInt32 flag = 0;
 			UInt32 size = sizeof(flag);
-			OSStatus ret = AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, &flag);
+			OSStatus ret = AudioObjectGetPropertyData(deviceID, &address, 0, sl_null, &size, &flag);
 			if (ret == noErr) {
 				return flag == 1;
 			}
@@ -171,8 +225,20 @@ namespace slib
 
 	void Device::setVolume(AudioStreamType stream, float volume, const DeviceSetVolumeFlags& flags)
 	{
-		AudioDeviceID deviceID = GetDefaultOutputDeviceID();
-		SetDeviceVolume(deviceID, kAudioDevicePropertyScopeOutput, volume);
+		if (flags & DeviceSetVolumeFlags::AllDevices) {
+			Array<AudioDeviceID> devices = GetAllDeviceIDs();
+			AudioDeviceID* pDevices = devices.getData();
+			sl_size nDevices = devices.getCount();
+			for (sl_size i = 0; i < nDevices; i++) {
+				AudioDeviceID& deviceID = pDevices[i];
+				if (IsDeviceSupportingScope(deviceID, kAudioDevicePropertyScopeOutput)) {
+					SetDeviceVolume(deviceID, kAudioDevicePropertyScopeOutput, volume);
+				}
+			}
+		} else {
+			AudioDeviceID deviceID = GetDefaultOutputDeviceID();
+			SetDeviceVolume(deviceID, kAudioDevicePropertyScopeOutput, volume);
+		}
 	}
 
 	sl_bool Device::isMute(AudioStreamType stream)
@@ -181,10 +247,38 @@ namespace slib
 		return IsDeviceMute(deviceID, kAudioDevicePropertyScopeOutput);
 	}
 
+	sl_bool Device::isMuteAll()
+	{
+		Array<AudioDeviceID> devices = GetAllDeviceIDs();
+		AudioDeviceID* pDevices = devices.getData();
+		sl_size nDevices = devices.getCount();
+		for (sl_size i = 0; i < nDevices; i++) {
+			AudioDeviceID& deviceID = pDevices[i];
+			if (IsDeviceSupportingScope(deviceID, kAudioDevicePropertyScopeOutput)) {
+				if (!(IsDeviceMute(deviceID, kAudioDevicePropertyScopeOutput))) {
+					return sl_false;
+				}
+			}
+		}
+		return sl_true;
+	}
+
 	void Device::setMute(AudioStreamType stream, sl_bool flagMute, const DeviceSetVolumeFlags& flags)
 	{
-		AudioDeviceID deviceID = GetDefaultOutputDeviceID();
-		SetDeviceMute(deviceID, kAudioDevicePropertyScopeOutput, flagMute);
+		if (flags & DeviceSetVolumeFlags::AllDevices) {
+			Array<AudioDeviceID> devices = GetAllDeviceIDs();
+			AudioDeviceID* pDevices = devices.getData();
+			sl_size nDevices = devices.getCount();
+			for (sl_size i = 0; i < nDevices; i++) {
+				AudioDeviceID& deviceID = pDevices[i];
+				if (IsDeviceSupportingScope(deviceID, kAudioDevicePropertyScopeOutput)) {
+					SetDeviceMute(deviceID, kAudioDevicePropertyScopeOutput, flagMute);
+				}
+			}
+		} else {
+			AudioDeviceID deviceID = GetDefaultOutputDeviceID();
+			SetDeviceMute(deviceID, kAudioDevicePropertyScopeOutput, flagMute);
+		}
 	}
 
 	float Device::getMicrophoneVolume()
@@ -193,10 +287,22 @@ namespace slib
 		return GetDeviceVolume(deviceID, kAudioDevicePropertyScopeInput);
 	}
 
-	void Device::setMicrophoneVolume(float volume)
+	void Device::setMicrophoneVolume(float volume, const DeviceSetVolumeFlags& flags)
 	{
-		AudioDeviceID deviceID = GetDefaultInputDeviceID();
-		SetDeviceVolume(deviceID, kAudioDevicePropertyScopeInput, volume);
+		if (flags & DeviceSetVolumeFlags::AllDevices) {
+			Array<AudioDeviceID> devices = GetAllDeviceIDs();
+			AudioDeviceID* pDevices = devices.getData();
+			sl_size nDevices = devices.getCount();
+			for (sl_size i = 0; i < nDevices; i++) {
+				AudioDeviceID& deviceID = pDevices[i];
+				if (IsDeviceSupportingScope(deviceID, kAudioDevicePropertyScopeInput)) {
+					SetDeviceVolume(deviceID, kAudioDevicePropertyScopeInput, volume);
+				}
+			}
+		} else {
+			AudioDeviceID deviceID = GetDefaultInputDeviceID();
+			SetDeviceVolume(deviceID, kAudioDevicePropertyScopeInput, volume);
+		}
 	}
 
 	sl_bool Device::isMicrophoneMute()
@@ -205,10 +311,38 @@ namespace slib
 		return IsDeviceMute(deviceID, kAudioDevicePropertyScopeInput);
 	}
 
-	void Device::setMicrophoneMute(sl_bool flag)
+	sl_bool Device::isMicrophoneMuteAll()
 	{
-		AudioDeviceID deviceID = GetDefaultInputDeviceID();
-		SetDeviceMute(deviceID, kAudioDevicePropertyScopeInput, flag);
+		Array<AudioDeviceID> devices = GetAllDeviceIDs();
+		AudioDeviceID* pDevices = devices.getData();
+		sl_size nDevices = devices.getCount();
+		for (sl_size i = 0; i < nDevices; i++) {
+			AudioDeviceID& deviceID = pDevices[i];
+			if (IsDeviceSupportingScope(deviceID, kAudioDevicePropertyScopeInput)) {
+				if (!(IsDeviceMute(deviceID, kAudioDevicePropertyScopeInput))) {
+					return sl_false;
+				}
+			}
+		}
+		return sl_true;
+	}
+
+	void Device::setMicrophoneMute(sl_bool flagMute, const DeviceSetVolumeFlags& flags)
+	{
+		if (flags & DeviceSetVolumeFlags::AllDevices) {
+			Array<AudioDeviceID> devices = GetAllDeviceIDs();
+			AudioDeviceID* pDevices = devices.getData();
+			sl_size nDevices = devices.getCount();
+			for (sl_size i = 0; i < nDevices; i++) {
+				AudioDeviceID& deviceID = pDevices[i];
+				if (IsDeviceSupportingScope(deviceID, kAudioDevicePropertyScopeInput)) {
+					SetDeviceMute(deviceID, kAudioDevicePropertyScopeInput, flagMute);
+				}
+			}
+		} else {
+			AudioDeviceID deviceID = GetDefaultInputDeviceID();
+			SetDeviceMute(deviceID, kAudioDevicePropertyScopeInput, flagMute);
+		}
 	}
 
 	sl_bool Device::isUsingMicrophone()
@@ -222,25 +356,25 @@ namespace slib
 		address.mElement = kAudioObjectPropertyElementMaster;
 #endif
 		UInt32 nDataSize = 0;
-		AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &address, 0, nil, &nDataSize);
+		AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &address, 0, sl_null, &nDataSize);
 		sl_uint32 nDevices = nDataSize / sizeof(AudioDeviceID);
 		SLIB_SCOPED_BUFFER(AudioDeviceID, 64, deviceIds, nDevices)
 		if (!deviceIds) {
 			return sl_false;
 		}
 		sl_bool bRet = sl_false;
-		if (AudioObjectGetPropertyData(kAudioObjectSystemObject, &address, 0, nil, &nDataSize, deviceIds) == noErr) {
+		if (AudioObjectGetPropertyData(kAudioObjectSystemObject, &address, 0, sl_null, &nDataSize, deviceIds) == noErr) {
 			for (sl_uint32 i = 0; i < nDevices; i++) {
 				AudioDeviceID deviceId = deviceIds[i];
 				address.mSelector = kAudioDevicePropertyStreams;
 				address.mScope = kAudioDevicePropertyScopeInput;
 				nDataSize = 0;
-				AudioObjectGetPropertyDataSize(deviceId, &address, 0, nil, &nDataSize);
+				AudioObjectGetPropertyDataSize(deviceId, &address, 0, sl_null, &nDataSize);
 				if (nDataSize) {
 					UInt32 flagRunning = 0;
 					address.mSelector = kAudioDevicePropertyDeviceIsRunningSomewhere;
 					nDataSize = sizeof(flagRunning);
-					if (AudioObjectGetPropertyData(deviceId, &address, 0, nil, &nDataSize, &flagRunning) == noErr) {
+					if (AudioObjectGetPropertyData(deviceId, &address, 0, sl_null, &nDataSize, &flagRunning) == noErr) {
 						if (flagRunning) {
 							bRet = sl_true;
 						}
