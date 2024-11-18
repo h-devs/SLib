@@ -228,7 +228,7 @@ namespace slib
 
 	sl_bool IPC::sendMessageSynchronous(const RequestParam& param, ResponseMessage& response)
 	{
-		MachPort portRemote = MachPort::lookUp(param.targetName);
+		MachPort portRemote = MachPort::lookUp(GetTargetName(param.targetName, param.flagGlobal));
 		if (portRemote.isNone()) {
 			return sl_false;
 		}

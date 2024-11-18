@@ -213,7 +213,7 @@ namespace slib
 			}
 			UInt32 flag = flagMute ? 1 : 0;
 			UInt32 size = sizeof(flag);
-			AudioObjectSetPropertyData(deviceID, &address, 0, nil, size, &flag);
+			AudioObjectSetPropertyData(deviceID, &address, 0, sl_null, size, &flag);
 		}
 	}
 

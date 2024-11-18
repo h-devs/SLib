@@ -343,7 +343,6 @@ namespace slib
 
 	String SAppLayoutXmlItem::getXmlAttribute(const String& name)
 	{
-		sl_bool flagElementValue = sl_false;
 		String value = element->getAttribute(name);
 		if (value.isNotNull()) {
 			value = _resolveVariables(name, value);
