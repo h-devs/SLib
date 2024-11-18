@@ -37,12 +37,20 @@ namespace slib
 
 		Nullable(const Nullable& other) = default;
 
+		Nullable(Nullable& other) = default;
+
 		Nullable(Nullable&& other) = default;
 
 		Nullable(sl_null_t): flagNull(sl_true), flagUndefined(sl_false) {}
 
 		template <class OTHER>
 		Nullable(const Nullable<OTHER>& other): flagNull(other.flagNull), flagUndefined(other.flagUndefined), value(other.value) {}
+
+		template <class OTHER>
+		Nullable(Nullable<OTHER>& other): flagNull(other.flagNull), flagUndefined(other.flagUndefined), value(other.value) {}
+
+		template <class OTHER>
+		Nullable(Nullable<OTHER>&& other): flagNull(other.flagNull), flagUndefined(other.flagUndefined), value(Move(other.value)) {}
 
 		template <class... ARGS>
 		Nullable(ARGS&&... args): flagNull(sl_false), flagUndefined(sl_false), value(Forward<ARGS...>(args...)) {}
@@ -60,6 +68,8 @@ namespace slib
 
 		Nullable& operator=(const Nullable& other) = default;
 
+		Nullable& operator=(Nullable& other) = default;
+
 		Nullable& operator=(Nullable&& other) = default;
 
 		Nullable& operator=(sl_null_t)
@@ -76,6 +86,24 @@ namespace slib
 			flagNull = other.flagNull;
 			flagUndefined = other.flagUndefined;
 			value = other.value;
+			return *this;
+		}
+
+		template <class OTHER>
+		Nullable& operator=(Nullable<OTHER>& other)
+		{
+			flagNull = other.flagNull;
+			flagUndefined = other.flagUndefined;
+			value = other.value;
+			return *this;
+		}
+
+		template <class OTHER>
+		Nullable& operator=(Nullable<OTHER>&& other)
+		{
+			flagNull = other.flagNull;
+			flagUndefined = other.flagUndefined;
+			value = Move(other.value);
 			return *this;
 		}
 
