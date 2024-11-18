@@ -798,6 +798,7 @@ namespace slib
 					return sl_false;
 				}
 				Nullable<sl_bool> flagDefaultFilterLayout;
+				Nullable<sl_bool> t = flagDefaultFilterLayout;
 				if (!(ConfigParseBooleanElement(flagDefaultFilterLayout, this, el_generate_cpp, "filter-layout", sInclude, sExclude))) {
 					return sl_false;
 				}
