@@ -466,6 +466,8 @@ namespace slib
 
 		sl_bool isSorting();
 		void setSorting(sl_bool flag);
+		String getSortField();
+		sl_bool isAscendingSort();
 
 		Ref<Drawable> getAscendingIcon();
 		void setAscendingIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -488,6 +490,7 @@ namespace slib
 		void setData(const Variant& data, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void clearData(UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setModel(const Ref<TableModel>& source, UIUpdateMode mode = UIUpdateMode::Redraw);
+		VariantList setModelData(const Ref<TableModel>& source, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setDataFilter(const Variant& filter, UIUpdateMode mode = UIUpdateMode::Redraw);
 

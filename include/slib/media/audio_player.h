@@ -77,6 +77,8 @@ namespace slib
 
 		static List<AudioPlayerDeviceInfo> getDevices();
 
+		static String getDefaultDeviceId();
+
 	public:
 		void release();
 
@@ -146,6 +148,8 @@ namespace slib
 		static Ref<AudioPlayerDevice> create(const AudioPlayerDeviceParam& param);
 
 		static List<AudioPlayerDeviceInfo> getDevices();
+
+		static String getDefaultDeviceId();
 
 	public:
 		virtual Ref<AudioPlayer> createPlayer(const AudioPlayerParam& param) = 0;

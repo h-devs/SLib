@@ -79,13 +79,12 @@ namespace slib
 
 	void Thread::_nativeStart(sl_uint32 stackSize)
 	{
-		this->increaseReference();
+		increaseReference();
 
 		SLIBThread *obj = [[SLIBThread alloc] init];
 		NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
 		params[@"thread_object"] = [NSNumber numberWithLong:(long)this];
-		NSThread* thread=[[NSThread alloc]initWithTarget:obj
-												selector:@selector(run_callback:) object:params];
+		NSThread* thread=[[NSThread alloc]initWithTarget:obj selector:@selector(run_callback:) object:params];
 		if (thread != NULL) {
 			m_handle = (__bridge void*)thread;
 			stackSize = ((stackSize - 1) | 4095) + 1;
@@ -93,7 +92,7 @@ namespace slib
 			[thread start];
 		} else {
 			m_handle = 0;
-			this->decreaseReference();
+			decreaseReference();
 		}
 	}
 

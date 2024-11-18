@@ -335,7 +335,11 @@ namespace slib
 		if (!thread) {
 			return;
 		}
+
 		while (thread->isNotStopping()) {
+
+			increaseReference_NoSync();
+
 			// Async Tasks
 			{
 				LinkedQueue< Function<void()> > tasks;
@@ -355,6 +359,10 @@ namespace slib
 					t = 10000;
 				}
 				thread->wait(t);
+			}
+
+			if (!(decreaseReference())) {
+				break;
 			}
 		}
 	}

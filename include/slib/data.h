@@ -34,6 +34,7 @@
 
 #include "data/zlib.h"
 #include "data/zstd.h"
+#include "data/lzma.h"
 #include "data/lzw.h"
 #include "data/brotli.h"
 

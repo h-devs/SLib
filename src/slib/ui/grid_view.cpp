@@ -36,8 +36,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		static const sl_real g_colorMatrix_hover_buf[20] = {
 			0.5f, 0, 0, 0,
 			0, 0.5f, 0, 0,
@@ -110,9 +110,7 @@ namespace slib
 					canvas->fillPolygon(pts, 3, m_brush);
 				}
 			}
-
 		};
-
 	}
 
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, DrawCellParam)
@@ -2116,6 +2114,19 @@ namespace slib
 		m_flagDefinedSorting = sl_true;
 	}
 
+	String GridView::getSortField()
+	{
+		if (m_cellSort) {
+			return m_cellSort->field;
+		}
+		return sl_null;
+	}
+
+	sl_bool GridView::isAscendingSort()
+	{
+		return m_flagSortAsc;
+	}
+
 	Ref<Drawable> GridView::getAscendingIcon()
 	{
 		return m_iconAsc;
@@ -2277,7 +2288,8 @@ namespace slib
 		invalidate(mode);
 	}
 
-	namespace {
+	namespace
+	{
 		class CompareRecord
 		{
 		public:
@@ -2642,6 +2654,30 @@ namespace slib
 			}
 		}
 		invalidate(mode);
+	}
+
+	VariantList GridView::setModelData(const Ref<TableModel>& source, UIUpdateMode mode)
+	{
+		Variant filter = m_dataFilter;
+		if (filter.isNotNull()) {
+			source->filter(filter);
+		}
+		if (m_cellSort) {
+			source->sort(m_cellSort->field, m_flagSortAsc);
+		}
+		VariantList records = source->getRecords(0, SLIB_SIZE_MAX);
+		setData(records, mode);
+		m_filteredData.setNull();
+		m_onChangeDataFilter = [this, source](const Variant& filter, UIUpdateMode mode) {
+			source->filter(filter);
+			setData(source->getRecords(0, SLIB_SIZE_MAX), mode);
+		};
+		m_sortedData.setNull();
+		m_onSort = ([this, source](const String& field, sl_bool flagAsc, UIUpdateMode mode) {
+			source->sort(field, flagAsc);
+			setData(source->getRecords(0, SLIB_SIZE_MAX), mode);
+		});
+		return records;
 	}
 
 	void GridView::setDataFilter(const Variant& filter, UIUpdateMode mode)

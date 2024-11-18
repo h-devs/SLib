@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -45,115 +45,249 @@ namespace slib
 
 	namespace
 	{
-		static IAudioEndpointVolume* GetEndpointVolume(EDataFlow dataFlow)
+		static IMMDeviceEnumerator* GetDeviceEnumerator()
 		{
 			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 			IMMDeviceEnumerator* enumerator = NULL;
 			HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER, __uuidof(IMMDeviceEnumerator), (void**)&enumerator);
-			if (!SUCCEEDED(hr)) {
-				return NULL;
+			SLIB_UNUSED(hr)
+			return enumerator;
+		}
+
+		static IMMDeviceCollection* GetDevices(EDataFlow dataFlow)
+		{
+			IMMDeviceEnumerator* enumerator = GetDeviceEnumerator();
+			if (!enumerator) {
+				return sl_null;
 			}
-			IAudioEndpointVolume* volume = NULL;
+			IMMDeviceCollection* devices = sl_null;
+			HRESULT hr = enumerator->EnumAudioEndpoints(dataFlow, DEVICE_STATE_ACTIVE, &devices);
+			SLIB_UNUSED(hr)
+			enumerator->Release();
+			return devices;
+		}
+
+		static IAudioEndpointVolume* GetEndpointVolume(EDataFlow dataFlow)
+		{
+			IMMDeviceEnumerator* enumerator = GetDeviceEnumerator();
+			if (!enumerator) {
+				return sl_null;
+			}
+			IAudioEndpointVolume* volume = sl_null;
 			IMMDevice* device = sl_null;
-			hr = enumerator->GetDefaultAudioEndpoint(dataFlow, eConsole, &device);
-			if (SUCCEEDED(hr)) {
-				device->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, NULL, (void**)&volume);
+			HRESULT hr = enumerator->GetDefaultAudioEndpoint(dataFlow, eConsole, &device);
+			SLIB_UNUSED(hr)
+			if (device) {
+				hr = device->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, sl_null, (void**)&volume);
 				device->Release();
 			}
 			enumerator->Release();
 			return volume;
+		}
+
+		static float GetVolumeDefault(EDataFlow dataFlow)
+		{
+			IAudioEndpointVolume* volume = GetEndpointVolume(dataFlow);
+			if (volume) {
+				float level = 0;
+				HRESULT hr = volume->GetMasterVolumeLevelScalar(&level);
+				SLIB_UNUSED(hr)
+				volume->Release();
+				return level;
+			}
+			return 0.0f;
+		}
+
+		static void SetVolumeDefault(EDataFlow dataFlow, float level)
+		{
+			IAudioEndpointVolume* volume = GetEndpointVolume(dataFlow);
+			if (volume) {
+				HRESULT hr = volume->SetMasterVolumeLevelScalar(level, sl_null);
+				SLIB_UNUSED(hr)
+				volume->Release();
+			}
+		}
+		
+		static void SetVolumeAll(EDataFlow dataFlow, float level)
+		{
+			IMMDeviceCollection* devices = GetDevices(dataFlow);
+			if (!devices) {
+				return;
+			}
+			sl_bool bRet = sl_true;
+			UINT nDevices = 0;
+			HRESULT hr = devices->GetCount(&nDevices);
+			SLIB_UNUSED(hr)
+			for (UINT iDevice = 0; iDevice < nDevices; iDevice++) {
+				IMMDevice* device = sl_null;
+				hr = devices->Item(iDevice, &device);
+				if (device) {
+					IAudioEndpointVolume* volume = sl_null;
+					hr = device->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, sl_null, (void**)&volume);
+					device->Release();
+					if (volume) {
+						HRESULT hr = volume->SetMasterVolumeLevelScalar(level, sl_null);
+						volume->Release();
+					}
+				}
+			}
+			devices->Release();
+		}
+
+		static sl_bool IsMuteDefault(EDataFlow dataFlow)
+		{
+			IAudioEndpointVolume* volume = GetEndpointVolume(dataFlow);
+			if (volume) {
+				BOOL f = TRUE;
+				HRESULT hr = volume->GetMute(&f);
+				SLIB_UNUSED(hr)
+				volume->Release();
+				return f ? sl_true : sl_false;
+			}
+			return sl_true;
+		}
+
+		static void SetMuteDefault(EDataFlow dataFlow, sl_bool flagMute)
+		{
+			IAudioEndpointVolume* volume = GetEndpointVolume(dataFlow);
+			if (volume) {
+				HRESULT hr = volume->SetMute(flagMute ? TRUE : FALSE, sl_null);
+				SLIB_UNUSED(hr)
+				volume->Release();
+			}
+		}
+
+		static sl_bool IsMuteAll(EDataFlow dataFlow)
+		{
+			IMMDeviceCollection* devices = GetDevices(dataFlow);
+			if (!devices) {
+				return sl_true;
+			}
+			sl_bool bRet = sl_true;
+			UINT nDevices = 0;
+			HRESULT hr = devices->GetCount(&nDevices);
+			SLIB_UNUSED(hr)
+			for (UINT iDevice = 0; iDevice < nDevices; iDevice++) {
+				IMMDevice* device = sl_null;
+				hr = devices->Item(iDevice, &device);
+				if (device) {
+					IAudioEndpointVolume* volume = sl_null;
+					hr = device->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, sl_null, (void**)&volume);
+					device->Release();
+					if (volume) {
+						BOOL f = TRUE;
+						hr = volume->GetMute(&f);
+						volume->Release();
+						if (!f) {
+							bRet = sl_false;
+						}
+					}
+				}
+			}
+			devices->Release();
+			return bRet;
+		}
+
+		static void SetMuteAll(EDataFlow dataFlow, sl_bool flagMute)
+		{
+			IMMDeviceCollection* devices = GetDevices(dataFlow);
+			if (!devices) {
+				return;
+			}
+			sl_bool bRet = sl_true;
+			UINT nDevices = 0;
+			HRESULT hr = devices->GetCount(&nDevices);
+			SLIB_UNUSED(hr)
+			for (UINT iDevice = 0; iDevice < nDevices; iDevice++) {
+				IMMDevice* device = sl_null;
+				hr = devices->Item(iDevice, &device);
+				if (device) {
+					IAudioEndpointVolume* volume = sl_null;
+					hr = device->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, sl_null, (void**)&volume);
+					device->Release();
+					if (volume) {
+						HRESULT hr = volume->SetMute(flagMute ? TRUE : FALSE, sl_null);
+						volume->Release();
+					}
+				}
+			}
+			devices->Release();
 		}
 	}
 
 	float Device::getVolume(AudioStreamType stream)
 	{
 		// Only works for Windows Vista and later
-		IAudioEndpointVolume* volume = GetEndpointVolume(eRender);
-		if (volume) {
-			float level = 0;
-			volume->GetMasterVolumeLevelScalar(&level);
-			volume->Release();
-			return level;
-		}
-		return 0;
+		return GetVolumeDefault(eRender);
 	}
 
 	void Device::setVolume(AudioStreamType stream, float level, const DeviceSetVolumeFlags& flags)
 	{
 		// Only works for Windows Vista and later
-		IAudioEndpointVolume* volume = GetEndpointVolume(eRender);
-		if (volume) {
-			volume->SetMasterVolumeLevelScalar(level, NULL);
-			volume->Release();
+		if (flags & DeviceSetVolumeFlags::AllDevices) {
+			SetVolumeAll(eRender, level);
+		} else {
+			SetVolumeDefault(eRender, level);
 		}
 	}
 
 	sl_bool Device::isMute(AudioStreamType stream)
 	{
 		// Only works for Windows Vista and later
-		IAudioEndpointVolume* volume = GetEndpointVolume(eRender);
-		if (volume) {
-			BOOL f = TRUE;
-			volume->GetMute(&f);
-			volume->Release();
-			return f ? sl_true : sl_false;
-		}
-		return sl_true;
+		return IsMuteDefault(eRender);
+	}
+
+	sl_bool Device::isMuteAll()
+	{
+		// Only works for Windows Vista and later
+		return IsMuteAll(eRender);
 	}
 
 	void Device::setMute(AudioStreamType stream, sl_bool flagMute, const DeviceSetVolumeFlags& flags)
 	{
 		// Only works for Windows Vista and later
-		IAudioEndpointVolume* volume = GetEndpointVolume(eRender);
-		if (volume) {
-			volume->SetMute(flagMute ? TRUE : FALSE, NULL);
-			volume->Release();
+		if (flags & DeviceSetVolumeFlags::AllDevices) {
+			SetMuteAll(eRender, flagMute);
+		} else {
+			SetMuteDefault(eRender, flagMute);
 		}
 	}
 
 	float Device::getMicrophoneVolume()
 	{
 		// Only works for Windows Vista and later
-		IAudioEndpointVolume* volume = GetEndpointVolume(eCapture);
-		if (volume) {
-			float level = 0;
-			volume->GetMasterVolumeLevelScalar(&level);
-			volume->Release();
-			return level;
-		}
-		return 0;
+		return GetVolumeDefault(eCapture);
 	}
 
-	void Device::setMicrophoneVolume(float level)
+	void Device::setMicrophoneVolume(float level, const DeviceSetVolumeFlags& flags)
 	{
 		// Only works for Windows Vista and later
-		IAudioEndpointVolume* volume = GetEndpointVolume(eCapture);
-		if (volume) {
-			volume->SetMasterVolumeLevelScalar(level, NULL);
-			volume->Release();
+		if (flags & DeviceSetVolumeFlags::AllDevices) {
+			SetVolumeAll(eCapture, level);
+		} else {
+			SetVolumeDefault(eCapture, level);
 		}
 	}
 
 	sl_bool Device::isMicrophoneMute()
 	{
 		// Only works for Windows Vista and later
-		IAudioEndpointVolume* volume = GetEndpointVolume(eCapture);
-		if (volume) {
-			BOOL f = FALSE;
-			volume->GetMute(&f);
-			volume->Release();
-			return f;
-		}
-		return sl_false;
+		return IsMuteDefault(eCapture);
 	}
 
-	void Device::setMicrophoneMute(sl_bool flag)
+	sl_bool Device::isMicrophoneMuteAll()
 	{
 		// Only works for Windows Vista and later
-		IAudioEndpointVolume* volume = GetEndpointVolume(eCapture);
-		if (volume) {
-			volume->SetMute(flag ? TRUE : FALSE, NULL);
-			volume->Release();
+		return IsMuteAll(eCapture);
+	}
+
+	void Device::setMicrophoneMute(sl_bool flagMute, const DeviceSetVolumeFlags& flags)
+	{
+		// Only works for Windows Vista and later
+		if (flags & DeviceSetVolumeFlags::AllDevices) {
+			SetMuteAll(eCapture, flagMute);
+		} else {
+			SetMuteDefault(eCapture, flagMute);
 		}
 	}
 

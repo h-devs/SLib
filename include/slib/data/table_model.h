@@ -42,7 +42,7 @@ namespace slib
 	public:
 		virtual Variant getRecord(sl_uint64 index);
 
-		virtual VariantList getRecords(sl_uint64 index, sl_size count);
+		virtual VariantList getRecords(sl_uint64 index = 0, sl_size count = SLIB_SIZE_MAX);
 
 		virtual sl_uint64 getRecordCount() = 0;
 

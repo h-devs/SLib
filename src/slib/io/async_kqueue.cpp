@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2024 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,8 @@
 namespace slib
 {
 
-	namespace {
+	namespace
+	{
 		struct AsyncIoLoopHandle
 		{
 			int kq;
@@ -82,6 +83,8 @@ namespace slib
 
 		while (m_flagRunning) {
 
+			increaseReference_NoSync();
+
 			_stepBegin();
 
 			timespec timeout;
@@ -122,8 +125,11 @@ namespace slib
 			if (m_flagRunning) {
 				_stepEnd();
 			}
-		}
 
+			if (!(decreaseReference())) {
+				break;
+			}
+		}
 	}
 
 	void AsyncIoLoop::_native_wake()

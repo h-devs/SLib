@@ -85,17 +85,21 @@ namespace slib
 
 		static sl_bool isMute(AudioStreamType stream = AudioStreamType::Default);
 
+		static sl_bool isMuteAll();
+
 		static void setMute(AudioStreamType stream, sl_bool flagMute = sl_true, const DeviceSetVolumeFlags& flags = 0);
 
 		static void setMute(sl_bool flagMute = sl_true, const DeviceSetVolumeFlags& flags = 0);
 
 		static float getMicrophoneVolume();
 
-		static void setMicrophoneVolume(float volume);
+		static void setMicrophoneVolume(float volume, const DeviceSetVolumeFlags& flags = 0);
 
 		static sl_bool isMicrophoneMute();
 
-		static void setMicrophoneMute(sl_bool flag = sl_true);
+		static sl_bool isMicrophoneMuteAll();
+
+		static void setMicrophoneMute(sl_bool flag = sl_true, const DeviceSetVolumeFlags& flags = 0);
 
 		static sl_bool isSpeakerphoneOn();
 

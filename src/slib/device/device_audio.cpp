@@ -91,11 +91,21 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool Device::isMuteAll()
+	{
+		return isMicrophoneMute();
+	}
+
 	void Device::setMute(AudioStreamType stream, sl_bool flagMute, const DeviceSetVolumeFlags& flags)
 	{
 	}
 
 	sl_bool Device::isMicrophoneMute()
+	{
+		return sl_false;
+	}
+
+	sl_bool Device::isMicrophoneMuteAll()
 	{
 		return sl_false;
 	}
@@ -111,7 +121,7 @@ namespace slib
 		return 0;
 	}
 
-	void Device::setMicrophoneVolume(float volume)
+	void Device::setMicrophoneVolume(float volume, const DeviceSetVolumeFlags& flags)
 	{
 	}
 #endif
