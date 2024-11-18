@@ -39,6 +39,15 @@ namespace slib
 	{
 		typedef apple::MachPort MachPort;
 
+		static String GetTargetName(const StringParam& name, sl_bool flagGlobal)
+		{
+			if (flagGlobal) {
+				return name.toString();
+			} else {
+				return String::concat(String::fromUint32((sl_uint32)(getuid())), StringView::literal("_"), name);
+			}
+		}
+	
 		class MachPortRequest : public IPCRequest
 		{
 		public:
@@ -61,7 +70,7 @@ namespace slib
 		public:
 			static Ref<MachPortRequest> create(const IPCRequestParam& param)
 			{
-				MachPort portRemote = MachPort::lookUp(param.targetName);
+				MachPort portRemote = MachPort::lookUp(GetTargetName(param.targetName, param.flagGlobal));
 				if (portRemote.isNotNone()) {
 					MachPort portLocal = MachPort::create(sl_true);
 					if (portLocal.isNotNone()) {
@@ -155,7 +164,7 @@ namespace slib
 		public:
 			static Ref<MachPortServer> create(const IPCServerParam& param)
 			{
-				MachPort port = MachPort::checkIn(param.name, sl_true);
+				MachPort port = MachPort::checkIn(GetTargetName(param.name, param.flagGlobal), sl_true);
 				if (port.isNotNone()) {
 					Ref<MachPortServer> ret = new MachPortServer;
 					if (ret.isNotNull()) {
