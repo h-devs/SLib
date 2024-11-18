@@ -35,11 +35,11 @@ namespace slib
 	public:
 		Nullable(): flagNull(sl_true), flagUndefined(sl_true) {}
 
-		Nullable(const Nullable& other) = default;
+		Nullable(const Nullable& other): flagNull(other.flagNull), flagUndefined(other.flagUndefined), value(other.value) {}
 
-		Nullable(Nullable& other) = default;
+		Nullable(Nullable& other): flagNull(other.flagNull), flagUndefined(other.flagUndefined), value(other.value) {}
 
-		Nullable(Nullable&& other) = default;
+		Nullable(Nullable&& other): flagNull(other.flagNull), flagUndefined(other.flagUndefined), value(Move(other.value)) {}
 
 		Nullable(sl_null_t): flagNull(sl_true), flagUndefined(sl_false) {}
 
@@ -66,11 +66,29 @@ namespace slib
 			return value;
 		}
 
-		Nullable& operator=(const Nullable& other) = default;
+		Nullable& operator=(const Nullable& other)
+		{
+			flagNull = other.flagNull;
+			flagUndefined = other.flagUndefined;
+			value = other.value;
+			return *this;
+		}
 
-		Nullable& operator=(Nullable& other) = default;
+		Nullable& operator=(Nullable& other)
+		{
+			flagNull = other.flagNull;
+			flagUndefined = other.flagUndefined;
+			value = other.value;
+			return *this;
+		}
 
-		Nullable& operator=(Nullable&& other) = default;
+		Nullable& operator=(Nullable&& other)
+		{
+			flagNull = other.flagNull;
+			flagUndefined = other.flagUndefined;
+			value = Move(other.value);
+			return *this;
+		}
 
 		Nullable& operator=(sl_null_t)
 		{
