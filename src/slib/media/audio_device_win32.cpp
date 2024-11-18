@@ -623,47 +623,68 @@ namespace slib
 		static void GetCoreAudioDeviceInfos(List<INFO>& ret, sl_bool flagInput)
 		{
 			InitCOM();
-			IMMDeviceEnumerator* enumerator = NULL;
-			HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL, IID_PPV_ARGS(&enumerator));
-			if (SUCCEEDED(hr)) {
-				IMMDeviceCollection* collection = NULL;
+			IMMDeviceEnumerator* enumerator = sl_null;
+			HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), sl_null, CLSCTX_ALL, IID_PPV_ARGS(&enumerator));
+			if (enumerator) {
+				IMMDeviceCollection* collection = sl_null;
 				hr = enumerator->EnumAudioEndpoints(flagInput ? eCapture : eRender, DEVICE_STATE_ACTIVE | DEVICE_STATE_UNPLUGGED, &collection);
-				if (SUCCEEDED(hr)) {
+				if (collection) {
 					UINT n = 0;
 					hr = collection->GetCount(&n);
-					if (SUCCEEDED(hr)) {
-						for (UINT i = 0; i < n; i++) {
-							IMMDevice* device = NULL;
-							hr = collection->Item(i, &device);
-							if (SUCCEEDED(hr)) {
-								LPWSTR strId = NULL;
-								hr = device->GetId(&strId);
-								if (strId) {
-									IPropertyStore* props = NULL;
-									hr = device->OpenPropertyStore(STGM_READ, &props);
+					for (UINT i = 0; i < n; i++) {
+						IMMDevice* device = sl_null;
+						hr = collection->Item(i, &device);
+						if (device) {
+							LPWSTR strId = sl_null;
+							hr = device->GetId(&strId);
+							if (strId) {
+								IPropertyStore* props = sl_null;
+								hr = device->OpenPropertyStore(STGM_READ, &props);
+								if (props) {
+									PROPVARIANT varName;
+									PropVariantInit(&varName);
+									hr = props->GetValue(PKEY_Device_FriendlyName, &varName);
 									if (SUCCEEDED(hr)) {
-										PROPVARIANT varName;
-										PropVariantInit(&varName);
-										hr = props->GetValue(PKEY_Device_FriendlyName, &varName);
-										if (SUCCEEDED(hr)) {
-											AudioPlayerDeviceInfo info;
-											info.id = String::from(strId);
-											info.name = String::from(varName.bstrVal);
-											ret.add_NoLock(Move(info));
-											PropVariantClear(&varName);
-										}
-										props->Release();
+										AudioPlayerDeviceInfo info;
+										info.id = String::from(strId);
+										info.name = String::from(varName.bstrVal);
+										ret.add_NoLock(Move(info));
+										PropVariantClear(&varName);
 									}
-									CoTaskMemFree(strId);
+									props->Release();
 								}
-								device->Release();
+								CoTaskMemFree(strId);
 							}
+							device->Release();
 						}
 					}
 					collection->Release();
 				}
 				enumerator->Release();
 			}
+		}
+
+		static String GetCoreAudioDefaultDeviceId(sl_bool flagInput)
+		{
+			String ret;
+			InitCOM();
+			IMMDeviceEnumerator* enumerator = sl_null;
+			HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), sl_null, CLSCTX_ALL, IID_PPV_ARGS(&enumerator));
+			if (enumerator) {
+				IMMDevice* device = sl_null;
+				hr = enumerator->GetDefaultAudioEndpoint(flagInput ? eCapture : eRender, eConsole, &device);
+				if (device) {
+					LPWSTR strId = sl_null;
+					hr = device->GetId(&strId);
+					if (strId) {
+						ret = String::from(strId);
+						CoTaskMemFree(strId);
+					}
+					device->Release();
+				}
+				enumerator->Release();
+			}
+			return ret;
 		}
 
 		static IMMDevice* GetCoreAudioDevice(sl_bool flagInput, const AudioDeviceParam& param)
@@ -1055,6 +1076,15 @@ namespace slib
 		return ret;
 	}
 
+	String AudioRecorder::getDefaultDeviceId()
+	{
+		if (IsUsingCoreAudio()) {
+			return GetCoreAudioDefaultDeviceId(sl_true);
+		} else {
+			return sl_null;
+		}
+	}
+
 	Ref<AudioPlayerDevice> AudioPlayerDevice::create(const AudioPlayerDeviceParam& param)
 	{
 		if (IsUsingCoreAudio()) {
@@ -1080,6 +1110,15 @@ namespace slib
 			}
 		}
 		return ret;
+	}
+
+	String AudioPlayerDevice::getDefaultDeviceId()
+	{
+		if (IsUsingCoreAudio()) {
+			return GetCoreAudioDefaultDeviceId(sl_false);
+		} else {
+			return sl_null;
+		}
 	}
 
 }

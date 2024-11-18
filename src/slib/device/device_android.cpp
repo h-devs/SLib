@@ -41,8 +41,8 @@
 namespace slib
 {
 
-	namespace {
-
+	namespace
+	{
 		SLIB_JNI_BEGIN_CLASS(JAudioManager, "android/media/AudioManager")
 			SLIB_JNI_METHOD(getMode, "getMode", "()I")
 			SLIB_JNI_METHOD(setMode, "setMode", "(I)V");
@@ -82,7 +82,6 @@ namespace slib
 		SLIB_JNI_BEGIN_CLASS(JTelephonySubscriptionInfo, "android/telephony/SubscriptionInfo")
 			SLIB_JNI_METHOD(getNumber, "getNumber", "()Ljava/lang/String;")
 		SLIB_JNI_END_CLASS
-
 	}
 
 	DeviceAudioMode Device::getAudioMode()
@@ -139,12 +138,21 @@ namespace slib
 	{
 		JniLocal<jobject> manager = android::Context::getAudioManager(Android::getCurrentContext());
 		if (manager.isNotNull()) {
-			if (stream == AudioStreamType::Default) {
-				stream = AudioStreamType::Music;
-			}
 			int max = (int)(JAudioManager::getStreamMaxVolume.callInt(manager, (jint)stream));
-			int vol = (int)(volume * (float)max);
-			JAudioManager::setStreamVolume.call(manager, (jint)stream, (jint)vol, (jint)(flags.value));
+			jint vol = (jint)((int)(volume * (float)max));
+			jint f = (jint)(flags.value & 0xffff);
+			if (flags & DeviceSetVolumeFlags::AllDevices) {
+				JAudioManager::setStreamVolume.call(manager, (jint)(AudioStreamType::VoiceCall), vol, f);
+				JAudioManager::setStreamVolume.call(manager, (jint)(AudioStreamType::Ring), vol, f);
+				JAudioManager::setStreamVolume.call(manager, (jint)(AudioStreamType::Music), vol, f);
+				JAudioManager::setStreamVolume.call(manager, (jint)(AudioStreamType::Alarm), vol, f);
+				JAudioManager::setStreamVolume.call(manager, (jint)(AudioStreamType::Notification), vol, f);
+			} else {
+				if (stream == AudioStreamType::Default) {
+					stream = AudioStreamType::Music;
+				}
+				JAudioManager::setStreamVolume.call(manager, (jint)stream, vol, f);
+			}
 		}
 	}
 
@@ -158,20 +166,58 @@ namespace slib
 				}
 				return JAudioManager::isStreamMute.callBoolean(manager, (jint)stream);
 			}
+			return sl_false;
 		} else {
 			return getVolume(stream) < 0.0001;
 		}
-		return sl_false;
+	}
+
+	sl_bool Device::isMuteAll()
+	{
+		if (Android::getSdkVersion() >= AndroidSdkVersion::M) {
+			JniLocal<jobject> manager = android::Context::getAudioManager(Android::getCurrentContext());
+			if (manager.isNotNull()) {
+				if (!(JAudioManager::isStreamMute.callBoolean(manager, (jint)(AudioStreamType::VoiceCall)))) {
+					return sl_false;
+				}
+				if (!(JAudioManager::isStreamMute.callBoolean(manager, (jint)(AudioStreamType::Ring)))) {
+					return sl_false;
+				}
+				if (!(JAudioManager::isStreamMute.callBoolean(manager, (jint)(AudioStreamType::Music)))) {
+					return sl_false;
+				}
+				if (!(JAudioManager::isStreamMute.callBoolean(manager, (jint)(AudioStreamType::Alarm)))) {
+					return sl_false;
+				}
+				if (!(JAudioManager::isStreamMute.callBoolean(manager, (jint)(AudioStreamType::Notification)))) {
+					return sl_false;
+				}
+				return sl_true;
+			}
+			return sl_false;
+		} else {
+			return getVolume() < 0.0001;
+		}
 	}
 
 	void Device::setMute(AudioStreamType stream, sl_bool flagMute, const DeviceSetVolumeFlags& flags)
 	{
 		JniLocal<jobject> manager = android::Context::getAudioManager(Android::getCurrentContext());
 		if (manager.isNotNull()) {
-			if (stream == AudioStreamType::Default) {
-				stream = AudioStreamType::Music;
+			jint vol = (jint)(flagMute ? -100 : 100);
+			jint f = (jint)(flags.value & 0xffff);
+			if (flags & DeviceSetVolumeFlags::AllDevices) {
+				JAudioManager::setStreamVolume.call(manager, (jint)(AudioStreamType::VoiceCall), vol, f);
+				JAudioManager::setStreamVolume.call(manager, (jint)(AudioStreamType::Ring), vol, f);
+				JAudioManager::setStreamVolume.call(manager, (jint)(AudioStreamType::Music), vol, f);
+				JAudioManager::setStreamVolume.call(manager, (jint)(AudioStreamType::Alarm), vol, f);
+				JAudioManager::setStreamVolume.call(manager, (jint)(AudioStreamType::Notification), vol, f);
+			} else {
+				if (stream == AudioStreamType::Default) {
+					stream = AudioStreamType::Music;
+				}
+				JAudioManager::adjustStreamVolume.call(manager, (jint)stream, vol, f);
 			}
-			JAudioManager::adjustStreamVolume.call(manager, (jint)stream, (jint)(flagMute ? -100 : 100), (jint)(flags.value));
 		}
 	}
 
@@ -184,11 +230,16 @@ namespace slib
 		return sl_false;
 	}
 
-	void Device::setMicrophoneMute(sl_bool flag)
+	sl_bool Device::isMicrophoneMuteAll()
+	{
+		return isMicrophoneMute();
+	}
+
+	void Device::setMicrophoneMute(sl_bool flagMute, const DeviceSetVolumeFlags& flags)
 	{
 		JniLocal<jobject> manager = android::Context::getAudioManager(Android::getCurrentContext());
 		if (manager.isNotNull()) {
-			JAudioManager::setMicrophoneMute.call(manager, (jboolean)(flag ? 1 : 0));
+			JAudioManager::setMicrophoneMute.call(manager, (jboolean)(flagMute ? 1 : 0));
 		}
 	}
 

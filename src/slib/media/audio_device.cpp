@@ -318,6 +318,13 @@ namespace slib
 		}
 	}
 
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_MACOS)
+	String AudioRecorder::getDefaultDeviceId()
+	{
+		return sl_null;
+	}
+#endif
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerParam)
 
@@ -551,6 +558,13 @@ namespace slib
 	{
 	}
 
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_MACOS)
+	String AudioPlayerDevice::getDefaultDeviceId()
+	{
+		return sl_null;
+	}
+#endif
+
 #ifndef SLIB_PLATFORM_IS_APPLE
 	Ref<AudioPlayer> AudioPlayer::create(const AudioPlayerParam& param)
 	{
@@ -564,6 +578,11 @@ namespace slib
 	List<AudioPlayerDeviceInfo> AudioPlayer::getDevices()
 	{
 		return AudioPlayerDevice::getDevices();
+	}
+
+	String AudioPlayer::getDefaultDeviceId()
+	{
+		return AudioPlayerDevice::getDefaultDeviceId();
 	}
 #endif
 

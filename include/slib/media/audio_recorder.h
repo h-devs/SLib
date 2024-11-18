@@ -83,6 +83,8 @@ namespace slib
 
 		static List<AudioRecorderDeviceInfo> getDevices();
 
+		static String getDefaultDeviceId();
+
 	public:
 		void release();
 

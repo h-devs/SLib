@@ -61,7 +61,8 @@ namespace slib
 
 	SLIB_DEFINE_FLAGS(DeviceSetVolumeFlags, {
 		ShowUI = 1,
-		PlaySound = 4
+		PlaySound = 4,
+		AllDevices = 0x10000
 	})
 
 }
